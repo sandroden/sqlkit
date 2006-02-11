@@ -1,0 +1,16 @@
+Questa dir dovrebbe contenere alcune classi e funzioni per semplificare
+l'accesso al db.
+
+SqlTable.py  
+
+Gestisce la lista dei record generata da una query in futuro dovrebbe
+anche generare i necessari update insert e delete in base alle
+modifiche fatte.
+Per testarla prima bisogna creare il db dopo aver creato l'utente test:
+psql -U test < test.sql
+
+$ python SqlTable.py	     
+
+--
+
+Michele
