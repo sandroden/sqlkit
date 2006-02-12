@@ -15,7 +15,7 @@ eng = create_engine('postgres',
                      })
 
 
-#eng.begin()
+eng.begin()
 
 users = Table('users', eng,
               Column('user_id', Integer, primary_key = True),
@@ -128,4 +128,4 @@ for i in User.select():
         print c, i.__getattribute__(c),
     print
     
-#eng.rollback()
+eng.rollback()

@@ -11,7 +11,8 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 SET SESSION AUTHORIZATION 'test';
 
 SET search_path = public, pg_catalog;
-
+DROP TABLE euro_user CASCADE;
+DROP TABLE euro_mail;
 CREATE TABLE euro_user (
     user_id serial NOT NULL,
     user_name character varying(30) NOT NULL,
