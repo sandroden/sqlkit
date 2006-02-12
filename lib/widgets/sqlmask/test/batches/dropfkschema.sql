@@ -1,3 +1,0 @@
-
-DROP TABLE test2;
-DROP TABLE test1;
