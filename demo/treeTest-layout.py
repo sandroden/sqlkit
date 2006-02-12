@@ -8,11 +8,13 @@ import py_path
 from sqlalchemy import *
 from layout import *
 from SqlTreeView import *
+import config
 
-eng = create_engine('postgres', 
-                    {'database':'test', 
-                     'user':'test', 
-                     })
+eng = config.spawnEngine()
+# eng = create_engine('postgres', 
+#                     {'database':'test', 
+#                      'user':'test', 
+#                      })
 
 
 eng.begin()

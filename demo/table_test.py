@@ -9,11 +9,13 @@ from sqlalchemy import *
 from layout import *
 from SqlTreeView import *
 import reflect
+import config
 
-eng = create_engine('postgres', 
-                    {'database':'test', 
-                     'user':'test', 
-                     })
+eng = config.spawnEngine()
+# eng = create_engine('postgres', 
+#                     {'database':'test', 
+#                      'user':'test', 
+#                      })
 
 user = reflect.mapTable(engine,'euro_user')
 mail = reflect.mapTable(engine,'euro_mail')
