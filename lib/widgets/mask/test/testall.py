@@ -1,4 +1,9 @@
 
+import sys
+import sys ;
+sys.path.append('../../../../../../');
+import py_path
+
 import unittest
 
 def suite ():
