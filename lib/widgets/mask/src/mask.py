@@ -103,12 +103,3 @@ class SqlMask (object):
         return key
     return None
 
-
-if __name__ == '__main__':
-  engine = config.spawnEngine ()
-  table = reflect.mapTable (engine, 'test2')
-  mapper = reflect.getMapper (table)
-  record = reflect.getRecord (mapper, id = 1)
-  s = SqlMask (table, mapper, record)
-  gtk.main ()
-
