@@ -131,3 +131,25 @@ for i in User.select():
     print
     
 eng.rollback()
+
+eng.begin()
+
+users = Table('euro_user', eng, autoload = True)
+
+mails = Table('euro_mail', eng, autoload = True)
+
+class User(object):
+    pass
+
+class Mail(object):
+    pass
+
+
+assign_mapper(User, users,
+              properties = {'emails': relation(Mail, mails)})
+
+
+sqlt = SqlLayoutTreeView(User)
+gtk.main()
+
+eng.rollback()

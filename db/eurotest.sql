@@ -17,7 +17,7 @@ CREATE TABLE euro_user (
     user_id serial NOT NULL,
     user_name character varying(30) NOT NULL,
     user_last_name character varying(30) NOT NULL,
-    user_birth_date date, 
+    user_birth_date timestamp, 
     user_address character varying(20),
     user_city character varying(20),
     user_pv  character(2),

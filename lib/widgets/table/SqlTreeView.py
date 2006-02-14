@@ -5,9 +5,14 @@
 # Copyright (C) 2005, Michele Comitini <mcm@glisco.it>
 # 
 
-
 import sys
-sys.path.append('../gdl')
+sys.path.append ('../../../')
+import py_path
+from sqlalchemy import *
+from layout import *
+
+
+#sys.path.append('../gdl')
 
 if sys.hexversion < 0x20401f0:
     print "your python version: ", hex(sys.hexversion)
@@ -15,7 +20,7 @@ if sys.hexversion < 0x20401f0:
     sys.exit(-1)
     
 import gtk, gobject
-import layout
+#import layout
 from SqlChecker import *
 from sqlalchemy import *
 
@@ -135,13 +140,26 @@ class SqlTreeView(object):
         print "edited_signal"
 
         liststore, colnum = user_data
-
-        data = self.coltypes[colnum + 1](new_text)
+	
+	try:
+	    data = self.coltypes[colnum + 1](new_text)
+	except TypeError:
+	    try:
+		from mx.DateTime import DateTimeType, DateTimeFrom
+	    except ImportError:
+		#use a string
+		data = str(new_text)
+		raise ImportError
+	    else:
+		if self.coltypes[colnum + 1] is DateTimeType:
+		    data = DateTimeFrom(str(new_text))
+		else:
+		    print self.coltypes[colnum + 1]
+		    data = str(new_text)
+	
         liststore[path][colnum + 1] = data
         r = liststore[path][0]
         setattr(r, r.c.keys()[colnum], data)
-        #for a in r.c.keys():
-        #    print a + "=" + str(getattr(r, a)) + ' ',
         return True
     
         
@@ -178,9 +196,18 @@ class SqlTreeView(object):
     def mapToListStore(self):
         # suppose there is at least one record(?)
         colnames = self.mc.mapper.c.keys()
-        coltypes = [object]
-        coltypes.extend([type(self.mc.mapper.select()[0].__getattribute__(x)) for x in colnames])
-        self.coltypes = coltypes
+        self.coltypes = [object]
+        self.coltypes.extend([type(self.mc.mapper.select()[0].__getattribute__(x)) for x in colnames])
+	coltypes = [object]
+	print self.coltypes
+	# try to convert types to gobject types
+	for tp in self.coltypes[1: ]:
+	    try:
+		coltypes.append(gobject.type_from_name(gobject.type_name(tp)))
+	    except TypeError:
+		coltypes.append(str)
+
+	print coltypes
         self.liststore = gtk.ListStore(*coltypes)
         #fill up
         for r in self.mc.mapper.select():
@@ -205,7 +232,7 @@ class SqlLayoutTreeView(SqlTreeView):
           {O tb=gtk-save tb=gtk-delete tb=gtk-new tb=gtk-quit}
           TVS=tree
         """
-        self.l = layout.Layout(lay,opts='s', title="ListStorageView")
+        self.l = Layout(lay,opts='s', title="ListStorageView")
         self.w = self.l.show(x=self.delete_event)
         self.window = self.w['Window']
         self.l.menu('m=file',
@@ -235,8 +262,8 @@ class SqlLayoutTreeView(SqlTreeView):
 
     def delete_event(self, w, e):
         SqlTreeView.delete_event(self, w, e)
-        #gtk.main_quit()
-        return True
+        gtk.main_quit()
+        return False
 
     def exit_now(self, widget):
         self.delete_event(widget, None)
