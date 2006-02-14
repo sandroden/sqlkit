@@ -3,21 +3,17 @@
 import sys, re, datetime
 
 sys.path.append ('../../../')
-import py_path
+import py_path, config, reflect, mask
 
 from sqlalchemy import *
 from layout import *
 from SqlTreeView import *
-import reflect
-import config
 
-eng = config.spawnEngine()
+engine = config.spawnEngine()
 
-#user = reflect.mapTable(engine,'euro_user')
-#mail = reflect.mapTable(engine,'euro_mail')
-#res = join(user, mail).select().execute()
+user_table = reflect.mapTable (engine, 'euro_user')
+user_mapper = reflect.getMapper (user_table)
+user_record = reflect.getRecord (user_mapper, user_id = 1)
+user_mask = mask.SqlMask (user_table, user_mapper, user_record)
 
-#gtk.main()
-
-
-
+gtk.main()

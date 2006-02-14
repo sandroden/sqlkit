@@ -1,19 +1,11 @@
 
 import sys, re, datetime
 
-try:
-  import layout
-  import config
-except ImportError:
-  sys.path.append ('../..')
-  import layout
-  import config
+sys.path.append ('../../../../../../')
+import py_path, config, reflect, layout
 
 import gtk, pango
 from sqlalchemy import *
-
-from layout import layout
-from reflect import reflect
 
 
 class SqlMask (object):
@@ -71,7 +63,7 @@ class SqlMask (object):
     # I clearly need to pass arguments to callbacks in GDL
     print fk
 
-  def foo (self, widget, event):
+  def digitsOnly (self, widget, event):
     key = gtk.gdk.keyval_name (event.keyval)
     if re.match ('[A-Za-z,.\-+()$& ]', key):
       return True
@@ -94,7 +86,7 @@ class SqlMask (object):
         elif m.group (1) == 'elimina':
           self.render.sig ((key, 'clicked', self.deleteObject))
         elif m.group (1) == 'annulla':
-          self.render.sig ((key, 'clicked', lambda l: gtk.main_quit ()))
+          self.render.connect ((key, 'clicked', lambda l: gtk.main_quit ()))
         elif m.group (1) == 'salva':
           self.render.sig ((key, 'clicked', self.saveObject))
 
@@ -102,7 +94,7 @@ class SqlMask (object):
     if isinstance (column.type, types.String) and column.type.length is not None:
       self.w [column_layout].set_max_length (column.type.length)
     elif isinstance (column.type, types.Integer):
-      self.render.sig ((column_layout, 'key_press_event', self.foo))
+      self.render.connect ((column_layout, 'key_press_event', self.digitsOnly))
 
   def _findColumnLayout (self, column_name):
     rexp = re.compile ('^.*=%sval$' % column_name)
