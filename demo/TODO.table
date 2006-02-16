@@ -6,6 +6,9 @@ chiudi e riapri
 non si riapre più lamentando:
    TypeError: value is of wrong type for this column
 
+il formato date non è supportato
+
+funziona solo se sqlalchemy è precedente al 3 febbraio
 
 # formato
 bool -> spunta (toggle)
@@ -20,6 +23,8 @@ le righe inserite hanno serial 0
 dopo un inserimento non riesco più a fare nulla
 il serial deve esssere mostrato? (in ogni caso non editabile)
 il commit deve essere riga per riga
+da aggiungere 'reload'
+
 
 # completamento
 ora completa rispetto a quello che è presente *nel liststore* ma questo è
