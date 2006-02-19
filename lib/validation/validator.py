@@ -23,10 +23,8 @@ class Validator (object):
       self._check ()
     except ValidationError, e:
       return e
-    return
 
   def _check (self):
-    self.result = {}
     for column in self.table.columns:
       self._check_null (column, self.record [column.name])
       if column.primary_key is True:
@@ -48,36 +46,36 @@ class Validator (object):
   def _check_pkey (self, column, data):
     fetch_pkey = select ([column], column == data).execute ()
     if fetch_pkey.fetchone () is not None:
-      raise PrimaryKeyValidationError (column.name, data)
+      raise PrimaryKeyValidationError (column, data)
 
   def _check_fkey (self, column, data):
     fetch_fkey = select ([column.foreign_key.column], column.foreign_key.column == data).execute ()
     if fetch_fkey.fetchone () is None:
-      raise ForeignKeyValidationError (column.name, data)
+      raise ForeignKeyValidationError (column, data)
 
   def _check_int (self, column, data):
     if column.nullable:
       if data is not None and not isinstance (data, int):
         raise ValidationError (column.name, data)
     elif not isinstance (data, int):
-      raise IntegerValidationError (column.name, data)
+      raise IntegerValidationError (column, data)
 
   def _check_str (self, column, data):
     if column.nullable:
       if data is not None and not isinstance (data, str):
-        raise ValidationError (column.name, data)
+        raise ValidationError (column, data)
     elif not isinstance (data, str):
-      raise StringValidationError (column.name, data)
+      raise StringValidationError (column, data)
     if column.type.length is not None and column.type.length < len (data):
-      raise StringValidationError (column.name, data,
+      raise StringValidationError (column, data,
         message = "La stringa è troppo lunga per essere contenuta da %s" % column.name)
 
   def _check_bool (self, column, data):
     if column.nullable:
       if data is not None and not isinstance (data, bool):
-        raise ValidationError (column.name, data)
+        raise ValidationError (column, data)
     elif not isinstance (data, bool):
-      raise BoolValidationError (column.name, data)
+      raise BoolValidationError (column, data)
 
 
 if __name__ == '__main__':
