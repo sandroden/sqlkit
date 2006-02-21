@@ -22,11 +22,16 @@ users = Table('users', eng,
 
 users.create()
 
+## users.insert().execute(
+##     {'user_id': 1, 'user_name': 'Sam', 'user_last_name': 'Patts'},
+##     {'user_id': 2, 'user_name': 'Sid', 'user_last_name': 'Watts'},
+##     {'user_id': 3, 'user_name': 'Axe', 'user_last_name': 'Smith'},
+##     {'user_id': 4, 'user_name': 'Ted', 'user_last_name': 'Will'})
 users.insert().execute(
-    {'user_id': 1, 'user_name': 'Sam', 'user_last_name': 'Patts'},
-    {'user_id': 2, 'user_name': 'Sid', 'user_last_name': 'Watts'},
-    {'user_id': 3, 'user_name': 'Axe', 'user_last_name': 'Smith'},
-    {'user_id': 4, 'user_name': 'Ted', 'user_last_name': 'Will'})
+    {'user_name': 'Sam', 'user_last_name': 'Patts'},
+    {'user_name': 'Sid', 'user_last_name': 'Watts'},
+    {'user_name': 'Axe', 'user_last_name': 'Smith'},
+    {'user_name': 'Ted', 'user_last_name': 'Will'})
 
 mails = Table('mails', eng,
               Column('mail_address', String(30), nullable = True,
@@ -64,14 +69,14 @@ for i in m.select():
 
 # aggiungo una riga
 mT = MappedTable()
-mT.user_id = 5
+#mT.user_id = 5
 mT.user_name = 'Fat'
 mT.user_last_name = 'Joe'
 mT.mail_address = 'fjoe@example.com'
 mT.mail_user_id = mT.user_id
 
 mT2 = MappedTable()
-mT2.user_id = 6
+#mT2.user_id = 6
 mT2.user_name = 'Jim'
 mT2.user_last_name = 'Big'
 mT2.mail_address = 'jbig@example.com'
@@ -96,22 +101,22 @@ import gtk
 import gtk.glade
 
 
-class Scheck(SqlChecker):
-    """Sample checker class checking a primary key."""
+## class Scheck(SqlChecker):
+##     """Sample checker class checking a primary key."""
     
-    def rowInsertCheck(self, data):
-        """Check if new value in first column is already in liststore."""
+##     def rowInsertCheck(self, data):
+##         """Check if new value in first column is already in liststore."""
 
-        pkeys = [x[0] for x in self.sqltreeview.dbrows]
-        if int(data[0]) in pkeys:
-            raise RowInsertError('Primary key not unique! Discarding data', data, 0)
+##         pkeys = [x[0] for x in self.sqltreeview.dbrows]
+##         if int(data[0]) in pkeys:
+##             raise RowInsertError('Primary key not unique! Discarding data', data, 0)
 
-    def rowUpdateCheck(self, old_data, data):
-        """Check if new value in first column is already in liststore."""
+##     def rowUpdateCheck(self, old_data, data):
+##         """Check if new value in first column is already in liststore."""
         
-        pkeys = [x[0] for x in self.sqltreeview.dbrows]
-        if int(data[0]) in pkeys and int(old_data[0])!=int(data[0]):
-            raise RowUpdateError('Primary key not unique! Discarding data', data, 0)
+##         pkeys = [x[0] for x in self.sqltreeview.dbrows]
+##         if int(data[0]) in pkeys and int(old_data[0])!=int(data[0]):
+##             raise RowUpdateError('Primary key not unique! Discarding data', data, 0)
         
 sqlt = SqlLayoutTreeView(User)
 gtk.main()
@@ -150,4 +155,4 @@ assign_mapper(User, users,
 sqlt = SqlLayoutTreeView(User)
 gtk.main()
 
-eng.rollback()
+eng.commit()

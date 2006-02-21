@@ -9,7 +9,7 @@ import sys
 sys.path.append ('../../../')
 from sqlalchemy import *
 from layout import *
-
+import sqlalchemy.types as sqltypes
 
 #sys.path.append('../gdl')
 
@@ -20,8 +20,8 @@ if sys.hexversion < 0x20401f0:
     
 import gtk, gobject
 #import layout
-from SqlChecker import *
-from sqlalchemy import *
+#from SqlChecker import *
+
 
 
 class SqlTreeView(object):
@@ -57,18 +57,35 @@ class SqlTreeView(object):
         self.treeview.connect('select-cursor-row', self.select_cursor_row_cb)
         #register callback to toplevel window
         self.treeview.get_toplevel().connect("delete_event", self.delete_event)
+        self.setupTreeColumns()
+        
+    def setupTreeColumns(self):
+        """Setup the presentation of columns.
+        Some assumptions are made:
+        - bool render to toggles
+        - other render to editable text cells"""
         #create and append columns
         for i,v in enumerate(self.mc.mapper.c.keys()):
-            cell = gtk.CellRendererText()
-            cell.set_property('editable', True)
-            cell.set_property('editable-set', True)
-            cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
             tvcolumn = gtk.TreeViewColumn(v.replace('_','__'))
-            tvcolumn.pack_start(cell, True)
-            tvcolumn.add_attribute(cell, 'text', i + 1)
-            cell.connect('edited', self.edited_signal, (self.liststore, i))
-            cell.connect('editing-started', self.text_editing_started, i)
-            tvcolumn.set_cell_data_func(cell, self.set_special_attributes, i)
+
+            print getattr(self.mc.mapper.c, v).type
+            if isinstance(getattr(self.mc.mapper.c, v).type, sqltypes.Boolean):
+                cell = gtk.CellRendererToggle()
+                tvcolumn.pack_start(cell, True)
+                tvcolumn.add_attribute(cell, 'active', i + 1)
+                cell.set_property('activatable', True)
+                cell.connect('toggled', self.toggled_signal, (self.liststore, i))
+            else:
+                cell = gtk.CellRendererText()
+                cell.set_property('editable', True)
+                cell.set_property('editable-set', True)
+                cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+                cell.connect('edited', self.edited_signal, (self.liststore, i))
+                cell.connect('editing-started', self.text_editing_started, i)
+                tvcolumn.pack_start(cell, True)
+                tvcolumn.add_attribute(cell, 'text', i + 1)
+
+            #tvcolumn.set_cell_data_func(cell, self.set_special_attributes, i)
             self.treeview.append_column(tvcolumn)
 
     def __init_accelerators(self):
@@ -138,27 +155,28 @@ class SqlTreeView(object):
         completion.set_model(self.liststore)
         completion.set_text_column(col + 1)
         return True
+
+    def toggled_signal(self, cell, path, user_data):
+        liststore, colnum = user_data
+
+        active = not cell.get_active()
+        
+        liststore[path][colnum + 1] = active
+        r = liststore[path][0]
+        setattr(r, r.c.keys()[colnum], active)
+        return True
+   
     
     def edited_signal(self, cell, path, new_text, user_data):
-        print "edited_signal"
-
+        
         liststore, colnum = user_data
 	
-	try:
-	    data = self.coltypes[colnum + 1](new_text)
-	except TypeError:
-	    try:
-		from mx.DateTime import DateTimeType, DateTimeFrom
-	    except ImportError:
-		#use a string
-		data = str(new_text)
-		raise ImportError
-	    else:
-		if self.coltypes[colnum + 1] is DateTimeType:
-		    data = DateTimeFrom(str(new_text))
-		else:
-		    print self.coltypes[colnum + 1]
-		    data = str(new_text)
+	
+        try:
+            data = self.coltypes[colnum + 1](new_text)
+        except TypeError, e:
+            print self.coltypes[colnum + 1]
+            data = str(new_text)
 	
         liststore[path][colnum + 1] = data
         r = liststore[path][0]
