@@ -22,11 +22,6 @@ users = Table('users', eng,
 
 users.create()
 
-## users.insert().execute(
-##     {'user_id': 1, 'user_name': 'Sam', 'user_last_name': 'Patts'},
-##     {'user_id': 2, 'user_name': 'Sid', 'user_last_name': 'Watts'},
-##     {'user_id': 3, 'user_name': 'Axe', 'user_last_name': 'Smith'},
-##     {'user_id': 4, 'user_name': 'Ted', 'user_last_name': 'Will'})
 users.insert().execute(
     {'user_name': 'Sam', 'user_last_name': 'Patts'},
     {'user_name': 'Sid', 'user_last_name': 'Watts'},
