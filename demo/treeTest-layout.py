@@ -11,13 +11,9 @@ from SqlTreeView import *
 import config
 
 eng = config.spawnEngine()
-# eng = create_engine('postgres', 
-#                     {'database':'test', 
-#                      'user':'test', 
-#                      })
-
 
 eng.begin()
+eng.echo = 'debug'
 
 users = Table('users', eng,
               Column('user_id', Integer, primary_key = True),
@@ -90,8 +86,10 @@ class Mail(object):
     pass
 
 
+mapMail = mapper(Mail, mails)
+
 assign_mapper(User, users,
-              properties = {'emails': relation(Mail, mails)})
+              properties = {'emails': relation(mapMail)})
 
 
 import gtk
@@ -144,10 +142,10 @@ class User(object):
 class Mail(object):
     pass
 
+mapMail = mapper(Mail, mails)
 
 assign_mapper(User, users,
-              properties = {'emails': relation(Mail, mails)})
-
+              properties = {'emails': relation(mapMail)})
 
 sqlt = SqlLayoutTreeView(User)
 gtk.main()

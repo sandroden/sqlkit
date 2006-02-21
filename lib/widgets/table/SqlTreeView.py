@@ -2,12 +2,11 @@
 # SqlTreeView.py -- Class for viewing sqldata in a TreeView.
 #
 #
-# Copyright (C) 2005, Michele Comitini <mcm@glisco.it>
+# Copyright (C) 2005-2006, Michele Comitini <mcm@glisco.it>
 # 
 
 import sys
 sys.path.append ('../../../')
-import py_path
 from sqlalchemy import *
 from layout import *
 
@@ -31,13 +30,15 @@ class SqlTreeView(object):
     liststore = None
     tvcolumns = None
     mc = None
+    rowCommit = True
+
     
-    def __init__(self, treeview, MappedClass, checkClass=None):
+    def __init__(self, treeview, MappedClass, rowCommit=True, checkClass=None):
 
         if checkClass is not None:
             checkObj = checkClass(self)
         self.mc = MappedClass
-        
+        self.rowCommit = rowCommit
 
         #setup a ListStore
         self.mapToListStore()
@@ -126,7 +127,9 @@ class SqlTreeView(object):
         return False
         
     def selection_changed_cb(self, treeselection):
-        #print "selection_changed"
+        if self.rowCommit:
+            print "row changed: commit"
+            objectstore.commit()
         return False
 
     def text_editing_started(self, cell, editable, path, col):
@@ -168,6 +171,8 @@ class SqlTreeView(object):
 
     def insertRow(self, button):
         #print "inserting row in liststore"
+        rowCommit = self.rowCommit
+        self.rowCommit = False
         col = self.treeview.get_column(0)
         #print "setting cursor"
         self.liststore.prepend()
@@ -177,6 +182,7 @@ class SqlTreeView(object):
                                  focus_column = col,
                                  start_editing = True)
         #print "finished inserting"
+        self.rowCommit = rowCommit
 
         return True
 
@@ -197,7 +203,7 @@ class SqlTreeView(object):
         # suppose there is at least one record(?)
         colnames = self.mc.mapper.c.keys()
         self.coltypes = [object]
-        self.coltypes.extend([type(self.mc.mapper.select()[0].__getattribute__(x)) for x in colnames])
+        self.coltypes.extend([type(getattr(self.mc.mapper.select()[0],x)) for x in colnames])
 	coltypes = [object]
 	print self.coltypes
 	# try to convert types to gobject types
@@ -211,7 +217,7 @@ class SqlTreeView(object):
         self.liststore = gtk.ListStore(*coltypes)
         #fill up
         for r in self.mc.mapper.select():
-            values = [r.__getattribute__(x) for x in colnames]
+            values = [getattr(r, x) for x in colnames]
             #prepend r itself
             values.insert(0, r)
             self.liststore.append(values)
@@ -257,7 +263,8 @@ class SqlLayoutTreeView(SqlTreeView):
         #self.window.add_accel_group(accel_group)
         treeview = self.w['TV=tree']
 
-        SqlTreeView.__init__(self, treeview, MappedClass, checkClass)
+        SqlTreeView.__init__(self, treeview, MappedClass,
+                             checkClass=checkClass)
         
 
     def delete_event(self, w, e):
