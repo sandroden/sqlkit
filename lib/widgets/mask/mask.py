@@ -10,10 +10,11 @@ from sqlalchemy import *
 
 class SqlMask (object):
 
-  def __init__ (self, mapper, table, record = None, lay = None):
+  def __init__ (self, mapper, table, record = None, lay = None, validator = None):
     self.table = table
     self.mapper = mapper
     self.record = record
+    self.validator = validator
     if lay is None: self.layout = self.createLayout ()
     else: self.layout = lay
     self.layout += self.addLayoutButtons ()
@@ -26,12 +27,17 @@ class SqlMask (object):
     for column in self.table.columns:
       if column.foreign_key is not None:
         entries_layout.append (self.addFKLayout (column))
+      elif isinstance (column.type, types.Date):
+        entries_layout.append (self.addDatetimeLayout (column))
       else:
         entries_layout.append (self.addLabelEntryLayout (column))
     return ''.join (entries_layout)
 
   def addLabelEntryLayout (self, column):
     return "l=%s e=%s\n" % (column.name, column.name + 'val')
+
+  def addDatetimeLayout (self, column):
+    return "l=%s d=%s\n" % (column.name, column.name + 'val')
   
   def addFKLayout (self, column):
     return "l=%s e=%s b=scegli\n" % (column.name, column.name + 'val')
@@ -47,16 +53,24 @@ class SqlMask (object):
     objectstore.commit ()
   
   def saveObject (self, widget):
-    # This method must be refactored
     if self.record is None:
-      mapper = reflect.Mapper ()
-      for column in self.table.columns:
-        c = self._findColumnLayout (column.name)
-        setattr (mapper, column.name, self.w [c].get_text ())
+      record = reflect.Mapper ()
     else:
+      record = self.record
+    
+    for column in self.table.columns:
+      c = self._findColumnLayout (column.name)
+      if isinstance (column.type, types.Date):
+        setattr (record, column.name, self.w [c].get_time ())
+      else: setattr (record, column.name, self.w [c].get_text ())
+    
+    if self.validator is not None:
+      r = {}
       for column in self.table.columns:
-        c = self._findColumnLayout (column.name)
-        setattr (self.record, column.name, self.w [c].get_text ())
+        r [column.name] = getattr (record, column.name)
+      v = self.validator (self.table, r)
+      v.validate ()
+    
     objectstore.commit ()
 
   def chooseFK (self, widget, fk):
@@ -73,7 +87,11 @@ class SqlMask (object):
       column_layout = self._findColumnLayout (column.name)
       self.decorate (column_layout, column)
       if self.record is not None:
-        self.w [column_layout].set_text (str (getattr (self.record, column.name)))
+        print type (getattr (self.record, column.name))
+        if isinstance (getattr (self.record, column.name), datetime.date):
+          self.render.prop (column_layout, 'time', getattr (self.record, column.name))
+        else:
+          self.w [column_layout].set_text (str (getattr (self.record, column.name)))
     self.buttonDispatch ()
 
   def buttonDispatch (self):
