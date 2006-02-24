@@ -31,7 +31,7 @@ class SqlTreeView(object):
     tvcolumns = None
     mc = None
     rowCommit = True
-
+    deleting_row = False
     
     def __init__(self, treeview, MappedClass, rowCommit=True, checkClass=None):
 
@@ -79,7 +79,7 @@ class SqlTreeView(object):
             #primary key and integer do not show
             elif isinstance(getattr(self.mc.mapper.c, v).type, sqltypes.Integer) and getattr(self.mc.mapper.c, v).primary_key:
                 tvcolumn = gtk.TreeViewColumn()
-                tvcolumn.set_visible = False
+                tvcolumn.set_visible(False)
             else:
                 cell = gtk.CellRendererText()
                 cell.set_property('editable', True)
@@ -183,7 +183,9 @@ class SqlTreeView(object):
         
         liststore, colnum = user_data
 	
-	
+        if self.deleting_row:
+            return True
+        
         try:
             data = self.coltypes[colnum + 1](new_text)
         except TypeError, e:
@@ -203,11 +205,16 @@ class SqlTreeView(object):
         #print "inserting row in liststore"
         rowCommit = self.rowCommit
         self.rowCommit = False
-        col = self.treeview.get_column(0)
+        columns = self.treeview.get_columns()
+        for col in columns:
+            if col.get_visible():
+                break
         #print "setting cursor"
+        #self.treeview.set_cursor(self.treeview.get_cursor(), start_editing = False)
+        self.treeview.get_toplevel().set_focus(None)
+        self.treeview.scroll_to_cell("0", col)
         self.liststore.prepend()
         self.liststore[0][0] = self.mc()
-        self.treeview.scroll_to_cell("0", col)
         self.treeview.set_cursor(path = "0",
                                  focus_column = col,
                                  start_editing = True)
@@ -217,6 +224,7 @@ class SqlTreeView(object):
         return True
 
     def deleteRow(self, button):
+        self.deleting_row = True
         def do_del(tm, path, iter):
             #print "deleting row in liststore"
             print tm[path][0]
@@ -225,6 +233,7 @@ class SqlTreeView(object):
 
         sel = self.treeview.get_selection()
         sel.selected_foreach(do_del)
+        self.deleting_row = False
         #print "finished deleting"
 
         return True
