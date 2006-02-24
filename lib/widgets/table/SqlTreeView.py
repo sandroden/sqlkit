@@ -58,7 +58,7 @@ class SqlTreeView(object):
         #register callback to toplevel window
         self.treeview.get_toplevel().connect("delete_event", self.delete_event)
         self.setupTreeColumns()
-        
+
     def setupTreeColumns(self):
         """Setup the presentation of columns.
         Some assumptions are made:
@@ -69,12 +69,17 @@ class SqlTreeView(object):
             tvcolumn = gtk.TreeViewColumn(v.replace('_','__'))
 
             print getattr(self.mc.mapper.c, v).type
+            #boolean -> checkbox
             if isinstance(getattr(self.mc.mapper.c, v).type, sqltypes.Boolean):
                 cell = gtk.CellRendererToggle()
                 tvcolumn.pack_start(cell, True)
                 tvcolumn.add_attribute(cell, 'active', i + 1)
                 cell.set_property('activatable', True)
                 cell.connect('toggled', self.toggled_signal, (self.liststore, i))
+            #primary key and integer do not show
+            elif isinstance(getattr(self.mc.mapper.c, v).type, sqltypes.Integer) and getattr(self.mc.mapper.c, v).primary_key:
+                tvcolumn = gtk.TreeViewColumn()
+                tvcolumn.set_visible = False
             else:
                 cell = gtk.CellRendererText()
                 cell.set_property('editable', True)
@@ -150,10 +155,17 @@ class SqlTreeView(object):
         return False
 
     def text_editing_started(self, cell, editable, path, col):
-        completion = gtk.EntryCompletion()
-        editable.set_completion(completion)
-        completion.set_model(self.liststore)
-        completion.set_text_column(col + 1)
+
+        completion = editable.get_completion()
+
+        if completion is None:
+            completion = gtk.EntryCompletion()
+            self.set_completion_model(completion, self.liststore)
+            editable.set_completion(completion)
+            completion.set_text_column(col + 1)
+
+        print "completion", completion.get_text_column()
+        #completion.complete()
         return True
 
     def toggled_signal(self, cell, path, user_data):
@@ -245,6 +257,8 @@ class SqlTreeView(object):
         objectstore.commit()
         return False
 
+    def set_completion_model(self, completion, model):
+        completion.set_model(model)
         
     
 class SqlLayoutTreeView(SqlTreeView):

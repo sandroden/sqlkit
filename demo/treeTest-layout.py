@@ -77,6 +77,7 @@ mT2.user_last_name = 'Big'
 mT2.mail_address = 'jbig@example.com'
 mT2.mail_user_id = mT2.user_id
 
+print dir(m.c.user_id), m.c.user_id.type
 objectstore.commit()
 
 class User(object):
