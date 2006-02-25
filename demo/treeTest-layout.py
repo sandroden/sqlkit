@@ -97,24 +97,45 @@ import gtk
 import gtk.glade
 
 
-## class Scheck(SqlChecker):
-##     """Sample checker class checking a primary key."""
-    
-##     def rowInsertCheck(self, data):
-##         """Check if new value in first column is already in liststore."""
+class MyLayout(SqlLayoutTreeView):
 
-##         pkeys = [x[0] for x in self.sqltreeview.dbrows]
-##         if int(data[0]) in pkeys:
-##             raise RowInsertError('Primary key not unique! Discarding data', data, 0)
+    def __init__(self, MappedClass, checkClass=None):
+                ### The layout
+        lay = """
+          {B m=file m=modifica m=opzioni m=aiuto}
+          {O tb=gtk-save tb=gtk-delete tb=gtk-new tb=gtk-refresh tb=gtk-quit}
+          TVS=tree
+        """
+        self.l = Layout(lay,opts='s', title="ListStorageView")
+        self.w = self.l.show(x=self.delete_event)
+        self.window = self.w['Window']
+        self.l.menu('m=file',
+                    ('gtk-open', self.insertRow,),
+                    ('-',None,),
+                    ('gtk-quit', self.exit_now)
+                    )
 
-##     def rowUpdateCheck(self, old_data, data):
-##         """Check if new value in first column is already in liststore."""
+##         self.w['tb=gtk-delete'].connect('clicked', self.deleteRow)
+##         self.w['tb=gtk-new'].connect('clicked', self.insertRow)
+##         self.w['tb=gtk-quit'].connect('clicked', self.exit_now)
+
+        self.l.connect(
+            ('tb=gtk-delete', 'clicked', self.deleteRow),
+            ('tb=gtk-new',    'clicked', self.insertRow),
+            ('tb=gtk-refresh',   'clicked', self.reload ),
+            ('tb=gtk-quit',   'clicked', self.exit_now )
+            )
         
-##         pkeys = [x[0] for x in self.sqltreeview.dbrows]
-##         if int(data[0]) in pkeys and int(old_data[0])!=int(data[0]):
-##             raise RowUpdateError('Primary key not unique! Discarding data', data, 0)
+
+        # accel group  #### FIXME: dove viene usato?
+        #accel_group = gtk.AccelGroup()
+        #self.window.add_accel_group(accel_group)
+        treeview = self.w['TV=tree']
+
+        SqlTreeView.__init__(self, treeview, MappedClass,
+                             checkClass=checkClass)
         
-sqlt = SqlLayoutTreeView(User)
+sqlt = MyLayout(User)
 gtk.main()
 
 
@@ -148,7 +169,11 @@ mapMail = mapper(Mail, mails)
 assign_mapper(User, users,
               properties = {'emails': relation(mapMail)})
 
-sqlt = SqlLayoutTreeView(User)
+        
+
+
+sqlt = MyLayout(User)
 gtk.main()
 
 eng.commit()
+

@@ -253,7 +253,8 @@ class SqlTreeView(object):
 		coltypes.append(str)
 
 	print coltypes
-        self.liststore = gtk.ListStore(*coltypes)
+        if self.liststore is None:
+            self.liststore = gtk.ListStore(*coltypes)
         #fill up
         for r in self.mc.mapper.select():
             values = [getattr(r, x) for x in colnames]
@@ -261,6 +262,16 @@ class SqlTreeView(object):
             values.insert(0, r)
             self.liststore.append(values)
     
+
+    def reload(self, w):
+        self.rowCommit = False
+        objectstore.clear()
+        self.liststore.clear()
+        self.mapToListStore()
+        #self.treeview.set_model(self.liststore)
+        self.rowCommit = True
+        
+
     def delete_event(self, treeview, event, data=None):
         print "delete_event: committing work"
         objectstore.commit()
