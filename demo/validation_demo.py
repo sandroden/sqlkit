@@ -40,7 +40,7 @@ class EmailValidationError (ValidationError):
   def __str__ (self):
     message = """
     "%s" non è nel giusto formato per essere inserito in %s.
-    """ % (self.data, self.column.name)
+    """ % (self.column.name, self.data)
     if self.message is not None: return "%s\n%s" % (self.message, message)
     return message
 

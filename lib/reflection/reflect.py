@@ -14,3 +14,10 @@ def getMapper (table):
 def getRecord (mapper, **kwds):
   return mapper.get_by (**kwds)
 
+def is_serial (c):
+  if hasattr (c.default, 'arg') and hasattr (c.default.arg, 'text'):
+    if "nextval" in c.default.arg.text:
+      return True
+  else:
+    return False
+

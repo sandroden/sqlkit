@@ -4,6 +4,8 @@ import sys, re, datetime
 sys.path.append ('../../../../../../')
 import py_path, config, reflect, layout
 
+from layoutgenerator import TableLayoutGenerator
+
 import gtk, pango
 from sqlalchemy import *
 
@@ -15,32 +17,14 @@ class SqlMask (object):
     self.mapper = mapper
     self.record = record
     self.validator = validator
-    if lay is None: self.layout = self.createLayout ()
+    if lay is None:
+      gen = TableLayoutGenerator (self.table)
+      self.layout = gen.layout
     else: self.layout = lay
     self.layout += self.addLayoutButtons ()
     self.render = layout.Layout (self.layout)
     self.w = self.render.show ()
     self.postProcess ()
-
-  def createLayout (self):
-    entries_layout = []
-    for column in self.table.columns:
-      if column.foreign_key is not None:
-        entries_layout.append (self.addFKLayout (column))
-      elif isinstance (column.type, types.Date):
-        entries_layout.append (self.addDatetimeLayout (column))
-      else:
-        entries_layout.append (self.addLabelEntryLayout (column))
-    return ''.join (entries_layout)
-
-  def addLabelEntryLayout (self, column):
-    return "l=%s e=%s\n" % (column.name, column.name + 'val')
-
-  def addDatetimeLayout (self, column):
-    return "l=%s d=%s\n" % (column.name, column.name + 'val')
-  
-  def addFKLayout (self, column):
-    return "l=%s e=%s b=scegli\n" % (column.name, column.name + 'val')
 
   def addLayoutButtons (self):
     button_layout = ["b=annulla"]
@@ -74,7 +58,6 @@ class SqlMask (object):
     objectstore.commit ()
 
   def chooseFK (self, widget, fk):
-    # I clearly need to pass arguments to callbacks in GDL
     print fk
 
   def digitsOnly (self, widget, event):
@@ -84,14 +67,15 @@ class SqlMask (object):
 
   def postProcess (self):
     for column in self.table.columns:
-      column_layout = self._findColumnLayout (column.name)
-      self.decorate (column_layout, column)
-      if self.record is not None:
-        print type (getattr (self.record, column.name))
-        if isinstance (getattr (self.record, column.name), datetime.date):
-          self.render.prop (column_layout, 'time', getattr (self.record, column.name))
-        else:
-          self.w [column_layout].set_text (str (getattr (self.record, column.name)))
+      if reflect.is_serial (column): print "\n" + column.name + "!!!!!!!"
+      else:
+        column_layout = self._findColumnLayout (column.name)
+        self.decorate (column_layout, column)
+        if self.record is not None:
+          if isinstance (getattr (self.record, column.name), datetime.date):
+            self.render.prop (column_layout, 'show-time', getattr (self.record, column.name))
+          else:
+            self.w [column_layout].set_text (str (getattr (self.record, column.name)))
     self.buttonDispatch ()
 
   def buttonDispatch (self):

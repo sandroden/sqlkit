@@ -22,7 +22,8 @@ class Validator (object):
     try:
       self._check ()
     except ValidationError, e:
-      return e
+      raise e
+    return True
 
   def _check (self):
     for column in self.table.columns:

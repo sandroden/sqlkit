@@ -1,13 +1,13 @@
 
 import sys
 import sys ;
-sys.path.append('../../../../../../');
+sys.path.append('../../../');
 import py_path
 
 import unittest
 
 def suite ():
-  modules = ['test_sqlmask']
+  modules = ['test_sqlmask', 'test_validation']
   tests = unittest.TestSuite ()
   for module in map (__import__, modules):
     tests.addTest (unittest.findTestCases (module, suiteClass = None))
