@@ -28,9 +28,41 @@ class Mail(object):
     pass
 
 
+class MyLayout(SqlLayoutTreeView):
+
+    def __init__(self, MappedClass, checkClass=None):
+                ### The layout
+        lay = """
+          {B m=file m=modifica m=opzioni m=aiuto}
+          {O tb=gtk-save tb=gtk-delete tb=gtk-new tb=gtk-refresh tb=gtk-quit}
+          TVS=tree
+        """
+        self.l = Layout(lay,opts='s', title="ListStorageView")
+        self.w = self.l.show(x=self.delete_event)
+        self.window = self.w['Window']
+        self.l.menu('m=file',
+                    ('gtk-open', self.insertRow,),
+                    ('-',None,),
+                    ('gtk-quit', self.exit_now)
+                    )
+
+        self.l.connect(
+            ('tb=gtk-delete', 'clicked', self.deleteRow),
+            ('tb=gtk-new',    'clicked', self.insertRow),
+            ('tb=gtk-refresh',   'clicked', self.reload ),
+            ('tb=gtk-quit',   'clicked', self.exit_now )
+            )
+        
+        treeview = self.w['TV=tree']
+
+        SqlTreeView.__init__(self, treeview, MappedClass,
+                             checkClass=checkClass)
+        
+
 assign_mapper(User, users)
 
 
-sqlt = SqlLayoutTreeView(User)
+sqlt = MyLayout(User)
+
 gtk.main()
 
