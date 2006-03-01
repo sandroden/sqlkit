@@ -20,25 +20,27 @@ class Validator (object):
 
   def validate (self):
     try:
-      self._check ()
+      self._default_check ()
     except ValidationError, e:
       raise e
-    return True
 
-  def _check (self):
+  def _default_check (self):
     for column in self.table.columns:
-      self._check_null (column, self.record [column.name])
-      if column.primary_key is True:
-        self._check_pkey (column, self.record [column.name])
+      column_value = getattr (self.record, column.name)
+      
+      self._check_null (column, column_value)
+      
+      if column.primary_key is True and not reflect.is_serial (column):
+        self._check_pkey (column, column_value)
       if column.foreign_key is not None:
-        self._check_fkey (column, self.record [column.name])
+        self._check_fkey (column, column_value)
         
       if isinstance (column.type, types.Integer):
-        self._check_int (column, self.record [column.name])
+        self._check_int (column, column_value)
       elif isinstance (column.type, types.String):
-        self._check_str (column, self.record [column.name])
+        self._check_str (column, column_value)
       elif isinstance (column.type, types.Boolean):
-        self._check_bool (column, self.record [column.name])
+        self._check_bool (column, column_value)
 
   def _check_null (self, column, data):
     if data is None and not column.nullable:
@@ -55,9 +57,11 @@ class Validator (object):
       raise ForeignKeyValidationError (column, data)
 
   def _check_int (self, column, data):
+    try: data = int (data)
+    except ValueError: raise ValidationError (column, data)
     if column.nullable:
-      if data is not None and not isinstance (data, int):
-        raise ValidationError (column.name, data)
+      if not isinstance (data, int) and data is not None:
+        raise ValidationError (column, data)
     elif not isinstance (data, int):
       raise IntegerValidationError (column, data)
 
@@ -72,6 +76,8 @@ class Validator (object):
         message = "La stringa è troppo lunga per essere contenuta da %s" % column.name)
 
   def _check_bool (self, column, data):
+    try: data = bool (data)
+    except ValueError: rais ValidationError (column, data)
     if column.nullable:
       if data is not None and not isinstance (data, bool):
         raise ValidationError (column, data)
@@ -84,9 +90,6 @@ if __name__ == '__main__':
   table = reflect.mapTable (engine, 'euro_mail')
   mapper = reflect.getMapper (table)
   record = reflect.getRecord (mapper, mail_user_id = 1)
-  r = {}
-  for column in table.columns:
-    r [column.name] = getattr (record, column.name)
-  v = Validator (table, r)
+  v = Validator (table, record)
   v.validate ()
  

@@ -44,15 +44,15 @@ class SqlMask (object):
     
     for column in self.table.columns:
       c = self._findColumnLayout (column.name)
-      if isinstance (column.type, types.Date):
+      if reflect.is_serial (column):
+        pass
+      elif isinstance (column.type, types.Date):
         setattr (record, column.name, self.w [c].get_time ())
-      else: setattr (record, column.name, self.w [c].get_text ())
+      else:
+        setattr (record, column.name, self.w [c].get_text ())
     
     if self.validator is not None:
-      r = {}
-      for column in self.table.columns:
-        r [column.name] = getattr (record, column.name)
-      v = self.validator (self.table, r)
+      v = self.validator (self.table, record)
       v.validate ()
     
     objectstore.commit ()
@@ -62,12 +62,13 @@ class SqlMask (object):
 
   def digitsOnly (self, widget, event):
     key = gtk.gdk.keyval_name (event.keyval)
-    if re.match ('[A-Za-z,.\-+()$& ]', key):
+    if not re.match ('[0-9.]', key) and key != 'BackSpace':
       return True
 
   def postProcess (self):
     for column in self.table.columns:
-      if reflect.is_serial (column): print "\n" + column.name + "!!!!!!!"
+      if reflect.is_serial (column):
+        pass
       else:
         column_layout = self._findColumnLayout (column.name)
         self.decorate (column_layout, column)
