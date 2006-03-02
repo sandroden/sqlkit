@@ -77,7 +77,7 @@ class Validator (object):
 
   def _check_bool (self, column, data):
     try: data = bool (data)
-    except ValueError: rais ValidationError (column, data)
+    except ValueError: raise ValidationError (column, data)
     if column.nullable:
       if data is not None and not isinstance (data, bool):
         raise ValidationError (column, data)
