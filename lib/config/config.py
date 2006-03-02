@@ -31,7 +31,6 @@ def spawnDSN (conf_file=None):
 	db = None
 	if not conf_file:
 		conf_file = searchFile()
-		print conf_file
 		c.read (conf_file)
 		db = "host=%s dbname=%s user=%s password=%s port=%s" % (
 		c.get ('database', 'host'),
