@@ -13,17 +13,18 @@ def searchFile():
 			return filename
 						
 
-def spawnEngine (conf_file=None):
+def spawnEngine (conf_file=None, echo=False):
 	c = ConfigParser ()
 	if not conf_file:
 		conf_file = searchFile()
 		c.read (conf_file)
 	return create_engine (c.get ('database', 'dbapi'),
-						{'database' : c.get ('database', 'dbname'),
-						'host' : c.get ('database', 'host'),
-						'user' : c.get ('database', 'user'),
-						'port' : c.get ('database', 'port'),
-						'password' : c.get ('database', 'password')})
+			      {'database' : c.get ('database', 'dbname'),
+			       'host' : c.get ('database', 'host'),
+			       'user' : c.get ('database', 'user'),
+			       'port' : c.get ('database', 'port'),
+			       'password' : c.get ('database', 'password')},
+			      echo=echo)
 
 
 def spawnDSN (conf_file=None):
@@ -33,9 +34,9 @@ def spawnDSN (conf_file=None):
 		conf_file = searchFile()
 		c.read (conf_file)
 		db = "host=%s dbname=%s user=%s password=%s port=%s" % (
-		c.get ('database', 'host'),
-		c.get ('database', 'dbname'),
-		c.get ('database', 'user'),
-		c.get ('database', 'password'),
-		c.get ('database', 'port'))
+			c.get ('database', 'host'),
+			c.get ('database', 'dbname'),
+			c.get ('database', 'user'),
+			c.get ('database', 'password'),
+			c.get ('database', 'port'))
 	return db 
