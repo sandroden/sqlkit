@@ -13,7 +13,7 @@ import config
 eng = config.spawnEngine()
 
 eng.begin()
-eng.echo = 'debug'
+#eng.echo = 'debug'
 
 users = Table('users', eng,
               Column('user_id', Integer, primary_key = True),
@@ -134,8 +134,10 @@ class MyLayout(SqlLayoutTreeView):
 
         SqlTreeView.__init__(self, treeview, MappedClass,
                              checkClass=checkClass)
+                
         
 sqlt = MyLayout(User)
+
 gtk.main()
 
 
@@ -153,6 +155,8 @@ for i in User.select():
 eng.rollback()
 
 eng.begin()
+
+eng.echo = 'debug'
 
 users = Table('euro_user', eng, autoload = True)
 

@@ -9,6 +9,7 @@ import sys
 sys.path.append ('../../../')
 from sqlalchemy import *
 from layout import *
+from datetime import datetime
 import sqlalchemy.types as sqltypes
 
 #sys.path.append('../gdl')
@@ -18,11 +19,139 @@ if sys.hexversion < 0x20401f0:
     print "needed python version >= ", hex(0x20401f0)
     sys.exit(-1)
     
-import gtk, gobject
+import gtk, gobject, pango
 #import layout
 #from SqlChecker import *
 
 
+class CellEditableCalendar(gtk.Fixed, gtk.CellEditable):
+    date = None
+    def __init__(self, date):
+
+        self.date = date
+        
+        gtk.Fixed.__init__(self)
+        self.set_has_window(False)
+        self.cal = gtk.Calendar()
+        self.cal.select_month(self.date.month - 1, self.date.year)
+        self.cal.select_day(self.date.day)
+        self.put(self.cal, 0, 0)
+        self.show_all()
+        
+    def do_start_editing(self, event):
+        pass
+    
+    def do_remove_widget(self):
+        pass
+
+
+    def do_editing_done(self):
+        pass
+        
+gobject.type_register(CellEditableCalendar)    
+
+class CellRendererDate(gtk.CellRenderer):
+    date = None
+##     editable = None
+
+    __gproperties__ = {
+        'date': (gobject.TYPE_PYOBJECT,
+                 'date of cell',
+                 'date object contained in cell',
+                 gobject.PARAM_READWRITE)
+        }
+
+    __gsignals__ = {
+        'date-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,
+                         (gobject.TYPE_STRING, gobject.TYPE_PYOBJECT)
+                          )
+        }    
+    def __init__(self, *args, **kwargs):
+        self.date = None
+
+        return gtk.CellRenderer.__gobject_init__(self, *args, **kwargs)
+
+    def do_pango_layout(self, widget):
+        pc = widget.get_pango_context()
+        pl = pango.Layout(pc)
+        pl.set_text(str(self.date))
+        return pl
+
+    def do_get_size(self, widget, cell_area):
+
+        
+        xpad = self.get_property('xpad')
+        ypad = self.get_property('ypad')
+
+
+        xalign = self.get_property('xalign')
+        yalign = self.get_property('yalign')
+
+
+        layout = self.do_pango_layout(widget)
+        width, height = layout.get_pixel_size()
+
+
+        x_offset = xpad
+        y_offset = ypad
+
+
+        if cell_area:
+
+
+            x_offset = xalign * (cell_area.width - width)
+            x_offset = max(x_offset, xpad)
+            x_offset = int(round(x_offset, 0))
+
+
+            y_offset = yalign * (cell_area.height - height)
+            y_offset = max(y_offset, ypad)
+            y_offset = int(round(y_offset, 0))
+
+
+        width  = width  + (xpad * 2)
+        height = height + (ypad * 2)
+
+
+        return x_offset, y_offset, width, height
+    
+    
+    
+    
+    def do_start_editing(self, event, widget, path, background_area, cell_area, flags):
+
+
+        ce = CellEditableCalendar(date = self.date)
+        ce.show()
+        ce.grab_focus()
+        ce.connect('editing-done', self.editing_done, widget, path)
+        
+        return ce
+
+    def editing_done(self, widget, treeview, path):
+
+        tdate = list(widget.cal.get_date())
+        tdate[1] += 1
+        self.date = datetime(*tuple(tdate))
+
+        self.stop_editing(False)
+        self.emit('date-changed', path, self.date)
+        return True
+
+    def do_render(self, window, widget, background_area, cell_area, expose_area, flags):
+
+        
+        x_offset, y_offset, width, height = self.do_get_size(widget, cell_area)
+        pl = self.do_pango_layout(widget)
+        widget.get_style().paint_layout(
+            window, gtk.STATE_NORMAL, True, cell_area, widget, 'foo',
+            cell_area.x + x_offset, cell_area.y + y_offset, pl
+        )
+
+    def do_set_property(self, gprop, value):
+        setattr(self, gprop.name, value)
+        
+gobject.type_register(CellRendererDate)
 
 class SqlTreeView(object):
 
@@ -68,7 +197,6 @@ class SqlTreeView(object):
         for i,v in enumerate(self.mc.mapper.c.keys()):
             tvcolumn = gtk.TreeViewColumn(v.replace('_','__'))
 
-            print getattr(self.mc.mapper.c, v).type
             #boolean -> checkbox
             if isinstance(getattr(self.mc.mapper.c, v).type, sqltypes.Boolean):
                 cell = gtk.CellRendererToggle()
@@ -80,6 +208,14 @@ class SqlTreeView(object):
             elif isinstance(getattr(self.mc.mapper.c, v).type, sqltypes.Integer) and getattr(self.mc.mapper.c, v).primary_key:
                 tvcolumn = gtk.TreeViewColumn()
                 tvcolumn.set_visible(False)
+            elif isinstance(getattr(self.mc.mapper.c, v).type, sqltypes.DateTime):
+                cell = CellRendererDate()
+                cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+                cell.set_property('sensitive', False)
+                tvcolumn.pack_start(cell, True)
+                tvcolumn.add_attribute(cell, 'date', i + 1)
+                cell.connect('editing-started', self.date_editing_started, i + 1)
+                cell.connect('date-changed', self.date_changed, i + 1)
             else:
                 cell = gtk.CellRendererText()
                 cell.set_property('editable', True)
@@ -99,7 +235,6 @@ class SqlTreeView(object):
         self.treeview.connect('key-press-event', self.keypress_event)
 
     def tab_pressed(self, treeview):
-        print "tab_pressed", treeview
         path, col = self.treeview.get_cursor()
         columns = self.treeview.get_columns()
         colnum = columns.index(col)
@@ -108,7 +243,6 @@ class SqlTreeView(object):
         else:
             tmodel = self.treeview.get_model()
             titer = tmodel.iter_next(tmodel.get_iter(path))
-            print "TreeIter", titer
             if titer is None:
                 titer = tmodel.get_iter_first()
             path = tmodel.get_path(titer)
@@ -116,7 +250,6 @@ class SqlTreeView(object):
         return
 
     def ltab_pressed(self, treeview):
-        print "ltab_pressed", treeview
         path, col = self.treeview.get_cursor()
         columns = self.treeview.get_columns()
         colnum = columns.index(col)
@@ -130,7 +263,6 @@ class SqlTreeView(object):
         return
 
     def keypress_event(self, treeview, event):
-        print "key", gtk.accelerator_name(event.keyval, event.state)
         accelname = gtk.accelerator_name(event.keyval, event.state)
         if accelname == 'Tab':
             self.tab_pressed(treeview)
@@ -141,16 +273,13 @@ class SqlTreeView(object):
         return False
 
     def select_cursor_row_cb(self, treeview, start_editing, user_data = None):
-        #print "select_cursor_row_cb"
         return False
     
     def cursor_changed_cb(self, treeview, user_data = None):
-        #print "cursor_changed_cb"
         return False
         
     def selection_changed_cb(self, treeselection):
         if self.rowCommit:
-            print "row changed: commit"
             objectstore.commit()
         return False
 
@@ -164,15 +293,25 @@ class SqlTreeView(object):
             editable.set_completion(completion)
             completion.set_text_column(col + 1)
 
-        print "completion", completion.get_text_column()
-        #completion.complete()
         return True
+
+    def date_editing_started(self, cell, editable, path, col):
+        return True
+    
+    def date_changed(self, event, path, date, col):
+        
+        self.liststore[path][col] = date
+        r = self.liststore[path][0]
+        setattr(r, r.c.keys()[col - 1], date)
+        return True
+
 
     def toggled_signal(self, cell, path, user_data):
         liststore, colnum = user_data
 
-        active = not cell.get_active()
-        
+        active = not liststore[path][colnum + 1]
+
+
         liststore[path][colnum + 1] = active
         r = liststore[path][0]
         setattr(r, r.c.keys()[colnum], active)
@@ -202,15 +341,13 @@ class SqlTreeView(object):
         pass
 
     def insertRow(self, button):
-        #print "inserting row in liststore"
         rowCommit = self.rowCommit
         self.rowCommit = False
         columns = self.treeview.get_columns()
         for col in columns:
             if col.get_visible():
                 break
-        #print "setting cursor"
-        #self.treeview.set_cursor(self.treeview.get_cursor(), start_editing = False)
+
         self.treeview.get_toplevel().set_focus(None)
         self.treeview.scroll_to_cell("0", col)
         self.liststore.prepend()
@@ -218,7 +355,6 @@ class SqlTreeView(object):
         self.treeview.set_cursor(path = "0",
                                  focus_column = col,
                                  start_editing = True)
-        #print "finished inserting"
         self.rowCommit = rowCommit
 
         return True
@@ -226,15 +362,14 @@ class SqlTreeView(object):
     def deleteRow(self, button):
         self.deleting_row = True
         def do_del(tm, path, iter):
-            #print "deleting row in liststore"
-            print tm[path][0]
+
             tm[path][0].delete()
             del tm[path]
 
         sel = self.treeview.get_selection()
         sel.selected_foreach(do_del)
         self.deleting_row = False
-        #print "finished deleting"
+
 
         return True
 
@@ -244,15 +379,13 @@ class SqlTreeView(object):
         self.coltypes = [object]
         self.coltypes.extend([type(getattr(self.mc.mapper.select()[0],x)) for x in colnames])
 	coltypes = [object]
-	print self.coltypes
 	# try to convert types to gobject types
 	for tp in self.coltypes[1: ]:
-	    try:
-		coltypes.append(gobject.type_from_name(gobject.type_name(tp)))
-	    except TypeError:
-		coltypes.append(str)
+            try:
+                coltypes.append(gobject.type_from_name(gobject.type_name(tp)))
+            except TypeError:
+                coltypes.append(object)
 
-	print coltypes
         if self.liststore is None:
             self.liststore = gtk.ListStore(*coltypes)
         #fill up
@@ -273,7 +406,6 @@ class SqlTreeView(object):
         
 
     def delete_event(self, treeview, event, data=None):
-        print "delete_event: committing work"
         objectstore.commit()
         return False
 
@@ -310,9 +442,6 @@ class SqlLayoutTreeView(SqlTreeView):
         #    )
         
 
-        # accel group  #### FIXME: dove viene usato?
-        #accel_group = gtk.AccelGroup()
-        #self.window.add_accel_group(accel_group)
         treeview = self.w['TV=tree']
 
         SqlTreeView.__init__(self, treeview, MappedClass,
@@ -327,3 +456,4 @@ class SqlLayoutTreeView(SqlTreeView):
     def exit_now(self, widget):
         self.delete_event(widget, None)
         return True
+
