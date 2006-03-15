@@ -13,8 +13,8 @@ import config
 
 class BaseDb:
     def __init__(self):       
-        eng = config.spawnEngine()
-        self.tbusers = Table('euro_user', eng, autoload = True)
+        self.eng = config.spawnEngine()
+        self.tbusers = Table('euro_user', self.eng, autoload = True)
         class User(object):
             pass
         
@@ -32,38 +32,56 @@ if __name__ == '__main__':
 
     sel1 = db.tbusers.select(db.tbusers.c.user_age > 30)
     sel2 = db.tbusers.select('user_age > 30')
-    print '--------------'
+    print '--------------sel1'
     print sel1
-    print '--------------'
+    print '--------------sel2'
     print sel2
 
     rows1 = sel1.execute()
     rows2 = sel2.execute()
-    print '--------------'
+    print '--------------rows1'
     print rows1
-    print '--------------'
+    print '--------------rows2'
     print rows2
 
+    print '--------------row1.fetchall()'
     rr = rows1.fetchall()
     for r in rr:
         print r['user_last_name']
 
-    print '--------------'
+    print '--------------row2.fetchall()'
     rr = rows2.fetchall()
     for r in rr:
-        print r['user_last_name']
+        print r['user_last_name'],r.user_last_name
 
-    print '--------------'
+    print '--------------db.users.select_by(db.users.c.user_age>30)'
     userlist = db.users.select_by(db.users.c.user_age>30)
     for u in userlist:
-        print u.c.user_id,u.c.user_last_name
+        print u.user_id,u.user_last_name
         
-    #print '--------------'
-    #userlist = db.users.select_by('user_age>30')
-    #for u in userlist:
-        #print u.c.user_id,u.c.user_last_name
+
+    print "--------------db.users.select_by('user_age>30')"
+    userlist = db.users.select_by('user_age>30')
+    for u in userlist:
+        print u.user_id,u.user_last_name
         
+
+    print '--------------db.users.select(db.users.c.user_age>30)'
+    userlist = db.users.select(db.users.c.user_age>30)
+    for u in userlist:
+        print u.user_id,u.user_last_name
+
+    print '--------------db.users.select("user_age>30")'
+    userlist = db.users.select('user_age>30')
+    for u in userlist:
+        print u.user_id,u.user_last_name
+    
+    #questo da un errore psycopg2    
     #print '--------------'
-    #userlist = db.users.select(db.users.c.user_age>30)
+    #t=text("select * from euro_user where user_age>30",db.eng)
+    #print t
+    #userlist = db.users.select(text("select * from euro_user where user_age>30",db.eng))
     #for u in userlist:
-        #print u.c.user_id,u.c.user_last_name
+        #print u.user_id,u.user_last_name
+
+    
