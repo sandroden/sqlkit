@@ -15,12 +15,10 @@ class BaseDb:
     def __init__(self):       
         eng = config.spawnEngine()
         self.tbusers = Table('euro_user', eng, autoload = True)
-
         class User(object):
             pass
         
         assign_mapper(User, self.tbusers)
-        #userlist = User.select_by(user_age>20)
 
         self.users   = User()
 
@@ -29,18 +27,43 @@ class BaseDb:
         
 
 if __name__ == '__main__':
+
     db = BaseDb()
+
+    sel1 = db.tbusers.select(db.tbusers.c.user_age > 30)
+    sel2 = db.tbusers.select('user_age > 30')
     print '--------------'
-    userlist = db.users.select_by(db.users.c.user_age>20)
-    for u in userlist:
-        print type(u.c['user_id']),type(u.c.user_id)
-        print u.c['user_id'],u.c.user_last_name
+    print sel1
     print '--------------'
-    userlist = db.users.select_by('user_age>20')
+    print sel2
+
+    rows1 = sel1.execute()
+    rows2 = sel2.execute()
+    print '--------------'
+    print rows1
+    print '--------------'
+    print rows2
+
+    rr = rows1.fetchall()
+    for r in rr:
+        print r['user_last_name']
+
+    print '--------------'
+    rr = rows2.fetchall()
+    for r in rr:
+        print r['user_last_name']
+
+    print '--------------'
+    userlist = db.users.select_by(db.users.c.user_age>30)
     for u in userlist:
         print u.c.user_id,u.c.user_last_name
         
-    print '--------------'
-    userlist = db.users.select(db.users.c.user_age>20)
-    for u in userlist:
-        print u.c.user_id,u.c.user_last_name
+    #print '--------------'
+    #userlist = db.users.select_by('user_age>30')
+    #for u in userlist:
+        #print u.c.user_id,u.c.user_last_name
+        
+    #print '--------------'
+    #userlist = db.users.select(db.users.c.user_age>30)
+    #for u in userlist:
+        #print u.c.user_id,u.c.user_last_name
