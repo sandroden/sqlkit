@@ -10,17 +10,33 @@ import py_path
 from sqlalchemy import *
 import config
 
+MODO = 'auto'
 
 class BaseDb:
     def __init__(self):       
         self.eng = config.spawnEngine()
         self.tbusers = Table('euro_user', self.eng, autoload = True)
+        self.tbmail  = Table('euro_mail', self.eng, autoload = True)
+
         class User(object):
             pass
-        
-        assign_mapper(User, self.tbusers)
 
-        self.users   = User()
+        class Mail(object):
+            pass
+
+        if MODO == 'auto':
+            assign_mapper(User, self.tbusers)
+            assign_mapper(Mail, self.tbmail)
+            cascade_mappers(User,Mail)
+        else:
+            User.mapper = mapper(User, self.tbusers, properties = {
+                'addresses' : relation(mapper(Mail, self.tbmail))
+                })
+        
+
+        self.user = User()
+        self.mail = Mail()
+        
 
     def commit(self):
         objectstore.commit()
@@ -54,25 +70,26 @@ if __name__ == '__main__':
     for r in rr:
         print r['user_last_name'],r.user_last_name
 
-    print '--------------db.users.select_by(db.users.c.user_age>30)'
-    userlist = db.users.select_by(db.users.c.user_age>30)
+    print '--------------db.users.select_by(db.user.c.user_age>30) MODO =',MODO
+    if MODO == 'auto':
+        userlist = db.user.select_by(db.user.c.user_age>30)
+    else:
+        userlist = db.user.mapper.select_by(db.user.c.user_age>30)
     for u in userlist:
         print u.user_id,u.user_last_name
         
 
-    print "--------------db.users.select_by('user_age>30')"
-    userlist = db.users.select_by('user_age>30')
+    print "--------------db.users.select_by('user_age>30') MODO = ",MODO
+    if MODO == 'auto':
+        userlist = db.user.select('user_age>30')
+    else:    
+        userlist = db.user.mapper.select_by('user_age>30')
     for u in userlist:
         print u.user_id,u.user_last_name
         
 
-    print '--------------db.users.select(db.users.c.user_age>30)'
-    userlist = db.users.select(db.users.c.user_age>30)
-    for u in userlist:
-        print u.user_id,u.user_last_name
-
-    print '--------------db.users.select("user_age>30")'
-    userlist = db.users.select('user_age>30')
+    print '--------------db.users.mapper.select("user_age>30"), con mapper esplicito- MODO =',MODO
+    userlist = db.user.mapper.select('user_age>30')
     for u in userlist:
         print u.user_id,u.user_last_name
     
@@ -84,4 +101,15 @@ if __name__ == '__main__':
     #for u in userlist:
         #print u.user_id,u.user_last_name
 
+    print '--------------JOIN - MODO =',MODO
+    if MODO=='auto':
+        userlist = db.user.select('user_age>30')
+        for u in userlist:
+            for a in u.mails:
+                print u.user_id,u.user_last_name,a.mail_address
+    else:    
+        userlist = db.user.mapper.select('user_age>30')
+        for u in userlist:
+            for a in u.addresses:
+                print u.user_id,u.user_last_name,a.mail_address
     
