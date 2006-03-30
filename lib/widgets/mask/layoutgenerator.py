@@ -19,7 +19,8 @@ class TableLayoutGenerator (object):
         pass
       elif column.foreign_key is not None:
         entries.append (self.add_foreignkey (column))
-      elif isinstance (column.type, types.Date) or isinstance (column.type, types.DateTime):
+      elif isinstance (column.type, types.Date) or isinstance (
+        column.type, types.DateTime):
         entries.append (self.add_datetime (column))
       elif isinstance (column.type, types.Boolean):
         print type(column.type)
@@ -29,16 +30,16 @@ class TableLayoutGenerator (object):
     return ''.join (entries)
 
   def add_entry (self, column):
-    return "l=%s e=%s\n" % (column.name, column.name )
+    return "L=%s e=%s\n" % (column.name, column.name )
 
   def add_foreignkey (self, column):
-    return "l=%s e=%s b=scegli\n" % (column.name, column.name)
+    return "L=%s e=%s b=scegli\n" % (column.name, column.name)
 
   def add_datetime (self, column):
-    return "l=%s d=%s\n" % (column.name, column.name)
+    return "L=%s d=%s\n" % (column.name, column.name)
 
   def add_boolean (self, column):
-    return "l=%s c=%s\n" % (column.name, column.name)
+    return "L=%s c=%s\n" % (column.name, column.name)
 
 
 
