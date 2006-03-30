@@ -1,6 +1,5 @@
 import os
 from ConfigParser import ConfigParser
-from sqlalchemy import *
 
 def searchFile():
 	""" firt search in cwd, then it's parent or config.py directory """
@@ -14,6 +13,7 @@ def searchFile():
 						
 
 def spawnEngine (conf_file=None, echo=False):
+	from sqlalchemy import *
 	c = ConfigParser ()
 	if not conf_file:
 		conf_file = searchFile()
