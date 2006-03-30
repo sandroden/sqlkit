@@ -3,7 +3,7 @@
 import sys, re, datetime
 
 sys.path.append ('../../../')
-import py_path, config, reflect, mask_sd
+import py_path, config, reflect, mask
 
 from sqlalchemy import *
 from layout import *
@@ -33,7 +33,7 @@ c = user_table.c
 
 
 sql_text = "user_id > 5"
-user_mask = mask_sd.SqlMask (mapper=user_mapper,
+user_mask = mask.SqlMask (mapper=user_mapper,
                           table=user_table,
                           records = None, debug=1, sql=sql_text)
 
