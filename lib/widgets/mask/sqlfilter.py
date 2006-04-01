@@ -19,8 +19,9 @@ class FilterPanel(object):
     def reload_cb(self, widget):
         """issue a reload operation on master. Call back of reload button"""
         sql, bind_params = self.sql()
+        limit=100
         print "reload_cb: %s type: %s" % (bind_params, type(bind_params))
-        self.master.reload(sql=(sql, bind_params) )
+        self.master.reload(sql=(sql, bind_params), limit=limit )
         #self.master.record_display()
         #print self.sql()
 
@@ -44,7 +45,8 @@ class FilterPanel(object):
             ('tb=gtk-close', 'clicked', self.hide),
             ('tb=gtk-refresh', 'clicked', self.reload_cb)
                         )
-        self.l.xml('/tmp/f.glade')
+        self.w['label-cursor'] = gtk.gdk.Cursor(gtk.gdk.HAND1)
+        #self.l.xml('/tmp/f.glade')
         
     def hide(self, wid, ev=None):
         """hide FilterPanel."""
@@ -62,13 +64,15 @@ class FilterPanel(object):
         attrs = dir(ev)
 #         for i in attrs:
 #             print i, getattr(ev, i)
+
+        ## labels
         field_name_event_box = gtk.EventBox()
         field_name = gtk.Label(field)
         field_name_event_box.add(field_name)
         field_name.set_property('xalign', 0)
         field_name_event_box.connect('button-press-event', self.pop_menu,
                                      'show=True')
-                                     
+        #field_name_event_box.window.set_cursor(self.w['label-cursor'])
 
 
         ## combo for operator
@@ -102,10 +106,10 @@ class FilterPanel(object):
         if show:
             self.w['Window'].show_all()
 
-    def pop_menu(self, wdg, ev):
+    def pop_menu(self, wdg, ev, num_button):
         #print "pop_menu", wdg, ev
-        self.w['M=opts'].popup(None, None, None, ev.button, ev.time )
-
+        if ev.button == num_button:
+            self.w['M=opts'].popup(None, None, None, ev.button, ev.time )
         
     def sql(self):
         """create a sql statement composing all requests

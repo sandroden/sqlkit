@@ -11,7 +11,7 @@ import sqlfilter
 
 class SqlMask (object):
 
-    mwidgets = None  # mask widgets
+    mwidgets = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
     fields   = None  # fields to use
     labels   = None  # correspondance Label <-> EventBox
     map_record_n = 0  # number of the displayed record within mapper
@@ -44,6 +44,7 @@ class SqlMask (object):
         self.table = table
         self.mapper = mapper
         self.debug = debug
+        self.listores = {}
         ##  types are written in mapped records bettere than in sqlalchemy Tables
         if not records:
             self.dbg('not records')
@@ -90,7 +91,7 @@ class SqlMask (object):
         self.w['Window'].show()
         #self.add_filter('junk')
         #self.filter_panel.add('wdg', 'ev', 'field_name')
-
+####### Record browsing & saving
     def record_display(self, record=None, next=0):
         """display a mapped record in the mask
 
@@ -165,10 +166,6 @@ class SqlMask (object):
         elif isinstance (fields[field_name], bool):
             return widget.get_active( )
         
-    def dbg(self, text):
-        if self.debug == 1:
-            print text
-    
     def record_delete(self):
         """invokes the validator before DELETing a record"""
         ## FIXME: validator
@@ -195,6 +192,9 @@ class SqlMask (object):
         """display the next record in the mapper"""
         self.record_display(next=1)
         
+    def record_back(self, ev):
+        """display the previous record in the mapper"""
+        self.record_display(next=-1)
     def reload(self, sql=None, params=None):
         """reload data from db
 
@@ -215,11 +215,7 @@ class SqlMask (object):
             n+=1
         self.row_count = n
         self.sb("Total n. of records: %s" % n)
-
-    def record_back(self, ev):
-        """display the previous record in the mapper"""
-        self.record_display(next=-1)
-
+####### Reflection & Analisys
     def _analize_record_for_types(self):
         """fill 'fields' dictionary analizing types
 
@@ -327,7 +323,7 @@ class SqlMask (object):
                 ## FIXME: may I get it from mapper instead of Table?
 #         if isinstance (column.type, types.String) and column.type.length is not None:
 #             self.w [column_layout].set_max_length (column.type.length)
-                pass
+                widget.connect('button-press-event',self.pop_menu, field_name, 3)
 
             ## Dates / Datetime
             if field_type == datetime.date:
@@ -346,7 +342,7 @@ class SqlMask (object):
         ## add click that pops filter_panel
         for field_name, event_box in self.labels.iteritems():
             event_box.connect('button-press-event',
-                              self.filter_panel.add, field_name)
+                              self.filter_panel.add, field_name, 1)
             
             
     def sb(self, text):
@@ -356,6 +352,7 @@ class SqlMask (object):
         except:
             pass
     
+####### Validation
     def focus_out__widget(self, widget, event, field_name):
         self.last_visited_field = field_name
         #print "focus_out", event, field_name
@@ -368,10 +365,16 @@ class SqlMask (object):
     def on_activate_cb(self, widget, field_name):
         print self._get_value(field_name)
         self.select()
-
     def select(self):
         pass
-
+    def digits_check_input(self, widget, event):
+        ## fixme: missing comma, and cut&paste
+        key = gtk.gdk.keyval_name (event.keyval)
+        print key
+        if not re.match ('([0-9.,]|BackSpace|Left|Right)', key):
+            return True
+    
+####### Misc
     def quit(self, widget):
         """Quit operations: check if need to save first """
         ### fixme: must add cheks
@@ -413,12 +416,111 @@ class SqlMask (object):
         if 'O.tool' in self.w:
             self.w['O.tool'].set_show_arrow(False)
             self.lay_obj.prop('O.tool', 'toolbar_style','GTK_TOOLBAR_ICONS')
-
-    def digits_check_input(self, widget, event):
-        ## fixme: missing comma, and cut&paste
-        key = gtk.gdk.keyval_name (event.keyval)
-        print key
-        if not re.match ('([0-9.,]|BackSpace|Left|Right)', key):
-            return True
-
+    def dbg(self, text):
+        if self.debug == 1:
+            print text
     
+####### Completion
+    def add_completion(self, field_name):
+        """ add a completionEntry to an Entry
+        return a listore to be filled
+        """
+
+        entry = self.mwidgets[field_name][1]
+        completion = entry.get_completion()
+        if completion:
+            return (completion.get_model(), completion)
+
+        ## completion was not present
+        completion = gtk.EntryCompletion()
+        renderer = gtk.CellRendererText()
+        completion.pack_start(renderer)
+        completion.set_match_func(self.match_func, 0)
+            
+        listore = gtk.ListStore(str)
+        self.listores[field_name] =  listore 
+        completion.insert_action_text(1,'tutti i valori')
+        completion.insert_action_text(2,'regexp')
+
+        completion.set_model(listore)
+        completion.set_inline_completion(True)
+        entry.set_completion(completion)
+        completion.set_text_column(0)
+        return (listore, completion)
+    def match_func(self, completion, key, iter, column):
+        model = completion.get_model()
+        text = model.get_value(iter, column)
+        if re.search(key, text):
+            return True
+        return False
+    def show_field_info(self, wdg, ev):
+        pass
+    def show_possible_values(self, wdg, field_name, mode):
+        print "show_possible_values %s" % field_name
+        val = self.mwidgets[field_name][1].get_text()
+        if mode == 'start':
+            oper = 'ILIKE'
+            val += '%'
+        if mode == 'regexp':
+            oper = '~*'
+        else:
+            oper = '~'
+            val = "."
+            
+        sql = "%s %s :%s" % (field_name, oper, field_name)
+        listore, completion = self.add_completion(field_name)
+        listore.clear()
+        ret = self.mapper.select(sql, params={field_name : val})
+        for R in ret:
+            listore.append([getattr(R, field_name)])
+        completion.complete()
+        
+#         for s in ['parola %d' % (x) for x in range(0,100) ]:
+#             self.liststore.append([s])
+    def pop_menu(self, wdg, ev, field_name, num_button):
+        #print "pop_menu", wdg, ev
+        if not ev.button == num_button:
+            return False
+
+        print ev.button
+        try:
+            self.w['M=popup'].destroy()
+        except:
+            pass
+
+        
+        self.w['M=popup'] = gtk.Menu()
+        menu = self.w['M=popup']
+        ## info on field
+        item = gtk.MenuItem(label="info on %s" % field_name.replace('_','__'))
+        item.connect('activate', self.show_field_info, field_name)
+        label = "Show all info on this field, db type and such"
+        self.lay_obj.tooltips.set_tip(item,label)
+        menu.append(item)
+        
+        ## possible values
+        item = gtk.MenuItem(label="possible values")
+        item.connect('activate', self.show_possible_values, field_name, 'all')
+        label = "Mostra tutti i valori attualmente nel db"
+        self.lay_obj.tooltips.set_tip(item,label)
+        menu.append(item)
+
+        ## possible values regexp
+        item = gtk.MenuItem(label="possible values, starting ")
+        item.connect('activate', self.show_possible_values, field_name, 'regexp')
+        label = "Mostra tutti i valori attualmente nel db, che contengano con..."
+        self.lay_obj.tooltips.set_tip(item,label)
+        menu.append(item)
+
+        ## possible values starting
+        item = gtk.MenuItem(label="possible values, starting ")
+        item.connect('activate', self.show_possible_values, field_name, 'start')
+        label = "Mostra tutti i valori attualmente nel db, che cominciano con..."
+        self.lay_obj.tooltips.set_tip(item,label)
+        menu.append(item)
+
+        menu.show_all()
+        menu.popup(None, None, None, ev.button, ev.time)
+        
+        return True
+
