@@ -10,7 +10,7 @@ import py_path
 from sqlalchemy import *
 import config
 
-MODO = 'auto'
+MODO = None
 
 class BaseDb:
     def __init__(self):       
@@ -46,29 +46,29 @@ if __name__ == '__main__':
 
     db = BaseDb()
 
-    sel1 = db.tbusers.select(db.tbusers.c.user_age > 30)
-    sel2 = db.tbusers.select('user_age > 30')
-    print '--------------sel1'
-    print sel1
-    print '--------------sel2'
-    print sel2
+    #sel1 = db.tbusers.select(db.tbusers.c.user_age > 30)
+    #sel2 = db.tbusers.select('user_age > 30')
+    #print '--------------sel1'
+    #print sel1
+    #print '--------------sel2'
+    #print sel2
 
-    rows1 = sel1.execute()
-    rows2 = sel2.execute()
-    print '--------------rows1'
-    print rows1
-    print '--------------rows2'
-    print rows2
+    #rows1 = sel1.execute()
+    #rows2 = sel2.execute()
+    #print '--------------rows1'
+    #print rows1
+    #print '--------------rows2'
+    #print rows2
 
-    print '--------------row1.fetchall()'
-    rr = rows1.fetchall()
-    for r in rr:
-        print r['user_last_name']
+    #print '--------------row1.fetchall()'
+    #rr = rows1.fetchall()
+    #for r in rr:
+        #print r['user_last_name']
 
-    print '--------------row2.fetchall()'
-    rr = rows2.fetchall()
-    for r in rr:
-        print r['user_last_name'],r.user_last_name
+    #print '--------------row2.fetchall()'
+    #rr = rows2.fetchall()
+    #for r in rr:
+        #print r['user_last_name'],r.user_last_name
 
     print '--------------db.users.select_by(db.user.c.user_age>30) MODO =',MODO
     if MODO == 'auto':
@@ -79,25 +79,25 @@ if __name__ == '__main__':
         print u.user_id,u.user_last_name
         
 
-    print "--------------db.users.select_by('user_age>30') MODO = ",MODO
-    if MODO == 'auto':
-        userlist = db.user.select('user_age>30')
-    else:    
-        userlist = db.user.mapper.select_by('user_age>30')
-    for u in userlist:
-        print u.user_id,u.user_last_name
+    #print "--------------db.users.select_by('user_age>30') MODO = ",MODO
+    #if MODO == 'auto':
+        #userlist = db.user.select('user_age>30')
+    #else:    
+        #userlist = db.user.mapper.select_by('user_age>30')
+    #for u in userlist:
+        #print u.user_id,u.user_last_name
         
 
-    print '--------------db.users.mapper.select("user_age>30"), con mapper esplicito- MODO =',MODO
-    userlist = db.user.mapper.select('user_age>30')
-    for u in userlist:
-        print u.user_id,u.user_last_name
+    #print '--------------db.users.mapper.select("user_age>30"), con mapper esplicito- MODO =',MODO
+    #userlist = db.user.mapper.select('user_age>30')
+    #for u in userlist:
+        #print u.user_id,u.user_last_name
     
     #questo da un errore psycopg2    
     #print '--------------'
     #t=text("select * from euro_user where user_age>30",db.eng)
     #print t
-    #userlist = db.users.select(text("select * from euro_user where user_age>30",db.eng))
+    #userlist = db.user.select(text("select * from euro_user where user_age>30",db.eng))
     #for u in userlist:
         #print u.user_id,u.user_last_name
 
@@ -106,7 +106,7 @@ if __name__ == '__main__':
         userlist = db.user.select('user_age>30')
         for u in userlist:
             for a in u.mails:
-                print u.user_id,u.user_last_name,a.mail_address
+                print u.user_id,u.user_last_name,a.mail_address                
     else:    
         userlist = db.user.mapper.select('user_age>30')
         for u in userlist:
