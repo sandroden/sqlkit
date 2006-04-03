@@ -15,9 +15,9 @@ class TableLayoutGenerator (object):
   def create (self):
     entries = []
     for column in self.table.columns:
-      if reflect.is_serial (column):
-        pass
-      elif column.foreign_key is not None:
+#       if reflect.is_serial (column):
+#         pass
+      if column.foreign_key is not None:
         entries.append (self.add_foreignkey (column))
       elif isinstance (column.type, types.Date) or isinstance (
         column.type, types.DateTime):

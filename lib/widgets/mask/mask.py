@@ -10,7 +10,8 @@ from sqlalchemy import *
 import sqlfilter
 
 class SqlMask (object):
-
+    """doc string for sqlmask
+    """
     mwidgets = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
     fields   = None  # fields to use
     labels   = None  # correspondance Label <-> EventBox
@@ -195,7 +196,7 @@ class SqlMask (object):
     def record_back(self, ev):
         """display the previous record in the mapper"""
         self.record_display(next=-1)
-    def reload(self, sql=None, params=None):
+    def reload(self, sql=None, params=None, limit=100):
         """reload data from db
 
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
@@ -207,7 +208,7 @@ class SqlMask (object):
             sql_str = sql
             params = None
             
-        self.records = self.mapper.select(sql_str, params=params)
+        self.records = self.mapper.select(sql_str, params=params, limit=limit)
         self.map_record_n = 0
         self.record_display()
         n = 0
@@ -216,6 +217,12 @@ class SqlMask (object):
         self.row_count = n
         self.sb("Total n. of records: %s" % n)
 ####### Reflection & Analisys
+    def _get_one_record(self):
+        # it's just here to study the types, not to be represented
+        self.fake_record = True
+        #self.dbg(self.mapper.select(limit=1)[0])
+        return self.mapper.select(limit=1)[0]
+        
     def _analize_record_for_types(self):
         """fill 'fields' dictionary analizing types
 
@@ -226,7 +233,7 @@ class SqlMask (object):
         self.fields = {}
         for field_name in self.mapper.c.keys():
             field_value = getattr(self.records[0], field_name)
-            print field_name, type(field_value)
+            print field_name, type(field_value), field_value
             self.fields[field_name] = type(field_value)
         
     def _analize_widgets_in_layout(self):
@@ -278,25 +285,6 @@ class SqlMask (object):
                               ('-', None),
                               ('gtk-quit', self.quit)
                               )
-    def add_filter(self, event=None, visible=True):
-        """Pop a Filter Panel"""
-        try:
-            self.filter_panel.w['Window'].set_property('visible', True)
-            #print "add_filter: esisteva"
-        except:
-            self.filter_panel = sqlfilter.FilterPanel(self, visible=visible)
-            #print "add_filter: mancava"
-            #return sqlfilter.FilterPanel(self)
-        return self.filter_panel
-    
-    #filter_panel = property(add_filter)
-            
-    def _get_one_record(self):
-        # it's just here to study the types, not to be represented
-        self.fake_record = True
-        #self.dbg(self.mapper.select(limit=1)[0])
-        return self.mapper.select(limit=1)[0]
-        
     def _add_constraints_and_connect(self):
         """Add controls according to data type represented
         check on input for integers
@@ -308,11 +296,13 @@ class SqlMask (object):
         for field_name in self.fields.keys():
             field_type = self.fields[field_name]
             widget = self.mwidgets[field_name][1]
+            print field_name, widget
 
             ## integer
             if field_type == int:
                 # left justified
-                widget.set_alignment(1)
+                print "field_name:", field_name
+                widget.set_alignment(1), widget
                 # check the input
                 widget.connect('key-press-event', self.digits_check_input  )
                 
@@ -345,44 +335,6 @@ class SqlMask (object):
                               self.filter_panel.add, field_name, 1)
             
             
-    def sb(self, text):
-        """write on the status bar, if present"""
-        try:
-            self.lay_obj.sb(text)
-        except:
-            pass
-    
-####### Validation
-    def focus_out__widget(self, widget, event, field_name):
-        self.last_visited_field = field_name
-        #print "focus_out", event, field_name
-        
-    def focus_in__widget(self, widget, event, more=None):
-        #print "focus_in"
-        #print "more: ",more
-        pass
-    
-    def on_activate_cb(self, widget, field_name):
-        print self._get_value(field_name)
-        self.select()
-    def select(self):
-        pass
-    def digits_check_input(self, widget, event):
-        ## fixme: missing comma, and cut&paste
-        key = gtk.gdk.keyval_name (event.keyval)
-        print key
-        if not re.match ('([0-9.,]|BackSpace|Left|Right)', key):
-            return True
-    
-####### Misc
-    def quit(self, widget):
-        """Quit operations: check if need to save first """
-        ### fixme: must add cheks
-        ### fixme2: must the toplevel be destrouyed (or is reparented?)
-        print widget
-        self.w['Window'].destroy()
-        self.filter_panel.destroy()
-        
     def _add_actions_to_buttons(self):
         """ Add default actions to std buttons"""
         actions = {
@@ -416,12 +368,63 @@ class SqlMask (object):
         if 'O.tool' in self.w:
             self.w['O.tool'].set_show_arrow(False)
             self.lay_obj.prop('O.tool', 'toolbar_style','GTK_TOOLBAR_ICONS')
+####### Validation
+    def focus_out__widget(self, widget, event, field_name):
+        self.last_visited_field = field_name
+        #print "focus_out", event, field_name
+        
+    def focus_in__widget(self, widget, event, more=None):
+        #print "focus_in"
+        #print "more: ",more
+        pass
+    
+    def on_activate_cb(self, widget, field_name):
+        print self._get_value(field_name)
+        self.select()
+    def select(self):
+        pass
+    def digits_check_input(self, widget, event):
+        ## fixme: missing comma, and cut&paste
+        key = gtk.gdk.keyval_name (event.keyval)
+        print key
+        if not re.match ('([0-9.,]|BackSpace|Left|Right)', key):
+            return True
+    
+####### Misc
+    def quit(self, widget):
+        """Quit operations: check if need to save first """
+        ### fixme: must add cheks
+        ### fixme2: must the toplevel be destrouyed (or is reparented?)
+        print widget
+        self.w['Window'].destroy()
+        self.filter_panel.destroy()
+        
+    def sb(self, text):
+        """write on the status bar, if present"""
+        try:
+            self.lay_obj.sb(text)
+        except:
+            pass
+    
+    def add_filter(self, event=None, visible=True):
+        """Pop a Filter Panel"""
+        try:
+            self.filter_panel.w['Window'].set_property('visible', True)
+            #print "add_filter: esisteva"
+        except:
+            self.filter_panel = sqlfilter.FilterPanel(self, visible=visible)
+            #print "add_filter: mancava"
+            #return sqlfilter.FilterPanel(self)
+        return self.filter_panel
+    
+    #filter_panel = property(add_filter)
+            
     def dbg(self, text):
         if self.debug == 1:
             print text
     
 ####### Completion
-    def add_completion(self, field_name):
+    def add_completion(self, field_name, mode):
         """ add a completionEntry to an Entry
         return a listore to be filled
         """
@@ -429,33 +432,53 @@ class SqlMask (object):
         entry = self.mwidgets[field_name][1]
         completion = entry.get_completion()
         if completion:
+            completion.set_match_func(self.match_func, (0, mode))
             return (completion.get_model(), completion)
 
         ## completion was not present
         completion = gtk.EntryCompletion()
         renderer = gtk.CellRendererText()
         completion.pack_start(renderer)
-        completion.set_match_func(self.match_func, 0)
+        completion.set_match_func(self.match_func, (0, mode))
             
         listore = gtk.ListStore(str)
-        self.listores[field_name] =  listore 
-        completion.insert_action_text(1,'tutti i valori')
-        completion.insert_action_text(2,'regexp')
+        self.listores[field_name] =  listore
+        if mode == 'regexp':
+            completion.insert_action_text(1,'start with...')
+        else:
+            completion.insert_action_text(2,'regexp')
 
         completion.set_model(listore)
         completion.set_inline_completion(True)
         entry.set_completion(completion)
         completion.set_text_column(0)
         return (listore, completion)
-    def match_func(self, completion, key, iter, column):
+    def match_func(self, completion, key, iter, func_data):
+        column, mode = func_data
         model = completion.get_model()
         text = model.get_value(iter, column)
+        if not text:
+            text = ''
+        #return False
+        # start
+        if mode == 'start':
+            if text.startswith(key):
+                return True
+            else:
+                return False
+        # regexp
         if re.search(key, text):
             return True
         return False
     def show_field_info(self, wdg, ev):
         pass
     def show_possible_values(self, wdg, field_name, mode):
+        """fill in a ListStore to use with completion, fetch data from db
+        mode determines the match of the already typed text:
+        start: only matching data starting with typed text
+        regexp: typed text is a regexp (*~ or ILIKE)
+        all: all values
+        """
         print "show_possible_values %s" % field_name
         val = self.mwidgets[field_name][1].get_text()
         if mode == 'start':
@@ -468,15 +491,13 @@ class SqlMask (object):
             val = "."
             
         sql = "%s %s :%s" % (field_name, oper, field_name)
-        listore, completion = self.add_completion(field_name)
+        listore, completion = self.add_completion(field_name, mode)
         listore.clear()
         ret = self.mapper.select(sql, params={field_name : val})
         for R in ret:
             listore.append([getattr(R, field_name)])
         completion.complete()
         
-#         for s in ['parola %d' % (x) for x in range(0,100) ]:
-#             self.liststore.append([s])
     def pop_menu(self, wdg, ev, field_name, num_button):
         #print "pop_menu", wdg, ev
         if not ev.button == num_button:
@@ -498,17 +519,17 @@ class SqlMask (object):
         self.lay_obj.tooltips.set_tip(item,label)
         menu.append(item)
         
-        ## possible values
-        item = gtk.MenuItem(label="possible values")
-        item.connect('activate', self.show_possible_values, field_name, 'all')
-        label = "Mostra tutti i valori attualmente nel db"
-        self.lay_obj.tooltips.set_tip(item,label)
-        menu.append(item)
+#         ## possible values
+#         item = gtk.MenuItem(label="possible values")
+#         item.connect('activate', self.show_possible_values, field_name, 'all')
+#         label = "Mostra tutti i valori attualmente nel db"
+#         self.lay_obj.tooltips.set_tip(item,label)
+#         menu.append(item)
 
         ## possible values regexp
-        item = gtk.MenuItem(label="possible values, starting ")
+        item = gtk.MenuItem(label="possible values: regexp ")
         item.connect('activate', self.show_possible_values, field_name, 'regexp')
-        label = "Mostra tutti i valori attualmente nel db, che contengano con..."
+        label = "Mostra tutti i valori attualmente nel db che 'matchino'"
         self.lay_obj.tooltips.set_tip(item,label)
         menu.append(item)
 
