@@ -22,22 +22,95 @@ def is_serial (c):
         return False
 
 
-class Inspect(object):
+class InspectMapper(object):
+    """inspect a mapper and gather all info on fields normally used. Adds attributes
+    for each field_name pointing to a dictionary with:
+    table_name  (string)
+    name        (string)
+    table       (sqlalchemy Table obj)
+    pg_type     (pg type)
+    type        (python-type) (not yet)
+    col_spec    (string) eg: INTEGER, STRING
+    is_serial   bool
+    length      None or a Number
+    """
     def __init__(self, mapper):
+        import datetime
+        self.pytype = {
+            sqlalchemy.databases.postgres.PGString : str,
+            sqlalchemy.databases.postgres.PGInteger  : int,
+            sqlalchemy.databases.postgres.PG2DateTime  : datetime.datetime,
+            sqlalchemy.databases.postgres.PG2Date  : datetime.date,
+            sqlalchemy.databases.postgres.PGChar  : str, 
+            sqlalchemy.databases.postgres.PGString  :  str, 
+            sqlalchemy.databases.postgres.PGBoolean  : bool, 
+        }
+
+        self.fields = []
+        self.n = None
         for prop in mapper.props:
             attr = mapper.props[prop] 
+            #print "prop", prop, type(prop), 'mapper', type(mapper)
             if isinstance(attr, sqlalchemy.mapping.properties.LazyLoader):
                 m = attr.mapper
-                for c in m.c.keys():
-                    # m.c[c].columns
-                    # m.c[c]
-                    m.c[c]
-                    print m.table, c, m.c[c].type
+                for field_name in m.c.keys():
+                    #print "field_name", field_name, type(field_name)
+                    self.add_field(field_name, m)
             else:
-                # mapper.c[attr.key].columns
-                # mapper.c[attr.key]
-                c = attr.key
-                m = mapper 
-                print m.table, c, m.c[c].type
+                self.add_field(prop, mapper)
+                #print "attr", attr, 'mapper', mapper
 
+    def add_field(self, field_name, mapper):
+        self.fields += [ field_name ]
+        d = {
+            'table_name'  :  mapper.table.name ,
+            'name'        :  field_name,
+            'table'       :  mapper.table ,
+            'pg_type'     :  type(mapper.c[field_name].type), 
+            'type'        :  self.pytype[type(mapper.c[field_name].type)],
+            'col_spec'    :  mapper.c[field_name].type.get_col_spec(),
+            'is_serial'   :  is_serial(mapper.c[field_name])
+            #'label'  :   ,
+            #'widget'  :   ,
+            }
+        try:
+            d['length'] = mapper.c[field_name].type.length
+        except:
+            d['length'] = None
+
+
+        setattr(self, field_name,  d)
+
+    def keys(self):
+        return self.fields
+
+    def __iter__(self):
+        return self
+
+    def __contains__(self, item):
+        if item in self.fields:
+            return True
+        return False
+
+    def __getitem__(self, item):
+        return self[self.fields[self.n]]
+
+    def __len__(self):
+        return len(self.fields)
+        
+    def next(self):
+        """returns the next item in the data set,
+        or tells Python to stop"""
+        if self.n is None:
+            self.n = -1
+            
+        try:
+            self.n += 1
+            r = getattr(self, self.fields[self.n])
+        except:
+            raise StopIteration
+        
+        if not r:
+            raise StopIteration
+        return r
 
