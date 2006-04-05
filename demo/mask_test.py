@@ -4,6 +4,8 @@ import sys, re, datetime
 
 sys.path.append ('../../../')
 import py_path, config, reflect, mask
+import sd
+sd.dbg = 1
 
 from sqlalchemy import *
 from layout import *
@@ -13,6 +15,7 @@ from validator import Validator
 
 engine = config.spawnEngine(echo=False)
 cursor = engine.connection().cursor()
+#print cursor.cursor.description
 #user_table = reflect.mapTable (engine, 'euro_user')
 user_table = Table ('euro_user', engine, autoload=True)
 #user_mapper = reflect.getMapper (user_table)
@@ -20,6 +23,7 @@ class Mapper(object):
     pass
 user_mapper = mapper (Mapper, user_table)
 c = user_table.c
+#print cursor.description
 
 
 #print dir(user_mapper.select)
@@ -34,9 +38,8 @@ c = user_table.c
 
 sql_text = "user_id > 5"
 user_mask = mask.SqlMask (mapper=user_mapper,
-                          table=user_table,
                           records = None, debug=1, sql=sql_text)
-
+#user_mask.record_forward(1)
 gtk.main()
 
 
