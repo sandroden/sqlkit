@@ -13,7 +13,7 @@ class SqlMask (object):
     """doc string for sqlmask
     """
     mwidgets = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
-    fields   = None  # fields to use
+    fields   = None  # fields to use (InspectMapper)
     labels   = None  # correspondance Label <-> EventBox
     map_record_n = 0  # number of the displayed record within mapper
     row_count = 0    # number of records in the mapper
@@ -42,56 +42,27 @@ class SqlMask (object):
         noup:   list of field-name that cannot be updated
         """
         
-        self.table = table
-        self.mapper = mapper
+        self.mapper = self._get_mapper(mapper, table)
+        self.valid = self._get_validator(valid)
         self.debug = debug
-        self.listores = {}
-        ##  types are written in mapped records bettere than in sqlalchemy Tables
-        if not records:
-            self.dbg('not records')
-            self.fake_record = True
-            self.records = [ self._get_one_record() ]
-        else:
-            self.fake_record = False
-            self.records = records
+        self.listores = {}  ## needed for entry_completion
+        self.fields = reflect.InspectMapper(mapper, noup=noup, mode=mode)
 
-        if not valid:
-            valid = validator.Validator()
-        self.valid = valid
-        self._analize_record_for_types()
-
-        ## layout
-        if lay is None:
-            gen = TableLayoutGenerator (self.table, naked=naked)
-            self.layout = gen.layout
-        else:
-            self.layout = lay
-        self.add_filter(visible=False)
-        
-        ## add default buttons if needed
-        self._add_default_buttons(naked)
 
         ## create the interface and add obvious constraints
-        self.lay_obj = layout.Layout (self.layout)
-        self.lay_obj.prop('Window', 'visible', False)
-        self.w       = self.lay_obj.show()
-        self._analize_widgets_in_layout()
-        self._add_constraints_and_connect()
-        self._add_actions_to_buttons()
-        self._fill_menubar_menu()
-
+        self.lay_obj, self.w  = self._get_layout(lay, naked)
+        
         ## fill in the data in case
         if records:
             self.dbg('ora self.record_display, records: ' % records)
             self.record_display()
         elif sql:
-            self.dbg('sql: %s' % sql)
+            self.dbg('__init__ sql: %s' % sql)
             self.reload(sql)
             
         ## only render when dimentions are complete
         self.w['Window'].show()
-        #self.add_filter('junk')
-        #self.filter_panel.add('wdg', 'ev', 'field_name')
+
 ####### Record browsing & saving
     def record_display(self, record=None, next=0):
         """display a mapped record in the mask
@@ -101,10 +72,6 @@ class SqlMask (object):
         next: next is added to self.map_record_n (may be negative) and that element is displayed
         """
         self.dbg('Record_display n: %s' % self.map_record_n)
-        if self.fake_record and not sql:
-            ## A faked record is only retrieved to work out the types of the fields
-            self.fake_record = False
-            return
         ## fill in the data
 
         if not record:
@@ -120,7 +87,7 @@ class SqlMask (object):
                 #self.dbg('manca records[%s]' % n)
                 return
 
-            self.sb("record %s/%s" % (self.map_record_n, self.row_count))
+            self.sb("record %s/%s" % ((self.map_record_n+1), self.row_count))
 
         for field_name in self.fields.keys():
             field_value = getattr(record, field_name)
@@ -147,7 +114,7 @@ class SqlMask (object):
             if field_value == '':
                 field_value = False
             widget.set_active(field_value)
-            print widget.get_active()
+            #print widget.get_active()
         
     def _get_value(self, field_name):
         # this is the method that knows how to handle different type of data
@@ -215,26 +182,54 @@ class SqlMask (object):
         for i in self.records:
             n+=1
         self.row_count = n
-        self.sb("Total n. of records: %s" % n)
-####### Reflection & Analisys
-    def _get_one_record(self):
-        # it's just here to study the types, not to be represented
-        self.fake_record = True
-        #self.dbg(self.mapper.select(limit=1)[0])
-        return self.mapper.select(limit=1)[0]
+        self.sb("Total n. of records: %s" % (n))
+####### Layout, Reflection & Analisys
+    def _get_mapper(self, mapper, table):
+        """If no mapper is provided it will be built from the table"""
+        ## FIXME: manca parte creazione mapper
+        if mapper:
+            return mapper
+    def _get_validator(self, valid):
+        if not valid:
+            valid = validator.Validator()
+        self.valid = valid
+    def _get_layout(self, lay, naked):
+        ## layout
+        if lay is None:
+            lay = TableLayoutGenerator(self.fields, naked=naked).layout
+
+        self.layout = lay
+        self.add_filter(visible=False)
+
+        ## add default buttons if needed
+        self._add_default_buttons(naked)
+        self.lay_obj = layout.Layout (self.layout)
+        self.lay_obj.prop('Window', 'visible', False)
+        self.w       = self.lay_obj.show()
+        self._analize_widgets_in_layout()
+        self._add_constraints_and_connect()
+        self._add_actions_to_buttons()
+        self._fill_menubar_menu()
+        return (self.lay_obj, self.w)
+
+#     def _get_one_record(self):
+#         # it's just here to study the types, not to be represented
+#         self.fake_record = True
+#         #self.dbg(self.mapper.select(limit=1)[0])
+#         return self.mapper.select(limit=1)[0]
         
-    def _analize_record_for_types(self):
-        """fill 'fields' dictionary analizing types
+#     def _analize_record_for_types(self):
+#         """fill 'fields' dictionary analizing types
 
-        fields:  dict to store fields that appear in layout. Good for loops
-        key: field_name  value: type
-        """
+#         fields:  dict to store fields that appear in layout. Good for loops
+#         key: field_name  value: type
+#         """
 
-        self.fields = {}
-        for field_name in self.mapper.c.keys():
-            field_value = getattr(self.records[0], field_name)
-            print field_name, type(field_value), field_value
-            self.fields[field_name] = type(field_value)
+#         self.fields = {}
+#         for field_name in self.mapper.c.keys():
+#             field_value = getattr(self.records[0], field_name)
+#             #print field_name, type(field_value), field_value
+#             self.fields[field_name] = type(field_value)
         
     def _analize_widgets_in_layout(self):
         """fill variables from layout
@@ -294,14 +289,14 @@ class SqlMask (object):
         """
         
         for field_name in self.fields.keys():
-            field_type = self.fields[field_name]
+            field_type = self.fields[field_name]['type']
             widget = self.mwidgets[field_name][1]
-            print field_name, widget
+            #print field_name, widget
 
             ## integer
             if field_type == int:
                 # left justified
-                print "field_name:", field_name
+                #print "field_name:", field_name
                 widget.set_alignment(1), widget
                 # check the input
                 widget.connect('key-press-event', self.digits_check_input  )
@@ -475,12 +470,12 @@ class SqlMask (object):
     def show_field_info(self, wdg, ev):
         pass
     def entry_short_cut_event(self, wdg, ev, field_name, key):
+        """callback of key-press-button in (string) entries"""
         accelname = gtk.accelerator_name(ev.keyval, ev.state)
         if accelname == 'F1':
             self.show_possible_values (wdg, field_name, 'regexp')
-        else: 
-            if accelname == '<Control>F1':
-                self.show_possible_values (wdg, field_name, 'start')
+        elif accelname == '<Control>F1':
+            self.show_possible_values (wdg, field_name, 'start')
     
     def show_possible_values(self, wdg, field_name, mode):
         """fill in a ListStore to use with completion, fetch data from db
@@ -489,7 +484,7 @@ class SqlMask (object):
         regexp: typed text is a regexp (*~ or ILIKE)
         all: all values
         """
-        print "show_possible_values %s" % field_name
+        #print "show_possible_values %s" % field_name
         val = self.mwidgets[field_name][1].get_text()
         if mode == 'start':
             oper = 'ILIKE'
@@ -511,7 +506,6 @@ class SqlMask (object):
         event.keyval = ord(".")
         self.mwidgets[field_name][1].emit('key-press-event',event)
         
-
     def pop_menu(self, wdg, ev, field_name, num_button):
         #print "pop_menu", wdg, ev
         if not ev.button == num_button:

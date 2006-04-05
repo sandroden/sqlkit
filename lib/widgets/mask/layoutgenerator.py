@@ -1,45 +1,52 @@
 import sys
+import datetime
 
 sys.path.append ('../../../../../../')
-import py_path, reflect
+import py_path
 
 from sqlalchemy import *
 
 
 class TableLayoutGenerator (object):
 
-  def __init__ (self, table, naked=False):
-    self.table = table
-    self.layout = self.create ()
+  def __init__ (self, fields, naked=False):
+    """fields: an InspectMapper object"""
+    self.layout = self.create (fields)
 
-  def create (self):
+  def create (self, fields):
     entries = []
-    for column in self.table.columns:
-#       if reflect.is_serial (column):
+    for field_name in fields.keys():
+      ftype = getattr(fields, field_name)['type']
+
+      #ftype = fields[field_name]['type']
+      
+#       if reflect.is_serial (field_name):
 #         pass
-      if column.foreign_key is not None:
-        entries.append (self.add_foreignkey (column))
-      elif isinstance (column.type, types.Date) or isinstance (
-        column.type, types.DateTime):
-        entries.append (self.add_datetime (column))
-      elif isinstance (column.type, types.Boolean):
-        print type(column.type)
-        entries.append (self.add_boolean (column))
+#       if field_name.foreign_key is not None:
+#         entries.append (self.add_foreignkey (field_name))
+
+
+      if ftype in (datetime.datetime, datetime.date, datetime.time):
+        entries.append(self.add_datetime(field_name))
+
+      if ftype == bool:
+        entries.append (self.add_boolean (field_name))
+
       else:
-        entries.append (self.add_entry (column))
+        entries.append (self.add_entry (field_name))
     return ''.join (entries)
 
-  def add_entry (self, column):
-    return "L=%s e=%s\n" % (column.name, column.name )
+  def add_entry (self, field_name):
+    return "L=%s e=%s\n" % (field_name, field_name )
 
-  def add_foreignkey (self, column):
-    return "L=%s e=%s b=scegli\n" % (column.name, column.name)
+  def add_foreignkey (self, field_name):
+    return "L=%s e=%s b=scegli\n" % (field_name, field_name)
 
-  def add_datetime (self, column):
-    return "L=%s d=%s\n" % (column.name, column.name)
+  def add_datetime (self, field_name):
+    return "L=%s d=%s\n" % (field_name, field_name)
 
-  def add_boolean (self, column):
-    return "L=%s c=%s\n" % (column.name, column.name)
+  def add_boolean (self, field_name):
+    return "L=%s c=%s\n" % (field_name, field_name)
 
 
 
