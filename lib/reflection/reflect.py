@@ -33,6 +33,7 @@ class InspectMapper(object):
     col_spec    (string) eg: INTEGER, STRING
     is_serial   bool
     length      None or a Number
+    property    the property used to access these data
     """
     def __init__(self, mapper):
         import datetime
@@ -50,17 +51,14 @@ class InspectMapper(object):
         self.n = None
         for prop in mapper.props:
             attr = mapper.props[prop] 
-            #print "prop", prop, type(prop), 'mapper', type(mapper)
             if isinstance(attr, sqlalchemy.mapping.properties.LazyLoader):
                 m = attr.mapper
                 for field_name in m.c.keys():
-                    #print "field_name", field_name, type(field_name)
-                    self.add_field(field_name, m)
+                    self.add_field(field_name, m, prop)
             else:
                 self.add_field(prop, mapper)
-                #print "attr", attr, 'mapper', mapper
 
-    def add_field(self, field_name, mapper):
+    def add_field(self, field_name, mapper, property=None):
         self.fields += [ field_name ]
         d = {
             'table_name'  :  mapper.table.name ,
@@ -69,7 +67,8 @@ class InspectMapper(object):
             'pg_type'     :  type(mapper.c[field_name].type), 
             'type'        :  self.pytype[type(mapper.c[field_name].type)],
             'col_spec'    :  mapper.c[field_name].type.get_col_spec(),
-            'is_serial'   :  is_serial(mapper.c[field_name])
+            'is_serial'   :  is_serial(mapper.c[field_name]),
+            'property'    :  property,
             #'label'  :   ,
             #'widget'  :   ,
             }
@@ -114,3 +113,14 @@ class InspectMapper(object):
             raise StopIteration
         return r
 
+    def get(self, record, field_name, n=0):
+        at = getattr(self, field_name)
+        if not at['property']:
+            return getattr(record, field_name)
+        else:
+            print at['property'], type(at['property'])
+            data = getattr(record, at['property'][0])
+            return getattr(data, field_name)
+
+
+            

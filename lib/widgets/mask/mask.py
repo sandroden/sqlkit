@@ -314,7 +314,8 @@ class SqlMask (object):
 #         if isinstance (column.type, types.String) and column.type.length is not None:
 #             self.w [column_layout].set_max_length (column.type.length)
                 widget.connect('button-press-event',self.pop_menu, field_name, 3)
-
+                widget.connect('key-press-event',self.entry_short_cut_event,
+                               field_name, 'F1')
             ## Dates / Datetime
             if field_type == datetime.date:
                 widget.set_property('show-time', False)
@@ -437,6 +438,7 @@ class SqlMask (object):
 
         ## completion was not present
         completion = gtk.EntryCompletion()
+        completion.set_property('minimum-key-length', 0)
         renderer = gtk.CellRendererText()
         completion.pack_start(renderer)
         completion.set_match_func(self.match_func, (0, mode))
@@ -462,16 +464,24 @@ class SqlMask (object):
         #return False
         # start
         if mode == 'start':
-            if text.startswith(key):
+            if re.search("^%s" %(key), text, re.IGNORECASE):
                 return True
             else:
                 return False
         # regexp
-        if re.search(key, text):
+        if re.search(key, text, re.IGNORECASE):
             return True
         return False
     def show_field_info(self, wdg, ev):
         pass
+    def entry_short_cut_event(self, wdg, ev, field_name, key):
+        accelname = gtk.accelerator_name(ev.keyval, ev.state)
+        if accelname == 'F1':
+            self.show_possible_values (wdg, field_name, 'regexp')
+        else: 
+            if accelname == '<Control>F1':
+                self.show_possible_values (wdg, field_name, 'start')
+    
     def show_possible_values(self, wdg, field_name, mode):
         """fill in a ListStore to use with completion, fetch data from db
         mode determines the match of the already typed text:
@@ -497,13 +507,17 @@ class SqlMask (object):
         for R in ret:
             listore.append([getattr(R, field_name)])
         completion.complete()
+        event =   gtk.gdk.Event(gtk.gdk.KEY_PRESS)
+        event.keyval = ord(".")
+        self.mwidgets[field_name][1].emit('key-press-event',event)
         
+
     def pop_menu(self, wdg, ev, field_name, num_button):
         #print "pop_menu", wdg, ev
         if not ev.button == num_button:
             return False
 
-        print ev.button
+        print "DBG", ev.button
         try:
             self.w['M=popup'].destroy()
         except:
@@ -527,14 +541,14 @@ class SqlMask (object):
 #         menu.append(item)
 
         ## possible values regexp
-        item = gtk.MenuItem(label="possible values: regexp ")
+        item = gtk.MenuItem(label="possible values: regexp  - F1")
         item.connect('activate', self.show_possible_values, field_name, 'regexp')
         label = "Mostra tutti i valori attualmente nel db che 'matchino'"
         self.lay_obj.tooltips.set_tip(item,label)
         menu.append(item)
 
         ## possible values starting
-        item = gtk.MenuItem(label="possible values, starting ")
+        item = gtk.MenuItem(label="possible values, starting - Ctrl-F1")
         item.connect('activate', self.show_possible_values, field_name, 'start')
         label = "Mostra tutti i valori attualmente nel db, che cominciano con..."
         self.lay_obj.tooltips.set_tip(item,label)
@@ -545,3 +559,5 @@ class SqlMask (object):
         
         return True
 
+#def bind(widget, key_press, handler, *args):
+    
