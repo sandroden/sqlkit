@@ -55,6 +55,7 @@ class InspectMapper(dict):
                 sqlalchemy.databases.postgres.PGBoolean  : bool, 
                 })
         except:
+            sd.debug("no pg types")
             pass
                               
         ## used by sqlite
@@ -65,11 +66,12 @@ class InspectMapper(dict):
                 sqlalchemy.types.Float  : float,
                 sqlalchemy.types.DateTime  : datetime.datetime,
                 sqlalchemy.types.Date  : datetime.date,
-                sqlalchemy.types.Char  : str, 
+#                sqlalchemy.types.Char  : str, 
                 sqlalchemy.types.String  :  str, 
                 sqlalchemy.types.Boolean  : bool, 
                 })
         except:
+            sd.debug("no sa types")
             pass
                               
 
@@ -96,6 +98,7 @@ class InspectMapper(dict):
             'col_spec'    :  mapper.c[field_name].type.get_col_spec(),
             'is_serial'   :  is_serial(mapper.c[field_name]),
             'property'    :  property,
+            'fk'    :  False,
             #'label'  :   ,
             #'widget'  :   ,
             }
@@ -105,9 +108,12 @@ class InspectMapper(dict):
             d['length'] = None
 
         if (mapper.table.name, mapper) not in self.table_mappers:
-            sd.debug("%s %s" % (mapper.table.name, self.table_mappers))
+            #sd.debug("%s %s" % (mapper.table.name, self.table_mappers))
             self.table_mappers += [(mapper.table.name, mapper)]
 
+        if mapper.c[field_name].foreign_key:
+             d['fk'] = (mapper.c[field_name].foreign_key.column.table.name,
+                        mapper.c[field_name].foreign_key.column.name)
         setattr(self, field_name,  d)
 
     def keys(self):
@@ -134,7 +140,7 @@ class InspectMapper(dict):
         """return the table_names of the tables in the mapper
         if mode='mapper', returns the mappers
         """
-        sd.debug(self.table_mappers)
+        #sd.debug(self.table_mappers)
         if mode == 'name':
             return [t[0] for t in self.table_mappers]
         else:

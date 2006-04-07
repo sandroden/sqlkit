@@ -22,14 +22,15 @@ class User(object):
 class Mail(object):
     pass
 
-rel = relation(mapper(Mail, tbmail))
+m2 = mapper(Mail, tbmail)
+rel = relation(m2)
 User.mapper = mapper(User, tbusers, properties = {'addresses' : rel })
         
 m = User.mapper
 
 
 info = reflect.InspectMapper(m)
-print info.keys()
+print info['mail_user_id']
 sys.exit()
 # for k,v in info.user_id.iteritems():
 #     print k, v

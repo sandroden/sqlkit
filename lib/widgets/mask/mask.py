@@ -7,7 +7,7 @@ import dateedit
 from layoutgenerator import TableLayoutGenerator
 import gtk, pango
 from sqlalchemy import *
-import sqlfilter
+import sqlfilter, sd
 
 class SqlMask (object):
     """doc string for sqlmask
@@ -302,12 +302,7 @@ class SqlMask (object):
                 widget.connect('key-press-event', self.digits_check_input  )
                 
             ## Strings
-            if field_type == str:
-                # max N. of char
-                #widget.set_max_length()
-                ## FIXME: may I get it from mapper instead of Table?
-#         if isinstance (column.type, types.String) and column.type.length is not None:
-#             self.w [column_layout].set_max_length (column.type.length)
+            if field_type == str or self.fields[field_name]['fk']:
                 widget.connect('button-press-event',self.pop_menu, field_name, 3)
                 widget.connect('key-press-event',self.entry_short_cut_event,
                                field_name, 'F1')
@@ -382,8 +377,9 @@ class SqlMask (object):
     def digits_check_input(self, widget, event):
         ## fixme: missing comma, and cut&paste
         key = gtk.gdk.keyval_name (event.keyval)
-        print key
-        if not re.match ('([0-9.,]|BackSpace|Left|Right)', key):
+        #sd.debug(key)
+        if not re.match ('([0-9.,]|BackSpace|Left|Right|F1|period)', key):
+            sd.debug("key: %s" % key)
             return True
     
 ####### Misc
@@ -420,6 +416,10 @@ class SqlMask (object):
             print text
     
 ####### Completion
+# EntryCompletion widgets are added on the fly triggered by F1, C-F1 or menu items
+# select_values will get data from the db and fill a listore
+# match_function filters using re.search from the listore to fill in the completion
+#
     def add_completion(self, field_name, mode):
         """ add a completionEntry to an Entry
         return a listore to be filled
@@ -485,33 +485,61 @@ class SqlMask (object):
         all: all values
         """
         #print "show_possible_values %s" % field_name
-        val = self.mwidgets[field_name][1].get_text()
+        sql_dict = {}
+        sql_dict['val'] = self.mwidgets[field_name][1].get_text()
         if mode == 'start':
-            oper = 'ILIKE'
+            sql_dict['oper'] = 'ILIKE'
             val += '%'
         if mode == 'regexp':
-            oper = '~*'
+            sql_dict['oper'] = '~*'
         else:
-            oper = '~'
-            val = "."
+            sql_dict['oper'] = '~'
+            sql_dict['val'] = "."
+
+        sql_dict['field_name'] = field_name
             
-        sql = "%s %s :%s" % (field_name, oper, field_name)
         listore, completion = self.add_completion(field_name, mode)
         listore.clear()
-        ret = self.mapper.select(sql, params={field_name : val})
+        ret = self.select_values(field_name, sql_dict)
+        ## sql_dict['field_name'] may be changed by select_values if fk
+        #sd.debug("field_name %s" % (sql_dict['field_name']))
         for R in ret:
-            listore.append([getattr(R, field_name)])
+            listore.append([getattr(R, sql_dict['field_name'])])
         completion.complete()
         event =   gtk.gdk.Event(gtk.gdk.KEY_PRESS)
         event.keyval = ord(".")
         self.mwidgets[field_name][1].emit('key-press-event',event)
         
+    def select_values(self, field_name, sql_dict):
+        """execute the SELECT DISTINCT and return values"""
+
+        I = self.fields[field_name]
+
+        if I['fk']:
+            sql_dict['table_name'] = I['fk'][0]
+            sql_dict['field_name'] = I['fk'][1]
+        else:
+            sql_dict['table_name'] = I['table_name']
+
+        if I['type'] == int:
+            sql = """SELECT DISTINCT %(field_name)s
+               FROM %(table_name)s 
+               ORDER BY %(field_name)s
+            """ % sql_dict
+        else:
+            sql = """SELECT DISTINCT %(field_name)s
+                 FROM %(table_name)s 
+                 WHERE %(field_name)s %(oper)s :%(field_name)s
+                 ORDER BY %(field_name)s
+                 """ % sql_dict
+
+        s = text(sql, engine=self.mapper.engines[0])
+        return s.execute({field_name : sql_dict['val']})
     def pop_menu(self, wdg, ev, field_name, num_button):
         #print "pop_menu", wdg, ev
         if not ev.button == num_button:
             return False
 
-        print "DBG", ev.button
         try:
             self.w['M=popup'].destroy()
         except:
