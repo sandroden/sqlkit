@@ -12,7 +12,17 @@ import config
 
 MODO = None
 
-class BaseDb:
+
+#class User(object):
+    #pass
+
+#class Mail(object):
+    #def __init__(self, mail_address=None):
+        #self.mail_address=mail_address
+    #pass
+
+
+class Utente(object):
     def __init__(self):       
         self.eng = config.spawnEngine()
         self.tbusers = Table('euro_user', self.eng, autoload = True)
@@ -22,6 +32,8 @@ class BaseDb:
             pass
 
         class Mail(object):
+            def __init__(self, mail_address=None):
+                self.mail_address=mail_address
             pass
 
         if MODO == 'auto':
@@ -30,24 +42,23 @@ class BaseDb:
             cascade_mappers(User,Mail)
         else:
             User.mapper = mapper(User, self.tbusers, properties = {
-                'addresses' : relation(mapper(Mail, self.tbmail))
+                'mails' : relation(mapper(Mail, self.tbmail))
                 })
-        
 
         self.user = User()
         self.mail = Mail()
         
-
+        
     def commit(self):
         objectstore.commit()
         
 
 if __name__ == '__main__':
 
-    db = BaseDb()
+    ut = Utente()
 
-    #sel1 = db.tbusers.select(db.tbusers.c.user_age > 30)
-    #sel2 = db.tbusers.select('user_age > 30')
+    #sel1 = ut.tbusers.select(ut.tbusers.c.user_age > 30)
+    #sel2 = ut.tbusers.select('user_age > 30')
     #print '--------------sel1'
     #print sel1
     #print '--------------sel2'
@@ -70,46 +81,63 @@ if __name__ == '__main__':
     #for r in rr:
         #print r['user_last_name'],r.user_last_name
 
-    print '--------------db.users.select_by(db.user.c.user_age>30) MODO =',MODO
-    if MODO == 'auto':
-        userlist = db.user.select_by(db.user.c.user_age>30)
-    else:
-        userlist = db.user.mapper.select_by(db.user.c.user_age>30)
-    for u in userlist:
-        print u.user_id,u.user_last_name
-        
-
-    #print "--------------db.users.select_by('user_age>30') MODO = ",MODO
+    #print '--------------ut.users.select_by(ut.user.c.user_age>30) MODO =',MODO
     #if MODO == 'auto':
-        #userlist = db.user.select('user_age>30')
-    #else:    
-        #userlist = db.user.mapper.select_by('user_age>30')
+        #userlist = ut.user.select_by(ut.user.c.user_age>30)
+    #else:
+        #userlist = ut.user.mapper.select_by(ut.user.c.user_age>30)
     #for u in userlist:
         #print u.user_id,u.user_last_name
         
 
-    #print '--------------db.users.mapper.select("user_age>30"), con mapper esplicito- MODO =',MODO
-    #userlist = db.user.mapper.select('user_age>30')
+    #print "--------------ut.users.select_by('user_age>30') MODO = ",MODO
+    #if MODO == 'auto':
+        #userlist = ut.user.select('user_age>30')
+    #else:    
+        #userlist = ut.user.mapper.select_by('user_age>30')
+    #for u in userlist:
+        #print u.user_id,u.user_last_name
+        
+
+    #print '--------------ut.users.mapper.select("user_age>30"), con mapper esplicito- MODO =',MODO
+    #userlist = ut.user.mapper.select('user_age>30')
     #for u in userlist:
         #print u.user_id,u.user_last_name
     
     #questo da un errore psycopg2    
     #print '--------------'
-    #t=text("select * from euro_user where user_age>30",db.eng)
+    #t=text("select * from euro_user where user_age>30",ut.eng)
     #print t
-    #userlist = db.user.select(text("select * from euro_user where user_age>30",db.eng))
+    #userlist = ut.user.select(text("select * from euro_user where user_age>30",ut.eng))
     #for u in userlist:
         #print u.user_id,u.user_last_name
+        
+        
+    print '--------------INSERT - MODO =',MODO
+    ut.user.user_last_name='Rossini'
+    ut.user.user_name='Marco'
+    ut.user.user_age=51
+    ut.mail.mail_address = 'pluto@iol.it'
+    ut.user.mails.append(ut.mail)
+    ut.commit()
+
+
+    #u = ut.user.mapper.select('user_last_name=Mancini')[0]
+    #u.user_address = 'via marcora 10'
+    #u.user_city    = 'Morbegno'
+    #ut.commit()
 
     print '--------------JOIN - MODO =',MODO
     if MODO=='auto':
-        userlist = db.user.select('user_age>30')
+        userlist = ut.user.select('user_age>30')
         for u in userlist:
             for a in u.mails:
-                print u.user_id,u.user_last_name,a.mail_address                
+                print u.user_id,u.user_last_name,u.user_address,u.user_city,a.mail_address                
     else:    
-        userlist = db.user.mapper.select('user_age>30')
+        userlist = ut.user.mapper.select('user_age>30')
         for u in userlist:
-            for a in u.addresses:
-                print u.user_id,u.user_last_name,a.mail_address
+            for a in u.mails:
+                print u.user_id,u.user_last_name,u.user_address,u.user_city,a.mail_address
+    
+    
     
