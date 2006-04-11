@@ -43,3 +43,9 @@ cit = c2.select()
 for c in cit:
     for u in c.users:
         print c.city, c.country, u.user_name
+
+
+uu = m.select()
+for u in uu:
+    print u.user_name,u.cities.city
+    
