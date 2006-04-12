@@ -302,7 +302,7 @@ class SqlMask (object):
                 widget.connect('key-press-event', self.digits_check_input  )
                 
             ## Strings
-            if field_type == str or self.fields[field_name]['fk']:
+            if field_type == str or self.fields[field_name]['fkey']:
                 widget.connect('button-press-event',self.pop_menu, field_name, 3)
                 widget.connect('key-press-event',self.entry_short_cut_event,
                                field_name, 'F1')
@@ -507,7 +507,12 @@ class SqlMask (object):
             listore.append([getattr(R, sql_dict['field_name'])])
         completion.complete()
         event =   gtk.gdk.Event(gtk.gdk.KEY_PRESS)
-        event.keyval = ord(".")
+        event.keyval = gtk.keysyms.period  #ord(".")
+        event.window = self.mwidgets[field_name][1].window
+        self.mwidgets[field_name][1].emit('key-press-event',event)
+        event.keyval = gtk.keysyms.BackSpace
+        #event.window = self.mwidgets[field_name][1].window
+        ## FIXME: non funziona
         self.mwidgets[field_name][1].emit('key-press-event',event)
         
     def select_values(self, field_name, sql_dict):
@@ -515,9 +520,9 @@ class SqlMask (object):
 
         I = self.fields[field_name]
 
-        if I['fk']:
-            sql_dict['table_name'] = I['fk'][0]
-            sql_dict['field_name'] = I['fk'][1]
+        if I['fkey']:
+            sql_dict['table_name'] = I['fkey'][0]
+            sql_dict['field_name'] = I['fkey'][1]
         else:
             sql_dict['table_name'] = I['table_name']
 
@@ -534,7 +539,7 @@ class SqlMask (object):
                  """ % sql_dict
 
         s = text(sql, engine=self.mapper.engines[0])
-        return s.execute({field_name : sql_dict['val']})
+        return s.execute(**{field_name : sql_dict['val']})
     def pop_menu(self, wdg, ev, field_name, num_button):
         #print "pop_menu", wdg, ev
         if not ev.button == num_button:

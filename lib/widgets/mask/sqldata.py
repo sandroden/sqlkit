@@ -5,10 +5,15 @@
 # the order in which 
 
 import sys
+import sqlalchemy
+# from mapper import *
+# import mapper
 sys.path.append ('../../../')
 #sys.path.append ('../../')
 import py_path, sd
 import reflect
+
+ONETOMANY=0
 
 class SqlData(object):
     """main data manipulation interface
@@ -16,12 +21,19 @@ class SqlData(object):
     pointer_info = None
     index = None  # dict of all pointers
 
-    def __init__(self, res_obj, mapper_info, left=True):
+    def __init__(self, res_obj, mapper_info, left=True, fields=None):
         self.res_obj = res_obj
         self.mapper_info = mapper_info
         self.create_index(left=left)
         self.current = 0
-        self.field_list = mapper_info.fields
+        if not fields:
+            fields = mapper_info.fields
+        self.field_list = fields
+        
+        tables = mapper_info.tables()
+        #for t in tables:
+        #    sd.debug("Table: %s => %s" % (t, mapper_info.table_fields(t)))
+        
         
     def next(self, mode='dict', fields=None):
         return self.get(mode=mode, fields=fields, incr = 1)
@@ -29,15 +41,22 @@ class SqlData(object):
     def prev(self, mode='dict', fields=None):
         self.get(mode=mode, fields=fields, incr = -1)
 
-    def get(self, mode='dict', fields=None, incr=0):
+    def get(self, index=None, mode='dict', fields=None, incr=0):
         """return a dictionary field_name:value corresponding to
         the next tuple (row) in res_obj. Keep a pointer to the row.
         mode can be 'values', only values will be printed (debug only)
         Fields may be a list (as per self.fields)
         """
         R = {}
+        if index:
+            self.current = index
         self.current += incr
-        idx = self.index[self.current]
+        try:
+            idx = self.index[self.current]
+        except IndexError:
+            self.current -= 1
+            return
+        #sd.debug("current: %s - %s" % (self.current, idx ))
         
 
         row = self.res_obj[idx[0]]
@@ -45,15 +64,29 @@ class SqlData(object):
         for key in row.c.keys():
             R[key] = getattr(row, key)
             
+        ## FIXME: queste righe funzionano solo per un mapper in cascata
+        ## serve una ricorsione per il caso generale
         for prop in self.mapper_info.props:
-            row_list = getattr(self.res_obj[idx[0]], prop)
-            row = row_list[idx[1]]
+            row_list = getattr(self.res_obj[idx[0]], prop[0])
+            row = row_list             ### MANYTOONE
+            if prop[1] == ONETOMANY:
+                if not self.left:
+                    row = row_list[idx[1]]
+                else:
+                    try:
+                        row = row_list[idx[1]]
+                    except IndexError:
+                        pass
 
-            for key in row.c.keys():
-                R[key] = getattr(row, key)
+
+            try:
+                for key in row.c.keys():
+                    R[key] = getattr(row, key)
+            except:
+                pass
 
         if fields == None:
-            fields = self.field_names 
+            fields = self.field_list
 
         if mode == 'dict':
             ret = {}
@@ -62,7 +95,7 @@ class SqlData(object):
             return ret
         else:
             ## let us respect the order
-            return [R[f] for f in fields]
+            return [R[f] for f in fields if f in R]
 
     def all(self):
         """print all the records"""
@@ -70,7 +103,7 @@ class SqlData(object):
 
     def fields(self, fields):
         """sets the list of fields that will be returned"""
-        self.field_names = fields
+        self.field_list = fields
 
     def update(self, row={}, pointer=None):
         """receive a pointer to a row and a dict whose keys are the field_name
@@ -125,12 +158,16 @@ class SqlData(object):
         left=False will be equivalent to a normal join
         left=True (default) will be equivalent to a LEFT (outer?) JOIN
         """
+        #sd.debug("lvl: %s" % lvl)
         if lvl == 0:
             tot=0
             self.pre = {}
             self.index = []
             self.left = left
 
+        if lvl > 10:
+            #sd.debug("max-lvl raggiunto: %s" % lvl)
+            sys.exit()
         if not res:
             res=self.res_obj
 
@@ -148,14 +185,23 @@ class SqlData(object):
 
             ## if any props loop there too
             for prop in props:
-                print "create_index - prop:", prop
-                rp = getattr(R, prop)
-                print rp
-                if len(rp) > 0:
-                    self.create_index(rp, lvl=lvl+1) 
-                elif self.left:
-                    idx = [self.pre[y] for y in range(lvl+1)]
-                    self.index.append(idx)
+                #sd.debug( "create_index - prop: %s" % prop)
+                rp = getattr(R, prop[0])
+#                if prop[1] == PropertyLoader.ONETOMANY:
+                if prop[1] == ONETOMANY:
+                    ### NESTED CALL
+                    if len(rp) > 0:
+                        self.create_index(rp, lvl=lvl+1) 
+                    else: 
+                        if self.left:
+                            idx = [self.pre[y] for y in range(lvl+1)]
+                            #sd.debug(idx)
+                            self.index.append(idx)
+#                 if len(rp) > 0:
+#                     self.create_index(rp, lvl=lvl+1) 
+#                 elif self.left:
+#                     idx = [self.pre[y] for y in range(lvl+1)]
+#                     self.index.append(idx)
             if not props:
                 ## ie: no more loops to get in
                 idx = [self.pre[y] for y in range(lvl+1)]
