@@ -1,0 +1,21 @@
+#!/bin/bash
+
+HOST=localhost
+PORT=5433
+DB=test
+USERNAME=test
+
+[ -f config ] && . config
+
+
+for i in drop str data
+do
+  read -p "$i? "
+  case $REPLY in
+      y)  
+	  echo psql -U test -p $PORT test < eurotest-$i.sql
+	  psql -U test -p $PORT test < eurotest-$i.sql
+      ;;
+     esac
+done
+
