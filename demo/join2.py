@@ -23,12 +23,13 @@ class Mail(object):
 
 eng = config.spawnEngine()
 tbusers = Table('euro_user', eng, autoload = True)
+
 tbmail  = Table('euro_mail', eng, autoload = True)
 city    = Table('city', eng, autoload = True)
 mm = mapper(Mail, tbmail)
 mc = mapper(City, city)
 
-rm = relation(mm, lazy=False)
+rm = relation(mm, lazy=False, backref='user')
 rc = relation(mc, lazy=False)
 User.mapper = mapper(User, tbusers, properties = {
     'city' : rc,
@@ -39,8 +40,8 @@ user = User()
 mail = Mail()
 city = City()
 
-eng.echo = True
-ret = user.mapper.select(order_by="mail_address")
+#eng.echo = True
+ret = user.mapper.select(user.c.user_name=='Sid', order_by="mail_address")
 info = reflect.InspectMapper(User.mapper)
 ### left outer join
 #dd = sqldata.SqlData(ret,info, left=True)
@@ -49,7 +50,13 @@ dd.fields(['user_name','pv','city','mail_address', 'user_age'])
 #print dd
 #print dd.index
 #print dd.get()
-for i in range(len(dd.index)):
-    print dd.get(index=i,mode='')
+# for i in dd.pointers:
+#     print i
+dd.set({'user_age' : 98},index=0) 
+dd.set({'mail_address' : 'mio_mail@e-den.it'},index=0)
+dd.printall(mode='dicta')
+objectstore.commit()
+# for i in range(len(dd.index)):
+#     print dd.get(index=i,mode='')
 
 

@@ -13,10 +13,23 @@ sys.path.append ('../../../')
 import py_path, sd
 import reflect
 
-ONETOMANY=0
+
+
+ONETOMANY = 0
+MANYTOONE = 1
+
+class MissingPointerError(Exception):
+    pass
 
 class SqlData(object):
     """main data manipulation interface
+
+    SqlData Allows to browse inside data of a rowset retured by mapper.select()
+    it firstly creates ad index of pointers to class instances. You can use those
+    pointers or an index to UPDATE/DELETE data.
+    Index is and int within self.pointers a list of pointer.
+    A  pointer is a list of instances.
+    
     """
     pointer_info = None
     index = None  # dict of all pointers
@@ -24,7 +37,7 @@ class SqlData(object):
     def __init__(self, res_obj, mapper_info, left=True, fields=None):
         self.res_obj = res_obj
         self.mapper_info = mapper_info
-        self.create_index(left=left)
+        self.create_pointers(left=left)
         self.current = 0
         if not fields:
             fields = mapper_info.fields
@@ -39,9 +52,9 @@ class SqlData(object):
         return self.get(mode=mode, fields=fields, incr = 1)
 
     def prev(self, mode='dict', fields=None):
-        self.get(mode=mode, fields=fields, incr = -1)
+        return self.get(mode=mode, fields=fields, incr = -1)
 
-    def get(self, index=None, mode='dict', fields=None, incr=0):
+    def get(self, index=None, pointer=[], mode='dict', fields=None, incr=0):
         """return a dictionary field_name:value corresponding to
         the next tuple (row) in res_obj. Keep a pointer to the row.
         mode can be 'values', only values will be printed (debug only)
@@ -52,38 +65,14 @@ class SqlData(object):
             self.current = index
         self.current += incr
         try:
-            idx = self.index[self.current]
+            pointer = self.pointers[self.current]
         except IndexError:
             self.current -= 1
             return
         #sd.debug("current: %s - %s" % (self.current, idx ))
-        
 
-        row = self.res_obj[idx[0]]
-        #print row.c.keys()
-        for key in row.c.keys():
-            R[key] = getattr(row, key)
-            
-        ## FIXME: queste righe funzionano solo per un mapper in cascata
-        ## serve una ricorsione per il caso generale
-        for prop in self.mapper_info.props:
-            row_list = getattr(self.res_obj[idx[0]], prop[0])
-            row = row_list             ### MANYTOONE
-            if prop[1] == ONETOMANY:
-                if not self.left:
-                    row = row_list[idx[1]]
-                else:
-                    try:
-                        row = row_list[idx[1]]
-                    except IndexError:
-                        pass
-
-
-            try:
-                for key in row.c.keys():
-                    R[key] = getattr(row, key)
-            except:
-                pass
+        for cl_instance in pointer:
+            R.update( self.instance2dict(cl_instance) )
 
         if fields == None:
             fields = self.field_list
@@ -97,22 +86,76 @@ class SqlData(object):
             ## let us respect the order
             return [R[f] for f in fields if f in R]
 
-    def all(self):
-        """print all the records"""
-        pass
+    def printall(self, mode='values'):
+        """print all the records, mainly for debug"""
+        for i in range(len(self.pointers)):
+            print self.get(index=i, mode=mode)
+
+    def instance2dict(self, instance):
+        """return a dict representing the data of an instance. If the instance has
+        a property representing a MANYTOONE relation it returns those values too,
+        if the relation represent a ONETOMANY it calls itself recursevly.
+        """
+        #sd.debug(instance)
+        R = {}
+        for f in instance.c.keys():
+            R[f] = getattr(instance, f)
+
+        MANYTOONE_attrs = [f for f in instance._managed_attributes
+                     if f not in instance.c.keys() and
+                     type(instance._managed_attributes[f]) == sqlalchemy.attributes.ScalarAttribute ]
+        #sd.debug("props %s" % M21_attrs)
+        for prop in MANYTOONE_attrs:
+            prop_attr = getattr(instance, prop)
+            for f in prop_attr.c.keys():
+                R[f] = getattr(prop_attr, f) 
+                
+        return R
+
+    def dict2instance(self, instance, R):
+        """set values of an instance. If the instance has
+        a property representing a MANYTOONE relation it sets those values too,
+        if the relation represent a ONETOMANY it calls itself recursevly.
+        """
+        #sd.debug(instance)
+        for f in instance.c.keys():
+            if f in R:
+                setattr(instance, f, R[f])
+
+        MANYTOONE_attrs = [f for f in instance._managed_attributes
+                     if f not in instance.c.keys() and
+                     type(instance._managed_attributes[f]) == sqlalchemy.attributes.ScalarAttribute ]
+        #sd.debug("props %s" % M21_attrs)
+        for prop in MANYTOONE_attrs:
+            prop_attr = getattr(instance, prop)
+            for f in prop_attr.c.keys():
+                if f in R:
+                    setattr(prop_attr, f, R[f]) 
+                
+        return R
 
     def fields(self, fields):
         """sets the list of fields that will be returned"""
         self.field_list = fields
 
-    def update(self, row={}, pointer=None):
-        """receive a pointer to a row and a dict whose keys are the field_name
+    def set(self, R,  pointer=[], index=None):
+        """receive a pointer or an index a dict whose keys are the field_name
         and whose values are the new values and UPDATE the corresponding
         row_obj.
         Check that all primary keys are contained in the row.
         If pointer is None, self.pointer is used
         """
-        pass
+        # sd.debug("index: %s pointer: %s" % (index, pointer))
+        if index is not None:
+            pointer = self.pointers[index]
+
+        if not pointer:
+            raise MissingPointerError('A pointer is needed', pointer)
+
+        for instance in pointer:
+            self.dict2instance(instance, R)
+                
+
     def delete(self, pointer=None):
         """DELETE a row_obj corresponding to 'pointer'
         Check that all primary keys are contained in the row
@@ -141,28 +184,21 @@ class SqlData(object):
         """
         return len(self.index)
     
-#     def next(self):
-#         self.current += 1
-#         try:
-#             return self.get()
-#         except:
-#             raise StopIteration
-      
-
-    
     def __getitem__(self, item):
         return self.get()
     
-    def create_index(self, res=None, lvl=0, left=True):
-        """Create a list of all the indexes to rows
+    def create_pointers(self, res=None, lvl=0, left=True):
+        """Create a list of all the pointers to rows
         left=False will be equivalent to a normal join
         left=True (default) will be equivalent to a LEFT (outer?) JOIN
+
+        Returns the lenth o the list
         """
         #sd.debug("lvl: %s" % lvl)
         if lvl == 0:
             tot=0
             self.pre = {}
-            self.index = []
+            self.pointers = []
             self.left = left
 
         if lvl > 10:
@@ -181,35 +217,35 @@ class SqlData(object):
         for R in res:
             ## self.pre is a dictionary that holds the position or each
             ##    level
-            self.pre[lvl] = x
+            self.pre[lvl] = R
 
             ## if any props loop there too
             for prop in props:
-                #sd.debug( "create_index - prop: %s" % prop)
+                #sd.debug( "create_pointers - prop: %s" % prop)
                 rp = getattr(R, prop[0])
 #                if prop[1] == PropertyLoader.ONETOMANY:
                 if prop[1] == ONETOMANY:
                     ### NESTED CALL
                     if len(rp) > 0:
-                        self.create_index(rp, lvl=lvl+1) 
+                        self.create_pointers(rp, lvl=lvl+1) 
                     else: 
                         if self.left:
                             idx = [self.pre[y] for y in range(lvl+1)]
                             #sd.debug(idx)
-                            self.index.append(idx)
+                            self.pointers.append(idx)
 #                 if len(rp) > 0:
-#                     self.create_index(rp, lvl=lvl+1) 
+#                     self.create_pointers(rp, lvl=lvl+1) 
 #                 elif self.left:
 #                     idx = [self.pre[y] for y in range(lvl+1)]
-#                     self.index.append(idx)
+#                     self.pointers.append(idx)
             if not props:
                 ## ie: no more loops to get in
                 idx = [self.pre[y] for y in range(lvl+1)]
-                self.index.append(idx)
+                self.pointers.append(idx)
 
             x += 1
 
         if lvl == 0:
-            return len(self.index)
+            return len(self.pointers)
     
         
