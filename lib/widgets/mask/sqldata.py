@@ -18,8 +18,11 @@ import reflect
 ONETOMANY = 0
 MANYTOONE = 1
 
-class MissingPointerError(Exception):
-    pass
+class MissingPointerError(Exception): pass
+class PrimaryKeyUpdateError(Exception): pass
+    
+class NotUniqueResultFromSelectError(Exception): pass
+class MissingValueFromSelectError(Exception): pass
 
 class SqlData(object):
     """main data manipulation interface
@@ -117,22 +120,68 @@ class SqlData(object):
         a property representing a MANYTOONE relation it sets those values too,
         if the relation represent a ONETOMANY it calls itself recursevly.
         """
-        #sd.debug(instance)
-        for f in instance.c.keys():
-            if f in R:
-                setattr(instance, f, R[f])
+        #sd.debug(R)
+        self._set_value_loop(instance, R)
+                
 
         MANYTOONE_attrs = [f for f in instance._managed_attributes
                      if f not in instance.c.keys() and
                      type(instance._managed_attributes[f]) == sqlalchemy.attributes.ScalarAttribute ]
-        #sd.debug("props %s" % M21_attrs)
+        #sd.debug("props %s" % MANYTOONE_attrs)
         for prop in MANYTOONE_attrs:
             prop_attr = getattr(instance, prop)
-            for f in prop_attr.c.keys():
-                if f in R:
-                    setattr(prop_attr, f, R[f]) 
+            self._set_value_loop(prop_attr, R, m2o=True, parent=instance)
+#             for f in prop_attr.c.keys():
+#                 self._set_value(prop_attr, f, R, m2o=True, parent=instance)
                 
         return R
+
+    def _set_value_loop(self, instance, R, m2o=False, parent=None):
+        """Chek if is a primaryKey and try to handle it if mto (many2one) 
+        attach a different instance to the object
+        """
+        ## if primaryKey, mapper will silently ignore it...
+        #sd.debug(f)
+
+        ### firstly parse PKeys so that if a _change_sun happens it will happen
+        ### before any other change and further updtae will be applied to the
+        ### correct instance
+
+        pkeys = [k for k in instance.c.keys() if self.mapper_info[k]['pkey'] ]
+        keys = list(pkeys)
+        keys += [k for k in instance.c.keys() if not self.mapper_info[k]['pkey'] ]
+
+        for f in keys:
+            if f in R:
+                if self.mapper_info[f]['pkey']:
+                    if m2o:
+                        self._change_sun(instance, f, R, parent, pkeys)
+                        return
+                    else:
+                        raise PrimaryKeyUpdateError(
+                            "Primary keys are immutable in sqlalchemy (sigh!)")
+                    setattr(instance, f, R[f])
+
+    def _change_sun(self, instance, f, R, parent, pkeys):
+        """attach a new class instance if the PKey of an object related with
+        many2one is used
+        """
+
+        tbl    = self.mapper_info[f]['table_name']
+        mapper = self.mapper_info[f]['mapper']
+        ### FIXME: pkeys is here to check that we are issuing a select that has
+        ### all the pkeys: to implement
+        ret = mapper.select("%s = :%s" % (f, f), params={ f : R[f] } )
+        length = len(ret)
+        if length == 0:
+            raise MissingValueFromSelectError(
+                "No tuples in table %s with PKey: %s" % (tbl, R[f]))
+        if length > 1:
+            raise NotUniqueResultFromSelectError(
+                "Too many tuples in table %s with PKey: %s" % (tbl, R[f]))
+        if length == 1:
+            #sd.debug("Imposto %s a %s"%(f , ret))
+            setattr(parent, f, ret[0])
 
     def fields(self, fields):
         """sets the list of fields that will be returned"""
@@ -145,7 +194,8 @@ class SqlData(object):
         Check that all primary keys are contained in the row.
         If pointer is None, self.pointer is used
         """
-        # sd.debug("index: %s pointer: %s" % (index, pointer))
+        #sd.debug("index: %s pointer: %s self.pointers: %s" % (
+        #    index, pointer, self.pointers))
         if index is not None:
             pointer = self.pointers[index]
 
@@ -192,7 +242,7 @@ class SqlData(object):
         left=False will be equivalent to a normal join
         left=True (default) will be equivalent to a LEFT (outer?) JOIN
 
-        Returns the lenth o the list
+        Returns the lenth of the list
         """
         #sd.debug("lvl: %s" % lvl)
         if lvl == 0:
@@ -233,6 +283,9 @@ class SqlData(object):
                             idx = [self.pre[y] for y in range(lvl+1)]
                             #sd.debug(idx)
                             self.pointers.append(idx)
+                #else:
+                    #sd.debug("rp: %s keys: %s" % (rp, self.show(rp)))
+
 #                 if len(rp) > 0:
 #                     self.create_pointers(rp, lvl=lvl+1) 
 #                 elif self.left:
@@ -249,3 +302,5 @@ class SqlData(object):
             return len(self.pointers)
     
         
+    def show(self, record):
+        return ["%s:%s" %(i,getattr(record, i)) for i in record.c.keys()]
