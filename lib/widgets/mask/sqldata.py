@@ -205,7 +205,20 @@ class SqlData(object):
         for instance in pointer:
             self.dict2instance(instance, R)
                 
+    def del(self, index=None, pointer=None):
+        """delete a record. Leave to db/sa to delete also correated items.
+        db: DELETE on CASCADE
+        sa: private=True on relation
+        """
+        if index is not None:
+            pointer = self.pointers[index]
 
+        if not pointer:
+            raise MissingPointerError('A pointer is needed', pointer)
+
+        pointer[0].delete()
+
+        
     def delete(self, pointer=None):
         """DELETE a row_obj corresponding to 'pointer'
         Check that all primary keys are contained in the row
