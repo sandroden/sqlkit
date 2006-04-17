@@ -467,8 +467,24 @@ class SqlMask (object):
         if re.search(key, text, re.IGNORECASE):
             return True
         return False
-    def show_field_info(self, wdg, ev):
-        pass
+    def show_field_info(self, wdg, field_name):
+        """Pop a dialog to give info on the selected field"""
+#         dialog = gtk.Dialog("info on %s" % field_name,
+#                             None, gtk.DIALOG_MODAL,
+#                             (gtk.STOCK_OK, gtk.RESPONSE_ACCEPT) )
+        info = ["%s: %s" % (f, self.fields[field_name][f]) 
+                           for f in self.fields[field_name].keys() ]
+#        label = gtk.Label("\n".join(info) )
+
+        dialog = gtk.MessageDialog(None, gtk.DIALOG_MODAL, type=gtk.MESSAGE_INFO,
+                                   buttons=gtk.BUTTONS_OK,
+                                   message_format="\n".join(info))
+        #dialog.action_area.pack_start(label, gtk.TRUE, gtk.TRUE, 0)
+        dialog.show_all()
+        response = dialog.run()
+        if response == gtk.RESPONSE_OK:
+            dialog.destroy()
+
     def entry_short_cut_event(self, wdg, ev, field_name, key):
         """callback of key-press-button in (string) entries"""
         accelname = gtk.accelerator_name(ev.keyval, ev.state)
@@ -520,6 +536,7 @@ class SqlMask (object):
 
         I = self.fields[field_name]
 
+        ### field is a ForeignKey
         if I['fkey']:
             sql_dict['table_name'] = I['fkey'][0]
             sql_dict['field_name'] = I['fkey'][1]
@@ -538,7 +555,8 @@ class SqlMask (object):
                  ORDER BY %(field_name)s
                  """ % sql_dict
 
-        s = text(sql, engine=self.mapper.engines[0])
+#        s = text(sql, engine=self.mapper.engines[0])
+        s = text(sql, engine=self.mapper.table.engine)
         return s.execute(**{field_name : sql_dict['val']})
     def pop_menu(self, wdg, ev, field_name, num_button):
         #print "pop_menu", wdg, ev
@@ -581,10 +599,24 @@ class SqlMask (object):
         self.lay_obj.tooltips.set_tip(item,label)
         menu.append(item)
 
+        ## edit table referenced as foreign key
+        item = gtk.MenuItem(label="Edit fk table")
+        item.connect('activate', self.edit_foreign_key_table, field_name)
+        label = "Edita la tabella da cui sono presi i valori permessi per questo \
+        campo"
+        self.lay_obj.tooltips.set_tip(item, label)
+        menu.append(item)
+
         menu.show_all()
         menu.popup(None, None, None, ev.button, ev.time)
         
         return True
 
-#def bind(widget, key_press, handler, *args):
+    def edit_foreign_key_table(self, wdg, field):
+        """opens a SqlMask to edit the table referenced by this ForeignKey"""
+
+        tbl  = self.fields[field]['table_name']
+        fkey = self.fields[field]['fkey']
+        txt = "table:  %s - fkey: %s" % (tbl, fkey)
+        sd.debug(txt)
     
