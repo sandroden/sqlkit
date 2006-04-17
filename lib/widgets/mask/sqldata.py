@@ -205,7 +205,7 @@ class SqlData(object):
         for instance in pointer:
             self.dict2instance(instance, R)
                 
-    def del(self, index=None, pointer=None):
+    def delete(self, index=None, pointer=None):
         """delete a record. Leave to db/sa to delete also correated items.
         db: DELETE on CASCADE
         sa: private=True on relation
@@ -219,12 +219,12 @@ class SqlData(object):
         pointer[0].delete()
 
         
-    def delete(self, pointer=None):
-        """DELETE a row_obj corresponding to 'pointer'
-        Check that all primary keys are contained in the row
-        If pointer is None, self.pointer is used
-        """
-        pass
+#     def delete(self, pointer=None):
+#         """DELETE a row_obj corresponding to 'pointer'
+#         Check that all primary keys are contained in the row
+#         If pointer is None, self.pointer is used
+#         """
+#         pass
 
     def insert(self, row={}):
         """INSERT a new row. row is a dict field_name:value

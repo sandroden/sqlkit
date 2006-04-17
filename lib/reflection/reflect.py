@@ -80,6 +80,7 @@ class InspectMapper(dict):
                               
 
         self.fields = []
+        self.mapper = mapper
         self.props = []
         self.pkeys = {}
         self.table_mappers = []  # mappers to tables
@@ -130,7 +131,7 @@ class InspectMapper(dict):
             self.pkeys[mapper.table.name] += [field_name]
 
         if mapper.c[field_name].foreign_key:
-             d['fk'] = (mapper.c[field_name].foreign_key.column.table.name,
+             d['fkey'] = (mapper.c[field_name].foreign_key.column.table.name,
                         mapper.c[field_name].foreign_key.column.name)
         setattr(self, field_name,  d)
 
