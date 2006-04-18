@@ -12,9 +12,10 @@ from layout import *
 from validator import Validator
 
 engine = config.spawnEngine(echo=False)
-
+map_labels(filename='label_map.txt')
 
 mask.SqlMask (sql="user_id > 5", table='euro_user', engine=engine)
+
 
 gtk.main()
 
