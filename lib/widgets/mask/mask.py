@@ -8,6 +8,7 @@ from layoutgenerator import TableLayoutGenerator
 import gtk, pango
 from sqlalchemy import *
 import sqlfilter, sd
+import sqldata
 
 class SqlMask (object):
     """doc string for sqlmask
@@ -18,16 +19,15 @@ class SqlMask (object):
     map_record_n = 0  # number of the displayed record within mapper
     row_count = 0    # number of records in the mapper
     tables = None    # Table objects referenced as foreign keys
-    
+    data = None 
     def __init__ (self, mapper=None,
                   lay = None,
                   valid = None,
-                  records = None,
+#                  records = None,
                   naked=False,
                   table=None,
                   mode='rw',
                   noup=None,
-                  debug=0,
                   sql=None,
                   constraint=None,
                   engine=None
@@ -47,7 +47,6 @@ class SqlMask (object):
         self.engine = engine
         self.mapper = self._get_mapper(mapper, table)
         self.valid = self._get_validator(valid)
-        self.debug = debug
         self.listores = {}  ## needed for entry_completion
         self.fields = reflect.InspectMapper(self.mapper, noup=noup, mode=mode)
         self.tables = {}
@@ -56,38 +55,54 @@ class SqlMask (object):
         self.lay_obj, self.w  = self._get_layout(lay, naked)
         
         ## fill in the data in case
-        if records:
-            self.dbg('ora self.record_display, records: ' % records)
-            self.record_display()
-        elif sql:
-            self.dbg('__init__ sql: %s' % sql)
+#         if records:
+#             sd.debug('ora self.record_display, records: ' % records)
+#             self.record_display()
+        if sql:
+            sd.debug('__init__ sql: %s' % sql)
             self.reload(sql)
             
         ## only render when dimentions are complete
         self.w['Window'].show()
 
 ####### Record browsing & saving
-    def record_display(self, record=None, next=0):
+    def record_display(self, record=None, incr=0):
         """display a mapped record in the mask
 
         If a record is passed it displays that record, if not self.records is
         analized: if it has self.records[self.map_record_n], that one is displayed
         next: next is added to self.map_record_n (may be negative) and that element is displayed
         """
-        self.dbg('Record_display n: %s' % self.map_record_n)
+        sd.debug('Record_display n: %s' % self.map_record_n)
+        ## fill in the data
+
+        self.sb("record %s/%s" % ((self.map_record_n+1), self.row_count))
+
+        data = self.sqlData.get(incr=incr)
+        for field_name, value in data.iteritems():
+            self._set_value(field_name, value)
+    
+    def record_display_old(self, record=None, incr=0):
+        """display a mapped record in the mask
+
+        If a record is passed it displays that record, if not self.records is
+        analized: if it has self.records[self.map_record_n], that one is displayed
+        next: next is added to self.map_record_n (may be negative) and that element is displayed
+        """
+        sd.debug('Record_display n: %s' % self.map_record_n)
         ## fill in the data
 
         if not record:
-            #self.dbg('Record_display, not record')
+            #sd.debug('Record_display, not record')
             n = self.map_record_n + next
             if n < 0:
-                self.dbg('n = %s... esco' % n)
+                sd.debug('n = %s... esco' % n)
                 return
             try:
                 record = self.records[n]
                 self.map_record_n += next
             except:
-                #self.dbg('manca records[%s]' % n)
+                #sd.debug('manca records[%s]' % n)
                 return
 
             self.sb("record %s/%s" % ((self.map_record_n+1), self.row_count))
@@ -161,11 +176,11 @@ class SqlMask (object):
             self._set_value(field_name, '')
     def record_forward(self, ev):
         """display the next record in the mapper"""
-        self.record_display(next=1)
+        self.record_display(incr=1)
         
     def record_back(self, ev):
         """display the previous record in the mapper"""
-        self.record_display(next=-1)
+        self.record_display(incr=-1)
     def reload(self, sql=None, params=None, limit=100):
         """reload data from db
 
@@ -178,14 +193,10 @@ class SqlMask (object):
             sql_str = sql
             params = None
             
-        self.records = self.mapper.select(sql_str, params=params, limit=limit)
-        self.map_record_n = 0
+        records = self.mapper.select(sql_str, params=params, limit=limit)
+        self.sqlData = sqldata.SqlData(records, mapper_info=self.fields)
         self.record_display()
-        n = 0
-        for i in self.records:
-            n+=1
-        self.row_count = n
-        self.sb("Total n. of records: %s" % (n))
+        self.sb("Total n. of records: %s" % (self.sqlData.count()))
 ####### Layout, Reflection & Analisys
     def _get_mapper(self, mapper_obj, table):
         """If no mapper is provided it will be built from the table"""
@@ -425,9 +436,6 @@ class SqlMask (object):
     
     #filter_panel = property(add_filter)
             
-    def dbg(self, text):
-        if self.debug == 1:
-            print text
     
 ####### Completion
 # EntryCompletion widgets are added on the fly triggered by F1, C-F1 or menu items
@@ -562,7 +570,13 @@ class SqlMask (object):
         self.mwidgets[field_name][1].emit('key-press-event',event)
         
     def select_values(self, field_name, sql_dict):
-        """execute the SELECT DISTINCT and return values"""
+        """execute the SELECT DISTINCT and return values
+        In case FKeys it behaves in a much more complicated way.
+        The aim is to substitute the referenced value with the value that will
+        normally be an id. It will try to do that *if* the name of the field
+        terminates with _id.
+
+        """
 
         I = self.fields[field_name]
 
@@ -652,7 +666,7 @@ class SqlMask (object):
         You can bypass this mechanism writing a comma separated list in
         SqlMask.tables[table_name] = [field_name[,field_name], [format]]
 
-        In the future 'format' will hold format info for the completion list
+        In the future 'format' will hold format info for the completion entry
 
         """
         table_name = sql_dict['table_name']

@@ -15,6 +15,7 @@ import datetime
 # def getRecord (mapper, **kwds):
 #     return mapper.get_by (**kwds)
 
+class MissingPrimaryKeyError(Exception): pass
 def is_serial (c):
     if hasattr (c.default, 'arg') and hasattr (c.default.arg, 'text'):
         if "nextval" in c.default.arg.text:
@@ -136,6 +137,8 @@ class InspectMapper(dict):
         setattr(self, field_name,  d)
 
     def keys(self):
+        """Return all the field_names in the mapper
+        """
         ret = []
         for m in self.tables(mode='mapper' ):
             ret += m.c.keys()
@@ -169,6 +172,19 @@ class InspectMapper(dict):
         """list of all filed_names in 'table' """
         return [f for f in self.fields if self[f]['table_name'] == table_name ]
     
+    def mapper(self, table_name):
+        """return the mapper of that table"""
+        for val in self.table_mappers:
+            if val[0] == table_name:
+                return val[1]
+    def pkeys(self, table_name):
+        """return the list of the pkeys for that table"""
+        try:
+            return self.pkeys[table_name]
+        except KeyError:
+            raise MissingPrimaryKeyError("%s does not seem to have a PKey" %
+                                         table_name)
+        
     def next(self):
         """returns the next item in the data set,
         or tells Python to stop"""
@@ -188,14 +204,14 @@ class InspectMapper(dict):
     def __str__(self):
         return "InspectMapper for keys: %s" % self.keys()
         
-    def get(self, record, field_name, n=0):
-        at = getattr(self, field_name)
-        if not at['property']:
-            return getattr(record, field_name)
-        else:
-            print at['property'], type(at['property'])
-            data = getattr(record, at['property'][0])
-            return getattr(data, field_name)
+#     def get(self, record, field_name, n=0):
+#         at = getattr(self, field_name)
+#         if not at['property']:
+#             return getattr(record, field_name)
+#         else:
+#             print at['property'], type(at['property'])
+#             data = getattr(record, at['property'][0])
+#             return getattr(data, field_name)
 
 
             

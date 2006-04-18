@@ -40,7 +40,7 @@ class SqlData(object):
     def __init__(self, res_obj, mapper_info, left=True, fields=None):
         self.res_obj = res_obj
         self.mapper_info = mapper_info
-        self.create_pointers(left=left)
+        self._create_pointers(left=left)
         self.current = 0
         if not fields:
             fields = mapper_info.fields
@@ -75,7 +75,7 @@ class SqlData(object):
         #sd.debug("current: %s - %s" % (self.current, idx ))
 
         for cl_instance in pointer:
-            R.update( self.instance2dict(cl_instance) )
+            R.update( self._instance2dict(cl_instance) )
 
         if fields == None:
             fields = self.field_list
@@ -94,7 +94,7 @@ class SqlData(object):
         for i in range(len(self.pointers)):
             print self.get(index=i, mode=mode)
 
-    def instance2dict(self, instance):
+    def _instance2dict(self, instance):
         """return a dict representing the data of an instance. If the instance has
         a property representing a MANYTOONE relation it returns those values too,
         if the relation represent a ONETOMANY it calls itself recursevly.
@@ -115,7 +115,7 @@ class SqlData(object):
                 
         return R
 
-    def dict2instance(self, instance, R):
+    def _dict2instance(self, instance, R):
         """set values of an instance. If the instance has
         a property representing a MANYTOONE relation it sets those values too,
         if the relation represent a ONETOMANY it calls itself recursevly.
@@ -203,7 +203,7 @@ class SqlData(object):
             raise MissingPointerError('A pointer is needed', pointer)
 
         for instance in pointer:
-            self.dict2instance(instance, R)
+            self._dict2instance(instance, R)
                 
     def delete(self, index=None, pointer=None):
         """delete a record. Leave to db/sa to delete also correated items.
@@ -245,12 +245,12 @@ class SqlData(object):
         normal sql way
         count depend on how index has been created (left=True|False)
         """
-        return len(self.index)
+        return len(self.pointers)
     
     def __getitem__(self, item):
         return self.get()
     
-    def create_pointers(self, res=None, lvl=0, left=True):
+    def _create_pointers(self, res=None, lvl=0, left=True):
         """Create a list of all the pointers to rows
         left=False will be equivalent to a normal join
         left=True (default) will be equivalent to a LEFT (outer?) JOIN
@@ -284,13 +284,13 @@ class SqlData(object):
 
             ## if any props loop there too
             for prop in props:
-                #sd.debug( "create_pointers - prop: %s" % prop)
+                #sd.debug( "_create_pointers - prop: %s" % prop)
                 rp = getattr(R, prop[0])
 #                if prop[1] == PropertyLoader.ONETOMANY:
                 if prop[1] == ONETOMANY:
                     ### NESTED CALL
                     if len(rp) > 0:
-                        self.create_pointers(rp, lvl=lvl+1) 
+                        self._create_pointers(rp, lvl=lvl+1) 
                     else: 
                         if self.left:
                             idx = [self.pre[y] for y in range(lvl+1)]
@@ -300,7 +300,7 @@ class SqlData(object):
                     #sd.debug("rp: %s keys: %s" % (rp, self.show(rp)))
 
 #                 if len(rp) > 0:
-#                     self.create_pointers(rp, lvl=lvl+1) 
+#                     self._create_pointers(rp, lvl=lvl+1) 
 #                 elif self.left:
 #                     idx = [self.pre[y] for y in range(lvl+1)]
 #                     self.pointers.append(idx)
