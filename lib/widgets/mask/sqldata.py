@@ -66,11 +66,10 @@ class SqlData(object):
         R = {}
         if index:
             self.current = index
-        self.current += incr
         try:
-            pointer = self.pointers[self.current]
+            pointer = self.pointers[self.current+incr]
+            self.current += incr
         except IndexError:
-            self.current -= 1
             return
         #sd.debug("current: %s - %s" % (self.current, idx ))
 
@@ -219,13 +218,15 @@ class SqlData(object):
         pointer[0].delete()
 
         
-#     def delete(self, pointer=None):
-#         """DELETE a row_obj corresponding to 'pointer'
-#         Check that all primary keys are contained in the row
-#         If pointer is None, self.pointer is used
-#         """
-#         pass
-
+        #     def delete(self, pointer=None):
+        #         """DELETE a row_obj corresponding to 'pointer'
+        #         Check that all primary keys are contained in the row
+        #         If pointer is None, self.pointer is used
+        #         """
+        #         pass
+    def index(self):
+        return self.current
+    
     def insert(self, row={}):
         """INSERT a new row. row is a dict field_name:value
         Check that all primary keys are inside the row

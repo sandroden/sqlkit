@@ -10,16 +10,19 @@ from sqlalchemy import *
 import sqlfilter, sd
 import sqldata
 
+class LookupValueNotReturningOneValue(Exception): pass
+class MissingDescriptorField(Exception): pass
+
 class SqlMask (object):
     """doc string for sqlmask
     """
     mwidgets = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
     fields   = None  # fields to use (InspectMapper)
     labels   = None  # correspondance Label <-> EventBox
-    map_record_n = 0  # number of the displayed record within mapper
+#    map_record_n = 0  # number of the displayed record within mapper
     row_count = 0    # number of records in the mapper
     tables = None    # Table objects referenced as foreign keys
-    data = None 
+    values = None    # real value for foreign key (when lookup is displeyed instead)
     def __init__ (self, mapper=None,
                   lay = None,
                   valid = None,
@@ -37,7 +40,6 @@ class SqlMask (object):
         mapper: a sqlalchemy mapper
         lay:    a layout describing the desired layout (see layout package)
         validator: a validator to be used to validate fields and records
-        record: in case a mapped record from sqlalchemy
         naked:  in case the mask should *not* be added interactive buttons
                 neede if the layout already contains all the required buttons
         mode:   ro|rw. When in read-only no save/delete is alllowed
@@ -50,6 +52,7 @@ class SqlMask (object):
         self.listores = {}  ## needed for entry_completion
         self.fields = reflect.InspectMapper(self.mapper, noup=noup, mode=mode)
         self.tables = {}
+        self.values = {}
 
         ## create the interface and add obvious constraints
         self.lay_obj, self.w  = self._get_layout(lay, naked)
@@ -73,50 +76,64 @@ class SqlMask (object):
         analized: if it has self.records[self.map_record_n], that one is displayed
         next: next is added to self.map_record_n (may be negative) and that element is displayed
         """
-        sd.debug('Record_display n: %s' % self.map_record_n)
+        sd.debug('Record_display n: %s' % self.sqlData.index())
         ## fill in the data
 
-        self.sb("record %s/%s" % ((self.map_record_n+1), self.row_count))
-
+        self.values.clear()
+        
         data = self.sqlData.get(incr=incr)
+        if not data:
+            self.lay_obj.sb('Already last record')
+            return
+        
+        self.sb("record %s/%s" % (self.sqlData.index(), self.sqlData.count()))
         for field_name, value in data.iteritems():
             self._set_value(field_name, value)
     
-    def record_display_old(self, record=None, incr=0):
-        """display a mapped record in the mask
+#     def record_display_old(self, record=None, incr=0):
+#         """display a mapped record in the mask
 
-        If a record is passed it displays that record, if not self.records is
-        analized: if it has self.records[self.map_record_n], that one is displayed
-        next: next is added to self.map_record_n (may be negative) and that element is displayed
-        """
-        sd.debug('Record_display n: %s' % self.map_record_n)
-        ## fill in the data
+#         If a record is passed it displays that record, if not self.records is
+#         analized: if it has self.records[self.map_record_n], that one is displayed
+#         next: next is added to self.map_record_n (may be negative) and that element is displayed
+#         """
+#         sd.debug('Record_display n: %s' % self.map_record_n)
+#         ## fill in the data
 
-        if not record:
-            #sd.debug('Record_display, not record')
-            n = self.map_record_n + next
-            if n < 0:
-                sd.debug('n = %s... esco' % n)
-                return
-            try:
-                record = self.records[n]
-                self.map_record_n += next
-            except:
-                #sd.debug('manca records[%s]' % n)
-                return
+#         if not record:
+#             #sd.debug('Record_display, not record')
+#             n = self.map_record_n + next
+#             if n < 0:
+#                 sd.debug('n = %s... esco' % n)
+#                 return
+#             try:
+#                 record = self.records[n]
+#                 self.map_record_n += next
+#             except:
+#                 #sd.debug('manca records[%s]' % n)
+#                 return
 
-            self.sb("record %s/%s" % ((self.map_record_n+1), self.row_count))
+#             self.sb("record %s/%s" % ((self.map_record_n+1), self.row_count))
 
-        for field_name in self.fields.keys():
-            field_value = getattr(record, field_name)
-            #print "record_display: %s %s", (field_name, type(field_value))
-            self._set_value(field_name, field_value)
+#         for field_name in self.fields.keys():
+#             field_value = getattr(record, field_name)
+#             #print "record_display: %s %s", (field_name, type(field_value))
+#             self._set_value(field_name, field_value)
     
     def _set_value(self, field_name, field_value):
-        # this is the method that knows how to handle different type of data
+        """this is the method that knows how to handle different type of data
+        if field_name is a FKey ending with _id, it retrieves the description,
+        shows it in the entry but stores the id in self.values[field_name]
+        """
         # [0]: the gtkClass
         # [1]: the gtkWidget
         widget = self.mwidgets[field_name][1]
+
+        if self.fields[field_name]['fkey'] and field_name.endswith('_id'):
+            self.values[field_name] = field_value
+            field_value = self._lookup_value(field_name, field_value)
+            
+
         #print "name: %s type: %s" % ( field_name, self.fields[field_name] )
         # Entry
         if isinstance (widget, gtk.Entry):
@@ -135,10 +152,18 @@ class SqlMask (object):
             #print widget.get_active()
         
     def _get_value(self, field_name):
-        # this is the method that knows how to handle different type of data
+        """return the data for field_name
+        in case self.values[field_name] exists, it gets that value instead
+        """
         # [0]: the gtkClass
         # [1]: the gtkWidget
         widget = self.mwidgets[field_name][1]
+
+        ## give a try if we have stored a value
+        try:
+            return self.values[field_name]
+        except:
+            pass
         
         # Entry
         if isinstance (widget, gtk.Entry):
@@ -197,6 +222,25 @@ class SqlMask (object):
         self.sqlData = sqldata.SqlData(records, mapper_info=self.fields)
         self.record_display()
         self.sb("Total n. of records: %s" % (self.sqlData.count()))
+    
+    def _lookup_value(self, field_name, field_value):
+        """retrieve the value in a lookup table in case of foreign_key
+        """
+        ftable, fname = self.fields[field_name]['fkey']
+        sql = "SELECT %s FROM %s WHERE %s = :%s" % (
+            self._add_descriptor_fields(mode='return', table_name=ftable),
+            ftable, field_name, fname)
+        sd.debug(sql)
+        t = text(sql, engine=self.engine)
+        ret = t.execute(**{field_name : field_value})
+        j = 0
+        for R in ret:
+            value = R[0]
+            j += 1
+        if not j == 1:
+            raise LookupValueNotReturningOneValue("%s returns %s values" % (sql, j))
+        return value
+                                               
 ####### Layout, Reflection & Analisys
     def _get_mapper(self, mapper_obj, table):
         """If no mapper is provided it will be built from the table"""
@@ -461,6 +505,7 @@ class SqlMask (object):
         ## completion was not present
         completion = gtk.EntryCompletion()
         completion.set_property('minimum-key-length', 0)
+        completion.connect('match-selected', self.match_selected_cb, field_name)
         renderer = gtk.CellRendererText()
         completion.pack_start(renderer)
             
@@ -486,6 +531,11 @@ class SqlMask (object):
         entry.set_completion(completion)
         completion.set_text_column(col_num-1)
         return (listore, completion)
+    def match_selected_cb(self, wdg, model, iter, field_name):
+        """after selecting an entry store the value in self.values
+        """
+        self.values[field_name] = model.get(iter,0)
+        
     def match_func(self, completion, key, iter, func_data):
         column, mode = func_data
         model = completion.get_model()
@@ -656,7 +706,7 @@ class SqlMask (object):
         menu.popup(None, None, None, ev.button, ev.time)
         
         return True
-    def _add_descriptor_fields(self, sql_dict):
+    def _add_descriptor_fields(self, sql_dict=None, mode='add', table_name=None):
         """search a possible field descriptor and add it to sql_dict
 
         When displaying data for foreign keys the key that is referenced may be
@@ -669,26 +719,33 @@ class SqlMask (object):
         In the future 'format' will hold format info for the completion entry
 
         """
-        table_name = sql_dict['table_name']
+        
+        if not table_name:
+            table_name = sql_dict['table_name']
+            
         if table_name not in self.tables:
-            table = Table(table_name, autoload=True,
-                          engine=self.mapper.table.engine)
-            #sd.debug("ora: table %s - keys: %s" % (table, table.c.keys()))
+            table = Table(table_name, autoload=True, engine=self.engine)
+                          
+            sd.debug("ora: table %s - keys: %s" % (table, table.c.keys()))
             
             #self.tables[table_name] = table
             for field_name in table.c.keys():
-                #sd.debug("cercao %s" % field_name)
+                sd.debug("cercao %s" % field_name)
                 if re.search('_name|_descr', field_name, re.I):
-                    self.tables[table_name] = list([",%s" % field_name])
+                    self.tables[table_name] = list([field_name])
                     #sd.debug(self.tables[table_name])
                     break
 #                 else:
 #                     sd.debug("%s non finisce per _name|_descr" % field_name)
             
         if table_name in self.tables:
-            sql_dict['field_name'] += self.tables[table_name][0]
-
-
+            if mode == 'add':
+                sql_dict['field_name'] += ",%s" % self.tables[table_name][0]
+            else:
+                return self.tables[table_name][0]
+        else:
+            raise MissingDescriptorField
+    
     def edit_foreign_key_table(self, wdg, field):
         """opens a SqlMask to edit the table referenced by this ForeignKey"""
 
