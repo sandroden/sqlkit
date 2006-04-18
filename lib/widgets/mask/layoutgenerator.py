@@ -29,7 +29,7 @@ class TableLayoutGenerator (object):
       if ftype in (datetime.datetime, datetime.date, datetime.time):
         entries.append(self.add_datetime(field_name))
 
-      if ftype == bool:
+      elif ftype == bool:
         entries.append (self.add_boolean (field_name))
 
       else:

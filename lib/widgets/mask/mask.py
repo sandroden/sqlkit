@@ -33,7 +33,8 @@ class SqlMask (object):
                   noup=None,
                   sql=None,
                   constraint=None,
-                  engine=None
+                  engine=None,
+                  title=None
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -51,6 +52,7 @@ class SqlMask (object):
         self.valid = self._get_validator(valid)
         self.listores = {}  ## needed for entry_completion
         self.fields = reflect.InspectMapper(self.mapper, noup=noup, mode=mode)
+        self.title = self._get_title(title)
         self.tables = {}
         self.values = {}
 
@@ -62,7 +64,7 @@ class SqlMask (object):
 #             sd.debug('ora self.record_display, records: ' % records)
 #             self.record_display()
         if sql:
-            sd.debug('__init__ sql: %s' % sql)
+            #sd.debug('__init__ sql: %s' % sql)
             self.reload(sql)
             
         ## only render when dimentions are complete
@@ -76,55 +78,29 @@ class SqlMask (object):
         analized: if it has self.records[self.map_record_n], that one is displayed
         next: next is added to self.map_record_n (may be negative) and that element is displayed
         """
-        sd.debug('Record_display n: %s' % self.sqlData.index())
+        #sd.debug('Record_display n: %s' % self.sqlData.index())
         ## fill in the data
 
         self.values.clear()
         
-        data = self.sqlData.get(incr=incr)
-        if not data:
+        data_in = self.sqlData.get(incr=incr)
+        
+        if not data_in:
             self.lay_obj.sb('Already last record')
             return
         
-        self.sb("record %s/%s" % (self.sqlData.index(), self.sqlData.count()))
-        for field_name, value in data.iteritems():
+        self.sb("record %s/%s" % (self.sqlData.index()+1, self.sqlData.count()))
+        self.data_in = data_in
+        for field_name, value in data_in.iteritems():
             self._set_value(field_name, value)
-    
-#     def record_display_old(self, record=None, incr=0):
-#         """display a mapped record in the mask
-
-#         If a record is passed it displays that record, if not self.records is
-#         analized: if it has self.records[self.map_record_n], that one is displayed
-#         next: next is added to self.map_record_n (may be negative) and that element is displayed
-#         """
-#         sd.debug('Record_display n: %s' % self.map_record_n)
-#         ## fill in the data
-
-#         if not record:
-#             #sd.debug('Record_display, not record')
-#             n = self.map_record_n + next
-#             if n < 0:
-#                 sd.debug('n = %s... esco' % n)
-#                 return
-#             try:
-#                 record = self.records[n]
-#                 self.map_record_n += next
-#             except:
-#                 #sd.debug('manca records[%s]' % n)
-#                 return
-
-#             self.sb("record %s/%s" % ((self.map_record_n+1), self.row_count))
-
-#         for field_name in self.fields.keys():
-#             field_value = getattr(record, field_name)
-#             #print "record_display: %s %s", (field_name, type(field_value))
-#             self._set_value(field_name, field_value)
     
     def _set_value(self, field_name, field_value):
         """this is the method that knows how to handle different type of data
         if field_name is a FKey ending with _id, it retrieves the description,
         shows it in the entry but stores the id in self.values[field_name]
         """
+        #sd.debug("%s: %s type: %s" % (field_name, field_value,
+        #                     self.fields[field_name]['type']))
         # [0]: the gtkClass
         # [1]: the gtkWidget
         widget = self.mwidgets[field_name][1]
@@ -145,11 +121,13 @@ class SqlMask (object):
             widget.set_property('time', field_value)
 
         # Boolean
-        elif isinstance (self.fields[field_name], bool):
+        elif self.fields[field_name]['type'] == bool:
             if field_value == '':
+                sd.debug("impongo false per %s che era %s" % (
+                    field_name, field_value))
                 field_value = False
             widget.set_active(field_value)
-            #print widget.get_active()
+            #sd.debug("%s: %s" % (field_value, widget.get_active()))
         
     def _get_value(self, field_name):
         """return the data for field_name
@@ -174,7 +152,7 @@ class SqlMask (object):
             return widget.get_property('time')
 
         # Boolean
-        elif isinstance (fields[field_name], bool):
+        elif self.fields[field_name]['type'] == bool:
             return widget.get_active( )
         
     def record_delete(self):
@@ -184,14 +162,38 @@ class SqlMask (object):
         objectstore.commit ()
     
     def record_save(self, ev):
-        """ invokes the validator before UPDATE/INSERT a record"""
+        """invokes the validator before UPDATE/INSERT a record"""
         ## FIXME: validator
         ## FIXME: passare da table -> mapper
     
-#         if self.valid is not None:
-#             v = self.valid (self.table, record)
-#             v.validate ()
-      
+        
+        #         if self.valid is not None:
+        #             v = self.valid (self.table, record)
+        #             v.validate ()
+
+    
+        R = {}
+        for field_name in self.fields.keys():      
+            value = self._get_value(field_name)
+            t = self.fields[field_name]['type']
+            sd.debug("%s: - value: %r" % (field_name, value))
+            if t == datetime.date:
+                value = t(value.year, value.month, value.day)
+            elif t == datetime.datetime:
+                value = t(value.year, value.month, value.day,
+                          value.hour, value.minute, value.second)
+                continue
+            else:
+                value = t(value)
+
+            if value != self.data_in[field_name]:
+                sd.debug("%s: %r is not %r" % (field_name,
+                                               value, self.data_in[field_name]))
+                R[field_name] = value
+
+        #sd.debug(R)
+        self.sqlData.set(R)
+
         objectstore.commit ()
     
     def record_new(self, widget):
@@ -230,7 +232,6 @@ class SqlMask (object):
         sql = "SELECT %s FROM %s WHERE %s = :%s" % (
             self._add_descriptor_fields(mode='return', table_name=ftable),
             ftable, field_name, fname)
-        sd.debug(sql)
         t = text(sql, engine=self.engine)
         ret = t.execute(**{field_name : field_value})
         j = 0
@@ -253,7 +254,7 @@ class SqlMask (object):
             sa_table = Table(table, engine=self.engine, autoload=True)
             X = type(name, (object,), {})
             return mapper(X, sa_table)
-
+    
     def _get_validator(self, valid):
         if not valid:
             valid = validator.Validator()
@@ -268,7 +269,7 @@ class SqlMask (object):
 
         ## add default buttons if needed
         self._add_default_buttons(naked)
-        self.lay_obj = layout.Layout (self.layout)
+        self.lay_obj = layout.Layout (self.layout, title=self.title)
         self.lay_obj.prop('Window', 'visible', False)
         self.w       = self.lay_obj.show()
         self._analize_widgets_in_layout()
@@ -276,26 +277,7 @@ class SqlMask (object):
         self._add_actions_to_buttons()
         self._fill_menubar_menu()
         return (self.lay_obj, self.w)
-
-#     def _get_one_record(self):
-#         # it's just here to study the types, not to be represented
-#         self.fake_record = True
-#         #self.dbg(self.mapper.select(limit=1)[0])
-#         return self.mapper.select(limit=1)[0]
-        
-#     def _analize_record_for_types(self):
-#         """fill 'fields' dictionary analizing types
-
-#         fields:  dict to store fields that appear in layout. Good for loops
-#         key: field_name  value: type
-#         """
-
-#         self.fields = {}
-#         for field_name in self.mapper.c.keys():
-#             field_value = getattr(self.records[0], field_name)
-#             #print field_name, type(field_value), field_value
-#             self.fields[field_name] = type(field_value)
-        
+    
     def _analize_widgets_in_layout(self):
         """fill variables from layout
 
@@ -467,6 +449,14 @@ class SqlMask (object):
         except:
             pass
     
+    def _get_title(self, title=None):
+        if not title:
+            try:
+                title=self.table
+            except:
+                title= self.mapper.table.name
+        return title
+    
     def add_filter(self, event=None, visible=True):
         """Pop a Filter Panel"""
         try:
@@ -534,7 +524,7 @@ class SqlMask (object):
     def match_selected_cb(self, wdg, model, iter, field_name):
         """after selecting an entry store the value in self.values
         """
-        self.values[field_name] = model.get(iter,0)
+        self.values[field_name] = model.get(iter,0)[0]
         
     def match_func(self, completion, key, iter, func_data):
         column, mode = func_data
@@ -726,11 +716,11 @@ class SqlMask (object):
         if table_name not in self.tables:
             table = Table(table_name, autoload=True, engine=self.engine)
                           
-            sd.debug("ora: table %s - keys: %s" % (table, table.c.keys()))
+            #sd.debug("ora: table %s - keys: %s" % (table, table.c.keys()))
             
             #self.tables[table_name] = table
             for field_name in table.c.keys():
-                sd.debug("cercao %s" % field_name)
+                #sd.debug("cercao %s" % field_name)
                 if re.search('_name|_descr', field_name, re.I):
                     self.tables[table_name] = list([field_name])
                     #sd.debug(self.tables[table_name])

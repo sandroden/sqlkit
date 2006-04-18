@@ -119,7 +119,7 @@ class SqlData(object):
         a property representing a MANYTOONE relation it sets those values too,
         if the relation represent a ONETOMANY it calls itself recursevly.
         """
-        #sd.debug(R)
+        #sd.debug("R -1 %s" % R)
         self._set_value_loop(instance, R)
                 
 
@@ -139,6 +139,7 @@ class SqlData(object):
         """Chek if is a primaryKey and try to handle it if mto (many2one) 
         attach a different instance to the object
         """
+        #sd.debug("R: %s" % R)
         ## if primaryKey, mapper will silently ignore it...
         #sd.debug(f)
 
@@ -152,14 +153,17 @@ class SqlData(object):
 
         for f in keys:
             if f in R:
+                #sd.debug("f: %s" % f)
                 if self.mapper_info[f]['pkey']:
                     if m2o:
                         self._change_sun(instance, f, R, parent, pkeys)
                         return
                     else:
                         raise PrimaryKeyUpdateError(
-                            "Primary keys are immutable in sqlalchemy (sigh!)")
-                    setattr(instance, f, R[f])
+                            "Primary keys are immutable " + \
+                            " in sqlalchemy (sigh!) - %s is PKey" % f)
+                            
+                setattr(instance, f, R[f])
 
     def _change_sun(self, instance, f, R, parent, pkeys):
         """attach a new class instance if the PKey of an object related with
@@ -195,11 +199,15 @@ class SqlData(object):
         """
         #sd.debug("index: %s pointer: %s self.pointers: %s" % (
         #    index, pointer, self.pointers))
+        #sd.debug("R: %s " % R)
         if index is not None:
             pointer = self.pointers[index]
 
         if not pointer:
-            raise MissingPointerError('A pointer is needed', pointer)
+            pointer = self.pointers[self.current]
+            #raise MissingPointerError('A pointer is needed', pointer)
+
+        #sd.debug("Pointer: %s" % pointer)
 
         for instance in pointer:
             self._dict2instance(instance, R)
