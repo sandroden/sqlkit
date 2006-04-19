@@ -171,6 +171,7 @@ special ending for field_name are:
 
    - count(): return the ength of the pointers list (that is *not* the
      lenght of the ResulProxy, in case of a ONETOMANY join)
+   ...
 
 .H 1 SqlMask
 
@@ -188,7 +189,7 @@ special ending for field_name are:
       - gtk.Entry for Strings and integers (right aligned)
       - dateedit.dateedit for dates and timestamp
       - gtk.Checkbox for bool
-
+      ...
     All fields will have a label that is sensible to mouse click. A mouse
     click pops up a filter widget
     
@@ -196,5 +197,16 @@ special ending for field_name are:
     right-clik, F1 and Control-F1 that allows the completion of the values to
     occur. 
 
-.H 2 SqlMask methods
-    - record_display()
+.H 2 Completion
+    Completion works well for entries in the mapper and for entries that
+    point to a foreign table/fkey.
+    
+    The ListStore used for the completion is only filled on demand (right
+    click or F1/C-F1) and the string already in the entry is used as
+    whereclause condition, ~* is used as operator.
+
+    The list is normally initialized with 1 column, 2 columns in case of
+    foreign key: the first is the real data, the second is the information
+    shown in the completion and in the entry. The real info is stored in 
+    self.values[field_name]. self._get_values, the method that retrieves the
+    data from the gtk widgets gets it from there.
