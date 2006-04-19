@@ -179,7 +179,7 @@ class SqlMask (object):
         for field_name in self.fields.keys():      
             value = self._get_value(field_name)
             t = self.fields[field_name]['type']
-            sd.debug("%s: - value: %r" % (field_name, value))
+            #sd.debug("%s: - value: %r" % (field_name, value))
             if t == datetime.date:
                 value = t(value.year, value.month, value.day)
             elif t == datetime.datetime:
@@ -219,9 +219,7 @@ class SqlMask (object):
         #sd.debug(sql)
         if isinstance(sql, tuple) and len(sql) == 2:
             sql_str, params = sql
-            dbg = re.sub(':(?P<a>\S+)', '\'%(\g<a>)s\'', sql_str)
-            #sd.debug("%s %s" % (dbg, params))
-            #sd.debug(dbg % params)
+            #sql_debug(sql_str, params)
         else:
             sql_str = sql
             params = None
@@ -229,7 +227,6 @@ class SqlMask (object):
         records = self.mapper.select(sql_str, params=params, limit=limit)
         self.sqlData = sqldata.SqlData(records, mapper_info=self.fields)
         self.record_display()
-        #self.sb("Total n. of records: %s" % (self.sqlData.count()))
     
     def _lookup_value(self, field_name, field_value):
         """retrieve the value in a lookup table in case of foreign_key
@@ -496,7 +493,6 @@ class SqlMask (object):
         entry = self.mwidgets[field_name][1]
         completion = entry.get_completion()
         if completion:
-            completion.set_match_func(self.match_func, (0, mode))
             return (completion.get_model(), completion)
 
         ## completion was not present
@@ -537,6 +533,7 @@ class SqlMask (object):
         column, mode = func_data
         model = completion.get_model()
         text = model.get_value(iter, column)
+        #sd.debug("column: %s  - mode: %s" % (column, mode))
         if not text:
             text = ''
         #return False
@@ -548,7 +545,9 @@ class SqlMask (object):
                 return False
         # regexp
         if re.search(key, text, re.IGNORECASE):
+            #sd.debug("accetto: %s col: %s" % (text, column))
             return True
+        #sd.debug("rifiuto: %s" % text)
         return False
     def show_field_info(self, wdg, field_name):
         """Pop a dialog to give info on the selected field"""
@@ -603,10 +602,12 @@ class SqlMask (object):
         ret = self.select_values(field_name, sql_dict)
         ## sql_dict['field_name'] may be changed by select_values if fk
         #sd.debug("field_name %s" % (sql_dict['field_name']))
+        sd.debug("listore is: %s" % listore)
         for R in ret:
             #listore.append([getattr(R, sql_dict['field_name'])])
+            sd.debug("R: %s" % R)
             listore.append(R)
-        completion.complete()
+#        completion.complete()
         event =   gtk.gdk.Event(gtk.gdk.KEY_PRESS)
         event.keyval = gtk.keysyms.period  #ord(".")
         event.window = self.mwidgets[field_name][1].window
@@ -626,30 +627,38 @@ class SqlMask (object):
         """
 
         I = self.fields[field_name]
-
+        exec_dict={field_name : sql_dict['val']}
         ### field is a ForeignKey
         if I['fkey']:
             sql_dict['table_name'] = I['fkey'][0]
             sql_dict['field_name'] = I['fkey'][1]
             self._add_descriptor_fields(sql_dict)
+            sql = """SELECT DISTINCT %(field_name)s,%(descr)s
+                 FROM %(table_name)s 
+                 WHERE %(descr)s %(oper)s :%(descr)s
+                 ORDER BY %(descr)s
+                 """ % sql_dict
+            exec_dict.update({sql_dict['descr'] : sql_dict['val']})
         else:
             sql_dict['table_name'] = I['table_name']
 
-        if I['type'] == int:
-            sql = """SELECT DISTINCT %(field_name)s
-               FROM %(table_name)s 
-               ORDER BY %(field_name)s
-            """ % sql_dict
-        else:
-            sql = """SELECT DISTINCT %(field_name)s
-                 FROM %(table_name)s 
-                 WHERE %(field_name)s %(oper)s :%(field_name)s
-                 ORDER BY %(field_name)s
-                 """ % sql_dict
+            if I['type'] == int:
+                ## pointless to regexp numbers...
+                sql = """SELECT DISTINCT %(field_name)s
+                FROM %(table_name)s 
+                ORDER BY %(field_name)s
+                """ % sql_dict
+            else:
+                sql = """SELECT DISTINCT %(field_name)s
+                    FROM %(table_name)s 
+                    WHERE %(field_name)s %(oper)s :%(field_name)s
+                    ORDER BY %(field_name)s
+                    """ % sql_dict
 
+        sql_debug(sql, exec_dict)
 #        s = text(sql, engine=self.mapper.engines[0])
         s = text(sql, engine=self.mapper.table.engine)
-        return s.execute(**{field_name : sql_dict['val']})
+        return s.execute(**exec_dict)
     def pop_menu(self, wdg, ev, field_name, num_button):
         #print "pop_menu", wdg, ev
         if not ev.button == num_button:
@@ -737,7 +746,8 @@ class SqlMask (object):
             
         if table_name in self.tables:
             if mode == 'add':
-                sql_dict['field_name'] += ",%s" % self.tables[table_name][0]
+                #sql_dict['field_name'] += ",%s" % self.tables[table_name][0]
+                sql_dict['descr'] = self.tables[table_name][0]
             else:
                 return self.tables[table_name][0]
         else:
@@ -751,3 +761,8 @@ class SqlMask (object):
         txt = "table:  %s - fkey: %s" % (tbl, fkey)
         sd.debug(txt)
     
+def sql_debug(sql, params):
+    dbg = re.sub(':(?P<a>\S+)', '\'%(\g<a>)s\'', sql)
+    #sd.debug("%s %s" % (dbg, params))
+    sd.debug(dbg % params)
+
