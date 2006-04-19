@@ -84,12 +84,15 @@ class SqlMask (object):
         self.values.clear()
         
         data_in = self.sqlData.get(incr=incr)
-        
+        msg_info = "record %s/%s" % (self.sqlData.index()+1, self.sqlData.count())
         if not data_in:
-            self.lay_obj.sb('Already last record')
+            if incr > 0:
+                self.lay_obj.sb('Already last ' + msg_info)
+            else:
+                self.lay_obj.sb('Already first ' + msg_info)
             return
         
-        self.sb("record %s/%s" % (self.sqlData.index()+1, self.sqlData.count()))
+        self.sb(msg_info)
         self.data_in = data_in
         for field_name, value in data_in.iteritems():
             self._set_value(field_name, value)
@@ -213,9 +216,12 @@ class SqlMask (object):
 
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
         """
-        
+        #sd.debug(sql)
         if isinstance(sql, tuple) and len(sql) == 2:
             sql_str, params = sql
+            dbg = re.sub(':(?P<a>\S+)', '\'%(\g<a>)s\'', sql_str)
+            #sd.debug("%s %s" % (dbg, params))
+            #sd.debug(dbg % params)
         else:
             sql_str = sql
             params = None
@@ -223,7 +229,7 @@ class SqlMask (object):
         records = self.mapper.select(sql_str, params=params, limit=limit)
         self.sqlData = sqldata.SqlData(records, mapper_info=self.fields)
         self.record_display()
-        self.sb("Total n. of records: %s" % (self.sqlData.count()))
+        #self.sb("Total n. of records: %s" % (self.sqlData.count()))
     
     def _lookup_value(self, field_name, field_value):
         """retrieve the value in a lookup table in case of foreign_key
@@ -429,7 +435,8 @@ class SqlMask (object):
         ## fixme: missing comma, and cut&paste
         key = gtk.gdk.keyval_name (event.keyval)
         #sd.debug(key)
-        if not re.match ('([0-9.,]|BackSpace|Left|Right|F1|period)', key):
+        ONLYDIGITS="([0-9.,]|BackSpace|Left|Right|F1|period|Tab|Up|Down)"
+        if not re.match (ONLYDIGITS, key):
             sd.debug("key: %s" % key)
             return True
     

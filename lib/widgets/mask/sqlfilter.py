@@ -1,5 +1,6 @@
 import gtk
 import layout
+import sd
 
 class FilterPanel(object):
     """A filter panel has 'entry|operator|string' rows
@@ -20,11 +21,11 @@ class FilterPanel(object):
         """issue a reload operation on master. Call back of reload button"""
         sql, bind_params = self.sql()
         limit=100
-        print "reload_cb: %s type: %s" % (bind_params, type(bind_params))
+        #sd.debug("%s type: %s" % (bind_params, type(bind_params)))
         self.master.reload(sql=(sql, bind_params), limit=limit )
         #self.master.record_display()
         #print self.sql()
-
+    
     def _create_window(self, visible=True):
         """create the filter panel widget"""
         lay = """
@@ -53,10 +54,10 @@ class FilterPanel(object):
         print self.w['Window'], "destroy", "wid", wid
         self.w['Window'].set_property('visible', False)
         return True  # stops further processing...
-
+    
     def destroy(self):
         self.w['Window'].destroy()
-
+    
     def add(self, wdg, ev, field, after=None, show=True):
         """this adds a field to the filter panel + operator and string entry
         after: entry will be positioned after widget 'after'
@@ -105,7 +106,7 @@ class FilterPanel(object):
             } )
         if show:
             self.w['Window'].show_all()
-
+    
     def pop_menu(self, wdg, ev, num_button):
         #print "pop_menu", wdg, ev
         if ev.button == num_button:
@@ -120,12 +121,33 @@ class FilterPanel(object):
         for fld in self.fields:
             value = fld['entry'].get_text()
             if len(value) > 0:
-                operator = fld['operator'].get_active_text()
-                if operator in ('IS NULL', 'IS NOT NULL'):
-                    ret += [ "%s %s" %(fld['field'], operator) ]
+                fld['op_value'] = fld['operator'].get_active_text()
+                if fld['op_value'] in ('IS NULL', 'IS NOT NULL'):
+                    ret += [ "%(field)s %(op_value)s" %(fld) ]
                 else:
                     values[fld['field']] = value
-                    ret += [ "%s %s :%s"% (fld['field'],
-                                           operator, fld['field'] ) ]
+                    ret += self._compose_field_whereclause(fld)
         #print " AND ".join(ret), str(values)
         return (" AND ".join(ret), values)
+
+    def _compose_field_whereclause(self, fld):
+        """return a sql whereclause for field
+
+        In case field is a fkey, terminating with _id, and the destination
+        lookup field is not in the mapper, it composes a subselect
+        """
+        sql = "%(field)s %(op_value)s :%(field)s"% (fld)
+        
+        if fld['field'].endswith('_id'):
+            info = self.master.fields[fld['field']]
+            fld['fdescr'] = self.master._add_descriptor_fields(
+                mode='return', table_name='city')
+            if info['fkey']:
+                fld['ftable'], fld['fname'] = info['fkey']
+                sql = """%(field)s IN (
+                SELECT %(field)s FROM %(ftable)s
+                WHERE %(fdescr)s %(op_value)s :%(fname)s) """ % (fld)
+
+        return [ sql ]
+        
+        

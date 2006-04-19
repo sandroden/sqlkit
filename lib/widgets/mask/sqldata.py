@@ -66,6 +66,8 @@ class SqlData(object):
         R = {}
         if index:
             self.current = index
+        if self.current+incr < 0:
+            return
         try:
             pointer = self.pointers[self.current+incr]
             self.current += incr
