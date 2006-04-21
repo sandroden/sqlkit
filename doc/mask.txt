@@ -1,18 +1,18 @@
 .H 1 sqlkit
 
-NOTE: thisn document is not yet complletely implemented!
+NOTE: this document is not yet completely implemented!
 
 Sqlkit is a tool to edit data in the easiest possible way, to be used in
 building applications that use databases.
 
 Some advantages are only reached using a structure for the db that helps
 sqlkit understand what to do. This can be considered a limit but is what can
-speed up propgramming a lot. Below I try to summarize the assumption made on
+speed up propgramming a lot. Below I try to summarize the assumptions made on
 the db.
 
 
 special ending for field_name are:
-  _id:    the column is a numeric id
+  _id:    the column is a numeric id (sometime substitued with a description)
   _key:   the column is a varchar code
   _name | _descr : the column is a description for the record and will be
                    used when showing the values instead of the _id. 
@@ -43,7 +43,7 @@ special ending for field_name are:
    parsed and the *first* field name terminating with _name or _descr will
    be used as descriptor. 
 
-   It will be possible to overwrite this behaviour setting:
+   It is possible to overwrite this behaviour setting:
 
    sqlmask.tables[table_name] = [ 'field1,field2', 'format']
 
@@ -54,7 +54,7 @@ special ending for field_name are:
 
 .H 1 sqlkit data structure
 
-1. sqlkit/sqlmask is built on sqlalchemy that should allow editing of many
+1. sqlkit/sqlmask is built on sqlalchemy that allows editing db with many
    different engines
 
 2. SqlMask/SqlTable must accept a table or a mapper (a list of tables in the
@@ -70,7 +70,8 @@ special ending for field_name are:
    - tables: return the table names present in the mapper. If mode='mapper'
              it will return the mapper of each table
    - table_fields(table_name):  return all the fields in 'table_name' 
-   - mapper(table_name): return the mapper for 'table_name'
+   - get_mapper(table_name): return the mapper for 'table_name'
+   - get_class(table_name): return the class for 'table_name'
    - pkeys(table_name): return a list for all pkeys of table_name
 
 .H 3 InspectMapper attributes
@@ -99,13 +100,13 @@ special ending for field_name are:
    SqlData when instantiated builds an index of all the records containted
    in the ResulProxy.  At the moment there is no way to retrieve data
    retainig the order given from the db driver if ORDER BY is a field in a
-   cascaded table. 
+   cascaded table. This is a sqlalchemy limit.
 
 .H 3 SqlData: main table and update
 
    It is important to understand that even if we can deal (update/delete) a
-   join when doing this we need to know exactly wht we expect it to do. It
-   all depends on which is the primary table.
+   join when doing this we need to know exactly what we expect it to do. It
+   all depends on which is the 'primary' table.
 
    1. Updating a field of the primary table, w/o foreign key is easy.
 
@@ -139,13 +140,13 @@ special ending for field_name are:
    Each pointer is a list of objects, so that looping on these values will
    transverse the whole returned rowset. self._create_pointers is a
    recursive function to assure all records are considered. Analizes
-   mapper.props to determine whch are the properties of an instance that
+   mapper.props to determine which are the properties of an instance that
    will 'open' to a new object.
 
-   An 'index' is an index in the pointers list. Is a usefull way to loop
+   An 'index' is an index in the pointers list. It is a usefull way to loop
    over the data.
 
-   'Row' refers to the single row as would have be thought of if the query
+   'Row' refers to the single row as would have been thought of if the query
    was issued in the db console. 
 
 
@@ -175,22 +176,23 @@ special ending for field_name are:
 
 .H 1 SqlMask
 
-    SqlMask is the main editing tool with SqlTable.
+    SqlMask is the main editing tool along with SqlTable.
     It creates a mapper on the fly if not provided and will use
-    InspectMapper to know how to behave for each field. inspectMapper is 
-    self.fields
+    InspectMapper to know how to behave for each field. InspectMapper is 
+    SqlMask.fields
 
-    If no layout is provided on will be created on the fly.
+    If no layout is provided it will be created on the fly.
 
-    The layout is analized to understand wich fileds are to be represented,
+    The layout is analized to understand wich fields are to be represented,
     in case a menubar and a toolbar are added.
 
     Fields will be shown in appropriate widgets:
-      - gtk.Entry for Strings and integers (right aligned)
+      - gtk.Entry for Strings and integers (le latter are right aligned if
+        they're not foreign keys)
       - dateedit.dateedit for dates and timestamp
       - gtk.Checkbox for bool
       ...
-    All fields will have a label that is sensible to mouse click. A mouse
+    All fields will have a label that is sensible to mouse clicks. A mouse
     click pops up a filter widget
     
     All entries that represent fields or foreign keys are sensible to
