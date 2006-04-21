@@ -12,6 +12,7 @@ import sqldata
 
 class LookupValueNotReturningOneValue(Exception): pass
 class MissingDescriptorField(Exception): pass
+class FieldNotInLayout(Exception): pass
 
 class SqlMask (object):
     """doc string for sqlmask
@@ -58,7 +59,6 @@ class SqlMask (object):
 
         ## create the interface and add obvious constraints
         self.lay_obj, self.w  = self._get_layout(lay, naked)
-        
         ## fill in the data in case
 #         if records:
 #             sd.debug('ora self.record_display, records: ' % records)
@@ -74,15 +74,12 @@ class SqlMask (object):
     def record_display(self, record=None, incr=0):
         """display a mapped record in the mask
 
-        If a record is passed it displays that record, if not self.records is
-        analized: if it has self.records[self.map_record_n], that one is displayed
-        next: next is added to self.map_record_n (may be negative) and that element is displayed
+        display the data provided by self.sqlData.get()
+        incr: incr=incr arg to sqlData.get()
         """
         #sd.debug('Record_display n: %s' % self.sqlData.index())
         ## fill in the data
 
-        self.values.clear()
-        
         data_in = self.sqlData.get(incr=incr)
         msg_info = "record %s/%s" % (self.sqlData.index()+1, self.sqlData.count())
         if not data_in:
@@ -91,21 +88,24 @@ class SqlMask (object):
             else:
                 self.lay_obj.sb('Already first ' + msg_info)
             return
+        self.record_clear()
         
         self.sb(msg_info)
         self.data_in = data_in
         for field_name, value in data_in.iteritems():
             self._set_value(field_name, value)
-    
+        self.status = self.sqlData.get_current()
+        
     def _set_value(self, field_name, field_value):
         """this is the method that knows how to handle different type of data
         if field_name is a FKey ending with _id, it retrieves the description,
         shows it in the entry but stores the id in self.values[field_name]
         """
-        #sd.debug("%s: %s type: %s" % (field_name, field_value,
-        #                     self.fields[field_name]['type']))
+        #sd.debug("%s: %s" % (field_name, field_value))
         # [0]: the gtkClass
         # [1]: the gtkWidget
+        if field_name not in self.mwidgets:
+            return
         widget = self.mwidgets[field_name][1]
 
         if self.fields[field_name]['fkey'] and field_name.endswith('_id'):
@@ -113,7 +113,7 @@ class SqlMask (object):
             field_value = self._lookup_value(field_name, field_value)
             
 
-        #print "name: %s type: %s" % ( field_name, self.fields[field_name] )
+        #sd.debug( "name: %s type: %s" % ( field_name, self.fields[field_name] ))
         # Entry
         if isinstance (widget, gtk.Entry):
             widget.set_text( str(field_value) )
@@ -125,9 +125,9 @@ class SqlMask (object):
 
         # Boolean
         elif self.fields[field_name]['type'] == bool:
-            if field_value == '':
-                sd.debug("impongo false per %s che era %s" % (
-                    field_name, field_value))
+            if not field_value :
+#                 sd.debug("impongo false per %s che era '%s'" % (
+#                     field_name, field_value))
                 field_value = False
             widget.set_active(field_value)
             #sd.debug("%s: %s" % (field_value, widget.get_active()))
@@ -138,6 +138,9 @@ class SqlMask (object):
         """
         # [0]: the gtkClass
         # [1]: the gtkWidget
+        if field_name not in self.mwidgets:
+            raise FieldNotInLayout
+        
         widget = self.mwidgets[field_name][1]
 
         ## give a try if we have stored a value
@@ -158,11 +161,14 @@ class SqlMask (object):
         elif self.fields[field_name]['type'] == bool:
             return widget.get_active( )
         
-    def record_delete(self):
+    def record_delete(self, widget=None):
         """invokes the validator before DELETing a record"""
         ## FIXME: validator
-        objectstore.delete (self.record)
-        objectstore.commit ()
+        self.sqlData.delete()
+        #sd.debug(objectstore.commit())
+        objectstore.commit()
+        #sd.debug(self.record_clear())
+        self.record_clear()
     
     def record_save(self, ev):
         """invokes the validator before UPDATE/INSERT a record"""
@@ -174,12 +180,20 @@ class SqlMask (object):
         #             v = self.valid (self.table, record)
         #             v.validate ()
 
+        if not self.status:
+            self.record_save_new()
+            return
     
         R = {}
         for field_name in self.fields.keys():      
-            value = self._get_value(field_name)
+            sd.debug(field_name)
+            try:
+                value = self._get_value(field_name)
+            except FieldNotInLayout:
+                continue
+            
             t = self.fields[field_name]['type']
-            #sd.debug("%s: - value: %r" % (field_name, value))
+            #sd.debug("%s: - value: %r T: %s" % (field_name, value, t))
             if t == datetime.date:
                 value = t(value.year, value.month, value.day)
             elif t == datetime.datetime:
@@ -190,19 +204,57 @@ class SqlMask (object):
                 value = t(value)
 
             if value != self.data_in[field_name]:
-                sd.debug("%s: %r is not %r" % (field_name,
-                                               value, self.data_in[field_name]))
+                #sd.debug("%s: %r is not %r" % (field_name,
+                #                               value, self.data_in[field_name]))
                 R[field_name] = value
 
         #sd.debug(R)
         self.sqlData.set(R)
 
         objectstore.commit ()
-    
-    def record_new(self, widget):
+        
+    def record_save_new(self):
+        """Insert a new record
+        """
+        
+        R = {}
+        for field_name in self.fields.keys():      
+            try:
+                value = self._get_value(field_name)
+            except FieldNotInLayout:
+                continue
+            
+            t = self.fields[field_name]['type']
+            if t == int and value == '':
+                # skip type casting
+                R[field_name] = None
+                continue
+            #sd.debug("%s: - value: %r t: %s" % (field_name, value, t))
+            if t == datetime.date:
+                value = t(value.year, value.month, value.day)
+            elif t == datetime.datetime:
+                value = t(value.year, value.month, value.day,
+                          value.hour, value.minute, value.second)
+            else:
+                value = t(value)
+
+            if self.fields[field_name]['is_serial'] and not value:
+                value = self.next_serial(field_name)
+            R[field_name] = value
+
+        #sd.debug(R)
+        self.sqlData.add(R)
+
+        objectstore.commit ()
+        
+    def record_clear(self, widget=None):
         """clear the mask for a new record"""
-        print 'record_new'
+        #sd.debug('')
+        self.values.clear()
+        self.status = None
+        
         for field_name in self.fields.keys():
+            #sd.debug(field_name)
             self._set_value(field_name, '')
     def record_forward(self, ev):
         """display the next record in the mapper"""
@@ -228,9 +280,18 @@ class SqlMask (object):
         self.sqlData = sqldata.SqlData(records, mapper_info=self.fields)
         self.record_display()
     
+    def reload_cb(self, widget):
+        """issue a reload operation on master. Call back of reload button"""
+        #limit=100
+        self.reload( )
+
+    
     def _lookup_value(self, field_name, field_value):
         """retrieve the value in a lookup table in case of foreign_key
         """
+        if not field_value:
+            return ''
+        #sd.debug("%s %s" % (field_name,field_value))
         ftable, fname = self.fields[field_name]['fkey']
         sql = "SELECT %s FROM %s WHERE %s = :%s" % (
             self._add_descriptor_fields(mode='return', table_name=ftable),
@@ -272,7 +333,8 @@ class SqlMask (object):
 
         ## add default buttons if needed
         self._add_default_buttons(naked)
-        self.lay_obj = layout.Layout (self.layout, title=self.title)
+        #sd.debug(self.layout)
+        self.lay_obj = layout.Layout(self.layout, title=self.title, opts='T-')
         self.lay_obj.prop('Window', 'visible', False)
         self.w       = self.lay_obj.show()
         self._analize_widgets_in_layout()
@@ -293,23 +355,28 @@ class SqlMask (object):
         ## by now I only use entry, date, radio and menu to represent data
         #print self.w.keys()
         for field_name in self.fields.keys():
-            #print "_analize_widget_layout: %s" % (field_name)
+            #sd.debug("_analize_widget_layout: %s" % (field_name))
             for mod in ('e','d','r','m','c'):
                 try:
                     widget = self.w["%s=%s" % (mod, field_name)]
+                    self.mwidgets[field_name] = (type(widget), widget)
                 except:
                     pass
             # (gtkClass , gtkWidget)
-            self.mwidgets[field_name] = (type(widget), widget)
 
         ## all EventBox 
+        #sd.debug("self.w: %s" % self.w)
+        #sd.dshow(self.w, 'E=')
         self.labels = {}
         for field_name in self.fields.keys():
             lbl_name_wdg = "E=%s" % field_name
             if lbl_name_wdg in self.w:
                 self.labels[field_name] = self.w[lbl_name_wdg]
-
-                
+                #sd.debug("%s -> %s"% (field_name, self.labels[field_name]))
+            else:
+                #sd.debug("Missing event_box for %s" % (field_name))
+                pass
+            
     def _add_default_buttons (self, naked=False):
         # a 'naked' mask is a mask w/o buttons. Maybe buttons are define by the
         # programmer inside the layout, maybe are not desired
@@ -337,12 +404,18 @@ class SqlMask (object):
         adding focus-out staff
         adding tooltips and click for filter_panel
         """
-        
         for field_name in self.fields.keys():
             field_type = self.fields[field_name]['type']
+            ## the widget may not be there, is layout has been provided
+            ## as an argument
+            if field_name not in self.mwidgets:
+                #sd.debug("skip %s" % field_name)
+                continue
             widget = self.mwidgets[field_name][1]
-            #print field_name, widget
-
+            if not widget:
+                #sd.debug("Per campo: %s manca widget %s" % (field_name, widget))
+                continue
+            
             ## integer
             if field_type == int and not self.fields[field_name]['fkey']:
                 # left justified
@@ -366,8 +439,8 @@ class SqlMask (object):
             elif field_type == datetime.datetime:
                 widget.set_property('show-time', True)
                 
-            widget.connect('focus-out-event',self.focus_out__widget, field_name)
-            widget.connect('focus-in-event',self.focus_in__widget)
+            #widget.connect('focus-out-event',self.focus_out__widget, field_name)
+            #widget.connect('focus-in-event',self.focus_in__widget)
             try:
                 widget.connect('activate',self.on_activate_cb, field_name)
             except:
@@ -376,6 +449,7 @@ class SqlMask (object):
 
         ## add click that pops filter_panel
         for field_name, event_box in self.labels.iteritems():
+            #sd.debug("<1> x filter: %s %s" % (field_name, event_box))
             event_box.connect('button-press-event',
                               self.filter_panel.add, field_name, 1)
             
@@ -385,18 +459,18 @@ class SqlMask (object):
         actions = {
             ## std toolbutton
             'tb=gtk-save'       : self.record_save,
-            'tb=gtk-new'        : self.record_new,
+            'tb=gtk-new'        : self.record_clear,
             'tb=gtk-delete'     : self.record_delete,
-            'tb=gtk-refresh'    : self.record_save,
+            'tb=gtk-refresh'    : self.reload_cb,
             'tb=gtk-quit'       : self.quit,
             'tb=gtk-go-forward' : self.record_forward,
             'tb=gtk-go-back'    : self.record_back,
 
             ## in case the programmers has set them
             'b=gtk-save'       : self.record_save,
-            'b=gtk-new'        : self.record_new,
+            'b=gtk-new'        : self.record_clear,
             'b=gtk-delete'     : self.record_delete,
-            'b=gtk-refresh'    : self.record_save,
+            'b=gtk-refresh'    : self.reload_cb,
             'b=gtk-quit'       : self.quit,
             'b=gtk-go-forward' : self.record_forward,
             'b=gtk-go-back'    : self.record_back,
@@ -424,7 +498,7 @@ class SqlMask (object):
         pass
     
     def on_activate_cb(self, widget, field_name):
-        print self._get_value(field_name)
+        #print self._get_value(field_name)
         self.select()
     def select(self):
         pass
@@ -442,7 +516,7 @@ class SqlMask (object):
         """Quit operations: check if need to save first """
         ### fixme: must add cheks
         ### fixme2: must the toplevel be destrouyed (or is reparented?)
-        print widget
+        #print widget
         self.w['Window'].destroy()
         self.filter_panel.destroy()
         

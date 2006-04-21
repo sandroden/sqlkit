@@ -14,8 +14,9 @@ from validator import Validator
 engine = config.spawnEngine(echo=False)
 map_labels(filename='label_map.txt')
 
-mask.SqlMask (sql="user_id > 5", table='euro_user', engine=engine)
 
+zz = mask.SqlMask (sql="user_id > 5", table='euro_user', engine=engine)
+#zz.sqlData.printall(mode='dict')
 
 gtk.main()
 

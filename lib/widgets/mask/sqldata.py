@@ -43,7 +43,7 @@ class SqlData(object):
         self._create_pointers(left=left)
         self.current = 0
         if not fields:
-            fields = mapper_info.fields
+            fields = self.mapper_info.fields
         self.field_list = fields
         
         tables = mapper_info.tables()
@@ -53,10 +53,8 @@ class SqlData(object):
         
     def next(self, mode='dict', fields=None):
         return self.get(mode=mode, fields=fields, incr = 1)
-
     def prev(self, mode='dict', fields=None):
         return self.get(mode=mode, fields=fields, incr = -1)
-
     def get(self, index=None, pointer=[], mode='dict', fields=None, incr=0):
         """return a dictionary field_name:value corresponding to
         the next tuple (row) in res_obj. Keep a pointer to the row.
@@ -89,12 +87,11 @@ class SqlData(object):
         else:
             ## let us respect the order
             return [R[f] for f in fields if f in R]
-
     def printall(self, mode='values'):
         """print all the records, mainly for debug"""
         for i in range(len(self.pointers)):
             print self.get(index=i, mode=mode)
-
+        self.current = 0
     def _instance2dict(self, instance):
         """return a dict representing the data of an instance. If the instance has
         a property representing a MANYTOONE relation it returns those values too,
@@ -115,7 +112,6 @@ class SqlData(object):
                 R[f] = getattr(prop_attr, f) 
                 
         return R
-
     def _dict2instance(self, instance, R):
         """set values of an instance. If the instance has
         a property representing a MANYTOONE relation it sets those values too,
@@ -136,7 +132,6 @@ class SqlData(object):
 #                 self._set_value(prop_attr, f, R, m2o=True, parent=instance)
                 
         return R
-
     def _set_value_loop(self, instance, R, m2o=False, parent=None):
         """Chek if is a primaryKey and try to handle it if mto (many2one) 
         attach a different instance to the object
@@ -166,7 +161,6 @@ class SqlData(object):
                             " in sqlalchemy (sigh!) - %s is PKey" % f)
                             
                 setattr(instance, f, R[f])
-
     def _change_sun(self, instance, f, R, parent, pkeys):
         """attach a new class instance if the PKey of an object related with
         many2one is used
@@ -187,11 +181,9 @@ class SqlData(object):
         if length == 1:
             #sd.debug("Imposto %s a %s"%(f , ret))
             setattr(parent, f, ret[0])
-
     def fields(self, fields):
         """sets the list of fields that will be returned"""
         self.field_list = fields
-
     def set(self, R,  pointer=[], index=None):
         """receive a pointer or an index a dict whose keys are the field_name
         and whose values are the new values and UPDATE the corresponding
@@ -215,34 +207,53 @@ class SqlData(object):
             self._dict2instance(instance, R)
                 
     def delete(self, index=None, pointer=None):
-        """delete a record. Leave to db/sa to delete also correated items.
-        db: DELETE on CASCADE
-        sa: private=True on relation
+        """delete a record. For each pointer it only deletes the last item
         """
         if index is not None:
             pointer = self.pointers[index]
 
         if not pointer:
-            raise MissingPointerError('A pointer is needed', pointer)
+            pointer = self.pointers[self.current]
+            #raise MissingPointerError('A pointer is needed', pointer)
 
-        pointer[0].delete()
+        sqlalchemy.objectstore.delete(pointer[-1])
+        sd.debug("objectostore.delete(%s)" % pointer[-1])
+        del self.pointers[self.current]
+        
+    def add(self, R):
+        """add a record. Create instances and attach them to first instance
+        """
+        main_table  = self.mapper_info.tables()[0]
+        main_mapper = self.mapper_info.get_mapper(main_table)
+        new = self._create_instance(main_table, R)
+        for i in new.c.keys():
+            sd.debug("%s => %s" % (i, getattr(new,i)))
+        return new
+        ## attach other instances
+        for prop in reflect.get_props(main_mapper):
+            table_name = main_mapper.props[prop[0]].target.name
+            if prop[1] == ONETOMANY:
+                getattr(new, prop[0]).append(self._create_instance(table_name, R))
+            
+    def _create_instance(self, tbl, R):
+        """ create an instance"""
+        sd.debug("R: %s, type: %s" % (R, type(R)))
+        class_name = self.mapper_info.get_class(tbl)
+        inst = class_name()
+        
+        for field in self.mapper_info.table_fields(tbl):
+            if field in R:
+                setattr(inst, field, R[field])
 
         
-        #     def delete(self, pointer=None):
-        #         """DELETE a row_obj corresponding to 'pointer'
-        #         Check that all primary keys are contained in the row
-        #         If pointer is None, self.pointer is used
-        #         """
-        #         pass
+        return inst
+                        
+    def get_current(self):
+        return self.pointers[self.current]
+    
     def index(self):
         return self.current
     
-    def insert(self, row={}):
-        """INSERT a new row. row is a dict field_name:value
-        Check that all primary keys are inside the row
-        """
-        pass
-
     def check_prim_keys(self, pointer=None):
         """Check that the row is completely defined, ie: all primary keys are
         present in the specification.

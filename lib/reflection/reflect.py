@@ -1,4 +1,3 @@
-
 from sqlalchemy import *
 import sys, sd
 import datetime
@@ -84,7 +83,7 @@ class InspectMapper(dict):
         self.mapper = mapper
         self.props = []
         self.pkeys = {}
-        self.table_mappers = []  # mappers to tables
+        self.table_mappers = {}  # mappers to tables
         self.n = 0
         for prop in mapper.props:
             attr = mapper.props[prop]
@@ -122,10 +121,15 @@ class InspectMapper(dict):
         except:
             d['length'] = None
 
-        if (mapper.table.name, mapper) not in self.table_mappers:
+        if mapper.table.name not in self.table_mappers:
             #sd.debug("%s %s" % (mapper.table.name, self.table_mappers))
-            self.table_mappers += [(mapper.table.name, mapper)]
+            self.table_mappers[mapper.table.name] = (mapper.class_, mapper)
             self.pkeys[mapper.table.name] = []
+
+#         if (mapper.table.name, mapper) not in self.table_mappers:
+#             #sd.debug("%s %s" % (mapper.table.name, self.table_mappers))
+#             self.table_mappers += [(mapper.table.name, mapper)]
+#             self.pkeys[mapper.table.name] = []
 
         if d['pkey']:
             #sd.debug("si %s -> %s" % (field_name, mapper.table.name ))
@@ -161,22 +165,38 @@ class InspectMapper(dict):
     def tables(self, mode='name'):
         """return the table_names of the tables in the mapper
         if mode='mapper', returns the mappers
+        the main table will be in position '0'
         """
         #sd.debug(self.table_mappers)
         if mode == 'name':
-            return [t[0] for t in self.table_mappers]
+            first_table = self.mapper.table.name 
+            ret = [t for t in self.table_mappers.keys() if t != first_table ]
+            return [ first_table ] + ret
+            #sd.debug(self.table_mappers.keys())
+            #return self.table_mappers.keys()
         else:
-            return [t[1] for t in self.table_mappers]
+            first_mapper = self.mapper
+            ret = [t[1] for t in self.table_mappers.values()
+                   if t[1] != first_mapper]
+            #sd.debug([t[1] for t in self.table_mappers.values()])
+            return [ first_mapper ] + ret
             
     def table_fields(self, table_name):
-        """list of all filed_names in 'table' """
+        """list of all field_names in 'table' """
         return [f for f in self.fields if self[f]['table_name'] == table_name ]
     
-    def mapper(self, table_name):
+    def get_mapper(self, table_name):
         """return the mapper of that table"""
-        for val in self.table_mappers:
-            if val[0] == table_name:
-                return val[1]
+        return self.table_mappers[table_name][1]
+    
+#     def mapper(self, table_name):
+#         """return the mapper of that table"""
+#         return self.table_mappers[table_name][1]
+    
+    def get_class(self, table_name):
+        """return the class of that table"""
+        return self.table_mappers[table_name][0]
+    
     def pkeys(self, table_name):
         """return the list of the pkeys for that table"""
         try:
