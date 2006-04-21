@@ -9,7 +9,7 @@ COPY city (city_id, city_name, city_pv) FROM stdin;
 8	Merate	BG
 9	Selvino	BG
 \.
-
+SELECT setval('city_city_id_seq',(select max(city_id) from city));
 
 
 
@@ -29,7 +29,7 @@ COPY euro_user (user_id, user_name, user_last_name, user_birth_date, user_addres
 7	Suzan	White	1970-10-23	boh	7	40	f	t
 8	Ann	Pearl	1972-09-09	mah	8	32	f	t
 \.
-
+SELECT setval('euro_user_user_id_seq',(select max(user_id) from euro_user));
 COPY euro_mail (mail_address, mail_user_id) FROM stdin;
 sam@example.com	1
 sid@example.com	2

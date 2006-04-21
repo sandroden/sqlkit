@@ -7,15 +7,17 @@ USERNAME=test
 
 [ -f config ] && . config
 
-
-for i in drop str data
-do
-  read -p "$i? "
-  case $REPLY in
-      y)  
-	  echo psql -U test -p $PORT test < eurotest-$i.sql
-	  psql -U test -p $PORT test < eurotest-$i.sql
-      ;;
-     esac
-done
-
+if [ -n "$1" ] ; then
+    psql -U test -p $PORT test < eurotest-$1.sql
+else
+    for i in drop str data
+      do
+      read -p "$i? "
+      case $REPLY in
+	  y)  
+	      echo psql -U test -p $PORT test < eurotest-$i.sql
+	      psql -U test -p $PORT test < eurotest-$i.sql
+	      ;;
+      esac
+    done
+fi
