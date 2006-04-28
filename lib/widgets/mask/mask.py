@@ -14,6 +14,10 @@ class LookupValueNotReturningOneValue(Exception): pass
 class MissingDescriptorField(Exception): pass
 class FieldNotInLayout(Exception): pass
 
+NOT_NULL_COLOR = gtk.gdk.color_parse('yellow')
+FK_COLOR = gtk.gdk.color_parse('green')
+LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
+
 class SqlMask (object):
     """doc string for sqlmask
     """
@@ -81,6 +85,7 @@ class SqlMask (object):
         ## fill in the data
 
         data_in = self.sqlData.get(incr=incr)
+        #sd.debug("data_in", data_in)
         msg_info = "record %s/%s" % (self.sqlData.index()+1, self.sqlData.count())
         if not data_in:
             if incr > 0:
@@ -116,6 +121,8 @@ class SqlMask (object):
         #sd.debug( "name: %s type: %s" % ( field_name, self.fields[field_name] ))
         # Entry
         if isinstance (widget, gtk.Entry):
+            if field_value == None:
+                field_value = ''
             widget.set_text( str(field_value) )
         # Dates
         elif isinstance (widget, dateedit.DateEdit):
@@ -151,7 +158,11 @@ class SqlMask (object):
         
         # Entry
         if isinstance (widget, gtk.Entry):
-            return widget.get_text( )
+            text = widget.get_text( )
+            if text == '':
+                if self.fields[field_name]['type'] == int:
+                    return None
+            return text
 
         # Dates
         elif isinstance (widget, dateedit.DateEdit):
@@ -160,7 +171,7 @@ class SqlMask (object):
         # Boolean
         elif self.fields[field_name]['type'] == bool:
             return widget.get_active( )
-        
+
     def record_delete(self, widget=None):
         """invokes the validator before DELETing a record"""
         ## FIXME: validator
@@ -186,11 +197,11 @@ class SqlMask (object):
     
         R = {}
         for field_name in self.fields.keys():      
-            sd.debug(field_name)
             try:
                 value = self._get_value(field_name)
             except FieldNotInLayout:
                 continue
+            #sd.debug(field_name, value)
             
             t = self.fields[field_name]['type']
             #sd.debug("%s: - value: %r T: %s" % (field_name, value, t))
@@ -201,7 +212,9 @@ class SqlMask (object):
                           value.hour, value.minute, value.second)
                 continue
             else:
-                value = t(value)
+                if value is not None:
+                    #sd.debug("value is", value)
+                    value = t(value)
 
             if value != self.data_in[field_name]:
                 #sd.debug("%s: %r is not %r" % (field_name,
@@ -236,16 +249,20 @@ class SqlMask (object):
                 value = t(value.year, value.month, value.day,
                           value.hour, value.minute, value.second)
             else:
-                value = t(value)
-
-            if self.fields[field_name]['is_serial'] and not value:
-                value = self.next_serial(field_name)
+                if value is not None:
+                    value = t(value)
+                
+#             if self.fields[field_name]['is_serial'] and not value:
+#                 value = self.next_serial(field_name)
             R[field_name] = value
 
         #sd.debug(R)
         self.sqlData.add(R)
+        self.status = self.sqlData.get_current()
+        sd.debug("self.status", self.status)
 
         objectstore.commit ()
+        self.record_display()
         
     def record_clear(self, widget=None):
         """clear the mask for a new record"""
@@ -271,7 +288,7 @@ class SqlMask (object):
         #sd.debug(sql)
         if isinstance(sql, tuple) and len(sql) == 2:
             sql_str, params = sql
-            #sql_debug(sql_str, params)
+            #sd.sql_debug(sql_str, params)
         else:
             sql_str = sql
             params = None
@@ -325,14 +342,13 @@ class SqlMask (object):
         self.valid = valid
     def _get_layout(self, lay, naked):
         ## layout
-        if lay is None:
-            lay = TableLayoutGenerator(self.fields, naked=naked).layout
+        lay = TableLayoutGenerator(self.fields, naked=naked, lay=lay).layout
 
         self.layout = lay
         self.add_filter(visible=False)
 
         ## add default buttons if needed
-        self._add_default_buttons(naked)
+        #self._add_default_buttons(naked)
         #sd.debug(self.layout)
         self.lay_obj = layout.Layout(self.layout, title=self.title, opts='T-')
         self.lay_obj.prop('Window', 'visible', False)
@@ -340,6 +356,7 @@ class SqlMask (object):
         self._analize_widgets_in_layout()
         self._add_constraints_and_connect()
         self._add_actions_to_buttons()
+        self._add_colors_and_fonts()
         self._fill_menubar_menu()
         return (self.lay_obj, self.w)
     
@@ -377,18 +394,6 @@ class SqlMask (object):
                 #sd.debug("Missing event_box for %s" % (field_name))
                 pass
             
-    def _add_default_buttons (self, naked=False):
-        # a 'naked' mask is a mask w/o buttons. Maybe buttons are define by the
-        # programmer inside the layout, maybe are not desired
-        if not naked:
-            self.layout = """
-            {B m=file m=modifica m=opzioni m=aiuto}
-            {O.tool tb=gtk-save tb=gtk-delete tb=gtk-new tb=gtk-refresh tb=gtk-quit
-               tb=gtk-go-back tb=gtk-go-forward}
-            { %s}
-            sb=StBar
-            """ % (self.layout)
-    
     def _fill_menubar_menu(self):
         """here all menus are filled for filtering,  sorting, ro, query..."""
         if 'm=file' in self.w:
@@ -397,6 +402,27 @@ class SqlMask (object):
                               ('-', None),
                               ('gtk-quit', self.quit)
                               )
+    
+    def _add_colors_and_fonts(self):
+        """add bg colors and onts to signal needed fields"""
+
+        for field_name in self.fields.keys():
+            if field_name in self.mwidgets:
+                if not self.fields[field_name]['nullable'] or \
+                       self.fields[field_name]['pkey'] :
+                    wdg_type, wdg = self.mwidgets[field_name]
+                    wdg.modify_base(gtk.STATE_NORMAL, NOT_NULL_COLOR)
+
+        for field_name in self.fields.keys():
+            if field_name in self.labels:
+                ev_wdg = self.labels[field_name].parent
+                ev_wdg.modify_fg(gtk.STATE_PRELIGHT, LBL_HOOVER_STYLE)
+            ## label FK_COLOR to tell it's a foreign key
+            if self.fields[field_name]['fkey'] :
+                sd.debug(field_name)
+                sd.debug('self.labels[field_name].modify_fg(gtk.STATE_NORMAL, FK_COLOR)')
+                self.labels[field_name].modify_fg(gtk.STATE_NORMAL, FK_COLOR)
+            
     def _add_constraints_and_connect(self):
         """Add controls according to data type represented
         check on input for integers
@@ -687,6 +713,7 @@ class SqlMask (object):
         event.window = self.mwidgets[field_name][1].window
         self.mwidgets[field_name][1].emit('key-press-event',event)
         event.keyval = gtk.keysyms.BackSpace
+        event.hardware_keycode = 22
         #event.window = self.mwidgets[field_name][1].window
         ## FIXME: non funziona
         self.mwidgets[field_name][1].emit('key-press-event',event)
@@ -729,7 +756,7 @@ class SqlMask (object):
                     ORDER BY %(field_name)s
                     """ % sql_dict
 
-        sql_debug(sql, exec_dict)
+        sd.sql_debug(sql, exec_dict)
 #        s = text(sql, engine=self.mapper.engines[0])
         s = text(sql, engine=self.mapper.table.engine)
         return s.execute(**exec_dict)
@@ -835,8 +862,4 @@ class SqlMask (object):
         txt = "table:  %s - fkey: %s" % (tbl, fkey)
         sd.debug(txt)
     
-def sql_debug(sql, params):
-    dbg = re.sub(':(?P<a>\S+)', '\'%(\g<a>)s\'', sql)
-    #sd.debug("%s %s" % (dbg, params))
-    sd.debug(dbg % params)
 

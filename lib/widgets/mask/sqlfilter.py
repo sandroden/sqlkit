@@ -68,7 +68,7 @@ class FilterPanel(object):
 
         ## labels
         field_name_event_box = gtk.EventBox()
-        field_name = gtk.Label(field)
+        field_name = gtk.Label(layout.get_label(field))
         field_name_event_box.add(field_name)
         field_name.set_property('xalign', 0)
         field_name_event_box.connect('button-press-event', self.pop_menu,

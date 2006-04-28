@@ -61,6 +61,7 @@ class SqlData(object):
         mode can be 'values', only values will be printed (debug only)
         Fields may be a list (as per self.fields)
         """
+        #sd.debug()
         R = {}
         if index:
             self.current = index
@@ -70,8 +71,9 @@ class SqlData(object):
             pointer = self.pointers[self.current+incr]
             self.current += incr
         except IndexError:
+            #sd.debug("IndexError")
             return
-        #sd.debug("current: %s - %s" % (self.current, idx ))
+        #sd.debug("current: %s" % (self.current))
 
         for cl_instance in pointer:
             R.update( self._instance2dict(cl_instance) )
@@ -87,6 +89,7 @@ class SqlData(object):
         else:
             ## let us respect the order
             return [R[f] for f in fields if f in R]
+
     def printall(self, mode='values'):
         """print all the records, mainly for debug"""
         for i in range(len(self.pointers)):
@@ -226,8 +229,12 @@ class SqlData(object):
         main_table  = self.mapper_info.tables()[0]
         main_mapper = self.mapper_info.get_mapper(main_table)
         new = self._create_instance(main_table, R)
-        for i in new.c.keys():
-            sd.debug("%s => %s" % (i, getattr(new,i)))
+        #for i in new.c.keys():
+        #    sd.debug("%s => %s" % (i, getattr(new,i)))
+
+        self.pointers.append([new])
+        self.current = len(self.pointers)-1
+        #sd.debug("new", new, "current", self.pointers[self.current])
         return new
         ## attach other instances
         for prop in reflect.get_props(main_mapper):

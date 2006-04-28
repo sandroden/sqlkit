@@ -111,6 +111,7 @@ class InspectMapper(dict):
             'property'    :  property,
             'fkey'        :  False,
             'pkey'        :  mapper.c[field_name].primary_key,
+            'nullable'    :  mapper.c[field_name].nullable,
             'mapper'      :  mapper,
 #            'direction'   :  mapper.props[field_name].direction
             #'label'  :   ,

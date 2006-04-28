@@ -5,12 +5,21 @@ import sys, re
 def debug(*text):
     if dbg==0:
         return
-    print "%s: %s" % (caller(), text)
+    if not text:
+        text = caller(mode='loc')
 
-def caller():
+    txt = ""
+    for i in text:
+        txt += " " + str(i)
+    print "%s: %s" % (caller(), txt)
+
+def caller(mode=None):
     frame = sys._getframe(2)
     caller = frame.f_code.co_name
     class_name = ''
+
+    if mode == 'loc':
+        return frame.f_locals
     try:
         a = frame.f_locals['self'].__class__
         class_name =  re.search("'(.*)'", str(a)).group(1) + "."
@@ -29,3 +38,8 @@ def dshow(diz, filter=None):
                 continue
         print "    ", k, v
 
+
+def sql_debug(sql, params):
+    dbg = re.sub(':(?P<a>\S+)', '\'%(\g<a>)s\'', sql)
+    #sd.debug("%s %s" % (dbg, params))
+    debug(dbg % params)
