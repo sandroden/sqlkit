@@ -15,28 +15,29 @@ engine = config.spawnEngine(echo=False)
 map_labels(filename='label_map.txt')
 
 lay = """
-{h  {-| L=user_name e=user_name
-      L=user_last_name e=user_last_name
+{h  {-| user_name
+        user_last_name
     }
     {
        {-|>>.archivio
-#         L=user_birth_date d=user_birth_date
+       user_birth_date
          user_sex
          user_age
          city_id
 
        }
        {-|>.stato
-         L=user_active c=user_active
-#        L=user_timestamp d=user_timestamp
+         user_active
+#        user_timestamp
        }
     }
 }   
 """
-
-zz = mask.SqlMask (sql="user_id > 5", table='euro_user',
+# sql="user_id > 5", 
+zz = mask.SqlMask (table='euro_user',
                    lay=lay, engine=engine)
 
+show_widgets(zz.w['Window'])
 gtk.main()
 
 
