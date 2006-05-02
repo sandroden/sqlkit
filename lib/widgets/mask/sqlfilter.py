@@ -1,6 +1,6 @@
 import gtk
 import layout
-import sd
+import dbg
 
 class FilterPanel(object):
     """A filter panel has 'entry|operator|string' rows
@@ -21,7 +21,7 @@ class FilterPanel(object):
         """issue a reload operation on master. Call back of reload button"""
         sql, bind_params = self.sql()
         limit=100
-        #sd.debug("%s type: %s" % (bind_params, type(bind_params)))
+        #dbg.debug("%s type: %s" % (bind_params, type(bind_params)))
         self.master.reload(sql=(sql, bind_params), limit=limit )
         #self.master.record_display()
         #print self.sql()

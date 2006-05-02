@@ -6,11 +6,7 @@
 
 import sys
 import sqlalchemy
-# from mapper import *
-# import mapper
-sys.path.append ('../../../')
-#sys.path.append ('../../')
-import py_path, sd
+import dbg
 import reflect
 
 
@@ -48,7 +44,7 @@ class SqlData(object):
         
         tables = mapper_info.tables()
         #for t in tables:
-        #    sd.debug("Table: %s => %s" % (t, mapper_info.table_fields(t)))
+        #    dbg.debug("Table: %s => %s" % (t, mapper_info.table_fields(t)))
         
         
     def next(self, mode='dict', fields=None):
@@ -61,7 +57,7 @@ class SqlData(object):
         mode can be 'values', only values will be printed (debug only)
         Fields may be a list (as per self.fields)
         """
-        #sd.debug()
+        #dbg.debug()
         R = {}
         if index:
             self.current = index
@@ -71,9 +67,9 @@ class SqlData(object):
             pointer = self.pointers[self.current+incr]
             self.current += incr
         except IndexError:
-            #sd.debug("IndexError")
+            #dbg.debug("IndexError")
             return
-        #sd.debug("current: %s" % (self.current))
+        #dbg.debug("current: %s" % (self.current))
 
         for cl_instance in pointer:
             R.update( self._instance2dict(cl_instance) )
@@ -100,7 +96,7 @@ class SqlData(object):
         a property representing a MANYTOONE relation it returns those values too,
         if the relation represent a ONETOMANY it calls itself recursevly.
         """
-        #sd.debug(instance)
+        #dbg.debug(instance)
         R = {}
         for f in instance.c.keys():
             R[f] = getattr(instance, f)
@@ -108,7 +104,7 @@ class SqlData(object):
         MANYTOONE_attrs = [f for f in instance._managed_attributes
                      if f not in instance.c.keys() and
                      type(instance._managed_attributes[f]) == sqlalchemy.attributes.ScalarAttribute ]
-        #sd.debug("props %s" % M21_attrs)
+        #dbg.debug("props %s" % M21_attrs)
         for prop in MANYTOONE_attrs:
             prop_attr = getattr(instance, prop)
             for f in prop_attr.c.keys():
@@ -120,14 +116,14 @@ class SqlData(object):
         a property representing a MANYTOONE relation it sets those values too,
         if the relation represent a ONETOMANY it calls itself recursevly.
         """
-        #sd.debug("R -1 %s" % R)
+        #dbg.debug("R -1 %s" % R)
         self._set_value_loop(instance, R)
                 
 
         MANYTOONE_attrs = [f for f in instance._managed_attributes
                      if f not in instance.c.keys() and
                      type(instance._managed_attributes[f]) == sqlalchemy.attributes.ScalarAttribute ]
-        #sd.debug("props %s" % MANYTOONE_attrs)
+        #dbg.debug("props %s" % MANYTOONE_attrs)
         for prop in MANYTOONE_attrs:
             prop_attr = getattr(instance, prop)
             self._set_value_loop(prop_attr, R, m2o=True, parent=instance)
@@ -139,9 +135,9 @@ class SqlData(object):
         """Chek if is a primaryKey and try to handle it if mto (many2one) 
         attach a different instance to the object
         """
-        #sd.debug("R: %s" % R)
+        #dbg.debug("R: %s" % R)
         ## if primaryKey, mapper will silently ignore it...
-        #sd.debug(f)
+        #dbg.debug(f)
 
         ### firstly parse PKeys so that if a _change_sun happens it will happen
         ### before any other change and further updtae will be applied to the
@@ -153,7 +149,7 @@ class SqlData(object):
 
         for f in keys:
             if f in R:
-                #sd.debug("f: %s" % f)
+                #dbg.debug("f: %s" % f)
                 if self.mapper_info[f]['pkey']:
                     if m2o:
                         self._change_sun(instance, f, R, parent, pkeys)
@@ -182,7 +178,7 @@ class SqlData(object):
             raise NotUniqueResultFromSelectError(
                 "Too many tuples in table %s with PKey: %s" % (tbl, R[f]))
         if length == 1:
-            #sd.debug("Imposto %s a %s"%(f , ret))
+            #dbg.debug("Imposto %s a %s"%(f , ret))
             setattr(parent, f, ret[0])
     def fields(self, fields):
         """sets the list of fields that will be returned"""
@@ -194,9 +190,9 @@ class SqlData(object):
         Check that all primary keys are contained in the row.
         If pointer is None, self.pointer is used
         """
-        #sd.debug("index: %s pointer: %s self.pointers: %s" % (
+        #dbg.debug("index: %s pointer: %s self.pointers: %s" % (
         #    index, pointer, self.pointers))
-        #sd.debug("R: %s " % R)
+        #dbg.debug("R: %s " % R)
         if index is not None:
             pointer = self.pointers[index]
 
@@ -204,7 +200,7 @@ class SqlData(object):
             pointer = self.pointers[self.current]
             #raise MissingPointerError('A pointer is needed', pointer)
 
-        #sd.debug("Pointer: %s" % pointer)
+        #dbg.debug("Pointer: %s" % pointer)
 
         for instance in pointer:
             self._dict2instance(instance, R)
@@ -220,7 +216,7 @@ class SqlData(object):
             #raise MissingPointerError('A pointer is needed', pointer)
 
         sqlalchemy.objectstore.delete(pointer[-1])
-        sd.debug("objectostore.delete(%s)" % pointer[-1])
+        dbg.debug("objectostore.delete(%s)" % pointer[-1])
         del self.pointers[self.current]
         
     def add(self, R):
@@ -230,11 +226,11 @@ class SqlData(object):
         main_mapper = self.mapper_info.get_mapper(main_table)
         new = self._create_instance(main_table, R)
         #for i in new.c.keys():
-        #    sd.debug("%s => %s" % (i, getattr(new,i)))
+        #    dbg.debug("%s => %s" % (i, getattr(new,i)))
 
         self.pointers.append([new])
         self.current = len(self.pointers)-1
-        #sd.debug("new", new, "current", self.pointers[self.current])
+        #dbg.debug("new", new, "current", self.pointers[self.current])
         return new
         ## attach other instances
         for prop in reflect.get_props(main_mapper):
@@ -244,7 +240,7 @@ class SqlData(object):
             
     def _create_instance(self, tbl, R):
         """ create an instance"""
-        sd.debug("R: %s, type: %s" % (R, type(R)))
+        dbg.debug("R: %s, type: %s" % (R, type(R)))
         class_name = self.mapper_info.get_class(tbl)
         inst = class_name()
         
@@ -286,7 +282,7 @@ class SqlData(object):
 
         Returns the lenth of the list
         """
-        #sd.debug("lvl: %s" % lvl)
+        #dbg.debug("lvl: %s" % lvl)
         if lvl == 0:
             tot=0
             self.pre = {}
@@ -294,7 +290,7 @@ class SqlData(object):
             self.left = left
 
         if lvl > 10:
-            #sd.debug("max-lvl raggiunto: %s" % lvl)
+            #dbg.debug("max-lvl raggiunto: %s" % lvl)
             sys.exit()
         if not res:
             res=self.res_obj
@@ -313,7 +309,7 @@ class SqlData(object):
 
             ## if any props loop there too
             for prop in props:
-                #sd.debug( "_create_pointers - prop: %s" % prop)
+                #dbg.debug( "_create_pointers - prop: %s" % prop)
                 rp = getattr(R, prop[0])
 #                if prop[1] == PropertyLoader.ONETOMANY:
                 if prop[1] == ONETOMANY:
@@ -323,10 +319,10 @@ class SqlData(object):
                     else: 
                         if self.left:
                             idx = [self.pre[y] for y in range(lvl+1)]
-                            #sd.debug(idx)
+                            #dbg.debug(idx)
                             self.pointers.append(idx)
                 #else:
-                    #sd.debug("rp: %s keys: %s" % (rp, self.show(rp)))
+                    #dbg.debug("rp: %s keys: %s" % (rp, self.show(rp)))
 
 #                 if len(rp) > 0:
 #                     self._create_pointers(rp, lvl=lvl+1) 

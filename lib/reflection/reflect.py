@@ -1,18 +1,6 @@
 from sqlalchemy import *
-import sys, sd
+import sys, dbg
 import datetime
-
-# class Mapper (object):
-#     pass
-
-# def mapTable (engine, table_name):
-#     return Table (table_name, engine, autoload = True)
-
-# def getMapper (table):
-#     return mapper (Mapper, table)
-
-# def getRecord (mapper, **kwds):
-#     return mapper.get_by (**kwds)
 
 class MissingPrimaryKeyError(Exception): pass
 def is_serial (c):
@@ -59,7 +47,7 @@ class InspectMapper(dict):
                 sqlalchemy.databases.postgres.PGBoolean  : bool, 
                 })
         except:
-            sd.debug("no pg types")
+            dbg.debug("no pg types")
             pass
                               
         ## used by sqlite
@@ -75,7 +63,7 @@ class InspectMapper(dict):
                 sqlalchemy.types.Boolean  : bool, 
                 })
         except:
-            sd.debug("no sa types")
+            dbg.debug("no sa types")
             pass
                               
 
@@ -123,17 +111,17 @@ class InspectMapper(dict):
             d['length'] = None
 
         if mapper.table.name not in self.table_mappers:
-            #sd.debug("%s %s" % (mapper.table.name, self.table_mappers))
+            #dbg.debug("%s %s" % (mapper.table.name, self.table_mappers))
             self.table_mappers[mapper.table.name] = (mapper.class_, mapper)
             self.pkeys[mapper.table.name] = []
 
 #         if (mapper.table.name, mapper) not in self.table_mappers:
-#             #sd.debug("%s %s" % (mapper.table.name, self.table_mappers))
+#             #dbg.debug("%s %s" % (mapper.table.name, self.table_mappers))
 #             self.table_mappers += [(mapper.table.name, mapper)]
 #             self.pkeys[mapper.table.name] = []
 
         if d['pkey']:
-            #sd.debug("si %s -> %s" % (field_name, mapper.table.name ))
+            #dbg.debug("si %s -> %s" % (field_name, mapper.table.name ))
             self.pkeys[mapper.table.name] += [field_name]
 
         if mapper.c[field_name].foreign_key:
@@ -168,18 +156,18 @@ class InspectMapper(dict):
         if mode='mapper', returns the mappers
         the main table will be in position '0'
         """
-        #sd.debug(self.table_mappers)
+        #dbg.debug(self.table_mappers)
         if mode == 'name':
             first_table = self.mapper.table.name 
             ret = [t for t in self.table_mappers.keys() if t != first_table ]
             return [ first_table ] + ret
-            #sd.debug(self.table_mappers.keys())
+            #dbg.debug(self.table_mappers.keys())
             #return self.table_mappers.keys()
         else:
             first_mapper = self.mapper
             ret = [t[1] for t in self.table_mappers.values()
                    if t[1] != first_mapper]
-            #sd.debug([t[1] for t in self.table_mappers.values()])
+            #dbg.debug([t[1] for t in self.table_mappers.values()])
             return [ first_mapper ] + ret
             
     def table_fields(self, table_name):

@@ -2,8 +2,9 @@
 
 import sys
 
-sys.path.append ('../../../../')
-import py_path, config, mask, reflect
+# sys.path.append ('../../../../')
+# import py_path, config, mask, reflect
+
 
 from sqlalchemy import *
 
@@ -84,12 +85,3 @@ class Validator (object):
     elif not isinstance (data, bool):
       raise BoolValidationError (column, data)
 
-
-if __name__ == '__main__':
-  engine = config.spawnEngine ()
-  table = reflect.mapTable (engine, 'euro_mail')
-  mapper = reflect.getMapper (table)
-  record = reflect.getRecord (mapper, mail_user_id = 1)
-  v = Validator (table, record)
-  v.validate ()
- 

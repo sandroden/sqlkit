@@ -1,9 +1,6 @@
 import sys, re
 import datetime
 
-sys.path.append ('../../../../../../')
-import py_path
-
 from sqlalchemy import *
 
 
