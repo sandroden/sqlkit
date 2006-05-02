@@ -2,25 +2,24 @@
 
 import sys, re, datetime
 
-sys.path.append ('../../../')
-import py_path
+sys.path.append ('../../')
+#import py_path
 
 from sqlalchemy import *
 from layout import *
-from SqlTreeView import *
-import config
+#from sqlkit import *
+import sqlkit as sk
+import sqlkit.SqlTreeView
 
 import gtk
 import gtk.glade
-import sd
-sd.dbg = 1
+import dbg
+dbg.dbg = 1
 
 
-eng = config.spawnEngine()
+eng = sk.config.spawnEngine()
 users = Table('euro_user', eng, autoload = True)
 #mails = Table('euro_mail', eng, autoload = True)
-
-eng = config.spawnEngine()
 
 class User(object):
     pass
@@ -29,7 +28,7 @@ class Mail(object):
     pass
 
 
-class MyLayout(SqlLayoutTreeView):
+class MyLayout(sk.SqlTreeView.SqlLayoutTreeView):
 
     def __init__(self, MappedClass, checkClass=None):
                 ### The layout
@@ -56,7 +55,7 @@ class MyLayout(SqlLayoutTreeView):
         
         treeview = self.w['TV=tree']
 
-        SqlTreeView.__init__(self, treeview, MappedClass,
+        sk.SqlTreeView.__init__(self, treeview, MappedClass,
                              checkClass=checkClass)
         
 
