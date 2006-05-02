@@ -12,7 +12,8 @@ import config
 
 import gtk
 import gtk.glade
-
+import sd
+sd.dbg = 1
 
 
 eng = config.spawnEngine()

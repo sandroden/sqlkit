@@ -9,7 +9,8 @@ from sqlalchemy import *
 from layout import *
 from SqlTreeView import *
 import config
-
+import sd
+sd.dbg = 1
 eng = config.spawnEngine()
 
 eng.begin()

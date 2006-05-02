@@ -51,7 +51,6 @@ info = reflect.InspectMapper(User.mapper)
 #dd = sqldata.SqlData(ret,info, left=True)
 dd = sqldata.SqlData(ret,info, left=False)
 dd.fields(['user_name','pv','city','mail_address', 'user_age'])
-
 #print dd
 #print dd.index
 #print dd.get()
@@ -63,15 +62,19 @@ dd.set({'user_age' : 16, 'city' : 'Roma'},index=0)
 #dd.set({'mail_address' : 'mio_mail@e-den.it'}, index=0)
 dd.printall(mode='values')
 # fat = ret[0]
-merate = mc.select("city = 'Merate'")[0]
-lecco = mc.select("city = 'Lecco'")[0]
+merate = mc.select("city_name = 'Merate'")[0]
+lecco = mc.select("city_name = 'Lecco'")[0]
 print dd.show(merate)
 print dd.show(lecco)
 
 #print retc
 #retc.pv = 'LE'
 eng.echo = True
+
+R = {'user_name': 'sandro', 'user_last_name': 'dentella'}
+dd.add(R)
 objectstore.commit()
+
 
 # for i in range(len(dd.index)):
 #     print dd.get(index=i,mode='')
