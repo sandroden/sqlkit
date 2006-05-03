@@ -16,7 +16,7 @@ class MissingDescriptorField(Exception): pass
 class FieldNotInLayout(Exception): pass
 
 NOT_NULL_COLOR = gtk.gdk.color_parse('yellow')
-FK_COLOR = gtk.gdk.color_parse('green')
+FK_COLOR = gtk.gdk.color_parse('navyblue')
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
 
 class SqlMask (object):
@@ -389,8 +389,9 @@ class SqlMask (object):
         #dbg.debug("self.w: %s" % self.w)
         #dbg.dshow(self.w, 'E=')
         self.labels = {}
+        #dbg.debug(self.fields.keys())
         for field_name in self.fields.keys():
-            lbl_name_wdg = "E=%s" % field_name
+            lbl_name_wdg = "l=%s" % field_name
             if lbl_name_wdg in self.w:
                 self.labels[field_name] = self.w[lbl_name_wdg]
                 #dbg.debug("%s -> %s"% (field_name, self.labels[field_name]))
@@ -419,14 +420,25 @@ class SqlMask (object):
 
         for field_name in self.fields.keys():
             if field_name in self.labels:
+                lbl    = self.labels[field_name]
                 ev_wdg = self.labels[field_name].parent
-                ev_wdg.modify_fg(gtk.STATE_PRELIGHT, LBL_HOOVER_STYLE)
-            ## label FK_COLOR to tell it's a foreign key
-            if self.fields[field_name]['fkey'] :
-                dbg.debug(field_name)
-                dbg.debug('self.labels[field_name].modify_fg(gtk.STATE_NORMAL, FK_COLOR)')
-                self.labels[field_name].modify_fg(gtk.STATE_NORMAL, FK_COLOR)
+                ev_wdg.connect('enter-notify-event', self.ene_cb)
+                ev_wdg.connect('leave-notify-event', self.lne_cb)
+                lbl.modify_fg(gtk.STATE_PRELIGHT, LBL_HOOVER_STYLE)
+
+                ## label FK_COLOR to tell it's a foreign key
+                if self.fields[field_name]['fkey'] :
+                    #dbg.debug(field_name)
+                    self.labels[field_name].modify_fg(gtk.STATE_NORMAL, FK_COLOR)
             
+    def ene_cb(self, eb, ev):
+        eb.get_child().set_state(gtk.STATE_PRELIGHT)
+        return True
+
+    def lne_cb(self, eb, ev):
+        eb.get_child().set_state(gtk.STATE_NORMAL)
+        return True
+        
     def _add_constraints_and_connect(self):
         """Add controls according to data type represented
         check on input for integers
@@ -478,8 +490,9 @@ class SqlMask (object):
                 pass
 
         ## add click that pops filter_panel
-        for field_name, event_box in self.labels.iteritems():
+        for field_name, label in self.labels.iteritems():
             #dbg.debug("<1> x filter: %s %s" % (field_name, event_box))
+            event_box = label.parent
             event_box.connect('button-press-event',
                               self.filter_panel.add, field_name, 1)
 

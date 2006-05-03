@@ -9,9 +9,6 @@ dbg.dbg = 1
 
 from sqlalchemy import *
 from layout import *
-#from validator import Validator
-#from SqlTreeView import *
-#import sqlfilter
 
 engine = sk.config.spawnEngine(echo=False)
 user_table = Table ('euro_user', engine, autoload=True)

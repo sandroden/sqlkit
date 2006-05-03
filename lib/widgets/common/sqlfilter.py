@@ -51,7 +51,7 @@ class FilterPanel(object):
         
     def hide(self, wid, ev=None):
         """hide FilterPanel."""
-        print self.w['Window'], "destroy", "wid", wid
+        #print self.w['Window'], "destroy", "wid", wid
         self.w['Window'].set_property('visible', False)
         return True  # stops further processing...
     
