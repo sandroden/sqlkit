@@ -15,7 +15,8 @@ class LookupValueNotReturningOneValue(Exception): pass
 class MissingDescriptorField(Exception): pass
 class FieldNotInLayout(Exception): pass
 
-NOT_NULL_COLOR = gtk.gdk.color_parse('yellow')
+#NOT_NULL_COLOR = gtk.gdk.color_parse('yellow')
+NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
 FK_COLOR = gtk.gdk.color_parse('navyblue')
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
 
@@ -861,8 +862,8 @@ class SqlMask (object):
             
         if table_name not in self.tables:
             table = Table(table_name, engine=self.engine, autoload=True)
-            dbg.debug("type: %s" % type(table))              
-            dbg.debug("ora: table %s - keys: %s" % (table, table.c.keys()))
+            #dbg.debug("type: %s" % type(table))              
+            #dbg.debug("ora: table %s - keys: %s" % (table, table.c.keys()))
             
             #self.tables[table_name] = table
             for field_name in table.c.keys():
