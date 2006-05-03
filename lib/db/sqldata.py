@@ -7,7 +7,7 @@
 import sys
 import sqlalchemy
 import dbg
-import reflect
+import inspect
 
 
 
@@ -233,7 +233,7 @@ class SqlData(object):
         #dbg.debug("new", new, "current", self.pointers[self.current])
         return new
         ## attach other instances
-        for prop in reflect.get_props(main_mapper):
+        for prop in inspect.get_props(main_mapper):
             table_name = main_mapper.props[prop[0]].target.name
             if prop[1] == ONETOMANY:
                 getattr(new, prop[0]).append(self._create_instance(table_name, R))
@@ -297,7 +297,7 @@ class SqlData(object):
 
         props = []
         try:
-            props = reflect.get_props(res[0].mapper)
+            props = inspect.get_props(res[0].mapper)
         except:
             pass
 

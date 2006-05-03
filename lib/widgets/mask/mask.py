@@ -1,6 +1,6 @@
 import sys, re, datetime
 import config
-import reflect
+import inspect
 import layout
 import layout.dateedit as dateedit
 
@@ -60,7 +60,7 @@ class SqlMask (object):
             self.engine = self.mapper.table.engine
         self.valid = self._get_validator(valid)
         self.listores = {}  ## needed for entry_completion
-        self.fields = reflect.InspectMapper(self.mapper, noup=noup, mode=mode)
+        self.fields = inspect.InspectMapper(self.mapper, noup=noup, mode=mode)
         self.title = self._get_title(title)
         self.tables = {}
         self.values = {}
