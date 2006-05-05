@@ -21,7 +21,7 @@ class FilterPanel(object):
         """issue a reload operation on master. Call back of reload button"""
         sql, bind_params = self.sql()
         limit=100
-        #dbg.debug("%s type: %s" % (bind_params, type(bind_params)))
+        #dbg.write("%s type: %s" % (bind_params, type(bind_params)))
         self.master.reload(sql=(sql, bind_params), limit=limit )
         #self.master.record_display()
         #print self.sql()
@@ -127,8 +127,9 @@ class FilterPanel(object):
                 else:
                     values[fld['field']] = value
                     ret += self._compose_field_whereclause(fld)
-        #print " AND ".join(ret), str(values)
-        return (" AND ".join(ret), values)
+        sql = " AND ".join(ret), str(values)
+        dbg.write(sql)
+        return sql
 
     def _compose_field_whereclause(self, fld):
         """return a sql whereclause for field

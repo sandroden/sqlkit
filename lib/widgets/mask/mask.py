@@ -70,10 +70,10 @@ class SqlMask (object):
         self.lay_obj, self.w  = self._get_layout(lay, naked)
         ## fill in the data in case
 #         if records:
-#             dbg.debug('ora self.record_display, records: ' % records)
+#             dbg.write('ora self.record_display, records: ' % records)
 #             self.record_display()
         if sql:
-            #dbg.debug('__init__ sql: %s' % sql)
+            #dbg.write('__init__ sql: %s' % sql)
             self.reload(sql)
             
         ## only render when dimentions are complete
@@ -86,11 +86,11 @@ class SqlMask (object):
         display the data provided by self.sqlData.get()
         incr: incr=incr arg to sqlData.get()
         """
-        #dbg.debug('Record_display n: %s' % self.sqlData.index())
+        #dbg.write('Record_display n: %s' % self.sqlData.index())
         ## fill in the data
 
         data_in = self.sqlData.get(incr=incr)
-        #dbg.debug("data_in", data_in)
+        #dbg.write("data_in", data_in)
         msg_info = "record %s/%s" % (self.sqlData.index()+1, self.sqlData.count())
         if not data_in:
             if incr > 0:
@@ -111,7 +111,7 @@ class SqlMask (object):
         if field_name is a FKey ending with _id, it retrieves the description,
         shows it in the entry but stores the id in self.values[field_name]
         """
-        #dbg.debug("%s: %s" % (field_name, field_value))
+        #dbg.write("%s: %s" % (field_name, field_value))
         # [0]: the gtkClass
         # [1]: the gtkWidget
         if field_name not in self.mwidgets:
@@ -123,7 +123,7 @@ class SqlMask (object):
             field_value = self._lookup_value(field_name, field_value)
             
 
-        #dbg.debug( "name: %s type: %s" % ( field_name, self.fields[field_name] ))
+        #dbg.write( "name: %s type: %s" % ( field_name, self.fields[field_name] ))
         # Entry
         if isinstance (widget, gtk.Entry):
             if field_value == None:
@@ -131,18 +131,16 @@ class SqlMask (object):
             widget.set_text( str(field_value) )
         # Dates
         elif isinstance (widget, dateedit.DateEdit):
-            if field_value == '':
-                return
             widget.set_property('time', field_value)
 
         # Boolean
         elif self.fields[field_name]['type'] == bool:
             if not field_value :
-#                 dbg.debug("impongo false per %s che era '%s'" % (
+#                 dbg.write("impongo false per %s che era '%s'" % (
 #                     field_name, field_value))
                 field_value = False
             widget.set_active(field_value)
-            #dbg.debug("%s: %s" % (field_value, widget.get_active()))
+            #dbg.write("%s: %s" % (field_value, widget.get_active()))
         
     def _get_value(self, field_name):
         """return the data for field_name
@@ -181,9 +179,9 @@ class SqlMask (object):
         """invokes the validator before DELETing a record"""
         ## FIXME: validator
         self.sqlData.delete()
-        #dbg.debug(objectstore.commit())
+        #dbg.write(objectstore.commit())
         objectstore.commit()
-        #dbg.debug(self.record_clear())
+        #dbg.write(self.record_clear())
         self.record_clear()
     
     def record_save(self, ev):
@@ -206,28 +204,33 @@ class SqlMask (object):
                 value = self._get_value(field_name)
             except FieldNotInLayout:
                 continue
-            #dbg.debug(field_name, value)
+            #dbg.write(field_name, value)
             
             t = self.fields[field_name]['type']
-            #dbg.debug("%s: - value: %r T: %s" % (field_name, value, t))
+            #dbg.write("%s: - value: %r T: %s" % (field_name, value, t))
             if t == datetime.date:
-                value = t(value.year, value.month, value.day)
+                if value is not None:
+                    value = t(value.year, value.month, value.day)
             elif t == datetime.datetime:
-                value = t(value.year, value.month, value.day,
-                          value.hour, value.minute, value.second)
-                continue
+                if value is not None:
+                    value = t(value.year, value.month, value.day,
+                              value.hour, value.minute, value.second)
             else:
                 if value is not None:
-                    #dbg.debug("value is", value)
+                    #dbg.write("value is", value)
                     value = t(value)
 
             if value != self.data_in[field_name]:
-                #dbg.debug("%s: %r is not %r" % (field_name,
-                #                               value, self.data_in[field_name]))
-                R[field_name] = value
+               if value == '' and self.data_in[field_name] == None:
+                   pass
+               else:
+                   dbg.write("%s: %r is not %r" % (field_name,
+                                                   value, self.data_in[field_name]))
+                   R[field_name] = value
 
-        #dbg.debug(R)
-        self.sqlData.set(R)
+        #dbg.write(R)
+        if R.keys():
+            self.sqlData.set(R)
 
         objectstore.commit ()
         
@@ -247,7 +250,7 @@ class SqlMask (object):
                 # skip type casting
                 R[field_name] = None
                 continue
-            #dbg.debug("%s: - value: %r t: %s" % (field_name, value, t))
+            #dbg.write("%s: - value: %r t: %s" % (field_name, value, t))
             if t == datetime.date:
                 value = t(value.year, value.month, value.day)
             elif t == datetime.datetime:
@@ -261,22 +264,22 @@ class SqlMask (object):
 #                 value = self.next_serial(field_name)
             R[field_name] = value
 
-        #dbg.debug(R)
+        #dbg.write(R)
         self.sqlData.add(R)
         self.status = self.sqlData.get_current()
-        dbg.debug("self.status", self.status)
+        dbg.write("self.status", self.status)
 
         objectstore.commit ()
         self.record_display()
         
     def record_clear(self, widget=None):
         """clear the mask for a new record"""
-        #dbg.debug('')
+        #dbg.write('')
         self.values.clear()
         self.status = None
         
         for field_name in self.fields.keys():
-            #dbg.debug(field_name)
+            #dbg.write(field_name)
             self._set_value(field_name, '')
     def record_forward(self, ev):
         """display the next record in the mapper"""
@@ -290,15 +293,16 @@ class SqlMask (object):
 
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
         """
-        #dbg.debug(sql)
+        dbg.write(sql)
         if isinstance(sql, tuple) and len(sql) == 2:
             sql_str, params = sql
-            #dbg.sql_debug(sql_str, params)
+            dbg.sql_debug(sql_str, params)
         else:
             sql_str = sql
             params = None
-            
-        records = self.mapper.select(sql_str, params=params, limit=limit)
+        self.mapper.table.engine.echo = True
+        records = self.mapper.select(sql_str, params=params)
+        self.mapper.table.engine.echo = False
         self.sqlData = sqldata.SqlData(records, mapper_info=self.fields)
         self.record_display()
     
@@ -313,7 +317,7 @@ class SqlMask (object):
         """
         if not field_value:
             return ''
-        #dbg.debug("%s %s" % (field_name,field_value))
+        #dbg.write("%s %s" % (field_name,field_value))
         ftable, fname = self.fields[field_name]['fkey']
         sql = "SELECT %s FROM %s WHERE %s = :%s" % (
             self._add_descriptor_fields(mode='return', table_name=ftable),
@@ -354,7 +358,7 @@ class SqlMask (object):
 
         ## add default buttons if needed
         #self._add_default_buttons(naked)
-        #dbg.debug(self.layout)
+        #dbg.write(self.layout)
         self.lay_obj = layout.Layout(self.layout, title=self.title, opts='T-')
         self.lay_obj.prop('Window', 'visible', False)
         self.w       = self.lay_obj.show()
@@ -377,7 +381,7 @@ class SqlMask (object):
         ## by now I only use entry, date, radio and menu to represent data
         #print self.w.keys()
         for field_name in self.fields.keys():
-            #dbg.debug("_analize_widget_layout: %s" % (field_name))
+            #dbg.write("_analize_widget_layout: %s" % (field_name))
             for mod in ('e','d','r','m','c'):
                 try:
                     widget = self.w["%s=%s" % (mod, field_name)]
@@ -387,17 +391,17 @@ class SqlMask (object):
             # (gtkClass , gtkWidget)
 
         ## all EventBox 
-        #dbg.debug("self.w: %s" % self.w)
+        #dbg.write("self.w: %s" % self.w)
         #dbg.dshow(self.w, 'E=')
         self.labels = {}
-        #dbg.debug(self.fields.keys())
+        #dbg.write(self.fields.keys())
         for field_name in self.fields.keys():
             lbl_name_wdg = "l=%s" % field_name
             if lbl_name_wdg in self.w:
                 self.labels[field_name] = self.w[lbl_name_wdg]
-                #dbg.debug("%s -> %s"% (field_name, self.labels[field_name]))
+                #dbg.write("%s -> %s"% (field_name, self.labels[field_name]))
             else:
-                #dbg.debug("Missing event_box for %s" % (field_name))
+                #dbg.write("Missing event_box for %s" % (field_name))
                 pass
             
     def _fill_menubar_menu(self):
@@ -429,7 +433,7 @@ class SqlMask (object):
 
                 ## label FK_COLOR to tell it's a foreign key
                 if self.fields[field_name]['fkey'] :
-                    #dbg.debug(field_name)
+                    #dbg.write(field_name)
                     self.labels[field_name].modify_fg(gtk.STATE_NORMAL, FK_COLOR)
             
     def ene_cb(self, eb, ev):
@@ -452,11 +456,11 @@ class SqlMask (object):
             ## the widget may not be there, is layout has been provided
             ## as an argument
             if field_name not in self.mwidgets:
-                #dbg.debug("skip %s" % field_name)
+                #dbg.write("skip %s" % field_name)
                 continue
             widget = self.mwidgets[field_name][1]
             if not widget:
-                #dbg.debug("Per campo: %s manca widget %s" % (field_name, widget))
+                #dbg.write("Per campo: %s manca widget %s" % (field_name, widget))
                 continue
             
             ## integer
@@ -469,12 +473,12 @@ class SqlMask (object):
                 
             ## Strings
             if field_type == str or self.fields[field_name]['fkey']:
-                #dbg.debug("aggiungo <3> per %s" % (field_name))
+                #dbg.write("aggiungo <3> per %s" % (field_name))
                 widget.connect('button-press-event',self.pop_menu, field_name, 3)
                 widget.connect('key-press-event',self.entry_short_cut_event,
                                field_name, 'F1')
 #             else:
-#                 dbg.debug("fkey per %s: %s" %
+#                 dbg.write("fkey per %s: %s" %
 #                          (field_name, self.fields[field_name]['fkey']))
             ## Dates / Datetime
             if field_type == datetime.date:
@@ -492,7 +496,7 @@ class SqlMask (object):
 
         ## add click that pops filter_panel
         for field_name, label in self.labels.iteritems():
-            #dbg.debug("<1> x filter: %s %s" % (field_name, event_box))
+            #dbg.write("<1> x filter: %s %s" % (field_name, event_box))
             event_box = label.parent
             event_box.connect('button-press-event',
                               self.filter_panel.add, field_name, 1)
@@ -557,10 +561,10 @@ class SqlMask (object):
     def digits_check_input(self, widget, event):
         ## fixme: missing comma, and cut&paste
         key = gtk.gdk.keyval_name (event.keyval)
-        #dbg.debug(key)
+        #dbg.write(key)
         ONLYDIGITS="([0-9.,]|BackSpace|Left|Right|F1|period|Tab|Up|Down)"
         if not re.match (ONLYDIGITS, key):
-            dbg.debug("key: %s" % key)
+            dbg.write("key: %s" % key)
             return True
     
 ####### Misc
@@ -663,7 +667,7 @@ class SqlMask (object):
         column, mode = func_data
         model = completion.get_model()
         text = model.get_value(iter, column)
-        #dbg.debug("column: %s  - mode: %s" % (column, mode))
+        #dbg.write("column: %s  - mode: %s" % (column, mode))
         if not text:
             text = ''
         #return False
@@ -675,9 +679,9 @@ class SqlMask (object):
                 return False
         # regexp
         if re.search(key, text, re.IGNORECASE):
-            #dbg.debug("accetto: %s col: %s" % (text, column))
+            #dbg.write("accetto: %s col: %s" % (text, column))
             return True
-        #dbg.debug("rifiuto: %s" % text)
+        #dbg.write("rifiuto: %s" % text)
         return False
     def show_field_info(self, wdg, field_name):
         """Pop a dialog to give info on the selected field"""
@@ -731,11 +735,11 @@ class SqlMask (object):
         listore.clear()
         ret = self.select_values(field_name, sql_dict)
         ## sql_dict['field_name'] may be changed by select_values if fk
-        #dbg.debug("field_name %s" % (sql_dict['field_name']))
-        #dbg.debug("listore is: %s" % listore)
+        #dbg.write("field_name %s" % (sql_dict['field_name']))
+        #dbg.write("listore is: %s" % listore)
         for R in ret:
             #listore.append([getattr(R, sql_dict['field_name'])])
-            dbg.debug("R: %s" % R)
+            dbg.write("R: %s" % R)
             listore.append(R)
 #        completion.complete()
         event =   gtk.gdk.Event(gtk.gdk.KEY_PRESS)
@@ -862,18 +866,18 @@ class SqlMask (object):
             
         if table_name not in self.tables:
             table = Table(table_name, engine=self.engine, autoload=True)
-            #dbg.debug("type: %s" % type(table))              
-            #dbg.debug("ora: table %s - keys: %s" % (table, table.c.keys()))
+            #dbg.write("type: %s" % type(table))              
+            #dbg.write("ora: table %s - keys: %s" % (table, table.c.keys()))
             
             #self.tables[table_name] = table
             for field_name in table.c.keys():
-                #dbg.debug("cercao %s" % field_name)
+                #dbg.write("cercao %s" % field_name)
                 if re.search('_name|_descr', field_name, re.I):
                     self.tables[table_name] = list([field_name])
-                    #dbg.debug(self.tables[table_name])
+                    #dbg.write(self.tables[table_name])
                     break
 #                 else:
-#                     dbg.debug("%s non finisce per _name|_descr" % field_name)
+#                     dbg.write("%s non finisce per _name|_descr" % field_name)
             
         if table_name in self.tables:
             if mode == 'add':
@@ -892,6 +896,6 @@ class SqlMask (object):
         tbl  = self.fields[field]['table_name']
         fkey = self.fields[field]['fkey']
         txt = "table:  %s - fkey: %s" % (tbl, fkey)
-        dbg.debug(txt)
+        dbg.write(txt)
     
 

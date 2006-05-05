@@ -47,7 +47,7 @@ class InspectMapper(dict):
                 sqlalchemy.databases.postgres.PGBoolean  : bool, 
                 })
         except:
-            dbg.debug("no pg types")
+            dbg.write("no pg types")
             pass
                               
         ## used by sqlite
@@ -63,7 +63,7 @@ class InspectMapper(dict):
                 sqlalchemy.types.Boolean  : bool, 
                 })
         except:
-            dbg.debug("no sa types")
+            dbg.write("no sa types")
             pass
                               
 
@@ -79,8 +79,8 @@ class InspectMapper(dict):
             if isinstance(attr, sqlalchemy.mapping.properties.LazyLoader) or \
                isinstance(attr, sqlalchemy.mapping.properties.EagerLoader):
                 #self.props[prop] = attr.target.name  # the table reached thru 'prop'
-                self.props += [(prop, attr.direction)]
                 m = attr.mapper
+                self.props += [(prop, attr.direction, m.table.name)]
                 for field_name in m.c.keys():
                     self._add_field(field_name, m, prop)
             else:
@@ -111,17 +111,17 @@ class InspectMapper(dict):
             d['length'] = None
 
         if mapper.table.name not in self.table_mappers:
-            #dbg.debug("%s %s" % (mapper.table.name, self.table_mappers))
+            #dbg.write("%s %s" % (mapper.table.name, self.table_mappers))
             self.table_mappers[mapper.table.name] = (mapper.class_, mapper)
             self.pkeys[mapper.table.name] = []
 
 #         if (mapper.table.name, mapper) not in self.table_mappers:
-#             #dbg.debug("%s %s" % (mapper.table.name, self.table_mappers))
+#             #dbg.write("%s %s" % (mapper.table.name, self.table_mappers))
 #             self.table_mappers += [(mapper.table.name, mapper)]
 #             self.pkeys[mapper.table.name] = []
 
         if d['pkey']:
-            #dbg.debug("si %s -> %s" % (field_name, mapper.table.name ))
+            #dbg.write("si %s -> %s" % (field_name, mapper.table.name ))
             self.pkeys[mapper.table.name] += [field_name]
 
         if mapper.c[field_name].foreign_key:
@@ -156,23 +156,28 @@ class InspectMapper(dict):
         if mode='mapper', returns the mappers
         the main table will be in position '0'
         """
-        #dbg.debug(self.table_mappers)
+        #dbg.write(self.table_mappers)
         if mode == 'name':
             first_table = self.mapper.table.name 
             ret = [t for t in self.table_mappers.keys() if t != first_table ]
             return [ first_table ] + ret
-            #dbg.debug(self.table_mappers.keys())
+            #dbg.write(self.table_mappers.keys())
             #return self.table_mappers.keys()
         else:
             first_mapper = self.mapper
             ret = [t[1] for t in self.table_mappers.values()
                    if t[1] != first_mapper]
-            #dbg.debug([t[1] for t in self.table_mappers.values()])
+            #dbg.write([t[1] for t in self.table_mappers.values()])
             return [ first_mapper ] + ret
             
     def table_fields(self, table_name):
         """list of all field_names in 'table' """
         return [f for f in self.fields if self[f]['table_name'] == table_name ]
+    
+    def prop_fields(self, table_name):
+        """list of all field_names in 'table' linked as propperty prop"""
+        table_name = [p[2] for p in self.props if p[0] == table_name][0]
+        return self.table_fields(table_name)
     
     def get_mapper(self, table_name):
         """return the mapper of that table"""
