@@ -12,6 +12,12 @@ from errors import *
 
 
 class Validator (object):
+  '''
+  Base class for validation.
+  Type based checking is managed through type_check_dispatcher method.
+  To add a new type check for a type with class <typename> add a method
+  named _check_<typename> to a derived class.
+  '''
 
   def __init__ (self, table = None, record = None, old_record = None, debug = False):
     self.table = table
@@ -19,12 +25,22 @@ class Validator (object):
     self.old_record = old_record
     self.debug = debug
 
+  def type_check_dispatcher(self, type_instance, column, column_value):
+    type_name = type_instance.__class__.__name__
+    # format the name by convention ("_check_<type_name>")
+    fname = '_check_' + type_name
+    try:
+      self.__class__.__dict__[fname](self, column, column_value)
+    except KeyError, e:
+      #there is not an appropriate function
+      return
+    
+
   def validate (self):
     try:
       self._default_check ()
     except ValidationError, e:
       raise e
-
   def _default_check (self):
     for column in self.table.columns:
       column_value = getattr (self.record, column.name)
@@ -35,13 +51,11 @@ class Validator (object):
         self._check_pkey (column, column_value)
       if column.foreign_key is not None:
         self._check_fkey (column, column_value)
-        
-      if isinstance (column.type, types.Integer):
-        self._check_int (column, column_value)
-      elif isinstance (column.type, types.String):
-        self._check_str (column, column_value)
-      elif isinstance (column.type, types.Boolean):
-        self._check_bool (column, column_value)
+
+      # simple type checking (mcm) using the type check dispatcher.
+
+      type_check_dispatcher(column.type, column, column_value)
+      
 
   def _check_null (self, column, data):
     if data is None and not column.nullable:
@@ -57,7 +71,7 @@ class Validator (object):
     if fetch_fkey.fetchone () is None:
       raise ForeignKeyValidationError (column, data)
 
-  def _check_int (self, column, data):
+  def _check_Integer (self, column, data):
     try: data = int (data)
     except ValueError: raise ValidationError (column, data)
     if column.nullable:
@@ -66,7 +80,7 @@ class Validator (object):
     elif not isinstance (data, int):
       raise IntegerValidationError (column, data)
 
-  def _check_str (self, column, data):
+  def _check_String (self, column, data):
     if column.nullable:
       if data is not None and not isinstance (data, str):
         raise ValidationError (column, data)
@@ -76,7 +90,7 @@ class Validator (object):
       raise StringValidationError (column, data,
         message = "La stringa è troppo lunga per essere contenuta da %s" % column.name)
 
-  def _check_bool (self, column, data):
+  def _check_Boolean (self, column, data):
     try: data = bool (data)
     except ValueError: raise ValidationError (column, data)
     if column.nullable:

@@ -76,8 +76,8 @@ class InspectMapper(dict):
         for prop in mapper.props:
             attr = mapper.props[prop]
             ## here we populate props
-            if isinstance(attr, sqlalchemy.mapping.properties.LazyLoader) or \
-               isinstance(attr, sqlalchemy.mapping.properties.EagerLoader):
+            if isinstance(attr, mapping.properties.LazyLoader) or \
+               isinstance(attr, mapping.properties.EagerLoader):
                 #self.props[prop] = attr.target.name  # the table reached thru 'prop'
                 m = attr.mapper
                 self.props += [(prop, attr.direction, m.table.name)]

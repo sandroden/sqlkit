@@ -24,20 +24,37 @@ import gtk, gobject, pango
 #from SqlChecker import *
 
 
-class CellEditableCalendar(gtk.Fixed, gtk.CellEditable):
+class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
     date = None
     def __init__(self, date):
 
         self.date = date
         
-        gtk.Fixed.__init__(self)
-        self.set_has_window(False)
+        gtk.TextView.__init__(self)
+        #self.set_has_window(False)
         self.cal = gtk.Calendar()
         self.cal.select_month(self.date.month - 1, self.date.year)
         self.cal.select_day(self.date.day)
-        self.put(self.cal, 0, 0)
+        self.w = gtk.Window()
+        self.set_editable(False)
+        print "top level", self.get_toplevel()
+        #self.w.set_transient_for(self.get_toplevel())
+        self.w.add(self.cal)
+        self.w.connect("delete_event", self.delete_event)
+        self.cal.connect("day-selected-double-click", self.delete_event)
+        self.cal.connect("event", self.cal_event)
         self.show_all()
+        self.grab_focus()
+        self.w.show_all()
         
+    def cal_event(self, w, e):
+        text = "%s/%s/%s" % (self.cal.get_date()[2],
+                             self.cal.get_date()[1] + 1,
+                             self.cal.get_date()[0])
+        tb = self.get_buffer()
+        tb.set_text(text)
+        return False
+    
     def do_start_editing(self, event):
         pass
     
@@ -47,7 +64,13 @@ class CellEditableCalendar(gtk.Fixed, gtk.CellEditable):
 
     def do_editing_done(self):
         pass
-        
+
+    def delete_event(self, w = None, e = None):
+        self.emit('editing-done')
+        self.w.destroy()
+        self.destroy()
+        return True
+    
 gobject.type_register(CellEditableCalendar)    
 
 class CellRendererDate(gtk.CellRenderer):
@@ -74,7 +97,7 @@ class CellRendererDate(gtk.CellRenderer):
     def do_pango_layout(self, widget):
         pc = widget.get_pango_context()
         pl = pango.Layout(pc)
-        pl.set_text(str(self.date))
+        pl.set_text(self.date_formatter(self.date))
         return pl
 
     def do_get_size(self, widget, cell_area):
@@ -116,10 +139,11 @@ class CellRendererDate(gtk.CellRenderer):
         return x_offset, y_offset, width, height
     
     
+    def date_formatter(self, date):
+        return "%s/%s/%s" % (date.day, date.month, date.year)
     
     
     def do_start_editing(self, event, widget, path, background_area, cell_area, flags):
-
 
         ce = CellEditableCalendar(date = self.date)
         ce.show()
@@ -264,6 +288,7 @@ class SqlTreeView(object):
 
     def keypress_event(self, treeview, event):
         accelname = gtk.accelerator_name(event.keyval, event.state)
+        print "key ", accelname
         if accelname == 'Tab':
             self.tab_pressed(treeview)
             return True
@@ -412,6 +437,7 @@ class SqlTreeView(object):
     def set_completion_model(self, completion, model):
         completion.set_model(model)
         
+
     
 class SqlLayoutTreeView(SqlTreeView):
 

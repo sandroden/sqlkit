@@ -7,9 +7,11 @@ import py_path
 
 from sqlalchemy import *
 from layout import *
-from SqlTreeView import *
-import config
-import sd
+import sqlkit
+from sqlkit.table import SqlTreeView, SqlLayoutTreeView
+config = sqlkit.config
+#import config
+import dbg as sd
 sd.dbg = 1
 eng = config.spawnEngine()
 
