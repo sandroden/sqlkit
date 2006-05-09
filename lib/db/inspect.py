@@ -87,11 +87,16 @@ class InspectMapper(dict):
                 self._add_field(prop, mapper)
 
     def _add_field(self, field_name, mapper, property=None):
+        if field_name in self:
+            dbg.write("%s precedentemente definito, cerchi guai..." % field_name)
+            return
+        
         self.fields += [ field_name ]
         d = {
             'table_name'  :  mapper.table.name ,
             'name'        :  field_name,
             'table'       :  mapper.table ,
+            'col'         :  mapper.c[field_name] ,
             'pg_type'     :  type(mapper.c[field_name].type), 
             'type'        :  self.pytype[type(mapper.c[field_name].type)],
             'col_spec'    :  mapper.c[field_name].type.get_col_spec(),
@@ -124,6 +129,7 @@ class InspectMapper(dict):
             #dbg.write("si %s -> %s" % (field_name, mapper.table.name ))
             self.pkeys[mapper.table.name] += [field_name]
 
+        #dbg.write(field_name, mapper.c[field_name].foreign_key)
         if mapper.c[field_name].foreign_key:
              d['fkey'] = (mapper.c[field_name].foreign_key.column.table.name,
                         mapper.c[field_name].foreign_key.column.name)
@@ -199,6 +205,18 @@ class InspectMapper(dict):
             raise MissingPrimaryKeyError("%s does not seem to have a PKey" %
                                          table_name)
         
+    def get_join_cnd(self):
+        tables = self.tables(mode='mapper')
+        if len(tables) == 1:
+            return []
+        cnd = []
+        for t in tables:
+            for c in t.c:
+                if c.foreign_key and c.foreign_key.column.table.name in self.tables():
+                    pass
+                    cnd += [ c == c.foreign_key.column ]
+        return cnd
+
     def next(self):
         """returns the next item in the data set,
         or tells Python to stop"""
@@ -238,3 +256,5 @@ def get_props(mapper):
             props += [(prop, attr.direction)]
     return props
     
+
+

@@ -1,15 +1,19 @@
 import sys, re, datetime
-import config
+#import config
 import inspect
+#import common
 import layout
 import layout.dateedit as dateedit
 
-import validator
+#import validator
 from layoutgenerator import TableLayoutGenerator
 import gtk, pango
 from sqlalchemy import *
-import sqlfilter, dbg
-import sqldata
+import dbg
+import sqlkit.sqlfilter as sqlfilter
+import sqlkit.sqldata as sqldata
+import sqlkit.inspect as inspect
+import sqlkit.validator as validator
 
 class LookupValueNotReturningOneValue(Exception): pass
 class MissingDescriptorField(Exception): pass
@@ -88,7 +92,7 @@ class SqlMask (object):
         """
         #dbg.write('Record_display n: %s' % self.sqlData.index())
         ## fill in the data
-
+        self.record_clear()
         data_in = self.sqlData.get(incr=incr)
         #dbg.write("data_in", data_in)
         msg_info = "record %s/%s" % (self.sqlData.index()+1, self.sqlData.count())
@@ -293,16 +297,19 @@ class SqlMask (object):
 
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
         """
-        dbg.write(sql)
+        #dbg.write(sql)
         if isinstance(sql, tuple) and len(sql) == 2:
             sql_str, params = sql
-            dbg.sql_debug(sql_str, params)
+            #dbg.write('type sql_str', type(sql_str), 'type params', type(params))
+            #dbg.sql_debug(sql_str, params)
         else:
             sql_str = sql
             params = None
-        self.mapper.table.engine.echo = True
+        #dbg.write("SQL", sql_str, 'params', params)
+        #self.mapper.table.engine.echo = True
         records = self.mapper.select(sql_str, params=params)
-        self.mapper.table.engine.echo = False
+        #records = self.mapper.select_by(sql)
+        #self.mapper.table.engine.echo = False
         self.sqlData = sqldata.SqlData(records, mapper_info=self.fields)
         self.record_display()
     
@@ -331,7 +338,10 @@ class SqlMask (object):
         if not j == 1:
             raise LookupValueNotReturningOneValue("%s returns %s values" % (sql, j))
         return value
-                                               
+
+    def quit(self, *args):
+        gtk.main_quit()
+                       
 ####### Layout, Reflection & Analisys
     def _get_mapper(self, mapper_obj, table):
         """If no mapper is provided it will be built from the table"""
@@ -433,13 +443,15 @@ class SqlMask (object):
 
                 ## label FK_COLOR to tell it's a foreign key
                 if self.fields[field_name]['fkey'] :
-                    #dbg.write(field_name)
+                    #dbg.write("FK", field_name)
                     self.labels[field_name].modify_fg(gtk.STATE_NORMAL, FK_COLOR)
+                else:
+                    #dbg.write("NO", field_name)
+                    pass
             
     def ene_cb(self, eb, ev):
         eb.get_child().set_state(gtk.STATE_PRELIGHT)
         return True
-
     def lne_cb(self, eb, ev):
         eb.get_child().set_state(gtk.STATE_NORMAL)
         return True
@@ -507,6 +519,10 @@ class SqlMask (object):
                                        gtk.gdk.CONTROL_MASK, 
                                        gtk.ACCEL_LOCKED, 
                                        self.show_widgets)
+        self.accel_group.connect_group(ord('q'), 
+                                       gtk.gdk.CONTROL_MASK, 
+                                       gtk.ACCEL_LOCKED, 
+                                       self.quit)
         self.w['Window'].add_accel_group(self.accel_group)
             
             
@@ -618,7 +634,7 @@ class SqlMask (object):
         """ add a completionEntry to an Entry
         return a listore to be filled
 
-        ForeignKey: when the field to comlete is a foreign key, the lookup table
+        ForeignKey: when the field to complete is a foreign key, the lookup table
         is analized to search if a descriptor field exits. In that case a
         cellRenderer is added to the completion to choe that data and that field is
         used in the field

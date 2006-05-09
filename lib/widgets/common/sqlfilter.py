@@ -1,7 +1,7 @@
 import gtk
 import layout
 import dbg
-
+import sqlalchemy
 class FilterPanel(object):
     """A filter panel has 'entry|operator|string' rows
 
@@ -19,10 +19,13 @@ class FilterPanel(object):
 
     def reload_cb(self, widget):
         """issue a reload operation on master. Call back of reload button"""
-        sql, bind_params = self.sql()
+        #sql, bind_params = self.sql()
+        sql = self.sql()
+        #dbg.write(sql)
+        self.master.reload(sql=sql )
         limit=100
         #dbg.write("%s type: %s" % (bind_params, type(bind_params)))
-        self.master.reload(sql=(sql, bind_params), limit=limit )
+        #self.master.reload(sql=(sql, bind_params), limit=limit )
         #self.master.record_display()
         #print self.sql()
     
@@ -112,7 +115,7 @@ class FilterPanel(object):
         if ev.button == num_button:
             self.w['M=opts'].popup(None, None, None, ev.button, ev.time )
         
-    def sql(self):
+    def sql__old_with_bind_params(self):
         """create a sql statement composing all requests
         returns a sql whereclause and a bindparam dictionary
         """
@@ -127,11 +130,82 @@ class FilterPanel(object):
                 else:
                     values[fld['field']] = value
                     ret += self._compose_field_whereclause(fld)
-        sql = " AND ".join(ret), str(values)
-        dbg.write(sql)
+        sql = (" AND ".join(ret), values)
+        #dbg.write(sql)
         return sql
 
-    def _compose_field_whereclause(self, fld):
+    def sql(self):
+        """create a sql statement composing all requests
+        returns a sql whereclause and a bindparam dictionary
+        """
+        ret = self.master.fields.get_join_cnd()
+        #dbg.write(ret)
+        values={}
+        for fld in self.fields:
+            value = fld['entry'].get_text()
+            if len(value) > 0:
+                op = fld['operator'].get_active_text()
+                fld['op_value'] = op
+                if op in ('IS NULL', 'IS NOT NULL'):
+                    ret += [ "%(field)s %s" %(fld, op) ]
+                else:
+                    #values[fld['field']] = value
+                    ret += self._compose_field_whereclause(fld, values, value)
+                    #ret += [self.master.fields[fld['field']]['col'].op(op)(value)]
+        sql = (sqlalchemy.and_(*ret), values)
+        #self.sql_dbg(ret)
+        #dbg.write(ret)
+        return sql
+
+    def sql_dbg(self, bool_conds):
+        for c in bool_conds:
+            print "DBG: ", c.left, c.operator, c.right
+        
+    def _compose_field_whereclause(self, fld, values, value):
+        """return a sql whereclause for field
+
+        In case field is a fkey, terminating with _id, and the destination
+        lookup field is not in the mapper, it composes a subselect
+        """
+        F = self.master.fields
+        fld['value'] = value
+        sql = F[fld['field']]['col'].op(fld['op_value'])(value)
+        #dbg.write(fld)
+        if fld['field'].endswith('_id'):
+            info = self.master.fields[fld['field']]
+            fld['fdescr'] = self.master._add_descriptor_fields(
+                mode='return', table_name='city')
+
+            if fld['fdescr'] in F:
+                ## this means we have a mapper that has already this field
+                ## we don't need a subselect
+                #descr_col = F[fld['fdescr']]['col']
+                sql = F[fld['fdescr']]['col'].op(fld['op_value'])(value)
+                return [sql]
+
+            if info['fkey']:
+                values[fld['field']] = value
+
+                fld['ftable'], fld['fname'] = info['fkey']
+                ## FIXME: not using bind parameters
+                s = """%(ftable)s.%(field)s FROM %(ftable)s
+                WHERE %(ftable)s.%(fdescr)s %(op_value)s '%(value)s' """ % (fld)
+                ## if this parameters is not deleted, SA will add a condition to
+                ## the select to match it
+                del values[fld['field']]
+
+#                 s = """%(ftable)s.%(field)s FROM %(ftable)s
+#                 WHERE %(ftable)s.%(fdescr)s %(op_value)s :%(fname)s) """ % (fld)
+
+#                 attr_col = F[fld['field']]['col']
+#                 descr_col = F[fld['fdescr']]['col']
+#                 s = sqlalchemy.select(["%(ftable)s.%(field)s" % fld],
+#                                       descr_col.op(fld['op_value'])(value))
+
+                sql = F[fld['field']]['col'].in_(sqlalchemy.select([s]))
+
+        return [ sql ]
+    def _compose_field_whereclause_old(self, fld):
         """return a sql whereclause for field
 
         In case field is a fkey, terminating with _id, and the destination

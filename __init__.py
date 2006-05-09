@@ -18,11 +18,16 @@ __path__ = [os.path.join(Dir, *d.split('/')) for d in dirs]
 #print __path__
 
 
-from mask import *
+#from mask import *
+import mask
+import common
+#from common import sqlfilter
+#import widgets
 #import widgets.table as table
 import table
 import inspect
 import validator
 import config
 
-
+from mask import SqlMask
+from table import SqlTreeView, SqlLayoutTreeView

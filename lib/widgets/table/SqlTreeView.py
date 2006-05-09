@@ -175,7 +175,8 @@ class CellRendererDate(gtk.CellRenderer):
     def do_set_property(self, gprop, value):
         setattr(self, gprop.name, value)
         
-gobject.type_register(CellRendererDate)
+if gobject.pygtk_version < (2, 8):
+    gobject.type_register(CellRendererDate)
 
 class SqlTreeView(object):
 
