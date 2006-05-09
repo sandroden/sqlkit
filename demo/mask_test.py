@@ -1,23 +1,23 @@
 #!/usr/bin/env python
 
-import sys, re, datetime
+import sys
 
 sys.path.append ('../../')
 import sqlkit as sk
 import dbg
-dbg.dbg = 1
+import gtk
 
 from sqlalchemy import *
-from layout import *
 
 engine = sk.config.spawnEngine(echo=False)
 user_table = Table ('euro_user', engine, autoload=True)
+print dir(user_table.c)
 class Mapper(object):
     pass
 user_mapper = mapper (Mapper, user_table)
 
 sql_text = "user_id > 5"
-zz = user_mask = sk.mask.SqlMask (mapper=user_mapper, sql=sql_text)
+zz = user_mask = sk.SqlMask (mapper=user_mapper, sql=sql_text)
 
 gtk.main()
 

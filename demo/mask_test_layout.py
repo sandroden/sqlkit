@@ -5,12 +5,15 @@ import sys, re, datetime
 sys.path.append ('../../')
 #import py_path
 #import config, reflect, mask
-import sqlkit as sk
+#import sqlkit as sk
 import dbg
 import layout
-dbg.dbg = 1
+dbg.debug(True)
 
 from sqlalchemy import *
+import sqlkit as sk
+#print dir(sk)
+#print dir(sk.config)
 from layout import *
 #from validator import Validator
 
@@ -37,7 +40,7 @@ lay = """
 }   
 """
 # sql="user_id > 5", 
-zz = sk.mask.SqlMask (table='euro_user',
+zz = sk.SqlMask (table='euro_user',
                    lay=lay, engine=engine)
 
 zz.lay_obj.prop('A.a', 'top-padding', 50)
