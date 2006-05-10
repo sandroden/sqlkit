@@ -31,10 +31,10 @@ join =  [ user_table.c.user_id  == mail_table.c.mail_user_id ]
 join += [ mail_table.c.mail_address.op('~')('a') ]
 
 
-ret = m.select(
+ret = m.select( and_(
     user_table.c.user_id==mail_table.c.mail_user_id,
     mail_table.c.mail_address.like('%a%')
-                )
+                ))
 
 
 # ret = m.select_by("mail_name ~ :b AND user_name ~ :b",

@@ -173,8 +173,9 @@ class FilterPanel(object):
         #dbg.write(fld)
         if fld['field'].endswith('_id'):
             info = self.master.fields[fld['field']]
-            fld['fdescr'] = self.master._add_descriptor_fields(
-                mode='return', table_name='city')
+            fld['ftable'], fld['fname'] = info['fkey']
+            fld['fdescr'] = self.master.completion._add_descriptor_fields(
+                mode='return', table_name=fld['ftable'])
 
             if fld['fdescr'] in F:
                 ## this means we have a mapper that has already this field
@@ -186,10 +187,10 @@ class FilterPanel(object):
             if info['fkey']:
                 values[fld['field']] = value
 
-                fld['ftable'], fld['fname'] = info['fkey']
                 ## FIXME: not using bind parameters
-                s = """%(ftable)s.%(field)s FROM %(ftable)s
+                s = """%(ftable)s.%(fname)s FROM %(ftable)s
                 WHERE %(ftable)s.%(fdescr)s %(op_value)s '%(value)s' """ % (fld)
+                dbg.write(s)
                 ## if this parameters is not deleted, SA will add a condition to
                 ## the select to match it
                 del values[fld['field']]
