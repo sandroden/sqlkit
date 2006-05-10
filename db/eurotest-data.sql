@@ -30,15 +30,16 @@ COPY euro_user (user_id, user_name, user_last_name, user_birth_date, user_addres
 8	Ann	Pearl	1972-09-09	mah	8	32	f	t
 \.
 SELECT setval('euro_user_user_id_seq',(select max(user_id) from euro_user));
-COPY euro_mail (mail_address, mail_user_id) FROM stdin;
-sam@example.com	1
-sid@example.com	2
-asid2@example.com	2
-ated@example.com	4
-ted_will@example.com	4
-fjoe@example.com	5
-jbig@example.com	6
+COPY euro_mail (mail_id, mail_address, mail_user_id) FROM stdin;
+1	sam@example.com	1
+2	sid@example.com	2
+3	asid2@example.com	2
+4	ated@example.com	4
+5	ted_will@example.com	4
+6	fjoe@example.com	5
+7	jbig@example.com	6
 \.
+SELECT setval('euro_user_user_id_seq',(select max(mail_id) from euro_mail));
 
 -- COPY user_city (user_name, city) FROM stdin;
 -- Sam	Monza

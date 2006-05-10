@@ -21,10 +21,11 @@ CREATE TABLE euro_user (
 );
 
 CREATE TABLE euro_mail (
+    mail_id serial NOT NULL,
     mail_address character varying(30) NOT NULL,
     mail_user_id integer,
     mail_info varchar(50),
-    PRIMARY KEY (mail_address),
+    PRIMARY KEY (mail_id),
     FOREIGN KEY (mail_user_id) REFERENCES euro_user(user_id)
 );
 

@@ -293,12 +293,12 @@ def get_join_cnd(tables):
     cnd = []
     #dbg.write("tables:", tables)
     for t in tables:
-        dbg.write(t)
+        #dbg.write(t)
         for c in t.c:
             if c.foreign_key and c.foreign_key.column.table in tables:
-                dbg.write("c", c, "fk", c.foreign_key.column)
+                #dbg.write("c", c, "fk", c.foreign_key.column)
                 cnd += [ c == c.foreign_key.column ]
-                dbg.write(cnd)
+                #dbg.write(cnd)
     return cnd
 
 def get_props(mapper):

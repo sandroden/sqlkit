@@ -15,7 +15,7 @@ engine = sk.config.spawnEngine(echo=False)
 map_labels(filename='label_map.txt')
 
 
-zz = sk.mask.SqlMask (sql="user_id > 5", table='euro_user', engine=engine)
+zz = sk.mask.SqlMask (sql="user_id > 5", tables='euro_user', engine=engine)
 #zz.sqlData.printall(mode='dict')
 
 gtk.main()

@@ -11,7 +11,7 @@ from sqlalchemy import *
 
 engine = sk.config.spawnEngine(echo=False)
 user_table = Table ('euro_user', engine, autoload=True)
-print dir(user_table.c)
+
 class Mapper(object):
     pass
 user_mapper = mapper (Mapper, user_table)

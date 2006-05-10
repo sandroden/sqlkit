@@ -28,6 +28,7 @@ import table
 import inspect
 import validator
 import config
+import parseopts
 
 from mask import SqlMask
 from table import SqlTreeView, SqlLayoutTreeView
