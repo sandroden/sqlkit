@@ -73,8 +73,11 @@ class InspectMapper(dict):
         self.pkeys = {}
         self.table_mappers = {}  # mappers to tables
         self.n = 0
-        for prop in mapper.props:
-            attr = mapper.props[prop]
+        self.loop_on_props()
+    
+    def loop_on_props(self):
+        for prop in self.mapper.props:
+            attr = self.mapper.props[prop]
             ## here we populate props
             if isinstance(attr, mapping.properties.LazyLoader) or \
                isinstance(attr, mapping.properties.EagerLoader):
@@ -84,7 +87,7 @@ class InspectMapper(dict):
                 for field_name in m.c.keys():
                     self._add_field(field_name, m, prop)
             else:
-                self._add_field(prop, mapper)
+                self._add_field(prop, self.mapper)
 
     def _add_field(self, field_name, mapper, property=None):
         if field_name in self:
@@ -107,8 +110,6 @@ class InspectMapper(dict):
             'nullable'    :  mapper.c[field_name].nullable,
             'mapper'      :  mapper,
 #            'direction'   :  mapper.props[field_name].direction
-            #'label'  :   ,
-            #'widget'  :   ,
             }
         try:
             d['length'] = mapper.c[field_name].type.length
@@ -120,16 +121,10 @@ class InspectMapper(dict):
             self.table_mappers[mapper.table.name] = (mapper.class_, mapper)
             self.pkeys[mapper.table.name] = []
 
-#         if (mapper.table.name, mapper) not in self.table_mappers:
-#             #dbg.write("%s %s" % (mapper.table.name, self.table_mappers))
-#             self.table_mappers += [(mapper.table.name, mapper)]
-#             self.pkeys[mapper.table.name] = []
-
         if d['pkey']:
             #dbg.write("si %s -> %s" % (field_name, mapper.table.name ))
             self.pkeys[mapper.table.name] += [field_name]
 
-        #dbg.write(field_name, mapper.c[field_name].foreign_key)
         if mapper.c[field_name].foreign_key:
              d['fkey'] = (mapper.c[field_name].foreign_key.column.table.name,
                         mapper.c[field_name].foreign_key.column.name)
@@ -153,7 +148,7 @@ class InspectMapper(dict):
 
     def __getitem__(self, item):
         return getattr(self, item)
-
+    
     def __len__(self):
         return len(self.fields)
     
@@ -207,15 +202,7 @@ class InspectMapper(dict):
         
     def get_join_cnd(self):
         tables = self.tables(mode='mapper')
-        if len(tables) == 1:
-            return []
-        cnd = []
-        for t in tables:
-            for c in t.c:
-                if c.foreign_key and c.foreign_key.column.table.name in self.tables():
-                    pass
-                    cnd += [ c == c.foreign_key.column ]
-        return cnd
+        return get_join_cnd(tables)
 
     def next(self):
         """returns the next item in the data set,
@@ -245,8 +232,75 @@ class InspectMapper(dict):
 #             data = getattr(record, at['property'][0])
 #             return getattr(data, field_name)
 
-
+class InspectJoinMapper(InspectMapper):
+    def loop_on_props(self):
+        for prop in self.mapper.props:
+            attr = self.mapper.props[prop]
+            for col in attr.columns:
+                self._add_field(col)
             
+    def _add_field(self, col):
+        if col.key in self:
+            dbg.write("%s precedentemente definito, cerchi guai..." % col.key)
+            return
+        
+        self.fields += [ col.key ]
+        d = {
+            'table_name'  :  col.table.name ,
+            'name'        :  col.name,
+            'table'       :  col.table ,
+            'col'         :  col,
+            'pg_type'     :  type(col.type), 
+            'type'        :  self.pytype[type(col.type)],
+            'col_spec'    :  col.type.get_col_spec(),
+            'is_serial'   :  is_serial(col),
+            'property'    :  '',   # no property for a join
+            'fkey'        :  False,
+            'pkey'        :  col.primary_key,
+            'nullable'    :  col.nullable,
+            'mapper'      :  self.mapper,
+#            'direction'   :  mapper.props[field_name].direction
+            }
+        try:
+            d['length'] = col.type.length
+        except:
+            d['length'] = None
+
+        if col.table.name not in self.table_mappers:
+            #dbg.write("%s %s" % (mapper.table.name, self.table_mappers))
+            self.table_mappers[col.table.name] = (self.mapper.class_, self.mapper)
+            self.pkeys[col.table.name] = []
+
+        if d['pkey']:
+            #dbg.write("si %s -> %s" % (field_name, mapper.table.name ))
+            self.pkeys[col.table.name] += [col.name]
+
+        if col.foreign_key:
+             d['fkey'] = (col.foreign_key.column.table.name,
+                        col.foreign_key.column.name)
+        setattr(self, col.name,  d)
+    
+    def get_primary_table(self):
+        primarytable = self.mapper.primarytable
+        while isinstance(primarytable, sqlalchemy.sql.Join):
+            primarytable = primarytable.left
+        table = primarytable.name
+        dbg.write('primarytable', table)
+            
+def get_join_cnd(tables):
+    if len(tables) == 1:
+        return []
+    cnd = []
+    #dbg.write("tables:", tables)
+    for t in tables:
+        dbg.write(t)
+        for c in t.c:
+            if c.foreign_key and c.foreign_key.column.table in tables:
+                dbg.write("c", c, "fk", c.foreign_key.column)
+                cnd += [ c == c.foreign_key.column ]
+                dbg.write(cnd)
+    return cnd
+
 def get_props(mapper):
     props = []
     for prop in mapper.props:
