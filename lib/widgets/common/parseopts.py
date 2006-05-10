@@ -50,6 +50,26 @@ def join_table(tables, engine=None, master=None,  mode='outer'):
     m = mapper(JoinAuto, J)
     return m
 
+def join2tables(t1, t2, engine, mode='outerjoin'):
+    """return a join of 2 tables. Accept strings or sqlalchemy.Table"""
+    tbl = {}
+    ## 
+    if isinstance(t1, str):
+        T1 = Table(t1, engine=engine, autoload=True)
+    else:
+        T1 = t1
+
+    if isinstance(t2, str):
+        T2 = Table(t2, engine=engine, autoload=True)
+    else:
+        T2 = t2
+
+    join_cnd = inspect.get_join_cnd([ T1, T2 ] )
+    if mode in ('outerjoin', 'outer'):
+        return T1.outerjoin(T2, *join_cnd)
+    else:
+        return T1.join(T2, *join_cnd)
+        
     
 
 # join = user_table.outerjoin(
