@@ -9,15 +9,13 @@ import layout.dateedit as dateedit
 from layoutgenerator import TableLayoutGenerator
 import gtk, pango
 from sqlalchemy import *
-import dbg
+import dbg.gtk_dbg
 import sqlkit.sqlfilter as sqlfilter
 import sqlkit.sqldata as sqldata
 import sqlkit.inspect as inspect
 import sqlkit.validator as validator
-
-class LookupValueNotReturningOneValue(Exception): pass
-class MissingDescriptorField(Exception): pass
-class FieldNotInLayout(Exception): pass
+import sqlkit.parseopts as parseopts
+import sqlkit.completion as completion
 
 #NOT_NULL_COLOR = gtk.gdk.color_parse('yellow')
 NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
@@ -40,12 +38,14 @@ class SqlMask (object):
 #                  records = None,
                   naked=False,
                   table=None,
+                  tables=None,
                   mode='rw',
                   noup=None,
                   sql=None,
                   constraint=None,
                   engine=None,
-                  title=None
+                  title=None,
+                  order_by=None
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -60,16 +60,19 @@ class SqlMask (object):
         
         if engine:
             self.engine = engine
-        self.mapper = self._get_mapper(mapper, table)
+        self.order_by = order_by
+        ## we can use singular or plural as an option, plural in the code
+        if table and not tables:
+            tables = table
+        self.mapper = parseopts.get_mapper(self, mapper, tables)
         if not engine:
             self.engine = self.mapper.table.engine
         self.valid = self._get_validator(valid)
-        self.listores = {}  ## needed for entry_completion
-        self.fields = inspect.InspectMapper(self.mapper, noup=noup, mode=mode)
+        self.fields = parseopts.inspect_mapper(self.mapper, noup=noup, mode=mode)
         self.title = self._get_title(title)
-        self.tables = {}
+#        self.tables = {}
         self.values = {}
-
+        self.completion = completion.Completion(self, )
         ## create the interface and add obvious constraints
         self.lay_obj, self.w  = self._get_layout(lay, naked)
         ## fill in the data in case
@@ -92,8 +95,12 @@ class SqlMask (object):
         """
         #dbg.write('Record_display n: %s' % self.sqlData.index())
         ## fill in the data
-        self.record_clear()
-        data_in = self.sqlData.get(incr=incr)
+        #self.record_clear()
+        try:
+            data_in = self.sqlData.get(incr=incr)
+        except:
+            self.sb("no data to browse")
+            return
         #dbg.write("data_in", data_in)
         msg_info = "record %s/%s" % (self.sqlData.index()+1, self.sqlData.count())
         if not data_in:
@@ -124,7 +131,7 @@ class SqlMask (object):
 
         if self.fields[field_name]['fkey'] and field_name.endswith('_id'):
             self.values[field_name] = field_value
-            field_value = self._lookup_value(field_name, field_value)
+            field_value = self.completion._lookup_value(field_name, field_value)
             
 
         #dbg.write( "name: %s type: %s" % ( field_name, self.fields[field_name] ))
@@ -184,7 +191,9 @@ class SqlMask (object):
         ## FIXME: validator
         self.sqlData.delete()
         #dbg.write(objectstore.commit())
+        self.engine.echo = True
         objectstore.commit()
+        self.engine.echo = False
         #dbg.write(self.record_clear())
         self.record_clear()
     
@@ -228,15 +237,17 @@ class SqlMask (object):
                if value == '' and self.data_in[field_name] == None:
                    pass
                else:
-                   dbg.write("%s: %r is not %r" % (field_name,
-                                                   value, self.data_in[field_name]))
+                   #dbg.write("%s: %r is not %r" % (field_name,
+                   #                                value, self.data_in[field_name]))
                    R[field_name] = value
 
         #dbg.write(R)
         if R.keys():
             self.sqlData.set(R)
-
+            
+        self.engine.echo = True
         objectstore.commit ()
+        self.engine.echo = False
         
     def record_save_new(self):
         """Insert a new record
@@ -281,6 +292,7 @@ class SqlMask (object):
         #dbg.write('')
         self.values.clear()
         self.status = None
+        self.sb("New Record")
         
         for field_name in self.fields.keys():
             #dbg.write(field_name)
@@ -307,7 +319,7 @@ class SqlMask (object):
             params = None
         #dbg.write("SQL", sql_str, 'params', params)
         #self.mapper.table.engine.echo = True
-        records = self.mapper.select(sql_str, params=params)
+        records = self.mapper.select(sql_str, params=params, order_by=self.order_by)
         #records = self.mapper.select_by(sql)
         #self.mapper.table.engine.echo = False
         self.sqlData = sqldata.SqlData(records, mapper_info=self.fields)
@@ -319,42 +331,8 @@ class SqlMask (object):
         self.reload( )
 
     
-    def _lookup_value(self, field_name, field_value):
-        """retrieve the value in a lookup table in case of foreign_key
-        """
-        if not field_value:
-            return ''
-        #dbg.write("%s %s" % (field_name,field_value))
-        ftable, fname = self.fields[field_name]['fkey']
-        sql = "SELECT %s FROM %s WHERE %s = :%s" % (
-            self._add_descriptor_fields(mode='return', table_name=ftable),
-            ftable, field_name, fname)
-        t = text(sql, engine=self.engine)
-        ret = t.execute(**{field_name : field_value})
-        j = 0
-        for R in ret:
-            value = R[0]
-            j += 1
-        if not j == 1:
-            raise LookupValueNotReturningOneValue("%s returns %s values" % (sql, j))
-        return value
 
-    def quit(self, *args):
-        gtk.main_quit()
-                       
 ####### Layout, Reflection & Analisys
-    def _get_mapper(self, mapper_obj, table):
-        """If no mapper is provided it will be built from the table"""
-        ## FIXME: manca parte creazione mapper
-        if mapper_obj:
-            return mapper_obj
-        elif table:
-            #class abc(object): pass
-            name = "%s_class" % (table)
-            sa_table = Table(table, engine=self.engine, autoload=True)
-            X = type(name, (object,), {})
-            return mapper(X, sa_table)
-    
     def _get_validator(self, valid):
         if not valid:
             valid = validator.Validator()
@@ -419,6 +397,8 @@ class SqlMask (object):
         if 'm=file' in self.w:
             self.lay_obj.menu('m=file',
                               ('filter panel', self.add_filter),
+                              ('-', None),
+                              ('inspect', self.show_mapper_info),
                               ('-', None),
                               ('gtk-quit', self.quit)
                               )
@@ -486,8 +466,10 @@ class SqlMask (object):
             ## Strings
             if field_type == str or self.fields[field_name]['fkey']:
                 #dbg.write("aggiungo <3> per %s" % (field_name))
-                widget.connect('button-press-event',self.pop_menu, field_name, 3)
-                widget.connect('key-press-event',self.entry_short_cut_event,
+                widget.connect('button-press-event',self.completion.pop_menu,
+                               field_name, 3)
+                widget.connect('key-press-event',
+                               self.completion.entry_short_cut_event,
                                field_name, 'F1')
 #             else:
 #                 dbg.write("fkey per %s: %s" %
@@ -522,7 +504,7 @@ class SqlMask (object):
         self.accel_group.connect_group(ord('q'), 
                                        gtk.gdk.CONTROL_MASK, 
                                        gtk.ACCEL_LOCKED, 
-                                       self.quit)
+                                       self.gquit)
         self.w['Window'].add_accel_group(self.accel_group)
             
             
@@ -592,6 +574,9 @@ class SqlMask (object):
         self.w['Window'].destroy()
         self.filter_panel.destroy()
         
+    def gquit(self, *args):
+        gtk.main_quit()
+                       
     def sb(self, text):
         """write on the status bar, if present"""
         try:
@@ -621,297 +606,10 @@ class SqlMask (object):
     #filter_panel = property(add_filter)
             
     
+    def show_mapper_info(self, *args):
+        dbg.gtk_dbg.ShowMapperInfo(self.fields)        
+        
     def show_widgets(self, *args):
         import dbg.gtk_dbg
         dbg.gtk_dbg.show_widgets(self.w['Window'])
     
-####### Completion
-# EntryCompletion widgets are added on the fly triggered by F1, C-F1 or menu items
-# select_values will get data from the db and fill a listore
-# match_function filters using re.search from the listore to fill in the completion
-#
-    def add_completion(self, field_name, mode):
-        """ add a completionEntry to an Entry
-        return a listore to be filled
-
-        ForeignKey: when the field to complete is a foreign key, the lookup table
-        is analized to search if a descriptor field exits. In that case a
-        cellRenderer is added to the completion to choe that data and that field is
-        used in the field
-        """
-
-        entry = self.mwidgets[field_name][1]
-        completion = entry.get_completion()
-        if completion:
-            return (completion.get_model(), completion)
-
-        ## completion was not present
-        completion = gtk.EntryCompletion()
-        completion.set_property('minimum-key-length', 0)
-        completion.connect('match-selected', self.match_selected_cb, field_name)
-        renderer = gtk.CellRendererText()
-        completion.pack_start(renderer)
-            
-        ## FIXME: piu' generale per caso in cui si mettano anche altri campi
-        if self.fields[field_name]['fkey']:
-            col_num = 2
-        else:
-            col_num = 1
-            
-        listore = gtk.ListStore(*[str for x in range(col_num)])
-            
-        ## we match against the description field
-        completion.set_match_func(self.match_func, (col_num-1, mode))
-
-        self.listores[field_name] =  listore
-        if mode == 'regexp':
-            completion.insert_action_text(1,'start with...')
-        else:
-            completion.insert_action_text(2,'regexp')
-
-        completion.set_model(listore)
-        completion.set_inline_completion(True)
-        entry.set_completion(completion)
-        completion.set_text_column(col_num-1)
-        return (listore, completion)
-    def match_selected_cb(self, wdg, model, iter, field_name):
-        """after selecting an entry store the value in self.values
-        """
-        self.values[field_name] = model.get(iter,0)[0]
-        
-    def match_func(self, completion, key, iter, func_data):
-        column, mode = func_data
-        model = completion.get_model()
-        text = model.get_value(iter, column)
-        #dbg.write("column: %s  - mode: %s" % (column, mode))
-        if not text:
-            text = ''
-        #return False
-        # start
-        if mode == 'start':
-            if re.search("^%s" %(key), text, re.IGNORECASE):
-                return True
-            else:
-                return False
-        # regexp
-        if re.search(key, text, re.IGNORECASE):
-            #dbg.write("accetto: %s col: %s" % (text, column))
-            return True
-        #dbg.write("rifiuto: %s" % text)
-        return False
-    def show_field_info(self, wdg, field_name):
-        """Pop a dialog to give info on the selected field"""
-#         dialog = gtk.Dialog("info on %s" % field_name,
-#                             None, gtk.DIALOG_MODAL,
-#                             (gtk.STOCK_OK, gtk.RESPONSE_ACCEPT) )
-        info = ["%s: %s" % (f, self.fields[field_name][f]) 
-                           for f in self.fields[field_name].keys() ]
-#        label = gtk.Label("\n".join(info) )
-
-        dialog = gtk.MessageDialog(None, gtk.DIALOG_MODAL, type=gtk.MESSAGE_INFO,
-                                   buttons=gtk.BUTTONS_OK,
-                                   message_format="\n".join(info))
-        #dialog.action_area.pack_start(label, gtk.TRUE, gtk.TRUE, 0)
-        dialog.show_all()
-        response = dialog.run()
-        if response == gtk.RESPONSE_OK:
-            dialog.destroy()
-    
-    def entry_short_cut_event(self, wdg, ev, field_name, key):
-        """callback of key-press-button in (string) entries"""
-
-        accelname = gtk.accelerator_name(ev.keyval, ev.state)
-        if accelname == 'F1':
-            self.show_possible_values (wdg, field_name, 'regexp')
-        elif accelname == '<Control>F1':
-            self.show_possible_values (wdg, field_name, 'start')
-    
-    def show_possible_values(self, wdg, field_name, mode):
-        """fill in a ListStore to use with completion, fetch data from db
-        mode determines the match of the already typed text:
-        start: only matching data starting with typed text
-        regexp: typed text is a regexp (*~ or ILIKE)
-        all: all values
-        """
-        #print "show_possible_values %s" % field_name
-        sql_dict = {}
-        sql_dict['val'] = self.mwidgets[field_name][1].get_text()
-        if mode == 'start':
-            sql_dict['oper'] = 'ILIKE'
-            val = '%'
-        if mode == 'regexp':
-            sql_dict['oper'] = '~*'
-        else:
-            sql_dict['oper'] = '~'
-            sql_dict['val'] = "."
-
-        sql_dict['field_name'] = field_name
-            
-        listore, completion = self.add_completion(field_name, mode)
-        listore.clear()
-        ret = self.select_values(field_name, sql_dict)
-        ## sql_dict['field_name'] may be changed by select_values if fk
-        #dbg.write("field_name %s" % (sql_dict['field_name']))
-        #dbg.write("listore is: %s" % listore)
-        for R in ret:
-            #listore.append([getattr(R, sql_dict['field_name'])])
-            dbg.write("R: %s" % R)
-            listore.append(R)
-#        completion.complete()
-        event =   gtk.gdk.Event(gtk.gdk.KEY_PRESS)
-        event.keyval = gtk.keysyms.period  #ord(".")
-        event.window = self.mwidgets[field_name][1].window
-        self.mwidgets[field_name][1].emit('key-press-event',event)
-        event.keyval = gtk.keysyms.BackSpace
-        event.hardware_keycode = 22
-        #event.window = self.mwidgets[field_name][1].window
-        ## FIXME: non funziona
-        self.mwidgets[field_name][1].emit('key-press-event',event)
-        
-    def select_values(self, field_name, sql_dict):
-        """execute the SELECT DISTINCT and return values
-        In case FKeys it behaves in a much more complicated way.
-        The aim is to substitute the referenced value with the value that will
-        normally be an id. It will try to do that *if* the name of the field
-        terminates with _id.
-
-        """
-
-        I = self.fields[field_name]
-        exec_dict={field_name : sql_dict['val']}
-        ### field is a ForeignKey
-        if I['fkey']:
-            sql_dict['table_name'] = I['fkey'][0]
-            sql_dict['field_name'] = I['fkey'][1]
-            self._add_descriptor_fields(sql_dict)
-            sql = """SELECT DISTINCT %(field_name)s,%(descr)s
-                 FROM %(table_name)s 
-                 WHERE %(descr)s %(oper)s :%(descr)s
-                 ORDER BY %(descr)s
-                 """ % sql_dict
-            exec_dict.update({sql_dict['descr'] : sql_dict['val']})
-        else:
-            sql_dict['table_name'] = I['table_name']
-
-            if I['type'] == int:
-                ## pointless to regexp numbers...
-                sql = """SELECT DISTINCT %(field_name)s
-                FROM %(table_name)s 
-                ORDER BY %(field_name)s
-                """ % sql_dict
-            else:
-                sql = """SELECT DISTINCT %(field_name)s
-                    FROM %(table_name)s 
-                    WHERE %(field_name)s %(oper)s :%(field_name)s
-                    ORDER BY %(field_name)s
-                    """ % sql_dict
-
-        dbg.sql_debug(sql, exec_dict)
-#        s = text(sql, engine=self.mapper.engines[0])
-        s = text(sql, engine=self.mapper.table.engine)
-        return s.execute(**exec_dict)
-    def pop_menu(self, wdg, ev, field_name, num_button):
-        #print "pop_menu", wdg, ev
-        if not ev.button == num_button:
-            return False
-
-        try:
-            self.w['M=popup'].destroy()
-        except:
-            pass
-
-        
-        self.w['M=popup'] = gtk.Menu()
-        menu = self.w['M=popup']
-        ## info on field
-        item = gtk.MenuItem(label="info on %s" % field_name.replace('_','__'))
-        item.connect('activate', self.show_field_info, field_name)
-        label = "Show all info on this field, db type and such"
-        self.lay_obj.tooltips.set_tip(item,label)
-        menu.append(item)
-        
-#         ## possible values
-#         item = gtk.MenuItem(label="possible values")
-#         item.connect('activate', self.show_possible_values, field_name, 'all')
-#         label = "Mostra tutti i valori attualmente nel db"
-#         self.lay_obj.tooltips.set_tip(item,label)
-#         menu.append(item)
-
-        ## possible values regexp
-        item = gtk.MenuItem(label="possible values: regexp  - F1")
-        item.connect('activate', self.show_possible_values, field_name, 'regexp')
-        label = "Mostra tutti i valori attualmente nel db che 'matchino'"
-        self.lay_obj.tooltips.set_tip(item,label)
-        menu.append(item)
-
-        ## possible values starting
-        item = gtk.MenuItem(label="possible values, starting - Ctrl-F1")
-        item.connect('activate', self.show_possible_values, field_name, 'start')
-        label = "Mostra tutti i valori attualmente nel db, che cominciano con..."
-        self.lay_obj.tooltips.set_tip(item,label)
-        menu.append(item)
-
-        ## edit table referenced as foreign key
-        item = gtk.MenuItem(label="Edit fk table")
-        item.connect('activate', self.edit_foreign_key_table, field_name)
-        label = "Edita la tabella da cui sono presi i valori permessi per questo \
-        campo"
-        self.lay_obj.tooltips.set_tip(item, label)
-        menu.append(item)
-
-        menu.show_all()
-        menu.popup(None, None, None, ev.button, ev.time)
-        
-        return True
-    def _add_descriptor_fields(self, sql_dict=None, mode='add', table_name=None):
-        """search a possible field descriptor and add it to sql_dict
-
-        When displaying data for foreign keys the key that is referenced may be
-        a serial or a code. A descriptor field can be shown instead. A default is
-        to look for the first field terminating with _name or _descr.
-
-        You can bypass this mechanism writing a comma separated list in
-        SqlMask.tables[table_name] = [field_name[,field_name], [format]]
-
-        In the future 'format' will hold format info for the completion entry
-
-        """
-        
-        if not table_name:
-            table_name = sql_dict['table_name']
-            
-        if table_name not in self.tables:
-            table = Table(table_name, engine=self.engine, autoload=True)
-            #dbg.write("type: %s" % type(table))              
-            #dbg.write("ora: table %s - keys: %s" % (table, table.c.keys()))
-            
-            #self.tables[table_name] = table
-            for field_name in table.c.keys():
-                #dbg.write("cercao %s" % field_name)
-                if re.search('_name|_descr', field_name, re.I):
-                    self.tables[table_name] = list([field_name])
-                    #dbg.write(self.tables[table_name])
-                    break
-#                 else:
-#                     dbg.write("%s non finisce per _name|_descr" % field_name)
-            
-        if table_name in self.tables:
-            if mode == 'add':
-                #sql_dict['field_name'] += ",%s" % self.tables[table_name][0]
-                sql_dict['descr'] = self.tables[table_name][0]
-            else:
-                return self.tables[table_name][0]
-        else:
-            txt = "table %s does not have a descriptor field \
-            to use instead of id: %s" % (table_name, table.c.keys())
-            raise MissingDescriptorField(txt)
-    
-    def edit_foreign_key_table(self, wdg, field):
-        """opens a SqlMask to edit the table referenced by this ForeignKey"""
-
-        tbl  = self.fields[field]['table_name']
-        fkey = self.fields[field]['fkey']
-        txt = "table:  %s - fkey: %s" % (tbl, fkey)
-        dbg.write(txt)
-    
-
