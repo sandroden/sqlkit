@@ -292,12 +292,22 @@ def get_join_cnd(tables):
         return []
     cnd = []
     #dbg.write("tables:", tables)
+#    tbls = [col.table for col in t.c for t in tables]
+
+    tbls = {}  # which tables are used in these table that can really be joins
+    for t in tables:
+        for col in t.c:
+            tbls[col.table] = col.table.name
+    #dbg.write(tbls.values())
+
+
+
     for t in tables:
         #dbg.write(t)
-        for c in t.c:
-            if c.foreign_key and c.foreign_key.column.table in tables:
-                #dbg.write("c", c, "fk", c.foreign_key.column)
-                cnd += [ c == c.foreign_key.column ]
+        for col in t.c:
+            if col.foreign_key and col.foreign_key.column.table in tbls:
+                #dbg.write("col:", col, " -- fk:", col.foreign_key.column)
+                cnd += [ col == col.foreign_key.column ]
                 #dbg.write(cnd)
     return cnd
 
