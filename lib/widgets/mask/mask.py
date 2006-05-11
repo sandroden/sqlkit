@@ -74,6 +74,9 @@ class SqlObj(object):
             
         ## only render when dimentions are complete
         self.w['Window'].show()
+        if self.Class == 'sdtable':
+            self.show_myself()
+            
     def _get_validator(self, valid):
         if not valid:
             valid = validator.Validator()
@@ -245,7 +248,8 @@ class SqlObj(object):
     
     def show_mapper_info(self, *args):
         dbg.gtk_dbg.ShowMapperInfo(self.fields)        
-        
+    def show_widget_info(self, *args):
+        dbg.gtk_dbg.show_widgets()        
     def show_widgets(self, *args):
         import dbg.gtk_dbg
         dbg.gtk_dbg.show_widgets(self.w['Window'])
@@ -256,16 +260,19 @@ class SqlObj(object):
             self.lay_obj.menu('m=file',
                               ('filter panel', self.add_filter),
                               ('-', None),
-                              ('inspect', self.show_mapper_info),
+                              ('inspect tables', self.show_mapper_info),
+                              ('inspect widgets', self.show_widget_info),
                               ('-', None),
                               ('gtk-quit', self.quit)
                               )
     
 
 class SdTable(SqlObj):
-    Class='table'
-    pass
-
+    Class='sdtable'
+    def show_myself(self):
+        #print self.w
+        print self.w['TV=tree']
+    
 class SqlMask (SqlObj):
     """doc string for sqlmask
     """
