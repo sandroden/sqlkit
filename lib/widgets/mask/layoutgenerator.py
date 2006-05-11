@@ -1,5 +1,6 @@
 import sys, re
 import datetime
+import dbg
 
 from sqlalchemy import *
 
@@ -16,14 +17,19 @@ class TableLayoutGenerator (object):
         str                   : 'e',
         }
     
-    def __init__ (self, fields, naked=False, lay=None):
-        """fields: an InspectMapper object"""
-
+    def __init__ (self, fields, naked=False, lay=None, target='mask'):
+        """fields: an InspectMapper object
+        target: mask or table
+        """
+        self.target = target
         self.fields = fields
         if lay:
             self.layout = self._parse_and_complete(lay)
         else:
-            self.layout = self.create ()
+            if target == 'mask':
+                self.layout = self.create ()
+            else:
+                self.layout = self.create_for_table()
 
         if not naked:
             self._add_default_buttons()
@@ -34,6 +40,7 @@ class TableLayoutGenerator (object):
             entries.append( self.add_spec(field_name=field_name ))
         return ''.join (entries)
 
+    
     def add_spec(self, field_name=None):
         ftype = getattr(self.fields, field_name)['type']
 
@@ -65,11 +72,21 @@ class TableLayoutGenerator (object):
         # a 'naked' mask is a mask w/o buttons. Maybe buttons are define by the
         # programmer inside the layout, maybe are not desired
 
+        if self.target == 'mask':
+            nav_buttons="tb=gtk-go-back tb=gtk-go-forward"
+        else:
+            nav_buttons=""
+            
         self.layout = """
         {B m=file m=modifica m=opzioni m=aiuto}
         {O.tool tb=gtk-save tb=gtk-delete tb=gtk-new tb=gtk-refresh tb=gtk-quit
-        tb=gtk-go-back tb=gtk-go-forward}
+        %s}
         { %s}
         sb=StBar
-        """ % (self.layout)
+        """ % (nav_buttons, self.layout)
     
+    def create_for_table(self):
+        lay = """
+          TVS=tree
+        """
+        return lay

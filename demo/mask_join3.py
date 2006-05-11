@@ -8,7 +8,11 @@ from sqlalchemy import *
 import gtk
 
 engine = sk.config.spawnEngine(echo=False)
-sk.SqlMask(tables=['euro_user', 'euro_mail', 'city'], 
-           order_by=['city_pv','mail_address'], engine=engine)
+
+tables=['euro_user', 'euro_mail', 'city']
+order_by=['city_pv','mail_address']
+
+z = sk.SqlMask(tables=tables, order_by=order_by, engine=engine)
+           
 
 gtk.main()

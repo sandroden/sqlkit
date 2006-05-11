@@ -22,14 +22,8 @@ NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
 FK_COLOR = gtk.gdk.color_parse('navyblue')
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
 
-class SqlMask (object):
-    """doc string for sqlmask
-    """
-    mwidgets = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
+class SqlObj(object):
     fields   = None  # fields to use (InspectMapper)
-    labels   = None  # correspondance Label <-> EventBox
-#    map_record_n = 0  # number of the displayed record within mapper
-    row_count = 0    # number of records in the mapper
     tables = None    # Table objects referenced as foreign keys
     values = None    # real value for foreign key (when lookup is displeyed instead)
     def __init__ (self, mapper=None,
@@ -75,20 +69,214 @@ class SqlMask (object):
         self.completion = completion.Completion(self, )
         ## create the interface and add obvious constraints
         self.lay_obj, self.w  = self._get_layout(lay, naked)
-        ## fill in the data in case
-#         if records:
-#             dbg.write('ora self.record_display, records: ' % records)
-#             self.record_display()
         if sql:
-            #dbg.write('__init__ sql: %s' % sql)
             self.reload(sql)
             
         ## only render when dimentions are complete
         self.w['Window'].show()
+    def _get_validator(self, valid):
+        if not valid:
+            valid = validator.Validator()
+        self.valid = valid
+    def _get_layout(self, lay, naked):
+        ## layout
+        #dbg.write('target', self.Class)
+        lay = TableLayoutGenerator(self.fields, naked=naked, lay=lay,
+                                   target=self.Class).layout
+
+        self.layout = lay
+        self.add_filter(visible=False)
+
+        ## add default buttons if needed
+        #self._add_default_buttons(naked)
+        #dbg.write(self.layout)
+        self.lay_obj = layout.Layout(self.layout, title=self.title, opts='T-')
+        self.lay_obj.prop('Window', 'visible', False)
+        self.w       = self.lay_obj.show()
+
+        if self.Class == 'mask':
+            self._analize_widgets_in_layout()
+            self._add_constraints_and_connect()
+            self._add_colors_and_fonts()
+        
+        self._add_actions_to_buttons()
+        self._fill_menubar_menu()
+        return (self.lay_obj, self.w)
+    
+    def _add_actions_to_buttons(self):
+        """ Add default actions to std buttons"""
+        actions = {
+            ## std toolbutton
+            'tb=gtk-save'       : self.record_save,
+            'tb=gtk-new'        : self.record_clear,
+            'tb=gtk-delete'     : self.record_delete,
+            'tb=gtk-refresh'    : self.reload_cb,
+            'tb=gtk-quit'       : self.quit,
+            'tb=gtk-go-forward' : self.record_forward,
+            'tb=gtk-go-back'    : self.record_back,
+
+            ## in case the programmers has set them
+            'b=gtk-save'       : self.record_save,
+            'b=gtk-new'        : self.record_clear,
+            'b=gtk-delete'     : self.record_delete,
+            'b=gtk-refresh'    : self.reload_cb,
+            'b=gtk-quit'       : self.quit,
+            'b=gtk-go-forward' : self.record_forward,
+            'b=gtk-go-back'    : self.record_back,
+            }
+        for widget_name, handler in actions.iteritems():
+            if widget_name in self.w:
+                #print "_add_actions_to_button: %s %s %s" % (
+                #    widget_name, 'clicked', handler)
+                self.w[widget_name].connect('clicked', handler)
+                self.lay_obj.tooltips.set_tip(self.w[widget_name], "mmh")
+                self.lay_obj.tip(widget_name, "mi chiamo %s" % widget_name)
+
+        ## style for toolbar if any
+        if 'O.tool' in self.w:
+            self.w['O.tool'].set_show_arrow(False)
+            self.lay_obj.prop('O.tool', 'toolbar_style','GTK_TOOLBAR_ICONS')
+    
 
 ####### Record browsing & saving
+    def record_delete(self, widget=None):
+        """invokes the validator before DELETing a record"""
+        pass
+    
+    def record_save(self, ev):
+        """invokes the validator before UPDATE/INSERT a record"""
+        pass
+    def record_save_new(self):
+        """Insert a new record
+        """
+        pass
+    
+    def record_clear(self, widget=None):
+        """clear the mask for a new record"""
+        pass
+    
+    def reload(self, sql=None, params=None, limit=100):
+        """reload data from db
+
+        sql may be a tuple (sql_statement, bind_params) or just a sql_statement
+        """
+        #dbg.write(sql)
+        if isinstance(sql, tuple) and len(sql) == 2:
+            sql_str, params = sql
+            #dbg.write('type sql_str', type(sql_str), 'type params', type(params))
+            #dbg.sql_debug(sql_str, params)
+        else:
+            sql_str = sql
+            params = None
+        #dbg.write("SQL", sql_str, 'params', params)
+        #self.mapper.table.engine.echo = True
+        records = self.mapper.select(sql_str, params=params, order_by=self.order_by)
+        #records = self.mapper.select_by(sql)
+        #self.mapper.table.engine.echo = False
+        self.sqlData = sqldata.SqlData(records, mapper_info=self.fields)
+        self.record_display()
+    def reload_cb(self, widget):
+        """issue a reload operation on master. Call back of reload button"""
+        #limit=100
+        self.reload( )
+
+    def record_forward(self):
+        """it doesn't make any sense here, but we need it to prevent
+        _add_actions_to_button from failing"""
+        pass
+    def record_back(self):
+        """it doesn't make any sense here, but we need it to prevent
+        _add_actions_to_button from failing"""
+        pass
+
+
+####### Validation
+    def digits_check_input_cb(self, widget, event):
+        """prevents the possibility of inputting wrong chars"""
+        ## fixme: missing comma, and cut&paste
+        key = gtk.gdk.keyval_name (event.keyval)
+        #dbg.write(key)
+        ONLYDIGITS="([0-9.,]|BackSpace|Left|Right|F1|period|Tab|Up|Down)"
+        if not re.match (ONLYDIGITS, key):
+            #dbg.write("key: %s" % key)
+            return True
+        
+
+####### Misc
+    def quit(self, widget):
+        """Quit operations: check if need to save first """
+        ### fixme: must add cheks
+        ### fixme2: must the toplevel be destrouyed (or is reparented?)
+        #print widget
+        self.w['Window'].destroy()
+        self.filter_panel.destroy()
+        
+    def gquit(self, *args):
+        gtk.main_quit()
+                       
+    def sb(self, text):
+        """write on the status bar, if present"""
+        try:
+            self.lay_obj.sb(text)
+        except:
+            pass
+    
+    def _get_title(self, title=None):
+        if not title:
+            try:
+                title=self.table
+            except:
+                title= self.mapper.table.name
+        return title
+    
+    def add_filter(self, event=None, visible=True):
+        """Pop a Filter Panel"""
+        try:
+            self.filter_panel.w['Window'].set_property('visible', True)
+            #print "add_filter: esisteva"
+        except:
+            self.filter_panel = sqlfilter.FilterPanel(self, visible=visible)
+            #print "add_filter: mancava"
+            #return sqlfilter.FilterPanel(self)
+        return self.filter_panel
+    
+    #filter_panel = property(add_filter)
+            
+    
+    def show_mapper_info(self, *args):
+        dbg.gtk_dbg.ShowMapperInfo(self.fields)        
+        
+    def show_widgets(self, *args):
+        import dbg.gtk_dbg
+        dbg.gtk_dbg.show_widgets(self.w['Window'])
+    
+    def _fill_menubar_menu(self):
+        """here all menus are filled for filtering,  sorting, ro, query..."""
+        if 'm=file' in self.w:
+            self.lay_obj.menu('m=file',
+                              ('filter panel', self.add_filter),
+                              ('-', None),
+                              ('inspect', self.show_mapper_info),
+                              ('-', None),
+                              ('gtk-quit', self.quit)
+                              )
+    
+
+class SdTable(SqlObj):
+    Class='table'
+    pass
+
+class SqlMask (SqlObj):
+    """doc string for sqlmask
+    """
+    Class='mask'
+    mwidgets = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
+    labels   = None  # correspondance Label <-> EventBox
+#    map_record_n = 0  # number of the displayed record within mapper
+    row_count = 0    # number of records in the mapper
+####### Record browsing & saving
     def record_display(self, record=None, incr=0):
-        """display a mapped record in the mask
+        """display a SqlData record in the mask
 
         display the data provided by self.sqlData.get()
         incr: incr=incr arg to sqlData.get()
@@ -185,7 +373,6 @@ class SqlMask (object):
         # Boolean
         elif self.fields[field_name]['type'] == bool:
             return widget.get_active( )
-
     def record_delete(self, widget=None):
         """invokes the validator before DELETing a record"""
         ## FIXME: validator
@@ -304,59 +491,8 @@ class SqlMask (object):
     def record_back(self, ev):
         """display the previous record in the mapper"""
         self.record_display(incr=-1)
-    def reload(self, sql=None, params=None, limit=100):
-        """reload data from db
-
-        sql may be a tuple (sql_statement, bind_params) or just a sql_statement
-        """
-        #dbg.write(sql)
-        if isinstance(sql, tuple) and len(sql) == 2:
-            sql_str, params = sql
-            #dbg.write('type sql_str', type(sql_str), 'type params', type(params))
-            #dbg.sql_debug(sql_str, params)
-        else:
-            sql_str = sql
-            params = None
-        #dbg.write("SQL", sql_str, 'params', params)
-        #self.mapper.table.engine.echo = True
-        records = self.mapper.select(sql_str, params=params, order_by=self.order_by)
-        #records = self.mapper.select_by(sql)
-        #self.mapper.table.engine.echo = False
-        self.sqlData = sqldata.SqlData(records, mapper_info=self.fields)
-        self.record_display()
     
-    def reload_cb(self, widget):
-        """issue a reload operation on master. Call back of reload button"""
-        #limit=100
-        self.reload( )
-
-    
-
 ####### Layout, Reflection & Analisys
-    def _get_validator(self, valid):
-        if not valid:
-            valid = validator.Validator()
-        self.valid = valid
-    def _get_layout(self, lay, naked):
-        ## layout
-        lay = TableLayoutGenerator(self.fields, naked=naked, lay=lay).layout
-
-        self.layout = lay
-        self.add_filter(visible=False)
-
-        ## add default buttons if needed
-        #self._add_default_buttons(naked)
-        #dbg.write(self.layout)
-        self.lay_obj = layout.Layout(self.layout, title=self.title, opts='T-')
-        self.lay_obj.prop('Window', 'visible', False)
-        self.w       = self.lay_obj.show()
-        self._analize_widgets_in_layout()
-        self._add_constraints_and_connect()
-        self._add_actions_to_buttons()
-        self._add_colors_and_fonts()
-        self._fill_menubar_menu()
-        return (self.lay_obj, self.w)
-    
     def _analize_widgets_in_layout(self):
         """fill variables from layout
 
@@ -392,17 +528,6 @@ class SqlMask (object):
                 #dbg.write("Missing event_box for %s" % (field_name))
                 pass
             
-    def _fill_menubar_menu(self):
-        """here all menus are filled for filtering,  sorting, ro, query..."""
-        if 'm=file' in self.w:
-            self.lay_obj.menu('m=file',
-                              ('filter panel', self.add_filter),
-                              ('-', None),
-                              ('inspect', self.show_mapper_info),
-                              ('-', None),
-                              ('gtk-quit', self.quit)
-                              )
-    
     def _add_colors_and_fonts(self):
         """add bg colors and onts to signal needed fields"""
 
@@ -461,7 +586,7 @@ class SqlMask (object):
                 #print "field_name:", field_name
                 widget.set_alignment(1), widget
                 # check the input
-                widget.connect('key-press-event', self.digits_check_input  )
+                widget.connect('key-press-event', self.digits_check_input_cb  )
                 
             ## Strings
             if field_type == str or self.fields[field_name]['fkey']:
@@ -508,39 +633,6 @@ class SqlMask (object):
         self.w['Window'].add_accel_group(self.accel_group)
             
             
-    def _add_actions_to_buttons(self):
-        """ Add default actions to std buttons"""
-        actions = {
-            ## std toolbutton
-            'tb=gtk-save'       : self.record_save,
-            'tb=gtk-new'        : self.record_clear,
-            'tb=gtk-delete'     : self.record_delete,
-            'tb=gtk-refresh'    : self.reload_cb,
-            'tb=gtk-quit'       : self.quit,
-            'tb=gtk-go-forward' : self.record_forward,
-            'tb=gtk-go-back'    : self.record_back,
-
-            ## in case the programmers has set them
-            'b=gtk-save'       : self.record_save,
-            'b=gtk-new'        : self.record_clear,
-            'b=gtk-delete'     : self.record_delete,
-            'b=gtk-refresh'    : self.reload_cb,
-            'b=gtk-quit'       : self.quit,
-            'b=gtk-go-forward' : self.record_forward,
-            'b=gtk-go-back'    : self.record_back,
-            }
-        for widget_name, handler in actions.iteritems():
-            if widget_name in self.w:
-                #print "_add_actions_to_button: %s %s %s" % (
-                #    widget_name, 'clicked', handler)
-                self.w[widget_name].connect('clicked', handler)
-                self.lay_obj.tooltips.set_tip(self.w[widget_name], "mmh")
-                self.lay_obj.tip(widget_name, "mi chiamo %s" % widget_name)
-
-        ## style for toolbar if any
-        if 'O.tool' in self.w:
-            self.w['O.tool'].set_show_arrow(False)
-            self.lay_obj.prop('O.tool', 'toolbar_style','GTK_TOOLBAR_ICONS')
 ####### Validation
     def focus_out__widget(self, widget, event, field_name):
         self.last_visited_field = field_name
@@ -556,60 +648,4 @@ class SqlMask (object):
         self.select()
     def select(self):
         pass
-    def digits_check_input(self, widget, event):
-        ## fixme: missing comma, and cut&paste
-        key = gtk.gdk.keyval_name (event.keyval)
-        #dbg.write(key)
-        ONLYDIGITS="([0-9.,]|BackSpace|Left|Right|F1|period|Tab|Up|Down)"
-        if not re.match (ONLYDIGITS, key):
-            dbg.write("key: %s" % key)
-            return True
-    
-####### Misc
-    def quit(self, widget):
-        """Quit operations: check if need to save first """
-        ### fixme: must add cheks
-        ### fixme2: must the toplevel be destrouyed (or is reparented?)
-        #print widget
-        self.w['Window'].destroy()
-        self.filter_panel.destroy()
-        
-    def gquit(self, *args):
-        gtk.main_quit()
-                       
-    def sb(self, text):
-        """write on the status bar, if present"""
-        try:
-            self.lay_obj.sb(text)
-        except:
-            pass
-    
-    def _get_title(self, title=None):
-        if not title:
-            try:
-                title=self.table
-            except:
-                title= self.mapper.table.name
-        return title
-    
-    def add_filter(self, event=None, visible=True):
-        """Pop a Filter Panel"""
-        try:
-            self.filter_panel.w['Window'].set_property('visible', True)
-            #print "add_filter: esisteva"
-        except:
-            self.filter_panel = sqlfilter.FilterPanel(self, visible=visible)
-            #print "add_filter: mancava"
-            #return sqlfilter.FilterPanel(self)
-        return self.filter_panel
-    
-    #filter_panel = property(add_filter)
-            
-    
-    def show_mapper_info(self, *args):
-        dbg.gtk_dbg.ShowMapperInfo(self.fields)        
-        
-    def show_widgets(self, *args):
-        import dbg.gtk_dbg
-        dbg.gtk_dbg.show_widgets(self.w['Window'])
     
