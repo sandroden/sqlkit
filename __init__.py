@@ -29,6 +29,9 @@ import inspect
 import validator
 import config
 import parseopts
+import sqlobj
+
 
 from mask import SqlMask
+from obj import SqlObj
 from table import SqlTreeView, SqlLayoutTreeView
