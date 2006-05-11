@@ -33,5 +33,5 @@ import sqlobj
 
 
 from mask import SqlMask
-from obj import SqlObj
+from sqlobj import SqlObj
 from table import SqlTreeView, SqlLayoutTreeView

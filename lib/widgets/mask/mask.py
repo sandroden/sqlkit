@@ -16,20 +16,22 @@ import sqlkit.inspect as inspect
 import sqlkit.validator as validator
 import sqlkit.parseopts as parseopts
 import sqlkit.completion as completion
-import sqlkit.obj as obj
+import sqlkit.sqlobj as sqlobj
+
+class FieldNotInLayout(Exception): pass
 
 #NOT_NULL_COLOR = gtk.gdk.color_parse('yellow')
 NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
 FK_COLOR = gtk.gdk.color_parse('navyblue')
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
 
-class SdTable(obj.SqlObj):
+class SdTable(sqlobj.SqlObj):
     Class='sdtable'
     def show_myself(self):
         #print self.w
         print self.w['TV=tree']
     
-class SqlMask (obj.SqlObj):
+class SqlMask (sqlobj.SqlObj):
     """doc string for sqlmask
     """
     Class='mask'
@@ -95,6 +97,13 @@ class SqlMask (obj.SqlObj):
         elif isinstance (widget, dateedit.DateEdit):
             widget.set_property('time', field_value)
 
+        # Text
+        if isinstance (widget, gtk.TextView):
+            if field_value is None:
+                field_value = ''
+                
+            buff = widget.get_buffer()
+            buff.set_text( field_value)
         # Boolean
         elif self.fields[field_name]['type'] == bool:
             if not field_value :
@@ -111,8 +120,8 @@ class SqlMask (obj.SqlObj):
         # [0]: the gtkClass
         # [1]: the gtkWidget
         if field_name not in self.mwidgets:
-            raise FieldNotInLayout
-        
+            raise FieldNotInLayout("field_name: %s" % (field_name))
+        dbg.write(field_name)
         widget = self.mwidgets[field_name][1]
 
         ## give a try if we have stored a value
@@ -129,13 +138,24 @@ class SqlMask (obj.SqlObj):
                     return None
             return text
 
+        # Text
+        if isinstance (widget, gtk.TextView):
+            buff = widget.get_buffer()
+            ts = buff.get_iter_at_offset(0)
+            te = buff.get_iter_at_offset(-1)
+            text = buff.get_text(ts, te)
+            dbg.write(text)
+            return text
+        else:
+            dbg.write("Non", field_name)
         # Dates
-        elif isinstance (widget, dateedit.DateEdit):
+        if isinstance (widget, dateedit.DateEdit):
             return widget.get_property('time')
 
         # Boolean
         elif self.fields[field_name]['type'] == bool:
             return widget.get_active( )
+    
     def record_delete(self, widget=None):
         """invokes the validator before DELETing a record"""
         ## FIXME: validator
@@ -269,7 +289,7 @@ class SqlMask (obj.SqlObj):
         #print self.w.keys()
         for field_name in self.fields.keys():
             #dbg.write("_analize_widget_layout: %s" % (field_name))
-            for mod in ('e','d','r','m','c'):
+            for mod in ('e','d','r','m','c', 'TX'):
                 try:
                     widget = self.w["%s=%s" % (mod, field_name)]
                     self.mwidgets[field_name] = (type(widget), widget)

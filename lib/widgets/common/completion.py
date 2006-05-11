@@ -5,7 +5,6 @@ import dbg
 
 class LookupValueNotReturningOneValue(Exception): pass
 class MissingDescriptorField(Exception): pass
-class FieldNotInLayout(Exception): pass
 
 ####### Completion
 # EntryCompletion widgets are added on the fly triggered by F1, C-F1 or menu items

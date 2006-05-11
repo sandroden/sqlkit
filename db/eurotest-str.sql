@@ -25,6 +25,7 @@ CREATE TABLE euro_mail (
     mail_address character varying(30) NOT NULL,
     mail_user_id integer,
     mail_info varchar(50),
+    mail_notes text,
     PRIMARY KEY (mail_id),
     FOREIGN KEY (mail_user_id) REFERENCES euro_user(user_id)
 );

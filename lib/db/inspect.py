@@ -43,6 +43,7 @@ class InspectMapper(dict):
                 sqlalchemy.databases.postgres.PG2DateTime  : datetime.datetime,
                 sqlalchemy.databases.postgres.PG2Date  : datetime.date,
                 sqlalchemy.databases.postgres.PGChar  : str, 
+                sqlalchemy.databases.postgres.PGText  : str, 
                 sqlalchemy.databases.postgres.PGString  :  str, 
                 sqlalchemy.databases.postgres.PGBoolean  : bool, 
                 })

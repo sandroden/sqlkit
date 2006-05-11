@@ -43,8 +43,13 @@ class TableLayoutGenerator (object):
     
     def add_spec(self, field_name=None):
         ftype = getattr(self.fields, field_name)['type']
+        spec = self.map_types[ftype]
+        dim=''
 
-        return "L=%s %s=%s\n" % (field_name, self.map_types[ftype], field_name)
+        if self.fields[field_name]['col_spec'] == 'TEXT':
+            spec = 'TXS'
+            dim = ":250.100"
+        return "L=%s %s=%s%s\n" % (field_name, spec, field_name, dim)
 
 
     def _parse_and_complete(self, lay):
@@ -81,7 +86,7 @@ class TableLayoutGenerator (object):
         {B m=file m=modifica m=opzioni m=aiuto}
         {O.tool tb=gtk-save tb=gtk-delete tb=gtk-new tb=gtk-refresh tb=gtk-quit
         %s}
-        { %s}
+        {A { %s}}
         sb=StBar
         """ % (nav_buttons, self.layout)
     
