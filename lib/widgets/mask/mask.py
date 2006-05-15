@@ -121,7 +121,7 @@ class SqlMask (sqlobj.SqlObj):
         # [1]: the gtkWidget
         if field_name not in self.mwidgets:
             raise FieldNotInLayout("field_name: %s" % (field_name))
-        dbg.write(field_name)
+        #dbg.write(field_name)
         widget = self.mwidgets[field_name][1]
 
         ## give a try if we have stored a value
@@ -146,8 +146,6 @@ class SqlMask (sqlobj.SqlObj):
             text = buff.get_text(ts, te)
             dbg.write(text)
             return text
-        else:
-            dbg.write("Non", field_name)
         # Dates
         if isinstance (widget, dateedit.DateEdit):
             return widget.get_property('time')
