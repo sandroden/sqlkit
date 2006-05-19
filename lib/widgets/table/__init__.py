@@ -1,5 +1,6 @@
 # module sqltreelist
 __all__ = ["SqlTreeView",
-           "SqlLayoutTreeView"]
+           "SqlLayoutTreeView",
+           "SqlObjTreeView"]
 
-from SqlTreeView import SqlTreeView, SqlLayoutTreeView
+from SqlTreeView import SqlTreeView, SqlLayoutTreeView, SqlObjTreeView

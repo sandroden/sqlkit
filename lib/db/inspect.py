@@ -96,6 +96,11 @@ class InspectMapper(dict):
             return
         
         self.fields += [ field_name ]
+        
+        try:
+            col_spec = mapper.c[field_name].type.get_col_spec()
+        except NotImplementedError,e:
+            col_spec = 0
         d = {
             'table_name'  :  mapper.table.name ,
             'name'        :  field_name,
@@ -103,14 +108,14 @@ class InspectMapper(dict):
             'col'         :  mapper.c[field_name] ,
             'pg_type'     :  type(mapper.c[field_name].type), 
             'type'        :  self.pytype[type(mapper.c[field_name].type)],
-            'col_spec'    :  mapper.c[field_name].type.get_col_spec(),
+            'col_spec'    :  col_spec,
             'is_serial'   :  is_serial(mapper.c[field_name]),
             'property'    :  property,
             'fkey'        :  False,
             'pkey'        :  mapper.c[field_name].primary_key,
             'nullable'    :  mapper.c[field_name].nullable,
             'mapper'      :  mapper,
-#            'direction'   :  mapper.props[field_name].direction
+            #            'direction'   :  mapper.props[field_name].direction
             }
         try:
             d['length'] = mapper.c[field_name].type.length

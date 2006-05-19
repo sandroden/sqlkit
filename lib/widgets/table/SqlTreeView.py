@@ -11,6 +11,9 @@ from sqlalchemy import *
 from layout import *
 from datetime import datetime
 import sqlalchemy.types as sqltypes
+import sqlkit.sqlobj as sqlobj
+from sqlkit.layoutgenerator import TableLayoutGenerator
+import dbg
 
 #sys.path.append('../gdl')
 
@@ -184,14 +187,17 @@ class SqlTreeView(object):
     liststore = None
     tvcolumns = None
     mc = None
+    mapper = None
     rowCommit = True
     deleting_row = False
     
-    def __init__(self, treeview, MappedClass, rowCommit=True, checkClass=None):
+    def __init__(self, treeview, MappedClass=None, rowCommit=True, checkClass=None):
 
         if checkClass is not None:
             checkObj = checkClass(self)
-        self.mc = MappedClass
+        if MappedClass is not None:
+            self.mc = MappedClass
+            self.mapper = self.mc.mapper
         self.rowCommit = rowCommit
 
         #setup a ListStore
@@ -204,7 +210,7 @@ class SqlTreeView(object):
         #set selection mode
         treeselection = self.treeview.get_selection()
         treeselection.set_mode(gtk.SELECTION_SINGLE)
-        self.__init_accelerators()
+        self._init_accelerators()
         #callback for selection changes
         treeselection.connect('changed', self.selection_changed_cb)
         self.treeview.connect('cursor-changed', self.cursor_changed_cb)
@@ -219,21 +225,21 @@ class SqlTreeView(object):
         - bool render to toggles
         - other render to editable text cells"""
         #create and append columns
-        for i,v in enumerate(self.mc.mapper.c.keys()):
+        for i,v in enumerate(self.mapper.c.keys()):
             tvcolumn = gtk.TreeViewColumn(v.replace('_','__'))
 
             #boolean -> checkbox
-            if isinstance(getattr(self.mc.mapper.c, v).type, sqltypes.Boolean):
+            if isinstance(getattr(self.mapper.c, v).type, sqltypes.Boolean):
                 cell = gtk.CellRendererToggle()
                 tvcolumn.pack_start(cell, True)
                 tvcolumn.add_attribute(cell, 'active', i + 1)
                 cell.set_property('activatable', True)
                 cell.connect('toggled', self.toggled_signal, (self.liststore, i))
             #primary key and integer do not show
-            elif isinstance(getattr(self.mc.mapper.c, v).type, sqltypes.Integer) and getattr(self.mc.mapper.c, v).primary_key:
+            elif isinstance(getattr(self.mapper.c, v).type, sqltypes.Integer) and getattr(self.mapper.c, v).primary_key:
                 tvcolumn = gtk.TreeViewColumn()
                 tvcolumn.set_visible(False)
-            elif isinstance(getattr(self.mc.mapper.c, v).type, sqltypes.DateTime):
+            elif isinstance(getattr(self.mapper.c, v).type, sqltypes.DateTime):
                 cell = CellRendererDate()
                 cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
                 cell.set_property('sensitive', False)
@@ -252,9 +258,10 @@ class SqlTreeView(object):
                 tvcolumn.add_attribute(cell, 'text', i + 1)
 
             #tvcolumn.set_cell_data_func(cell, self.set_special_attributes, i)
+            #dbg.write(tvcolumn)
             self.treeview.append_column(tvcolumn)
 
-    def __init_accelerators(self):
+    def _init_accelerators(self):
         """Initializes keyboard accelerators"""
 
         self.treeview.connect('key-press-event', self.keypress_event)
@@ -401,9 +408,9 @@ class SqlTreeView(object):
 
     def mapToListStore(self):
         # suppose there is at least one record(?)
-        colnames = self.mc.mapper.c.keys()
+        colnames = self.mapper.c.keys()
         self.coltypes = [object]
-        self.coltypes.extend([type(getattr(self.mc.mapper.select()[0],x)) for x in colnames])
+        self.coltypes.extend([type(getattr(self.mapper.select()[0],x)) for x in colnames])
 	coltypes = [object]
 	# try to convert types to gobject types
 	for tp in self.coltypes[1: ]:
@@ -415,7 +422,7 @@ class SqlTreeView(object):
         if self.liststore is None:
             self.liststore = gtk.ListStore(*coltypes)
         #fill up
-        for r in self.mc.mapper.select():
+        for r in self.mapper.select():
             values = [getattr(r, x) for x in colnames]
             #prepend r itself
             values.insert(0, r)
@@ -473,7 +480,6 @@ class SqlLayoutTreeView(SqlTreeView):
 
         SqlTreeView.__init__(self, treeview, MappedClass,
                              checkClass=checkClass)
-        
 
     def delete_event(self, w, e):
         SqlTreeView.delete_event(self, w, e)
@@ -483,4 +489,32 @@ class SqlLayoutTreeView(SqlTreeView):
     def exit_now(self, widget):
         self.delete_event(widget, None)
         return True
+
+
+class SqlObjTreeView(sqlobj.SqlObj, SqlTreeView):
+    Class = "table"
+
+    def _get_layout(self, lay, naked):
+        sqlobj.SqlObj._get_layout(self, lay, naked)
+        self.mapToListStore()
+        ## layout
+        self.treeview = self.w["TV=tree"]
+        self.treeview.show_all()
+        #dbg.write(type(self.treeview))
+        self.treeview.set_model(self.liststore)
+        
+        self.treeview.set_rules_hint(True)
+        #set selection mode
+        treeselection = self.treeview.get_selection()
+        treeselection.set_mode(gtk.SELECTION_SINGLE)
+        self._init_accelerators()
+        #callback for selection changes
+        treeselection.connect('changed', self.selection_changed_cb)
+        self.treeview.connect('cursor-changed', self.cursor_changed_cb)
+        self.treeview.connect('select-cursor-row', self.select_cursor_row_cb)
+        #register callback to toplevel window
+        self.treeview.get_toplevel().connect("delete_event", self.delete_event)
+        self.setupTreeColumns()
+
+        return (self.lay_obj, self.w)
 

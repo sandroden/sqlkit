@@ -23,10 +23,10 @@ class MissingValueFromSelectError(Exception): pass
 class SqlData(object):
     """main data manipulation interface
 
-    SqlData Allows to browse inside data of a rowset retured by mapper.select()
+    SqlData Allows to browse inside data of a rowset as returned by mapper.select()
     it firstly creates ad index of pointers to class instances. You can use those
     pointers or an index to UPDATE/DELETE data.
-    Index is and int within self.pointers a list of pointer.
+    Index is an int within self.pointers a list of pointer.
     A  pointer is a list of instances.
     
     """
