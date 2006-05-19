@@ -100,7 +100,7 @@ class InspectMapper(dict):
         try:
             col_spec = mapper.c[field_name].type.get_col_spec()
         except NotImplementedError,e:
-            col_spec = 0
+            col_spec = None
         d = {
             'table_name'  :  mapper.table.name ,
             'name'        :  field_name,
