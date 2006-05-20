@@ -44,7 +44,8 @@ class SqlObj(object):
         naked:  in case the mask should *not* be added interactive buttons
                 neede if the layout already contains all the required buttons
         mode:   ro|rw. When in read-only no save/delete is alllowed
-        noup:   list of field-name that cannot be updated
+        noup:   list of field-name that cannot be updated, may be a comma
+                separated str
         """
         
         if engine:
@@ -244,9 +245,14 @@ class SqlObj(object):
             
     
     def show_mapper_info(self, *args):
-        dbg.gtk_dbg.ShowMapperInfo(self.fields)        
+        dbg.gtk_dbg.ShowMapperInfo(self.fields)
+        
     def show_widget_info(self, *args):
-        dbg.gtk_dbg.show_widgets()        
+        dbg.gtk_dbg.show_widgets()
+        
+    def show_class_info(self, *args):
+        dbg.gtk_dbg.ShowClassInfo(self) 
+        
     def show_widgets(self, *args):
         import dbg.gtk_dbg
         dbg.gtk_dbg.show_widgets(self.w['Window'])
@@ -259,6 +265,7 @@ class SqlObj(object):
                               ('-', None),
                               ('inspect tables', self.show_mapper_info),
                               ('inspect widgets', self.show_widget_info),
+                              ('inspect class', self.show_class_info),
                               ('-', None),
                               ('gtk-quit', self.quit)
                               )
