@@ -69,6 +69,8 @@ class InspectMapper(dict):
                               
 
         self.fields = []
+        self.primarytable = self.get_primary_table
+        self.noup = self.parse_noup(noup)
         self.mapper = mapper
         self.props = []
         self.pkeys = {}
@@ -96,6 +98,7 @@ class InspectMapper(dict):
             return
         
         self.fields += [ field_name ]
+        col = mapper.c[field_name] 
         
         try:
             col_spec = mapper.c[field_name].type.get_col_spec()
@@ -115,7 +118,8 @@ class InspectMapper(dict):
             'pkey'        :  mapper.c[field_name].primary_key,
             'nullable'    :  mapper.c[field_name].nullable,
             'mapper'      :  mapper,
-            #            'direction'   :  mapper.props[field_name].direction
+            'edit'        :  self.set_noup(field_name, mapper.table.name, col)
+#            'direction'   :  mapper.props[field_name].direction
             }
         try:
             d['length'] = mapper.c[field_name].type.length
@@ -206,10 +210,43 @@ class InspectMapper(dict):
             raise MissingPrimaryKeyError("%s does not seem to have a PKey" %
                                          table_name)
         
+    def parse_noup(self,noup):
+        """parse noup to set fields that are not updateable
+        """
+        if not noup:
+            return []
+        if isinstance(noup, str):
+            noup = noup.split(",")
+            return noup
+        
+    def set_noup(self, field_name, table_name, col):
+        edit = True
+        ## if this field is not in the main (primary) table, don't edit it
+        if table_name != self.primarytable():
+            #dbg.write("%s: %s != %s" % (field_name, table_name, self.primarytable()))
+            edit = False
+
+        if field_name in self.noup:
+            #dbg.write("2", field_name, 'noup')
+            edit = False
+
+        if col.primary_key:
+            #dbg.write(field_name, 'pkey')
+            edit = False
+            
+        return edit
+        
     def get_join_cnd(self):
         tables = self.tables(mode='mapper')
         return get_join_cnd(tables)
 
+    def get_primary_table(self):
+        primarytable = self.mapper.primarytable
+        while isinstance(primarytable, sqlalchemy.sql.Join):
+            primarytable = primarytable.left
+        primarytable = primarytable.name
+        return primarytable
+        #dbg.write('primarytable', table)
     def next(self):
         """returns the next item in the data set,
         or tells Python to stop"""
@@ -265,6 +302,7 @@ class InspectJoinMapper(InspectMapper):
             'pkey'        :  col.primary_key,
             'nullable'    :  col.nullable,
             'mapper'      :  self.mapper,
+            'edit'        :  self.set_noup(col.key, col.table.name, col)
 #            'direction'   :  mapper.props[field_name].direction
             }
         try:
