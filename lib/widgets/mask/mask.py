@@ -360,7 +360,8 @@ class SqlMask (sqlobj.SqlObj):
             if not widget:
                 #dbg.write("Per campo: %s manca widget %s" % (field_name, widget))
                 continue
-            
+
+            widget.set_property('sensitive', self.fields[field_name]['edit'])
             ## integer
             if field_type == int and not self.fields[field_name]['fkey']:
                 # left justified
