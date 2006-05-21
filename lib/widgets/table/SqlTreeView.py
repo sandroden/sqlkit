@@ -195,9 +195,8 @@ class SqlTreeView(object):
 
         if checkClass is not None:
             checkObj = checkClass(self)
-        if MappedClass is not None:
-            self.mc = MappedClass
-            self.mapper = self.mc.mapper
+        self.mc = MappedClass
+        self.mapper = self.mc.mapper
         self.rowCommit = rowCommit
 
         #setup a ListStore
@@ -367,6 +366,7 @@ class SqlTreeView(object):
         liststore[path][colnum + 1] = data
         r = liststore[path][0]
         setattr(r, r.c.keys()[colnum], data)
+        dbg.write(r.c.keys()[colnum] + ' ' + str(getattr(r,r.c.keys()[colnum])))
         return True
     
         
@@ -384,6 +384,9 @@ class SqlTreeView(object):
         self.treeview.get_toplevel().set_focus(None)
         self.treeview.scroll_to_cell("0", col)
         self.liststore.prepend()
+        # FIXME must use sqldata
+        if self.mc is None:
+            self.mc = self.mapper.class_
         self.liststore[0][0] = self.mc()
         self.treeview.set_cursor(path = "0",
                                  focus_column = col,
@@ -518,3 +521,15 @@ class SqlObjTreeView(sqlobj.SqlObj, SqlTreeView):
 
         return (self.lay_obj, self.w)
 
+    def record_clear(self, widget=None):
+        """Create empty record in table to insert new data"""
+        self.insertRow(widget)
+        
+    def record_delete(self, widget=None):
+        """Delete a row and corresponding record"""
+        self.deleteRow(widget)
+
+        
+    def reload(self, sql = None, params = None, limit=100):
+        
+        SqlTreeView.reload(self, None)

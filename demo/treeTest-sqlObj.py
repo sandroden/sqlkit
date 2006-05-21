@@ -102,8 +102,25 @@ assign_mapper(User, users,
         
 users_mapper = User.mapper
 
-sqlt = SqlObjTreeView(users_mapper)
+
+class C(SqlObjTreeView):
+    """Simple class extension to handle destroy event since we have only one window
+    in this application."""
+    def __init__(self, *args, **kwargs):
+        """Overwrite init to connect delete_event from window
+        to quit gtk main loop."""
+        SqlObjTreeView.__init__(self, *args, **kwargs)
+        self.treeview.get_toplevel().connect("delete_event", self.delete_event)
+
+
+    def delete_event(self, w, e):
+        """Pass event to parent object and quit the application."""
+        SqlObjTreeView.delete_event(self, w, e)
+        gtk.main_quit()
+        return False
+
+sqlt = C(users_mapper)
 gtk.main()
 
-eng.commit()
+eng.rollback()
 
