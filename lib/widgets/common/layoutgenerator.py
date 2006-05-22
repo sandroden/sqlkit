@@ -60,17 +60,46 @@ class TableLayoutGenerator (object):
         where mod is the appropriate modifier ([edc])
         field_name must be preceded and folloed by a space or newline
         """
-
-        return re.sub(r""" ([a-z_A-Z]+)(:[.\d]*)?( |\n)""", self._sub, lay)
+        p = re.compile(r"""^(\s*#.+)""", re.MULTILINE)
+        lay = p.sub('', lay)
+        return re.sub(r""" ([a-z_A-Z.]+)(:[.\d]*)?( |\n)""", self._sub, lay)
 
     def _sub(self, m):
         ### not using add_spec just becouse of the way args are passed
         field_name = m.group(1)
-        fmod = self.map_types[self.fields[field_name]['type']]
+        if field_name in self.fields:
+            t = self.fields[field_name]['type']
+        else:
+            ## any field that is not explicitly here is mapped into 'str'
+            dbg.write('field_name', field_name)
+            t = self.register(field_name)
+
+        fmod = self.map_types[t]
 
         return " L=%s %s=%s%s%s" % (field_name, fmod, field_name,
                                    m.group(2) or '', m.group(3))
     
+
+    def register(self, field_name):
+        """regiter field_name as a field_name of a table to be found and reflected
+        field_name must be of the form table.field_name
+        """
+        p = re.compile("""
+           ([-A-Za-z0-9]+)   # table name
+           .                 # separator
+           (\S+)             # field_name
+        """, re.VERBOSE)
+        m = p.search(field_name)
+        if not m:
+            dbg.write("%s not of the form table.field" % field_name )
+            return
+        table_name = m.group(1)
+        tbl_field_name = m.group(2)
+        return
+        table = Table(table_name, engine=self.fields.mapper.table.engine,
+                      autoload=True)
+        t1 = type(table.c[tbl_field_name].type)
+        t = self.fields.pytype[t1]
 
 
     def _add_default_buttons (self):

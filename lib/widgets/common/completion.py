@@ -14,15 +14,17 @@ class MissingDescriptorField(Exception): pass
 tables = {}
 class Completion(object):
     def __init__(self, master):
-        """completion is the way we can find possible completions of text in a cell.
-        In case the edited field has a Foreign Key constraint completion will follow
-        the table/field to retrieve the possible values, in case we don't have an fk
-        completion will suggest values already present in the db.
 
-        A completion must be 'requested' (is only issued on demand). Normal bindings
-        are F1 or right-click and will add a gtk.EntryCompletion on the fly to the
-        widget that triggered the request, attach a listore, fill the liststore
-        with values accordingly.
+        """completion is the way we can find possible completions of text in
+        a cell.  In case the edited field has a Foreign Key constraint
+        completion will follow the table/field to retrieve the possible
+        values, in case we don't have an fk completion will suggest values
+        already present in the db.
+
+        A completion must be 'requested' (is only issued on demand). Normal
+        bindings are F1 or right-click and will add a gtk.EntryCompletion on
+        the fly to the widget that triggered the request, attach a listore,
+        fill the liststore with values accordingly.
 
         widget.connect('button-press-event',self.completion.pop_menu,field_name, 3)
         widget.connect('key-press-event', self.completion.entry_short_cut_event,
@@ -34,9 +36,9 @@ class Completion(object):
         self.master.engine
         self.master.lay_obj a Layout object (for the tooltips method)
         self.master.mapper
-        self.master.values in case of an id, completion will substitute it with a
-             description field, for the user benefit. The real value of the field
-             will be hold there.
+        self.master.values in case of an id, completion will substitute it
+             with a description field, for the user benefit. The real value
+             of the field will be hold there.
         self.master.mwidgets (mask wdgets): the mapping field_name -> widget
         
         """
@@ -66,6 +68,12 @@ class Completion(object):
             raise LookupValueNotReturningOneValue("%s returns %s values" % (sql, j))
         return value
     
+    def get_widget(self, field_name):
+        """return the widget to widh the entryCompletion should be attached
+        """
+        if self.master.__class__.__name__ == 'SqlMask':
+            return self.master.mwidgets[field_name]
+        
     def add_completion(self, field_name, mode):
         """ add a completionEntry to an Entry
         return a listore to be filled
@@ -76,7 +84,7 @@ class Completion(object):
         used in the field
         """
 
-        entry = self.master.mwidgets[field_name][1]
+        entry = self.get_widget(field_name)
         completion = entry.get_completion()
         if completion:
             return (completion.get_model(), completion)
@@ -99,7 +107,9 @@ class Completion(object):
             col_dropdown = 0
             completion.add_attribute(renderer, 'text', 0)
             
-        listore = gtk.ListStore(*[str for x in range(col_num)])
+        ## object col is to hold a dict of all values
+        col_def = [str for x in range(col_num)] + [object]
+        listore = gtk.ListStore( *col_def)
             
         ## we match against the description field
         completion.set_match_func(self.match_func, (col_entry, mode))
@@ -120,14 +130,33 @@ class Completion(object):
         the entry with the correct value.
         """
         self.master.values[field_name] = model.get(iter,0)[0]
-        try:
-            ## if (iter,1) exists we where in an FK situation
-            self.master.mwidgets[field_name][1].set_text(model.get(iter,1)[0])
-            #dbg.write("wdg[field_name][1].set_text(%s)" % (model.get(iter,1)[0]))
-        except:
-            self.master.mwidgets[field_name][1].set_text(model.get(iter,0)[0])
 
-        
+        # note: model.get() returns a tuple, one value each cell on the column
+
+        if self.master.fields[field_name]['fkey']:
+            show_value = model.get(iter,1)[0]
+            Rd = model.get(iter,3)[0]
+            dbg.write("Rd", Rd)
+            ## reset the show value
+            Rd[field_name] = show_value
+        else:
+            show_value = model.get(iter,0)[0]
+            Rd = {field_name : show_value }
+
+        self.set_text(Rd)
+
+
+    def set_text(self, Rd):
+        """sets the values of field read by the select
+        """
+        if self.master.__class__.__name__ == 'SqlMask':
+            for field_name, value in Rd.iteritems():
+                dbg.write(field_name, value)
+                if field_name in self.master.mwidgets:
+                    dbg.write("%s.set_text(%s)" % (field_name, value))
+                    self.master.mwidgets[field_name].set_text(value)
+                    #self.master._set_value(field_name, Rd[field_name]
+
     def match_func(self, completion, key, iter, func_data):
         column, mode = func_data
         model = completion.get_model()
@@ -184,7 +213,7 @@ class Completion(object):
         """
         #print "show_possible_values %s" % field_name
         sql_dict = {}
-        sql_dict['val'] = self.master.mwidgets[field_name][1].get_text()
+        sql_dict['val'] = self.get_widget(field_name).get_text()
         if mode == 'start':
             sql_dict['oper'] = 'ILIKE'
             val = '%'
@@ -201,27 +230,37 @@ class Completion(object):
         ret = self.select_values(field_name, sql_dict)
         for R in ret:
             Rl = self.instance2list(R)
+            Rd = self.instance2dict(R)
             if self.master.fields[field_name]['fkey']:
                 ftable = self.master.fields[field_name]['fkey'][0]
-                try:
-                    Rd = self.instance2dict(R)
+                if ftable in tables and tables[ftable][2]:
+                    # we have defined explicitly a format via "str" % dict
                     descr = tables[ftable][2] % Rd
-                    listore.append([ Rl[0], Rl[1], descr ])
-                except:
-                    listore.append([ Rl[0], Rl[1], " - ".join(Rl[1:]) ])
+                    listore.append([ Rl[0], Rl[1], descr, Rd ])
+                else:
+                    ## default format is all fields joined
+                    listore.append([ Rl[0], Rl[1], " - ".join(Rl[1:]), Rd ])
             else:
-                listore.append(R)
+                listore.append([Rl[0], Rd])
 #        completion.complete()
         event =   gtk.gdk.Event(gtk.gdk.KEY_PRESS)
         event.keyval = gtk.keysyms.period  #ord(".")
-        event.window = self.master.mwidgets[field_name][1].window
-        self.master.mwidgets[field_name][1].emit('key-press-event',event)
+        event.window = self.get_widget(field_name).window
+        self.get_widget(field_name).emit('key-press-event',event)
         event.keyval = gtk.keysyms.BackSpace
         event.hardware_keycode = 22
-        #event.window = self.mwidgets[field_name][1].window
+        #event.window = self.get_widget(field_name).window
         ## FIXME: non funziona
-        self.master.mwidgets[field_name][1].emit('key-press-event',event)
+        self.get_widget(field_name).emit('key-press-event',event)
         
+    def debug_listore(self, listore):
+        j = 0
+        for l in listore:
+            iter = listore.get_iter_from_string(str(j))
+            print iter
+            print listore.get(iter,0), listore.get(iter,1), listore.get(iter,3)
+            j += 1
+
     def instance2list(self, R):
         ret = [getattr(R, i) for i in R.keys()]
         return ret
