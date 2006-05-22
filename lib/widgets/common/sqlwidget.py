@@ -70,7 +70,7 @@ class SqlWidget(object):
             
         ## only render when dimentions are complete
         self.w['Window'].show()
-        if self.Class == 'sdtable':
+        if self.__class__.__name__ == 'SdTable':
             self.show_myself()
             
     def _get_validator(self, valid):
@@ -82,7 +82,7 @@ class SqlWidget(object):
         ## layout
         #dbg.write('target', self.Class)
         lay = TableLayoutGenerator(self.fields, naked=naked, lay=lay,
-                                   target=self.Class).layout
+                                   target=self.__class__.__name__).layout
 
         self.layout = lay
         self.add_filter(visible=False)
@@ -95,7 +95,7 @@ class SqlWidget(object):
         self.lay_obj.prop('Window', 'visible', False)
         self.w       = self.lay_obj.show()
 
-        if self.Class == 'mask':
+        if self.__class__.__name__ == 'SqlMask':
             self._analize_widgets_in_layout()
             self._add_constraints_and_connect()
             self._add_colors_and_fonts()

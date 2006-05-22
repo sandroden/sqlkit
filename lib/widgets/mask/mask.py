@@ -26,7 +26,7 @@ FK_COLOR = gtk.gdk.color_parse('navyblue')
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
 
 class SdTable(sqlwidget.SqlWidget):
-    Class='sdtable'
+    #Class='sdtable'
     def show_myself(self):
         #print self.w
         print self.w['TV=tree']
@@ -34,7 +34,7 @@ class SdTable(sqlwidget.SqlWidget):
 class SqlMask (sqlwidget.SqlWidget):
     """doc string for sqlmask
     """
-    Class='mask'
+    #Class='mask'
     mwidgets = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
     labels   = None  # correspondance Label <-> EventBox
 #    map_record_n = 0  # number of the displayed record within mapper

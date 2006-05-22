@@ -26,7 +26,7 @@ class TableLayoutGenerator (object):
         if lay:
             self.layout = self._parse_and_complete(lay)
         else:
-            if target == 'mask':
+            if target == 'SqlMask':
                 self.layout = self.create ()
             else:
                 self.layout = self.create_for_table()
