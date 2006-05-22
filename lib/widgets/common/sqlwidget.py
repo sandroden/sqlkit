@@ -34,7 +34,8 @@ class SqlWidget(object):
                   constraint=None,
                   engine=None,
                   title=None,
-                  order_by=None
+                  order_by=None,
+                  show=True
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -46,6 +47,7 @@ class SqlWidget(object):
         mode:   ro|rw. When in read-only no save/delete is alllowed
         noup:   list of field-name that cannot be updated, may be a comma
                 separated str
+        show:   True|False
         """
         
         if engine:
@@ -62,17 +64,28 @@ class SqlWidget(object):
         self.title = self._get_title(title)
 #        self.tables = {}
         self.values = {}
-        self.completion = completion.Completion(self, )
+        self.completion = completion.Completion(self)
         ## create the interface and add obvious constraints
-        self.lay_obj, self.w  = self._get_layout(lay, naked)
-        if sql:
-            self.reload(sql)
+        self.naked = naked
+        self.lay   = lay
+        self.sql   = sql
+        if show:
+            self.show()
+            
+    def show(self):
+        """create the widget and go on displaying the layout
+        """
+        self.lay_obj, self.w  = self._get_layout(self.lay, self.naked)
+        if self.sql:
+            self.reload(self.sql)
             
         ## only render when dimentions are complete
         self.w['Window'].show()
-        if self.__class__.__name__ == 'SdTable':
-            self.show_myself()
+#         if self.__class__.__name__ == 'SdTable':
+#             self.show_myself()
             
+        
+
     def _get_validator(self, valid):
         if not valid:
             valid = validator.Validator()
