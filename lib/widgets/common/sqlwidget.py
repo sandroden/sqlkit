@@ -17,7 +17,7 @@ import sqlkit.validator as validator
 import sqlkit.parseopts as parseopts
 import sqlkit.completion as completion
 
-class SqlObj(object):
+class SqlWidget(object):
     fields   = None  # fields to use (InspectMapper)
 #    tables = None    # Table objects referenced as foreign keys
     values = None    # real value for foreign key (when lookup is displeyed instead)
