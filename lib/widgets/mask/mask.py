@@ -6,7 +6,7 @@ import layout
 import layout.dateedit as dateedit
 
 #import validator
-from layoutgenerator import TableLayoutGenerator
+from sqlkit.layoutgenerator import TableLayoutGenerator
 import gtk, pango
 from sqlalchemy import *
 import dbg.gtk_dbg
@@ -16,7 +16,7 @@ import sqlkit.inspect as inspect
 import sqlkit.validator as validator
 import sqlkit.parseopts as parseopts
 import sqlkit.completion as completion
-import sqlkit.sqlobj as sqlobj
+import sqlkit.sqlwidget as sqlwidget
 
 class FieldNotInLayout(Exception): pass
 
@@ -25,13 +25,13 @@ NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
 FK_COLOR = gtk.gdk.color_parse('navyblue')
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
 
-class SdTable(sqlobj.SqlObj):
+class SdTable(sqlwidget.SqlWidget):
     Class='sdtable'
     def show_myself(self):
         #print self.w
         print self.w['TV=tree']
     
-class SqlMask (sqlobj.SqlObj):
+class SqlMask (sqlwidget.SqlWidget):
     """doc string for sqlmask
     """
     Class='mask'
@@ -80,7 +80,7 @@ class SqlMask (sqlobj.SqlObj):
         # [1]: the gtkWidget
         if field_name not in self.mwidgets:
             return
-        widget = self.mwidgets[field_name][1]
+        widget = self.mwidgets[field_name]
 
         if self.fields[field_name]['fkey'] and field_name.endswith('_id'):
             self.values[field_name] = field_value
@@ -122,7 +122,7 @@ class SqlMask (sqlobj.SqlObj):
         if field_name not in self.mwidgets:
             raise FieldNotInLayout("field_name: %s" % (field_name))
         #dbg.write(field_name)
-        widget = self.mwidgets[field_name][1]
+        widget = self.mwidgets[field_name]
 
         ## give a try if we have stored a value
         try:
@@ -277,8 +277,10 @@ class SqlMask (sqlobj.SqlObj):
     def _analize_widgets_in_layout(self):
         """fill variables from layout
 
-        mwidgets: dict to store mask widgets
-                 key: field_name  value: ( gtkClass, widgetName )
+        mwidgets: dict to store mask widgets { field_name : gtk_widget }
+        also field that are not part of the table can be registered here
+        (eg: a field that is ony filled by entry_completion)
+                 
         """
         ## FIXME: does not work when renaming: euro.user_id -> euro_user_id
 
@@ -290,7 +292,7 @@ class SqlMask (sqlobj.SqlObj):
             for mod in ('e','d','r','m','c', 'TX'):
                 try:
                     widget = self.w["%s=%s" % (mod, field_name)]
-                    self.mwidgets[field_name] = (type(widget), widget)
+                    self.mwidgets[field_name] = widget
                 except:
                     pass
             # (gtkClass , gtkWidget)
@@ -316,7 +318,7 @@ class SqlMask (sqlobj.SqlObj):
             if field_name in self.mwidgets:
                 if not self.fields[field_name]['nullable'] or \
                        self.fields[field_name]['pkey'] :
-                    wdg_type, wdg = self.mwidgets[field_name]
+                    wdg = self.mwidgets[field_name]
                     wdg.modify_base(gtk.STATE_NORMAL, NOT_NULL_COLOR)
 
         for field_name in self.fields.keys():
@@ -356,7 +358,7 @@ class SqlMask (sqlobj.SqlObj):
             if field_name not in self.mwidgets:
                 #dbg.write("skip %s" % field_name)
                 continue
-            widget = self.mwidgets[field_name][1]
+            widget = self.mwidgets[field_name]
             if not widget:
                 #dbg.write("Per campo: %s manca widget %s" % (field_name, widget))
                 continue
