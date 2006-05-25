@@ -264,6 +264,7 @@ class InspectMapper(dict):
         return r
 
     def __str__(self):
+        #dbg.show_caller()
         return "InspectMapper for keys: %s" % self.keys()
         
 #     def get(self, record, field_name, n=0):
@@ -325,13 +326,18 @@ class InspectJoinMapper(InspectMapper):
         setattr(self, col.name,  d)
     
     def get_primary_table(self):
+        #dbg.show_caller()
         primarytable = self.mapper.primarytable
         while isinstance(primarytable, sqlalchemy.sql.Join):
             primarytable = primarytable.left
         table = primarytable.name
-        dbg.write('primarytable', table)
+        return table
+        #dbg.write('primarytable', table)
             
-def get_join_cnd(tables):
+def get_join_cnd(tables, mode='sa'):
+    """return a join condition of the sqlobj.Tables in tables
+    mode: sa (sqlalchemy objects) or 'str' (string)
+    """
     if len(tables) == 1:
         return []
     cnd = []
@@ -350,10 +356,54 @@ def get_join_cnd(tables):
         #dbg.write(t)
         for col in t.c:
             if col.foreign_key and col.foreign_key.column.table in tbls:
-                #dbg.write("col:", col, " -- fk:", col.foreign_key.column)
+                dbg.write("col:", col, " -- fk:", col.foreign_key.column)
                 cnd += [ col == col.foreign_key.column ]
-                #dbg.write(cnd)
-    return cnd
+                cnd_str = "%s.%s = %s.%s" % (col.table.name, col.name,
+                                             col.foreign_key.column.table.name,
+                                             col.foreign_key.column.name)
+                dbg.write(cnd_str)
+    if mode == 'sa':
+        return cnd
+    else:
+        return cnd_str
+
+def get_join_cnd_for_sync(t1, t2):
+    """return a join condition of the sqlobj.Tables in tables
+    the first table is the table that will issue the sync
+    mode: sa (sqlalchemy objects) or 'str' (string)
+    """
+    cnd = []
+    #dbg.write("tables:", tables)
+#    tbls = [col.table for col in t.c for t in tables]
+
+    tbls = {}  # which tables are used in these table that can really be joins
+    for t in [t1, t2]:
+        for col in t.c:
+            tbls[col.table] = col.table.name
+
+    for col in t1.c:
+        if col.foreign_key and col.foreign_key.column.table in tbls:
+            dbg.write("col:", col, " -- fk:", col.foreign_key.column)
+            cnd += [ col == col.foreign_key.column ]
+            cnd_str = "%s.%s = %s.%s" % (col.table.name, col.name,
+                    col.foreign_key.column.table.name,
+                    col.foreign_key.column.name)
+            dbg.write(cnd_str)
+    if cnd:
+        DIR = MANY2ONE 
+    else:
+        for col in t2.c:
+            if col.foreign_key and col.foreign_key.column.table in tbls:
+                dbg.write("col:", col, " -- fk:", col.foreign_key.column)
+                cnd += [ col == col.foreign_key.column ]
+                cnd_str = "%s.%s = %s.%s" % (col.table.name, col.name,
+                                             col.foreign_key.column.table.name,
+                                             col.foreign_key.column.name)
+                dbg.write(cnd_str)
+        if cnd:
+            DIR = ONE2MANY 
+
+    return (DIR, cnd)
 
 def get_props(mapper):
     props = []
