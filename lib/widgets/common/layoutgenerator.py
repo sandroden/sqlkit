@@ -17,7 +17,7 @@ class TableLayoutGenerator (object):
         str                   : 'e',
         }
     
-    def __init__ (self, fields, naked=False, lay=None, target='mask'):
+    def __init__ (self, fields, naked=False, lay=None, target='SqlMask'):
         """fields: an InspectMapper object
         target: mask or table
         """
@@ -106,7 +106,7 @@ class TableLayoutGenerator (object):
         # a 'naked' mask is a mask w/o buttons. Maybe buttons are define by the
         # programmer inside the layout, maybe are not desired
 
-        if self.target == 'mask':
+        if self.target == 'SqlMask':
             nav_buttons="tb=gtk-go-back tb=gtk-go-forward"
         else:
             nav_buttons=""

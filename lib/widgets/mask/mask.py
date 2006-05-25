@@ -69,6 +69,7 @@ class SqlMask (sqlwidget.SqlWidget):
         for field_name, value in data_in.iteritems():
             self._set_value(field_name, value)
         self.status = self.sqlData.get_current()
+        self.sync()
         
     def _set_value(self, field_name, field_value):
         """this is the method that knows how to handle different type of data
@@ -312,13 +313,14 @@ class SqlMask (sqlwidget.SqlWidget):
                 pass
             
     def _add_colors_and_fonts(self):
-        """add bg colors and onts to signal needed fields"""
+        """add bg colors and fonts to signal needed fields"""
 
         for field_name in self.fields.keys():
-            if field_name in self.mwidgets:
+            if field_name in self.mwidgets and self.fields[field_name]['edit']:
                 if not self.fields[field_name]['nullable'] or \
                        self.fields[field_name]['pkey'] :
                     wdg = self.mwidgets[field_name]
+                    #dbg.write(field_name)
                     wdg.modify_base(gtk.STATE_NORMAL, NOT_NULL_COLOR)
 
         for field_name in self.fields.keys():

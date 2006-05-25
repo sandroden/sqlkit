@@ -17,6 +17,8 @@ import sqlkit.validator as validator
 import sqlkit.parseopts as parseopts
 import sqlkit.completion as completion
 
+class NoSyncError(Exception): pass
+
 class SqlWidget(object):
     fields   = None  # fields to use (InspectMapper)
 #    tables = None    # Table objects referenced as foreign keys
@@ -52,7 +54,7 @@ class SqlWidget(object):
         single: this is a single application. connect a gtk.quit()
         """
         
-        self.sync_list = []
+        self.sync_dict = {}
         if engine:
             self.engine = engine
         self.order_by = order_by
@@ -209,18 +211,35 @@ class SqlWidget(object):
         pass
     
     def sync_add(self, sqlWidget):
-        self.sync_list += [sqlWidget]
+        # sqlWidget : (DIR, cnd_str, field_names )
+        DIR, cnd_str, field_names = inspect.get_join_cnd_for_sync(
+            self.mapper.primarytable, sqlWidget.mapper.primarytable)
+        self.sync_dict[sqlWidget] = (DIR, cnd_str, field_names )
+        dbg.write(cnd_str, field_names)
+#         if sqlWidget.get_pk() != field_names:
+#             raise NoSyncError("non campi suff per match %s != %s" % (sqlWidget.get_pk(), field_names))
 
     def sync(self):
         """emit a reload to other SqlWidgets so that they keep in sync"""
-        for w in self.sync_list:
-            sql = []
+        ## easy/simple (almost useless) case: we have a Many2One relation. A field
+        ## of primarytable has a fk to nother table
+        dbg.write()
+        for w, value in self.sync_dict.iteritems():
+            dbg.write(w, value)
+            DIR, sql, field_names = value
             val = {}
-            for field_name in w.get_pk():
-                sql += ["%s = :%s" % (field_name,field_name)]
+            for field_name in field_names:
                 val[field_name] = self._get_value(field_name)
-                dbg.write(sql)
-            w.reload(  sql =  (and_(*sql),val)   )
+                #w.reload(sql=(and_(sql), val)
+
+            w.reload(  sql =  (and_(*[sql]),val)   )
+
+#             for field_name in w.get_pk():
+#                 sql += ["%s = :%s" % (field_name,field_name)]
+#                 val[field_name] = self._get_value(field_name)
+#                 dbg.write(sql)
+#             w.reload(  sql =  (and_(*sql),val)   )
+
 
     def get_pk(self):
         """return the pkeys of the primarytable"""
