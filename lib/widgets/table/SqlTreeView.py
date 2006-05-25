@@ -11,7 +11,7 @@ from sqlalchemy import *
 from layout import *
 from datetime import datetime
 import sqlalchemy.types as sqltypes
-import sqlkit.sqlobj as sqlobj
+import sqlkit.sqlwidget as sqlwidget
 from sqlkit.layoutgenerator import TableLayoutGenerator
 import dbg
 
@@ -494,11 +494,11 @@ class SqlLayoutTreeView(SqlTreeView):
         return True
 
 
-class SqlObjTreeView(sqlobj.SqlObj, SqlTreeView):
+class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
     Class = "table"
 
     def _get_layout(self, lay, naked):
-        sqlobj.SqlObj._get_layout(self, lay, naked)
+        sqlwidget.SqlWidget._get_layout(self, lay, naked)
         self.mapToListStore()
         ## layout
         self.treeview = self.w["TV=tree"]
@@ -529,7 +529,86 @@ class SqlObjTreeView(sqlobj.SqlObj, SqlTreeView):
         """Delete a row and corresponding record"""
         self.deleteRow(widget)
 
+
+    def record_display(self):
+        pass
+    
+    #def reload(self, sql = None, params = None, limit=100):
+    #    
+    #    SqlTreeView.reload(self, None)
+
+
+    def setupTreeColumns(self):
+        print self.fields
+
+        #create and append columns
+        for i,v in enumerate(self.fields.keys()):
+            #print v['pkey'],v['pg_type'], v['pg_type'] == sqltypes.Integer
+            tvcolumn = gtk.TreeViewColumn(v.replace('_','__'))
+
+            #boolean -> checkbox
+            if self.fields[v]['pg_type'] == sqltypes.Boolean:
+                cell = gtk.CellRendererToggle()
+                tvcolumn.pack_start(cell, True)
+                tvcolumn.add_attribute(cell, 'active', i + 1)
+                cell.set_property('activatable', True)
+                cell.connect('toggled', self.toggled_signal, (self.liststore, i))
+            #primary key and integer do not show
+            elif (self.fields[v]['pg_type'] == sqltypes.Integer) and v['pkey']:
+                tvcolumn = gtk.TreeViewColumn()
+                tvcolumn.set_visible(False)
+            elif self.fields[v]['pg_type'] == sqltypes.DateTime:
+                cell = CellRendererDate()
+                cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+                cell.set_property('sensitive', False)
+                tvcolumn.pack_start(cell, True)
+                tvcolumn.add_attribute(cell, 'date', i + 1)
+                cell.connect('editing-started', self.date_editing_started, i + 1)
+                cell.connect('date-changed', self.date_changed, i + 1)
+            else:
+                cell = gtk.CellRendererText()
+                cell.set_property('editable', True)
+                cell.set_property('editable-set', True)
+                cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+                cell.connect('edited', self.edited_signal, (self.liststore, i))
+                cell.connect('editing-started', self.text_editing_started, i)
+                tvcolumn.pack_start(cell, True)
+                tvcolumn.add_attribute(cell, 'text', i + 1)
+
+            #tvcolumn.set_cell_data_func(cell, self.set_special_attributes, i)
+            #dbg.write(tvcolumn)
+            self.treeview.append_column(tvcolumn)
         
-    def reload(self, sql = None, params = None, limit=100):
-        
-        SqlTreeView.reload(self, None)
+
+    def show(self):
+        """create the widget and go on displaying the layout
+        """
+        self.reload(self.sql)
+        print self.sqlData
+        self.lay_obj, self.w  = self._get_layout(self.lay, self.naked)
+            
+        ## only render when dimentions are complete
+        self.w['Window'].show()
+
+    def mapToListStore(self):
+        self.coltypes = []
+        self.coltypes.extend([self.fields[v]['type'] for v in self.fields.keys()])
+        coltypes = []
+        # try to convert types to gobject types
+        for tp in self.coltypes:
+            try:
+                coltypes.append(gobject.type_from_name(gobject.type_name(tp)))
+            except TypeError:
+                coltypes.append(object)
+
+        print coltypes, self.coltypes
+        if self.liststore is None:
+            self.liststore = gtk.ListStore(*coltypes)
+        #fill up
+        for i in range(self.sqlData.count()):
+            values = self.sqlData.get(i, mode='dict')
+            #prepend r itself
+            #values.insert(0, i)
+            print "VALUES", values.keys()
+            #print "len listore", len(self.liststore[0])
+            self.liststore.append([values[k] for k in self.fields.keys()])

@@ -42,7 +42,7 @@ class SqlData(object):
             fields = self.mapper_info.fields
         self.field_list = fields
         
-        tables = mapper_info.tables()
+        #tables = mapper_info.tables()
         #for t in tables:
         #    dbg.write("Table: %s => %s" % (t, mapper_info.table_fields(t)))
         
