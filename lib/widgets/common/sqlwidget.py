@@ -35,7 +35,8 @@ class SqlWidget(object):
                   engine=None,
                   title=None,
                   order_by=None,
-                  show=True
+                  show=True,
+                  single=False
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -48,8 +49,10 @@ class SqlWidget(object):
         noup:   list of field-name that cannot be updated, may be a comma
                 separated str
         show:   True|False
+        single: this is a single application. connect a gtk.quit()
         """
         
+        self.sync_list = []
         if engine:
             self.engine = engine
         self.order_by = order_by
@@ -69,6 +72,7 @@ class SqlWidget(object):
         self.naked = naked
         self.lay   = lay
         self.sql   = sql
+        self.single = single
         if show:
             self.show()
             
@@ -125,7 +129,7 @@ class SqlWidget(object):
             'tb=gtk-new'        : self.record_clear,
             'tb=gtk-delete'     : self.record_delete,
             'tb=gtk-refresh'    : self.reload_cb,
-            'tb=gtk-quit'       : self.quit,
+            'tb=gtk-quit'       : self.delete_event,
             'tb=gtk-go-forward' : self.record_forward,
             'tb=gtk-go-back'    : self.record_back,
 
@@ -134,7 +138,7 @@ class SqlWidget(object):
             'b=gtk-new'        : self.record_clear,
             'b=gtk-delete'     : self.record_delete,
             'b=gtk-refresh'    : self.reload_cb,
-            'b=gtk-quit'       : self.quit,
+            'b=gtk-quit'       : self.delete_event,
             'b=gtk-go-forward' : self.record_forward,
             'b=gtk-go-back'    : self.record_back,
             }
@@ -202,7 +206,24 @@ class SqlWidget(object):
         """it doesn't make any sense here, but we need it to prevent
         _add_actions_to_button from failing"""
         pass
+    
+    def sync_add(self, sqlWidget):
+        self.sync_list += [sqlWidget]
 
+    def sync(self):
+        """emit a reload to other SqlWidgets so that they keep in sync"""
+        for w in self.sync_list:
+            sql = []
+            val = {}
+            for field_name in w.get_pk():
+                sql += ["%s = :%s" % (field_name,field_name)]
+                val[field_name] = self._get_value(field_name)
+                dbg.write(sql)
+            w.reload(  sql =  (and_(*sql),val)   )
+
+    def get_pk(self):
+        """return the pkeys of the primarytable"""
+        return self.fields.pkeys[self.fields.get_primary_table()]
 
 ####### Validation
     def digits_check_input_cb(self, widget, event):
@@ -217,13 +238,15 @@ class SqlWidget(object):
         
 
 ####### Misc
-    def quit(self, widget):
+    def delete_event(self, widget):
         """Quit operations: check if need to save first """
         ### fixme: must add cheks
         ### fixme2: must the toplevel be destrouyed (or is reparented?)
         #print widget
         self.w['Window'].destroy()
         self.filter_panel.destroy()
+        if self.single:
+            self.gquit()
         
     def gquit(self, *args):
         gtk.main_quit()
@@ -280,7 +303,7 @@ class SqlWidget(object):
                               ('inspect widgets', self.show_widget_info),
                               ('inspect class', self.show_class_info),
                               ('-', None),
-                              ('gtk-quit', self.quit)
+                              ('gtk-quit', self.delete_event)
                               )
     
 
