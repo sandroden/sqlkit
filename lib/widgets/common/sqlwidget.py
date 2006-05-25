@@ -111,6 +111,7 @@ class SqlWidget(object):
         #self.lay_obj.xml('/tmp/m.glade')
         self.lay_obj.prop('Window', 'visible', False)
         self.w       = self.lay_obj.show()
+        self.w['Window'].connect('delete_event', self.delete_event)
 
         if self.__class__.__name__ == 'SqlMask':
             self._analize_widgets_in_layout()
@@ -238,7 +239,7 @@ class SqlWidget(object):
         
 
 ####### Misc
-    def delete_event(self, widget):
+    def delete_event(self, *args):
         """Quit operations: check if need to save first """
         ### fixme: must add cheks
         ### fixme2: must the toplevel be destrouyed (or is reparented?)
