@@ -10,6 +10,7 @@ from layoutgenerator import TableLayoutGenerator
 import gtk, pango
 from sqlalchemy import *
 import dbg.gtk_dbg
+import sqlkit
 import sqlkit.sqlfilter as sqlfilter
 import sqlkit.sqldata as sqldata
 import sqlkit.inspect as inspect
@@ -82,7 +83,7 @@ class SqlWidget(object):
         """create the widget and go on displaying the layout
         """
         self.lay_obj, self.w  = self._get_layout(self.lay, self.naked)
-        if self.sql:
+        if self.sql or isinstance(self, sqlkit.table.SqlWidgetTreeView):
             self.reload(self.sql)
             
         ## only render when dimentions are complete
@@ -215,7 +216,7 @@ class SqlWidget(object):
         DIR, cnd_str, field_names = inspect.get_join_cnd_for_sync(
             self.mapper.primarytable, sqlWidget.mapper.primarytable)
         self.sync_dict[sqlWidget] = (DIR, cnd_str, field_names )
-        dbg.write(cnd_str, field_names)
+        #dbg.write(cnd_str, field_names)
 #         if sqlWidget.get_pk() != field_names:
 #             raise NoSyncError("non campi suff per match %s != %s" % (sqlWidget.get_pk(), field_names))
 
@@ -223,9 +224,9 @@ class SqlWidget(object):
         """emit a reload to other SqlWidgets so that they keep in sync"""
         ## easy/simple (almost useless) case: we have a Many2One relation. A field
         ## of primarytable has a fk to nother table
-        dbg.write()
+        #dbg.write()
         for w, value in self.sync_dict.iteritems():
-            dbg.write(w, value)
+            #dbg.write(w, value)
             DIR, sql, field_names = value
             val = {}
             for field_name in field_names:
