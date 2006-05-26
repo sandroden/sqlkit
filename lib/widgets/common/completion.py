@@ -99,7 +99,7 @@ class Completion(object):
         if self.master.fields[field_name]['fkey']:
             col_num = 3
             col_entry = 1   # col for data to be shown *in the entry*
-            col_dropdown = 2   # col for data to be shown *in the entry*
+            col_dropdown = 2   # col for data to be shown *in the dropdown*
             completion.add_attribute(renderer, 'text', 2)
         else:
             col_num = 1
@@ -121,7 +121,10 @@ class Completion(object):
             completion.insert_action_text(2,'regexp')
 
         completion.set_model(listore)
-        completion.set_inline_completion(True)
+        
+        #completion.set_inline_completion(True)  'Segfault'a in gtk2.6
+        completion.set_text_column(col_entry)
+        
         entry.set_completion(completion)
         return (listore, completion)
     
@@ -156,6 +159,7 @@ class Completion(object):
                     dbg.write("%s.set_text(%s)" % (field_name, value))
                     self.master.mwidgets[field_name].set_text(value)
                     #self.master._set_value(field_name, Rd[field_name]
+        return
 
     def match_func(self, completion, key, iter, func_data):
         column, mode = func_data
