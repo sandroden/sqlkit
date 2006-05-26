@@ -40,7 +40,7 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
         self.cal.select_day(self.date.day)
         self.w = gtk.Window()
         self.set_editable(False)
-        print "top level", self.get_toplevel()
+        dbg.write( "top level", self.get_toplevel() )
         #self.w.set_transient_for(self.get_toplevel())
         self.w.add(self.cal)
         self.w.connect("delete_event", self.delete_event)
@@ -295,7 +295,7 @@ class SqlTreeView(object):
 
     def keypress_event(self, treeview, event):
         accelname = gtk.accelerator_name(event.keyval, event.state)
-        print "key ", accelname
+        dbg.write( "key ", accelname)
         if accelname == 'Tab':
             self.tab_pressed(treeview)
             return True
@@ -333,6 +333,13 @@ class SqlTreeView(object):
     def date_changed(self, event, path, date, col):
         
         self.liststore[path][col] = date
+        #r = self.liststore[path][0]
+        #setattr(r, r.c.keys()[col - 1], date)
+        return True
+
+    def date_changed_michele(self, event, path, date, col):
+        
+        self.liststore[path][col] = date
         r = self.liststore[path][0]
         setattr(r, r.c.keys()[col - 1], date)
         return True
@@ -341,10 +348,21 @@ class SqlTreeView(object):
     def toggled_signal(self, cell, path, user_data):
         liststore, colnum = user_data
 
-        active = not liststore[path][colnum + 1]
+        active = not liststore[path][colnum ]
 
 
-        liststore[path][colnum + 1] = active
+        liststore[path][colnum ] = active
+#         r = liststore[path][0]
+#         setattr(r, r.c.keys()[colnum], active)
+        return True
+   
+    def toggled_signal_michele(self, cell, path, user_data):
+        liststore, colnum = user_data
+
+        active = not liststore[path][colnum +1 ]
+
+
+        liststore[path][colnum +1] = active
         r = liststore[path][0]
         setattr(r, r.c.keys()[colnum], active)
         return True
@@ -358,9 +376,28 @@ class SqlTreeView(object):
             return True
         
         try:
+            data = self.coltypes[colnum ](new_text)
+        except TypeError, e:
+            dbg.wtite(self.coltypes[colnum ])
+            data = str(new_text)
+	
+        liststore[path][colnum ] = data
+        #r = liststore[path][0]
+        #setattr(r, r.c.keys()[colnum], data)
+        #dbg.write(r.c.keys()[colnum] + ' ' + str(getattr(r,r.c.keys()[colnum])))
+        return True
+    
+    def edited_signal_michele(self, cell, path, new_text, user_data):
+        
+        liststore, colnum = user_data
+	
+        if self.deleting_row:
+            return True
+        
+        try:
             data = self.coltypes[colnum + 1](new_text)
         except TypeError, e:
-            print self.coltypes[colnum + 1]
+            dbg.write( self.coltypes[colnum + 1])
             data = str(new_text)
 	
         liststore[path][colnum + 1] = data
@@ -530,20 +567,56 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
         self.deleteRow(widget)
 
 
-    def record_display(self):
-        pass
-    
-    #def reload(self, sql = None, params = None, limit=100):
-    #    
-    #    SqlTreeView.reload(self, None)
-
-
     def setupTreeColumns(self):
-        print self.fields
+        #dbg.write(self.fields)
 
         #create and append columns
         for i,v in enumerate(self.fields.keys()):
-            #print v['pkey'],v['pg_type'], v['pg_type'] == sqltypes.Integer
+            #dbg.write( v['pkey'],v['pg_type'], v['pg_type'] == sqltypes.Integer
+            tvcolumn = gtk.TreeViewColumn(v.replace('_','__'))
+
+            #boolean -> checkbox
+            #dbg.write(self.fields[v]['pg_type'])
+            if self.fields[v]['type'] == bool:
+                cell = gtk.CellRendererToggle()
+                tvcolumn.pack_start(cell, True)
+                tvcolumn.add_attribute(cell, 'active', i )
+                cell.set_property('activatable', True)
+                cell.connect('toggled', self.toggled_signal, (self.liststore, i))
+            #primary key and integer do not show
+            elif (self.fields[v]['pg_type'] == sqltypes.Integer) and v['pkey']:
+                tvcolumn = gtk.TreeViewColumn()
+                tvcolumn.set_visible(False)
+            elif self.fields[v]['pg_type'] == sqltypes.DateTime:
+                cell = CellRendererDate()
+                cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+                cell.set_property('sensitive', False)
+                tvcolumn.pack_start(cell, True)
+                tvcolumn.add_attribute(cell, 'date', i )
+                cell.connect('editing-started', self.date_editing_started, i)
+                cell.connect('date-changed', self.date_changed, i )
+            else:
+                cell = gtk.CellRendererText()
+                cell.set_property('editable', True)
+                cell.set_property('editable-set', True)
+                cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+                cell.connect('edited', self.edited_signal, (self.liststore, i))
+                cell.connect('editing-started', self.text_editing_started, i)
+                tvcolumn.pack_start(cell, True)
+                tvcolumn.add_attribute(cell, 'text', i )
+
+            #tvcolumn.set_cell_data_func(cell, self.set_special_attributes, i)
+            #dbg.write(tvcolumn)
+            self.treeview.append_column(tvcolumn)
+        
+
+    def setupTreeColumns_michele(self):
+        dbg.write( self.fields)
+
+        #create and append columns
+        for i,v in enumerate(self.fields.keys()):
+            i = i-1
+            #dbg.write( v['pkey'],v['pg_type'], v['pg_type'] == sqltypes.Integer
             tvcolumn = gtk.TreeViewColumn(v.replace('_','__'))
 
             #boolean -> checkbox
@@ -580,15 +653,15 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
             self.treeview.append_column(tvcolumn)
         
 
-    def show(self):
-        """create the widget and go on displaying the layout
-        """
-        self.reload(self.sql)
-        print self.sqlData
-        self.lay_obj, self.w  = self._get_layout(self.lay, self.naked)
+#     def show(self):
+#         """create the widget and go on displaying the layout
+#         """
+#         self.reload(self.sql)
+#         dbg.write( self.sqlData
+#         self.lay_obj, self.w  = self._get_layout(self.lay, self.naked)
             
-        ## only render when dimentions are complete
-        self.w['Window'].show()
+#         ## only render when dimentions are complete
+#         self.w['Window'].show()
 
     def mapToListStore(self):
         self.coltypes = []
@@ -601,14 +674,19 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
             except TypeError:
                 coltypes.append(object)
 
-        print coltypes, self.coltypes
+        #dbg.write( coltypes, self.coltypes
         if self.liststore is None:
             self.liststore = gtk.ListStore(*coltypes)
         #fill up
+
+    def record_display(self):
+        #dbg.write()
+        self.liststore.clear()
         for i in range(self.sqlData.count()):
             values = self.sqlData.get(i, mode='dict')
             #prepend r itself
             #values.insert(0, i)
-            print "VALUES", values.keys()
-            #print "len listore", len(self.liststore[0])
+            #dbg.write("VALUES", values)
+            #dbg.write( "len listore", len(self.liststore[0])
             self.liststore.append([values[k] for k in self.fields.keys()])
+
