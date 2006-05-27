@@ -143,12 +143,18 @@ class CellRendererDate(gtk.CellRenderer):
     
     
     def date_formatter(self, date):
+        if date is None: return "--/--/--"
         return "%s/%s/%s" % (date.day, date.month, date.year)
     
     
     def do_start_editing(self, event, widget, path, background_area, cell_area, flags):
 
-        ce = CellEditableCalendar(date = self.date)
+        if self.date is None:
+            date = datetime.now()
+        else:
+            date = self.date
+            
+        ce = CellEditableCalendar(date = date)
         ce.show()
         ce.grab_focus()
         ce.connect('editing-done', self.editing_done, widget, path)
@@ -170,10 +176,15 @@ class CellRendererDate(gtk.CellRenderer):
         
         x_offset, y_offset, width, height = self.do_get_size(widget, cell_area)
         pl = self.do_pango_layout(widget)
-        widget.get_style().paint_layout(
-            window, gtk.STATE_NORMAL, True, cell_area, widget, 'foo',
-            cell_area.x + x_offset, cell_area.y + y_offset, pl
-        )
+        widget.get_style().paint_layout(window,
+                                        gtk.STATE_NORMAL,
+                                        True,
+                                        cell_area,
+                                        widget,
+                                        'foo',
+                                        cell_area.x + x_offset,
+                                        cell_area.y + y_offset,
+                                        pl)
 
     def do_set_property(self, gprop, value):
         setattr(self, gprop.name, value)
@@ -376,25 +387,6 @@ class SqlTreeView(object):
             return True
         
         try:
-            data = self.coltypes[colnum ](new_text)
-        except TypeError, e:
-            dbg.wtite(self.coltypes[colnum ])
-            data = str(new_text)
-	
-        liststore[path][colnum ] = data
-        #r = liststore[path][0]
-        #setattr(r, r.c.keys()[colnum], data)
-        #dbg.write(r.c.keys()[colnum] + ' ' + str(getattr(r,r.c.keys()[colnum])))
-        return True
-    
-    def edited_signal_michele(self, cell, path, new_text, user_data):
-        
-        liststore, colnum = user_data
-	
-        if self.deleting_row:
-            return True
-        
-        try:
             data = self.coltypes[colnum + 1](new_text)
         except TypeError, e:
             dbg.write( self.coltypes[colnum + 1])
@@ -559,8 +551,22 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
         return (self.lay_obj, self.w)
 
     def record_clear(self, widget=None):
-        """Create empty record in table to insert new data"""
-        self.insertRow(widget)
+        rowCommit = self.rowCommit
+        self.rowCommit = False
+        columns = self.treeview.get_columns()
+        for col in columns:
+            if col.get_visible():
+                break
+
+        self.treeview.get_toplevel().set_focus(None)
+        self.treeview.scroll_to_cell("0", col)
+        self.liststore.prepend()
+        self.treeview.set_cursor(path = "0",
+                                 focus_column = col,
+                                 start_editing = True)
+        self.rowCommit = rowCommit
+
+        return True
         
     def record_delete(self, widget=None):
         """Delete a row and corresponding record"""
@@ -576,18 +582,20 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
             tvcolumn = gtk.TreeViewColumn(v.replace('_','__'))
 
             #boolean -> checkbox
-            #dbg.write(self.fields[v]['pg_type'])
+            dbg.write(v + ': %s, %s ' % (self.fields[v]['pg_type'], str(self.fields[v]['type'])))
             if self.fields[v]['type'] == bool:
+                dbg.write('bool column')
                 cell = gtk.CellRendererToggle()
                 tvcolumn.pack_start(cell, True)
                 tvcolumn.add_attribute(cell, 'active', i )
                 cell.set_property('activatable', True)
                 cell.connect('toggled', self.toggled_signal, (self.liststore, i))
             #primary key and integer do not show
-            elif (self.fields[v]['pg_type'] == sqltypes.Integer) and v['pkey']:
+            elif (issubclass(self.fields[v]['pg_type'], sqltypes.Integer)) and self.fields[v]['pkey']:
                 tvcolumn = gtk.TreeViewColumn()
                 tvcolumn.set_visible(False)
-            elif self.fields[v]['pg_type'] == sqltypes.DateTime:
+            elif issubclass(self.fields[v]['pg_type'], (sqltypes.Date, sqltypes.DateTime)):
+                dbg.write('Date column')
                 cell = CellRendererDate()
                 cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
                 cell.set_property('sensitive', False)
@@ -610,58 +618,6 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
             self.treeview.append_column(tvcolumn)
         
 
-    def setupTreeColumns_michele(self):
-        dbg.write( self.fields)
-
-        #create and append columns
-        for i,v in enumerate(self.fields.keys()):
-            i = i-1
-            #dbg.write( v['pkey'],v['pg_type'], v['pg_type'] == sqltypes.Integer
-            tvcolumn = gtk.TreeViewColumn(v.replace('_','__'))
-
-            #boolean -> checkbox
-            if self.fields[v]['pg_type'] == sqltypes.Boolean:
-                cell = gtk.CellRendererToggle()
-                tvcolumn.pack_start(cell, True)
-                tvcolumn.add_attribute(cell, 'active', i + 1)
-                cell.set_property('activatable', True)
-                cell.connect('toggled', self.toggled_signal, (self.liststore, i))
-            #primary key and integer do not show
-            elif (self.fields[v]['pg_type'] == sqltypes.Integer) and v['pkey']:
-                tvcolumn = gtk.TreeViewColumn()
-                tvcolumn.set_visible(False)
-            elif self.fields[v]['pg_type'] == sqltypes.DateTime:
-                cell = CellRendererDate()
-                cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-                cell.set_property('sensitive', False)
-                tvcolumn.pack_start(cell, True)
-                tvcolumn.add_attribute(cell, 'date', i + 1)
-                cell.connect('editing-started', self.date_editing_started, i + 1)
-                cell.connect('date-changed', self.date_changed, i + 1)
-            else:
-                cell = gtk.CellRendererText()
-                cell.set_property('editable', True)
-                cell.set_property('editable-set', True)
-                cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-                cell.connect('edited', self.edited_signal, (self.liststore, i))
-                cell.connect('editing-started', self.text_editing_started, i)
-                tvcolumn.pack_start(cell, True)
-                tvcolumn.add_attribute(cell, 'text', i + 1)
-
-            #tvcolumn.set_cell_data_func(cell, self.set_special_attributes, i)
-            #dbg.write(tvcolumn)
-            self.treeview.append_column(tvcolumn)
-        
-
-#     def show(self):
-#         """create the widget and go on displaying the layout
-#         """
-#         self.reload(self.sql)
-#         dbg.write( self.sqlData
-#         self.lay_obj, self.w  = self._get_layout(self.lay, self.naked)
-            
-#         ## only render when dimentions are complete
-#         self.w['Window'].show()
 
     def mapToListStore(self):
         self.coltypes = []
@@ -690,3 +646,23 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
             #dbg.write( "len listore", len(self.liststore[0])
             self.liststore.append([values[k] for k in self.fields.keys()])
 
+
+    def edited_signal(self, cell, path, new_text, user_data):
+        
+        liststore, colnum = user_data
+	
+        if self.deleting_row:
+            return True
+        
+        try:
+            data = self.coltypes[colnum](new_text)
+        except TypeError, e:
+            dbg.write( self.coltypes[colnum])
+            data = str(new_text)
+	
+        liststore[path][colnum] = data
+        r = liststore[path][0]
+        #setattr(r, r.c.keys()[colnum], data)
+        #dbg.write(r.c.keys()[colnum] + ' ' + str(getattr(r,r.c.keys()[colnum])))
+        return True
+    
