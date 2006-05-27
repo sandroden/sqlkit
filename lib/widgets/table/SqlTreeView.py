@@ -40,7 +40,7 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
         self.cal.select_day(self.date.day)
         self.w = gtk.Window()
         self.set_editable(False)
-        dbg.write( "top level", self.get_toplevel() )
+        #dbg.write( "top level", self.get_toplevel() )
         #self.w.set_transient_for(self.get_toplevel())
         self.w.add(self.cal)
         self.w.connect("delete_event", self.delete_event)
@@ -76,7 +76,7 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
     
 gobject.type_register(CellEditableCalendar)    
 
-class CellRendererDate(gtk.CellRenderer):
+class CellRendererDate(gtk.GenericCellRenderer):
     date = None
 ##     editable = None
 
@@ -589,6 +589,17 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
                 tvcolumn.add_attribute(cell, 'date', i )
                 cell.connect('editing-started', self.date_editing_started, i)
                 cell.connect('date-changed', self.date_changed, i )
+            elif self.fields[v]['fkey'] and v.endswith('_id'):
+                # use set_fkey_descr function to put text in the cell if this is a foreign key
+                cell = gtk.CellRendererText()
+                cell.set_property('editable', False)
+                cell.set_property('editable-set', True)
+                #cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+                cell.connect('edited', self.edited_signal, (self.liststore, i))
+                cell.connect('editing-started', self.text_editing_started, i)
+                tvcolumn.pack_start(cell, True)
+                #tvcolumn.add_attribute(cell, 'text', i)
+                tvcolumn.set_cell_data_func(cell, self.set_fkey_descr, i)
             else:
                 cell = gtk.CellRendererText()
                 cell.set_property('editable', True)
@@ -598,13 +609,16 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
                 cell.connect('editing-started', self.text_editing_started, i)
                 tvcolumn.pack_start(cell, True)
                 tvcolumn.add_attribute(cell, 'text', i )
-
             #tvcolumn.set_cell_data_func(cell, self.set_special_attributes, i)
             #dbg.write(tvcolumn)
             self.treeview.append_column(tvcolumn)
         
 
-
+    def set_fkey_descr(self, column, cell, tree, iter, i):
+        fkey = tree.get(iter, i)[0]
+        field_name = self.fields.keys()[i]
+        cell.set_property('text', self.completion._lookup_value(field_name, fkey))
+        
     def mapToListStore(self):
         self.coltypes = []
         for v in self.fields.keys():
@@ -634,10 +648,11 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
             values = self.sqlData.get(i, mode='dict')
             l = []
             for k in self.fields.keys():
-                if self.fields[k]['fkey'] and k.endswith('_id'):
-                    l.append(self.completion._lookup_value(k, values[k]))
-                else:
-                    l.append(values[k])
+                l.append(values[k])
+##                 if self.fields[k]['fkey'] and k.endswith('_id'):
+##                     l.append(self.completion._lookup_value(k, values[k]))
+##                 else:
+##                     l.append(values[k])
 
             self.liststore.append(l)
 
