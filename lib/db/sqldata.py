@@ -96,7 +96,7 @@ class SqlData(object):
         a property representing a MANYTOONE relation it returns those values too,
         if the relation represent a ONETOMANY it calls itself recursevly.
         """
-        dbg.write(instance._managed_attributes)
+        #dbg.write(instance._managed_attributes)
         R = {}
         for f in instance.c.keys():
             R[f] = getattr(instance, f)

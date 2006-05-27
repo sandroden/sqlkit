@@ -329,7 +329,7 @@ class SqlTreeView(object):
     def text_editing_started(self, cell, editable, path, col):
 
         completion = editable.get_completion()
-
+        
         if completion is None:
             completion = gtk.EntryCompletion()
             self.set_completion_model(completion, self.liststore)
@@ -341,14 +341,8 @@ class SqlTreeView(object):
     def date_editing_started(self, cell, editable, path, col):
         return True
     
-    def date_changed(self, event, path, date, col):
-        
-        self.liststore[path][col] = date
-        #r = self.liststore[path][0]
-        #setattr(r, r.c.keys()[col - 1], date)
-        return True
 
-    def date_changed_michele(self, event, path, date, col):
+    def date_changed(self, event, path, date, col):
         
         self.liststore[path][col] = date
         r = self.liststore[path][0]
@@ -356,18 +350,8 @@ class SqlTreeView(object):
         return True
 
 
-    def toggled_signal(self, cell, path, user_data):
-        liststore, colnum = user_data
-
-        active = not liststore[path][colnum ]
-
-
-        liststore[path][colnum ] = active
-#         r = liststore[path][0]
-#         setattr(r, r.c.keys()[colnum], active)
-        return True
    
-    def toggled_signal_michele(self, cell, path, user_data):
+    def toggled_signal(self, cell, path, user_data):
         liststore, colnum = user_data
 
         active = not liststore[path][colnum +1 ]
@@ -525,6 +509,7 @@ class SqlLayoutTreeView(SqlTreeView):
 
 class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
     Class = "table"
+    mod_path = None
 
     def _get_layout(self, lay, naked):
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
@@ -558,10 +543,11 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
             if col.get_visible():
                 break
 
+        dbg.write(dir(self.liststore))
         self.treeview.get_toplevel().set_focus(None)
-        self.treeview.scroll_to_cell("0", col)
-        self.liststore.prepend()
-        self.treeview.set_cursor(path = "0",
+        path = self.liststore.get_path(self.liststore.append())
+        self.treeview.scroll_to_cell(path, col)
+        self.treeview.set_cursor(path = path,
                                  focus_column = col,
                                  start_editing = True)
         self.rowCommit = rowCommit
@@ -630,27 +616,23 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
             except TypeError:
                 coltypes.append(object)
 
-        #dbg.write( coltypes, self.coltypes
+
         if self.liststore is None:
             self.liststore = gtk.ListStore(*coltypes)
-        #fill up
+
 
     def record_display(self):
-        #dbg.write()
         self.liststore.clear()
         for i in range(self.sqlData.count()):
             values = self.sqlData.get(i, mode='dict')
-            #prepend r itself
-            #values.insert(0, i)
-            #dbg.write("VALUES", values)
-            #dbg.write( "len listore", len(self.liststore[0])
             self.liststore.append([values[k] for k in self.fields.keys()])
 
 
     def edited_signal(self, cell, path, new_text, user_data):
         
         liststore, colnum = user_data
-	
+
+	self.mod_path = path
         if self.deleting_row:
             return True
         
@@ -661,8 +643,48 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
             data = str(new_text)
 	
         liststore[path][colnum] = data
-        r = liststore[path][0]
-        #setattr(r, r.c.keys()[colnum], data)
-        #dbg.write(r.c.keys()[colnum] + ' ' + str(getattr(r,r.c.keys()[colnum])))
         return True
     
+
+    def toggled_signal(self, cell, path, user_data):
+        liststore, colnum = user_data
+
+        active = not liststore[path][colnum ]
+
+
+        liststore[path][colnum ] = active
+        return True
+
+    def date_changed(self, event, path, date, col):
+        
+        self.liststore[path][col] = date
+        return True
+
+    def selection_changed_cb(self, treeselection):
+        if self.mod_path is None:
+            return False
+        
+        if self.rowCommit:
+            self.record_save()
+            objectstore.commit()
+            self.mod_path = None
+        return False
+
+    def record_save(self, ev = None):
+        rdict = self.path2dict(self.mod_path)
+        if int(self.mod_path) > self.sqlData.count() - 1:
+            dbg.write("INSERTING record")
+            self.sqlData.add(rdict)
+        else:
+            dbg.write("UPDATING record")
+            self.sqlData.set(rdict, index=int(self.mod_path))
+
+    def path2dict(self, path):
+        dbg.write(path)
+        rdict = dict(map(None, self.fields.keys(),
+                 self.liststore[path]))
+        for k in rdict.keys():
+            if self.fields[k]['pkey']:
+                del rdict[k]
+        return rdict
+    ##
