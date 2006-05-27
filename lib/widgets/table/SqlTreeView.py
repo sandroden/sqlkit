@@ -607,8 +607,15 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
 
     def mapToListStore(self):
         self.coltypes = []
-        self.coltypes.extend([self.fields[v]['type'] for v in self.fields.keys()])
+        for v in self.fields.keys():
+            if self.fields[v]['fkey'] and v.endswith('_id'):
+                ftype = type(self.completion._lookup_value(v, ''))
+            else:
+                ftype = self.fields[v]['type']
+            self.coltypes.append(ftype)
+            
         coltypes = []
+        
         # try to convert types to gobject types
         for tp in self.coltypes:
             try:
@@ -625,8 +632,14 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
         self.liststore.clear()
         for i in range(self.sqlData.count()):
             values = self.sqlData.get(i, mode='dict')
-            self.liststore.append([values[k] for k in self.fields.keys()])
+            l = []
+            for k in self.fields.keys():
+                if self.fields[k]['fkey'] and k.endswith('_id'):
+                    l.append(self.completion._lookup_value(k, values[k]))
+                else:
+                    l.append(values[k])
 
+            self.liststore.append(l)
 
     def edited_signal(self, cell, path, new_text, user_data):
         
