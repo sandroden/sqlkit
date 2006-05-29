@@ -38,20 +38,30 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
         self.cal = gtk.Calendar()
         self.cal.select_month(self.date.month - 1, self.date.year)
         self.cal.select_day(self.date.day)
-        self.w = gtk.Window()
+        self.w = gtk.Window(gtk.WINDOW_POPUP)
         self.set_editable(False)
         #dbg.write( "top level", self.get_toplevel() )
-        #self.w.set_transient_for(self.get_toplevel())
+        #self.w.set_transient_for(self)
         self.w.add(self.cal)
-        self.w.connect("delete_event", self.delete_event)
+        #self.w.connect("delete_event", self.delete_event)
         self.cal.connect("day-selected-double-click", self.delete_event)
         self.cal.connect("event", self.cal_event)
         self.show_all()
         self.grab_focus()
         self.w.show_all()
+        self.connect('key-press-event', self.keypress_event)
+        
+    def keypress_event(self, w, event):
+        accelname = gtk.accelerator_name(event.keyval, event.state)
+        if accelname == 'Delete':
+            self.date = None
+            self.emit('editing-done')
+            return True
+        
+        return False
         
     def cal_event(self, w, e):
-        text = "%s/%s/%s" % (self.cal.get_date()[2],
+        text = "%02d/%02d/%d" % (self.cal.get_date()[2],
                              self.cal.get_date()[1] + 1,
                              self.cal.get_date()[0])
         tb = self.get_buffer()
@@ -64,11 +74,18 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
     def do_remove_widget(self):
         pass
 
+    def do_stop_editing(self):
+        
+        self.w.destroy()
+        self.destroy()
 
     def do_editing_done(self):
+        self.w.destroy()
+        self.destroy()
         pass
 
     def delete_event(self, w = None, e = None):
+        self.date=self.cal.get_date()
         self.emit('editing-done')
         self.w.destroy()
         self.destroy()
@@ -144,7 +161,7 @@ class CellRendererDate(gtk.GenericCellRenderer):
     
     def date_formatter(self, date):
         if date is None: return "--/--/--"
-        return "%s/%s/%s" % (date.day, date.month, date.year)
+        return "%02d/%02d/%d" % (date.day, date.month, date.year)
     
     
     def do_start_editing(self, event, widget, path, background_area, cell_area, flags):
@@ -163,11 +180,14 @@ class CellRendererDate(gtk.GenericCellRenderer):
 
     def editing_done(self, widget, treeview, path):
 
-        tdate = list(widget.cal.get_date())
-        tdate[1] += 1
-        self.date = datetime(*tuple(tdate))
-
-        self.stop_editing(False)
+        if type(widget.date) is tuple:
+            tdate = list(widget.date)
+            tdate[1] += 1
+            self.date = datetime(*tuple(tdate))
+        elif widget.date is None:
+            self.date = None
+            
+        self.stop_editing(True)
         self.emit('date-changed', path, self.date)
         return True
 
@@ -275,34 +295,6 @@ class SqlTreeView(object):
         """Initializes keyboard accelerators"""
 
         self.treeview.connect('key-press-event', self.keypress_event)
-
-    def tab_pressed(self, treeview):
-        path, col = self.treeview.get_cursor()
-        columns = self.treeview.get_columns()
-        colnum = columns.index(col)
-        if colnum + 1 < len(columns):
-            gobject.idle_add(self.treeview.set_cursor, path, columns[colnum+1], True)
-        else:
-            tmodel = self.treeview.get_model()
-            titer = tmodel.iter_next(tmodel.get_iter(path))
-            if titer is None:
-                titer = tmodel.get_iter_first()
-            path = tmodel.get_path(titer)
-            gobject.idle_add(self.treeview.set_cursor, path, columns[0], True)
-        return
-
-    def ltab_pressed(self, treeview):
-        path, col = self.treeview.get_cursor()
-        columns = self.treeview.get_columns()
-        colnum = columns.index(col)
-        if colnum - 1 >= 0:
-            gobject.idle_add(self.treeview.set_cursor, path, columns[colnum-1], True)
-        else:
-            path = (path[0] - 1,)
-            if path[0] < 0:
-                path = (len(treeview.get_model()) - 1,)
-            gobject.idle_add(self.treeview.set_cursor, path, columns[-1], True)
-        return
 
     def keypress_event(self, treeview, event):
         accelname = gtk.accelerator_name(event.keyval, event.state)
@@ -592,8 +584,8 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
             elif self.fields[v]['fkey'] and v.endswith('_id'):
                 # use set_fkey_descr function to put text in the cell if this is a foreign key
                 cell = gtk.CellRendererText()
-                cell.set_property('editable', False)
-                cell.set_property('editable-set', True)
+                cell.set_property('editable', True)
+                #cell.set_property('editable-set', True)
                 #cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
                 cell.connect('edited', self.edited_signal, (self.liststore, i))
                 cell.connect('editing-started', self.text_editing_started, i)
@@ -642,6 +634,13 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
             self.liststore = gtk.ListStore(*coltypes)
 
 
+    def reload(self, *args, **kwargs):
+        rowCommit = self.rowCommit
+        self.rowCommit = None
+        ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
+        self.rowCommit = rowCommit
+        return ret
+                                         
     def record_display(self):
         self.liststore.clear()
         for i in range(self.sqlData.count()):
@@ -660,8 +659,15 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
         
         liststore, colnum = user_data
 
-	self.mod_path = path
+
         if self.deleting_row:
+            return True
+
+
+        if self.fields[self.fields.keys()[colnum]]['fkey']:
+            return True
+        
+        if self.mod_path is None:
             return True
         
         try:
@@ -669,13 +675,15 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
         except TypeError, e:
             dbg.write( self.coltypes[colnum])
             data = str(new_text)
-	
+
         liststore[path][colnum] = data
         return True
     
 
     def toggled_signal(self, cell, path, user_data):
         liststore, colnum = user_data
+
+	self.mod_path = path
 
         active = not liststore[path][colnum ]
 
@@ -684,6 +692,7 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
         return True
 
     def date_changed(self, event, path, date, col):
+	self.mod_path = path
         
         self.liststore[path][col] = date
         return True
@@ -715,4 +724,67 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
             if self.fields[k]['pkey']:
                 del rdict[k]
         return rdict
+
+    def set_value(self, field_name, value):
+        if field_name not in self.fields.keys():
+            return
+        
+        if not self.fields[field_name]['fkey']:
+            return
+
+        dbg.write(field_name, value, self.mod_path)
+        try:
+            idx = self.fields.keys().index(field_name)
+            dbg.write(idx)
+            self.liststore[self.mod_path][idx] = value
+        except ValueError:
+            dbg.write('Value Error')
+            pass
+        
+        #self.mod_path = None
+
+    def text_editing_started(self, cell, editable, path, col):
+        field_type = self.coltypes[col]
+        field_name = self.fields.keys()[col]
+        field_props = self.fields[field_name]
+        if field_type == str or field_props['fkey']:
+                #dbg.write("aggiungo <3> per %s" % (field_name))
+                #editable.connect('button-press-event',self.completion.pop_menu,
+                #               field_name, 3)
+                editable.connect('key-press-event',
+                               self.completion.entry_short_cut_event,
+                               field_name, 'F1')
+                
+        self.mod_path = path
+        return True
+    
+    def tab_pressed(self, treeview):
+        path, col = self.treeview.get_cursor()
+        columns = self.treeview.get_columns()
+        colnum = columns.index(col)
+        if colnum + 1 < len(columns):
+            gobject.idle_add(self.treeview.set_cursor, path, columns[colnum + 1], True)
+        else:
+            tmodel = self.treeview.get_model()
+            titer = tmodel.iter_next(tmodel.get_iter(path))
+            if titer is None:
+                titer = tmodel.get_iter_first()
+            path = tmodel.get_path(titer)
+            gobject.idle_add(self.treeview.set_cursor, path, columns[1], True)
+        return
+
+    def ltab_pressed(self, treeview):
+        path, col = self.treeview.get_cursor()
+        columns = self.treeview.get_columns()
+        colnum = columns.index(col)
+        if colnum - 1 >= 0:
+            gobject.idle_add(self.treeview.set_cursor, path, columns[colnum - 1], True)
+        else:
+            path = (path[0] - 1,)
+            if path[0] < 0:
+                path = (len(treeview.get_model()) - 1,)
+            gobject.idle_add(self.treeview.set_cursor, path, columns[-1], True)
+        return
+
+
     ##

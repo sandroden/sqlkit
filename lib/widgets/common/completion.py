@@ -74,7 +74,7 @@ class Completion(object):
         if self.master.__class__.__name__ == 'SqlMask':
             return self.master.mwidgets[field_name]
         
-    def add_completion(self, field_name, mode):
+    def add_completion(self, field_name, mode, wdg = None):
         """ add a completionEntry to an Entry
         return a listore to be filled
 
@@ -84,7 +84,11 @@ class Completion(object):
         used in the field
         """
 
-        entry = self.get_widget(field_name)
+        if wdg is None:
+            entry = self.get_widget(field_name)
+        else:
+            entry = wdg
+            
         completion = entry.get_completion()
         if completion:
             return (completion.get_model(), completion)
@@ -141,14 +145,17 @@ class Completion(object):
             Rd = model.get(iter,3)[0]
             dbg.write("Rd", Rd)
             ## reset the show value
-            Rd[field_name] = show_value
+            ##Rd[field_name] = show_value
         else:
             show_value = model.get(iter,0)[0]
             Rd = {field_name : show_value }
 
         self.set_text(Rd)
 
-
+    ## FIXME for Sandro: use virtual methods by calling master.set_value
+    ## instead of checking type of master class
+    ## see the else case.
+    ## suggested name "set_value" for this method (mcm)
     def set_text(self, Rd):
         """sets the values of field read by the select
         """
@@ -159,6 +166,11 @@ class Completion(object):
                     dbg.write("%s.set_text(%s)" % (field_name, value))
                     self.master.mwidgets[field_name].set_text(value)
                     #self.master._set_value(field_name, Rd[field_name]
+        else:
+            dbg.write(Rd)
+            for field_name, value in Rd.iteritems():
+                dbg.write(field_name, value)
+                self.master.set_value(field_name, value)
         return
 
     def match_func(self, completion, key, iter, func_data):
@@ -217,7 +229,10 @@ class Completion(object):
         """
         #print "show_possible_values %s" % field_name
         sql_dict = {}
-        sql_dict['val'] = self.get_widget(field_name).get_text()
+        #wdg = self.get_widget(field_name)
+        sql_dict['val'] = wdg.get_text()
+        #sql_dict['val'] = self.get_widget(field_name).get_text()
+            
         if mode == 'start':
             sql_dict['oper'] = 'ILIKE'
             val = '%'
@@ -229,7 +244,7 @@ class Completion(object):
 
         sql_dict['field_name'] = field_name
             
-        listore, completion = self.add_completion(field_name, mode)
+        listore, completion = self.add_completion(field_name, mode, wdg)
         listore.clear()
         ret = self.select_values(field_name, sql_dict)
         for R in ret:
@@ -249,13 +264,13 @@ class Completion(object):
 #        completion.complete()
         event =   gtk.gdk.Event(gtk.gdk.KEY_PRESS)
         event.keyval = gtk.keysyms.period  #ord(".")
-        event.window = self.get_widget(field_name).window
-        self.get_widget(field_name).emit('key-press-event',event)
+        event.window = wdg.window
+        wdg.emit('key-press-event',event)
         event.keyval = gtk.keysyms.BackSpace
         event.hardware_keycode = 22
         #event.window = self.get_widget(field_name).window
         ## FIXME: non funziona
-        self.get_widget(field_name).emit('key-press-event',event)
+        wdg.emit('key-press-event',event)
         
     def debug_listore(self, listore):
         j = 0
