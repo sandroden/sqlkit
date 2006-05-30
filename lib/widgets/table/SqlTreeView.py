@@ -29,7 +29,7 @@ import gtk, gobject, pango
 
 class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
     date = None
-    def __init__(self, date):
+    def __init__(self, date, pos=None):
 
         self.date = date
         
@@ -39,6 +39,10 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
         self.cal.select_month(self.date.month - 1, self.date.year)
         self.cal.select_day(self.date.day)
         self.w = gtk.Window(gtk.WINDOW_POPUP)
+        self.w.set_gravity(gtk.gdk.GRAVITY_NORTH_WEST)
+
+        x, y = pos
+        self.w.move(int(x)+50, int(y)+120)
         self.set_editable(False)
         #dbg.write( "top level", self.get_toplevel() )
         #self.w.set_transient_for(self)
@@ -171,7 +175,7 @@ class CellRendererDate(gtk.GenericCellRenderer):
         else:
             date = self.date
             
-        ce = CellEditableCalendar(date = date)
+        ce = CellEditableCalendar(date = date, pos=(event.x, event.y))
         ce.show()
         ce.grab_focus()
         ce.connect('editing-done', self.editing_done, widget, path)
@@ -404,9 +408,10 @@ class SqlTreeView(object):
         self.deleting_row = True
         def do_del(tm, path, iter):
 
-            tm[path][0].delete()
+            self.sqlData.delete(index=tm[path][0])
             del tm[path]
-
+            self.commit()
+            
         sel = self.treeview.get_selection()
         sel.selected_foreach(do_del)
         self.deleting_row = False
@@ -549,7 +554,7 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
     def record_delete(self, widget=None):
         """Delete a row and corresponding record"""
         self.deleteRow(widget)
-
+        self.sb("total N. of records: %s" % len(self.liststore))
 
     def setupTreeColumns(self):
         #dbg.write(self.fields)
@@ -654,6 +659,8 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
 ##                     l.append(values[k])
 
             self.liststore.append(l)
+            dbg.write(l)
+            self.sb("Total N. of records: %s" % (len(self.liststore)))
 
     def edited_signal(self, cell, path, new_text, user_data):
         
