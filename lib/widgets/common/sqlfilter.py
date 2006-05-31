@@ -21,8 +21,8 @@ class FilterPanel(object):
         """issue a reload operation on master. Call back of reload button"""
         #sql, bind_params = self.sql()
         sql = self.sql()
-        #dbg.write(sql)
-        self.master.reload(sql=sql )
+        dbg.write(sql)
+        self.master.reload(sql=sql, limit=self.get_limit() )
         limit=100
         #dbg.write("%s type: %s" % (bind_params, type(bind_params)))
         #self.master.reload(sql=(sql, bind_params), limit=limit )
@@ -40,7 +40,9 @@ class FilterPanel(object):
         self.l.prop('O.a', 'show_arrow', 'FALSE')
         self.l.prop('O.a', 'toolbar_style', 'gtk.TOOLBAR_ICONS')
         self.w = self.l.show(x=self.hide)
-        self.w['s=limit'].set_value(100)
+        self.w['s=limit'].set_value(self.master.limit)
+        adj = self.w['s=limit'].get_adjustment()
+        adj.upper = 10000
         self.l.menu('m=opts',
                     ('-', None,),
                     ('gtk-close', self.hide),
@@ -110,6 +112,9 @@ class FilterPanel(object):
         if show:
             self.w['Window'].show_all()
     
+    def get_limit(self):
+        return  self.w['s=limit'].get_value_as_int()
+    
     def pop_menu(self, wdg, ev, num_button):
         #print "pop_menu", wdg, ev
         if ev.button == num_button:
@@ -171,8 +176,8 @@ class FilterPanel(object):
         fld['value'] = value
         sql = F[fld['field']]['col'].op(fld['op_value'])(value)
         #dbg.write(fld)
-        if fld['field'].endswith('_id'):
-            info = self.master.fields[fld['field']]
+        info = self.master.fields[fld['field']]
+        if fld['field'].endswith('_id') and info['fkey']:
             fld['ftable'], fld['fname'] = info['fkey']
             fld['fdescr'] = self.master.completion._add_descriptor_fields(
                 mode='return', table_name=fld['ftable'])
