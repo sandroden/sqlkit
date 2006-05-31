@@ -47,25 +47,32 @@ class Completion(object):
         self.master = master
 #        self.tables = {}
         self.listores = {}  ## needed for entry_completion
+        self.lookup_values = {}
         
     def _lookup_value(self, field_name, field_value):
         """retrieve the value in a lookup table in case of foreign_key
         """
         if not field_value:
             return ''
-        #dbg.write("%s %s" % (field_name,field_value))
-        ftable, fname = self.master.fields[field_name]['fkey']
-        sql = "SELECT %s FROM %s WHERE %s = :%s" % (
-            self._add_descriptor_fields(mode='return', table_name=ftable),
-            ftable, fname, fname)
-        t = text(sql, engine=self.master.engine)
-        ret = t.execute(**{fname : field_value})
-        j = 0
-        for R in ret:
-            value = R[0]
-            j += 1
-        if not j == 1:
-            raise LookupValueNotReturningOneValue("%s returns %s values" % (sql, j))
+        try:
+            return self.lookup_values[field_name][field_value]
+        except:
+            #dbg.write("%s %s" % (field_name,field_value))
+            ftable, fname = self.master.fields[field_name]['fkey']
+            sql = "SELECT %s FROM %s WHERE %s = :%s" % (
+                self._add_descriptor_fields(mode='return', table_name=ftable),
+                ftable, fname, fname)
+            t = text(sql, engine=self.master.engine)
+            ret = t.execute(**{fname : field_value})
+            j = 0
+            for R in ret:
+                value = R[0]
+                j += 1
+                if not j == 1:
+                    raise LookupValueNotReturningOneValue("%s returns %s values" % (sql, j))
+            if not field_name in self.lookup_values:
+                self.lookup_values[field_name] = {}
+            self.lookup_values[field_name][field_value] = value
         return value
     
     def get_widget(self, field_name):
@@ -127,7 +134,7 @@ class Completion(object):
         completion.set_model(listore)
         
         #completion.set_inline_completion(True)  'Segfault'a in gtk2.6
-        completion.set_text_column(col_entry)
+        #completion.set_text_column(col_entry)
         
         entry.set_completion(completion)
         return (listore, completion)
