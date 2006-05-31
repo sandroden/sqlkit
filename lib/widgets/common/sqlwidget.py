@@ -19,6 +19,7 @@ import sqlkit.parseopts as parseopts
 import sqlkit.completion as completion
 
 class NoSyncError(Exception): pass
+class MissingEngine(Exception): pass
 
 class SqlWidget(object):
     fields   = None  # fields to use (InspectMapper)
@@ -31,6 +32,7 @@ class SqlWidget(object):
                   naked=False,
                   table=None,
                   tables=None,
+                  join=None,
                   mode='rw',
                   noup=None,
                   sql=None,
@@ -39,7 +41,10 @@ class SqlWidget(object):
                   title=None,
                   order_by=None,
                   show=True,
-                  single=False
+                  single=False,
+                  limit=100,
+                  nick=None,
+                  mwidgets=None
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -53,11 +58,13 @@ class SqlWidget(object):
                 separated str
         show:   True|False
         single: this is a single application. connect a gtk.quit()
+        nick is just for debug purpouse
         """
-        
+
+        self.nick= nick
+        self.mwidgets = mwidgets
         self.sync_dict = {}
-        if engine:
-            self.engine = engine
+        self.engine = self.get_engine(engine, mapper)
         self.order_by = order_by
         ## we can use singular or plural as an option, plural in the code
         if table and not tables:
@@ -76,6 +83,7 @@ class SqlWidget(object):
         self.lay   = lay
         self.sql   = sql
         self.single = single
+        self.limit=limit
         if show:
             self.show()
             
@@ -84,15 +92,24 @@ class SqlWidget(object):
         """
         self.lay_obj, self.w  = self._get_layout(self.lay, self.naked)
         if self.sql or isinstance(self, sqlkit.table.SqlWidgetTreeView):
-            self.reload(self.sql)
+            self.reload(self.sql, limit=self.limit)
             
         ## only render when dimentions are complete
         self.w['Window'].show()
-#         if self.__class__.__name__ == 'SdTable':
-#             self.show_myself()
-            
-        
-
+                
+    def get_engine(self, engine, mapper):
+        if not engine:
+            if mapper:
+                engine = mapper.primarytable.engine
+            else:
+                try:
+                    engine = schema.default_engine.get_engine()
+                except:
+                    msg = "You may want to use globalconn when creating engine"
+                    raise MissingEngine(msg)
+                
+        return engine
+    
     def _get_validator(self, valid):
         if not valid:
             valid = validator.Validator()
@@ -101,8 +118,12 @@ class SqlWidget(object):
     def _get_layout(self, lay, naked):
         ## layout
         #dbg.write('target', self.Class)
+        if isinstance(self, sqlkit.SqlMask):
+            target = 'SqlMask'
+        else:
+            target = 'SqlTable'
         lay = TableLayoutGenerator(self.fields, naked=naked, lay=lay,
-                                   target=self.__class__.__name__).layout
+                                   target=target).layout
 
         self.layout = lay
         self.add_filter(visible=False)
@@ -190,17 +211,33 @@ class SqlWidget(object):
         else:
             sql_str = sql
             params = None
-        #dbg.write("SQL", sql_str, 'params', params)
+        #dbg.write("SQL", sql_str, 'params', params, 'limit:', limit)
         #self.mapper.table.engine.echo = True
-        records = self.mapper.select(sql_str, params=params, order_by=self.order_by)
+        records = self.mapper.select(sql_str, params=params,
+                                     order_by=self.order_by,
+                                     limit=limit)
         #records = self.mapper.select_by(sql)
         #self.mapper.table.engine.echo = False
+        if isinstance(self, sqlkit.SqlMask):
+            self.record_clear()
         self.sqlData = sqldata.SqlData(records, mapper_info=self.fields)
         self.record_display()
+        return self.sqlData.count()
+    
     def reload_cb(self, widget):
         """issue a reload operation on master. Call back of reload button"""
         #limit=100
         self.reload( )
+
+    def commit(self):
+        if dbg.debug():
+            PREV = self.engine.echo
+            self.engine.echo = True
+            objectstore.commit()
+            self.engine.echo = PREV
+        else:
+            objectstore.commit()
+        
 
     def record_forward(self):
         """it doesn't make any sense here, but we need it to prevent
@@ -234,13 +271,6 @@ class SqlWidget(object):
                 #w.reload(sql=(and_(sql), val)
 
             w.reload(  sql =  (and_(*[sql]),val)   )
-
-#             for field_name in w.get_pk():
-#                 sql += ["%s = :%s" % (field_name,field_name)]
-#                 val[field_name] = self._get_value(field_name)
-#                 dbg.write(sql)
-#             w.reload(  sql =  (and_(*sql),val)   )
-
 
     def get_pk(self):
         """return the pkeys of the primarytable"""
