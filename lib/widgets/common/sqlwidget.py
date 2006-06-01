@@ -19,6 +19,7 @@ import sqlkit.parseopts as parseopts
 import sqlkit.completion as completion
 
 class NoSyncError(Exception): pass
+class SyncNotAvailable(Exception): pass
 class MissingEngine(Exception): pass
 
 class SqlWidget(object):
@@ -44,7 +45,7 @@ class SqlWidget(object):
                   single=False,
                   limit=100,
                   nick=None,
-                  mwidgets=None
+#                  mwidgets=None
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -62,7 +63,7 @@ class SqlWidget(object):
         """
 
         self.nick= nick
-        self.mwidgets = mwidgets
+#        self.mwidgets = mwidgets
         self.sync_dict = {}
         self.engine = self.get_engine(engine, mapper)
         self.order_by = order_by
@@ -82,6 +83,7 @@ class SqlWidget(object):
         self.naked = naked
         self.lay   = lay
         self.sql   = sql
+        self.sqlData = sqldata.SqlData(None, mapper_info=self.fields)
         self.single = single
         self.limit=limit
         if show:
@@ -118,6 +120,16 @@ class SqlWidget(object):
     def _get_layout(self, lay, naked):
         ## layout
         #dbg.write('target', self.Class)
+
+        if isinstance(lay, sqlkit.SqlMask):
+            #dbg.write()
+            self.w = lay.w
+            self.filter_panel = lay.filter_panel
+            self._analize_widgets_in_layout()
+            self._add_constraints_and_connect()
+            self._add_colors_and_fonts()
+            return (lay.lay_obj, lay.w)
+        
         if isinstance(self, sqlkit.SqlMask):
             target = 'SqlMask'
         else:
@@ -137,15 +149,39 @@ class SqlWidget(object):
         self.w       = self.lay_obj.show()
         self.w['Window'].connect('delete_event', self.delete_event)
 
-        if self.__class__.__name__ == 'SqlMask':
+
+        if isinstance(self, sqlkit.SqlMask):
             self._analize_widgets_in_layout()
             self._add_constraints_and_connect()
             self._add_colors_and_fonts()
         
         self._add_actions_to_buttons()
         self._fill_menubar_menu()
+        self.add_accelerators()
         return (self.lay_obj, self.w)
-    
+
+    def add_accelerators(self):
+        # key accelerators
+        self.accel_group = gtk.AccelGroup()
+        self.accel_group.connect_group(ord('h'), 
+                                       gtk.gdk.CONTROL_MASK, 
+                                       gtk.ACCEL_LOCKED, 
+                                       self.show_widgets)
+        self.accel_group.connect_group(ord('q'), 
+                                       gtk.gdk.CONTROL_MASK, 
+                                       gtk.ACCEL_LOCKED, 
+                                       self.gquit)
+        self.accel_group.connect_group(ord('n'), 
+                                       gtk.gdk.CONTROL_MASK, 
+                                       gtk.ACCEL_LOCKED, 
+                                       self.record_clear)
+        self.accel_group.connect_group(ord('s'), 
+                                       gtk.gdk.CONTROL_MASK, 
+                                       gtk.ACCEL_LOCKED, 
+                                       self.record_save)
+        self.w['Window'].add_accel_group(self.accel_group)
+            
+        
     def _add_actions_to_buttons(self):
         """ Add default actions to std buttons"""
         actions = {
@@ -171,7 +207,8 @@ class SqlWidget(object):
             if widget_name in self.w:
                 #print "_add_actions_to_button: %s %s %s" % (
                 #    widget_name, 'clicked', handler)
-                self.w[widget_name].connect('clicked', handler)
+                #self.w[widget_name].connect('clicked', handler)
+                self.lay_obj.connect((widget_name, 'clicked', handler))
                 self.lay_obj.tooltips.set_tip(self.w[widget_name], "mmh")
                 self.lay_obj.tip(widget_name, "mi chiamo %s" % widget_name)
 
@@ -211,6 +248,7 @@ class SqlWidget(object):
         else:
             sql_str = sql
             params = None
+        self.sql = (sql, params)
         #dbg.write("SQL", sql_str, 'params', params, 'limit:', limit)
         #self.mapper.table.engine.echo = True
         records = self.mapper.select(sql_str, params=params,
@@ -249,11 +287,14 @@ class SqlWidget(object):
         pass
     
     def sync_add(self, sqlWidget):
+        if not isinstance(self, sqlkit.SqlMask):
+            raise SyncNotAvailable("Sync only available for SqlMask")
+
         # sqlWidget : (DIR, cnd_str, field_names )
-        DIR, cnd_str, field_names = inspect.get_join_cnd_for_sync(
+        DIR, cnd_str, field_names, fkeys = inspect.get_join_cnd_for_sync(
             self.mapper.primarytable, sqlWidget.mapper.primarytable)
-        self.sync_dict[sqlWidget] = (DIR, cnd_str, field_names )
-        #dbg.write(cnd_str, field_names)
+        self.sync_dict[sqlWidget] = (DIR, cnd_str, field_names, fkeys )
+        dbg.write(DIR, cnd_str, field_names, fkeys)
 #         if sqlWidget.get_pk() != field_names:
 #             raise NoSyncError("non campi suff per match %s != %s" % (sqlWidget.get_pk(), field_names))
 
@@ -264,13 +305,14 @@ class SqlWidget(object):
         #dbg.write()
         for w, value in self.sync_dict.iteritems():
             #dbg.write(w, value)
-            DIR, sql, field_names = value
+            DIR, sql, field_names, fkeys = value
             val = {}
             for field_name in field_names:
-                val[field_name] = self._get_value(field_name)
+                val[field_name] = self._get_value(field_name, data=True)
                 #w.reload(sql=(and_(sql), val)
 
-            w.reload(  sql =  (and_(*[sql]),val)   )
+#            w.reload(  sql =  (and_(*[sql]),val)   )
+            w.reload(  sql =  (sql,val)   )
 
     def get_pk(self):
         """return the pkeys of the primarytable"""
