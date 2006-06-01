@@ -12,7 +12,7 @@ dbg.debug(True)
 #dbg.debug(False)
 
 #eng = sk.config.spawnEngine(file='erm.ini')
-eng = sk.config.spawnEngine(file='test.ini')
+eng = sk.config.spawnEngine()
 
 table='euro_user'
 #table='jobs'
