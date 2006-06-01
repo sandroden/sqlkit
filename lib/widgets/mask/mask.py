@@ -10,6 +10,7 @@ from sqlkit.layoutgenerator import TableLayoutGenerator
 import gtk, pango
 from sqlalchemy import *
 import dbg.gtk_dbg
+import sqlkit
 import sqlkit.sqlfilter as sqlfilter
 import sqlkit.sqldata as sqldata
 import sqlkit.inspect as inspect
@@ -39,6 +40,7 @@ class SqlMask (sqlwidget.SqlWidget):
     labels   = None  # correspondance Label <-> EventBox
 #    map_record_n = 0  # number of the displayed record within mapper
     row_count = 0    # number of records in the mapper
+    status = None
 ####### Record browsing & saving
     def record_display(self, record=None, incr=0):
         """display a SqlData record in the mask
@@ -51,17 +53,23 @@ class SqlMask (sqlwidget.SqlWidget):
         #self.record_clear()
         try:
             data_in = self.sqlData.get(incr=incr)
+            #dbg.write('%s data_in %s' % (self.nick,data_in))
         except:
             self.sb("no data to browse")
-            return
+            #dbg.write("%s NO DATA to DISPLAY 1" % self.nick)
+            self.record_clear()
+            return None
         #dbg.write("data_in", data_in)
-        msg_info = "record %s/%s" % (self.sqlData.index()+1, self.sqlData.count())
+        idx = self.sqlData.index()+1
+        msg_info = "record %s/%s" % (idx , self.sqlData.count())
         if not data_in:
             if incr > 0:
-                self.lay_obj.sb('Already last ' + msg_info)
+                self.sb('Already last ' + msg_info)
             else:
-                self.lay_obj.sb('Already first ' + msg_info)
-            return
+                self.sb('Already first ' + msg_info)
+            #dbg.write("%s NO DATA to DISPLAY 2" % self.nick)
+            
+            return None
         self.record_clear()
         
         self.sb(msg_info)
@@ -70,6 +78,11 @@ class SqlMask (sqlwidget.SqlWidget):
             self._set_value(field_name, value)
         self.status = self.sqlData.get_current()
         self.sync()
+        ## return True if a record has beeen displayed. In case we 2 Mask in sync
+        ## this will stop the master mask to continue in the next record until
+        ## the first has been terminated
+        #dbg.write("%s DATA DISPLAYed " % self.nick)
+        return True
         
     def _set_value(self, field_name, field_value):
         """this is the method that knows how to handle different type of data
@@ -114,14 +127,21 @@ class SqlMask (sqlwidget.SqlWidget):
             widget.set_active(field_value)
             #dbg.write("%s: %s" % (field_value, widget.get_active()))
         
-    def _get_value(self, field_name):
+    def _get_value(self, field_name, data=False):
         """return the data for field_name
         in case self.values[field_name] exists, it gets that value instead
+
+        data: boo - in case of a field not shown (es.: user_id) look for the value
+              in self.data_in
         """
         # [0]: the gtkClass
         # [1]: the gtkWidget
         if field_name not in self.mwidgets:
+            if data:
+                return self.data_in[field_name]
+        
             raise FieldNotInLayout("field_name: %s" % (field_name))
+
         #dbg.write(field_name)
         widget = self.mwidgets[field_name]
 
@@ -158,15 +178,14 @@ class SqlMask (sqlwidget.SqlWidget):
     def record_delete(self, widget=None):
         """invokes the validator before DELETing a record"""
         ## FIXME: validator
+#        if self.sync_dict:
+            
         self.sqlData.delete()
-        #dbg.write(objectstore.commit())
-        self.engine.echo = True
-        objectstore.commit()
-        self.engine.echo = False
-        #dbg.write(self.record_clear())
+        
+        self.commit()
         self.record_clear()
     
-    def record_save(self, ev):
+    def record_save(self, ev, constraint={}):
         """invokes the validator before UPDATE/INSERT a record"""
         ## FIXME: validator
         ## FIXME: passare da table -> mapper
@@ -177,7 +196,7 @@ class SqlMask (sqlwidget.SqlWidget):
         #             v.validate ()
 
         if not self.status:
-            self.record_save_new()
+            self.record_save_new(constraint=constraint)
             return
     
         R = {}
@@ -212,13 +231,27 @@ class SqlMask (sqlwidget.SqlWidget):
 
         #dbg.write(R)
         if R.keys():
+            R.update(constraint)
+            dbg.write("CONSTRAINT:", R, constraint)
             self.sqlData.set(R)
             
-        self.engine.echo = True
-        objectstore.commit ()
-        self.engine.echo = False
+        self.commit()
+        self.record_save_sync()
+    def record_save_sync(self):
+        for w, value in self.sync_dict.iteritems():
+            dbg.write(w, value)
+            DIR, sql, field_names, fkeys = value
+            val = {}
+            for fkey in fkeys:
+                name, referenced_name = fkey
+                #dbg.write(name, self._get_value(referenced_name, data=True))
+                val[name] = self._get_value(referenced_name, data=True)
+
+            w.record_save('', constraint=val)
+        for z in self.sync_dict:
+            z.record_save('')
         
-    def record_save_new(self):
+    def record_save_new(self, constraint={}):
         """Insert a new record
         """
         
@@ -226,6 +259,7 @@ class SqlMask (sqlwidget.SqlWidget):
         for field_name in self.fields.keys():      
             try:
                 value = self._get_value(field_name)
+                dbg.write('value: ', value)
             except FieldNotInLayout:
                 continue
             
@@ -234,12 +268,14 @@ class SqlMask (sqlwidget.SqlWidget):
                 # skip type casting
                 R[field_name] = None
                 continue
-            #dbg.write("%s: - value: %r t: %s" % (field_name, value, t))
+            dbg.write("%s: - value: %r t: %s" % (field_name, value, t))
             if t == datetime.date:
-                value = t(value.year, value.month, value.day)
+                #value = t(value.year, value.month, value.day)
+                pass
             elif t == datetime.datetime:
-                value = t(value.year, value.month, value.day,
-                          value.hour, value.minute, value.second)
+                #value = t(value.year, value.month, value.day,
+                #          value.hour, value.minute, value.second)
+                pass
             else:
                 if value is not None:
                     value = t(value)
@@ -248,17 +284,18 @@ class SqlMask (sqlwidget.SqlWidget):
 #                 value = self.next_serial(field_name)
             R[field_name] = value
 
-        #dbg.write(R)
+        R.update(constraint)
+        dbg.write(R)
+        
         self.sqlData.add(R)
         self.status = self.sqlData.get_current()
         dbg.write("self.status", self.status)
 
-        objectstore.commit ()
+        self.commit ()
         self.record_display()
         
     def record_clear(self, widget=None):
         """clear the mask for a new record"""
-        #dbg.write('')
         self.values.clear()
         self.status = None
         self.sb("New Record")
@@ -266,13 +303,42 @@ class SqlMask (sqlwidget.SqlWidget):
         for field_name in self.fields.keys():
             #dbg.write(field_name)
             self._set_value(field_name, '')
+            
     def record_forward(self, ev):
         """display the next record in the mapper"""
-        self.record_display(incr=1)
+
+        if self.sync_dict:
+            ris = self.record_forward_sync(incr=1)
+            #dbg.write('ris', ris)
+            if ris:
+                #dbg.write('esco')
+                return
         
+        return self.record_display(incr=1)
+
+    def record_forward_sync(self, incr=1):
+        for z in self.sync_dict:
+            if isinstance(z, sqlkit.SqlMask):
+                return z.record_forward('')
+        return False
+
+    def record_back_sync(self, incr=1):
+        for z in self.sync_dict:
+            if isinstance(z, sqlkit.SqlMask):
+                return z.record_back('')
+        return False
+
     def record_back(self, ev):
         """display the previous record in the mapper"""
-        self.record_display(incr=-1)
+        if self.sync_dict:
+            ris = self.record_back_sync(incr=-1)
+            #dbg.write('ris', ris)
+            if ris:
+                #dbg.write('esco')
+                return
+        
+        return self.record_display(incr=-1)
+
     
 ####### Layout, Reflection & Analisys
     def _analize_widgets_in_layout(self):
@@ -283,9 +349,13 @@ class SqlMask (sqlwidget.SqlWidget):
         (eg: a field that is ony filled by entry_completion)
                  
         """
+        #dbg.show_caller()
         ## FIXME: does not work when renaming: euro.user_id -> euro_user_id
 
-        self.mwidgets = {}
+        ## mwidgets can be passed as argument of the class. In that case widgets
+        ## used to represent the data are provided by another SqlMask
+        if not self.mwidgets:
+            self.mwidgets = {}
         ## by now I only use entry, date, radio and menu to represent data
         #print self.w.keys()
         for field_name in self.fields.keys():
@@ -365,7 +435,7 @@ class SqlMask (sqlwidget.SqlWidget):
                 #dbg.write("Per campo: %s manca widget %s" % (field_name, widget))
                 continue
 
-            widget.set_property('sensitive', self.fields[field_name]['edit'])
+            widget.set_property('sensitive', self.fields[field_name]['edit']) 
             ## integer
             if field_type == int and not self.fields[field_name]['fkey']:
                 # left justified
@@ -406,18 +476,6 @@ class SqlMask (sqlwidget.SqlWidget):
             event_box.connect('button-press-event',
                               self.filter_panel.add, field_name, 1)
 
-        # key accelerators
-        self.accel_group = gtk.AccelGroup()
-        self.accel_group.connect_group(ord('h'), 
-                                       gtk.gdk.CONTROL_MASK, 
-                                       gtk.ACCEL_LOCKED, 
-                                       self.show_widgets)
-        self.accel_group.connect_group(ord('q'), 
-                                       gtk.gdk.CONTROL_MASK, 
-                                       gtk.ACCEL_LOCKED, 
-                                       self.gquit)
-        self.w['Window'].add_accel_group(self.accel_group)
-            
             
 ####### Validation
     def focus_out__widget(self, widget, event, field_name):
