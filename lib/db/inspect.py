@@ -356,19 +356,19 @@ def get_join_cnd(tables, mode='sa'):
         #dbg.write(t)
         for col in t.c:
             if col.foreign_key and col.foreign_key.column.table in tbls:
-                dbg.write("col:", col, " -- fk:", col.foreign_key.column)
+                #dbg.write("col:", col, " -- fk:", col.foreign_key.column)
                 cnd += [ col == col.foreign_key.column ]
                 cnd_str = "%s.%s = %s.%s" % (col.table.name, col.name,
                                              col.foreign_key.column.table.name,
                                              col.foreign_key.column.name)
-                dbg.write(cnd_str)
+                #dbg.write(cnd_str)
     if mode == 'sa':
         return cnd
     else:
         return cnd_str
 
 def get_join_cnd_for_sync(t1, t2):
-    """return a join condition of the sqlobj.Tables in tables
+    """return a join condition of the sqlobj.Tables t1, t2
     the first table is the table that will issue the sync
     mode: sa (sqlalchemy objects) or 'str' (string)
     """
@@ -383,38 +383,44 @@ def get_join_cnd_for_sync(t1, t2):
 
     DIR = ""
     field_names = []
-    dbg.write(t1)
+    fkeys = []
+    cnd_str = []
+    #dbg.write(t1)
     for col in t1.c:
         if col.foreign_key and col.foreign_key.column.table in tbls:
             field_names.extend([col.name])
-            dbg.write("col:", col, " -- fk:", col.foreign_key.column)
+            fkeys.extend([(col.name, col.foreign_key.column.name)])
+            #dbg.write("col:", col, " -- fk:", col.foreign_key.column)
             #cnd += [ col == col.foreign_key.column ]
-            cnd_str = "%s.%s = :%s" % (
+            cnd_str = ["%s.%s = :%s" % (
                 col.foreign_key.column.table.name,
                 col.foreign_key.column.name,
                 col.name,
-                )
-            dbg.write(cnd_str)
+                )]
+            #dbg.write(cnd_str)
     if cnd:
         DIR = 'MANY2ONE'
     else:
-        dbg.write(t2)
+        #dbg.write(t2)
+        cnd_str = []
         for col in t2.c:
             if col.foreign_key and col.foreign_key.column.table in tbls:
                 field_names.extend([col.foreign_key.column.name])
-                dbg.write("col:", col, " -- fk:", col.foreign_key.column)
+                fkeys.extend([(col.name, col.foreign_key.column.name)])
+                #dbg.write("col:", col, " -- fk:", col.foreign_key.column)
                 
                 #cnd += [ col == col.foreign_key.column ]
-                cnd_str = "%s.%s = :%s" % (
+                cnd = ["%s.%s = :%s" % (
                     col.table.name,
                     col.name,
                     col.foreign_key.column.name,
-                    )
-                dbg.write(cnd_str)
-        if cnd:
+                    )]
+                cnd_str.extend(cnd)
+                #dbg.write(cnd_str)
+        if cnd_str:
             DIR = 'ONE2MANY' 
 
-    return (DIR, cnd_str, field_names)
+    return (DIR, "AND".join(cnd_str), field_names, fkeys)
 
 def get_props(mapper):
     props = []
