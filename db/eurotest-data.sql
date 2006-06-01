@@ -39,7 +39,7 @@ COPY euro_mail (mail_id, mail_address, mail_user_id) FROM stdin;
 6	fjoe@example.com	5
 7	jbig@example.com	6
 \.
-SELECT setval('euro_user_user_id_seq',(select max(mail_id) from euro_mail));
+SELECT setval('euro_mail_mail_id_seq',(select max(mail_id) from euro_mail));
 
 -- COPY user_city (user_name, city) FROM stdin;
 -- Sam	Monza
