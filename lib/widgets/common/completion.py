@@ -155,24 +155,27 @@ class Completion(object):
             show_value = model.get(iter,1)[0]
             Rd[field_name] = show_value
             dbg.write("Rd", Rd, field_name)
+            self.set_text(Rd, field_name)
             ## reset the show value
             ##Rd[field_name] = show_value
         else:
             #show_value = model.get(iter,0)[0]
             #Rd = {field_name : show_value }
             Rd = {field_name : value }
-
-        self.set_text(Rd)
+            self.set_text(Rd)
+        
 
     ## FIXME for Sandro: use virtual methods by calling master.set_value
     ## instead of checking type of master class
     ## see the else case.
     ## suggested name "set_value" for this method (mcm)
-    def set_text(self, Rd):
+    def set_text(self, Rd, exclude=None):
         """sets the values of field read by the select
         """
         if isinstance(self.master, sqlkit.SqlMask):
             for field_name, value in Rd.iteritems():
+                if field_name == exclude:
+                    continue
                 dbg.write(field_name, value)
                 if field_name in self.master.mwidgets:
                     #dbg.write("%s.set_text(%s)" % (field_name, value))
@@ -182,6 +185,8 @@ class Completion(object):
             #dbg.write(Rd)
             for field_name, value in Rd.iteritems():
                 #dbg.write(field_name, value)
+                if field_name == exclude:
+                    continue
                 self.master.set_value(field_name, value)
         return
 
