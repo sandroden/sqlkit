@@ -203,7 +203,7 @@ class SqlData(object):
         """
         #dbg.write("index: %s pointer: %s self.pointers: %s" % (
         #    index, pointer, self.pointers))
-        #dbg.write("R: %s " % R)
+        dbg.write("R: %s " % R)
         if index is not None:
             pointer = self.pointers[index]
 
@@ -219,6 +219,7 @@ class SqlData(object):
     def delete(self, index=None, pointer=None):
         """delete a record. For each pointer it only deletes the last item
         """
+        dbg.write()
         if index is not None:
             pointer = self.pointers[index]
 
@@ -227,7 +228,7 @@ class SqlData(object):
             #raise MissingPointerError('A pointer is needed', pointer)
 
         sqlalchemy.objectstore.delete(pointer[-1])
-        dbg.write("objectostore.delete(%s)" % pointer[-1])
+        dbg.write("objectstore.delete(%s)" % pointer[-1])
         del self.pointers[self.current]
         
     def add(self, R):
@@ -306,6 +307,10 @@ class SqlData(object):
         if not res:
             res=self.res_obj
 
+        if not res:
+            # we are building and empty sqldata structure as when starting a SqlMask
+            return
+        
         props = []
         try:
             props = inspect.get_props(res[0].mapper)
