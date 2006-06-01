@@ -71,9 +71,10 @@ class TableLayoutGenerator (object):
             t = self.fields[field_name]['type']
         else:
             ## any field that is not explicitly here is mapped into 'str'
-            dbg.write('field_name', field_name)
-            t = self.register(field_name)
+            #dbg.write('field_name', field_name)
+            field_name, t = self.register(field_name)
 
+            #dbg.write("t=", t)
         fmod = self.map_types[t]
 
         return " L=%s %s=%s%s%s" % (field_name, fmod, field_name,
@@ -85,7 +86,7 @@ class TableLayoutGenerator (object):
         field_name must be of the form table.field_name
         """
         p = re.compile("""
-           ([-A-Za-z0-9]+)   # table name
+           ([-_A-Za-z0-9]+)   # table name
            .                 # separator
            (\S+)             # field_name
         """, re.VERBOSE)
@@ -94,13 +95,14 @@ class TableLayoutGenerator (object):
             dbg.write("%s not of the form table.field" % field_name )
             return
         table_name = m.group(1)
+        #dbg.write('table_name:', table_name)
         tbl_field_name = m.group(2)
-        return
+
         table = Table(table_name, engine=self.fields.mapper.table.engine,
                       autoload=True)
         t1 = type(table.c[tbl_field_name].type)
         t = self.fields.pytype[t1]
-
+        return (tbl_field_name, t)
 
     def _add_default_buttons (self):
         # a 'naked' mask is a mask w/o buttons. Maybe buttons are define by the
