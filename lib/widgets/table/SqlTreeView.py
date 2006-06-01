@@ -383,6 +383,7 @@ class SqlTreeView(object):
         pass
 
     def insertRow(self, button):
+        dbg.write()
         rowCommit = self.rowCommit
         self.rowCommit = False
         columns = self.treeview.get_columns()
@@ -532,7 +533,7 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
 
         return (self.lay_obj, self.w)
 
-    def record_clear(self, widget=None):
+    def record_clear(self, widget=None, *args):
         rowCommit = self.rowCommit
         self.rowCommit = False
         columns = self.treeview.get_columns()
