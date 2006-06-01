@@ -2,6 +2,7 @@ import re
 from sqlalchemy import *
 import gtk
 import dbg
+import sqlkit
 
 class LookupValueNotReturningOneValue(Exception): pass
 class MissingDescriptorField(Exception): pass
@@ -150,7 +151,9 @@ class Completion(object):
         if self.master.fields[field_name]['fkey']:
             show_value = model.get(iter,1)[0]
             Rd = model.get(iter,3)[0]
-            dbg.write("Rd", Rd)
+            show_value = model.get(iter,1)[0]
+            Rd[field_name] = show_value
+            dbg.write("Rd", Rd, field_name)
             ## reset the show value
             ##Rd[field_name] = show_value
         else:
@@ -166,17 +169,17 @@ class Completion(object):
     def set_text(self, Rd):
         """sets the values of field read by the select
         """
-        if self.master.__class__.__name__ == 'SqlMask':
+        if isinstance(self.master, sqlkit.SqlMask):
             for field_name, value in Rd.iteritems():
                 dbg.write(field_name, value)
                 if field_name in self.master.mwidgets:
-                    dbg.write("%s.set_text(%s)" % (field_name, value))
+                    #dbg.write("%s.set_text(%s)" % (field_name, value))
                     self.master.mwidgets[field_name].set_text(value)
                     #self.master._set_value(field_name, Rd[field_name]
         else:
-            dbg.write(Rd)
+            #dbg.write(Rd)
             for field_name, value in Rd.iteritems():
-                dbg.write(field_name, value)
+                #dbg.write(field_name, value)
                 self.master.set_value(field_name, value)
         return
 
