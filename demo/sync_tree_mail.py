@@ -19,6 +19,8 @@ z2 = SqlWidgetTreeView(table='euro_mail', engine=engine, naked=True)
 print sk.inspect.get_join_cnd([zz.fields.mapper.primarytable,
                               z2.fields.mapper.primarytable], mode='str')
 zz.sync_add(z2)
+zz.reload()
+
 
 ## Completion - you may choose how to show the completion list
 ## default is the first ending with _name or _descr

@@ -8,7 +8,7 @@ import sqlkit as sk
 from sqlkit.table import SqlWidgetTreeView
 import dbg 
 import gtk
-dbg.debug(False)
+dbg.debug(True)
 
 eng = sk.config.spawnEngine()
 
