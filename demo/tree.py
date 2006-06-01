@@ -8,11 +8,16 @@ import sqlkit as sk
 from sqlkit.table import SqlWidgetTreeView
 import dbg 
 import gtk
+dbg.debug(True)
+#dbg.debug(False)
 
-eng = sk.config.spawnEngine()
+#eng = sk.config.spawnEngine(file='erm.ini')
+eng = sk.config.spawnEngine(file='test.ini')
 
-
-sqlt = SqlWidgetTreeView(table='euro_user', engine=eng, single=True)
+table='euro_user'
+#table='jobs'
+zz= sqlt = SqlWidgetTreeView(table=table, engine=eng, single=True)
+zz.order_by = 'user_address'
 gtk.main()
 
 

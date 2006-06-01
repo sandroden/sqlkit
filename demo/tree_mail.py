@@ -10,10 +10,11 @@ import dbg
 import gtk
 dbg.debug(True)
 
-eng = sk.config.spawnEngine()
+eng = sk.config.spawnEngine(globalconn=True)
 
 
-zz= sqlt = SqlWidgetTreeView(table='euro_mail', engine=eng, single=True)
+zz= sqlt = SqlWidgetTreeView(table='euro_mail', single=True,
+                             order_by='mail_address')
 gtk.main()
 
 
