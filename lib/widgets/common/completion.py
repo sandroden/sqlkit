@@ -144,8 +144,9 @@ class Completion(object):
         """after selecting an entry store the value in self.values and adjust
         the entry with the correct value.
         """
-        self.master.values[field_name] = model.get(iter,0)[0]
-
+        value = model.get(iter,0)[0]
+        self.master.values[field_name] = value
+        self.master.set_value(field_name, value)
         # note: model.get() returns a tuple, one value each cell on the column
 
         if self.master.fields[field_name]['fkey']:
@@ -157,8 +158,9 @@ class Completion(object):
             ## reset the show value
             ##Rd[field_name] = show_value
         else:
-            show_value = model.get(iter,0)[0]
-            Rd = {field_name : show_value }
+            #show_value = model.get(iter,0)[0]
+            #Rd = {field_name : show_value }
+            Rd = {field_name : value }
 
         self.set_text(Rd)
 

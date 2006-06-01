@@ -45,7 +45,6 @@ class SqlWidget(object):
                   single=False,
                   limit=100,
                   nick=None,
-#                  mwidgets=None
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -63,7 +62,6 @@ class SqlWidget(object):
         """
 
         self.nick= nick
-#        self.mwidgets = mwidgets
         self.sync_dict = {}
         self.engine = self.get_engine(engine, mapper)
         self.order_by = order_by

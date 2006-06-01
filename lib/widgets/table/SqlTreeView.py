@@ -735,10 +735,12 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
 
     def set_value(self, field_name, value):
         if field_name not in self.fields.keys():
+            dbg.write('abbandono', field_name)
             return
         
-        if not self.fields[field_name]['fkey']:
-            return
+#         if not self.fields[field_name]['fkey']:
+#             dbg.write('non foreign key', field_name)
+#             return
 
         dbg.write(field_name, value, self.mod_path)
         try:
