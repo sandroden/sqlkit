@@ -34,4 +34,4 @@ import layoutgenerator
 
 from mask import SqlMask
 from sqlwidget import SqlWidget
-from table import SqlTreeView, SqlLayoutTreeView
+from table import SqlTreeView, SqlLayoutTreeView, SqlTable
