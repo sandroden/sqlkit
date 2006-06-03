@@ -319,7 +319,7 @@ class SqlTreeView(object):
         
     def selection_changed_cb(self, treeselection):
         if self.rowCommit:
-            objectstore.commit()
+            self.commit()
         return False
 
     def text_editing_started(self, cell, editable, path, col):
@@ -409,7 +409,7 @@ class SqlTreeView(object):
         self.deleting_row = True
         def do_del(tm, path, iter):
 
-            self.sqlData.delete(index=tm[path][0])
+            self.sqlData.delete(index=self.get_selected_row())
             del tm[path]
             self.commit()
             
@@ -453,7 +453,7 @@ class SqlTreeView(object):
         
 
     def delete_event(self, treeview, event, data=None):
-        objectstore.commit()
+        self.commit()
         return False
 
     def set_completion_model(self, completion, model):
@@ -530,7 +530,7 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
         #register callback to toplevel window
         self.treeview.get_toplevel().connect("delete_event", self.delete_event)
         self.setupTreeColumns()
-
+        
         return (self.lay_obj, self.w)
 
     def record_clear(self, widget=None, *args):
@@ -566,9 +566,9 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
             tvcolumn = gtk.TreeViewColumn(v.replace('_','__'))
 
             #boolean -> checkbox
-            dbg.write(v + ': %s, %s ' % (self.fields[v]['pg_type'], str(self.fields[v]['type'])))
+            #dbg.write(v + ': %s, %s ' % (self.fields[v]['pg_type'], str(self.fields[v]['type'])))
             if self.fields[v]['type'] == bool:
-                dbg.write('bool column')
+                #dbg.write('bool column')
                 cell = gtk.CellRendererToggle()
                 tvcolumn.pack_start(cell, True)
                 tvcolumn.add_attribute(cell, 'active', i )
@@ -579,7 +579,7 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
                 tvcolumn = gtk.TreeViewColumn()
                 tvcolumn.set_visible(False)
             elif issubclass(self.fields[v]['pg_type'], (sqltypes.Date, sqltypes.DateTime)):
-                dbg.write('Date column')
+                #dbg.write('Date column')
                 cell = CellRendererDate()
                 cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
                 cell.set_property('sensitive', False)
@@ -645,6 +645,8 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
         self.rowCommit = None
         ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
         self.rowCommit = rowCommit
+        #self.set_height_request()
+
         return ret
                                          
     def record_display(self):
@@ -660,7 +662,7 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
 ##                     l.append(values[k])
 
             self.liststore.append(l)
-            dbg.write(l)
+            #dbg.write(l)
             self.sb("Total N. of records: %s" % (len(self.liststore)))
 
     def edited_signal(self, cell, path, new_text, user_data):
@@ -705,15 +707,35 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
         self.liststore[path][col] = date
         return True
 
+    def set_height_request(self):
+        area = self.treeview.get_cell_area(0, self.treeview.get_column(0))
+        rows = len(self.liststore)
+        if rows == 0:
+            rows = 10
+        if rows > 30:
+            rows = 30
+        needed_height = area.height * rows
+        dbg.write('area',area, 'needed', needed_height, 'area.h', area.height)
+        self.treeview.set_property('height-request', needed_height)
+        
+
     def selection_changed_cb(self, treeselection):
         if self.mod_path is None:
             return False
         
         if self.rowCommit:
             self.record_save()
-            objectstore.commit()
+            self.commit()
             self.mod_path = None
         return False
+
+    def get_selected_row(self):
+        sel = self.treeview.get_selection()
+        rows = sel.get_selected_rows()[1]
+        if rows:
+            return rows[0][0]
+        else:
+            return None
 
     def record_save(self, ev = None):
         rdict = self.path2dict(self.mod_path)
