@@ -64,9 +64,16 @@ def join_tables(tables, engine=None, master=None,  mode='outer'):
         #dbg.write("j    ",j)
         ## j may be a tuple: join, Table1, Table2
         if isinstance(j, list):
-            j = j[0]
+            J = j[0]
+        else:
+            J = j
         #dbg.write("j dopo    ", j)
-    m = mapper(JoinAuto, j)
+    if mode == 'outer':
+#        m = mapper(JoinAuto, J, primary_key=j[1].primary_key )
+        m = mapper(JoinAuto, J)
+    else:
+        m = mapper(JoinAuto, J)
+    dbg.write(m)
     return m
 
 def join2tables(t1, t2, engine, mode='outerjoin'):
@@ -89,10 +96,12 @@ def join2tables(t1, t2, engine, mode='outerjoin'):
 
     join_cnd = inspect.get_join_cnd([ T1, T2 ] )
     #dbg.write("join condition (%s -%s): %s" % (T1, T2, join_cnd))
-    if mode in ('outerjoin', 'outer'):
-        j = T1.outerjoin(T2, and_(*join_cnd))
+    if mode in ('innerjoin', 'inner'):
+        dbg.write('join... non outer')
+        j = T1.join(T2, and_(*join_cnd))
     else:
-        j = T1.join(T2, *join_cnd)
+        dbg.write('outerjoin')
+        j = T1.outerjoin(T2, *join_cnd)
 
     ret = [j]
     if T1_ret:
