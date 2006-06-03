@@ -45,6 +45,8 @@ class SqlWidget(object):
                   single=False,
                   limit=100,
                   nick=None,
+                  geom=(-1,300),
+                  addto=None
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -59,9 +61,12 @@ class SqlWidget(object):
         show:   True|False
         single: this is a single application. connect a gtk.quit()
         nick is just for debug purpouse
+        addto:  passed to layout
         """
 
         self.nick= nick
+        self.geom = geom
+        self.addto = addto
         self.sync_dict = {}
         self.engine = self.get_engine(engine, mapper)
         self.order_by = order_by
@@ -95,7 +100,11 @@ class SqlWidget(object):
             self.reload(self.sql, limit=self.limit)
             
         ## only render when dimentions are complete
-        self.w['Window'].show()
+        #self.w['Window'].show()
+        lcontainer_name = self.lay_obj.container().el_def
+        el_def = re.sub(':.*','', lcontainer_name)
+        dbg.write('lcontainer_name: ', el_def)
+        self.w[el_def].show()
                 
     def get_engine(self, engine, mapper):
         if not engine:
@@ -141,25 +150,41 @@ class SqlWidget(object):
         ## add default buttons if needed
         #self._add_default_buttons(naked)
         #dbg.write(self.layout)
-        self.lay_obj = layout.Layout(self.layout, title=self.title, opts='T-')
-        #self.lay_obj.xml('/tmp/m.glade')
-        self.lay_obj.prop('Window', 'visible', False)
+        #dbg.write(self.layout)
+        self.lay_obj = layout.Layout(self.layout, addto=self.addto,
+                                     title=self.title, opts='T-')
+        self.lay_obj.xml('/tmp/m_%s.glade' % self.nick)
+        if 'Window' in self.lay_obj.elements:
+            self.lay_obj.prop('Window', 'visible', False)
         self.w       = self.lay_obj.show()
-        self.w['Window'].connect('delete_event', self.delete_event)
+
+        if 'Window' in self.lay_obj.elements:
+            self.lay_obj.connect(('Window', 'delete_event', self.delete_event))
 
 
         if isinstance(self, sqlkit.SqlMask):
             self._analize_widgets_in_layout()
             self._add_constraints_and_connect()
             self._add_colors_and_fonts()
-        
+        else:
+            ## let tree use all the available space... 
+            if not self.naked:
+                self.lay_obj.prop('A.0','yscale',1)
+
+            if self.geom and not self.addto:
+                dbg.write('setting geometry')
+                self.lay_obj.prop('Window', 'height-request', self.geom[0])
+                self.lay_obj.prop('Window', 'height-request', self.geom[1])
+
         self._add_actions_to_buttons()
         self._fill_menubar_menu()
         self.add_accelerators()
         return (self.lay_obj, self.w)
-
     def add_accelerators(self):
         # key accelerators
+        if self.addto:
+            return
+        
         self.accel_group = gtk.AccelGroup()
         self.accel_group.connect_group(ord('h'), 
                                        gtk.gdk.CONTROL_MASK, 
@@ -264,7 +289,6 @@ class SqlWidget(object):
         """issue a reload operation on master. Call back of reload button"""
         #limit=100
         self.reload( )
-
     def commit(self):
         if dbg.debug():
             PREV = self.engine.echo
@@ -274,7 +298,6 @@ class SqlWidget(object):
         else:
             objectstore.commit()
         
-
     def record_forward(self):
         """it doesn't make any sense here, but we need it to prevent
         _add_actions_to_button from failing"""
@@ -295,7 +318,6 @@ class SqlWidget(object):
         dbg.write(DIR, cnd_str, field_names, fkeys)
 #         if sqlWidget.get_pk() != field_names:
 #             raise NoSyncError("non campi suff per match %s != %s" % (sqlWidget.get_pk(), field_names))
-
     def sync(self):
         """emit a reload to other SqlWidgets so that they keep in sync"""
         ## easy/simple (almost useless) case: we have a Many2One relation. A field
@@ -311,7 +333,6 @@ class SqlWidget(object):
 
 #            w.reload(  sql =  (and_(*[sql]),val)   )
             w.reload(  sql =  (sql,val)   )
-
     def get_pk(self):
         """return the pkeys of the primarytable"""
         return self.fields.pkeys[self.fields.get_primary_table()]
