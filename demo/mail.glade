@@ -1,0 +1,558 @@
+<?xml version="1.0" standalone="no"?> <!--*- mode: nxml -*-->
+<!DOCTYPE glade-interface SYSTEM "http://glade.gnome.org/glade-2.0.dtd">
+<glade-interface>
+
+<widget class="GtkWindow" id="Window">
+  <property name="resizable">True</property>
+  <property name="type_hint">GDK_WINDOW_TYPE_HINT_NORMAL</property>
+  <property name="height_request">-1</property>
+  <property name="title">euro_user</property>
+  <property name="width_request">-1</property>
+  <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
+  <property name="skip_pager_hint">False</property>
+  <property name="visible">True</property>
+  <property name="skip_taskbar_hint">False</property>
+  <property name="window_position">GTK_WIN_POS_NONE</property>
+  <property name="modal">False</property>
+  <property name="decorated">True</property>
+  <property name="destroy_with_parent">False</property>
+  <property name="type">GTK_WINDOW_TOPLEVEL</property>
+  
+  <child>
+      <widget class="GtkTable" id="T.1">
+        <property name="visible">True</property>
+        
+        <child>
+            <widget class="GtkMenuBar" id="B.0">
+              <property name="visible">True</property>
+              
+              <child>
+                  <widget class="GtkMenuItem" id="m=file">
+                    <property name="label" translatable="yes">file</property>
+                    <property name="use_underline">True</property>
+                    <property name="visible">True</property>
+                    
+                    <child>
+                        <widget class="GtkMenu" id="M=file">
+                          <property name="visible">True</property>
+                        </widget>
+                        <packing>
+                        </packing>
+                    </child> <!-- closes M=file in m -->
+                    
+                  </widget>
+                  <packing>
+                  </packing>
+              </child> <!-- closes m=file in B -->
+              
+              <child>
+                  <widget class="GtkMenuItem" id="m=modifica">
+                    <property name="label" translatable="yes">modifica</property>
+                    <property name="use_underline">True</property>
+                    <property name="visible">True</property>
+                    
+                    <child>
+                        <widget class="GtkMenu" id="M=modifica">
+                          <property name="visible">True</property>
+                        </widget>
+                        <packing>
+                        </packing>
+                    </child> <!-- closes M=modifica in m -->
+                    
+                  </widget>
+                  <packing>
+                  </packing>
+              </child> <!-- closes m=modifica in B -->
+              
+              <child>
+                  <widget class="GtkMenuItem" id="m=opzioni">
+                    <property name="label" translatable="yes">opzioni</property>
+                    <property name="use_underline">True</property>
+                    <property name="visible">True</property>
+                    
+                    <child>
+                        <widget class="GtkMenu" id="M=opzioni">
+                          <property name="visible">True</property>
+                        </widget>
+                        <packing>
+                        </packing>
+                    </child> <!-- closes M=opzioni in m -->
+                    
+                  </widget>
+                  <packing>
+                  </packing>
+              </child> <!-- closes m=opzioni in B -->
+              
+              <child>
+                  <widget class="GtkMenuItem" id="m=aiuto">
+                    <property name="label" translatable="yes">aiuto</property>
+                    <property name="use_underline">True</property>
+                    <property name="visible">True</property>
+                    
+                    <child>
+                        <widget class="GtkMenu" id="M=aiuto">
+                          <property name="visible">True</property>
+                        </widget>
+                        <packing>
+                        </packing>
+                    </child> <!-- closes M=aiuto in m -->
+                    
+                  </widget>
+                  <packing>
+                  </packing>
+              </child> <!-- closes m=aiuto in B -->
+              
+            </widget>
+            <packing>
+              <property name="left_attach">0</property>
+              <property name="bottom_attach">1</property>
+              <property name="y_options">fill</property>
+              <property name="top_attach">0</property>
+              <property name="right_attach">1</property>
+            </packing>
+        </child> <!-- closes B.0 in T -->
+        
+        <child>
+            <widget class="GtkToolbar" id="O.tool">
+              <property name="visible">True</property>
+              
+              <child>
+                  <widget class="GtkToolButton" id="tb=gtk-save">
+                    <property name="visible">True</property>
+                    <property name="stock_id">gtk-save</property>
+                  </widget>
+                  <packing>
+                  </packing>
+              </child> <!-- closes tb=gtk-save in O -->
+              
+              <child>
+                  <widget class="GtkToolButton" id="tb=gtk-delete">
+                    <property name="visible">True</property>
+                    <property name="stock_id">gtk-delete</property>
+                  </widget>
+                  <packing>
+                  </packing>
+              </child> <!-- closes tb=gtk-delete in O -->
+              
+              <child>
+                  <widget class="GtkToolButton" id="tb=gtk-new">
+                    <property name="visible">True</property>
+                    <property name="stock_id">gtk-new</property>
+                  </widget>
+                  <packing>
+                  </packing>
+              </child> <!-- closes tb=gtk-new in O -->
+              
+              <child>
+                  <widget class="GtkToolButton" id="tb=gtk-refresh">
+                    <property name="visible">True</property>
+                    <property name="stock_id">gtk-refresh</property>
+                  </widget>
+                  <packing>
+                  </packing>
+              </child> <!-- closes tb=gtk-refresh in O -->
+              
+              <child>
+                  <widget class="GtkToolButton" id="tb=gtk-quit">
+                    <property name="visible">True</property>
+                    <property name="stock_id">gtk-quit</property>
+                  </widget>
+                  <packing>
+                  </packing>
+              </child> <!-- closes tb=gtk-quit in O -->
+              
+              <child>
+                  <widget class="GtkToolButton" id="tb=gtk-go-back">
+                    <property name="visible">True</property>
+                    <property name="stock_id">gtk-go-back</property>
+                  </widget>
+                  <packing>
+                  </packing>
+              </child> <!-- closes tb=gtk-go-back in O -->
+              
+              <child>
+                  <widget class="GtkToolButton" id="tb=gtk-go-forward">
+                    <property name="visible">True</property>
+                    <property name="stock_id">gtk-go-forward</property>
+                  </widget>
+                  <packing>
+                  </packing>
+              </child> <!-- closes tb=gtk-go-forward in O -->
+              
+            </widget>
+            <packing>
+              <property name="left_attach">0</property>
+              <property name="bottom_attach">2</property>
+              <property name="y_options"></property>
+              <property name="top_attach">1</property>
+              <property name="right_attach">1</property>
+            </packing>
+        </child> <!-- closes O.tool in T -->
+        
+        <child>
+            <widget class="GtkAlignment" id="A.0">
+              <property name="xalign">0.5</property>
+              <property name="bottom_padding">4</property>
+              <property name="yalign">0</property>
+              <property name="right_padding">4</property>
+              <property name="top_padding">4</property>
+              <property name="yscale">0</property>
+              <property name="visible">True</property>
+              <property name="xscale">1</property>
+              <property name="left_padding">8</property>
+              
+              <child>
+                  <widget class="GtkTable" id="T.0">
+                    <property name="visible">True</property>
+                    
+                    <child>
+                        <widget class="GtkEventBox" id="E=user_name">
+                          <property name="visible">True</property>
+                          
+                          <child>
+                              <widget class="GtkLabel" id="l=user_name">
+                                <property name="use-markup">True</property>
+                                <property name="visible">True</property>
+                                <property name="xpad">10</property>
+                                <property name="label" translatable="yes">user name:</property>
+                                <property name="xalign">1</property>
+                              </widget>
+                              <packing>
+                              </packing>
+                          </child> <!-- closes l=user_name in E -->
+                          
+                        </widget>
+                        <packing>
+                          <property name="top_attach">0</property>
+                          <property name="left_attach">0</property>
+                          <property name="right_attach">1</property>
+                          <property name="bottom_attach">1</property>
+                        </packing>
+                    </child> <!-- closes E=user_name in T -->
+                    
+                    <child>
+                        <widget class="GtkEntry" id="e=user_name">
+                          <property name="visible">True</property>
+                        </widget>
+                        <packing>
+                          <property name="top_attach">0</property>
+                          <property name="left_attach">1</property>
+                          <property name="right_attach">2</property>
+                          <property name="bottom_attach">1</property>
+                        </packing>
+                    </child> <!-- closes e=user_name in T -->
+                    
+                    <child>
+                        <widget class="GtkEventBox" id="E=user_last_name">
+                          <property name="visible">True</property>
+                          
+                          <child>
+                              <widget class="GtkLabel" id="l=user_last_name">
+                                <property name="use-markup">True</property>
+                                <property name="visible">True</property>
+                                <property name="xpad">10</property>
+                                <property name="label" translatable="yes">user last name:</property>
+                                <property name="xalign">1</property>
+                              </widget>
+                              <packing>
+                              </packing>
+                          </child> <!-- closes l=user_last_name in E -->
+                          
+                        </widget>
+                        <packing>
+                          <property name="top_attach">1</property>
+                          <property name="left_attach">0</property>
+                          <property name="right_attach">1</property>
+                          <property name="bottom_attach">2</property>
+                        </packing>
+                    </child> <!-- closes E=user_last_name in T -->
+                    
+                    <child>
+                        <widget class="GtkEntry" id="e=user_last_name">
+                          <property name="visible">True</property>
+                        </widget>
+                        <packing>
+                          <property name="top_attach">1</property>
+                          <property name="left_attach">1</property>
+                          <property name="right_attach">2</property>
+                          <property name="bottom_attach">2</property>
+                        </packing>
+                    </child> <!-- closes e=user_last_name in T -->
+                    
+                    <child>
+                        <widget class="GtkEventBox" id="E=user_birth_date">
+                          <property name="visible">True</property>
+                          
+                          <child>
+                              <widget class="GtkLabel" id="l=user_birth_date">
+                                <property name="use-markup">True</property>
+                                <property name="visible">True</property>
+                                <property name="xpad">10</property>
+                                <property name="label" translatable="yes">user birth date:</property>
+                                <property name="xalign">1</property>
+                              </widget>
+                              <packing>
+                              </packing>
+                          </child> <!-- closes l=user_birth_date in E -->
+                          
+                        </widget>
+                        <packing>
+                          <property name="top_attach">2</property>
+                          <property name="left_attach">0</property>
+                          <property name="right_attach">1</property>
+                          <property name="bottom_attach">3</property>
+                        </packing>
+                    </child> <!-- closes E=user_birth_date in T -->
+                    
+                    <child>
+                        <widget class="Custom" id="d=user_birth_date">
+                          <property name="lower-hour">10</property>
+                          <property name="visible">True</property>
+                          <property name="use-24h-format">False</property>
+                          <property name="creation_function">lay_dateedit</property>
+                          <property name="upper-hour">23</property>
+                        </widget>
+                        <packing>
+                          <property name="top_attach">2</property>
+                          <property name="left_attach">1</property>
+                          <property name="right_attach">2</property>
+                          <property name="bottom_attach">3</property>
+                        </packing>
+                    </child> <!-- closes d=user_birth_date in T -->
+                    
+                    <child>
+                        <widget class="GtkEventBox" id="E=user_address">
+                          <property name="visible">True</property>
+                          
+                          <child>
+                              <widget class="GtkLabel" id="l=user_address">
+                                <property name="use-markup">True</property>
+                                <property name="visible">True</property>
+                                <property name="xpad">10</property>
+                                <property name="label" translatable="yes">user address:</property>
+                                <property name="xalign">1</property>
+                              </widget>
+                              <packing>
+                              </packing>
+                          </child> <!-- closes l=user_address in E -->
+                          
+                        </widget>
+                        <packing>
+                          <property name="top_attach">3</property>
+                          <property name="left_attach">0</property>
+                          <property name="right_attach">1</property>
+                          <property name="bottom_attach">4</property>
+                        </packing>
+                    </child> <!-- closes E=user_address in T -->
+                    
+                    <child>
+                        <widget class="GtkEntry" id="e=user_address">
+                          <property name="visible">True</property>
+                        </widget>
+                        <packing>
+                          <property name="top_attach">3</property>
+                          <property name="left_attach">1</property>
+                          <property name="right_attach">2</property>
+                          <property name="bottom_attach">4</property>
+                        </packing>
+                    </child> <!-- closes e=user_address in T -->
+                    
+                    <child>
+                        <widget class="GtkEventBox" id="E=city_id">
+                          <property name="visible">True</property>
+                          
+                          <child>
+                              <widget class="GtkLabel" id="l=city_id">
+                                <property name="use-markup">True</property>
+                                <property name="visible">True</property>
+                                <property name="xpad">10</property>
+                                <property name="label" translatable="yes">city id:</property>
+                                <property name="xalign">1</property>
+                              </widget>
+                              <packing>
+                              </packing>
+                          </child> <!-- closes l=city_id in E -->
+                          
+                        </widget>
+                        <packing>
+                          <property name="top_attach">4</property>
+                          <property name="left_attach">0</property>
+                          <property name="right_attach">1</property>
+                          <property name="bottom_attach">5</property>
+                        </packing>
+                    </child> <!-- closes E=city_id in T -->
+                    
+                    <child>
+                        <widget class="GtkEntry" id="e=city_id">
+                          <property name="visible">True</property>
+                        </widget>
+                        <packing>
+                          <property name="top_attach">4</property>
+                          <property name="left_attach">1</property>
+                          <property name="right_attach">2</property>
+                          <property name="bottom_attach">5</property>
+                        </packing>
+                    </child> <!-- closes e=city_id in T -->
+                    
+                    <child>
+                        <widget class="GtkEventBox" id="E=user_age">
+                          <property name="visible">True</property>
+                          
+                          <child>
+                              <widget class="GtkLabel" id="l=user_age">
+                                <property name="use-markup">True</property>
+                                <property name="visible">True</property>
+                                <property name="xpad">10</property>
+                                <property name="label" translatable="yes">user age:</property>
+                                <property name="xalign">1</property>
+                              </widget>
+                              <packing>
+                              </packing>
+                          </child> <!-- closes l=user_age in E -->
+                          
+                        </widget>
+                        <packing>
+                          <property name="top_attach">5</property>
+                          <property name="left_attach">0</property>
+                          <property name="right_attach">1</property>
+                          <property name="bottom_attach">6</property>
+                        </packing>
+                    </child> <!-- closes E=user_age in T -->
+                    
+                    <child>
+                        <widget class="GtkEntry" id="e=user_age">
+                          <property name="visible">True</property>
+                        </widget>
+                        <packing>
+                          <property name="top_attach">5</property>
+                          <property name="left_attach">1</property>
+                          <property name="right_attach">2</property>
+                          <property name="bottom_attach">6</property>
+                        </packing>
+                    </child> <!-- closes e=user_age in T -->
+                    
+                    <child>
+                        <widget class="GtkEventBox" id="E=user_sex">
+                          <property name="visible">True</property>
+                          
+                          <child>
+                              <widget class="GtkLabel" id="l=user_sex">
+                                <property name="use-markup">True</property>
+                                <property name="visible">True</property>
+                                <property name="xpad">10</property>
+                                <property name="label" translatable="yes">user sex:</property>
+                                <property name="xalign">1</property>
+                              </widget>
+                              <packing>
+                              </packing>
+                          </child> <!-- closes l=user_sex in E -->
+                          
+                        </widget>
+                        <packing>
+                          <property name="top_attach">6</property>
+                          <property name="left_attach">0</property>
+                          <property name="right_attach">1</property>
+                          <property name="bottom_attach">7</property>
+                        </packing>
+                    </child> <!-- closes E=user_sex in T -->
+                    
+                    <child>
+                        <widget class="GtkEntry" id="e=user_sex">
+                          <property name="visible">True</property>
+                        </widget>
+                        <packing>
+                          <property name="top_attach">6</property>
+                          <property name="left_attach">1</property>
+                          <property name="right_attach">2</property>
+                          <property name="bottom_attach">7</property>
+                        </packing>
+                    </child> <!-- closes e=user_sex in T -->
+                    
+                    <child>
+                        <widget class="GtkEventBox" id="E=user_active">
+                          <property name="visible">True</property>
+                          
+                          <child>
+                              <widget class="GtkLabel" id="l=user_active">
+                                <property name="use-markup">True</property>
+                                <property name="visible">True</property>
+                                <property name="xpad">10</property>
+                                <property name="label" translatable="yes">user active:</property>
+                                <property name="xalign">1</property>
+                              </widget>
+                              <packing>
+                              </packing>
+                          </child> <!-- closes l=user_active in E -->
+                          
+                        </widget>
+                        <packing>
+                          <property name="top_attach">7</property>
+                          <property name="left_attach">0</property>
+                          <property name="right_attach">1</property>
+                          <property name="bottom_attach">8</property>
+                        </packing>
+                    </child> <!-- closes E=user_active in T -->
+                    
+                    <child>
+                        <widget class="GtkCheckButton" id="c=user_active">
+                          <property name="visible">True</property>
+                          <property name="label" translatable="yes"></property>
+                        </widget>
+                        <packing>
+                          <property name="top_attach">7</property>
+                          <property name="left_attach">1</property>
+                          <property name="right_attach">2</property>
+                          <property name="bottom_attach">8</property>
+                        </packing>
+                    </child> <!-- closes c=user_active in T -->
+                    
+                    <child>
+                        <widget class="GtkHBox" id="Huno">
+                          <property name="homogeneous">False</property>
+                          <property name="visible">True</property>
+                          <property name="spacing">0</property>
+                        </widget>
+                        <packing>
+                          <property name="top_attach">8</property>
+                          <property name="left_attach">0</property>
+                          <property name="right_attach">2</property>
+                          <property name="bottom_attach">9</property>
+                        </packing>
+                    </child> <!-- closes Huno in T -->
+                    
+                  </widget>
+                  <packing>
+                  </packing>
+              </child> <!-- closes T.0 in A -->
+              
+            </widget>
+            <packing>
+              <property name="left_attach">0</property>
+              <property name="bottom_attach">3</property>
+              <property name="top_attach">2</property>
+              <property name="right_attach">1</property>
+            </packing>
+        </child> <!-- closes A.0 in T -->
+        
+        <child>
+            <widget class="GtkStatusbar" id="sb=StBar">
+              <property name="visible">True</property>
+            </widget>
+            <packing>
+              <property name="top_attach">3</property>
+              <property name="left_attach">0</property>
+              <property name="right_attach">1</property>
+              <property name="bottom_attach">4</property>
+              <property name="y_options"></property>
+            </packing>
+        </child> <!-- closes sb=StBar in T -->
+        
+      </widget>
+      <packing>
+      </packing>
+  </child> <!-- closes T.1 in W -->
+  
+</widget>
+
+
+</glade-interface>
