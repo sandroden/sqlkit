@@ -185,7 +185,7 @@ class SqlMask (sqlwidget.SqlWidget):
         self.commit()
         self.record_clear()
     
-    def record_save(self, ev, constraint={}):
+    def record_save(self, ev, constraint={}, *args):
         """invokes the validator before UPDATE/INSERT a record"""
         ## FIXME: validator
         ## FIXME: passare da table -> mapper
@@ -315,19 +315,19 @@ class SqlMask (sqlwidget.SqlWidget):
                 return
         
         return self.record_display(incr=1)
-
+    
     def record_forward_sync(self, incr=1):
         for z in self.sync_dict:
             if isinstance(z, sqlkit.SqlMask):
                 return z.record_forward('')
         return False
-
+    
     def record_back_sync(self, incr=1):
         for z in self.sync_dict:
             if isinstance(z, sqlkit.SqlMask):
                 return z.record_back('')
         return False
-
+    
     def record_back(self, ev):
         """display the previous record in the mapper"""
         if self.sync_dict:
