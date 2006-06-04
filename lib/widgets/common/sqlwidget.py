@@ -103,7 +103,7 @@ class SqlWidget(object):
         #self.w['Window'].show()
         lcontainer_name = self.lay_obj.container().el_def
         el_def = re.sub(':.*','', lcontainer_name)
-        dbg.write('lcontainer_name: ', el_def)
+        #dbg.write('lcontainer_name: ', el_def)
         self.w[el_def].show()
                 
     def get_engine(self, engine, mapper):
@@ -166,15 +166,11 @@ class SqlWidget(object):
             self._analize_widgets_in_layout()
             self._add_constraints_and_connect()
             self._add_colors_and_fonts()
-        else:
-            ## let tree use all the available space... 
-            if not self.naked:
-                self.lay_obj.prop('A.0','yscale',1)
 
-            if self.geom and not self.addto:
-                dbg.write('setting geometry')
-                self.lay_obj.prop('Window', 'height-request', self.geom[0])
-                self.lay_obj.prop('Window', 'height-request', self.geom[1])
+
+        if self.geom and not self.addto:
+            self.lay_obj.prop('Window', 'height-request', self.geom[0])
+            self.lay_obj.prop('Window', 'height-request', self.geom[1])
 
         self._add_actions_to_buttons()
         self._fill_menubar_menu()
@@ -194,14 +190,14 @@ class SqlWidget(object):
                                        gtk.gdk.CONTROL_MASK, 
                                        gtk.ACCEL_LOCKED, 
                                        self.gquit)
-        self.accel_group.connect_group(ord('n'), 
-                                       gtk.gdk.CONTROL_MASK, 
-                                       gtk.ACCEL_LOCKED, 
-                                       self.record_clear)
-        self.accel_group.connect_group(ord('s'), 
-                                       gtk.gdk.CONTROL_MASK, 
-                                       gtk.ACCEL_LOCKED, 
-                                       self.record_save)
+#         self.accel_group.connect_group(ord('n'), 
+#                                        gtk.gdk.CONTROL_MASK, 
+#                                        gtk.ACCEL_LOCKED, 
+#                                        self.record_clear)
+#         self.accel_group.connect_group(ord('s'), 
+#                                        gtk.gdk.CONTROL_MASK, 
+#                                        gtk.ACCEL_LOCKED, 
+#                                        self.record_save)
         self.w['Window'].add_accel_group(self.accel_group)
             
         
@@ -258,11 +254,12 @@ class SqlWidget(object):
         """clear the mask for a new record"""
         pass
     
-    def reload(self, sql=None, params=None, limit=100):
+    def reload(self, sql=None, params=None, limit=100, constraint={}):
         """reload data from db
 
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
         """
+        self.constraint=constraint
         #dbg.write(sql)
         if isinstance(sql, tuple) and len(sql) == 2:
             sql_str, params = sql
@@ -290,6 +287,7 @@ class SqlWidget(object):
         #limit=100
         self.reload( )
     def commit(self):
+        #dbg.write('COMMIT')
         if dbg.debug():
             PREV = self.engine.echo
             self.engine.echo = True
@@ -332,7 +330,7 @@ class SqlWidget(object):
                 #w.reload(sql=(and_(sql), val)
 
 #            w.reload(  sql =  (and_(*[sql]),val)   )
-            w.reload(  sql =  (sql,val)   )
+            w.reload(  sql =  (sql,val) , constraint=val  )
     def get_pk(self):
         """return the pkeys of the primarytable"""
         return self.fields.pkeys[self.fields.get_primary_table()]
@@ -347,8 +345,11 @@ class SqlWidget(object):
         if not re.match (ONLYDIGITS, key):
             #dbg.write("key: %s" % key)
             return True
-        
 
+####### Dialog
+    def confirm(self, text, type):
+        pass
+    
 ####### Misc
     def delete_event(self, *args):
         """Quit operations: check if need to save first """
