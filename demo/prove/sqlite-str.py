@@ -18,12 +18,17 @@ users.insert().execute(
 class User(object): pass
 
 m = mapper(User, users)
-u = m.select()[2]
+#u = m.select()[2]
 
 eng.echo = True
-        
+
+var = {'user_name':'S%'}
+ret = m.select("user_name LIKE :user_name", params=var)
+for r in ret:
+    print r.user_name, r.user_last_name
+    
 #u.user_id = 10
-u.user_name = 'Sandro'
-objectstore.commit()
+#u.user_name = 'Sandro'
+#objectstore.commit()
 
 
