@@ -153,7 +153,7 @@ class SqlWidget(object):
         #dbg.write(self.layout)
         self.lay_obj = layout.Layout(self.layout, addto=self.addto,
                                      title=self.title, opts='T-')
-        self.lay_obj.xml('/tmp/m_%s.glade' % self.nick)
+        #self.lay_obj.xml('/tmp/m_%s.glade' % self.nick)
         if 'Window' in self.lay_obj.elements:
             self.lay_obj.prop('Window', 'visible', False)
         self.w       = self.lay_obj.show()
@@ -351,6 +351,11 @@ class SqlWidget(object):
         pass
     
 ####### Misc
+    def set_fkey_value(self, field_name, value):
+        """needed for completion, to set real value when
+        description is shown instead
+        """
+        pass
     def delete_event(self, *args):
         """Quit operations: check if need to save first """
         ### fixme: must add cheks
