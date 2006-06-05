@@ -535,6 +535,7 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
         #register callback to toplevel window
         self.treeview.get_toplevel().connect("delete_event", self.delete_event)
         self.setupTreeColumns()
+        ## let tree use all the available space... 
         if not self.naked:
             self.lay_obj.prop('A.0','yscale',1)
         return (self.lay_obj, self.w)
@@ -768,7 +769,7 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
                 del rdict[k]
         return rdict
     
-    def set_value(self, field_name, value):
+    def set_fkey_value(self, field_name, value):
         if field_name not in self.fields.keys():
             dbg.write('abbandono', field_name)
             return

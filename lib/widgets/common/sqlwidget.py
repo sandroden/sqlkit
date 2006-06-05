@@ -259,8 +259,9 @@ class SqlWidget(object):
 
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
         """
-        self.constraint=constraint
-        #dbg.write(sql)
+        if constraint:
+            self.constraint=constraint
+        dbg.write(self.nick, 'constraint', constraint)
         if isinstance(sql, tuple) and len(sql) == 2:
             sql_str, params = sql
             #dbg.write('type sql_str', type(sql_str), 'type params', type(params))
@@ -325,12 +326,19 @@ class SqlWidget(object):
             #dbg.write(w, value)
             DIR, sql, field_names, fkeys = value
             val = {}
+            val_constr = {}
+            for fkey in fkeys:
+                name, referenced_name = fkey
+                #dbg.write(name, self._get_value(referenced_name, data=True))
+                val_constr[name] = self._get_value(referenced_name, data=True)
+
             for field_name in field_names:
                 val[field_name] = self._get_value(field_name, data=True)
                 #w.reload(sql=(and_(sql), val)
 
+            dbg.write(sql, val)
 #            w.reload(  sql =  (and_(*[sql]),val)   )
-            w.reload(  sql =  (sql,val) , constraint=val  )
+            w.reload(  sql =  (sql,val) , constraint=val_constr  )
     def get_pk(self):
         """return the pkeys of the primarytable"""
         return self.fields.pkeys[self.fields.get_primary_table()]
