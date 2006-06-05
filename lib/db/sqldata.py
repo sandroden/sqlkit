@@ -258,6 +258,7 @@ class SqlData(object):
         
         for field in self.mapper_info.table_fields(tbl):
             if field in R:
+                dbg.write(field, R[field])
                 setattr(inst, field, R[field])
 
         
