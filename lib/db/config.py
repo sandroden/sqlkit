@@ -45,14 +45,13 @@ def spawnEngine(file='config.ini', echo=False, globalconn=False):
 def spawnDSN (file='config.ini'):
     c = ConfigParser ()
     db = None
-    if not file:
-        file = searchFile(file)
-        c.read (file)
-        db = "host=%s dbname=%s user=%s password=%s port=%s" % (
-            c.get ('database', 'host'),
-            c.get ('database', 'dbname'),
-            c.get ('database', 'user'),
-            c.get ('database', 'password'),
-            c.get ('database', 'port'))
+    file = searchFile(file)
+    c.read (file)
+    db = "host=%s dbname=%s user=%s password=%s port=%s" % (
+        c.get ('database', 'host'),
+        c.get ('database', 'dbname'),
+        c.get ('database', 'user'),
+        c.get ('database', 'password'),
+        c.get ('database', 'port'))
     return db 
 
