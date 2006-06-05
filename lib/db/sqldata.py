@@ -233,6 +233,7 @@ class SqlData(object):
     def add(self, R):
         """add a record. Create instances and attach them to first instance
         """
+        dbg.write('add')
         main_table  = self.mapper_info.tables()[0]
         main_mapper = self.mapper_info.get_mapper(main_table)
         new = self._create_instance(main_table, R)
