@@ -493,3 +493,10 @@ class SqlMask (sqlwidget.SqlWidget):
     def select(self):
         pass
     
+####### Misc
+    def set_fkey_value(self, field_name, value):
+        """needed for completion, to set real value when
+        description is shown instead
+        """
+        self.values[field_name] = value
+        

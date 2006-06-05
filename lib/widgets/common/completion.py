@@ -145,8 +145,7 @@ class Completion(object):
         the entry with the correct value.
         """
         value = model.get(iter,0)[0]
-        self.master.values[field_name] = value
-        self.master.set_value(field_name, value)
+        self.master.set_fkey_value(field_name, value)
         # note: model.get() returns a tuple, one value each cell on the column
 
         if self.master.fields[field_name]['fkey']:
@@ -172,13 +171,15 @@ class Completion(object):
     def set_text(self, Rd, exclude=None):
         """sets the values of field read by the select
         """
+        dbg.dshow(self.master.mwidgets)
         if isinstance(self.master, sqlkit.SqlMask):
             for field_name, value in Rd.iteritems():
-                if field_name == exclude:
-                    continue
+#                 if field_name == exclude:
+#                     dbg.write('salto: ', field_name, Rd[field_name])
+#                     continue
                 dbg.write(field_name, value)
                 if field_name in self.master.mwidgets:
-                    #dbg.write("%s.set_text(%s)" % (field_name, value))
+                    dbg.write("%s.set_text(%s)" % (field_name, value))
                     self.master.mwidgets[field_name].set_text(value)
                     #self.master._set_value(field_name, Rd[field_name]
         else:
@@ -187,7 +188,7 @@ class Completion(object):
                 #dbg.write(field_name, value)
                 if field_name == exclude:
                     continue
-                self.master.set_value(field_name, value)
+                self.master.set_fkey_value(field_name, value)
         return
 
     def match_func(self, completion, key, iter, func_data):
