@@ -168,9 +168,9 @@ class SqlWidget(object):
             self._add_colors_and_fonts()
 
 
-        if self.geom and not self.addto:
-            self.lay_obj.prop('Window', 'height-request', self.geom[0])
-            self.lay_obj.prop('Window', 'height-request', self.geom[1])
+#         if self.geom and not self.addto:
+#             self.lay_obj.prop('Window', 'height-request', self.geom[0])
+#             self.lay_obj.prop('Window', 'height-request', self.geom[1])
 
         self._add_actions_to_buttons()
         self._fill_menubar_menu()
@@ -261,7 +261,7 @@ class SqlWidget(object):
         """
         if constraint:
             self.constraint=constraint
-        dbg.write(self.nick, 'constraint', constraint)
+        #dbg.write(self.nick, 'constraint', constraint)
         if isinstance(sql, tuple) and len(sql) == 2:
             sql_str, params = sql
             #dbg.write('type sql_str', type(sql_str), 'type params', type(params))
