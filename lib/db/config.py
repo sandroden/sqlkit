@@ -25,7 +25,7 @@ def spawnEngine(file='config.ini', echo=False, globalconn=False):
     
     c = ConfigParser ()
     file = searchFile(file)
-    if not os.path.exists(file):
+    if not file or not os.path.exists(file):
         raise MissingConfigFileError("looking for: %s" % file)
     
     c.read (file)
@@ -46,6 +46,8 @@ def spawnDSN (file='config.ini'):
     c = ConfigParser ()
     db = None
     file = searchFile(file)
+    if not file or not os.path.exists(file):
+        raise MissingConfigFileError("looking for: %s" % file)
     c.read (file)
     db = "host=%s dbname=%s user=%s password=%s port=%s" % (
         c.get ('database', 'host'),
