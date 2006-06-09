@@ -1,6 +1,7 @@
 from sqlalchemy import *
 import sys, dbg
 import datetime
+import decimal
 
 class MissingPrimaryKeyError(Exception): pass
 def is_serial (c):
@@ -42,6 +43,8 @@ class InspectMapper(dict):
                 sqlalchemy.databases.postgres.PGFloat  : float,
                 sqlalchemy.databases.postgres.PG2DateTime  : datetime.datetime,
                 sqlalchemy.databases.postgres.PG2Date  : datetime.date,
+                sqlalchemy.databases.postgres.PGNumeric : decimal.Decimal,
+                sqlalchemy.databases.postgres.PGNumeric : float,
                 sqlalchemy.databases.postgres.PGChar  : str, 
                 sqlalchemy.databases.postgres.PGText  : str, 
                 sqlalchemy.databases.postgres.PGString  :  str, 
@@ -210,14 +213,14 @@ class InspectMapper(dict):
             raise MissingPrimaryKeyError("%s does not seem to have a PKey" %
                                          table_name)
         
-    def parse_noup(self,noup):
+    def parse_noup(self, noup):
         """parse noup to set fields that are not updateable
         """
-        if not noup:
+        if noup == None:
             return []
         if isinstance(noup, str):
             noup = noup.split(",")
-            return noup
+        return noup
         
     def set_noup(self, field_name, table_name, col):
         edit = True
@@ -390,15 +393,15 @@ def get_join_cnd_for_sync(t1, t2):
         if col.foreign_key and col.foreign_key.column.table in tbls:
             field_names.extend([col.name])
             fkeys.extend([(col.name, col.foreign_key.column.name)])
-            #dbg.write("col:", col, " -- fk:", col.foreign_key.column)
+            dbg.write("col:", col, " -- fk:", col.foreign_key.column)
             #cnd += [ col == col.foreign_key.column ]
             cnd_str = ["%s.%s = :%s" % (
                 col.foreign_key.column.table.name,
                 col.foreign_key.column.name,
                 col.name,
                 )]
-            #dbg.write(cnd_str)
-    if cnd:
+            dbg.write(cnd_str)
+    if cnd_str:
         DIR = 'MANY2ONE'
     else:
         #dbg.write(t2)

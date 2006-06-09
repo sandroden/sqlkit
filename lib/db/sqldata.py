@@ -37,6 +37,7 @@ class SqlData(object):
         self.res_obj = res_obj
         self.mapper_info = mapper_info
         self._create_pointers(left=left)
+        self.deleted = []
         self.current = 0
         if not fields:
             fields = self.mapper_info.fields
@@ -61,8 +62,13 @@ class SqlData(object):
         R = {}
         if index:
             self.current = index
+        while self.current + incr in self.deleted:
+            self.current += incr
+
         if self.current+incr < 0:
             return
+
+
         try:
             pointer = self.pointers[self.current+incr]
             self.current += incr
@@ -224,11 +230,13 @@ class SqlData(object):
 
         if not pointer:
             pointer = self.pointers[self.current]
+            index = self.current = self.pointers.index(pointer)
             #raise MissingPointerError('A pointer is needed', pointer)
 
+        self.deleted += [index]
         sqlalchemy.objectstore.delete(pointer[-1])
         #dbg.write("objectstore.delete(%s)" % pointer[-1])
-        del self.pointers[self.current]
+        #del self.pointers[self.current]
         
     def add(self, R):
         """add a record. Create instances and attach them to first instance
