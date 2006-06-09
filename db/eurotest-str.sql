@@ -16,6 +16,8 @@ CREATE TABLE euro_user (
     user_sex char(1),
     user_active bool,
     user_timestamp  timestamp without time zone,
+    user_fee numeric(8,2),
+--    user_fee float,
     CONSTRAINT euro_user_pkey PRIMARY KEY (user_id),
     FOREIGN KEY (city_id) REFERENCES city(city_id)
 );

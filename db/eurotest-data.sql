@@ -19,15 +19,25 @@ SELECT setval('city_city_id_seq',(select max(city_id) from city));
 -- Name: euro_mail; Type: TABLE DATA; Schema: public; Owner: test
 --
 
-COPY euro_user (user_id, user_name, user_last_name, user_birth_date, user_address, city_id, user_age, user_sex, user_active) FROM stdin;
-1	Sam	Patts	1963-04-07	vega 1	1	42	m	t
-2	Sid	Watts	1972-04-07	manzoni	2	30	m	t
-3	Axe	Smith	2005-01-01	verdi	3	1	m	f
-4	Ted	Will	2000-12-25	mozart	4	33	m	t
-5	Fat	Joe	1990-08-01	foscolo	5	20	m	f
-6	Jim	Big	1995-09-23	grimm	6	50	m	t
-7	Suzan	White	1970-10-23	boh	7	40	f	t
-8	Ann	Pearl	1972-09-09	mah	8	32	f	t
+-- COPY euro_user (user_id, user_name, user_last_name, user_birth_date, user_address, city_id, user_age, user_sex, user_active) FROM stdin;
+-- 1	Sam	Patts	1963-04-07	vega 1	1	42	m	t
+-- 2	Sid	Watts	1972-04-07	manzoni	2	30	m	t
+-- 3	Axe	Smith	2005-01-01	verdi	3	1	m	f
+-- 4	Ted	Will	2000-12-25	mozart	4	33	m	t
+-- 5	Fat	Joe	1990-08-01	foscolo	5	20	m	f
+-- 6	Jim	Big	1995-09-23	grimm	6	50	m	t
+-- 7	Suzan	White	1970-10-23	boh	7	40	f	t
+-- 8	Ann	Pearl	1972-09-09	mah	8	32	f	t
+-- \.
+COPY euro_user (user_id, user_name, user_last_name, user_birth_date, user_address, city_id, user_age, user_sex, user_active, user_fee) FROM stdin;
+1	Sam	Patts	1963-04-07	vega 1	1	42	m	t	1.00
+2	Sid	Watts	1972-04-07	manzoni	2	\N	m	t	2.00
+3	Axe	Smith	2005-01-01	verdi	3	1	m	f	\N
+4	Ted	Will	2000-12-25	mozart	4	33	m	t	\N
+5	Fat	Joe	1990-08-01	foscolo	5	20	m	f	\N
+6	Jim	Big	1995-09-23	grimm	6	50	m	t	\N
+7	Suzan	White	1970-10-23	boh	7	40	f	t	\N
+8	Ann	Pearl	1972-09-09	mah	8	32	f	t	\N
 \.
 SELECT setval('euro_user_user_id_seq',(select max(user_id) from euro_user));
 COPY euro_mail (mail_id, mail_address, mail_user_id) FROM stdin;
