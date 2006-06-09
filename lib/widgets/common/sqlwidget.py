@@ -35,9 +35,9 @@ class SqlWidget(object):
                   tables=None,
                   join=None,
                   mode='rw',
-                  noup=None,
+                  noup=[],
                   sql=None,
-                  constraint=None,
+                  constraint={},
                   engine=None,
                   title=None,
                   order_by=None,
@@ -67,6 +67,7 @@ class SqlWidget(object):
         self.nick= nick
         self.geom = geom
         self.addto = addto
+        self.constraint=constraint
         self.sync_dict = {}
         self.engine = self.get_engine(engine, mapper)
         self.order_by = order_by
@@ -261,7 +262,7 @@ class SqlWidget(object):
         """
         if constraint:
             self.constraint=constraint
-        #dbg.write(self.nick, 'constraint', constraint)
+        dbg.write(self.nick, 'constraint', constraint)
         if isinstance(sql, tuple) and len(sql) == 2:
             sql_str, params = sql
             #dbg.write('type sql_str', type(sql_str), 'type params', type(params))
@@ -269,8 +270,10 @@ class SqlWidget(object):
         else:
             sql_str = sql
             params = None
+
+        objectstore.clear()
         self.sql = (sql, params)
-        #dbg.write("SQL", sql_str, 'params', params, 'limit:', limit)
+        dbg.write(self.nick, "SQL: '%s'" % sql_str, 'params', params, 'limit:', limit)
         #self.mapper.table.engine.echo = True
         records = self.mapper.select(sql_str, params=params,
                                      order_by=self.order_by,
@@ -323,20 +326,20 @@ class SqlWidget(object):
         ## of primarytable has a fk to nother table
         #dbg.write()
         for w, value in self.sync_dict.iteritems():
-            #dbg.write(w, value)
+            dbg.write(w, value)
             DIR, sql, field_names, fkeys = value
             val = {}
             val_constr = {}
             for fkey in fkeys:
                 name, referenced_name = fkey
-                #dbg.write(name, self._get_value(referenced_name, data=True))
+                dbg.write(name, self._get_value(referenced_name, data=True))
                 val_constr[name] = self._get_value(referenced_name, data=True)
 
             for field_name in field_names:
                 val[field_name] = self._get_value(field_name, data=True)
                 #w.reload(sql=(and_(sql), val)
 
-            dbg.write(sql, val)
+            #dbg.write(sql, val)
 #            w.reload(  sql =  (and_(*[sql]),val)   )
             w.reload(  sql =  (sql,val) , constraint=val_constr  )
     def get_pk(self):

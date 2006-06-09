@@ -21,6 +21,7 @@ def get_mapper(master, mapper_obj, tables):
 
 def inspect_mapper(mapper, noup=None, mode=None):
     # A mapper created using .join or .outerjoin from one table
+
     if isinstance(mapper.primarytable, sqlalchemy.sql.Join):
         m=inspect.InspectJoinMapper(mapper, noup=noup, mode=mode)
     # A mapper of a single table or a mapper creater with 'properties' option
