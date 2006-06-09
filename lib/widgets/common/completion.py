@@ -153,7 +153,7 @@ class Completion(object):
             Rd = model.get(iter,3)[0]
             show_value = model.get(iter,1)[0]
             Rd[field_name] = show_value
-            dbg.write("Rd", Rd, field_name)
+            #dbg.write("Rd", Rd, field_name)
             self.set_text(Rd, field_name)
             ## reset the show value
             ##Rd[field_name] = show_value
@@ -171,7 +171,7 @@ class Completion(object):
     def set_text(self, Rd, exclude=None):
         """sets the values of field read by the select
         """
-        dbg.dshow(self.master.mwidgets)
+        #dbg.dshow(self.master.mwidgets)
         if isinstance(self.master, sqlkit.SqlMask):
             for field_name, value in Rd.iteritems():
 #                 if field_name == exclude:
@@ -366,8 +366,8 @@ class Completion(object):
             pass
 
         
-        self.w['M=popup'] = gtk.Menu()
-        menu = self.w['M=popup']
+        self.master.w['M=popup'] = gtk.Menu()
+        menu = self.master.w['M=popup']
         ## info on field
         item = gtk.MenuItem(label="info on %s" % field_name.replace('_','__'))
         item.connect('activate', self.show_field_info, field_name)
