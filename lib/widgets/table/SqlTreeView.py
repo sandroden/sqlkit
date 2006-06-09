@@ -8,12 +8,13 @@
 import sys
 sys.path.append ('../../../')
 from sqlalchemy import *
-from layout import *
+import layout
 from datetime import datetime
 import sqlalchemy.types as sqltypes
 import sqlkit.sqlwidget as sqlwidget
 from sqlkit.layoutgenerator import TableLayoutGenerator
 import dbg
+import decimal
 
 #sys.path.append('../gdl')
 
@@ -23,41 +24,60 @@ if sys.hexversion < 0x20401f0:
     sys.exit(-1)
     
 import gtk, gobject, pango
-#import layout
-#from SqlChecker import *
 
 
 class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
     date = None
-    def __init__(self, date, pos=None, wdg=None):
+    def __init__(self, date, pos=None, wdg=None, cell_area=None):
 
         self.date = date
         
         gtk.TextView.__init__(self)
         #self.set_has_window(False)
         self.cal = gtk.Calendar()
+        #self.cal.show()
         self.cal.select_month(self.date.month - 1, self.date.year)
         self.cal.select_day(self.date.day)
         self.w = gtk.Window(gtk.WINDOW_POPUP)
-        #toplevel = wdg.get_toplevel()
-        #dbg.write(toplevel, self.w)
-        #self.w.set_transient_for(toplevel)
-        self.w.set_gravity(gtk.gdk.GRAVITY_NORTH_WEST)
-
-        x, y = pos
-        self.w.move(int(x)+50, int(y)+120)
-        self.set_editable(False)
-        #dbg.write( "top level", self.get_toplevel() )
-        #self.w.set_transient_for(self)
+        #self.set_editable(False)
         self.w.add(self.cal)
         #self.w.connect("delete_event", self.delete_event)
         self.cal.connect("day-selected-double-click", self.delete_event)
         self.cal.connect("event", self.cal_event)
+        self.position_popup(wdg, self.w, cell_area)
         self.show_all()
         self.grab_focus()
         self.w.show_all()
         self.connect('key-press-event', self.keypress_event)
         
+    def position_popup(self, widget, popup, ca):
+        # the get_origin method returns  the origin comprising the headers
+        # the get_cell _area don't!!! (so I add cell_height doing 2*...))
+
+        # you need child to show_all() to get the dimentions correctly
+        child = popup.get_children()[0]
+        child.show_all()
+
+        popup_width, popup_height = popup.size_request()
+        x, y = gtk.gdk.Window.get_origin(widget.window)
+
+        # path, col, x1, y1 = widget.get_path_at_pos(event.x, event.y)
+        # ca = widget.get_cell_area(path, col)
+
+        X = x + ca.x
+        Y = y + ca.y + 2*ca.height + 4
+
+        # border case: the cell is too close to the border to allow the window
+        # I don't want the mouse to be over the popup since an undesired click
+        # would change the date...
+        if Y + popup_height> gtk.gdk.screen_height():
+            Y = y +  ca.y + ca.height - popup_height 
+        if X + popup_width> gtk.gdk.screen_width():
+            X = gtk.gdk.screen_width() - popup_width 
+
+        popup.move(X, Y)
+
+
     def keypress_event(self, w, event):
         accelname = gtk.accelerator_name(event.keyval, event.state)
         if accelname == 'Delete':
@@ -177,9 +197,9 @@ class CellRendererDate(gtk.GenericCellRenderer):
             date = datetime.now()
         else:
             date = self.date
-            
-#        ce = CellEditableCalendar(date = date, pos=(event.x, event.y), wdg=widget)
-        ce = CellEditableCalendar(date = date, pos=(event.x, event.y))
+        #dbg.ddir(cell_area)
+        ce = CellEditableCalendar(date = date, cell_area=cell_area, wdg=widget)
+#        ce = CellEditableCalendar(date = date, pos=(event.x, event.y))
         ce.show()
         ce.grab_focus()
         ce.connect('editing-done', self.editing_done, widget, path)
@@ -475,7 +495,7 @@ class SqlLayoutTreeView(SqlTreeView):
           {O tb=gtk-save tb=gtk-delete tb=gtk-new tb=gtk-quit}
           TVS=tree
         """
-        self.l = Layout(lay,opts='s', title="ListStorageView")
+        self.l = layout.Layout(lay,opts='s', title="ListStorageView")
         self.w = self.l.show(x=self.delete_event)
         self.window = self.w['Window']
         self.l.menu('m=file',
@@ -561,6 +581,7 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
         
     def record_delete(self, widget=None):
         """Delete a row and corresponding record"""
+        dbg.write('DELETE')
         self.deleteRow(widget)
         self.sb("total N. of records: %s" % len(self.liststore))
     
@@ -622,6 +643,7 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
     def set_fkey_descr(self, column, cell, tree, iter, i):
         fkey = tree.get(iter, i)[0]
         field_name = self.fields.keys()[i]
+        dbg.write(column, i, field_name, fkey)
         cell.set_property('text', self.completion._lookup_value(field_name, fkey))
         
     def mapToListStore(self):
@@ -631,18 +653,23 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
                 ftype = type(self.completion._lookup_value(v, ''))
             else:
                 ftype = self.fields[v]['type']
+            if ftype in (int, float, decimal.Decimal):
+                ftype = str
             self.coltypes.append(ftype)
             
         coltypes = []
         
         # try to convert types to gobject types
         for tp in self.coltypes:
-            try:
-                coltypes.append(gobject.type_from_name(gobject.type_name(tp)))
-            except TypeError:
-                coltypes.append(object)
+            if tp in (int, float, decimal.Decimal):
+                coltypes.append(str)
+            else:
+                try:
+                    coltypes.append(gobject.type_from_name(gobject.type_name(tp)))
+                except TypeError:
+                    coltypes.append(object)
 
-
+        #dbg.write('coltypes', coltypes)
         if self.liststore is None:
             self.liststore = gtk.ListStore(*coltypes)
 
@@ -668,10 +695,10 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
 ##                 else:
 ##                     l.append(values[k])
 
-            self.liststore.append(l)
             #dbg.write(l)
+            self.liststore.append(l)
             self.sb("Total N. of records: %s" % (len(self.liststore)))
-    
+                
     def edited_signal(self, cell, path, new_text, user_data):
         
         liststore, colnum = user_data
@@ -746,12 +773,12 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
     
     def record_save(self, ev = None, constraint={}):
         rdict = self.path2dict(self.mod_path)
-        dbg.write('rdict', rdict)
+        #dbg.write('rdict', rdict)
         if constraint:
             self.constraint=constraint
         dbg.write('self.constraint', self.constraint)
         rdict.update(self.constraint)
-        dbg.write('RDICT', rdict)
+        #dbg.write('RDICT', rdict)
         
         if int(self.mod_path) > self.sqlData.count() - 1:
             dbg.write("INSERTING record")
@@ -759,14 +786,20 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
         else:
             dbg.write("UPDATING record")
             self.sqlData.set(rdict, index=int(self.mod_path))
-    
+        #self.commit()
+
     def path2dict(self, path):
-        dbg.write(path)
-        rdict = dict(map(None, self.fields.keys(),
-                 self.liststore[path]))
+        #dbg.write(path)
+        rdict = dict(map(None, self.fields.keys(), self.liststore[path]))
         for k in rdict.keys():
-            if self.fields[k]['pkey']:
+            if self.fields[k]['edit']:
+                if self.fields[k]['type'] in (int, float, decimal.Decimal) \
+                       and rdict[k] == '':
+                    rdict[k] = None
+                #self.fields[k]['type'](rdict[k])
+            else:
                 del rdict[k]
+
         return rdict
     
     def set_fkey_value(self, field_name, value):
@@ -821,7 +854,7 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
                 mods.append(prefix)
 
         ksym = '_'.join(mods + [ksym])
-        dbg.write('ksym', ksym)
+        #dbg.write('ksym', ksym)
 
         if ksym in dir(self):
             return getattr(self, ksym)(treeview, event)
@@ -832,7 +865,6 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
         return True
     
     def key_Tab(self, treeview, event):
-        dbg.write('Tab pressed')
         self.tab_pressed(treeview)
         return True
     
@@ -879,4 +911,282 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget, SqlTreeView):
 
     ##
 
-class SqlTable(SqlWidgetTreeView): pass
+class SqlTable(SqlWidgetTreeView):
+    """ variant with first column to store the index in sqlData"""
+    def mapToListStore(self):
+        self.coltypes = [object]
+        for v in self.fields.keys():
+            if self.fields[v]['fkey'] and v.endswith('_id'):
+                ftype = type(self.completion._lookup_value(v, ''))
+            else:
+                ftype = self.fields[v]['type']
+            if ftype in (int, float, decimal.Decimal):
+                ftype = str
+            self.coltypes.append(ftype)
+            
+        coltypes = []
+        
+        # try to convert types to gobject types
+        for tp in self.coltypes:
+            if tp in (int, float, decimal.Decimal):
+                coltypes.append(str)
+            else:
+                try:
+                    coltypes.append(gobject.type_from_name(gobject.type_name(tp)))
+                except TypeError:
+                    coltypes.append(object)
+
+        #dbg.write('coltypes', coltypes)
+        if self.liststore is None:
+            self.liststore = gtk.ListStore(*coltypes)
+
+    def record_display(self):
+        self.liststore.clear()
+        for i in range(self.sqlData.count()):
+            values = self.sqlData.get(i, mode='dict')
+            l = [i]
+            for k in self.fields.keys():
+                l.append(values[k])
+##                 if self.fields[k]['fkey'] and k.endswith('_id'):
+##                     l.append(self.completion._lookup_value(k, values[k]))
+##                 else:
+##                     l.append(values[k])
+
+            #dbg.write(l)
+            self.liststore.append(l)
+            self.sb("Total N. of records: %s" % (len(self.liststore)))
+                
+    def setupTreeColumns(self):
+        """Setup the presentation of columns.
+        Some assumptions are made:
+        - bool render to toggles
+        - other render to editable text cells"""
+        #create and append columns
+        for i,v in enumerate(self.fields.keys()):
+            j = i+1
+            #dbg.write("i=%s - j=%s v=%s" % (i, j, v))
+            tvcolumn = gtk.TreeViewColumn(v.replace('_',' '))
+            ptype = self.fields[v]['type']
+
+            #boolean -> checkbox
+            if ptype == bool:
+                cell = gtk.CellRendererToggle()
+                tvcolumn.pack_start(cell, True)
+                tvcolumn.add_attribute(cell, 'active', j )
+                cell.set_property('activatable', True)
+                cell.connect('toggled', self.toggled_signal, (self.liststore, j))
+            #primary key and integer do not show
+            elif ptype == int and self.fields[v]['pkey']:
+                #tvcolumn = gtk.TreeViewColumn(v)
+                cell = gtk.CellRendererText()
+                tvcolumn.pack_start(cell, True)
+                tvcolumn.add_attribute(cell, 'text', j )
+#                tvcolumn.set_visible(False)
+                tvcolumn.set_visible(True)
+            elif issubclass(self.fields[v]['pg_type'], (sqltypes.Date, sqltypes.DateTime)):
+                #dbg.write('%s is a date' % v)
+                cell = CellRendererDate()
+                cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+                cell.set_property('sensitive', False)
+                tvcolumn.pack_start(cell, True)
+                tvcolumn.add_attribute(cell, 'date', j )
+                cell.connect('editing-started', self.date_editing_started, j )
+                cell.connect('date-changed', self.date_changed, j )
+            elif self.fields[v]['fkey'] and v.endswith('_id'):
+                # use set_fkey_descr function to put text in the cell if this is a foreign key
+                cell = gtk.CellRendererText()
+                cell.set_property('editable', True)
+                #cell.set_property('editable-set', True)
+                #cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+                cell.connect('edited', self.edited_signal, v)
+                cell.connect('editing-started', self.text_editing_started, v)
+                tvcolumn.pack_start(cell, True)
+                #tvcolumn.add_attribute(cell, 'text', j)
+                tvcolumn.set_cell_data_func(cell, self.set_fkey_descr, i)
+            else:
+                cell = gtk.CellRendererText()
+                cell.set_property('editable', True)
+                cell.set_property('editable-set', True)
+                cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+                cell.connect('edited', self.edited_signal, v)
+                cell.connect('editing-started', self.text_editing_started, v)
+                tvcolumn.pack_start(cell, True)
+                tvcolumn.add_attribute(cell, 'text', j )
+
+
+            if not self.fields[v]['edit']:
+                dbg.write('%s not editable' % v)
+                cell.set_property('editable', False)
+            #tvcolumn.set_cell_data_func(cell, self.set_special_attributes, i)
+            #dbg.write(tvcolumn)
+            self.treeview.append_column(tvcolumn)
+    
+    def edited_signal(self, cell, path, new_text, field_name):
+        """called by connect 'edited' on cell_renderer """
+
+        if self.deleting_row:
+            return True
+
+        if self.fields[field_name]['fkey']:
+            return True
+        
+        if self.mod_path is None:
+            return True
+
+        self.set_value(field_name, new_text, path)
+
+    def set_value(self, field_name, value, path=None):
+        """ called from within edited signal. Validation should live here"""
+        if not path:
+            path = self.get_selected_row()
+            
+        ptype = self.fields[field_name]['type']
+        #dbg.write("type", ptype)
+        try:
+            data = ptype(value)
+        except ValueError:
+            if value == '' and ptype in (int, float, decimal.Decimal):
+                data = value
+            else:
+                raise
+        except TypeError, e:
+            #dbg.write( self.coltypes[colnum])
+            data = str(value)
+
+        self.liststore[path][self.fname2model_col(field_name)] = data
+        return True
+
+    def get_selected_row(self):
+        sel = self.treeview.get_selection()
+        rows = sel.get_selected_rows()[1]
+        if rows:
+            return rows[0][0]
+        else:
+            return None
+    
+    def fname2model_col(self, field_name):
+        return self.fields.keys().index(field_name) + 1
+
+    def text_editing_started(self, cell, editable, path, field_name):
+        #field_type = self.coltypes[col+1]
+        field_type = self.fields[field_name]['type']
+        #field_name = self.fields.keys()[col]
+        field_props = self.fields[field_name]
+        if field_type == str or field_props['fkey']:
+            #dbg.write("aggiungo <3> per %s type: %s fkey: %s editable: %s" % (
+            #    field_name, field_type, field_props['fkey'], editable))
+            editable.connect('button-press-event',self.completion.pop_menu,
+                           field_name, 3)
+            editable.connect('key-press-event',
+                             self.completion.entry_short_cut_event,
+                             field_name, 'F1')
+                
+        self.mod_path = path
+        return True
+    
+    def set_fkey_value(self, field_name, value):
+        if field_name not in self.fields.keys():
+            #dbg.write('abbandono', field_name)
+            return
+        
+#         if not self.fields[field_name]['fkey']:
+#             dbg.write('non foreign key', field_name)
+#             return
+
+        #dbg.write(field_name, value, self.mod_path)
+        try:
+            idx = self.fields.keys().index(field_name)
+            #dbg.write(idx)
+            self.liststore[self.mod_path][idx+1] = value
+        except ValueError:
+            #dbg.write('Value Error')
+            pass
+        
+        #self.mod_path = None
+    
+    def set_fkey_descr(self, column, cell, tree, iter, i):
+        fkey = tree.get(iter, i+1)[0]
+        field_name = self.fields.keys()[i]
+        #dbg.write(column, i, field_name, fkey)
+        cell.set_property('text', self.completion._lookup_value(field_name, fkey))
+        
+    def path2dict(self, path):
+        #dbg.write(path)
+        #dbg.write(self.liststore[path])
+        #dbg.ddir(self.liststore[path])
+        rdict = dict(map(None, self.fields.keys(), list(self.liststore[path])[1:]))
+        for k in rdict.keys():
+            if self.fields[k]['edit']:
+                if self.fields[k]['type'] in (int, float, decimal.Decimal) \
+                       and rdict[k] == '':
+                    rdict[k] = None
+                #self.fields[k]['type'](rdict[k])
+            else:
+                del rdict[k]
+        #dbg.write(rdict)
+        return rdict
+    
+    def record_save(self, ev = None, constraint={}):
+        #rdict = self.path2dict(self.get_idx_of_selected_row())
+        rdict = self.path2dict(self.mod_path)
+        #dbg.write('rdict', rdict)
+        if constraint:
+            self.constraint=constraint
+        dbg.write('self.constraint', self.constraint)
+        rdict.update(self.constraint)
+        #dbg.write('RDICT', rdict)
+        
+        if int(self.mod_path) > self.sqlData.count() - 1:
+            dbg.write("INSERTING record")
+            self.sqlData.add(rdict)
+        else:
+            dbg.write("UPDATING record")
+            self.sqlData.set(rdict, index=int(self.mod_path))
+        #self.commit()
+        
+    def record_delete(self, widget=None):
+        """Delete a row and corresponding record"""
+        #dbg.write('DELETE')
+        #self.deleteRow(widget)
+        self.deleting_row = True
+        def do_del(tm, path, iter):
+            """potentially can delete a selection of many rows
+            but get_idx_of_selected() supposes that just one row is returned
+            """
+            self.sqlData.delete(index=self.get_idx_of_selected_row())
+            del tm[path]
+            self.commit()
+            
+        sel = self.treeview.get_selection()
+        sel.selected_foreach(do_del)
+        self.deleting_row = False
+
+        self.sb("total N. of records: %s" % len(self.liststore))
+        return True
+        
+    def deleteRow(self, button):
+        pass
+    
+    def get_idx_of_selected_row(self):
+        sel = self.treeview.get_selection()
+        model, rows = sel.get_selected_rows()
+        row = rows[0]
+#         dbg.write('row', row)
+#         dbg.write('row', row, 'idx', self.liststore[row])
+        if row:
+            dbg.write('idx', self.liststore[row][0])
+            return self.liststore[row][0]
+        else:
+            return None
+    
+    def reload(self, *args, **kwargs):
+        rowCommit = self.rowCommit
+        self.rowCommit = None
+        ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
+        self.rowCommit = rowCommit
+        #self.set_height_request()
+
+        #objectstore.clear()
+        return ret
+                                         
+
