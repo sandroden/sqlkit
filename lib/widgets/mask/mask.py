@@ -78,6 +78,10 @@ class SqlMask (sqlwidget.SqlWidget):
             self._set_value(field_name, value)
         self.status = self.sqlData.get_current()
         self.sync()
+        #dbg.write(self.actions)
+        self.actions.on_record_display(new=data_in)
+        #sqlwidget.SqlWidget.record_display(self, new=data_in)
+        
         ## return True if a record has beeen displayed. In case we 2 Mask in sync
         ## this will stop the master mask to continue in the next record until
         ## the first has been terminated
@@ -91,7 +95,7 @@ class SqlMask (sqlwidget.SqlWidget):
         """
         #dbg.write("%s: %s" % (field_name, field_value))
         # [0]: the gtkClass
-        # [1]: the gtkWidget
+        # [1]: the gtkWidgetre
         if field_name not in self.mwidgets:
             return
         widget = self.mwidgets[field_name]
@@ -155,7 +159,7 @@ class SqlMask (sqlwidget.SqlWidget):
         if isinstance (widget, gtk.Entry):
             text = widget.get_text( )
             if text == '':
-                if self.fields[field_name]['type'] == int:
+                if self.fields[field_name]['type'] in (int, float, decimal.Decimal):
                     return None
             return text
 

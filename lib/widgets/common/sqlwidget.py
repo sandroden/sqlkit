@@ -46,7 +46,8 @@ class SqlWidget(object):
                   limit=100,
                   nick=None,
                   geom=(-1,300),
-                  addto=None
+                  addto=None,
+                  actions=None
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -67,6 +68,7 @@ class SqlWidget(object):
         self.nick= nick
         self.geom = geom
         self.addto = addto
+        self.actions = self.get_actions(actions)
         self.constraint=constraint
         self.sync_dict = {}
         self.engine = self.get_engine(engine, mapper)
@@ -107,6 +109,11 @@ class SqlWidget(object):
         #dbg.write('lcontainer_name: ', el_def)
         self.w[el_def].show()
                 
+    def get_actions(self, actions):
+        if not actions:
+            actions = Actions(self)
+        return actions
+    
     def get_engine(self, engine, mapper):
         if not engine:
             if mapper:
@@ -356,7 +363,9 @@ class SqlWidget(object):
         if not re.match (ONLYDIGITS, key):
             #dbg.write("key: %s" % key)
             return True
-
+    def record_display(self, record=None, incr=0):
+        self.action.on_record_display()
+        
 ####### Dialog
     def confirm(self, text, type):
         pass
@@ -435,4 +444,28 @@ class SqlWidget(object):
                               ('gtk-quit', self.delete_event)
                               )
     
+
+class Actions(object):
+    def __init__(self, master):
+        self.master = master
+        dbg.write('istanzio le azioni')
+    
+    def on_record_save(self, new, old):
+        pass
+    
+    def on_record_delete(self, new, old):
+        pass
+    
+    def on_record_insert(self, new, old):
+        pass
+    
+    def on_record_display(self, new=None):
+        pass
+    
+    def on_record_clear(self, new, old):
+        pass
+    
+    def on_reload(self, new, old):
+        pass
+
 
