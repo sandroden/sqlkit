@@ -1,8 +1,9 @@
-#!/bin/env python
+#!/usr/bin/env python
+# -*- coding: iso-8859-15 -*-
 
 import sys, re, datetime
 sys.path.append ('../../')
-
+from planning import plan
 from sqlalchemy import *
 import sqlkit as sk
 from sqlkit.table import SqlWidgetTreeView

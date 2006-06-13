@@ -28,7 +28,7 @@ class actions(sk.sqlwidget.Actions):
     def on_record_display(self, new):
         global tex
         dbg.write(tex, new['a_codice'])
-        tex.load_articolo(new['a_codice'])
+        tex.cambia_articolo(new['a_codice'])
     
 
 zz.actions = actions(zz)

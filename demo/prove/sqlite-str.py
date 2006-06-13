@@ -28,7 +28,7 @@ ret = m.select("user_name LIKE :user_name", params=var)
 
 
 for r in ret:
-    r.user_name = r.user_name.upper()
+    r.user_name = r.user_name.upper()+'xx'
     print r.user_name, r.user_last_name
     
 #u.user_id = 10
