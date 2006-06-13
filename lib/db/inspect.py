@@ -49,6 +49,7 @@ class InspectMapper(dict):
                 sqlalchemy.databases.postgres.PGText  : str, 
                 sqlalchemy.databases.postgres.PGString  :  str, 
                 sqlalchemy.databases.postgres.PGBoolean  : bool, 
+                sqlalchemy.databases.postgres.PGBinary : str,
                 })
         except:
             dbg.write("no pg types")
@@ -433,6 +434,23 @@ def get_props(mapper):
            isinstance(attr, sqlalchemy.mapping.properties.EagerLoader):
             props += [(prop, attr.direction)]
     return props
-    
+
+def list_tables(eng=None, schema='public'):
+    if not eng:
+        eng = schema.default_engine.get_engine()
+
+    if eng.name == 'sqlite':
+        sql = """
+        SELECT name FROM sqlite_master
+        WHERE type='table'
+        ORDER BY name;"""
+    elif eng.name in ( 'postgres', 'mysql'):
+        sql = """
+           SELECT table_name AS name FROM  information_schema.tables
+           WHERE table_schema = :schema ;
+        """
+        
+    ret = eng.text(sql).execute(schema=schema)
+    return [R['name'] for R in ret]
 
 
