@@ -41,6 +41,7 @@ def spawnEngine(file='config.ini', echo=False, globalconn=False):
     else:
         return sqlalchemy.schema.default_engine.get_engine()
 
+new_engine = spawnEngine
 
 def spawnDSN (file='config.ini'):
     c = ConfigParser ()

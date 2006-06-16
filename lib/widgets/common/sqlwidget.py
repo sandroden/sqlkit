@@ -47,7 +47,8 @@ class SqlWidget(object):
                   nick=None,
                   geom=(-1,300),
                   addto=None,
-                  actions=None
+                  actions=None,
+                  fields=None,
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -92,6 +93,7 @@ class SqlWidget(object):
         self.sqlData = sqldata.SqlData(None, mapper_info=self.fields)
         self.single = single
         self.limit=limit
+        self.field_list = self.parse_fields(fields)
         if show:
             self.show()
             
@@ -108,7 +110,15 @@ class SqlWidget(object):
         el_def = re.sub(':.*','', lcontainer_name)
         #dbg.write('lcontainer_name: ', el_def)
         self.w[el_def].show()
-                
+        
+    def parse_fields(self, fields):
+        if not fields:
+            fields = self.fields.keys()
+            
+        if isinstance(fields, str):
+            fields = fields.split(',')
+        return fields
+    
     def get_actions(self, actions):
         if not actions:
             actions = Actions(self)
@@ -448,7 +458,6 @@ class SqlWidget(object):
 class Actions(object):
     def __init__(self, master):
         self.master = master
-        dbg.write('istanzio le azioni')
     
     def on_record_save(self, new, old):
         pass
@@ -460,6 +469,7 @@ class Actions(object):
         pass
     
     def on_record_display(self, new=None):
+        """only defined for SqlMask"""
         pass
     
     def on_record_clear(self, new, old):

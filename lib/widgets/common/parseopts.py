@@ -12,7 +12,7 @@ def get_mapper(master, mapper_obj, tables):
     elif tables:
         if isinstance(tables, str) or  len(tables) == 1:
             name = "%s_class" % (tables)
-            sa_table = Table(tables, engine=master.engine, autoload=True)
+            sa_table = Table(tables, master.engine, autoload=True)
             X = type(name, (object,), {})
             m = mapper(X, sa_table)
             return m

@@ -18,6 +18,7 @@ import sqlkit.validator as validator
 import sqlkit.parseopts as parseopts
 import sqlkit.completion as completion
 import sqlkit.sqlwidget as sqlwidget
+import decimal
 
 class FieldNotInLayout(Exception): pass
 
@@ -25,6 +26,7 @@ class FieldNotInLayout(Exception): pass
 NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
 FK_COLOR = gtk.gdk.color_parse('navyblue')
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
+NUMBERS = (int, float, decimal.Decimal)
 
 class SdTable(sqlwidget.SqlWidget):
     #Class='sdtable'
@@ -159,7 +161,7 @@ class SqlMask (sqlwidget.SqlWidget):
         if isinstance (widget, gtk.Entry):
             text = widget.get_text( )
             if text == '':
-                if self.fields[field_name]['type'] in (int, float, decimal.Decimal):
+                if self.fields[field_name]['type'] in NUMBERS:
                     return None
             return text
 
@@ -209,7 +211,7 @@ class SqlMask (sqlwidget.SqlWidget):
                 value = self._get_value(field_name)
             except FieldNotInLayout:
                 continue
-            #dbg.write(field_name, value)
+            dbg.write(field_name, value)
             
             t = self.fields[field_name]['type']
             #dbg.write("%s: - value: %r T: %s" % (field_name, value, t))
@@ -361,9 +363,9 @@ class SqlMask (sqlwidget.SqlWidget):
         if not self.mwidgets:
             self.mwidgets = {}
         ## by now I only use entry, date, radio and menu to represent data
-        #print self.w.keys()
+        #dbg.dshow(self.w, 'e=')
         for field_name in self.fields.keys():
-            #dbg.write("_analize_widget_layout: %s" % (field_name))
+            #dbg.write(field_name)
             for mod in ('e','d','r','m','c', 'TX'):
                 try:
                     widget = self.w["%s=%s" % (mod, field_name)]
@@ -441,7 +443,7 @@ class SqlMask (sqlwidget.SqlWidget):
 
             widget.set_property('sensitive', self.fields[field_name]['edit']) 
             ## integer
-            if field_type == int and not self.fields[field_name]['fkey']:
+            if field_type in NUMBERS and not self.fields[field_name]['fkey']:
                 # left justified
                 #print "field_name:", field_name
                 widget.set_alignment(1), widget
