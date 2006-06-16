@@ -10,7 +10,7 @@ import sys
 sys.path.append ('../../../')
 #from sqlalchemy import *
 #import layout
-#from datetime import datetime
+from datetime import datetime
 import sqlalchemy.types as sqltypes
 import sqlkit.sqlwidget as sqlwidget
 #from sqlkit.layoutgenerator import TableLayoutGenerator
