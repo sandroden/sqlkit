@@ -353,7 +353,7 @@ class Completion(object):
 
         #dbg.sql_debug(sql, exec_dict)
 #        s = text(sql, engine=self.mapper.engines[0])
-        s = text(sql, engine=self.master.mapper.table.engine)
+        s = text(sql, engine=self.master.engine)
         return s.execute(**exec_dict)
     def pop_menu(self, wdg, ev, field_name, num_button):
         #print "pop_menu", wdg, ev
@@ -427,7 +427,7 @@ class Completion(object):
             table_name = sql_dict['table_name']
             
         if table_name not in tables:
-            table = Table(table_name, engine=self.master.engine, autoload=True)
+            table = Table(table_name, self.master.engine, autoload=True)
             for field_name in table.c.keys():
                 if re.search('_name|_descr', field_name, re.I):
                     tables[table_name] = [field_name, None, None]

@@ -22,10 +22,10 @@ def get_mapper(master, mapper_obj, tables):
 def inspect_mapper(mapper, noup=None, mode=None):
     # A mapper created using .join or .outerjoin from one table
 
-    if isinstance(mapper.primarytable, sqlalchemy.sql.Join):
+    if isinstance(mapper.local_table, sql.Join):
         m=inspect.InspectJoinMapper(mapper, noup=noup, mode=mode)
     # A mapper of a single table or a mapper creater with 'properties' option
-    # tat results in a Lazy/Eager load  one
+    # that results in a Lazy/Eager load  one
     else:
         m=inspect.InspectMapper(mapper, noup=noup, mode=mode)
     return m
@@ -74,7 +74,7 @@ def join_tables(tables, engine=None, master=None,  mode='outer'):
         m = mapper(JoinAuto, J)
     else:
         m = mapper(JoinAuto, J)
-    dbg.write(m)
+    #dbg.write(m)
     return m
 
 def join2tables(t1, t2, engine, mode='outerjoin'):
@@ -83,14 +83,14 @@ def join2tables(t1, t2, engine, mode='outerjoin'):
     ## 
     if isinstance(t1, str):
         T1_ret = True
-        T1 = Table(t1, engine=engine, autoload=True)
+        T1 = Table(t1, engine, autoload=True)
     else:
         T1_ret = False
         T1 = t1
 
     if isinstance(t2, str):
         T2_ret = True
-        T2 = Table(t2, engine=engine, autoload=True)
+        T2 = Table(t2, engine, autoload=True)
     else:
         T2_ret = False
         T2 = t2

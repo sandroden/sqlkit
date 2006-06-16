@@ -21,6 +21,7 @@ import sqlkit.completion as completion
 class NoSyncError(Exception): pass
 class SyncNotAvailable(Exception): pass
 class MissingEngine(Exception): pass
+class MissingSession(Exception): pass
 
 class SqlWidget(object):
     fields   = None  # fields to use (InspectMapper)
@@ -49,6 +50,7 @@ class SqlWidget(object):
                   addto=None,
                   actions=None,
                   fields=None,
+                  session=None
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -73,13 +75,12 @@ class SqlWidget(object):
         self.constraint=constraint
         self.sync_dict = {}
         self.engine = self.get_engine(engine, mapper)
+        self.session = self.get_session(session)
         self.order_by = order_by
         ## we can use singular or plural as an option, plural in the code
         if table and not tables:
             tables = table
         self.mapper = parseopts.get_mapper(self, mapper, tables)
-        if not engine:
-            self.engine = self.mapper.table.engine
         self.valid = self._get_validator(valid)
         self.fields = parseopts.inspect_mapper(self.mapper, noup=noup, mode=mode)
         self.title = self._get_title(title)
@@ -111,6 +112,14 @@ class SqlWidget(object):
         #dbg.write('lcontainer_name: ', el_def)
         self.w[el_def].show()
         
+    def get_session(self, session):
+        if session:
+            return session
+        else:
+            raise MissingSession("")
+            
+
+
     def parse_fields(self, fields):
         if not fields:
             fields = self.fields.keys()
@@ -127,10 +136,10 @@ class SqlWidget(object):
     def get_engine(self, engine, mapper):
         if not engine:
             if mapper:
-                engine = mapper.primarytable.engine
+                engine = mapper.local_table.engine
             else:
                 try:
-                    engine = schema.default_engine.get_engine()
+                    engine = schema.default_metadata.engine
                 except:
                     msg = "You may want to use globalconn when creating engine"
                     raise MissingEngine(msg)
@@ -171,7 +180,7 @@ class SqlWidget(object):
         #dbg.write(self.layout)
         self.lay_obj = layout.Layout(self.layout, addto=self.addto,
                                      title=self.title, opts='T-')
-        #self.lay_obj.xml('/tmp/m_%s.glade' % self.nick)
+        self.lay_obj.xml('/tmp/m_%s.glade' % self.nick)
         if 'Window' in self.lay_obj.elements:
             self.lay_obj.prop('Window', 'visible', False)
         self.w       = self.lay_obj.show()
@@ -288,13 +297,13 @@ class SqlWidget(object):
             sql_str = sql
             params = None
 
-        objectstore.clear()
+        self.session.clear()
         self.sql = (sql, params)
         #dbg.write(self.nick, "SQL: '%s'" % sql_str, 'params', params, 'limit:', limit)
         #self.mapper.table.engine.echo = True
-        records = self.mapper.select(sql_str, params=params,
-                                     order_by=self.order_by,
-                                     limit=limit)
+        records = self.session.query(self.mapper).select(sql_str, params=params,
+                                                         order_by=self.order_by,
+                                                         limit=limit)
         #records = self.mapper.select_by(sql)
         #self.mapper.table.engine.echo = False
         if isinstance(self, sqlkit.SqlMask):
@@ -312,10 +321,10 @@ class SqlWidget(object):
         if dbg.debug():
             PREV = self.engine.echo
             self.engine.echo = True
-            objectstore.commit()
+            self.session.flush()
             self.engine.echo = PREV
         else:
-            objectstore.commit()
+            self.session.flush()
         
     def record_forward(self):
         """it doesn't make any sense here, but we need it to prevent
@@ -411,7 +420,7 @@ class SqlWidget(object):
             try:
                 title=self.table
             except:
-                title= self.mapper.table.name
+                title= self.fields.get_primary_table()
         return title
     
     def add_filter(self, event=None, visible=True):

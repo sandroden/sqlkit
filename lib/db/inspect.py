@@ -1,8 +1,10 @@
 from sqlalchemy import *
+import sqlalchemy 
 import sys, dbg
 import datetime
 import decimal
 
+PROPERTIES = sqlalchemy.orm.properties
 class MissingPrimaryKeyError(Exception): pass
 def is_serial (c):
     if hasattr (c.default, 'arg') and hasattr (c.default.arg, 'text'):
@@ -73,9 +75,24 @@ class InspectMapper(dict):
                 })
         except:
             #raise 
-            dbg.write("no sa types")
+            dbg.write("no sqlite types")
             pass
                               
+        ## used by sqlite
+        try:
+            self.pytype.update({
+                sqlalchemy.types.String : str,
+                sqlalchemy.types.Integer  : int,
+                sqlalchemy.types.Float  : float,
+                sqlalchemy.types.DateTime  : datetime.datetime,
+                sqlalchemy.types.Date  : datetime.date,
+#                sqlalchemy.types.Char  : str,
+                sqlalchemy.types.String  :  str,
+                sqlalchemy.types.Boolean  : bool,
+                })
+        except:
+            dbg.write("no sa types")
+            pass
 
         self.fields = []
         self.primarytable = self.get_primary_table
@@ -91,11 +108,11 @@ class InspectMapper(dict):
         for prop in self.mapper.props:
             attr = self.mapper.props[prop]
             ## here we populate props
-            if isinstance(attr, mapping.properties.LazyLoader) or \
-               isinstance(attr, mapping.properties.EagerLoader):
+            if isinstance(attr, sqlalchemy.orm.properties.LazyLoader) or \
+               isinstance(attr, sqlalchemy.orm.properties.EagerLoader):
                 #self.props[prop] = attr.target.name  # the table reached thru 'prop'
                 m = attr.mapper
-                self.props += [(prop, attr.direction, m.table.name)]
+                self.props += [(prop, attr.direction, m.local_table.name)]
                 for field_name in m.c.keys():
                     self._add_field(field_name, m, prop)
             else:
@@ -114,9 +131,9 @@ class InspectMapper(dict):
         except NotImplementedError,e:
             col_spec = None
         d = {
-            'table_name'  :  mapper.table.name ,
+            'table_name'  :  mapper.local_table.name ,
             'name'        :  field_name,
-            'table'       :  mapper.table ,
+            'table'       :  mapper.local_table ,
             'col'         :  mapper.c[field_name] ,
             'pg_type'     :  type(mapper.c[field_name].type), 
             'type'        :  self.pytype[type(mapper.c[field_name].type)],
@@ -127,7 +144,7 @@ class InspectMapper(dict):
             'pkey'        :  mapper.c[field_name].primary_key,
             'nullable'    :  mapper.c[field_name].nullable,
             'mapper'      :  mapper,
-            'edit'        :  self.set_noup(field_name, mapper.table.name, col)
+            'edit'        :  self.set_noup(field_name, mapper.local_table.name, col)
 #            'direction'   :  mapper.props[field_name].direction
             }
         try:
@@ -135,14 +152,14 @@ class InspectMapper(dict):
         except:
             d['length'] = None
 
-        if mapper.table.name not in self.table_mappers:
-            #dbg.write("%s %s" % (mapper.table.name, self.table_mappers))
-            self.table_mappers[mapper.table.name] = (mapper.class_, mapper)
-            self.pkeys[mapper.table.name] = []
+        if mapper.local_table.name not in self.table_mappers:
+            #dbg.write("%s %s" % (mapper.local_table.name, self.table_mappers))
+            self.table_mappers[mapper.local_table.name] = (mapper.class_, mapper)
+            self.pkeys[mapper.local_table.name] = []
 
         if d['pkey']:
-            #dbg.write("si %s -> %s" % (field_name, mapper.table.name ))
-            self.pkeys[mapper.table.name] += [field_name]
+            #dbg.write("si %s -> %s" % (field_name, mapper.local_table.name ))
+            self.pkeys[mapper.local_table.name] += [field_name]
 
         if mapper.c[field_name].foreign_key:
              d['fkey'] = (mapper.c[field_name].foreign_key.column.table.name,
@@ -178,7 +195,7 @@ class InspectMapper(dict):
         """
         #dbg.write(self.table_mappers)
         if mode == 'name':
-            first_table = self.mapper.table.name 
+            first_table = self.mapper.local_table.name 
             ret = [t for t in self.table_mappers.keys() if t != first_table ]
             return [ first_table ] + ret
             #dbg.write(self.table_mappers.keys())
@@ -250,7 +267,7 @@ class InspectMapper(dict):
         return get_join_cnd(tables)
 
     def get_primary_table(self):
-        primarytable = self.mapper.primarytable
+        primarytable = self.mapper.local_table
         while isinstance(primarytable, sqlalchemy.sql.Join):
             primarytable = primarytable.left
         primarytable = primarytable.name
@@ -321,12 +338,12 @@ class InspectJoinMapper(InspectMapper):
             d['length'] = None
 
         if col.table.name not in self.table_mappers:
-            #dbg.write("%s %s" % (mapper.table.name, self.table_mappers))
+            #dbg.write("%s %s" % (mapper.local_table.name, self.table_mappers))
             self.table_mappers[col.table.name] = (self.mapper.class_, self.mapper)
             self.pkeys[col.table.name] = []
 
         if d['pkey']:
-            #dbg.write("si %s -> %s" % (field_name, mapper.table.name ))
+            #dbg.write("si %s -> %s" % (field_name, mapper.local_table.name ))
             self.pkeys[col.table.name] += [col.name]
 
         if col.foreign_key:
@@ -336,7 +353,7 @@ class InspectJoinMapper(InspectMapper):
     
     def get_primary_table(self):
         #dbg.show_caller()
-        primarytable = self.mapper.primarytable
+        primarytable = self.mapper.local_table
         while isinstance(primarytable, sqlalchemy.sql.Join):
             primarytable = primarytable.left
         table = primarytable.name
@@ -435,8 +452,8 @@ def get_props(mapper):
     props = []
     for prop in mapper.props:
         attr = mapper.props[prop]
-        if isinstance(attr, sqlalchemy.mapping.properties.LazyLoader) or \
-           isinstance(attr, sqlalchemy.mapping.properties.EagerLoader):
+        if isinstance(attr, sqlalchemy.orm.properties.LazyLoader) or \
+           isinstance(attr, sqlalchemy.orm.properties.EagerLoader):
             props += [(prop, attr.direction)]
     return props
 
