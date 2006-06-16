@@ -58,16 +58,21 @@ class InspectMapper(dict):
         ## used by sqlite
         try:
             self.pytype.update({
-                sqlalchemy.types.String : str,
-                sqlalchemy.types.Integer  : int,
-                sqlalchemy.types.Float  : float,
-                sqlalchemy.types.DateTime  : datetime.datetime,
-                sqlalchemy.types.Date  : datetime.date,
-#                sqlalchemy.types.Char  : str, 
-                sqlalchemy.types.String  :  str, 
-                sqlalchemy.types.Boolean  : bool, 
+                sqlalchemy.databases.sqlite.SLString : str,
+                sqlalchemy.databases.sqlite.SLInteger  : int,
+#                sqlalchemy.databases.sqlite.SLDouble  : float,
+                sqlalchemy.databases.sqlite.SLDateTime  : datetime.datetime,
+                sqlalchemy.databases.sqlite.SLDate  : datetime.date,
+                sqlalchemy.databases.sqlite.SLNumeric : decimal.Decimal,
+                sqlalchemy.databases.sqlite.SLNumeric : float,
+                sqlalchemy.databases.sqlite.SLChar  : str, 
+                sqlalchemy.databases.sqlite.SLText  : str, 
+                sqlalchemy.databases.sqlite.SLString  :  str, 
+                sqlalchemy.databases.sqlite.SLBoolean  : bool, 
+                sqlalchemy.databases.sqlite.SLBinary : str,
                 })
         except:
+            #raise 
             dbg.write("no sa types")
             pass
                               
@@ -444,11 +449,13 @@ def list_tables(eng=None, schema='public'):
         SELECT name FROM sqlite_master
         WHERE type='table'
         ORDER BY name;"""
-    elif eng.name in ( 'postgres', 'mysql'):
+    elif eng.name in ( 'postgres'):
         sql = """
            SELECT table_name AS name FROM  information_schema.tables
            WHERE table_schema = :schema ;
         """
+    elif eng.name in ( 'mysql'):
+        sql = "SHOW TABLES"
         
     ret = eng.text(sql).execute(schema=schema)
     return [R['name'] for R in ret]
