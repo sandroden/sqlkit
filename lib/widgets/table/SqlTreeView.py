@@ -65,7 +65,7 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
         # path, col, x1, y1 = widget.get_path_at_pos(event.x, event.y)
         # ca = widget.get_cell_area(path, col)
 
-       X = x + ca.x
+        X = x + ca.x
         Y = y + ca.y + 2*ca.height + 4
 
         # border case: the cell is too close to the border to allow the window
