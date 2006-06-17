@@ -911,7 +911,7 @@ class SqlTable(SqlWidgetTreeView):
         self.rowCommit = rowCommit
         #self.set_height_request()
 
-        #objectstore.clear()
+        self.session.clear()
         return ret
                                          
 
