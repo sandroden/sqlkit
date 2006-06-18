@@ -3,4 +3,4 @@ __all__ = ["SqlTreeView",
            "SqlLayoutTreeView",
            "SqlWidgetTreeView"]
 
-from SqlTreeView import  SqlWidgetTreeView, SqlTable
+from SqlTreeView import SqlTable
