@@ -244,8 +244,9 @@ if gobject.pygtk_version < (2, 8):
 
     
 
-class SqlWidgetTreeView(sqlwidget.SqlWidget):
-#    Class = "table"
+class SqlTable(sqlwidget.SqlWidget):
+    """ variant with first column to store the index in sqlData"""
+
     mod_path = None
     treeview = None
     liststore = None
@@ -254,7 +255,6 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget):
     mapper = None
     rowCommit = True
     deleting_row = False
-    
 
     def _get_layout(self, lay, naked):
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
@@ -301,341 +301,6 @@ class SqlWidgetTreeView(sqlwidget.SqlWidget):
 
         return True
         
-    def record_delete(self, widget=None):
-        """Delete a row and corresponding record"""
-        dbg.write('DELETE')
-        self.deleteRow(widget)
-        self.sb("total N. of records: %s" % len(self.liststore))
-    
-    def setupTreeColumns(self):
-        #dbg.write(self.fields)
-
-        #create and append columns
-        for i,v in enumerate(self.fields.keys()):
-            #Dbg.write( v['pkey'],v['pg_type'], v['pg_type'] == sqltypes.Integer
-            tvcolumn = gtk.TreeViewColumn(v.replace('_','__'))
-
-            #boolean -> checkbox
-            #dbg.write(v + ': %s, %s ' % (self.fields[v]['pg_type'], str(self.fields[v]['type'])))
-            if self.fields[v]['type'] == bool:
-                #dbg.write('bool column')
-                cell = gtk.CellRendererToggle()
-                tvcolumn.pack_start(cell, True)
-                tvcolumn.add_attribute(cell, 'active', i )
-                cell.set_property('activatable', True)
-                cell.connect('toggled', self.toggled_signal, (self.liststore, i))
-            #primary key and integer do not show
-            elif (issubclass(self.fields[v]['pg_type'], sqltypes.Integer)) and self.fields[v]['pkey']:
-                tvcolumn = gtk.TreeViewColumn()
-                tvcolumn.set_visible(False)
-            elif issubclass(self.fields[v]['pg_type'], (sqltypes.Date, sqltypes.DateTime)):
-                #dbg.write('Date column')
-                cell = CellRendererDate()
-                cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-                cell.set_property('sensitive', False)
-                tvcolumn.pack_start(cell, True)
-                tvcolumn.add_attribute(cell, 'date', i )
-                cell.connect('editing-started', self.date_editing_started, i)
-                cell.connect('date-changed', self.date_changed, i )
-            elif self.fields[v]['fkey'] and v.endswith('_id'):
-                # use set_fkey_descr function to put text in the cell if this is a foreign key
-                cell = gtk.CellRendererText()
-                cell.set_property('editable', True)
-                #cell.set_property('editable-set', True)
-                #cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-                cell.connect('edited', self.edited_signal, (self.liststore, i))
-                cell.connect('editing-started', self.text_editing_started, i)
-                tvcolumn.pack_start(cell, True)
-                #tvcolumn.add_attribute(cell, 'text', i)
-                tvcolumn.set_cell_data_func(cell, self.set_fkey_descr, i)
-            else:
-                cell = gtk.CellRendererText()
-                cell.set_property('editable', True)
-                cell.set_property('editable-set', True)
-                cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-                cell.connect('edited', self.edited_signal, (self.liststore, i))
-                cell.connect('editing-started', self.text_editing_started, i)
-                tvcolumn.pack_start(cell, True)
-                tvcolumn.add_attribute(cell, 'text', i )
-            #tvcolumn.set_cell_data_func(cell, self.set_special_attributes, i)
-            #dbg.write(tvcolumn)
-            self.treeview.append_column(tvcolumn)
-        
-    
-    def set_fkey_descr(self, column, cell, tree, iter, i):
-        fkey = tree.get(iter, i)[0]
-        field_name = self.fields.keys()[i]
-        dbg.write(column, i, field_name, fkey)
-        cell.set_property('text', self.completion._lookup_value(field_name, fkey))
-        
-    def mapToListStore(self):
-        self.coltypes = []
-        for v in self.fields.keys():
-            if self.fields[v]['fkey'] and v.endswith('_id'):
-                ftype = type(self.completion._lookup_value(v, ''))
-            else:
-                ftype = self.fields[v]['type']
-            if ftype in (int, float, decimal.Decimal):
-                ftype = str
-            self.coltypes.append(ftype)
-            
-        coltypes = []
-        
-        # try to convert types to gobject types
-        for tp in self.coltypes:
-            if tp in (int, float, decimal.Decimal):
-                coltypes.append(str)
-            else:
-                try:
-                    coltypes.append(gobject.type_from_name(gobject.type_name(tp)))
-                except TypeError:
-                    coltypes.append(object)
-
-        #dbg.write('coltypes', coltypes)
-        if self.liststore is None:
-            self.liststore = gtk.ListStore(*coltypes)
-
-    
-    def reload(self, *args, **kwargs):
-        rowCommit = self.rowCommit
-        self.rowCommit = None
-        ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
-        self.rowCommit = rowCommit
-        #self.set_height_request()
-
-        return ret
-                                         
-    def record_display(self):
-        self.liststore.clear()
-        for i in range(self.sqlData.count()):
-            values = self.sqlData.get(i, mode='dict')
-            l = []
-            for k in self.fields.keys():
-                l.append(values[k])
-##                 if self.fields[k]['fkey'] and k.endswith('_id'):
-##                     l.append(self.completion._lookup_value(k, values[k]))
-##                 else:
-##                     l.append(values[k])
-
-            #dbg.write(l)
-            self.liststore.append(l)
-            self.sb("Total N. of records: %s" % (len(self.liststore)))
-        #sqlwidget.SqlWidget.record_display()
-                
-    def edited_signal(self, cell, path, new_text, user_data):
-        
-        liststore, colnum = user_data
-
-
-        if self.deleting_row:
-            return True
-
-
-        if self.fields[self.fields.keys()[colnum]]['fkey']:
-            return True
-        
-        if self.mod_path is None:
-            return True
-        
-        try:
-            data = self.coltypes[colnum](new_text)
-        except TypeError, e:
-            dbg.write( self.coltypes[colnum])
-            data = str(new_text)
-
-        liststore[path][colnum] = data
-        return True
-    
-    
-    def toggled_signal(self, cell, path, user_data):
-        liststore, colnum = user_data
-
-	self.mod_path = path
-
-        active = not liststore[path][colnum ]
-
-
-        liststore[path][colnum ] = active
-        return True
-    
-    def date_changed(self, event, path, date, col):
-	self.mod_path = path
-        
-        self.liststore[path][col] = date
-        return True
-    
-    def set_height_request(self):
-        area = self.treeview.get_cell_area(0, self.treeview.get_column(0))
-        rows = len(self.liststore)
-        if rows == 0:
-            rows = 10
-        if rows > 30:
-            rows = 30
-        needed_height = area.height * rows
-        dbg.write('area',area, 'needed', needed_height, 'area.h', area.height)
-        self.treeview.set_property('height-request', needed_height)
-        
-    
-    def selection_changed_cb(self, treeselection):
-        if self.mod_path is None:
-            return False
-        
-        if self.rowCommit:
-            self.record_save()
-            self.commit()
-            self.mod_path = None
-        return False
-    
-    def get_selected_row(self):
-        sel = self.treeview.get_selection()
-        rows = sel.get_selected_rows()[1]
-        if rows:
-            return rows[0][0]
-        else:
-            return None
-    
-    def record_save(self, ev = None, constraint={}):
-        rdict = self.path2dict(self.mod_path)
-        #dbg.write('rdict', rdict)
-        if constraint:
-            self.constraint=constraint
-        dbg.write('self.constraint', self.constraint)
-        rdict.update(self.constraint)
-        #dbg.write('RDICT', rdict)
-        
-        if int(self.mod_path) > self.sqlData.count() - 1:
-            dbg.write("INSERTING record")
-            self.sqlData.add(rdict)
-        else:
-            dbg.write("UPDATING record")
-            self.sqlData.set(rdict, index=int(self.mod_path))
-        #self.commit()
-    
-    def path2dict(self, path):
-        #dbg.write(path)
-        rdict = dict(map(None, self.fields.keys(), self.liststore[path]))
-        for k in rdict.keys():
-            if self.fields[k]['edit']:
-                if self.fields[k]['type'] in (int, float, decimal.Decimal) \
-                       and rdict[k] == '':
-                    rdict[k] = None
-                #self.fields[k]['type'](rdict[k])
-            else:
-                del rdict[k]
-
-        return rdict
-    
-    def set_fkey_value(self, field_name, value):
-        if field_name not in self.fields.keys():
-            dbg.write('abbandono', field_name)
-            return
-        
-#         if not self.fields[field_name]['fkey']:
-#             dbg.write('non foreign key', field_name)
-#             return
-
-        dbg.write(field_name, value, self.mod_path)
-        try:
-            idx = self.fields.keys().index(field_name)
-            dbg.write(idx)
-            self.liststore[self.mod_path][idx] = value
-        except ValueError:
-            dbg.write('Value Error')
-            pass
-        
-        #self.mod_path = None
-    
-    def text_editing_started(self, cell, editable, path, col):
-        field_type = self.coltypes[col]
-        field_name = self.fields.keys()[col]
-        field_props = self.fields[field_name]
-        if field_type == str or field_props['fkey']:
-                #dbg.write("aggiungo <3> per %s" % (field_name))
-                #editable.connect('button-press-event',self.completion.pop_menu,
-                #               field_name, 3)
-                editable.connect('key-press-event',
-                               self.completion.entry_short_cut_event,
-                               field_name, 'F1')
-                
-        self.mod_path = path
-        return True
-    
-#### event handling & accelerators
-    def keypress_event(self, treeview, event):
-        
-        ksym = gtk.gdk.keyval_name(event.keyval)
-
-        mods = ['key']
-        for prefix, mask in [('ctrl', gtk.gdk.CONTROL_MASK),
-                             ('shift', gtk.gdk.SHIFT_MASK),
-                             ('alt', gtk.gdk.MOD1_MASK),
-                             ('mod2', gtk.gdk.MOD2_MASK),
-                             ('mod3', gtk.gdk.MOD3_MASK),
-                             ('mod4', gtk.gdk.MOD4_MASK),
-                             ('mod5', gtk.gdk.MOD5_MASK),]:
-            if event.state & mask:
-                mods.append(prefix)
-
-        ksym = '_'.join(mods + [ksym])
-        #dbg.write('ksym', ksym)
-
-        if ksym in dir(self):
-            return getattr(self, ksym)(treeview, event)
-    
-    def key_shift_ISO_Left_Tab(self, treeview, event):
-        dbg.write('Shift_Tab pressed')
-        self.ltab_pressed(treeview)
-        return True
-    
-    def key_Tab(self, treeview, event):
-        self.tab_pressed(treeview)
-        return True
-    
-    def key_ctrl_n(self, treeview, event):
-        self.record_clear(treeview)
-        return False
-        
-    def key_ctrl_s(self, treeview, event):
-        self.record_save(treeview)
-        return False
-        
-    def key_ctrl_k(self, treeview, event):
-        self.record_delete(treeview)
-        return False
-        
-    def tab_pressed(self, treeview):
-        path, col = self.treeview.get_cursor()
-        columns = self.treeview.get_columns()
-        colnum = columns.index(col)
-        if colnum + 1 < len(columns):
-            gobject.idle_add(self.treeview.set_cursor, path, columns[colnum + 1], True)
-        else:
-            tmodel = self.treeview.get_model()
-            titer = tmodel.iter_next(tmodel.get_iter(path))
-            if titer is None:
-                titer = tmodel.get_iter_first()
-            path = tmodel.get_path(titer)
-            gobject.idle_add(self.treeview.set_cursor, path, columns[1], True)
-        return
-    
-    def ltab_pressed(self, treeview):
-        path, col = self.treeview.get_cursor()
-        columns = self.treeview.get_columns()
-        colnum = columns.index(col)
-        if colnum - 1 >= 0:
-            gobject.idle_add(self.treeview.set_cursor, path, columns[colnum - 1], True)
-        else:
-            path = (path[0] - 1,)
-            if path[0] < 0:
-                path = (len(treeview.get_model()) - 1,)
-            gobject.idle_add(self.treeview.set_cursor, path, columns[-1], True)
-        return
-
-
-    ##
-
-class SqlTable(SqlWidgetTreeView):
-    """ variant with first column to store the index in sqlData"""
     def mapToListStore(self):
         self.coltypes = [object]
         for v in self.fields.keys():
@@ -759,6 +424,45 @@ class SqlTable(SqlWidgetTreeView):
             return True
 
         self.set_value(field_name, new_text, path)
+    
+    def toggled_signal(self, cell, path, user_data):
+        liststore, colnum = user_data
+
+	self.mod_path = path
+
+        active = not liststore[path][colnum ]
+
+
+        liststore[path][colnum ] = active
+        return True
+    
+    def date_changed(self, event, path, date, col):
+	self.mod_path = path
+        
+        self.liststore[path][col] = date
+        return True
+    
+    def set_height_request(self):
+        area = self.treeview.get_cell_area(0, self.treeview.get_column(0))
+        rows = len(self.liststore)
+        if rows == 0:
+            rows = 10
+        if rows > 30:
+            rows = 30
+        needed_height = area.height * rows
+        dbg.write('area',area, 'needed', needed_height, 'area.h', area.height)
+        self.treeview.set_property('height-request', needed_height)
+        
+    
+    def selection_changed_cb(self, treeselection):
+        if self.mod_path is None:
+            return False
+        
+        if self.rowCommit:
+            self.record_save()
+            self.commit()
+            self.mod_path = None
+        return False
     
     def set_value(self, field_name, value, path=None):
         """ called from within edited signal. Validation should live here"""
@@ -914,12 +618,95 @@ class SqlTable(SqlWidgetTreeView):
         self.session.clear()
         return ret
                                          
-
-### da SqlWidgetTreeView
-#     def delete_event(self, treeview, event, data=None):
-#         self.commit()
-#         return False
+    def tab_pressed(self, treeview):
+        path, col = self.treeview.get_cursor()
+        columns = self.treeview.get_columns()
+        colnum = columns.index(col)
+        if colnum + 1 < len(columns):
+            gobject.idle_add(self.treeview.set_cursor, path, columns[colnum + 1], True)
+        else:
+            tmodel = self.treeview.get_model()
+            titer = tmodel.iter_next(tmodel.get_iter(path))
+            if titer is None:
+                titer = tmodel.get_iter_first()
+            path = tmodel.get_path(titer)
+            gobject.idle_add(self.treeview.set_cursor, path, columns[1], True)
+        return
     
+    def ltab_pressed(self, treeview):
+        path, col = self.treeview.get_cursor()
+        columns = self.treeview.get_columns()
+        colnum = columns.index(col)
+        if colnum - 1 >= 0:
+            gobject.idle_add(self.treeview.set_cursor, path, columns[colnum - 1], True)
+        else:
+            path = (path[0] - 1,)
+            if path[0] < 0:
+                path = (len(treeview.get_model()) - 1,)
+            gobject.idle_add(self.treeview.set_cursor, path, columns[-1], True)
+        return
+
+
+    ##
+    def _init_accelerators(self):
+        """Initializes keyboard accelerators"""
+
+        self.treeview.connect('key-press-event', self.keypress_event)
+    
+    
+    def cursor_changed_cb(self, treeview, user_data = None):
+        return False
+    def select_cursor_row_cb(self, treeview, start_editing, user_data = None):
+        return False
+    
+
+    
+    ##
+#### event handling & accelerators
+    def keypress_event(self, treeview, event):
+        
+        ksym = gtk.gdk.keyval_name(event.keyval)
+
+        mods = ['key']
+        for prefix, mask in [('ctrl', gtk.gdk.CONTROL_MASK),
+                             ('shift', gtk.gdk.SHIFT_MASK),
+                             ('alt', gtk.gdk.MOD1_MASK),
+                             ('mod2', gtk.gdk.MOD2_MASK),
+                             ('mod3', gtk.gdk.MOD3_MASK),
+                             ('mod4', gtk.gdk.MOD4_MASK),
+                             ('mod5', gtk.gdk.MOD5_MASK),]:
+            if event.state & mask:
+                mods.append(prefix)
+
+        ksym = '_'.join(mods + [ksym])
+        #dbg.write('ksym', ksym)
+
+        if ksym in dir(self):
+            return getattr(self, ksym)(treeview, event)
+    
+    def key_shift_ISO_Left_Tab(self, treeview, event):
+        dbg.write('Shift_Tab pressed')
+        self.ltab_pressed(treeview)
+        return True
+    
+    def key_Tab(self, treeview, event):
+        self.tab_pressed(treeview)
+        return True
+    
+    def key_ctrl_n(self, treeview, event):
+        self.record_clear(treeview)
+        return False
+        
+    def key_ctrl_s(self, treeview, event):
+        self.record_save(treeview)
+        return False
+        
+    def key_ctrl_k(self, treeview, event):
+        self.record_delete(treeview)
+        return False
+        
+
+#### da SqlWidgetTreeView
     def insertRow(self, button):
         dbg.write()
         rowCommit = self.rowCommit
@@ -955,20 +742,20 @@ class SqlTable(SqlWidgetTreeView):
                 path = (len(treeview.get_model()) - 1,)
             gobject.idle_add(self.treeview.set_cursor, path, columns[-1], True)
         return
-
+    
     def _init_accelerators(self):
         """Initializes keyboard accelerators"""
 
         self.treeview.connect('key-press-event', self.keypress_event)
     
-
+    
     def date_editing_started(self, cell, editable, path, col):
         return True
     
     def set_completion_model(self, completion, model):
         completion.set_model(model)
         
-
+    
     def set_special_attributes(self, column, cell_renderer, tree_model, iter, i):
         pass
     
@@ -979,7 +766,7 @@ class SqlTable(SqlWidgetTreeView):
     def cursor_changed_cb(self, treeview, user_data = None):
         return False
         
-
+    
     def select_cursor_row_cb(self, treeview, start_editing, user_data = None):
         return False
     
