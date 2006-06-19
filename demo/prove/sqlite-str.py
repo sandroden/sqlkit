@@ -35,8 +35,8 @@ for r in ret:
 #u.user_name = 'Sandro'
 objectstore.commit()
 
-ret = m.select()
-for r in ret:
+aaa = m.select()
+for r in aaa:
     print r.user_name, r.user_last_name
     
 

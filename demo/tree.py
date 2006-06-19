@@ -15,7 +15,7 @@ import sqlalchemy
 #import sqlalchemy.mods.threadlocal
 
 eng = sk.config.new_engine(globalconn=True)
-#meta = default_metadata
+meta = default_metadata
 session = create_session()
 dbg.write(session)
 #eng = create_engine('postgres://test:vicie@localhost:5433/test')

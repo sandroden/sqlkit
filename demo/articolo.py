@@ -19,6 +19,7 @@ lay = """
     a_codice
     a_note
     a_descr
+    L=a_cn_trame_cm Toll=a_cn_trame_cm 
     LS=tex:400.300 -
 """
 zz = sk.SqlMask(table='articolo', lay=lay)

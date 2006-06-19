@@ -14,6 +14,7 @@ engine = sk.config.spawnEngine(echo=False, globalconn=True)
 
 
 lay = """
+   user_id
    user_name
    user_last_name
    user_birth_date
@@ -22,15 +23,15 @@ lay = """
    user_age
    user_sex
    user_active
-   H=uno -
+   A=uno -
 """
    
-zz = sk.SqlMask (table='euro_user', lay=lay, nick='user')
-z2 = SqlWidgetTreeView(table='euro_mail', naked=True, addto=zz.w['Huno'],
-                       nick='mail')
+zz = sk.SqlMask (table='euro_user', lay=lay, nick='user' )
+zz.w['Window'].hide()
+z2 = sk.SqlTable(table='euro_mail', naked=True, addto=zz.w['Auno'],nick='mail')
 z2.lay_obj.prop('TV=tree', 'height-request', 150)
-# print sk.inspect.get_join_cnd([zz.fields.mapper.primarytable,
-#                               z2.fields.mapper.primarytable], mode='str')
+zz.w['Window'].show_all()
+
 zz.sync_add(z2)
 zz.reload()
 

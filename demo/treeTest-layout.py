@@ -8,6 +8,8 @@ import py_path
 from sqlalchemy import *
 from layout import *
 import sqlkit
+import dbg
+import dbg.gtk_dbg
 from sqlkit.table import SqlTreeView, SqlLayoutTreeView
 config = sqlkit.config
 #import config
@@ -140,10 +142,10 @@ class MyLayout(SqlLayoutTreeView):
                 
         
 sqlt = MyLayout(User)
-
+dbg.gtk_dbg.ShowClassInfo(sqlt)
 gtk.main()
 
-
+sys.exit()
 
 for i in m.select():
     for c in m.columns.keys():

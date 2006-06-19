@@ -28,6 +28,9 @@ sql_text = "user_id > 5"
 sql_text = "city_name ~* :city_name"
 #zz = user_mask = sk.mask.SqlMask (mapper=m, sql=(sql_text, {'city_name':'mo'}))
 zz = user_mask = sk.mask.SqlMask (mapper=m, sql="user_id > 5")
+format = "%(city_name)-5.5s (%(city_pv)s)"
+sk.completion.set_description_fields(
+    'city', 'city_name', 'city_pv', format)
 
 gtk.main()
 

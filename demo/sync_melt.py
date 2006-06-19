@@ -37,7 +37,7 @@ lay = """
 
              }
              {-|>>.mail
-               {H b=gtk-delete  b=gtk-new} -
+               {H b=gtk-delete.1  b=gtk-new.1} -
                
                euro_mail.mail_address
                euro_mail.mail_info
@@ -52,9 +52,9 @@ zz.sync_add(z1)
 
 # z1.lay_obj.disconnect('b=gtk-new',signal='clicked')
 # z1.lay_obj.disconnect('b=gtk-delete',signal='clicked')
-z1.lay_obj.connect_set(
-    ('b=gtk-new','clicked', z1.record_clear),
-    ('b=gtk-delete','clicked', z1.record_delete),
+z1.lay_obj.connect(
+    ('b=gtk-new.1','clicked', z1.record_clear),
+    ('b=gtk-delete.1','clicked', z1.record_delete),
     )
 
 

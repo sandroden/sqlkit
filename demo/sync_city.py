@@ -12,9 +12,9 @@ from sqlalchemy import *
 engine = sk.config.spawnEngine(echo=False)
 
 
-zz = sk.SqlMask (table='euro_user', engine=engine)
+zz = sk.SqlMask (table='euro_user', engine=engine, nick='user')
 
-z2 = sk.SqlMask (table='city', engine=engine, naked=True)
+z2 = sk.SqlMask (table='city', engine=engine, naked=True, nick='city')
 zz.sync_add(z2)
 
 ## Completion - you may choose how to show the completion list
