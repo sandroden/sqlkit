@@ -9,7 +9,10 @@ import gtk
 
 from sqlalchemy import *
 
-engine = sk.config.spawnEngine(echo=False)
+engine = sk.config.new_engine(echo=False, globalconn=True)
+session = create_session()
+meta = default_metadata
+
 user_table = Table ('euro_user', engine, autoload=True)
 
 class Mapper(object):
@@ -18,7 +21,8 @@ user_mapper = mapper (Mapper, user_table)
 
 sql_text = "user_id > 5"
 zz = user_mask = sk.SqlMask (mapper=user_mapper, sql=sql_text, show=False,
-                             noup='user_active', single=True, limit=2)
+                             noup='user_active', single=True, limit=2,
+                             session=session)
 
 zz.show()
 
