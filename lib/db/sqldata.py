@@ -51,8 +51,10 @@ class SqlData(object):
         
     def next(self, mode='dict', fields=None):
         return self.get(mode=mode, fields=fields, incr = 1)
+    
     def prev(self, mode='dict', fields=None):
         return self.get(mode=mode, fields=fields, incr = -1)
+    
     def get(self, index=None, pointer=[], mode='dict', fields=None, incr=0):
         """return a dictionary field_name:value corresponding to
         the next tuple (row) in res_obj. Keep a pointer to the row.
@@ -98,6 +100,7 @@ class SqlData(object):
         for i in range(len(self.pointers)):
             print self.get(index=i, mode=mode)
         self.current = 0
+        
     def _instance2dict(self, instance):
         """return a dict representing the data of an instance. If the instance has
         a property representing a MANYTOONE relation it returns those values too,
@@ -108,22 +111,24 @@ class SqlData(object):
         for f in instance.c.keys():
             R[f] = getattr(instance, f)
 
-        MANYTOONE_attrs = [f for f in instance._managed_attributes
-                     if f not in instance.c.keys() and
-                     type(instance._managed_attributes[f]) == sqlalchemy.attributes.ScalarAttribute ]
-        #dbg.write("props %s" % M21_attrs)
-        for prop in MANYTOONE_attrs:
-            prop_attr = getattr(instance, prop)
-            if prop_attr == None:
-                ## in a join the record connected via this property can be missing
-                ## in this case we want to 'empty' all fields
-                for f in self.mapper_info.prop_fields(prop):
-                    R[f] = None
-            else:
-                for f in prop_attr.c.keys():
-                    R[f] = getattr(prop_attr, f) 
-                
         return R
+    
+#         MANYTOONE_attrs = [f for f in instance._managed_attributes
+#                      if f not in instance.c.keys() and
+#                      type(instance._managed_attributes[f]) == sqlalchemy.attributes.ScalarAttribute ]
+#         #dbg.write("props %s" % M21_attrs)
+#         for prop in MANYTOONE_attrs:
+#             prop_attr = getattr(instance, prop)
+#             if prop_attr == None:
+#                 ## in a join the record connected via this property can be missing
+#                 ## in this case we want to 'empty' all fields
+#                 for f in self.mapper_info.prop_fields(prop):
+#                     R[f] = None
+#             else:
+#                 for f in prop_attr.c.keys():
+#                     R[f] = getattr(prop_attr, f) 
+                
+#         return R
     
     def _dict2instance(self, instance, R):
         """set values of an instance. If the instance has
@@ -224,7 +229,8 @@ class SqlData(object):
             self.Rshow(instance)
             self._dict2instance(instance, R)
             self.Rshow(instance)
-            #self.session.save(instance)
+            dbg.write(self.session.dirty)
+            self.session.flush()
 
         dbg.write(self.session, 'instance', instance)
                 
