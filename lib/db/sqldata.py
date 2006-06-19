@@ -139,17 +139,18 @@ class SqlData(object):
         self._set_value_loop(instance, R)
                 
 
-        MANYTOONE_attrs = [f for f in instance._managed_attributes
-                     if f not in instance.c.keys() and
-                     type(instance._managed_attributes[f]) == sqlalchemy.attributes.ScalarAttribute ]
-        #dbg.write("props %s" % MANYTOONE_attrs)
-        for prop in MANYTOONE_attrs:
-            prop_attr = getattr(instance, prop)
-            if prop_attr == None:
-                continue
-            self._set_value_loop(prop_attr, R, m2o=True, parent=instance)
-#             for f in prop_attr.c.keys():
-#                 self._set_value(prop_attr, f, R, m2o=True, parent=instance)
+        return R
+#         MANYTOONE_attrs = [f for f in instance._managed_attributes
+#                      if f not in instance.c.keys() and
+#                      type(instance._managed_attributes[f]) == sqlalchemy.attributes.ScalarAttribute ]
+#         #dbg.write("props %s" % MANYTOONE_attrs)
+#         for prop in MANYTOONE_attrs:
+#             prop_attr = getattr(instance, prop)
+#             if prop_attr == None:
+#                 continue
+#             self._set_value_loop(prop_attr, R, m2o=True, parent=instance)
+# #             for f in prop_attr.c.keys():
+# #                 self._set_value(prop_attr, f, R, m2o=True, parent=instance)
                 
         return R
     def _set_value_loop(self, instance, R, m2o=False, parent=None):
