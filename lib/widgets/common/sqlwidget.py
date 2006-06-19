@@ -8,6 +8,7 @@ import layout.dateedit as dateedit
 #import validator
 from layoutgenerator import TableLayoutGenerator
 import gtk, pango
+import decimal
 from sqlalchemy import *
 import dbg.gtk_dbg
 import sqlkit
@@ -22,6 +23,7 @@ class NoSyncError(Exception): pass
 class SyncNotAvailable(Exception): pass
 class MissingEngine(Exception): pass
 class MissingSession(Exception): pass
+NUMBERS = (int, float, decimal.Decimal)
 
 class SqlWidget(object):
     fields   = None  # fields to use (InspectMapper)
@@ -91,7 +93,7 @@ class SqlWidget(object):
         self.naked = naked
         self.lay   = lay
         self.sql   = sql
-        self.sqlData = sqldata.SqlData(None, mapper_info=self.fields)
+        self.sqlData = sqldata.SqlData(None, self.fields, self.session)
         self.single = single
         self.limit=limit
         self.field_list = self.parse_fields(fields)
@@ -102,7 +104,7 @@ class SqlWidget(object):
         """create the widget and go on displaying the layout
         """
         self.lay_obj, self.w  = self._get_layout(self.lay, self.naked)
-        if self.sql or isinstance(self, sqlkit.table.SqlWidgetTreeView):
+        if self.sql or isinstance(self, sqlkit.table.SqlTable):
             self.reload(self.sql, limit=self.limit)
             
         ## only render when dimentions are complete
@@ -119,7 +121,7 @@ class SqlWidget(object):
             raise MissingSession("")
             
 
-
+    
     def parse_fields(self, fields):
         if not fields:
             fields = self.fields.keys()
@@ -308,7 +310,7 @@ class SqlWidget(object):
         #self.mapper.table.engine.echo = False
         if isinstance(self, sqlkit.SqlMask):
             self.record_clear()
-        self.sqlData = sqldata.SqlData(records, mapper_info=self.fields)
+        self.sqlData = sqldata.SqlData(records, self.fields, self.session)
         self.record_display()
         return self.sqlData.count()
     
@@ -319,13 +321,14 @@ class SqlWidget(object):
     def commit(self):
         #dbg.write('COMMIT')
         if dbg.debug():
+            dbg.write("dirty", self.session.dirty)
             PREV = self.engine.echo
             self.engine.echo = True
             self.session.flush()
             self.engine.echo = PREV
         else:
             self.session.flush()
-        
+            
     def record_forward(self):
         """it doesn't make any sense here, but we need it to prevent
         _add_actions_to_button from failing"""

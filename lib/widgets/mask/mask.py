@@ -26,18 +26,11 @@ class FieldNotInLayout(Exception): pass
 NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
 FK_COLOR = gtk.gdk.color_parse('navyblue')
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
-NUMBERS = (int, float, decimal.Decimal)
 
-class SdTable(sqlwidget.SqlWidget):
-    #Class='sdtable'
-    def show_myself(self):
-        #print self.w
-        print self.w['TV=tree']
-    
 class SqlMask (sqlwidget.SqlWidget):
     """doc string for sqlmask
     """
-    #Class='mask'
+
     mwidgets = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
     labels   = None  # correspondance Label <-> EventBox
 #    map_record_n = 0  # number of the displayed record within mapper
@@ -161,7 +154,7 @@ class SqlMask (sqlwidget.SqlWidget):
         if isinstance (widget, gtk.Entry):
             text = widget.get_text( )
             if text == '':
-                if self.fields[field_name]['type'] in NUMBERS:
+                if self.fields[field_name]['type'] in sqlwidget.NUMBERS:
                     return None
             return text
 
@@ -443,7 +436,8 @@ class SqlMask (sqlwidget.SqlWidget):
 
             widget.set_property('sensitive', self.fields[field_name]['edit']) 
             ## integer
-            if field_type in NUMBERS and not self.fields[field_name]['fkey']:
+            if field_type in sqlwidget.NUMBERS \
+                   and not self.fields[field_name]['fkey']:
                 # left justified
                 #print "field_name:", field_name
                 widget.set_alignment(1), widget
