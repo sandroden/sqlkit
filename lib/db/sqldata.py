@@ -33,8 +33,9 @@ class SqlData(object):
     pointer_info = None
     index = None  # dict of all pointers
 
-    def __init__(self, res_obj, mapper_info, left=True, fields=None):
+    def __init__(self, res_obj, mapper_info, session, left=True, fields=None):
         self.res_obj = res_obj
+        self.session = session
         self.mapper_info = mapper_info
         self._create_pointers(left=left)
         self.deleted = []
@@ -155,7 +156,7 @@ class SqlData(object):
         #dbg.write(f)
 
         ### firstly parse PKeys so that if a _change_sun happens it will happen
-        ### before any other change and further updtae will be applied to the
+        ### before any other change and further update will be applied to the
         ### correct instance
 
         pkeys = [k for k in instance.c.keys() if self.mapper_info[k]['pkey'] ]
@@ -207,21 +208,30 @@ class SqlData(object):
         Check that all primary keys are contained in the row.
         If pointer is None, self.pointer is used
         """
-        #dbg.write("index: %s pointer: %s self.pointers: %s" % (
-        #    index, pointer, self.pointers))
-        #dbg.write("R: %s " % R)
+        dbg.write()
+
         if index is not None:
             pointer = self.pointers[index]
 
         if not pointer:
             pointer = self.pointers[self.current]
+            dbg.write("uso index self.current: %s" % self.current)
             #raise MissingPointerError('A pointer is needed', pointer)
 
-        #dbg.write("Pointer: %s" % pointer)
+        dbg.write("Pointer: %s" % pointer)
 
         for instance in pointer:
+            self.Rshow(instance)
             self._dict2instance(instance, R)
+            self.Rshow(instance)
+            #self.session.save(instance)
+
+        dbg.write(self.session, 'instance', instance)
                 
+    def Rshow(self, instance):
+        for k in self.mapper_info.keys():
+            dbg.write(k, getattr(instance, k, '++'))
+            
     def delete(self, index=None, pointer=None):
         """delete a record. For each pointer it only deletes the last item
         """
@@ -234,9 +244,7 @@ class SqlData(object):
             #raise MissingPointerError('A pointer is needed', pointer)
 
         self.deleted += [index]
-        sqlalchemy.objectstore.delete(pointer[-1])
-        #dbg.write("objectstore.delete(%s)" % pointer[-1])
-        #del self.pointers[self.current]
+        self.session.delete(pointer[-1])
         
     def add(self, R):
         """add a record. Create instances and attach them to first instance
@@ -251,6 +259,7 @@ class SqlData(object):
         self.pointers.append([new])
         self.current = len(self.pointers)-1
         #dbg.write("new", new, "current", self.pointers[self.current])
+        self.session.save(new)
         return new
         ## attach other instances
         for prop in inspect.get_props(main_mapper):

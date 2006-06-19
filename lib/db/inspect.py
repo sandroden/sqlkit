@@ -75,7 +75,7 @@ class InspectMapper(dict):
                 })
         except:
             #raise 
-            dbg.write("no sqlite types")
+            #dbg.write("no sqlite types")
             pass
                               
         ## used by sqlite
