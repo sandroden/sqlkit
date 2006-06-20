@@ -120,24 +120,24 @@ class FilterPanel(object):
         if ev.button == num_button:
             self.w['M=opts'].popup(None, None, None, ev.button, ev.time )
         
-    def sql__old_with_bind_params(self):
-        """create a sql statement composing all requests
-        returns a sql whereclause and a bindparam dictionary
-        """
-        ret = []
-        values={}
-        for fld in self.fields:
-            value = fld['entry'].get_text()
-            if len(value) > 0:
-                fld['op_value'] = fld['operator'].get_active_text()
-                if fld['op_value'] in ('IS NULL', 'IS NOT NULL'):
-                    ret += [ "%(field)s %(op_value)s" %(fld) ]
-                else:
-                    values[fld['field']] = value
-                    ret += self._compose_field_whereclause(fld)
-        sql = (" AND ".join(ret), values)
-        #dbg.write(sql)
-        return sql
+#     def sql__old_with_bind_params(self):
+#         """create a sql statement composing all requests
+#         returns a sql whereclause and a bindparam dictionary
+#         """
+#         ret = []
+#         values={}
+#         for fld in self.fields:
+#             value = fld['entry'].get_text()
+#             if len(value) > 0:
+#                 fld['op_value'] = fld['operator'].get_active_text()
+#                 if fld['op_value'] in ('IS NULL', 'IS NOT NULL'):
+#                     ret += [ "%(field)s %(op_value)s" %(fld) ]
+#                 else:
+#                     values[fld['field']] = value
+#                     ret += self._compose_field_whereclause(fld)
+#         sql = (" AND ".join(ret), values)
+#         #dbg.write(sql)
+#         return sql
 
     def sql(self):
         """create a sql statement composing all requests
@@ -211,24 +211,25 @@ class FilterPanel(object):
                 sql = F[fld['field']]['col'].in_(sqlalchemy.select([s]))
 
         return [ sql ]
-    def _compose_field_whereclause_old(self, fld):
-        """return a sql whereclause for field
 
-        In case field is a fkey, terminating with _id, and the destination
-        lookup field is not in the mapper, it composes a subselect
-        """
-        sql = "%(field)s %(op_value)s :%(field)s"% (fld)
+#     def _compose_field_whereclause_old(self, fld):
+#         """return a sql whereclause for field
+
+#         In case field is a fkey, terminating with _id, and the destination
+#         lookup field is not in the mapper, it composes a subselect
+#         """
+#         sql = "%(field)s %(op_value)s :%(field)s"% (fld)
         
-        if fld['field'].endswith('_id'):
-            info = self.master.fields[fld['field']]
-            fld['fdescr'] = self.master._add_descriptor_fields(
-                mode='return', table_name='city')
-            if info['fkey']:
-                fld['ftable'], fld['fname'] = info['fkey']
-                sql = """%(field)s IN (
-                SELECT %(field)s FROM %(ftable)s
-                WHERE %(fdescr)s %(op_value)s :%(fname)s) """ % (fld)
+#         if fld['field'].endswith('_id'):
+#             info = self.master.fields[fld['field']]
+#             fld['fdescr'] = self.master._add_descriptor_fields(
+#                 mode='return', table_name='city')
+#             if info['fkey']:
+#                 fld['ftable'], fld['fname'] = info['fkey']
+#                 sql = """%(field)s IN (
+#                 SELECT %(field)s FROM %(ftable)s
+#                 WHERE %(fdescr)s %(op_value)s :%(fname)s) """ % (fld)
 
-        return [ sql ]
+#         return [ sql ]
         
         

@@ -51,8 +51,8 @@ class SqlWidget(object):
                   geom=(-1,300),
                   addto=None,
                   actions=None,
-                  fields=None,
-                  session=None
+                  field_list=None,
+                  session=None,
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -85,6 +85,7 @@ class SqlWidget(object):
         self.mapper = parseopts.get_mapper(self, mapper, tables)
         self.valid = self._get_validator(valid)
         self.fields = parseopts.inspect_mapper(self.mapper, noup=noup, mode=mode)
+        self.field_list = self.parse_fields(field_list)
         self.title = self._get_title(title)
 #        self.tables = {}
         self.values = {}
@@ -96,7 +97,6 @@ class SqlWidget(object):
         self.sqlData = sqldata.SqlData(None, self.fields, self.session)
         self.single = single
         self.limit=limit
-        self.field_list = self.parse_fields(fields)
         if show:
             self.show()
             
@@ -127,7 +127,7 @@ class SqlWidget(object):
             fields = self.fields.keys()
             
         if isinstance(fields, str):
-            fields = fields.split(',')
+            fields = re.split('[ ,]+',fields)
         return fields
     
     def get_actions(self, actions):
@@ -301,7 +301,7 @@ class SqlWidget(object):
 
         self.session.clear()
         self.sql = (sql, params)
-        #dbg.write(self.nick, "SQL: '%s'" % sql_str, 'params', params, 'limit:', limit)
+        dbg.write(self.nick, "SQL: '%s'" % sql_str, 'params', params, 'limit:', limit)
         #self.mapper.table.engine.echo = True
         records = self.session.query(self.mapper).select(sql_str, params=params,
                                                          order_by=self.order_by,

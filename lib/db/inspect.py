@@ -36,6 +36,7 @@ class InspectMapper(dict):
         """noup: list of fields that will get a rw=False field
            mode: rw|ro if mode=ro no update/insert/delete will be possible
            """
+        self.mode = mode
         self.pytype = {}
         ## used by postgresql
         try:
@@ -46,7 +47,7 @@ class InspectMapper(dict):
                 sqlalchemy.databases.postgres.PG2DateTime  : datetime.datetime,
                 sqlalchemy.databases.postgres.PG2Date  : datetime.date,
                 sqlalchemy.databases.postgres.PGNumeric : decimal.Decimal,
-                sqlalchemy.databases.postgres.PGNumeric : float,
+#                sqlalchemy.databases.postgres.PGNumeric : float,
                 sqlalchemy.databases.postgres.PGChar  : str, 
                 sqlalchemy.databases.postgres.PGText  : str, 
                 sqlalchemy.databases.postgres.PGString  :  str, 
@@ -66,12 +67,32 @@ class InspectMapper(dict):
                 sqlalchemy.databases.sqlite.SLDateTime  : datetime.datetime,
                 sqlalchemy.databases.sqlite.SLDate  : datetime.date,
                 sqlalchemy.databases.sqlite.SLNumeric : decimal.Decimal,
-                sqlalchemy.databases.sqlite.SLNumeric : float,
+#                sqlalchemy.databases.sqlite.SLNumeric : float,
                 sqlalchemy.databases.sqlite.SLChar  : str, 
                 sqlalchemy.databases.sqlite.SLText  : str, 
                 sqlalchemy.databases.sqlite.SLString  :  str, 
                 sqlalchemy.databases.sqlite.SLBoolean  : bool, 
                 sqlalchemy.databases.sqlite.SLBinary : str,
+                })
+        except:
+            #raise 
+            #dbg.write("no sqlite types")
+            pass
+        ## used by sqlite
+        try:
+            self.pytype.update({
+                sqlalchemy.databases.mysql.MSString : str,
+                sqlalchemy.databases.mysql.MSInteger  : int,
+#                sqlalchemy.databases.mysql.MSDouble  : float,
+                sqlalchemy.databases.mysql.MSDateTime  : datetime.datetime,
+                sqlalchemy.databases.mysql.MSDate  : datetime.date,
+                sqlalchemy.databases.mysql.MSNumeric : decimal.Decimal,
+#                sqlalchemy.databases.mysql.MSNumeric : float,
+                sqlalchemy.databases.mysql.MSChar  : str, 
+                sqlalchemy.databases.mysql.MSText  : str, 
+                sqlalchemy.databases.mysql.MSString  :  str, 
+                sqlalchemy.databases.mysql.MSBoolean  : bool, 
+                sqlalchemy.databases.mysql.MSBinary : str,
                 })
         except:
             #raise 
@@ -246,6 +267,9 @@ class InspectMapper(dict):
         return noup
         
     def set_noup(self, field_name, table_name, col):
+        if self.mode == 'ro':
+            return False
+        
         edit = True
         ## if this field is not in the main (primary) table, don't edit it
         if table_name != self.primarytable():
@@ -459,7 +483,7 @@ def get_props(mapper):
 
 def list_tables(eng=None, schema='public'):
     if not eng:
-        eng = schema.default_engine.get_engine()
+        eng = schema.default_metadata.engine
 
     if eng.name == 'sqlite':
         sql = """
@@ -475,6 +499,6 @@ def list_tables(eng=None, schema='public'):
         sql = "SHOW TABLES"
         
     ret = eng.text(sql).execute(schema=schema)
-    return [R['name'] for R in ret]
+    return [R[0] for R in ret]
 
 

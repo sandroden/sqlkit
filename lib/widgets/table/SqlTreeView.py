@@ -281,11 +281,41 @@ class SqlTable(sqlwidget.SqlWidget):
         ## let tree use all the available space... 
         if not self.naked:
             self.lay_obj.prop('A.0','yscale',1)
+
         return (self.lay_obj, self.w)
     
+    def popup_col_menu(self, ev, field_name):
+        try:
+            self.w['M=popup'].destroy()
+        except:
+            pass
+
+        
+   #self.w['M=popup'] = 
+        menu = self.w['M=popup'] = gtk.Menu()
+
+        ## add to filter
+        item = gtk.MenuItem(label="add %s to filter" % field_name.replace('_', ' '))
+        item.connect('activate', self.filter_panel.add, '', field_name )
+        menu.append(item)
+
+        ## sort
+        item = gtk.MenuItem(label="sort")
+#        item.connect('activate', self.show_widget_properties, widget )
+        menu.append(item)
+
+        ## hide
+        item = gtk.MenuItem(label="hide")
+#        item.connect('activate', self.show_widget_packing, widget )
+        menu.append(item)
+
+        menu.show_all()
+        menu.popup(None, None, None, ev.button, ev.time)
+        #menu.popup(None, None, None, 1, 1)
+        
     def mapToListStore(self):
         self.coltypes = [object]
-        for v in self.fields.keys():
+        for v in self.field_list:
             if self.fields[v]['fkey'] and v.endswith('_id'):
                 ftype = type(self.completion._lookup_value(v, ''))
             else:
@@ -328,7 +358,7 @@ class SqlTable(sqlwidget.SqlWidget):
         - bool render to toggles
         - other render to editable text cells"""
         #create and append columns
-        for i,v in enumerate(self.fields.keys()):
+        for i,v in enumerate(self.field_list):
             j = i+1
             #dbg.write("i=%s - j=%s v=%s" % (i, j, v))
             tvcolumn = gtk.TreeViewColumn(v.replace('_',' '))
@@ -384,7 +414,8 @@ class SqlTable(sqlwidget.SqlWidget):
                 #dbg.write('%s not editable' % v)
                 cell.set_property('editable', False)
             self.treeview.append_column(tvcolumn)
-    
+            tvcolumn.set_clickable(True)
+            tvcolumn.connect('clicked', self.clicked_cb, v)
 
 #### callbacks treeview
     def selection_changed_cb(self, treeselection):
@@ -402,27 +433,13 @@ class SqlTable(sqlwidget.SqlWidget):
     def cursor_changed_cb(self, treeview, user_data = None):
         return False
         
-    
-    def record_delete(self, widget=None):
-        """Delete a row and corresponding record"""
-        #dbg.write('DELETE')
-        #self.deleteRow(widget)
-        self.deleting_row = True
-        def do_del(tm, path, iter):
-            """potentially can delete a selection of many rows
-            but get_idx_of_selected() supposes that just one row is returned
-            """
-            self.sqlData.delete(index=self.get_idx_of_selected_row())
-            del tm[path]
-            self.commit()
-            
-        sel = self.treeview.get_selection()
-        sel.selected_foreach(do_del)
-        self.deleting_row = False
-
-        self.sb("total N. of records: %s" % len(self.liststore))
-        return True
+    def clicked_cb(self, treeview, field_name):
+        dbg.write(field_name)
+        event =   gtk.gdk.Event(gtk.gdk.BUTTON_PRESS)
+        event.button = 1
+        self.popup_col_menu(event, field_name)
         
+        return True
 
 #### event handling & accelerators
     def keypress_event(self, treeview, event):
@@ -526,7 +543,7 @@ class SqlTable(sqlwidget.SqlWidget):
     def text_editing_started(self, cell, editable, path, field_name):
         #field_type = self.coltypes[col+1]
         field_type = self.fields[field_name]['type']
-        #field_name = self.fields.keys()[col]
+        #field_name = self.field_list[col]
         field_props = self.fields[field_name]
         if field_type == str or field_props['fkey']:
             #dbg.write("aggiungo <3> per %s type: %s fkey: %s editable: %s" % (
@@ -566,7 +583,7 @@ class SqlTable(sqlwidget.SqlWidget):
         for i in range(self.sqlData.count()):
             values = self.sqlData.get(i, mode='dict')
             l = [i]
-            for k in self.fields.keys():
+            for k in self.field_list:
                 l.append(values[k])
 ##                 if self.fields[k]['fkey'] and k.endswith('_id'):
 ##                     l.append(self.completion._lookup_value(k, values[k]))
@@ -595,19 +612,40 @@ class SqlTable(sqlwidget.SqlWidget):
         else:
             dbg.write("UPDATING record")
             #self.sqlData.set(rdict, index=int(self.model_path))
-            self.sqlData.set(rdict, index=self.path2sqldata_index(self.model_path))
+            self.sqlData.current = self.path2sqldata_index(self.model_path)
+            self.sqlData.set(rdict)
         dbg.write('session', self.session)
         self.session.flush()
         #self.commit()
         
+    def record_delete(self, widget=None):
+        """Delete a row and corresponding record"""
+        #dbg.write('DELETE')
+        #self.deleteRow(widget)
+        self.deleting_row = True
+        def do_del(tm, path, iter):
+            """potentially can delete a selection of many rows
+            but get_idx_of_selected() supposes that just one row is returned
+            """
+            self.sqlData.delete(index=self.get_idx_of_selected_row())
+            del tm[path]
+            self.commit()
+            
+        sel = self.treeview.get_selection()
+        sel.selected_foreach(do_del)
+        self.deleting_row = False
+
+        self.sb("total N. of records: %s" % len(self.liststore))
+        return True
+        
     def reload(self, *args, **kwargs):
         rowCommit = self.rowCommit
         self.rowCommit = None
+        self.session.clear()
         ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
         self.rowCommit = rowCommit
         #self.set_height_request()
 
-        self.session.clear()
         return ret
                                          
     def insertRow(self, button):
@@ -662,7 +700,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return None
     
     def fname2model_col(self, field_name):
-        return self.fields.keys().index(field_name) + 1
+        return self.field_list.index(field_name) + 1
     
     def path2sqldata_index(self, path=None):
         return self.liststore[path][0]
@@ -671,7 +709,7 @@ class SqlTable(sqlwidget.SqlWidget):
         #dbg.write(path)
         #dbg.write(self.liststore[path])
         #dbg.ddir(self.liststore[path])
-        rdict = dict(map(None, self.fields.keys(), list(self.liststore[path])[1:]))
+        rdict = dict(map(None, self.field_list, list(self.liststore[path])[1:]))
         orig = self.sqlData.get(index=self.path2sqldata_index(path))
         for k in rdict.keys():
             ## For numbers we use 'object' column in listore. A '' is really 'none'
@@ -679,7 +717,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 if rdict[k] in ('', None):
                     rdict[k] = None
                 else:
-                    dbg.write('%s - type: %s' % (k, type(rdict[k])))
+                    #u7dbg.write('%s - type: %s' % (k, type(rdict[k])))
                     rdict[k] = self.fields[k]['type'](rdict[k])
                 
             if not self.fields[k]['edit'] or orig[k] == rdict[k]:
@@ -689,8 +727,6 @@ class SqlTable(sqlwidget.SqlWidget):
                     (orig[k], type(orig[k]), rdict[k], type(rdict[k]))))
         return rdict
     
-    def deleteRow(self, button):
-        pass
     
     def get_idx_of_selected_row(self):
         sel = self.treeview.get_selection()
@@ -707,7 +743,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
 #### completion
     def set_fkey_value(self, field_name, value):
-        if field_name not in self.fields.keys():
+        if field_name not in self.field_list:
             #dbg.write('abbandono', field_name)
             return
         
@@ -717,7 +753,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         #dbg.write(field_name, value, self.model_path)
         try:
-            idx = self.fields.keys().index(field_name)
+            idx = self.field_list.index(field_name)
             #dbg.write(idx)
             self.liststore[self.model_path][idx+1] = value
         except ValueError:
@@ -728,7 +764,7 @@ class SqlTable(sqlwidget.SqlWidget):
     
     def set_fkey_descr(self, column, cell, tree, iter, i):
         fkey = tree.get(iter, i+1)[0]
-        field_name = self.fields.keys()[i]
+        field_name = self.field_list[i]
         #dbg.write(column, i, field_name, fkey)
         cell.set_property('text', self.completion._lookup_value(field_name, fkey))
         
