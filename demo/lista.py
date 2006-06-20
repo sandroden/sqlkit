@@ -12,12 +12,14 @@ from sqlalchemy import *
 import sqlkit as sk
 import layout.misc
 import gtk
-engine = sk.config.spawnEngine(file='eurotex.ini', echo=False, globalconn=True)
+engine = sk.config.new_engine(file='eurotex.ini', echo=False, globalconn=True)
+session = create_session()
 
 class choice(object):
-    def __init__(self, engine=engine):
+    def __init__(self, engine=engine, session=session):
         lay = " TVS=tree"
         self.engine = engine
+        self.session = session
         self.l = layout.Layout(lay)
         self.w = self.l.show()
         self.tv = self.w['TV=tree']
@@ -45,7 +47,7 @@ class choice(object):
 
     def activate_cb(self, tv, path, col):
         table = self.model.get_value(self.model.get_iter(path), 0)
-        sk.SqlTable(table=table)
+        sk.SqlTable(table=table, session=self.session)
 
     def fill_model(self):
         tables = sk.inspect.list_tables(eng=engine)
@@ -69,7 +71,7 @@ class choice(object):
                     self.model.set(col, 3, repr(c.foreign_key) )
                 
         
-choice(engine=engine)
+choice(engine=engine, session=session)
 
 
 gtk.main()
