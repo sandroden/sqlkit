@@ -301,7 +301,8 @@ class SqlWidget(object):
 
         self.session.clear()
         self.sql = (sql, params)
-        dbg.write(self.nick, "SQL: '%s'" % sql_str, 'params', params, 'limit:', limit)
+        #dbg.write(self.nick, "SQL: '%s'" % sql_str,
+        #           'params', params, 'limit:', limit)
         #self.mapper.table.engine.echo = True
         records = self.session.query(self.mapper).select(sql_str, params=params,
                                                          order_by=self.order_by,
@@ -321,7 +322,7 @@ class SqlWidget(object):
     def commit(self):
         #dbg.write('COMMIT')
         if dbg.debug():
-            dbg.write("dirty", self.session.dirty)
+            #dbg.write("dirty", self.session.dirty)
             PREV = self.engine.echo
             self.engine.echo = True
             self.session.flush()

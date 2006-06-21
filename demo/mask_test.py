@@ -6,6 +6,7 @@ sys.path.append ('../../')
 import sqlkit as sk
 import dbg
 import gtk
+import decimal
 
 from sqlalchemy import *
 
@@ -35,6 +36,7 @@ format = "%(city_name)-5.5s (%(city_pv)s)"
 sk.completion.set_description_fields(
     'city', 'city_name', 'city_pv', format)
 
+engine.echo = True
 #dbg.gtk_dbg.ShowClassInfo(zz)
 #print dir()
 gtk.main()

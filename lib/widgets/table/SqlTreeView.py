@@ -138,6 +138,7 @@ class CellRendererDate(gtk.GenericCellRenderer):
                           )
         }    
     def __init__(self, *args, **kwargs):
+        #dbg.write()
         self.date = None
 
         return gtk.CellRenderer.__gobject_init__(self, *args, **kwargs)
@@ -150,7 +151,7 @@ class CellRendererDate(gtk.GenericCellRenderer):
     
     def do_get_size(self, widget, cell_area):
 
-        
+        #dbg.show_caller()
         xpad = self.get_property('xpad')
         ypad = self.get_property('ypad')
 
@@ -168,7 +169,6 @@ class CellRendererDate(gtk.GenericCellRenderer):
 
 
         if cell_area:
-
 
             x_offset = xalign * (cell_area.width - width)
             x_offset = max(x_offset, xpad)
@@ -221,7 +221,8 @@ class CellRendererDate(gtk.GenericCellRenderer):
         return True
     
     def do_render(self, window, widget, background_area, cell_area, expose_area, flags):
-
+        
+        #dbg.write()
         
         x_offset, y_offset, width, height = self.do_get_size(widget, cell_area)
         pl = self.do_pango_layout(widget)
@@ -605,16 +606,18 @@ class SqlTable(sqlwidget.SqlWidget):
         #dbg.write('self.constraint', self.constraint)
         rdict.update(self.constraint)
         #dbg.write('RDICT', rdict)
+        if not rdict:
+            return
         
         if int(self.model_path) > self.sqlData.count() - 1:
-            dbg.write("INSERTING record")
+            #dbg.write("INSERTING record")
             self.sqlData.add(rdict)
         else:
-            dbg.write("UPDATING record")
+            #dbg.write("UPDATING record")
             #self.sqlData.set(rdict, index=int(self.model_path))
             self.sqlData.current = self.path2sqldata_index(self.model_path)
             self.sqlData.set(rdict)
-        dbg.write('session', self.session)
+        #dbg.write('session', self.session)
         self.session.flush()
         #self.commit()
         
@@ -717,14 +720,19 @@ class SqlTable(sqlwidget.SqlWidget):
                 if rdict[k] in ('', None):
                     rdict[k] = None
                 else:
-                    #u7dbg.write('%s - type: %s' % (k, type(rdict[k])))
+                    #dbg.write('%s - type: %s' % (k, type(rdict[k])))
                     rdict[k] = self.fields[k]['type'](rdict[k])
                 
+            ## orig is None for a new row
+            if orig is None:
+                continue
+            
             if not self.fields[k]['edit'] or orig[k] == rdict[k]:
                 del rdict[k]
             else:
-                dbg.write("orig: %s-%s, rdict: %s-%s" % (
-                    (orig[k], type(orig[k]), rdict[k], type(rdict[k]))))
+                pass
+                #dbg.write("orig: %s-%s, rdict: %s-%s" % (
+                #    (orig[k], type(orig[k]), rdict[k], type(rdict[k]))))
         return rdict
     
     

@@ -8,16 +8,18 @@ import layout
 dbg.debug(True)
 from planning import texviewer
 
-from sqlalchemy import *
+#from sqlalchemy import *
+import sqlalchemy as sa
 import sqlkit as sk
 import layout.misc
 import gtk
 engine = sk.config.new_engine(file='eurotex.ini', echo=False, globalconn=True)
-session = create_session()
+session = sa.create_session()
 
 class choice(object):
     def __init__(self, engine=engine, session=session):
         lay = " TVS=tree"
+        self.tables = {}
         self.engine = engine
         self.session = session
         self.l = layout.Layout(lay)
@@ -30,21 +32,6 @@ class choice(object):
         self.tv.connect('row-activated', self.activate_cb)
         self.fill_model()
 
-
-#     def configure_treeview(self, tv):
-#         self.model = gtk.TreeStore(str, str, str, str)
-        
-#         for i,col in enumerate(cols):
-#             self.tvc[i] = gtk.TreeViewColumn(col, gtk.CellRendererText(), text=i)
-#             self.tvc[i].set_sort_column_id(i)
-#             self.tv.append_column(self.tvc[i])
-
-#         col = gtk.TreeViewColumn('table', gtk.CellRendererText(), text=0)
-#         tv.append_column(col)
-#         self.fill_model()
-#         tv.set_model(self.model)
-#         tv.connect('row-activated', self.activate_cb)
-
     def activate_cb(self, tv, path, col):
         table = self.model.get_value(self.model.get_iter(path), 0)
         sk.SqlTable(table=table, session=self.session)
@@ -55,7 +42,8 @@ class choice(object):
         for table in tables:
             iter = self.model.append(None)
             self.model.set(iter, 0, table)
-            tbl = Table(table, self.engine, autoload=True)
+            tbl = sa.Table(table, self.engine, autoload=True)
+            self.tables[table] = tbl
             pks = []
             for pk in tbl.primary_key:
                 pks += [pk.name]
@@ -71,7 +59,7 @@ class choice(object):
                     self.model.set(col, 3, repr(c.foreign_key) )
                 
         
-choice(engine=engine, session=session)
+C = choice(engine=engine, session=session)
 
 
 gtk.main()
