@@ -34,6 +34,8 @@ zz.w['Window'].set_geometry_hints(None, min_width=400, min_height=600)
 
 
 zz.order_by = 'user_address'
+zz.treeview.set_rules_hint(True)
+
 eng.echo = True
 gtk.main()
 
