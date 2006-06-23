@@ -24,11 +24,14 @@ dbg.write(session)
 
 table='euro_user'
 #table='jobs'
-zz = sqlt = sk.SqlTable(table=table, session=session)
+fields='user_name, user_last_name, user_birth_date, user_age'
+zz = sqlt = sk.SqlTable(table=table, session=session, field_list=fields,
+                        single=True)
 
 # , noup=['user_age']
 #zz.w['Window'].set_geometry_hints(None, base_width=300, base_height=200)
-zz.w['Window'].set_geometry_hints(None, min_width=400, min_height=200)
+zz.w['Window'].set_geometry_hints(None, min_width=400, min_height=600)
+
 
 zz.order_by = 'user_address'
 eng.echo = True

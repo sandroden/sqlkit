@@ -29,12 +29,44 @@ class choice(object):
         self.stv = layout.misc.EasyTreeView(cols, tv=self.tv)
         self.model = self.tv.get_model()
         #self.configure_treeview(self.tv)
-        self.tv.connect('row-activated', self.activate_cb)
+        self.tv.connect('button-press-event', self.popup_col_menu)
         self.fill_model()
 
-    def activate_cb(self, tv, path, col):
-        table = self.model.get_value(self.model.get_iter(path), 0)
-        sk.SqlTable(table=table, session=self.session)
+    def popup_col_menu(self, wdg, ev ):
+        try:
+            self.w['M=popup'].destroy()
+        except:
+            pass
+        iter = self.model.get_iter(
+            wdg.get_path_at_pos(int(ev.x),int(ev.y))[0])
+        table = self.model.get_value(iter,0)
+        
+        #table = self.model.get_value(self.model.get_iter(path), 0)
+
+        
+        menu = self.w['M=popup'] = gtk.Menu()
+
+        ## add to filter
+        item = gtk.MenuItem(label="mask" )
+        item.connect('activate', self.activate_cb, ('mask', table ))
+        menu.append(item)
+
+        ## add to filter
+        item = gtk.MenuItem(label="table" )
+        item.connect('activate', self.activate_cb, ('table', table ))
+        menu.append(item)
+
+        menu.show_all()
+        menu.popup(None, None, None, ev.button, ev.time)
+
+    def activate_cb(self, wdg, data):
+        #dbg.write()
+        mode, table = data
+        if mode == 'mask':
+            sk.SqlMask(table=table, session=self.session)
+        else:
+            sk.SqlTable(table=table, session=self.session)
+            
 
     def fill_model(self):
         tables = sk.inspect.list_tables(eng=engine)

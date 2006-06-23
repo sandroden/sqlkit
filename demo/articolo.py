@@ -12,7 +12,8 @@ from sqlalchemy import *
 import sqlkit as sk
 from layout import *
 
-engine = sk.config.spawnEngine(file='eurotex.ini', echo=False, globalconn=True)
+engine = sk.config.new_engine(file='eurotex.ini', echo=False, globalconn=True)
+session=create_session()
 layout.map_labels(filename='label_map.txt')
 
 lay = """
@@ -22,7 +23,7 @@ lay = """
     L=a_cn_trame_cm Toll=a_cn_trame_cm 
     LS=tex:400.300 -
 """
-zz = sk.SqlMask(table='articolo', lay=lay)
+zz = sk.SqlMask(table='articolo', session=create_session(), lay=lay)
 
 tex = texviewer.TexViewer(zz.w['Lay=tex'])
 class actions(sk.sqlwidget.Actions):

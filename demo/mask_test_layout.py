@@ -17,8 +17,9 @@ import sqlkit as sk
 from layout import *
 #from validator import Validator
 
-engine = sk.config.spawnEngine(echo=False)
+engine = sk.config.new_engine(echo=False, globalconn=True)
 layout.map_labels(filename='label_map.txt')
+session = create_session()
 
 lay = """
 {h  {-|.a user_name
@@ -44,8 +45,7 @@ lay = """
 }   
 """
 # sql="user_id > 5", 
-zz = sk.SqlMask (table='euro_user',
-                   lay=lay, engine=engine)
+zz = sk.SqlMask (table='euro_user', lay=lay, session=session)
 format = "%(city_name)-5.5s (%(city_pv)s)"
 sk.completion.set_description_fields(
     'city', 'city_name', 'city_pv', format)

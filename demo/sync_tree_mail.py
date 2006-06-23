@@ -4,20 +4,19 @@ import sys
 
 sys.path.append ('../../')
 import sqlkit as sk
-from sqlkit.table import SqlWidgetTreeView
 import dbg
 import gtk
 
 from sqlalchemy import *
 
-engine = sk.config.spawnEngine(echo=False)
+engine = sk.config.new_engine(echo=False, globalconn=True)
+session=create_session()
 
+zz = sk.SqlMask (table='euro_user', session=session)
 
-zz = sk.SqlMask (table='euro_user', engine=engine)
-
-z2 = SqlWidgetTreeView(table='euro_mail', engine=engine, naked=True)
-print sk.inspect.get_join_cnd([zz.fields.mapper.primarytable,
-                              z2.fields.mapper.primarytable], mode='str')
+z2 = sk.SqlTable(table='euro_mail', session=session, naked=True)
+# print sk.inspect.get_join_cnd([zz.fields.mapper.primarytable,
+#                               z2.fields.mapper.primarytable], mode='str')
 zz.sync_add(z2)
 zz.reload()
 
