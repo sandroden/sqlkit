@@ -135,7 +135,7 @@ class SqlData(object):
         a property representing a MANYTOONE relation it sets those values too,
         if the relation represent a ONETOMANY it calls itself recursevly.
         """
-        dbg.write("R -1 %s" % R)
+        #dbg.write("R -1 %s" % R)
         self._set_value_loop(instance, R)
                 
 
@@ -193,7 +193,8 @@ class SqlData(object):
         mapper = self.mapper_info[f]['mapper']
         ### FIXME: pkeys is here to check that we are issuing a select that has
         ### all the pkeys: to implement
-        ret = mapper.select("%s = :%s" % (f, f), params={ f : R[f] } )
+        ret = self.session.query(mapper).select(
+            "%s = :%s" % (f, f), params={ f : R[f] } )
         length = len(ret)
         if length == 0:
             raise MissingValueFromSelectError(
@@ -214,26 +215,21 @@ class SqlData(object):
         Check that all primary keys are contained in the row.
         If pointer is None, self.pointer is used
         """
-        dbg.write()
+        #dbg.write()
 
         if index is not None:
             pointer = self.pointers[index]
 
         if not pointer:
             pointer = self.pointers[self.current]
-            dbg.write("uso index self.current: %s" % self.current)
+            #dbg.write("uso index self.current: %s" % self.current)
             #raise MissingPointerError('A pointer is needed', pointer)
 
-        dbg.write("Pointer: %s" % pointer)
+        #dbg.write("Pointer: %s" % pointer)
 
         for instance in pointer:
-            self.Rshow(instance)
             self._dict2instance(instance, R)
-            self.Rshow(instance)
-            dbg.write(self.session.dirty)
-            self.session.flush()
 
-        dbg.write(self.session, 'instance', instance)
                 
     def Rshow(self, instance):
         for k in self.mapper_info.keys():
@@ -276,13 +272,13 @@ class SqlData(object):
             
     def _create_instance(self, tbl, R):
         """ create an instance"""
-        dbg.write("R: %s, type: %s" % (R, type(R)))
+        #dbg.write("R: %s, type: %s" % (R, type(R)))
         class_name = self.mapper_info.get_class(tbl)
         inst = class_name()
         
         for field in self.mapper_info.table_fields(tbl):
             if field in R:
-                dbg.write(field, R[field])
+                #dbg.write(field, R[field])
                 setattr(inst, field, R[field])
 
         

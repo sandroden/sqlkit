@@ -44,8 +44,8 @@ class FilterPanel(object):
         adj = self.w['s=limit'].get_adjustment()
         adj.upper = 10000
         self.l.menu('m=opts',
-                    ('-', None,),
-                    ('gtk-close', self.hide),
+                    ('-', ),
+                    ('gtk-close', 'activate', self.hide),
                     )
         self.l.connect(
             ('tb=gtk-close', 'clicked', self.hide),

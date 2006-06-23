@@ -1,6 +1,7 @@
 import sys, re
 import datetime
 import dbg
+import decimal
 
 from sqlalchemy import *
 
@@ -15,6 +16,7 @@ class TableLayoutGenerator (object):
         int                   : 'e',
         float                 : 'e',
         str                   : 'e',
+        decimal.Decimal       : 'e',
         }
     
     def __init__ (self, fields, naked=False, lay=None, target='SqlMask'):
@@ -58,11 +60,12 @@ class TableLayoutGenerator (object):
             L=field_name mod=field_name
 
         where mod is the appropriate modifier ([edc])
-        field_name must be preceded and folloed by a space or newline
+        field_name must be preceded and followed by a space or newline
         """
         p = re.compile(r"""^(\s*#.+)""", re.MULTILINE)
         lay = p.sub('', lay)
-        return re.sub(r""" ([a-z_A-Z.]+)(:[.\d]*)?( |\n)""", self._sub, lay)
+        return re.sub(r""" ([a-z_A-Z]+\.[a-z_A-Z])(:[\.\d]*)?( |\n)""",
+                      self._sub, lay)
 
     def _sub(self, m):
         ### not using add_spec just becouse of the way args are passed
@@ -98,7 +101,7 @@ class TableLayoutGenerator (object):
         #dbg.write('table_name:', table_name)
         tbl_field_name = m.group(2)
 
-        table = Table(table_name, engine=self.fields.mapper.table.engine,
+        table = Table(table_name, self.fields.mapper.local_table.engine,
                       autoload=True)
         t1 = type(table.c[tbl_field_name].type)
         t = self.fields.pytype[t1]

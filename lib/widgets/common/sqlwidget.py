@@ -53,6 +53,7 @@ class SqlWidget(object):
                   actions=None,
                   field_list=None,
                   session=None,
+                  dev=False
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -68,9 +69,12 @@ class SqlWidget(object):
         single: this is a single application. connect a gtk.quit()
         nick is just for debug purpouse
         addto:  passed to layout
+        dev:    if dev=False (default) fields ending with '_id' and not fk
+                are not shown
         """
 
         self.nick= nick
+        self.dev = dev
         self.geom = geom
         self.addto = addto
         self.actions = self.get_actions(actions)
@@ -124,7 +128,11 @@ class SqlWidget(object):
     
     def parse_fields(self, fields):
         if not fields:
-            fields = self.fields.keys()
+            if self.dev:
+                fields = self.fields.keys()
+            else:
+                fields = [f for f in self.fields.keys()
+                          if not f.endswith('_id') or self.fields[f]['fkey'] ]
             
         if isinstance(fields, str):
             fields = re.split('[ ,]+',fields)
@@ -345,7 +353,7 @@ class SqlWidget(object):
 
         # sqlWidget : (DIR, cnd_str, field_names )
         DIR, cnd_str, field_names, fkeys = inspect.get_join_cnd_for_sync(
-            self.mapper.primarytable, sqlWidget.mapper.primarytable)
+            self.mapper.local_table, sqlWidget.mapper.local_table)
         self.sync_dict[sqlWidget] = (DIR, cnd_str, field_names, fkeys )
         dbg.write(DIR, cnd_str, field_names, fkeys)
 #         if sqlWidget.get_pk() != field_names:
@@ -458,13 +466,13 @@ class SqlWidget(object):
         """here all menus are filled for filtering,  sorting, ro, query..."""
         if 'm=file' in self.w:
             self.lay_obj.menu('m=file',
-                              ('filter panel', self.add_filter),
+                              ('filter panel',  'activate', self.add_filter),
                               ('-', None),
-                              ('inspect tables', self.show_mapper_info),
-                              ('inspect widgets', self.show_widget_info),
-                              ('inspect class', self.show_class_info),
+                              ('inspect tables', 'activate',  self.show_mapper_info),
+                              ('inspect widgets', 'activate', self.show_widget_info),
+                              ('inspect class', 'activate', self.show_class_info),
                               ('-', None),
-                              ('gtk-quit', self.delete_event)
+                              ('gtk-quit', 'activate', self.delete_event)
                               )
     
 
