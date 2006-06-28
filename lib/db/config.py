@@ -15,37 +15,6 @@ def searchFile(file):
             #dbg.write("file:", file)
             return filename
     
-def spawnEngine(file='config.ini', echo=False, globalconn=False):
-    import sqlalchemy
-    if globalconn:
-        #dbg.write("GLOBAL connect")
-        from sqlalchemy import global_connect as connect
-    else:
-        from sqlalchemy import create_engine as connect
-    
-    c = ConfigParser ()
-    file = searchFile(file)
-    if not file or not os.path.exists(file):
-        raise MissingConfigFileError("looking for: %s" % file)
-    
-    c.read (file)
-    db = {}
-    for tup in c.items('database'):
-        key, val = tup
-        db[key] = val
-
-    engine = connect (c.get ('database', 'dbapi'),
-                          {'database' : c.get ('database', 'dbname'),
-                           'host' : c.get ('database', 'host'),
-                           'user' : c.get ('database', 'user'),
-                           'port' : c.get ('database', 'port'),
-                           'password' : c.get ('database', 'password')},
-                          echo=echo)
-    if engine:
-        return engine
-    else:
-        return sqlalchemy.schema.default_engine.get_engine()
-
 def new_engine(file='config.ini', echo=False, globalconn=False):
     import sqlalchemy
     if globalconn:
@@ -65,7 +34,10 @@ def new_engine(file='config.ini', echo=False, globalconn=False):
         key, val = tup
         db[key] = val
 
-    eng_str = "%(dbapi)s://%(user)s:%(password)s@%(host)s:%(port)s/%(dbname)s" % db
+    try:
+        eng_str = db['URI']
+    except:
+        eng_str = "%(dbapi)s://%(user)s:%(password)s@%(host)s:%(port)s/%(dbname)s" % db
     engine = connect(eng_str, echo=echo)
 
     if engine:

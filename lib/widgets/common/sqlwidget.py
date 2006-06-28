@@ -22,7 +22,6 @@ import sqlkit.completion as completion
 class NoSyncError(Exception): pass
 class SyncNotAvailable(Exception): pass
 class MissingEngine(Exception): pass
-class MissingSession(Exception): pass
 NUMBERS = (int, float, decimal.Decimal)
 
 class SqlWidget(object):
@@ -53,7 +52,8 @@ class SqlWidget(object):
                   actions=None,
                   field_list=None,
                   session=None,
-                  dev=False
+                  dev=False,
+                  xml=False,
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -74,6 +74,7 @@ class SqlWidget(object):
         """
 
         self.nick= nick
+        self.xml = xml
         self.dev = dev
         self.geom = geom
         self.addto = addto
@@ -122,9 +123,7 @@ class SqlWidget(object):
         if session:
             return session
         else:
-            raise MissingSession("")
-            
-
+            return create_session()
     
     def parse_fields(self, fields):
         if not fields:
@@ -190,7 +189,8 @@ class SqlWidget(object):
         #dbg.write(self.layout)
         self.lay_obj = layout.Layout(self.layout, addto=self.addto,
                                      title=self.title, opts='T-')
-        self.lay_obj.xml('/tmp/m_%s.glade' % self.nick)
+        if self.xml:
+            self.lay_obj.xml('/tmp/m_%s.glade' % self.nick)
         if 'Window' in self.lay_obj.elements:
             self.lay_obj.prop('Window', 'visible', False)
         self.w       = self.lay_obj.show()
