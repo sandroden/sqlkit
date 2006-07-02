@@ -204,7 +204,7 @@ class SqlMask (sqlwidget.SqlWidget):
                 value = self._get_value(field_name)
             except FieldNotInLayout:
                 continue
-            dbg.write(field_name, value)
+            #dbg.write(field_name, value)
             
             t = self.fields[field_name]['type']
             #dbg.write("%s: - value: %r T: %s" % (field_name, value, t))

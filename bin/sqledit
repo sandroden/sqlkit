@@ -1,35 +1,28 @@
 #!/usr/bin/env python
 
 import sys, re, datetime, os
+import os
+from ConfigParser import ConfigParser
 
 Dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(Dir, '../../'))
 import dbg
 import layout
-dbg.debug(True)
-#from planning import texviewer
-
-#from sqlalchemy import *
 import sqlalchemy as sa
 import sqlkit as sk
 import layout.misc
 import gtk
+import misc.optionparse
 
-conn_str = sys.argv[1]
-print conn_str
-sa.global_connect(conn_str)
-session = sa.create_session()
-engine = sa.default_metadata.engine
-
-#engine = sk.config.new_engine(file='eurotex.ini', echo=False, globalconn=True)
+class MissingNickDefinition(Exception): pass
 
 class choice(object):
-    def __init__(self, engine=engine, session=session):
-        lay = " TVS=tree"
+    def __init__(self, engine=None):
+        lay = """ {O tb=gtk-quit }
+                   TVS=tree"""
         self.tables = {}
         self.engine = engine
-        self.session = session
-        self.l = layout.Layout(lay)
+        self.l = layout.Layout(lay, opts='-')
         self.w = self.l.show()
         self.tv = self.w['TV=tree']
         cols = ['table', 'def', 'pkey', 'fkey']
@@ -70,9 +63,9 @@ class choice(object):
         #dbg.write()
         mode, table = data
         if mode == 'mask':
-            sk.SqlMask(table=table, session=self.session)
+            sk.SqlMask(table=table)
         else:
-            sk.SqlTable(table=table, session=self.session)
+            sk.SqlTable(table=table, dev=True)
             
 
     def fill_model(self):
@@ -97,9 +90,56 @@ class choice(object):
                 if c.foreign_key:
                     self.model.set(col, 3, repr(c.foreign_key) )
                 
-        
-C = choice(engine=engine, session=session)
 
+def read_conf(nick):
+    dbconf='.sqleditdb'
+    dbconf = os.path.join(os.getenv('HOME'), dbconf)
+    dbg.write('dbconf',dbconf)
+    if os.path.exists(dbconf):
+        c = ConfigParser()
+        c.read(dbconf)
+        return c
+    raise MissingNickDefinition
+        
+
+def get_connection(): 
+    """use first argument as URL or nick. If does not have ://, is a nick
+    if it's  a nick, it must be defined in ~/.sqleditrc"""
+
+    global conn_str
+    global table_name
+    
+    if not re.search('://', conn_str):
+        nick = conn_str
+        c = read_conf(nick)
+        conn_str = c.get(nick, 'URL')
+        try:
+            table_name = c.get(nick, 'table')
+        except:
+            pass
+
+    sa.global_connect(conn_str)
+    engine = sa.default_metadata.engine
+   
+table_name = None
+
+
+
+conn_str = sys.argv[1]
+#dbg.debug(True)
+get_connection()
+sa.create_engine(conn_str)
+engine = sa.schema.default_metadata.engine
+
+try:
+    table_name = sys.argv[2]
+except:
+    pass
+
+if table_name:
+    sk.SqlTable(table=table_name, engine=engine, single=True)
+else:
+    C = choice(engine=engine)    
 
 gtk.main()
 

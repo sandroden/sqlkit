@@ -103,6 +103,7 @@ class Completion(object):
 
         ## completion was not present
         completion = gtk.EntryCompletion()
+        completion.set_property('popup-set-width', False)
         completion.set_property('minimum-key-length', 0)
         completion.connect('match-selected', self.match_selected_cb, field_name)
         renderer = gtk.CellRendererText()
@@ -417,9 +418,7 @@ class Completion(object):
 
         You can bypass this mechanism writing a comma separated list in
         sqlkit.completion.tables[table_name] = [field_name[,field_name], [format]]
-        use  set_dSqlMaskescription_fields for this purpouse.
-
-        In the future 'format' will hold format info for the completion entry
+        use  set_description_fields for this purpouse.
 
         """
         global tables
@@ -443,6 +442,7 @@ class Completion(object):
         else:
             txt = "table %s does not have a descriptor field \
             to use instead of id: %s" % (table_name, table.c.keys())
+            tables[table_name] = (field_name, )
             raise MissingDescriptorField(txt)
     
     def edit_foreign_key_table(self, wdg, field):
@@ -455,7 +455,15 @@ class Completion(object):
     
 
 def set_description_fields(table, descr, add=None, format=None):
-    """Set description field to table 'table"""
+    """Set description field to table 'table
+    format can use any field that have been put in the 'add' field. Eg.:
+
+    format = '%(city_name)s (%(city_pv)s - %(city_country)s)'
+    sk.completion.set_description_fields(
+         'city', 'city_name', 'city_pv, city_country', format)
+
+    
+    """
     if not add:
         add = []
     global tables

@@ -87,7 +87,7 @@ class SqlWidget(object):
         ## we can use singular or plural as an option, plural in the code
         if table and not tables:
             tables = table
-        self.mapper = parseopts.get_mapper(self, mapper, tables)
+        self.mapper = parseopts.get_mapper(self.engine, mapper, tables)
         self.valid = self._get_validator(valid)
         self.fields = parseopts.inspect_mapper(self.mapper, noup=noup, mode=mode)
         self.field_list = self.parse_fields(field_list)
@@ -204,10 +204,6 @@ class SqlWidget(object):
             self._add_constraints_and_connect()
             self._add_colors_and_fonts()
 
-
-#         if self.geom and not self.addto:
-#             self.lay_obj.prop('Window', 'height-request', self.geom[0])
-#             self.lay_obj.prop('Window', 'height-request', self.geom[1])
 
         self._add_actions_to_buttons()
         self._fill_menubar_menu()
@@ -347,15 +343,22 @@ class SqlWidget(object):
         _add_actions_to_button from failing"""
         pass
     
-    def sync_add(self, sqlWidget):
+    def sync_add(self, sqlWidget, cnd=None):
         if not isinstance(self, sqlkit.SqlMask):
             raise SyncNotAvailable("Sync only available for SqlMask")
 
         # sqlWidget : (DIR, cnd_str, field_names )
-        DIR, cnd_str, field_names, fkeys = inspect.get_join_cnd_for_sync(
-            self.mapper.local_table, sqlWidget.mapper.local_table)
+        if not cnd:
+            DIR, cnd_str, field_names, fkeys = inspect.get_join_cnd_for_sync(
+                self.mapper.local_table, sqlWidget.mapper.local_table)
+        else:
+            DIR, cnd_str, field_names, fkeys = cnd
+            
         self.sync_dict[sqlWidget] = (DIR, cnd_str, field_names, fkeys )
-        dbg.write(DIR, cnd_str, field_names, fkeys)
+        dbg.write(DIR)
+        dbg.write("cnd_str", cnd_str)
+        dbg.write('field_name', field_names)
+        dbg.write('fkeys', fkeys)
 #         if sqlWidget.get_pk() != field_names:
 #             raise NoSyncError("non campi suff per match %s != %s" % (sqlWidget.get_pk(), field_names))
     def sync(self):
@@ -397,10 +400,12 @@ class SqlWidget(object):
     def record_display(self, record=None, incr=0):
         self.action.on_record_display()
         
+
 ####### Dialog
     def confirm(self, text, type):
         pass
     
+
 ####### Misc
     def set_fkey_value(self, field_name, value):
         """needed for completion, to set real value when
@@ -480,13 +485,13 @@ class Actions(object):
     def __init__(self, master):
         self.master = master
     
-    def on_record_save(self, new, old):
+    def on_update(self, new, old):
         pass
     
-    def on_record_delete(self, new, old):
+    def on_delete(self, new, old):
         pass
     
-    def on_record_insert(self, new, old):
+    def on_insert(self, new, old):
         pass
     
     def on_record_display(self, new=None):

@@ -62,6 +62,7 @@ class SqlData(object):
         Fields may be a list (as per self.fields)
         """
         #dbg.write()
+        #dbg.write('LEN pointers:', len(self.pointers))
         R = {}
         if index:
             self.current = index
@@ -252,7 +253,7 @@ class SqlData(object):
     def add(self, R):
         """add a record. Create instances and attach them to first instance
         """
-        dbg.write('add')
+        #dbg.write()
         main_table  = self.mapper_info.tables()[0]
         main_mapper = self.mapper_info.get_mapper(main_table)
         new = self._create_instance(main_table, R)

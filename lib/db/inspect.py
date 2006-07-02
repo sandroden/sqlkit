@@ -3,6 +3,7 @@ import sqlalchemy
 import sys, dbg
 import datetime
 import decimal
+import re
 
 PROPERTIES = sqlalchemy.orm.properties
 class MissingPrimaryKeyError(Exception): pass
@@ -263,7 +264,7 @@ class InspectMapper(dict):
         if noup == None:
             return []
         if isinstance(noup, str):
-            noup = noup.split(",")
+            noup = re.split('[ ,]+', noup)
         return noup
         
     def set_noup(self, field_name, table_name, col):
@@ -272,9 +273,9 @@ class InspectMapper(dict):
         
         edit = True
         ## if this field is not in the main (primary) table, don't edit it
-        if table_name != self.primarytable():
-            #dbg.write("%s: %s != %s" % (field_name, table_name, self.primarytable()))
-            edit = False
+#         if table_name != self.primarytable():
+#             #dbg.write("%s: %s != %s" % (field_name, table_name, self.primarytable()))
+#             edit = False
 
         if field_name in self.noup:
             #dbg.write("2", field_name, 'noup')
@@ -388,6 +389,8 @@ def get_join_cnd(tables, mode='sa'):
     """return a join condition of the sqlobj.Tables in tables
     mode: sa (sqlalchemy objects) or 'str' (string)
     """
+    #dbg.show_caller()
+    #dbg.write()
     if len(tables) == 1:
         return []
     cnd = []
@@ -396,6 +399,7 @@ def get_join_cnd(tables, mode='sa'):
 
     tbls = {}  # which tables are used in these table that can really be joins
     for t in tables:
+        dbg.write(t, type(t))
         for col in t.c:
             tbls[col.table] = col.table.name
     #dbg.write(tbls.values())

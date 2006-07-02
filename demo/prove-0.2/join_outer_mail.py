@@ -34,41 +34,14 @@ m = Join.mapper = mapper(
 #    Join, join
     )
 
-engine.echo=True
-ret = session.query(m).select()
+#engine.echo=True
+ret = session.query(m).select('user_id = 5')
 M = sk.inspect.InspectMapper(m)
-d = sk.sqldata.SqlData(ret, M)
+d = sk.sqldata.SqlData(ret, M, session)
+#d.printall(mode='dict')
 d.printall()
+R = ret[0]
 sys.exit()
 
 
-
-
-
-
-
-#sql_text = "user_id > :p"
-sql_text = "mail_address ~* :mail_adsress"
-
-engine.echo = True
-
-
-params={'mail_address':'xo', 'user_name':'.'}
-
-
-ret = m.select("user_name ~ :user_name AND mail_address ~ :mail_address",
-                  params=params)
-#ret = m.select(sql_text, from_obj=[mail_table], params={'p' : '5'}, limit=100)
-i = 0
-A = []
-for R in ret:
-    A += [R]
-    i +=1
-    print R.user_name, R.user_id, R.mail_address
-
-sys.exit()
-u = A[1]
-u.city_pv = "RM"
-u.user_name = "Grasso"
-objectstore.commit()
 

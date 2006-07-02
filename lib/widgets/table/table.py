@@ -3,7 +3,7 @@
 #
 #
 # Copyright (C) 2005-2006, Michele Comitini <mcm@glisco.it>
-# Copyright (C) 2006, Sandro Dentela <sandro@e-den.it>
+# Copyright (C) 2006, Sandro Dentella <sandro@e-den.it>
 # 
 
 import sys
@@ -287,6 +287,11 @@ class SqlTable(sqlwidget.SqlWidget):
         if not self.naked:
             self.lay_obj.prop('A.0','yscale',1)
 
+        if self.geom :
+            self.lay_obj.prop('TV=tree', 'width-request', self.geom[0])
+            self.lay_obj.prop('TV=tree', 'height-request', self.geom[1])
+
+        
         return (self.lay_obj, self.w)
     
     def popup_col_menu(self, ev, field_name):
@@ -311,7 +316,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         ## hide
         item = gtk.MenuItem(label="hide")
-#        item.connect('activate', self.show_widget_packing, widget )
+        item.connect('activate', self.hide_column, field_name )
         menu.append(item)
 
         menu.show_all()
@@ -425,7 +430,10 @@ class SqlTable(sqlwidget.SqlWidget):
             tvcolumn.set_expand(True)
             if not self.fields[v]['edit']:
                 #dbg.write('%s not editable' % v)
-                cell.set_property('editable', False)
+                try:
+                    cell.set_property('editable', False)
+                except:
+                    cell.set_property('sensitive', False)
 
             if self.fields[v]['type'] in sqlwidget.NUMBERS and \
                    not self.fields[v]['fkey'] :
@@ -435,15 +443,14 @@ class SqlTable(sqlwidget.SqlWidget):
                 cell.set_property('foreground', 'navyblue')
 
             if self.fields[v]['type'] == str :
-                length = re.search('(\d)', self.fields[v]['col_spec']).group(1)
+                length = re.search('(\d*)', self.fields[v]['col_spec']).group(1)
                 try:
-                    dbg.write('lung',length)
+                    #dbg.write('lung',length)
                     ## if field has less then 3 char, position it in the middle
                     if int(length) <= 3:
-                        dbg.write(v, 'in centro')
+                        dbg.write(v, 'in centro', length, int(length))
                         cell.set_property('xalign', 0.5)
                 except:
-                    raise
                     pass
 
             self.treeview.append_column(tvcolumn)
@@ -474,12 +481,15 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
         
     def clicked_cb(self, treeview, field_name):
-        dbg.write(field_name)
+        #dbg.write(field_name)
         event =   gtk.gdk.Event(gtk.gdk.BUTTON_PRESS)
         event.button = 1
         self.popup_col_menu(event, field_name)
         
         return True
+
+    def hide_column(self, menuItem, field_name,):
+        self.tvcolumns[field_name].set_property('visible', False)
 
 #### event handling & accelerators
     def keypress_event_cb(self, wdg, event, data=None):
@@ -503,7 +513,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 mods.append(prefix)
 
         ksym = '_'.join(mods + [ksym])
-        dbg.write('ksym', ksym)
+        #dbg.write('ksym', ksym)
         
         if ksym in dir(self):
             return getattr(self, ksym)(wdg, event, data)
@@ -548,6 +558,10 @@ class SqlTable(sqlwidget.SqlWidget):
     def key_tree_ctrl_k(self, treeview, event, data):
         self.record_delete(treeview)
         return False
+    
+    def key_tree_ctrl_r(self, treeview, event, data):
+        self.reload()
+        return True
     
     def key_tree_Down(self, treeview, event, data):
         # dbg.write(, len(self.liststore))
@@ -672,7 +686,7 @@ class SqlTable(sqlwidget.SqlWidget):
         #sqlwidget.SqlWidget.record_display(new)
         
     def record_save(self, ev = None, constraint={}):
-        #dbg.write('')
+        dbg.write('')
         #rdict = self.path2dict(self.get_idx_of_selected_row())
         if self.model_path is None: # no editing done
             return
@@ -711,6 +725,7 @@ class SqlTable(sqlwidget.SqlWidget):
             #dbg.write("INSERTING record", rdict)
             self.sqlData.add(rdict)
         else:
+            self.actions.on_update(new=rdict, old=self.sqlData.get())
             #dbg.write("UPDATING record", rdict)
             #self.sqlData.set(rdict, index=int(self.model_path))
             self.sqlData.current = self.path2sqldata_index(self.model_path)
@@ -742,7 +757,7 @@ class SqlTable(sqlwidget.SqlWidget):
     def reload(self, *args, **kwargs):
         rowCommit = self.rowCommit
         self.rowCommit = None
-        dbg.write('type(session)', type(self.session))
+        #dbg.write('type(session)', type(self.session))
         self.session.clear()
         ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
         self.rowCommit = rowCommit
@@ -812,13 +827,14 @@ class SqlTable(sqlwidget.SqlWidget):
         #dbg.write(self.liststore[path])
         #dbg.ddir(self.liststore[path])
         rdict = dict(map(None, self.field_list, list(self.liststore[path])[1:]))
-        ## FIXME: orig incamera spazzatura!
+
         if mode == 'UPDATE':
             index = self.path2sqldata_index(path)
             orig = self.sqlData.get(index=index)
             
         #dbg.dshow(rdict)
         #dbg.dshow(orig)
+        #dbg.write('orig', orig)
         for k in rdict.keys():
             ## For numbers we use 'object' column in listore.
             ## An empty str '' is really 'None'
@@ -833,21 +849,24 @@ class SqlTable(sqlwidget.SqlWidget):
                 continue
             
             ## let's get rid of key/value NULL or not updated
-            if not self.fields[k]['edit'] or orig[k] == rdict[k]:
-#                 if not self.fields[k]['edit']:
-#                     dbg.write(k, "NON EDITABILE")
-#                 else:
-#                     dbg.write(k, "orig: %s = rdict: %s" % (orig[k], rdict[k]))
+            if not self.fields[k]['edit']:
+                #dbg.write(k, "NON EDITABILE")
                 del rdict[k]
-            else:
+                continue
+                
+            if orig[k] == rdict[k]:
+                #dbg.write(k, "Skip :: orig: %s = rdict: %s" % (orig[k], rdict[k]))
+                del rdict[k]
+                continue
+
             ## when inserting we only pass by NOT NULL values
-                if mode == 'INSERT' and k in rdict:
-                    if rdict[k] is None:
-                        #dbg.write("ELIMINO", k, rdict[k])
-                        del rdict[k]
-                    elif rdict[k] == '' and self.fields[k]['type'] == str:
-                        #dbg.write("ELIMINO per str", k, rdict[k])
-                        del rdict[k]
+            if mode == 'INSERT' and k in rdict:
+                if rdict[k] is None:
+                    #dbg.write("ELIMINO", k, rdict[k])
+                    del rdict[k]
+                elif rdict[k] == '' and self.fields[k]['type'] == str:
+                    #dbg.write("ELIMINO per str", k, rdict[k])
+                    del rdict[k]
 
                 #dbg.write("orig: %s-%s, rdict: %s-%s" % (
                 #    (orig[k], type(orig[k]), rdict[k], type(rdict[k]))))

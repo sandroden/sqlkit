@@ -1,23 +1,53 @@
 from sqlalchemy import *
 import sqlkit.inspect as inspect
 import dbg.gtk_dbg
+import re
 
 
-def get_mapper(master, mapper_obj, tables):
-    """If no mapper is provided it will be built from the table"""
+def get_mapper(engine, mapper_obj, tables):
+    """If no mapper is provided it will be built from the table(s)
+    tables may be:
+       a list of table_names
+       a list of sqlalchemy.Tables
+       a single table_name
+       a single sqlalchemy.Table
+       a string of table_names
+    """
 
     if mapper_obj:
         return mapper_obj
 
-    elif tables:
-        if isinstance(tables, str) or  len(tables) == 1:
-            name = "%s_class" % (tables)
-            sa_table = Table(tables, master.engine, autoload=True)
-            X = type(name, (object,), {})
-            m = mapper(X, sa_table)
-            return m
-        else:
-            return join_tables(tables, engine=master.engine)
+    ## tables may be 'table1, table2, table3'
+    if not isinstance(tables, list):
+        tables = re.split('[ ,]+', tables)
+        
+    tables = [table_name2Table(t, engine) for t  in tables]
+
+
+    if len(tables) == 1:
+        return table2mapper(tables[0], engine)
+    else:
+        return join_tables(tables, engine=engine)
+
+def table2mapper(table, engine):
+    name = "%s_class" % (table)
+    if isinstance(table, str ):
+        table = Table(table, engine, autoload=True)
+    X = type(name, (object,), {})
+    m = mapper(X, table)
+    return m
+    
+
+def table_name2Table(table, engine):
+    """ if table is sqlalchemy.Table, just return else try to autoload it"""
+    if isinstance(table, Table):
+        return table
+    else:
+        name = "%s_class" % (table)
+        sa_table = Table(table, engine, autoload=True)
+    return sa_table
+        
+
 
 def inspect_mapper(mapper, noup=None, mode=None):
     # A mapper created using .join or .outerjoin from one table
@@ -101,16 +131,17 @@ def join2tables(t1, t2, engine, mode='outerjoin'):
         dbg.write('join... non outer')
         j = T1.join(T2, and_(*join_cnd))
     else:
-        dbg.write('outerjoin')
+        dbg.write('outerjoin', T1, T2, join_cnd)
         j = T1.outerjoin(T2, *join_cnd)
 
-    ret = [j]
-    if T1_ret:
-        ret += [T1]
-    if T2_ret:
-        ret += [T2]
+    return j
+#     ret = [j]
+#     if T1_ret:
+#         ret += [T1]
+#     if T2_ret:
+#         ret += [T2]
         
-    return ret
+#     return ret
     
 
 # join = user_table.outerjoin(
