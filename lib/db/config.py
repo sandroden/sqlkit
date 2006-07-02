@@ -35,7 +35,7 @@ def new_engine(file='config.ini', echo=False, globalconn=False):
         db[key] = val
 
     try:
-        eng_str = db['URI']
+        eng_str = db['URL']
     except:
         eng_str = "%(dbapi)s://%(user)s:%(password)s@%(host)s:%(port)s/%(dbname)s" % db
     engine = connect(eng_str, echo=echo)
