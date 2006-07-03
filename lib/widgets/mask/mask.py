@@ -37,7 +37,7 @@ class SqlMask (sqlwidget.SqlWidget):
     row_count = 0    # number of records in the mapper
     status = None
 ####### Record browsing & saving
-    def record_display(self, record=None, incr=0):
+    def record_display(self, record=None, incr=0, index=None):
         """display a SqlData record in the mask
 
         display the data provided by self.sqlData.get()
@@ -47,9 +47,13 @@ class SqlMask (sqlwidget.SqlWidget):
         ## fill in the data
         #self.record_clear()
         try:
-            data_in = self.sqlData.get(incr=incr)
+            if index is not None:
+                data_in = self.sqlData.get(index=index)
+            else:
+                data_in = self.sqlData.get(incr=incr)
             #dbg.write('%s data_in %s' % (self.nick,data_in))
         except:
+            raise
             self.sb("no data to browse")
             #dbg.write("%s NO DATA to DISPLAY 1" % self.nick)
             self.record_clear()

@@ -1,7 +1,11 @@
 import gtk
 import layout
+import layout.misc
+import completion
 import dbg
 import sqlalchemy
+import sqlkit as sk
+
 class FilterPanel(object):
     """A filter panel has 'entry|operator|string' rows
 
@@ -14,30 +18,44 @@ class FilterPanel(object):
         """constructor need to know who is the 'master' ie the widget (a mask
         or a table instance) that will display the result"""
         self.master = master
-        self._create_window(visible=visible)
+        self.get_layout(visible=visible)
         self.row =0  # counter for position of fileds
 
     def reload_cb(self, widget):
         """issue a reload operation on master. Call back of reload button"""
         #sql, bind_params = self.sql()
         sql = self.sql()
-        dbg.write(sql)
         self.master.reload(sql=sql, limit=self.get_limit() )
-        limit=100
+        if 'TV=out' in self.w:
+            self.fill_model()
+            self.w['N.0'].set_current_page(1)
+            
         #dbg.write("%s type: %s" % (bind_params, type(bind_params)))
         #self.master.reload(sql=(sql, bind_params), limit=limit )
         #self.master.record_display()
         #print self.sql()
     
-    def _create_window(self, visible=True):
+    def get_layout(self, visible=True):
         """create the filter panel widget"""
-        lay = """
-        {H {B m=opts } {O.a tb=gtk-refresh ts=limit tb=gtk-close } }
-        {|T.fld }
-        """
+        if isinstance(self.master, sk.SqlMask):
+            lay = """
+            {H.a {B m=opts } {O.a tb=gtk-refresh ts=limit tb=gtk-close } }
+            {N %filter
+               {|T.fld }
+               %output
+               { TVS=out}
+            }
+            """
+        else:
+            lay = """
+            {H.a {B m=opts } {O.a tb=gtk-refresh ts=limit tb=gtk-close } }
+               {|T.fld }
+
+            """
         self.l = layout.Layout(lay, title='Filter Panel')
         self.l.prop('Window', 'visible', visible)
         self.l.prop('O.a', 'show_arrow', 'FALSE')
+        self.l.elements['H.a'].pack_properties['y-options'] = ''
         self.l.prop('O.a', 'toolbar_style', 'gtk.TOOLBAR_ICONS')
         self.w = self.l.show(x=self.hide)
         self.w['s=limit'].set_value(self.master.limit)
@@ -53,7 +71,30 @@ class FilterPanel(object):
                         )
         self.w['label-cursor'] = gtk.gdk.Cursor(gtk.gdk.HAND1)
         #self.l.xml('/tmp/f.glade')
-        
+        if 'TV=out' in self.w: 
+            self.easytv = layout.misc.EasyTreeView(
+                ['id', 'output'], tv=self.w['TV=out'], )
+            self.selection = self.easytv.tv.get_selection()
+            self.selection.connect('changed',self.display)
+            self.model = self.easytv.tv.get_model()
+            self.easytv.tvc['id'].set_property('visible', False)
+
+    def fill_model(self):
+        """Fill the treeview with a clickable list """
+        attr = self.master.completion._add_descriptor_fields(
+            mode='ret', table_name = self.master.fields.get_primary_table())
+
+        for i, v in enumerate(self.master.sqlData.pointers):
+            R = self.master.sqlData.get(index=i)
+            self.model.append(None, [i, R[attr]])
+            
+            
+    def display(self, *args):
+        model, iter = self.selection.get_selected()
+        idx = self.model.get_value(iter, 0)
+        self.master.record_display(index=int(idx))
+
+    
     def hide(self, wid, ev=None):
         """hide FilterPanel."""
         #print self.w['Window'], "destroy", "wid", wid
