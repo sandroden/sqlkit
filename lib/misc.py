@@ -35,10 +35,10 @@ class EasyTreeView(object):
             cell = gtk.CellRendererText
             if self.columns[i] == bool:
                 cell = gtk.CellRendererToggle
-                self.tvc[i] = gtk.TreeViewColumn(col, cell(), active=i)
+                self.tvc[col] = gtk.TreeViewColumn(col, cell(), active=i)
             else:
-                self.tvc[i] = gtk.TreeViewColumn(col, cell(), text=i)
-            self.tvc[i].set_sort_column_id(i)
-            self.tv.append_column(self.tvc[i])
+                self.tvc[col] = gtk.TreeViewColumn(col, cell(), text=i)
+            self.tvc[col].set_sort_column_id(i)
+            self.tv.append_column(self.tvc[col])
 
 
