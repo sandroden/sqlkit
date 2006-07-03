@@ -1,5 +1,15 @@
 #!/usr/bin/env python
 
+"""
+usage: %prog files [options] [[url|nick] table]
+   -u, --url = URL: an url to open (eg: postgres://user:pass@host/dbname)
+   -n, --nick = nick: a nick in ~.sqledit
+   -t, --table = table: open table 'table'
+   -m, --mask: open a SqlMask (default is SqlTable)
+   -T, --sqltable: open a SqlTable
+   -d, --dev: open in 'dev' mode
+   -D, --debug: print debug
+"""
 import sys, re, datetime, os
 import os
 from ConfigParser import ConfigParser
@@ -12,7 +22,8 @@ import sqlalchemy as sa
 import sqlkit as sk
 import layout.misc
 import gtk
-import misc.optionparse
+import misc.optionparse as optionparse
+
 
 class MissingNickDefinition(Exception): pass
 
@@ -30,6 +41,7 @@ class choice(object):
         self.model = self.tv.get_model()
         #self.configure_treeview(self.tv)
         self.tv.connect('button-press-event', self.popup_col_menu)
+        self.l.connect(('tb=gtk-quit', 'clicked', gtk.main_quit))
         self.fill_model()
 
     def popup_col_menu(self, wdg, ev ):
@@ -91,53 +103,65 @@ class choice(object):
                     self.model.set(col, 3, repr(c.foreign_key) )
                 
 
-def read_conf(nick):
+def read_conf():
+    global option
+    
     dbconf='.sqleditdb'
     dbconf = os.path.join(os.getenv('HOME'), dbconf)
-    dbg.write('dbconf',dbconf)
     if os.path.exists(dbconf):
         c = ConfigParser()
         c.read(dbconf)
-        return c
-    raise MissingNickDefinition
+        for tup in c.items(option.nick):
+            key, val = tup
+            if getattr(option, key) is None:
+                setattr(option, key, val)
+    else:
+        raise MissingNickDefinition
         
 
-def get_connection(): 
-    """use first argument as URL or nick. If does not have ://, is a nick
-    if it's  a nick, it must be defined in ~/.sqleditrc"""
-
-    global conn_str
-    global table_name
+def get_engine(): 
+    global options
     
-    if not re.search('://', conn_str):
-        nick = conn_str
-        c = read_conf(nick)
-        conn_str = c.get(nick, 'URL')
-        try:
-            table_name = c.get(nick, 'table')
-        except:
-            pass
-
-    sa.global_connect(conn_str)
-    engine = sa.default_metadata.engine
+    sa.global_connect(option.url)
+    return sa.default_metadata.engine
    
-table_name = None
+###### Program
+
+#table_name = None
+
+option, args = optionparse.parse(__doc__)
+if not args and not option: optionparse.exit()
+
+if args:
+    if re.search('://', args[0]):
+        option.url = args[0]
+    else:
+        option.nick = args[0]
+    
+if len(args) >1:
+    option.table = args[1]
+    
+if option.debug:
+    dbg.debug(True)
+
+if option.nick:
+    read_conf()
 
 
+sa.global_connect(option.url)
+engine = sa.default_metadata.engine
 
-conn_str = sys.argv[1]
-#dbg.debug(True)
-get_connection()
-sa.create_engine(conn_str)
-engine = sa.schema.default_metadata.engine
 
-try:
-    table_name = sys.argv[2]
-except:
-    pass
-
-if table_name:
-    sk.SqlTable(table=table_name, engine=engine, single=True)
+if option.table:
+    opts ={'table' : option.table,
+           'engine' : engine,
+           'dev' : option.dev,
+           'single' : True
+           }
+    if option.mask:
+        sk.SqlMask(**opts)
+    else:
+        sk.SqlTable(**opts)
 else:
     C = choice(engine=engine)    
 
