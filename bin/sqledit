@@ -9,6 +9,7 @@ usage: %prog files [options] [[url|nick] table]
    -T, --sqltable: open a SqlTable
    -d, --dev: open in 'dev' mode
    -D, --debug: print debug
+   -g, --gtk-debug: use LogTheMethods
 """
 import sys, re, datetime, os
 import os
@@ -29,7 +30,7 @@ class MissingNickDefinition(Exception): pass
 
 class choice(object):
     def __init__(self, engine=None):
-        lay = """ {O tb=gtk-quit }
+        lay = """ {O tb=gtk-quit tb=gtk-refresh}
                    TVS=tree"""
         self.tables = {}
         self.engine = engine
@@ -41,9 +42,19 @@ class choice(object):
         self.model = self.tv.get_model()
         #self.configure_treeview(self.tv)
         self.tv.connect('button-press-event', self.popup_col_menu)
-        self.l.connect(('tb=gtk-quit', 'clicked', gtk.main_quit))
+        self.l.connect(
+            ('tb=gtk-quit', 'clicked', gtk.main_quit),
+            ('tb=gtk-refresh', 'clicked', self.reload),
+            )
         self.fill_model()
 
+    def reload(self, *args):
+        dbg.write('reloading sqlkit')
+        print reload(sk)
+        #reload(sk.sqlwidget)
+        print reload(sk.table.table)
+        #reload(sk.mask.mask)
+        
     def popup_col_menu(self, wdg, ev ):
         try:
             self.w['M=popup'].destroy()
@@ -74,16 +85,23 @@ class choice(object):
     def activate_cb(self, wdg, data):
         #dbg.write()
         mode, table = data
+        opts ={'table' : table,
+           'dev' : dev,
+           'single' : False,
+           'nick' : table
+           }
         if mode == 'mask':
-            sk.SqlMask(table=table)
+            sk.SqlMask(**opts)
         else:
-            sk.SqlTable(table=table, dev=True)
+            sk.table.table.SqlTable(**opts)
             
 
     def fill_model(self):
         tables = sk.inspect.list_tables(eng=engine)
         tables.sort()
         for table in tables:
+            if table.startswith('pg_'):
+                continue
             iter = self.model.append(None)
             self.model.set(iter, 0, table)
             tbl = sa.Table(table, self.engine, autoload=True)
@@ -132,6 +150,9 @@ def get_engine():
 option, args = optionparse.parse(__doc__)
 if not args and not option: optionparse.exit()
 
+if option.gtk_debug:
+    dbg.LogTheMethods(show=True)
+
 if args:
     if re.search('://', args[0]):
         option.url = args[0]
@@ -156,12 +177,13 @@ if option.table:
     opts ={'table' : option.table,
            'engine' : engine,
            'dev' : option.dev,
-           'single' : True
+           'single' : True,
+           'nick' : option.table
            }
     if option.mask:
         sk.SqlMask(**opts)
     else:
-        sk.SqlTable(**opts)
+        sk.table.table.SqlTable(**opts)
 else:
     C = choice(engine=engine)    
 
