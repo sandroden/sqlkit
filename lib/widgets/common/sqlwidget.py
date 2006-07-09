@@ -28,6 +28,7 @@ class SqlWidget(object):
     fields   = None  # fields to use (InspectMapper)
 #    tables = None    # Table objects referenced as foreign keys
     values = None    # real value for foreign key (when lookup is displeyed instead)
+#    __metaclass__ = dbg.LogTheMethodsMeta
     def __init__ (self, mapper=None,
                   lay = None,
                   valid = None,
@@ -130,8 +131,13 @@ class SqlWidget(object):
             if self.dev:
                 fields = self.fields.keys()
             else:
+                ## I want all fields not ending with _id
+                ## *AND* all fields that REFERENCE other keys
+                ## i.e.: if you have city_id that references a city I want
+                ## to see it, but I don't want to see a sequence normally.
                 fields = [f for f in self.fields.keys()
                           if not f.endswith('_id') or self.fields[f]['fkey'] ]
+
             
         if isinstance(fields, str):
             fields = re.split('[ ,]+',fields)
@@ -177,8 +183,7 @@ class SqlWidget(object):
             target = 'SqlMask'
         else:
             target = 'SqlTable'
-        lay = TableLayoutGenerator(self.fields, naked=naked, lay=lay,
-                                   target=target).layout
+        lay = TableLayoutGenerator(self, naked=naked, lay=lay).layout
 
         self.layout = lay
         self.add_filter(visible=False)
@@ -239,7 +244,7 @@ class SqlWidget(object):
         actions = {
             ## std toolbutton
             'tb=gtk-save'       : self.record_save,
-            'tb=gtk-new'        : self.record_clear,
+            'tb=gtk-new'        : self.record_new,
             'tb=gtk-delete'     : self.record_delete,
             'tb=gtk-refresh'    : self.reload_cb,
             'tb=gtk-quit'       : self.delete_event,
@@ -248,19 +253,40 @@ class SqlWidget(object):
 
             ## in case the programmers has set them
             'b=gtk-save'       : self.record_save,
-            'b=gtk-new'        : self.record_clear,
+            'b=gtk-new'        : self.record_new,
             'b=gtk-delete'     : self.record_delete,
             'b=gtk-refresh'    : self.reload_cb,
             'b=gtk-quit'       : self.delete_event,
             'b=gtk-go-forward' : self.record_forward,
             'b=gtk-go-back'    : self.record_back,
             }
+        actions = {
+            ## std toolbutton
+            'tb=gtk-save'       : 'record_save',
+            'tb=gtk-new'        : 'record_new',
+            'tb=gtk-delete'     : 'record_delete',
+            'tb=gtk-refresh'    : 'reload_cb',
+            'tb=gtk-quit'       : 'delete_event',
+            'tb=gtk-go-forward' : 'record_forward',
+            'tb=gtk-go-back'    : 'record_back',
+
+            ## in case the programmers has set them
+            'b=gtk-save'       : 'record_save',
+            'b=gtk-new'        : 'record_new',
+            'b=gtk-delete'     : 'record_delete',
+            'b=gtk-refresh'    : 'reload_cb',
+            'b=gtk-quit'       : 'delete_event',
+            'b=gtk-go-forward' : 'record_forward',
+            'b=gtk-go-back'    : 'record_back',
+            }
         for widget_name, handler in actions.iteritems():
             if widget_name in self.w:
                 #print "_add_actions_to_button: %s %s %s" % (
                 #    widget_name, 'clicked', handler)
                 #self.w[widget_name].connect('clicked', handler)
-                self.lay_obj.connect((widget_name, 'clicked', handler))
+
+                ## could be simple byt this way they get traked by LogTheMethods...
+                self.lay_obj.connect((widget_name, 'clicked', lambda w, h=handler: getattr(self, h)(w)))
                 self.lay_obj.tooltips.set_tip(self.w[widget_name], "mmh")
                 self.lay_obj.tip(widget_name, "mi chiamo %s" % widget_name)
 
@@ -283,7 +309,7 @@ class SqlWidget(object):
         """
         pass
     
-    def record_clear(self, widget=None):
+    def clear(self, widget=None):
         """clear the mask for a new record"""
         pass
     
@@ -292,6 +318,7 @@ class SqlWidget(object):
 
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
         """
+        dbg.write('Nick', self.nick)
         if constraint:
             self.constraint=constraint
         #dbg.write(self.nick, 'constraint', constraint)
@@ -305,16 +332,20 @@ class SqlWidget(object):
 
         self.session.clear()
         self.sql = (sql, params)
+        if self.nick == 'art_var_filo':
+            self.engine.echo = True
         #dbg.write(self.nick, "SQL: '%s'" % sql_str,
         #           'params', params, 'limit:', limit)
         #self.mapper.table.engine.echo = True
         records = self.session.query(self.mapper).select(sql_str, params=params,
                                                          order_by=self.order_by,
                                                          limit=limit)
+        if self.nick == 'art_var_filo':
+            self.engine.echo = False
         #records = self.mapper.select_by(sql)
         #self.mapper.table.engine.echo = False
         if isinstance(self, sqlkit.SqlMask):
-            self.record_clear()
+            self.clear()
         self.sqlData = sqldata.SqlData(records, self.fields, self.session)
         self.record_display()
         return self.sqlData.count()
@@ -324,15 +355,22 @@ class SqlWidget(object):
         #limit=100
         self.reload( )
     def commit(self):
-        #dbg.write('COMMIT')
-        if dbg.debug():
-            #dbg.write("dirty", self.session.dirty)
-            PREV = self.engine.echo
+        PREV = self.engine.echo
+        if dbg.debug() > 1:
+            dbg.write('dbg.debug()', dbg.debug())
+            pass
             self.engine.echo = True
+            
+        try:
             self.session.flush()
-            self.engine.echo = PREV
-        else:
-            self.session.flush()
+        except exceptions.SQLError, e:
+            self.SQLErrorHandler(e)
+
+        self.engine.echo = PREV
+
+    def SQLErrorHandler(self, e):
+        self.sb(e.orig)
+        dbg.write("Scritto %s su sb" % (e.orig))
             
     def record_forward(self):
         """it doesn't make any sense here, but we need it to prevent
@@ -365,9 +403,9 @@ class SqlWidget(object):
         """emit a reload to other SqlWidgets so that they keep in sync"""
         ## easy/simple (almost useless) case: we have a Many2One relation. A field
         ## of primarytable has a fk to nother table
-        #dbg.write()
+        dbg.write(self.nick)
         for w, value in self.sync_dict.iteritems():
-            #dbg.write(w, value)
+            dbg.write(w, value)
             DIR, sql, field_names, fkeys = value
             val = {}
             val_constr = {}
@@ -382,6 +420,7 @@ class SqlWidget(object):
 
             dbg.write(sql, val)
 #            w.reload(  sql =  (and_(*[sql]),val)   )
+            w.clear()
             w.reload(  sql =  (sql,val) , constraint=val_constr  )
     def get_pk(self):
         """return the pkeys of the primarytable"""
@@ -398,7 +437,7 @@ class SqlWidget(object):
             #dbg.write("key: %s" % key)
             return True
     def record_display(self, record=None, incr=0):
-        self.action.on_record_display()
+        self.actions.on_record_display()
         
 
 ####### Dialog

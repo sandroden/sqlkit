@@ -56,7 +56,7 @@ class InspectMapper(dict):
                 sqlalchemy.databases.postgres.PGBinary : str,
                 })
         except:
-            dbg.write("no pg types")
+            #dbg.write("no pg types")
             pass
                               
         ## used by sqlite
@@ -205,6 +205,7 @@ class InspectMapper(dict):
         return False
 
     def __getitem__(self, item):
+        #print "item", item, type(item)
         return getattr(self, item)
     
     def __len__(self):
@@ -485,7 +486,7 @@ def get_props(mapper):
             props += [(prop, attr.direction)]
     return props
 
-def list_tables(eng=None, schema='public'):
+def list_tables(eng=None, schema=None):
     if not eng:
         eng = schema.default_metadata.engine
 
@@ -494,15 +495,31 @@ def list_tables(eng=None, schema='public'):
         SELECT name FROM sqlite_master
         WHERE type='table'
         ORDER BY name;"""
-    elif eng.name in ( 'postgres'):
+    elif eng.name == 'postgres':
+        if schema == None:
+            schema_constraint = ''
+        else:
+            schema_constraint = "AND n.nspname = :schema"
         sql = """
-           SELECT table_name AS name FROM  information_schema.tables
-           WHERE table_schema = :schema ;
-        """
+           SELECT c.relname as name, 
+             n.nspname as schema,c.relkind,
+             u.usename as owner
+           FROM pg_catalog.pg_class c
+                LEFT JOIN pg_catalog.pg_user u ON u.usesysid = c.relowner
+                LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+           WHERE c.relkind IN ('r')
+                 %s
+                 AND pg_catalog.pg_table_is_visible(c.oid)
+           ORDER BY 1,2;
+           """ % (schema_constraint)
+        #,'v','S',''
+#        sql = "SELECT tablename FROM pg_tables WHERE schemaname = :schema "
     elif eng.name in ( 'mysql'):
         sql = "SHOW TABLES"
         
     ret = eng.text(sql).execute(schema=schema)
-    return [R[0] for R in ret]
+    tables = [R[0] for R in ret]
+    #dbg.write(tables)
+    return tables
 
 

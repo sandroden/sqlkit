@@ -2,6 +2,7 @@ import sys, re
 import datetime
 import dbg
 import decimal
+import sqlkit as sk
 
 from sqlalchemy import *
 
@@ -19,16 +20,17 @@ class TableLayoutGenerator (object):
         decimal.Decimal       : 'e',
         }
     
-    def __init__ (self, fields, naked=False, lay=None, target='SqlMask'):
+    def __init__ (self, master, naked=False, lay=None, target='SqlMask'):
         """fields: an InspectMapper object
         target: mask or table
         """
+        self.master = master
         self.target = target
-        self.fields = fields
+        self.fields = master.fields
         if lay:
             self.layout = self._parse_and_complete(lay)
         else:
-            if target == 'SqlMask':
+            if isinstance(master, sk.SqlMask):
                 self.layout = self.create ()
             else:
                 self.layout = self.create_for_table()
@@ -38,7 +40,7 @@ class TableLayoutGenerator (object):
 
     def create (self):
         entries = []
-        for field_name in self.fields.keys():
+        for field_name in self.master.field_list:
             entries.append( self.add_spec(field_name=field_name ))
         return ''.join (entries)
 

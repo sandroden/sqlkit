@@ -75,7 +75,7 @@ class FilterPanel(object):
             self.easytv = layout.misc.EasyTreeView(
                 ['id', 'output'], tv=self.w['TV=out'], )
             self.selection = self.easytv.tv.get_selection()
-            self.selection.connect('changed',self.display)
+            self.selection.connect('changed',self.tv_changed_cb)
             self.model = self.easytv.tv.get_model()
             self.easytv.tvc['id'].set_property('visible', False)
 
@@ -89,7 +89,7 @@ class FilterPanel(object):
             self.model.append(None, [i, R[attr]])
             
             
-    def display(self, *args):
+    def tv_changed_cb(self, *args):
         model, iter = self.selection.get_selected()
         idx = self.model.get_value(iter, 0)
         self.master.record_display(index=int(idx))
@@ -161,25 +161,6 @@ class FilterPanel(object):
         if ev.button == num_button:
             self.w['M=opts'].popup(None, None, None, ev.button, ev.time )
         
-#     def sql__old_with_bind_params(self):
-#         """create a sql statement composing all requests
-#         returns a sql whereclause and a bindparam dictionary
-#         """
-#         ret = []
-#         values={}
-#         for fld in self.fields:
-#             value = fld['entry'].get_text()
-#             if len(value) > 0:
-#                 fld['op_value'] = fld['operator'].get_active_text()
-#                 if fld['op_value'] in ('IS NULL', 'IS NOT NULL'):
-#                     ret += [ "%(field)s %(op_value)s" %(fld) ]
-#                 else:
-#                     values[fld['field']] = value
-#                     ret += self._compose_field_whereclause(fld)
-#         sql = (" AND ".join(ret), values)
-#         #dbg.write(sql)
-#         return sql
-
     def sql(self):
         """create a sql statement composing all requests
         returns a sql whereclause and a bindparam dictionary

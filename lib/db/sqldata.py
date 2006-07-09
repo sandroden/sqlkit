@@ -64,7 +64,7 @@ class SqlData(object):
         #dbg.write()
         #dbg.write('LEN pointers:', len(self.pointers))
         R = {}
-        if index:
+        if index is not None:
             self.current = index
         while self.current + incr in self.deleted:
             self.current += incr
@@ -222,6 +222,7 @@ class SqlData(object):
             pointer = self.pointers[index]
 
         if not pointer:
+            dbg.write('current', self.current)
             pointer = self.pointers[self.current]
             #dbg.write("uso index self.current: %s" % self.current)
             #raise MissingPointerError('A pointer is needed', pointer)
@@ -259,10 +260,9 @@ class SqlData(object):
         new = self._create_instance(main_table, R)
         #for i in new.c.keys():
         #    dbg.write("%s => %s" % (i, getattr(new,i)))
-
         self.pointers.append([new])
         self.current = len(self.pointers)-1
-        #dbg.write("new", new, "current", self.pointers[self.current])
+        #dbg.write("new", new, "current", self.current, self.pointers[self.current])
         self.session.save(new)
         return new
         ## attach other instances

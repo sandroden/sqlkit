@@ -14,6 +14,7 @@ class MissingDescriptorField(Exception): pass
 #
 tables = {}
 class Completion(object):
+#    __metaclass__ = dbg.LogTheMethodsMeta
     def __init__(self, master):
 
         """completion is the way we can find possible completions of text in
@@ -60,8 +61,12 @@ class Completion(object):
         except:
             #dbg.write("%s %s" % (field_name,field_value))
             ftable, fname = self.master.fields[field_name]['fkey']
+            descr_field = self._add_descriptor_fields(
+                mode='return', table_name=ftable)
+            if descr_field is None:
+                return field_value
             sql = "SELECT %s FROM %s WHERE %s = :%s" % (
-                self._add_descriptor_fields(mode='return', table_name=ftable),
+                descr_field,
                 ftable, fname, fname)
             t = text(sql, engine=self.master.engine)
             ret = t.execute(**{fname : field_value})
@@ -146,6 +151,7 @@ class Completion(object):
         the entry with the correct value.
         """
         value = model.get(iter,0)[0]
+        dbg.write('value', value)
         self.master.set_fkey_value(field_name, value)
         # note: model.get() returns a tuple, one value each cell on the column
 
@@ -172,7 +178,7 @@ class Completion(object):
     def set_text(self, Rd, exclude=None):
         """sets the values of field read by the select
         """
-        #dbg.dshow(self.master.mwidgets)
+        #dbg.write()
         if isinstance(self.master, sqlkit.SqlMask):
             for field_name, value in Rd.iteritems():
 #                 if field_name == exclude:
@@ -440,9 +446,9 @@ class Completion(object):
             else:
                 return tables[table_name][0]
         else:
-            txt = "table %s does not have a descriptor field \
-            to use instead of id: %s" % (table_name, table.c.keys())
-            tables[table_name] = (field_name, )
+            txt = "table %s does not have a descriptor field. \
+            you may set it with function 'set_description_field'" % (table_name)
+            tables[table_name] = (None, )
             raise MissingDescriptorField(txt)
     
     def edit_foreign_key_table(self, wdg, field):
