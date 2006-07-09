@@ -1,15 +1,20 @@
 import gtk
+import layout
 
 class EasyTreeView(object):
-    def __init__(self, cols, tv=None, model=None):
+    def __init__(self, cols, tv=None, model=None, sort=True,
+                 resize=True, show=True, but=''):
         if tv:
             self.tv = tv
         else:
-            self.l = self._get_layout()
+            self.l = self._get_layout(but)
+            self.l.prop('Window', 'visible', show)
             self.w = self.l.show()
             self.tv = self.w['TV=a']
-            self.l.connect(('tb=gtk-quit', 'clicked',
-                            lambda l: self.w['Window'].destroy()))
+            
+            self.l.connect(
+                ('tb=gtk-quit', 'clicked', lambda l: self.w['Window'].destroy()),
+                )
 
         self.columns = []
         self.column_names = []
@@ -29,7 +34,6 @@ class EasyTreeView(object):
             
         self.tv.set_enable_search(True)
         self.tv.set_model(self.model)
-
         self.tvc = {}
         for i, col in enumerate(self.column_names):
             cell = gtk.CellRendererText
@@ -38,7 +42,18 @@ class EasyTreeView(object):
                 self.tvc[col] = gtk.TreeViewColumn(col, cell(), active=i)
             else:
                 self.tvc[col] = gtk.TreeViewColumn(col, cell(), text=i)
-            self.tvc[col].set_sort_column_id(i)
+            if sort == True:
+                self.tvc[col].set_sort_column_id(i)
+            self.tvc[col].set_resizable(resize)
             self.tv.append_column(self.tvc[col])
 
+    def show(self):
+        self.w['Window'].show_all()
 
+    def _get_layout(self, but):
+        lay = """
+          {O tb=gtk-quit  tb=gtk-clear %s}
+          TVS=a
+        """ % (but)
+        #dbg.write()
+        return layout.Layout(lay, opts="s")
