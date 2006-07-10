@@ -184,8 +184,8 @@ class SqlWidget(object):
         else:
             target = 'SqlTable'
         lay = TableLayoutGenerator(self, naked=naked, lay=lay).layout
-
         self.layout = lay
+        #dbg.write(self.layout)
         self.add_filter(visible=False)
 
         ## add default buttons if needed
@@ -260,33 +260,12 @@ class SqlWidget(object):
             'b=gtk-go-forward' : self.record_forward,
             'b=gtk-go-back'    : self.record_back,
             }
-        actions = {
-            ## std toolbutton
-            'tb=gtk-save'       : 'record_save',
-            'tb=gtk-new'        : 'record_new',
-            'tb=gtk-delete'     : 'record_delete',
-            'tb=gtk-refresh'    : 'reload_cb',
-            'tb=gtk-quit'       : 'delete_event',
-            'tb=gtk-go-forward' : 'record_forward',
-            'tb=gtk-go-back'    : 'record_back',
-
-            ## in case the programmers has set them
-            'b=gtk-save'       : 'record_save',
-            'b=gtk-new'        : 'record_new',
-            'b=gtk-delete'     : 'record_delete',
-            'b=gtk-refresh'    : 'reload_cb',
-            'b=gtk-quit'       : 'delete_event',
-            'b=gtk-go-forward' : 'record_forward',
-            'b=gtk-go-back'    : 'record_back',
-            }
         for widget_name, handler in actions.iteritems():
             if widget_name in self.w:
                 #print "_add_actions_to_button: %s %s %s" % (
                 #    widget_name, 'clicked', handler)
                 #self.w[widget_name].connect('clicked', handler)
-
-                ## could be simple byt this way they get traked by LogTheMethods...
-                self.lay_obj.connect((widget_name, 'clicked', lambda w, h=handler: getattr(self, h)(w)))
+                self.lay_obj.connect((widget_name, 'clicked', handler))
                 self.lay_obj.tooltips.set_tip(self.w[widget_name], "mmh")
                 self.lay_obj.tip(widget_name, "mi chiamo %s" % widget_name)
 
@@ -313,15 +292,20 @@ class SqlWidget(object):
         """clear the mask for a new record"""
         pass
     
-    def reload(self, sql=None, params=None, limit=100, constraint={}):
+    def reload(self, sql=None, params=None, limit=100, constraint={},
+               reload_constraint=False):
         """reload data from db
 
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
         """
-        dbg.write('Nick', self.nick)
+
         if constraint:
             self.constraint=constraint
-        #dbg.write(self.nick, 'constraint', constraint)
+        dbg.write(self.nick, 'constraint', constraint)
+
+        if sql is None:
+            sql = self.sql
+
         if isinstance(sql, tuple) and len(sql) == 2:
             sql_str, params = sql
             #dbg.write('type sql_str', type(sql_str), 'type params', type(params))
@@ -330,10 +314,11 @@ class SqlWidget(object):
             sql_str = sql
             params = None
 
+        if reload_constraint == True:
+            dbg.write("add self.reload_sql_constraint", sql_str)
+            self.sql = (sql_str, params)
+
         self.session.clear()
-        self.sql = (sql, params)
-        if self.nick == 'art_var_filo':
-            self.engine.echo = True
         #dbg.write(self.nick, "SQL: '%s'" % sql_str,
         #           'params', params, 'limit:', limit)
         #self.mapper.table.engine.echo = True
@@ -394,9 +379,8 @@ class SqlWidget(object):
             
         self.sync_dict[sqlWidget] = (DIR, cnd_str, field_names, fkeys )
         dbg.write(DIR)
-        dbg.write("cnd_str", cnd_str)
         dbg.write('field_name', field_names)
-        dbg.write('fkeys', fkeys)
+#        sqlWidget.reload_constraint(cnd_str)
 #         if sqlWidget.get_pk() != field_names:
 #             raise NoSyncError("non campi suff per match %s != %s" % (sqlWidget.get_pk(), field_names))
     def sync(self):
@@ -421,7 +405,8 @@ class SqlWidget(object):
             dbg.write(sql, val)
 #            w.reload(  sql =  (and_(*[sql]),val)   )
             w.clear()
-            w.reload(  sql =  (sql,val) , constraint=val_constr  )
+            w.reload(  sql =  (sql,val) , constraint=val_constr,
+                       reload_constraint=True  )
     def get_pk(self):
         """return the pkeys of the primarytable"""
         return self.fields.pkeys[self.fields.get_primary_table()]

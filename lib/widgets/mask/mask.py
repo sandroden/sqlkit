@@ -31,6 +31,7 @@ class SqlMask (sqlwidget.SqlWidget):
     """doc string for sqlmask
     """
 
+#    __metaclass__ = dbg.LogTheMethodsMeta
     mwidgets = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
     labels   = None  # correspondance Label <-> EventBox
 #    map_record_n = 0  # number of the displayed record within mapper
@@ -43,9 +44,9 @@ class SqlMask (sqlwidget.SqlWidget):
         display the data provided by self.sqlData.get()
         incr: incr=incr arg to sqlData.get()
         """
-        #dbg.write('Record_display n: %s' % self.sqlData.index())
+        #dbg.write('Record_display %s n: %s' % (self.nick, self.sqlData.index()))
         ## fill in the data
-        #self.record_clear()
+        #self.clear()
         try:
             if index is not None:
                 data_in = self.sqlData.get(index=index)
@@ -55,29 +56,32 @@ class SqlMask (sqlwidget.SqlWidget):
         except:
             raise
             self.sb("no data to browse")
-            #dbg.write("%s NO DATA to DISPLAY 1" % self.nick)
-            self.record_clear()
+            dbg.write("%s NO DATA to DISPLAY 1, skipping any sync" % self.nick)
+            self.clear()
             return None
         #dbg.write("data_in", data_in)
         idx = self.sqlData.index()+1
         msg_info = "record %s/%s" % (idx , self.sqlData.count())
+
+        self.clear()
+
         if not data_in:
             if incr > 0:
                 self.sb('Already last ' + msg_info)
             else:
                 self.sb('Already first ' + msg_info)
-            #dbg.write("%s NO DATA to DISPLAY 2" % self.nick)
+            dbg.write("%s NO DATA to DISPLAY 2" % self.nick)
             
-            return None
-        self.record_clear()
-        
-        self.sb(msg_info)
-        self.data_in = data_in
-        for field_name, value in data_in.iteritems():
-            self._set_value(field_name, value)
-        self.status = self.sqlData.get_current()
+            #return None
+        else:
+            self.sb(msg_info)
+            self.data_in = data_in
+            for field_name, value in data_in.iteritems():
+                self._set_value(field_name, value)
+            self.status = self.sqlData.get_current()
+
         self.sync()
-        #dbg.write(self.actions)
+        #dbg.write()
         self.actions.on_record_display(new=data_in)
         #sqlwidget.SqlWidget.record_display(self, new=data_in)
         
@@ -186,7 +190,7 @@ class SqlMask (sqlwidget.SqlWidget):
         self.sqlData.delete()
         
         self.commit()
-        self.record_clear()
+        self.clear()
     
     def record_save(self, ev, constraint={}, *args):
         """invokes the validator before UPDATE/INSERT a record"""
@@ -297,7 +301,7 @@ class SqlMask (sqlwidget.SqlWidget):
         self.commit ()
         self.record_display()
         
-    def record_clear(self, widget=None):
+    def clear(self, widget=None):
         """clear the mask for a new record"""
         self.values.clear()
         self.status = None
@@ -306,7 +310,10 @@ class SqlMask (sqlwidget.SqlWidget):
         for field_name in self.fields.keys():
             #dbg.write(field_name)
             self._set_value(field_name, '')
-            
+
+    def record_new(self, widget=None):
+        self.clear()
+        
     def record_forward(self, ev):
         """display the next record in the mapper"""
 

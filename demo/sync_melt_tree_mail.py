@@ -4,29 +4,29 @@ import sys
 
 sys.path.append ('../../')
 import sqlkit as sk
-from sqlkit.table import SqlWidgetTreeView
+#from sqlkit.table import SqlWidgetTreeView
 import dbg
 import gtk
 
 from sqlalchemy import *
 
-engine = sk.config.spawnEngine(echo=False, globalconn=True)
+engine = sk.config.new_engine(echo=False, globalconn=True)
 
 
-lay = """
+lay = """ {-
    user_id
    user_name
    user_last_name
-   user_birth_date
+#   user_birth_date
    user_address
-   city_id
+#   city_id
    user_age
    user_sex
-   user_active
-   A=uno -
+#   user_active
+   A=uno - }
 """
    
-zz = sk.SqlMask (table='euro_user', lay=lay, nick='user' )
+zz = sk.SqlMask (table='euro_user', lay=lay, nick='user', single=True)
 zz.w['Window'].hide()
 z2 = sk.SqlTable(table='euro_mail', naked=True, addto=zz.w['Auno'],nick='mail')
 z2.lay_obj.prop('TV=tree', 'height-request', 150)

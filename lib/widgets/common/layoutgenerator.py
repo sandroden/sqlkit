@@ -69,6 +69,9 @@ class TableLayoutGenerator (object):
         return re.sub(r""" ([a-z_A-Z]+\.[a-z_A-Z])(:[\.\d]*)?( |\n)""",
                       self._sub, lay)
 
+#         return re.sub(r""" ([a-z_A-Z]+\.[a-z_A-Z])?(:[\.\d]*)?( |\n)""",
+#                       self._sub, lay)
+    
     def _sub(self, m):
         ### not using add_spec just becouse of the way args are passed
         field_name = m.group(1)
