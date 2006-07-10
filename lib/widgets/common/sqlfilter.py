@@ -84,6 +84,7 @@ class FilterPanel(object):
         attr = self.master.completion._add_descriptor_fields(
             mode='ret', table_name = self.master.fields.get_primary_table())
 
+        self.model.clear()
         for i, v in enumerate(self.master.sqlData.pointers):
             R = self.master.sqlData.get(index=i)
             self.model.append(None, [i, R[attr]])
