@@ -30,6 +30,7 @@ class SqlData(object):
     A  pointer is a list of instances.
     
     """
+    __metaclass__ = dbg.LogTheMethods
     pointer_info = None
     index = None  # dict of all pointers
 

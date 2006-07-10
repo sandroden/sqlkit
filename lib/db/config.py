@@ -33,9 +33,9 @@ def new_engine(file='config.ini', echo=False, globalconn=False):
     for tup in c.items('database'):
         key, val = tup
         db[key] = val
-
+    print db
     try:
-        eng_str = db['URL']
+        eng_str = db['url']
     except:
         eng_str = "%(dbapi)s://%(user)s:%(password)s@%(host)s:%(port)s/%(dbname)s" % db
     engine = connect(eng_str, echo=echo)

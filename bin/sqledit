@@ -151,7 +151,7 @@ option, args = optionparse.parse(__doc__)
 if not args and not option: optionparse.exit()
 
 if option.gtk_debug:
-    dbg.LogTheMethods(show=True)
+    dbg.ShowLogs(show=True)
 
 if args:
     if re.search('://', args[0]):

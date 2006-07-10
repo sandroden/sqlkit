@@ -256,12 +256,22 @@ class SqlTable(sqlwidget.SqlWidget):
     tvcolumns = None
     mc = None
     mapper = None
-    rowCommit = True
+    rowCommit = dbg.TraceIt(True, name='rowCommit', mode='rw')
     deleting_row = False
     tvcolumns = None
-#    __metaclass__ = dbg.LogTheMethodsMeta
+    trace_regexp = 'rowCommit'
+    __metaclass__ = dbg.LogTheMethods
 #    logMatch = 'set_fkey_descr'
 
+#     def __get__(self, obj, objtype):
+#         #if re.search(self.trace_regexp, 
+#         print "__get__", obj, objtype
+#         return self.val
+
+#      def __set__(self, obj, val):
+#          print 'Updating' , self.name
+#          self.val = val
+         
     def _get_layout(self, lay, naked):
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
         self.mapToListStore()

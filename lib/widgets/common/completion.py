@@ -14,7 +14,7 @@ class MissingDescriptorField(Exception): pass
 #
 tables = {}
 class Completion(object):
-#    __metaclass__ = dbg.LogTheMethodsMeta
+    __metaclass__ = dbg.LogTheMethods
     def __init__(self, master):
 
         """completion is the way we can find possible completions of text in

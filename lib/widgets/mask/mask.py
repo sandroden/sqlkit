@@ -31,7 +31,7 @@ class SqlMask (sqlwidget.SqlWidget):
     """doc string for sqlmask
     """
 
-#    __metaclass__ = dbg.LogTheMethodsMeta
+    __metaclass__ = dbg.LogTheMethods
     mwidgets = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
     labels   = None  # correspondance Label <-> EventBox
 #    map_record_n = 0  # number of the displayed record within mapper
