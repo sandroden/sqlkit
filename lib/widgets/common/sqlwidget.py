@@ -28,7 +28,7 @@ class SqlWidget(object):
     fields   = None  # fields to use (InspectMapper)
 #    tables = None    # Table objects referenced as foreign keys
     values = None    # real value for foreign key (when lookup is displeyed instead)
-#    __metaclass__ = dbg.LogTheMethodsMeta
+#    __metaclass__ = dbg.LogTheMethods
     def __init__ (self, mapper=None,
                   lay = None,
                   valid = None,
@@ -77,6 +77,8 @@ class SqlWidget(object):
         self.nick= nick
         self.xml = xml
         self.dev = dev
+        # used in self.reload() to prevent expose loop 
+        self.reloading = dbg.TraceIt(False, name='reloading')
         self.geom = geom
         self.addto = addto
         self.actions = self.get_actions(actions)
@@ -145,7 +147,8 @@ class SqlWidget(object):
     
     def get_actions(self, actions):
         if not actions:
-            actions = Actions(self)
+            actions = Actions()
+        actions.master = self
         return actions
     
     def get_engine(self, engine, mapper):
@@ -352,7 +355,7 @@ class SqlWidget(object):
             self.SQLErrorHandler(e)
 
         self.engine.echo = PREV
-
+    
     def SQLErrorHandler(self, e):
         self.sb(e.orig)
         dbg.write("Scritto %s su sb" % (e.orig))
@@ -506,7 +509,7 @@ class SqlWidget(object):
     
 
 class Actions(object):
-    def __init__(self, master):
+    def __init__(self, master=None):
         self.master = master
     
     def on_update(self, new, old):
@@ -528,4 +531,8 @@ class Actions(object):
     def on_reload(self, new, old):
         pass
 
-
+    def on_completion(self, new, field_name):
+        """Adds a constraint to the completion. Must return a tuple:
+        ('SQL STATEMET', params). params must be a dict
+        """
+        return ('',{})

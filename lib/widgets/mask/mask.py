@@ -147,8 +147,9 @@ class SqlMask (sqlwidget.SqlWidget):
             if data:
                 return self.data_in[field_name]
         
-            raise FieldNotInLayout("field_name: %s" % (field_name))
-
+            dbg.warning("field_name: %s" % (field_name))
+            return
+            #raise FieldNotInLayout("field_name: %s" % (field_name))
         #dbg.write(field_name)
         widget = self.mwidgets[field_name]
 
@@ -181,7 +182,8 @@ class SqlMask (sqlwidget.SqlWidget):
         # Boolean
         elif self.fields[field_name]['type'] == bool:
             return widget.get_active( )
-    
+        return
+
     def record_delete(self, widget=None):
         """invokes the validator before DELETing a record"""
         ## FIXME: validator
@@ -207,7 +209,7 @@ class SqlMask (sqlwidget.SqlWidget):
             return
     
         R = {}
-        for field_name in self.fields.keys():      
+        for field_name in self.field_list:      
             try:
                 value = self._get_value(field_name)
             except FieldNotInLayout:
@@ -241,32 +243,38 @@ class SqlMask (sqlwidget.SqlWidget):
             R.update(constraint)
             dbg.write("CONSTRAINT:", R, constraint)
             self.sqlData.set(R)
-            
+
         self.commit()
         self.record_save_sync()
+
     def record_save_sync(self):
         for w, value in self.sync_dict.iteritems():
             dbg.write(w, value)
             DIR, sql, field_names, fkeys = value
             val = {}
+            rdict = self.sqlData.get()
+            dbg.write('rdict=',rdict)
+            
             for fkey in fkeys:
                 name, referenced_name = fkey
                 #dbg.write(name, self._get_value(referenced_name, data=True))
-                val[name] = self._get_value(referenced_name, data=True)
+                #val[name] = self._get_value(referenced_name, data=True)
+                val[name] = rdict[referenced_name]
+                #val[name] = getattr(self.status, referenced_name)
 
             w.record_save('', constraint=val)
-        for z in self.sync_dict:
-            z.record_save('')
+#         for z in self.sync_dict:
+#             z.record_save('')
         
     def record_save_new(self, constraint={}):
         """Insert a new record
         """
         
         R = {}
-        for field_name in self.fields.keys():      
+        for field_name in self.field_list:      
             try:
                 value = self._get_value(field_name)
-                dbg.write('value: ', value)
+                #dbg.write('value: ', value)
             except FieldNotInLayout:
                 continue
             
@@ -275,7 +283,7 @@ class SqlMask (sqlwidget.SqlWidget):
                 # skip type casting
                 R[field_name] = None
                 continue
-            dbg.write("%s: - value: %r t: %s" % (field_name, value, t))
+            #dbg.write("%s: - value: %r t: %s" % (field_name, value, t))
             if t == datetime.date:
                 #value = t(value.year, value.month, value.day)
                 pass
@@ -298,8 +306,15 @@ class SqlMask (sqlwidget.SqlWidget):
         self.status = self.sqlData.get_current()
         dbg.write("self.status", self.status)
 
+#         for z in self.sync_dict:
+#             dbg.write('constraint', constraint)
+#             z.record_save_new(constraint=constraint)
+
         self.commit ()
+        self.record_save_sync()
+        
         self.record_display()
+
         
     def clear(self, widget=None):
         """clear the mask for a new record"""
@@ -310,7 +325,11 @@ class SqlMask (sqlwidget.SqlWidget):
         for field_name in self.fields.keys():
             #dbg.write(field_name)
             self._set_value(field_name, '')
-
+        
+        ## sync
+        for z in self.sync_dict:
+            z.clear()
+        
     def record_new(self, widget=None):
         self.clear()
         
