@@ -33,7 +33,6 @@ def new_engine(file='config.ini', echo=False, globalconn=False):
     for tup in c.items('database'):
         key, val = tup
         db[key] = val
-    print db
     try:
         eng_str = db['url']
     except:
@@ -48,18 +47,39 @@ def new_engine(file='config.ini', echo=False, globalconn=False):
 
 #new_engine = spawnEngine
 
-def spawnDSN (file='config.ini'):
+def get_DSN (file='config.ini'):
     c = ConfigParser ()
     db = None
     file = searchFile(file)
     if not file or not os.path.exists(file):
         raise MissingConfigFileError("looking for: %s" % file)
     c.read (file)
-    db = "host=%s dbname=%s user=%s password=%s port=%s" % (
-        c.get ('database', 'host'),
-        c.get ('database', 'dbname'),
-        c.get ('database', 'user'),
-        c.get ('database', 'password'),
-        c.get ('database', 'port'))
+    try:
+        db = "host=%s dbname=%s user=%s password=%s port=%s" % (
+            c.get ('database', 'host'),
+            c.get ('database', 'dbname'),
+            c.get ('database', 'user'),
+            c.get ('database', 'password'),
+            c.get ('database', 'port'))
+    except:
+        p = re.compile("""
+        (?P<proto>.+)://
+        (?:(?P<user>[^:@/]*)
+        (?::?(?P<passwd>.*)@))?
+        (?:(?P<host>\w+))
+        (?::?(?P<port>\d*)/)
+        (?P<dbname>.*)
+        """, re.VERBOSE)
+        m = p.search(c.get('database', 'url'))
+        if m:
+            db = "host=%s dbname=%s user=%s password=%s port=%s" % (
+                m.group('host'),
+                m.group('dbname'),
+                m.group('user'),
+                m.group('password'),
+                m.group('port'))
+            
+                     
+
     return db 
 
