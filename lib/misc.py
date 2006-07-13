@@ -57,3 +57,23 @@ class EasyTreeView(object):
         """ % (but)
         #dbg.write()
         return layout.Layout(lay, opts="s")
+
+
+class InputStream(object):
+    """ Simple Wrapper for File-like objects. [c]StringIO doesn't provide
+        a readline function for use with generate_tokens.
+        Using a iterator-like interface doesn't succeed, because the readline
+        function isn't used in such a context. (see <python-lib>/tokenize.py)
+    """
+    def __init__(self, data):
+        self.__data = [ '%s\n' % x for x in data.splitlines() ]
+        self.__lcount = 0
+    def readline(self):
+        try:
+            line = self.__data[self.__lcount]
+            self.__lcount += 1
+        except IndexError:
+            line = ''
+            self.__lcount = 0
+        return line
+
