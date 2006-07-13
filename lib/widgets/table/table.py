@@ -261,16 +261,6 @@ class SqlTable(sqlwidget.SqlWidget):
     tvcolumns = None
     trace_regexp = 'rowCommit'
     __metaclass__ = dbg.LogTheMethods
-#    logMatch = 'set_fkey_descr'
-
-#     def __get__(self, obj, objtype):
-#         #if re.search(self.trace_regexp, 
-#         print "__get__", obj, objtype
-#         return self.val
-
-#      def __set__(self, obj, val):
-#          print 'Updating' , self.name
-#          self.val = val
          
     def _get_layout(self, lay, naked):
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
@@ -438,6 +428,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
 
             self.tvcolumns[v] = tvcolumn
+            tvcolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
             tvcolumn.set_resizable(True)
             tvcolumn.set_expand(True)
             if not self.fields[v]['edit']:
@@ -469,7 +460,7 @@ class SqlTable(sqlwidget.SqlWidget):
             self.treeview.columns_autosize()
             tvcolumn.set_clickable(True)
             tvcolumn.connect('clicked', self.clicked_cb, v)
-            
+            #tvcolumn.set_fixed_width(self.width)
 
 #### callbacks treeview
     def selection_changed_cb(self, treeselection):
@@ -480,7 +471,7 @@ class SqlTable(sqlwidget.SqlWidget):
         
         if self.rowCommit:
             self.record_save()
-            self.commit()
+            #self.commit()
             self.model_path = None
         else:
             pass
@@ -664,6 +655,8 @@ class SqlTable(sqlwidget.SqlWidget):
         ## called by set_cell_data_func
         
         if self.fields[field_name]['fkey']:
+#             if new_text == '':
+#                 self.set_fkey_value(field_name, None)
             return True
         
         if self.model_path is None:
@@ -736,6 +729,7 @@ class SqlTable(sqlwidget.SqlWidget):
             
         for i in indexes:
             values = self.sqlData.get(i, mode='dict')
+            dbg.write(values)
             l = [i]
             for k in self.field_list:
                 if index is not None:  # refreshing a just inserted row
@@ -761,10 +755,11 @@ class SqlTable(sqlwidget.SqlWidget):
             if index is None:
                 mode = 'INSERT'
             dbg.write('mode=',mode, 'index=', index)
-        except IndexError:
+        except IndexError, e:
             dbg.write('Era IndexError')
             mode = 'UPDATE'
-            raise
+            print e
+            return
 
 #        dbg.write("MODE:", mode, 'index', index)
 
@@ -838,7 +833,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
     
     def reload(self, *args, **kwargs):
-#        rowCommit = self.rowCommit
+        rowCommit = self.rowCommit
 #        self.rowCommit = None
         #dbg.write('type(session)', type(self.session))
         self.record_save()
@@ -849,30 +844,9 @@ class SqlTable(sqlwidget.SqlWidget):
         self.rowCommit = False
         #self.set_height_request()
         self.model_path = None
+        self.reloading = False
         return ret
                                          
-#     def insertRow_ko(self, button):
-#         dbg.write()
-#         rowCommit = self.rowCommit
-#         self.rowCommit = False
-#         columns = self.treeview.get_columns()
-#         for col in columns:
-#             if col.get_visible():
-#                 break
-
-#         self.treeview.get_toplevel().set_focus(None)
-#         self.treeview.scroll_to_cell("0", col)
-#         self.liststore.prepend()
-#         # FIXME must use sqldata
-#         if self.mc is None:
-#             self.mc = self.mapper.class_
-#         self.liststore[0][0] = self.mc()
-#         self.treeview.set_cursor(path = "0",
-#                                  focus_column = col,
-#                                  start_editing = True)
-#         self.rowCommit = rowCommit
-
-#         return True
     def set_value(self, field_name, value, path=None):
         """ called from within edited signal. Validation should live here"""
         if not path:
@@ -985,6 +959,12 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.sb('UPDATE mode')
         except:
             pass  # no selection...
+        
+    def get_selected_record(self):
+        """returns a dict of the current selected row"""
+        row_n = self.get_selected_row()
+        rdict = dict(map(None, self.field_list, list(self.liststore[row_n])[1:]))
+        return rdict
 
 #### completion
     def set_fkey_value(self, field_name, value):
@@ -1013,6 +993,7 @@ class SqlTable(sqlwidget.SqlWidget):
         #self.model_path = None
     
     def set_fkey_descr(self, column, cell, tree, iter, i):
+        #dbg.write(dbg.caller(level=3))
         fkey = tree.get(iter, i+1)[0]
         field_name = self.field_list[i]
         value = self.completion._lookup_value(field_name, fkey)
