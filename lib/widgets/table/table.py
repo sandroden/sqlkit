@@ -428,7 +428,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
 
             self.tvcolumns[v] = tvcolumn
-            tvcolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+            #tvcolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
             tvcolumn.set_resizable(True)
             tvcolumn.set_expand(True)
             if not self.fields[v]['edit']:
@@ -521,7 +521,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 mods.append(prefix)
 
         ksym = '_'.join(mods + [ksym])
-        #dbg.write('ksym', ksym, 'mods', mods)
+        dbg.write('ksym', ksym, 'mods', mods)
         
         if ksym in dir(self):
             return getattr(self, ksym)(wdg, event, data)
@@ -560,6 +560,16 @@ class SqlTable(sqlwidget.SqlWidget):
         return True
     
     def key_tree_ctrl_n(self, treeview, event, data):
+        dbg.write('OK')
+        self.record_new(treeview)
+        return False
+        
+    def key_tree_ctrl_shift_N(self, treeview, event, data):
+        dbg.write('OK')
+        self.record_new(treeview)
+        return False
+        
+    def key_tree_alt_n(self, treeview, event, data):
         dbg.write('OK')
         self.record_new(treeview)
         return False
