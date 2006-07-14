@@ -146,10 +146,18 @@ class SqlMask (sqlwidget.SqlWidget):
         if field_name not in self.mwidgets:
             if data:
                 return self.data_in[field_name]
-        
-            dbg.warning("field_name: %s" % (field_name))
-            return
-            #raise FieldNotInLayout("field_name: %s" % (field_name))
+
+            raise FieldNotInLayout("field_name: %s" % (field_name))
+#         if field_name not in self.mwidgets:
+#             if data:
+#                 try:
+#                     return self.data_in[field_name]
+#                 except:
+#                     #dbg.warning("field_name: %s" % (field_name))
+#                     raise FieldNotInLayout("field_name: %s" % (field_name))
+#                     return
+                
+            
         #dbg.write(field_name)
         widget = self.mwidgets[field_name]
 
@@ -272,6 +280,7 @@ class SqlMask (sqlwidget.SqlWidget):
         
         R = {}
         for field_name in self.field_list:      
+            dbg.write(self.field_list)
             try:
                 value = self._get_value(field_name)
                 #dbg.write('value: ', value)
