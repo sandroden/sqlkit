@@ -435,9 +435,10 @@ class SqlMask (sqlwidget.SqlWidget):
             if field_name in self.labels:
                 lbl    = self.labels[field_name]
                 ev_wdg = self.labels[field_name].parent
-                ev_wdg.connect('enter-notify-event', self.ene_cb)
-                ev_wdg.connect('leave-notify-event', self.lne_cb)
-                lbl.modify_fg(gtk.STATE_PRELIGHT, LBL_HOOVER_STYLE)
+                if self.filter:
+                    ev_wdg.connect('enter-notify-event', self.ene_cb)
+                    ev_wdg.connect('leave-notify-event', self.lne_cb)
+                    lbl.modify_fg(gtk.STATE_PRELIGHT, LBL_HOOVER_STYLE)
 
                 ## label FK_COLOR to tell it's a foreign key
                 if self.fields[field_name]['fkey'] :
@@ -509,11 +510,11 @@ class SqlMask (sqlwidget.SqlWidget):
                 pass
 
         ## add click that pops filter_panel
-        for field_name, label in self.labels.iteritems():
-            #dbg.write("<1> x filter: %s %s" % (field_name, event_box))
-            event_box = label.parent
-            event_box.connect('button-press-event',
-                              self.filter_panel.add, field_name, 1)
+        if self.filter:
+            for field_name, label in self.labels.iteritems():
+                event_box = label.parent
+                event_box.connect('button-press-event',
+                                  self.filter_panel.add, field_name)
 
             
 ####### Validation

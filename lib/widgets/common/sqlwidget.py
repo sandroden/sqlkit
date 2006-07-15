@@ -55,6 +55,7 @@ class SqlWidget(object):
                   session=None,
                   dev=False,
                   xml=False,
+                  filter=True,
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -73,7 +74,7 @@ class SqlWidget(object):
         dev:    if dev=False (default) fields ending with '_id' and not fk
                 are not shown
         """
-
+        self.filter = filter
         self.nick= nick
         self.xml = xml
         self.dev = dev
