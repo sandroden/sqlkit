@@ -84,9 +84,10 @@ class choice(object):
 
     def activate_cb(self, wdg, data):
         #dbg.write()
+        global option
         mode, table = data
         opts ={'table' : table,
-           'dev' : dev,
+           'dev' : option.dev,
            'single' : False,
            'nick' : table
            }

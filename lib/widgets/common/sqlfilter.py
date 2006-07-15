@@ -77,6 +77,7 @@ class FilterPanel(object):
             self.selection = self.easytv.tv.get_selection()
             self.selection.connect('changed',self.tv_changed_cb)
             self.model = self.easytv.tv.get_model()
+            self.easytv.tv.connect('button_press_event', self.tv_changed_cb)
             self.easytv.tvc['id'].set_property('visible', False)
 
     def fill_model(self):
@@ -92,6 +93,10 @@ class FilterPanel(object):
             
     def tv_changed_cb(self, *args):
         model, iter = self.selection.get_selected()
+        if not iter:
+            wdg, ev = args
+            iter = model.get_iter(wdg.get_path_at_pos(int(ev.x), int(ev.y))[0])
+
         idx = self.model.get_value(iter, 0)
         self.master.record_display(index=int(idx))
 
@@ -109,9 +114,9 @@ class FilterPanel(object):
         """this adds a field to the filter panel + operator and string entry
         after: entry will be positioned after widget 'after'
         """
-        attrs = dir(ev)
-#         for i in attrs:
-#             print i, getattr(ev, i)
+        if ev.button == 3:
+            self.w['Window'].present()
+            return
 
         ## labels
         field_name_event_box = gtk.EventBox()
