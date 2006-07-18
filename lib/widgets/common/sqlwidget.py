@@ -5,7 +5,6 @@ import inspect
 import layout
 import layout.dateedit as dateedit
 
-#import validator
 from layoutgenerator import TableLayoutGenerator
 import gtk, pango
 import decimal
@@ -15,7 +14,6 @@ import sqlkit
 import sqlkit.sqlfilter as sqlfilter
 import sqlkit.sqldata as sqldata
 import sqlkit.inspect as inspect
-import sqlkit.validator as validator
 import sqlkit.parseopts as parseopts
 import sqlkit.completion as completion
 
@@ -31,8 +29,6 @@ class SqlWidget(object):
 #    __metaclass__ = dbg.LogTheMethods
     def __init__ (self, mapper=None,
                   lay = None,
-                  valid = None,
-#                  records = None,
                   naked=False,
                   table=None,
                   tables=None,
@@ -61,7 +57,7 @@ class SqlWidget(object):
 
         mapper: a sqlalchemy mapper
         lay:    a layout describing the desired layout (see layout package)
-        validator: a validator to be used to validate fields and records
+        actions: a validator to be used to validate fields and records
         naked:  in case the mask should *not* be added interactive buttons
                 neede if the layout already contains all the required buttons
         mode:   ro|rw. When in read-only no save/delete is alllowed
@@ -74,6 +70,7 @@ class SqlWidget(object):
         dev:    if dev=False (default) fields ending with '_id' and not fk
                 are not shown
         """
+        self.block = False
         self.filter = filter
         self.nick= nick
         self.xml = xml
@@ -91,8 +88,9 @@ class SqlWidget(object):
         ## we can use singular or plural as an option, plural in the code
         if table and not tables:
             tables = table
-        self.mapper = parseopts.get_mapper(self.engine, mapper, tables)
-        self.valid = self._get_validator(valid)
+        self.tables = tables
+        self.mapper = self.get_mapper(self.engine, mapper, tables)
+        self.mode = mode
         self.fields = parseopts.inspect_mapper(self.mapper, noup=noup, mode=mode)
         self.field_list = self.parse_fields(field_list)
         self.title = self._get_title(title)
@@ -128,7 +126,10 @@ class SqlWidget(object):
             return session
         else:
             return create_session()
-    
+
+    def get_mapper(self, engine, mapper, tables):
+        return parseopts.get_mapper(self.engine, mapper, tables)
+        
     def parse_fields(self, fields):
         if not fields:
             if self.dev:
@@ -144,6 +145,7 @@ class SqlWidget(object):
             
         if isinstance(fields, str):
             fields = re.split('[ ,]+',fields)
+        dbg.write(self.nick, fields)
         return fields
     
     def get_actions(self, actions):
@@ -155,6 +157,7 @@ class SqlWidget(object):
     def get_engine(self, engine, mapper):
         if not engine:
             if mapper:
+                dbg.write(mapper)
                 engine = mapper.local_table.engine
             else:
                 try:
@@ -165,11 +168,6 @@ class SqlWidget(object):
                 
         return engine
     
-    def _get_validator(self, valid):
-        if not valid:
-            valid = validator.Validator()
-        self.valid = valid
-        
     def _get_layout(self, lay, naked):
         ## layout
         #dbg.write('target', self.Class)
@@ -411,9 +409,22 @@ class SqlWidget(object):
             w.clear()
             w.reload(  sql =  (sql,val) , constraint=val_constr,
                        reload_constraint=True  )
+            w.sync_unblock()
+            
     def get_pk(self):
         """return the pkeys of the primarytable"""
         return self.fields.pkeys[self.fields.get_primary_table()]
+    
+    def sync_block(self):
+        """When a master is syncing this widget, we must block interaction until
+        the master has inserted an id and set a constraint"""
+        self.block = True
+    
+    def sync_unblock(self):
+        """When a master is syncing this widget, we must block interaction until
+        the master has inserted an id and set a constraint"""
+        self.block = False
+    
 
 ####### Validation
     def digits_check_input_cb(self, widget, event):
@@ -430,9 +441,26 @@ class SqlWidget(object):
         
 
 ####### Dialog
-    def confirm(self, text, type):
-        pass
-    
+    def dialog(self, type='yes-no', text='', title=''):
+        dialog, l = self.lay_obj.dialog(lay="l=a", title=title,
+                                        type=type, show=False)
+        l.prop(('l=a', 'use_markup', True))
+        l.widgets['l=a'].set_markup(
+            '<span size="14000">%s</span>' % text)
+        dialog.show_all()
+        return dialog
+
+    def message(self, type='question', text='', title=''):
+        self.response = None
+        dialog, l = self.lay_obj.message(title=title, text=text,
+                                        type=type, show=False)
+        dialog.connect('response', self.response_cb )
+#        dialog.show_all()
+        dialog.run()
+        return dialog
+
+    def response_cb(self, dialog, butt_id):
+        self.response = butt_id
 
 ####### Misc
     def set_fkey_value(self, field_name, value):
@@ -509,6 +537,7 @@ class SqlWidget(object):
                               )
     
 
+####### More
 class Actions(object):
     def __init__(self, master=None):
         self.master = master
@@ -537,3 +566,5 @@ class Actions(object):
         ('SQL STATEMET', params). params must be a dict
         """
         return ('',{})
+
+
