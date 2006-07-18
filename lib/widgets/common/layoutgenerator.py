@@ -27,8 +27,10 @@ class TableLayoutGenerator (object):
         self.master = master
         self.target = target
         self.fields = master.fields
+        #print self.fields.keys()
         if lay:
             self.layout = self._parse_and_complete(lay)
+            #print self.layout
         else:
             if isinstance(master, sk.SqlMask):
                 self.layout = self.create ()
@@ -65,43 +67,51 @@ class TableLayoutGenerator (object):
         field_name must be preceded and followed by a space or newline
         """
         p = re.compile(r"""^(\s*#.+)""", re.MULTILINE)
-        lay = p.sub('', lay)
-        return re.sub(r""" ([a-z_A-Z]+\.[a-z_A-Z])(:[\.\d]*)?( |\n)""",
-                      self._sub, lay)
+        lay = p.sub('', lay)   # strip any comment
 
-#         return re.sub(r""" ([a-z_A-Z]+\.[a-z_A-Z])?(:[\.\d]*)?( |\n)""",
-#                       self._sub, lay)
+        p2 = re.compile(r"""
+        (?<![{=]\b)   # \b bound of a string <![{] is not preceded by {
+                     # this is to excude  {N   (container + flags)
+        (?P<field>[a-z_A-Z\.]+)    # the field + a possible table (table.field)
+        (?P<spec>:[.\d]*)?
+        (?P<end>\b)
+        """, re.VERBOSE | re.MULTILINE)
+
+        return p2.sub(self._sub, lay)
     
     def _sub(self, m):
         ### not using add_spec just becouse of the way args are passed
-        field_name = m.group(1)
+        field_name = m.group('field')
         if field_name in self.fields:
             t = self.fields[field_name]['type']
         else:
             ## any field that is not explicitly here is mapped into 'str'
             #dbg.write('field_name', field_name)
             field_name, t = self.register(field_name)
+            if t is None:  # this is not a db field
+                return field_name
 
             #dbg.write("t=", t)
         fmod = self.map_types[t]
 
-        return " L=%s %s=%s%s%s" % (field_name, fmod, field_name,
-                                   m.group(2) or '', m.group(3))
+        return " L=%s %s=%s%s" % (field_name, fmod, field_name,
+                                   m.group('spec') or '')
     
 
     def register(self, field_name):
         """regiter field_name as a field_name of a table to be found and reflected
         field_name must be of the form table.field_name
         """
+
         p = re.compile("""
            ([-_A-Za-z0-9]+)   # table name
-           .                 # separator
+           \.                 # separator
            (\S+)             # field_name
         """, re.VERBOSE)
         m = p.search(field_name)
         if not m:
-            dbg.write("%s not of the form table.field" % field_name )
-            return
+            #dbg.write("%s not of the form table.field" % field_name )
+            return (field_name, None)
         table_name = m.group(1)
         #dbg.write('table_name:', table_name)
         tbl_field_name = m.group(2)
@@ -133,4 +143,7 @@ class TableLayoutGenerator (object):
         lay = """
           TVS=tree
         """
+        if self.master.icons:
+            lay = "%s\n{A.icons {H %s}}" % (lay, self.master.icons)
+            
         return lay

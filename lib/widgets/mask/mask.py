@@ -414,7 +414,6 @@ class SqlMask (sqlwidget.SqlWidget):
         #dbg.write("self.w: %s" % self.w)
         #dbg.dshow(self.w, 'E=')
         self.labels = {}
-        #dbg.write(self.fields.keys())
         for field_name in self.fields.keys():
             lbl_name_wdg = "l=%s" % field_name
             if lbl_name_wdg in self.w:
@@ -516,6 +515,7 @@ class SqlMask (sqlwidget.SqlWidget):
         ## add click that pops filter_panel
         if self.filter:
             for field_name, label in self.labels.iteritems():
+                #print "label", label, 'field_name', field_name
                 event_box = label.parent
                 event_box.connect('button-press-event',
                                   self.filter_panel.add, field_name)
@@ -545,7 +545,16 @@ class SqlMask (sqlwidget.SqlWidget):
         self.values[field_name] = value
         
 
-
+    def get_current_record(self):
+        R = {}
+        for field_name in self.field_list:
+            try:
+                R[field_name] = self._get_value(field_name)
+            except FieldNotInLayout, e:
+                pass
+        dbg.write(R)
+        return R
+            
 
 class Combo(SqlMask):
     """
@@ -567,7 +576,6 @@ class Combo(SqlMask):
                                         field_list=self.table_field_list,
                                         
                                         )
-        print 'FINE'
         self.sync_add(self.SqlTable)
 #        self.lay_obj.prop('TV=tree', 'height-request', 150)        
         self.reload()

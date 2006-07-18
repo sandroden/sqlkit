@@ -294,7 +294,22 @@ class SqlTable(sqlwidget.SqlWidget):
             self.lay_obj.prop('TV=tree', 'width-request', self.geom[0])
             self.lay_obj.prop('TV=tree', 'height-request', self.geom[1])
 
-        
+        if self.icons:
+            self.lay_obj.prop(
+                ('A.icons', 'xscale', 0),
+                ('A.icons', 'xalign', 0),
+                ('A.icons', 'left-padding', 0)
+                )
+            ## just icons, no text
+            for b in self.icons.split(" "):
+                self.w[b].set_label = None
+                self.w[b].get_image().set_property('icon-size', 1)
+                alignment = self.w[b].get_children()[0]
+                hbox = alignment.get_children()[0]
+                image, label = hbox.get_children()
+                label.set_text('')
+                
+
         return (self.lay_obj, self.w)
     
     def popup_col_menu(self, ev, field_name):
@@ -978,7 +993,7 @@ class SqlTable(sqlwidget.SqlWidget):
         except:
             pass  # no selection...
         
-    def get_selected_record(self):
+    def get_current_record(self):
         """returns a dict of the current selected row"""
         row_n = self.get_selected_row()
         rdict = dict(map(None, self.field_list, list(self.liststore[row_n])[1:]))

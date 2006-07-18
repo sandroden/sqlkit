@@ -319,7 +319,8 @@ class Completion(object):
         exec_dict={field_name : sql_dict['val']}
 
         sql, constraint_params = self.master.actions.on_completion(
-            self.master.get_selected_record(), field_name)
+            self.master.get_current_record(), field_name)
+
         sql_dict['completion_constraint'] = sql
         
         ### field is a ForeignKey
@@ -328,14 +329,14 @@ class Completion(object):
             sql_dict['field_name'] = I['fkey'][1]
             self._add_descriptor_fields(sql_dict)
             sql_dict['field_comp'] = tables[sql_dict['table_name']][0]
-            #dbg.dshow(sql_dict)
+            dbg.dshow(sql_dict)
             sql = """SELECT DISTINCT %(field_name)s,%(descr)s
                  FROM %(table_name)s 
                  WHERE %(field_comp)s %(oper)s :%(field_comp)s
                  %(completion_constraint)s
                  ORDER BY %(descr)s
                  """ % sql_dict
-            #dbg.write(sql)
+            dbg.write(sql)
             exec_dict.update({sql_dict['field_comp'] : sql_dict['val']})
             exec_dict.update(constraint_params)
         else:
@@ -356,6 +357,7 @@ class Completion(object):
                     """ % sql_dict
                 exec_dict.update(constraint_params)
 
+        dbg.write(sql, exec_dict)
         dbg.sql_debug(sql, exec_dict)
 #        s = text(sql, engine=self.mapper.engines[0])
         s = text(sql, engine=self.master.engine)

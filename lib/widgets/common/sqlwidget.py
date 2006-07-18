@@ -52,6 +52,7 @@ class SqlWidget(object):
                   dev=False,
                   xml=False,
                   filter=True,
+                  icons='',
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -71,6 +72,7 @@ class SqlWidget(object):
                 are not shown
         """
         self.block = False
+        self.icons = icons
         self.filter = filter
         self.nick= nick
         self.xml = xml
@@ -192,7 +194,7 @@ class SqlWidget(object):
 
         ## add default buttons if needed
         #self._add_default_buttons(naked)
-        #dbg.write(self.layout)
+        #print self.layout
         #dbg.write(self.layout)
         self.lay_obj = layout.Layout(self.layout, addto=self.addto,
                                      title=self.title, opts='T-')
