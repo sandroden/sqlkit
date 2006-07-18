@@ -33,6 +33,7 @@ import sqlwidget
 import layoutgenerator
 
 from mask import SqlMask
+from mask import Combo
 from sqlwidget import SqlWidget
 from table import  SqlTable
 #from SqlTreeView import  SqlTable

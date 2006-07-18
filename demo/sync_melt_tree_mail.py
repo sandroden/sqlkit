@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 
 import sys
-
 sys.path.append ('../../')
+import dbg
+if sys.platform.startswith('linux'):
+    dbg.conf_class_trace(ok='SqlTable|SqlMask')
+    dbg.debug(2)
+    lgm = dbg.ShowLogs(show=True)
+    lgm.conf(but='set_fkey_descr|lookup_value|set_value|ene_cb|lne_cb')
 import sqlkit as sk
 #from sqlkit.table import SqlWidgetTreeView
-import dbg
 import gtk
 
 from sqlalchemy import *

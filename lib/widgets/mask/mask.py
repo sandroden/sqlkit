@@ -19,6 +19,7 @@ import sqlkit.parseopts as parseopts
 import sqlkit.completion as completion
 import sqlkit.sqlwidget as sqlwidget
 import decimal
+import sqlkit
 
 class FieldNotInLayout(Exception): pass
 
@@ -257,6 +258,7 @@ class SqlMask (sqlwidget.SqlWidget):
 
     def record_save_sync(self):
         for w, value in self.sync_dict.iteritems():
+            w.sync_unblock()
             dbg.write(w, value)
             DIR, sql, field_names, fkeys = value
             val = {}
@@ -338,7 +340,9 @@ class SqlMask (sqlwidget.SqlWidget):
         ## sync
         for z in self.sync_dict:
             z.clear()
+            z.sync_block()
         
+
     def record_new(self, widget=None):
         self.clear()
         
@@ -540,3 +544,38 @@ class SqlMask (sqlwidget.SqlWidget):
         """
         self.values[field_name] = value
         
+
+
+
+class Combo(SqlMask):
+    """
+    This is meant to edit a normal situation of header/rows (eg. invoices)
+    table must be a list of two tables that will be synced automatically
+    """
+    def _get_layout(self, lay, naked):
+        lay, w = SqlMask._get_layout(self, lay, naked)
+
+        self.SqlTable = sqlkit.SqlTable(tables=self.tables[1],
+                                        naked=True,
+                                        lay=None,
+                                        engine=self.engine,
+                                        addto=self.w['Atable'],
+                                        mode=self.mode,
+                                        limit=0,
+                                        nick="%s.%s" % (self.nick, self.tables[1]),
+                                        actions=self.actions,
+                                        field_list=self.table_field_list,
+                                        
+                                        )
+        print 'FINE'
+        self.sync_add(self.SqlTable)
+#        self.lay_obj.prop('TV=tree', 'height-request', 150)        
+        self.reload()
+        return (lay, w)
+    
+    def get_mapper(self, engine, mapper, tables):
+        return parseopts.get_mapper(self.engine, mapper, tables[0])
+
+    def parse_fields(self, fields):
+        self.table_field_list = fields
+        return SqlMask.parse_fields(self, fields)

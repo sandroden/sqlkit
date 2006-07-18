@@ -706,8 +706,17 @@ class SqlTable(sqlwidget.SqlWidget):
 
 #### model handling & sqlwidget overload
     def record_new(self, widget=None, *args):
+        if self.block:
+            dialog = self.message(type='error', title='Save needed',
+                        text='Editing blocked until other field saved')
+            if self.response == gtk.RESPONSE_OK:
+                dialog.destroy()
+            return
+
 #        rowCommit = self.rowCommit
 #        self.rowCommit = False
+
+
         columns = self.treeview.get_columns()
 
         # get the first visible col to position the cursor on
@@ -839,8 +848,6 @@ class SqlTable(sqlwidget.SqlWidget):
     
     def clear(self, *args, **kwargs):
         self.liststore.clear()
-        pass
-
     
     def reload(self, *args, **kwargs):
         rowCommit = self.rowCommit
