@@ -145,7 +145,7 @@ class SqlWidget(object):
             
         if isinstance(fields, str):
             fields = re.split('[ ,]+',fields)
-        dbg.write(self.nick, fields)
+        #dbg.write(self.nick, fields)
         return fields
     
     def get_actions(self, actions):

@@ -256,7 +256,8 @@ class SqlTable(sqlwidget.SqlWidget):
     tvcolumns = None
     mc = None
     mapper = None
-    rowCommit = dbg.TraceIt(True, name='rowCommit', mode='rw')
+    #rowCommit = dbg.TraceIt(True, name='rowCommit', mode='rw')
+    rowCommit = True
     deleting_row = False
     tvcolumns = None
     trace_regexp = 'rowCommit'
@@ -748,7 +749,7 @@ class SqlTable(sqlwidget.SqlWidget):
             
         for i in indexes:
             values = self.sqlData.get(i, mode='dict')
-            dbg.write(values)
+            #dbg.write(values)
             l = [i]
             for k in self.field_list:
                 if index is not None:  # refreshing a just inserted row
