@@ -145,6 +145,7 @@ class SqlMask (sqlwidget.SqlWidget):
         # [0]: the gtkClass
         # [1]: the gtkWidget
         if field_name not in self.mwidgets:
+            #print field_name, self.mwidgets.keys()
             if data:
                 return self.data_in[field_name]
 
@@ -400,6 +401,8 @@ class SqlMask (sqlwidget.SqlWidget):
             self.mwidgets = {}
         ## by now I only use entry, date, radio and menu to represent data
         #dbg.dshow(self.w, 'e=')
+#         if self.nick == 'art':
+#             print self.w.keys()
         for field_name in self.fields.keys():
             #dbg.write(field_name)
             for mod in ('e','d','r','m','c', 'TX'):
@@ -493,8 +496,13 @@ class SqlMask (sqlwidget.SqlWidget):
                 widget.connect('button-press-event',self.completion.pop_menu,
                                field_name, 3)
                 widget.connect('key-press-event',
-                               self.completion.entry_short_cut_event,
-                               field_name, 'F1')
+                               self.completion.keypress_event_cb,
+                               field_name)
+#                 widget.connect('key-press-event',
+#                                self.completion.entry_short_cut_event,
+#                                field_name)
+
+
 #             else:
 #                 dbg.write("fkey per %s: %s" %
 #                          (field_name, self.fields[field_name]['fkey']))
@@ -551,6 +559,7 @@ class SqlMask (sqlwidget.SqlWidget):
             try:
                 R[field_name] = self._get_value(field_name)
             except FieldNotInLayout, e:
+                print "Field_notInLayout", e
                 pass
         dbg.write(R)
         return R
@@ -563,22 +572,33 @@ class Combo(SqlMask):
     """
     def _get_layout(self, lay, naked):
         lay, w = SqlMask._get_layout(self, lay, naked)
-
+        if self.icons:
+            icons = self.icons
+        else:
+            icons = 'b=gtk-delete b=gtk-new b=gtk-refresh'
+            
         self.SqlTable = sqlkit.SqlTable(tables=self.tables[1],
                                         naked=True,
                                         lay=None,
                                         engine=self.engine,
-                                        addto=self.w['Atable'],
+                                        addto=self.w['A=table'],
                                         mode=self.mode,
                                         limit=0,
                                         nick="%s.%s" % (self.nick, self.tables[1]),
                                         actions=self.actions,
                                         field_list=self.table_field_list,
+                                        icons=icons
                                         
                                         )
         self.sync_add(self.SqlTable)
-#        self.lay_obj.prop('TV=tree', 'height-request', 150)        
-        self.reload()
+        # self.lay_obj.prop('TV=tree', 'height-request', 150)        
+
+        if self.sql:
+            self.reload(self.sql)
+        else:
+            pass
+            self.clear()
+            
         return (lay, w)
     
     def get_mapper(self, engine, mapper, tables):
@@ -586,4 +606,4 @@ class Combo(SqlMask):
 
     def parse_fields(self, fields):
         self.table_field_list = fields
-        return SqlMask.parse_fields(self, fields)
+        return SqlMask.parse_fields(self, None)

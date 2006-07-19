@@ -222,7 +222,7 @@ class Completion(object):
                     listore.append([ Rl[0], Rl[1], descr, Rd ])
                 else:
                     ## default format is all fields joined
-                    listore.append([ Rl[0], Rl[1], " - ".join(Rl[1:]), Rd ])
+                    listore.append([ Rl[0], Rl[1] or '', " - ".join(Rl[1:]), Rd ])
             else:
                 listore.append([Rl[0], Rd])
 
@@ -231,7 +231,8 @@ class Completion(object):
 #     def add_NULL_value(self, liststore):
 #         liststore.append([{}] + [None] * (liststore.get_n_columns()-1))
     def instance2list(self, R):
-        ret = [getattr(R, i) for i in R.keys()]
+        ## NOTE: a NULL from the db gets casted to ''
+        ret = [getattr(R, i) or '' for i in R.keys()]
         return ret
             
     def instance2dict(self, R):
@@ -461,6 +462,41 @@ class Completion(object):
         txt = "table:  %s - fkey: %s" % (tbl, fkey)
         #dbg.write(txt)
     
+    def keypress_event_cb(self, wdg, event, data=None):
+
+        if isinstance(wdg, gtk.TreeView):
+            pre = 'tree'
+        else:
+            #self.length_control(wdg, data)
+            pre = 'entry'
+
+        ksym = gtk.gdk.keyval_name(event.keyval)
+
+        mods = ['key_' + pre]
+        for prefix, mask in [('ctrl', gtk.gdk.CONTROL_MASK),
+                             ('shift', gtk.gdk.SHIFT_MASK),
+                             ('alt', gtk.gdk.MOD1_MASK),
+                             ('mod2', gtk.gdk.MOD2_MASK),
+                             ('mod3', gtk.gdk.MOD3_MASK),
+                             ('mod4', gtk.gdk.MOD4_MASK),
+                             ('mod5', gtk.gdk.MOD5_MASK),]:
+            if event.state & mask:
+                mods.append(prefix)
+
+        ksym = '_'.join(mods + [ksym])
+        dbg.write('ksym', ksym, 'mods', mods)
+        
+        if ksym in dir(self):
+            return getattr(self, ksym)(wdg, event, data)
+
+    def key_entry_F1(self, wdg, event, data):
+        self.show_possible_values(wdg, field_name=data, mode='regexp')
+        return True
+    
+    def key_entry_shift_Return(self, wdg, event, data):
+        self.show_possible_values(wdg, field_name=data, mode='regexp')
+        return True
+        
     def entry_short_cut_event(self, wdg, ev, field_name, key):
         """callback of key-press-button in (string) entries"""
 

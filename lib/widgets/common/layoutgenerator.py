@@ -14,10 +14,10 @@ class TableLayoutGenerator (object):
         datetime.date         : 'd',
         datetime.time         : 'd',
         bool                  : 'c',
-        int                   : 'e',
-        float                 : 'e',
-        str                   : 'e',
-        decimal.Decimal       : 'e',
+        int                   : 'ae',
+        float                 : 'ae',
+        str                   : 'ae',
+        decimal.Decimal       : 'ae',
         }
     
     def __init__ (self, master, naked=False, lay=None, target='SqlMask'):
@@ -69,11 +69,17 @@ class TableLayoutGenerator (object):
         p = re.compile(r"""^(\s*#.+)""", re.MULTILINE)
         lay = p.sub('', lay)   # strip any comment
 
+#        (?<![\S%{=]\b)   # \b bound of a string <![{] is not preceded by {
+#                     # this is to excude  {N   (container + flags)
+
         p2 = re.compile(r"""
-        (?<![{=]\b)   # \b bound of a string <![{] is not preceded by {
-                     # this is to excude  {N   (container + flags)
-        (?P<field>[a-z_A-Z\.]+)    # the field + a possible table (table.field)
-        (?P<spec>:[.\d]*)?
+        (?<!\S)                    # next row must not match if preceded by any str
+                                   # %string is a qualifier for notebooks
+                                   # {N is for noteooks and so on
+        (?P<field>[a-z_A-Z\.]+)   # the field + a possible table (table.field)
+        (?![-=])                  # the row above is only mathced if not followed
+                                  # by - o = (b=gtk-save-as *must not* match)
+        (?P<spec>:[-<>.\d]*)?
         (?P<end>\b)
         """, re.VERBOSE | re.MULTILINE)
 
@@ -82,22 +88,59 @@ class TableLayoutGenerator (object):
     def _sub(self, m):
         ### not using add_spec just becouse of the way args are passed
         field_name = m.group('field')
+        #print 'field_name',field_name
         if field_name in self.fields:
             t = self.fields[field_name]['type']
         else:
             ## any field that is not explicitly here is mapped into 'str'
             #dbg.write('field_name', field_name)
-            field_name, t = self.register(field_name)
+            #print "ELSE", field_name
+            field_name, t, col_spec = self.register(field_name)
             if t is None:  # this is not a db field
                 return field_name
 
             #dbg.write("t=", t)
         fmod = self.map_types[t]
 
+        spec = m.group('spec') or ''
+        try:
+            col_spec = self.fields[field_name]['col_spec']
+        except:
+            col_spec = col_spec
+            
+        if not spec:
+            spec = self.create_spec(field_name, col_spec)
+            #print field_name, spec
         return " L=%s %s=%s%s" % (field_name, fmod, field_name,
-                                   m.group('spec') or '')
+                                   spec)
     
-
+    def create_spec(self, field_name, col_spec):
+        """create a spec string that decides how long en entry must be
+           reflects fom db
+           """
+        #print col_spec
+        if col_spec == 'INTEGER':
+            return ":8"
+        elif col_spec.startswith('FLOAT'):
+            return ":8"
+        else:
+            m = re.search('VARCHAR.(\d+).', col_spec)
+            if m:
+                length = int(m.group(1))
+                ## really long field should not at up all the space
+                ## (but you can obverride this by hand!...
+                if length > 50:
+                    length = 50
+                ## now alignment
+                spec = ":%s" % length
+                if length> 20:
+                    spec += "-"
+#                 else:
+#                     spec += "<"
+                return spec
+        return ''
+                    
+        
     def register(self, field_name):
         """regiter field_name as a field_name of a table to be found and reflected
         field_name must be of the form table.field_name
@@ -111,7 +154,7 @@ class TableLayoutGenerator (object):
         m = p.search(field_name)
         if not m:
             #dbg.write("%s not of the form table.field" % field_name )
-            return (field_name, None)
+            return (field_name, None, None)
         table_name = m.group(1)
         #dbg.write('table_name:', table_name)
         tbl_field_name = m.group(2)
@@ -119,8 +162,9 @@ class TableLayoutGenerator (object):
         table = Table(table_name, self.fields.mapper.local_table.engine,
                       autoload=True)
         t1 = type(table.c[tbl_field_name].type)
+        col_spec = table.c[tbl_field_name].type.get_col_spec()
         t = self.fields.pytype[t1]
-        return (tbl_field_name, t)
+        return (tbl_field_name, t, col_spec)
 
     def _add_default_buttons (self):
         # a 'naked' mask is a mask w/o buttons. Maybe buttons are define by the
