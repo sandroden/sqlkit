@@ -103,8 +103,9 @@ class SqlMask (sqlwidget.SqlWidget):
         if field_name not in self.mwidgets:
             return
         widget = self.mwidgets[field_name]
-
+        #print field_name, field_value
         if self.fields[field_name]['fkey'] and field_name.endswith('_id'):
+            #print "self.values[%s] = %s" % (field_name, field_value)
             self.values[field_name] = field_value
             field_value = self.completion._lookup_value(field_name, field_value)
             
@@ -147,7 +148,11 @@ class SqlMask (sqlwidget.SqlWidget):
         if field_name not in self.mwidgets:
             #print field_name, self.mwidgets.keys()
             if data:
-                return self.data_in[field_name]
+                # print self.nick, "CHIESTO", field_name,"->", self.data_in[field_name]
+                try:
+                    return self.data_in[field_name]
+                except AttributeError, e:
+                    return 
 
             raise FieldNotInLayout("field_name: %s" % (field_name))
 #         if field_name not in self.mwidgets:
@@ -264,6 +269,7 @@ class SqlMask (sqlwidget.SqlWidget):
             DIR, sql, field_names, fkeys = value
             val = {}
             rdict = self.sqlData.get()
+            #print "RECORD_SAVE_SYNC", rdict
             dbg.write('rdict=',rdict)
             
             for fkey in fkeys:
@@ -559,7 +565,7 @@ class SqlMask (sqlwidget.SqlWidget):
             try:
                 R[field_name] = self._get_value(field_name)
             except FieldNotInLayout, e:
-                print "Field_notInLayout", e
+                #print "Field_notInLayout", e
                 pass
         dbg.write(R)
         return R
