@@ -113,8 +113,8 @@ class SqlWidget(object):
         """create the widget and go on displaying the layout
         """
         self.lay_obj, self.w  = self._get_layout(self.lay, self.naked)
-        if self.sql or isinstance(self, sqlkit.table.SqlTable):
-            self.reload(self.sql, limit=self.limit)
+#         if self.sql or isinstance(self, sqlkit.table.SqlTable):
+#             self.reload(self.sql, limit=self.limit)
             
         ## only render when dimentions are complete
         #self.w['Window'].show()
@@ -128,7 +128,7 @@ class SqlWidget(object):
             return session
         else:
             return create_session()
-
+    
     def get_mapper(self, engine, mapper, tables):
         return parseopts.get_mapper(self.engine, mapper, tables)
         
@@ -181,6 +181,7 @@ class SqlWidget(object):
             self._analize_widgets_in_layout()
             self._add_constraints_and_connect()
             self._add_colors_and_fonts()
+            self.values = lay.values
             return (lay.lay_obj, lay.w)
         
         if isinstance(self, sqlkit.SqlMask):
@@ -218,6 +219,7 @@ class SqlWidget(object):
         self._fill_menubar_menu()
         self.add_accelerators()
         return (self.lay_obj, self.w)
+    
     def add_accelerators(self):
         # key accelerators
         if self.addto:
@@ -287,7 +289,7 @@ class SqlWidget(object):
     def record_save(self, ev):
         """invokes the validator before UPDATE/INSERT a record"""
         pass
-    def record_save_new(self):
+    def record_save_new(self, wdg, constraint):
         """Insert a new record
         """
         pass
@@ -297,7 +299,7 @@ class SqlWidget(object):
         pass
     
     def reload(self, sql=None, params=None, limit=100, constraint={},
-               reload_constraint=False):
+               reload_constraint=False, display=True):
         """reload data from db
 
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
@@ -336,7 +338,9 @@ class SqlWidget(object):
         if isinstance(self, sqlkit.SqlMask):
             self.clear()
         self.sqlData = sqldata.SqlData(records, self.fields, self.session)
-        self.record_display()
+        if display:
+            self.record_display()
+
         return self.sqlData.count()
     
     def reload_cb(self, widget):
@@ -353,6 +357,7 @@ class SqlWidget(object):
         try:
             self.session.flush()
         except exceptions.SQLError, e:
+            print e
             self.SQLErrorHandler(e)
 
         self.engine.echo = PREV
@@ -403,6 +408,7 @@ class SqlWidget(object):
                 val_constr[name] = self._get_value(referenced_name, data=True)
 
             for field_name in field_names:
+                #print self.nick,  "_get_value", field_name, 'data'
                 val[field_name] = self._get_value(field_name, data=True)
                 #w.reload(sql=(and_(sql), val)
 
@@ -451,7 +457,7 @@ class SqlWidget(object):
             '<span size="14000">%s</span>' % text)
         dialog.show_all()
         return dialog
-
+    
     def message(self, type='question', text='', title=''):
         self.response = None
         dialog, l = self.lay_obj.message(title=title, text=text,
@@ -460,7 +466,7 @@ class SqlWidget(object):
 #        dialog.show_all()
         dialog.run()
         return dialog
-
+    
     def response_cb(self, dialog, butt_id):
         self.response = butt_id
 

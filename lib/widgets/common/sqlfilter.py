@@ -19,22 +19,8 @@ class FilterPanel(object):
         or a table instance) that will display the result"""
         self.master = master
         self.get_layout(visible=visible)
-        self.row =0  # counter for position of fileds
-
-    def reload_cb(self, widget):
-        """issue a reload operation on master. Call back of reload button"""
-        #sql, bind_params = self.sql()
-        sql = self.sql()
-        self.master.reload(sql=sql, limit=self.get_limit() )
-        if 'TV=out' in self.w:
-            self.fill_model()
-            self.w['N.0'].set_current_page(1)
-            
-        #dbg.write("%s type: %s" % (bind_params, type(bind_params)))
-        #self.master.reload(sql=(sql, bind_params), limit=limit )
-        #self.master.record_display()
-        #print self.sql()
-    
+        self.row =0  # counter for position of fields
+        
     def get_layout(self, visible=True):
         """create the filter panel widget"""
         if isinstance(self.master, sk.SqlMask):
@@ -80,6 +66,28 @@ class FilterPanel(object):
             self.easytv.tv.connect('button_press_event', self.tv_changed_cb)
             self.easytv.tvc['id'].set_property('visible', False)
 
+##### reload & TreeView
+    def reload_cb(self, widget):
+        """issue a reload operation on master. Call back of reload button"""
+        #sql, bind_params = self.sql()
+        sql = self.sql()
+        if 'TV=out' in self.w:
+            display = False
+        else:
+            display = True
+            
+        self.master.reload(sql=sql, limit=self.get_limit(), display=display )
+
+        if 'TV=out' in self.w:
+            self.fill_model()
+            self.w['N.0'].set_current_page(1)
+            
+        #dbg.write("%s type: %s" % (bind_params, type(bind_params)))
+        #self.master.reload(sql=(sql, bind_params), limit=limit )
+        #self.master.record_display()
+        #print self.sql()
+    
+    
     def fill_model(self):
         """Fill the treeview with a clickable list """
         attr = self.master.completion._add_descriptor_fields(
@@ -92,15 +100,24 @@ class FilterPanel(object):
             
             
     def tv_changed_cb(self, *args):
+        # when clicking om the teeview we get 2 args: treeView, event
+        # when changing selection we nly have 1 arg: gtk.treeSelection
+        # when clicking 'Refresh' we get e gtk.TreeSelection but no
+        #      iter get selected
+
         model, iter = self.selection.get_selected()
         if not iter:
-            wdg, ev = args
-            iter = model.get_iter(wdg.get_path_at_pos(int(ev.x), int(ev.y))[0])
-
+            try:
+                wdg, ev = args
+                iter = model.get_iter(wdg.get_path_at_pos(int(ev.x), int(ev.y))[0])
+            except ValueError: # deselecting when clicking 'reload'
+                return
+            
         idx = self.model.get_value(iter, 0)
         self.master.record_display(index=int(idx))
 
     
+##### handling
     def hide(self, wid, ev=None):
         """hide FilterPanel."""
         #print self.w['Window'], "destroy", "wid", wid
@@ -159,6 +176,7 @@ class FilterPanel(object):
         if show:
             self.w['Window'].show_all()
     
+##### SQL
     def get_limit(self):
         return  self.w['s=limit'].get_value_as_int()
     
@@ -189,7 +207,7 @@ class FilterPanel(object):
         #self.sql_dbg(ret)
         #dbg.write(ret)
         return sql
-
+    
     def sql_dbg(self, bool_conds):
         for c in bool_conds:
             print "DBG: ", c.left, c.operator, c.right

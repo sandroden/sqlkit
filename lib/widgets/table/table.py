@@ -324,7 +324,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         ## add to filter
         item = gtk.MenuItem(label="add %s to filter" % field_name.replace('_', ' '))
-        item.connect('activate', self.filter_panel.add, '', field_name )
+        item.connect('activate', self.filter_panel.add, ev, field_name )
         menu.append(item)
 
         ## sort
@@ -500,13 +500,15 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
         
     def clicked_cb(self, treeview, field_name):
-        #dbg.write(field_name)
-        event =   gtk.gdk.Event(gtk.gdk.BUTTON_PRESS)
-        event.button = 1
-        self.popup_col_menu(event, field_name)
+        if self.filter:
+            event =   gtk.gdk.Event(gtk.gdk.BUTTON_PRESS)
+            event.button = 1
+            dbg.write(event)
+            self.popup_col_menu(event, field_name)
         
-        return True
-    
+            return True
+        return False
+
     def hide_column(self, menuItem, field_name,):
         self.tvcolumns[field_name].set_property('visible', False)
 
