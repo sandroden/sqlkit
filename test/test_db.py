@@ -73,7 +73,7 @@ class DbInspect(unittest.TestCase):
     def test_pk_false(self):
         self.assertEqual(self.fields['user_name']['pkey'], False)
         
-    def testInspect__col_spec(self):
+    def testInspect__lenght(self):
         flds = {
             'user_id' :           None,
             'user_name' :         30  ,
@@ -90,7 +90,6 @@ class DbInspect(unittest.TestCase):
             'user_float'     :    None,
             }
         for f in self.fields.keys():
-            #print self.fields[f]['property']
             self.assertEqual(flds[f], self.fields[f]['length'])
 
     def testInspect__type(self):
@@ -110,7 +109,6 @@ class DbInspect(unittest.TestCase):
             'user_float'     :    float              ,
             }
         for f in self.fields.keys():
-            #print self.fields[f]['type']
             self.assertEqual(flds[f], self.fields[f]['type'])
 
     def testInspect__fk(self):
@@ -130,6 +128,7 @@ if __name__ == '__main__':
         pass
     
     setup.prepare_once()
+    #unittest.TextTestRunner (verbosity = 3).run ()
     unittest.main()
     
 
