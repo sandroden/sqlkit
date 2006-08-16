@@ -18,4 +18,4 @@ if __name__ == '__main__':
         pass
     
     setup.prepare_once()
-    unittest.TextTestRunner (verbosity = 3).run (suite ())
+    unittest.TextTestRunner (verbosity = 2).run (suite ())
