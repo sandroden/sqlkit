@@ -11,11 +11,16 @@ def searchFile(file):
 	      os.path.dirname(__file__)]
     for d in places:
         filename = os.path.join(d, file)
-        if os.path.exists(filename ):
-            #dbg.write("file:", file)
-            return filename
+        if not filename or not os.path.exists(file):
+            raise MissingConfigFileError("looking for: %s" % file)
+
+        return filename
     
-def new_engine(file='config.ini', echo=False, globalconn=False):
+def new_engine(file='config.ini', echo=False, globalconn=False, string=False):
+    """
+    echo: engine.echo = echo
+    test: just return the string (mainly test purpouse) 
+    """
     import sqlalchemy
     if globalconn:
         from sqlalchemy import global_connect as connect
@@ -24,8 +29,6 @@ def new_engine(file='config.ini', echo=False, globalconn=False):
     
     c = ConfigParser ()
     file = searchFile(file)
-    if not file or not os.path.exists(file):
-        raise MissingConfigFileError("looking for: %s" % file)
     
     c.read (file)
     db = {}
@@ -37,8 +40,10 @@ def new_engine(file='config.ini', echo=False, globalconn=False):
         eng_str = db['url']
     except:
         eng_str = "%(dbapi)s://%(user)s:%(password)s@%(host)s:%(port)s/%(dbname)s" % db
-    engine = connect(eng_str, echo=echo)
+    if string:
+        return eng_str
 
+    engine = connect(eng_str, echo=echo)
     if engine:
         return engine
     else:

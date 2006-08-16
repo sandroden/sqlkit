@@ -182,6 +182,7 @@ class InspectMapper(dict):
         if d['pkey']:
             #dbg.write("si %s -> %s" % (field_name, mapper.local_table.name ))
             self.pkeys[mapper.local_table.name] += [field_name]
+            #print self.pkeys
 
         if mapper.c[field_name].foreign_key:
              d['fkey'] = (mapper.c[field_name].foreign_key.column.table.name,
@@ -251,7 +252,7 @@ class InspectMapper(dict):
         """return the class of that table"""
         return self.table_mappers[table_name][0]
     
-    def pkeys(self, table_name):
+    def get_pkeys(self, table_name):
         """return the list of the pkeys for that table"""
         try:
             return self.pkeys[table_name]
