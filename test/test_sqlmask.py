@@ -1,8 +1,8 @@
 import unittest, sys
 from sqlalchemy import *
 
-sys.path.append ('../../../../../')
-import config, reflect, mask, layout
+sys.path.insert('../..')
+import sqlkit
 
 import mockup
 
