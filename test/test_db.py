@@ -17,10 +17,16 @@ class DbConnTestCase(unittest.TestCase):
     def testConn(self):
         setup.conn.execute("SELECT 1")
 
-#     def testFloat(self):
-#         ret = setup.conn.execute("SELECT 1.23::float AS foo")
-#         result = ret.fetchone()[0]
-#         self.assertEqual(result, 1.23)
+    def testFloat(self):
+        ret = setup.conn.execute("SELECT 1.23::float AS foo")
+        result = ret.fetchone()[0]
+        self.assertEqual(result, 1.23)
+
+    def testFloatGTK(self):
+        import gtk
+        ret = setup.conn.execute("SELECT 1.23::float AS foo")
+        result = ret.fetchone()[0]
+        self.assertEqual(result, 1.23)
 
 class DbInspect(unittest.TestCase):
 
