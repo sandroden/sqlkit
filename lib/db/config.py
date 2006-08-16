@@ -6,15 +6,20 @@ class MissingConfigFileError(Exception): pass
 
 def searchFile(file):
     """ first search in cwd, then it's parent or config.py directory """
+    filename = None
     places = [os.getcwd(),
 	      os.path.dirname(os.getcwd() ),
 	      os.path.dirname(__file__)]
     for d in places:
         filename = os.path.join(d, file)
-        if not filename or not os.path.exists(file):
-            raise MissingConfigFileError("looking for: %s" % file)
+        if os.path.exists(filename ):
+            break
 
-        return filename
+    if not filename or not os.path.exists(filename):
+        raise MissingConfigFileError("looking for: %s" % filename)
+
+    return filename
+
     
 def new_engine(file='config.ini', echo=False, globalconn=False, string=False):
     """
