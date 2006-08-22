@@ -1,0 +1,37 @@
+#!/usr/bin/env python
+# coding: latin1
+
+import sys, re, datetime
+
+sys.path.append ('../../')
+
+from ooffice import opop
+
+
+page = opop.Sxw(file='eurotest.sxw', verbose=True)
+
+for i in range(8):
+    page.add({
+        'filo' : "filo%s" % i,
+        'titolo' : "titolo %s" % i,
+        'colore' : "colore %s" % i
+        })
+
+for i in range(5):
+    page.add({
+        'art' : "art%s" % i,
+        'descr' : "descrizione %s" % i
+        })
+    
+page.add({'user' : 'sandro dentella'})
+
+page.lod[3]['titolo'] = """
+      Piu' che un titolo questa e' una lunga dissertazione su cosa 
+      convenga fare quando si vuole tutto nella vita perché devo fare
+      una prova di un paragrafo lungo"""
+
+
+#page.make_sxw(outfile='euro.sxw')
+page.make_pdf3(outfile='euro3.pdf')
+page.make_pdf(outfile='euro.pdf')
+page.clean()
