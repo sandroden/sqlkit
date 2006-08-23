@@ -103,6 +103,16 @@ class SqlData(object):
             print self.get(index=i, mode=mode)
         self.current = 0
         
+    def all_as_dicts(self):
+        """print all the records"""
+        dicts = []
+        for i in range(len(self.pointers)):
+            #print self.get(index=i, mode='dict')
+            dicts.append(self.get(index=i, mode='dict'))
+        self.current = 0
+        #print dicts
+        return dicts
+        
     def _instance2dict(self, instance):
         """return a dict representing the data of an instance. If the instance has
         a property representing a MANYTOONE relation it returns those values too,

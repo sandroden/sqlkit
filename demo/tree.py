@@ -44,8 +44,9 @@ lgm.conf(but='lookup_value|set_fkey_descr')
 #             return (SQL, params)
 
 zz = sqlt = sk.SqlTable(table=table, session=session, field_list=fields,
-                        single=True, dev=True, nick='tree', )
+                        single=True, dev=True, nick='tree', icons='b=gtk-new b=gtk-delete b=gtk-refresh')
 #zz.actions = act(zz)
+zz.print_template_dir = 'template_dir'
 
 # , noup=['user_age']
 #zz.w['Window'].set_geometry_hints(None, base_width=300, base_height=200)

@@ -676,20 +676,16 @@ class SqlWidget(object):
         import subprocess
         
         page = opop.Sxw(file=template)
-        page.verbose = True
-        data = self.actions.on_print()
-        if not data:
+        #page.verbose = True
+        ret = self.actions.on_print(page)
+        if ret is not True :
             self.message(type='warn', text="Missing data")
             return
-
-        page.lod = [data]
 
         outfile = page.make(format=format)
         if isinstance(outfile, list):
             outfile = outfile[0]
-            
-        print "print_file", outfile
-
+        print page.lod
         if sys.platform.startswith('linux'):
             if format.startswith('pdf'):
                 try:
@@ -728,27 +724,51 @@ class Actions(object):
         """only defined for SqlMask"""
         pass
     
-    def on_print(self, new=None):
-        """should prepare all names needed by pyopenoffice"""
+    def on_print(self, page):
+        """should prepare all variables needed by pyopenoffice"""
+
+        lookup_flds = []
+        for v in self.master.fields.keys():
+            if self.master.fields[v]['fkey'] and v.endswith('_id'):
+                lookup_flds.append(v)
+
+        ## SqlMask
         if isinstance(self.master, sqlkit.SqlMask):
             data = self.master.sqlData.get()
             if data == None:
                 return None
-            for key, val in data.iteritems():
-                data[key] = str(val)
-            
-            return data
+
+            for key in lookup_flds:
+                try:
+                    data[key] = self.master.completion._lookup_value(
+                            key, data[key])
+                except Exception, e:
+                    print e
+                    pass
+
+
+            page.add(data)
+            return True
 
         else:
-            ## FIXME
-            pass
-    
+            ## SqlTable
+            for diz in self.master.sqlData.all_as_dicts():
+                for key in lookup_flds:
+                    try:
+                        diz[key] = self.master.completion._lookup_value(
+                            key, diz[key])
+                    except Exception, e:
+                        print e
+                        pass
+                    
+                page.add(diz)
+            return True
+
     def on_record_clear(self, new, old):
         pass
     
     def on_reload(self, new, old):
         pass
-
     def on_completion(self, new, field_name):
         """Adds a constraint to the completion. Must return a tuple:
         ('SQL STATEMET', params). params must be a dict

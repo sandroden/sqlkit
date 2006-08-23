@@ -387,6 +387,7 @@ class SqlTable(sqlwidget.SqlWidget):
         - other render to editable text cells"""
         #create and append columns
         self.tvcolumns = {}
+        self.lookup_cols = []
         for i,v in enumerate(self.field_list):
             j = i+1
             if v in widgets.info:
@@ -432,6 +433,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 tvcolumn.pack_start(cell, True)
                 #tvcolumn.add_attribute(cell, 'text', j)
                 tvcolumn.set_cell_data_func(cell, self.set_fkey_descr, i)
+                self.lookup_cols.append(v)
             else:
                 cell = gtk.CellRendererText()
                 cell.set_property('editable', True)
