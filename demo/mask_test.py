@@ -9,6 +9,7 @@ import gtk
 import decimal
 
 from sqlalchemy import *
+from ooffice import opop
 
 engine = sk.config.new_engine(echo=False, globalconn=True)
 session = create_session()
@@ -18,13 +19,18 @@ user_table = Table ('euro_user', engine, autoload=True)
 
 class Mapper(object):
     pass
-user_mapper = mapper (Mapper, user_table)
+#user_mapper = mapper (Mapper, user_table)
 
-sql_text = "user_id > 5"
-zz = user_mask = sk.SqlMask (mapper=user_mapper, sql=sql_text, show=False,
-                             noup='user_active', single=True, limit=2,
-                             session=session)
+#sql_text = "user_id > 5"
+zz = user_mask = sk.SqlMask (tables='euro_user, euro_mail', show=False,
+                             noup=['user_active', 'user_age'], single=True, limit=20,
+                             session=session,
+                             #filter="%(user_name)s (%(mail_address)s)",
+                             #filter=['user_name', 'mail_address'],
+                             filter=True, nick='euro_user'
+                             )
 
+zz.print_template_dir = 'template_dir'
 zz.show()
 
 ## Completion - you may choose how to show the completion list
@@ -36,7 +42,7 @@ format = "%(city_name)-5.5s (%(city_pv)s)"
 sk.completion.set_description_fields(
     'city', 'city_name', 'city_pv', format)
 
-engine.echo = True
+#engine.echo = True
 #dbg.gtk_dbg.ShowClassInfo(zz)
 #print dir()
 gtk.main()

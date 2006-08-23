@@ -1,4 +1,4 @@
-import sys, re, datetime
+import sys, re, datetime, os
 #import config
 import inspect
 #import common
@@ -543,8 +543,173 @@ class SqlWidget(object):
                               ('-', None),
                               ('gtk-quit', 'activate', self.delete_event)
                               )
-    
+            self.printing()
 
+####### printing
+    def printing(self):
+        """this will pop entries in the print setup to allow for printing
+        A mask will be printed only if a template (.sxw) is provided
+        in one of these two ways:
+        1. directly set self.print_template pointing to a .sxw file
+        2. directly set self.print_template_dir pointing to a directory where
+                    many possible templates are.
+        3. setting a global dir sqlkit.set_template_dir(). In this case a
+                    template will be searched for in a subdir named self.nick
+
+        When a tempate is found the name of the template is stripped of the
+        trailing suffix .sxw and that name is used as entry for the menu
+        """
+        
+        Menu = self.w['M=file']
+        Item = gtk.ImageMenuItem('gtk-print')
+        Menu.insert(Item, 2)
+        SubMenu = gtk.Menu()
+        Item.set_submenu(SubMenu)
+
+        Item.connect('activate', self.print_fill_submenu, SubMenu)
+        Menu.show_all()
+
+        #Item1 = gtk.MenuItem('template 1')
+        #SubMenu.append(Item1)
+
+    def print_fill_submenu(self, item, sub):
+
+        try:
+            a = self.printing_menu_filled
+            return
+        except:
+            pass
+        
+        # check if a printing sistem is there
+        templates = self.get_templates()
+
+        for template in templates:
+            for format in template[1]:
+                item = gtk.MenuItem("%s - %s" % (template[0], format))
+                item.connect('activate', self.print_file, template[2], format)
+                sub.append(item)
+
+        sub.show_all()
+        self.printing_menu_filled = True
+                
+        
+    def get_templates(self):
+        "return a list of tuples (name.sxw, entry name) for each template found"
+
+        filenames = []
+        try:
+            template = self.print_template
+            self.template2tuple(template, filenames)
+        except:
+            pass
+
+        template_dir = ""
+        try:
+            template_dir = self.print_template_dir
+        except:
+            try:
+                template_dir = print_template_dir
+            except:
+                pass
+
+        if template_dir:
+
+            ## look for a subdir self.nick, this may fail becouse you didn't
+            ## define the nick or becouse there is no foulder
+
+            for d in os.listdir(template_dir):
+                if d == self.nick:
+                    path = os.path.join(template_dir, d)
+                    if os.path.isdir(path):
+                        ## here are the templates for us
+                        for f in os.listdir(path):
+                            self.parse_template_and_add(f, filenames, path)
+
+        return filenames
+
+    def parse_template_and_add(self, template, filenames, path=None):                     
+        """it check if it is a file, it not just returns. Otherwise it check the
+        name to see:
+        1. if it ends with .sxw (otherway it returns)
+        2. which is the name to use in t menu_entry
+        3. if it has sxw or pdf in the name, thus suggesting which transformation
+           are allowed. Defaults to just pdf.
+
+           eg: test.sxw  (just pdf output, menu entry 'test')
+               my_test_pdf_sxw.sxw  (both output allowed, menu entry: 'my test')
+                          note that _ was transformed in space.
+
+        an attempt to further translate the resulting entry is made against
+        layout.set_description_fields
+
+        """
+        if path:
+            template = os.path.join(path, template)
+
+        if not os.path.isfile(template):
+            return
+        
+        formats = []
+        base = os.path.basename(template)
+        p = re.compile(r"""
+            ^(?P<name>.+?)                   # the real name, non greedy fashion
+            (_(?P<format>(_?pdf|_?sxw)*))?   # output format encoded
+            \.sxw$                           # the extension
+        """, re.VERBOSE)
+        m = p.match(base)
+        if m:
+            name = m.group('name')
+            name = layout.get_label(name)
+            name = name.replace('_', ' ')
+            try:
+                formats = m.group('format').split('_')
+            except:
+                formats = m.group('format')
+            if formats is None:
+                formats = ['pdf']
+
+            filenames.append((name, formats, template))
+
+    def print_file(self, item, template, format):
+
+        from ooffice import opop
+        import subprocess
+        
+        page = opop.Sxw(file=template)
+        page.verbose = True
+        data = self.actions.on_print()
+        if not data:
+            self.message(type='warn', text="Missing data")
+            return
+
+        page.lod = [data]
+
+        outfile = page.make(format=format)
+        if isinstance(outfile, list):
+            outfile = outfile[0]
+            
+        print "print_file", outfile
+
+        if sys.platform.startswith('linux'):
+            if format.startswith('pdf'):
+                try:
+                    subprocess('acroread %s' % outfile)
+                except:
+                    try:
+                        os.system('gv %s' % outfile)
+                    except:
+                        try:
+                            os.system('xpdf %s' % outfile)
+                        except:
+                            pass
+                        
+            elif format == 'sxw':
+                os.system('ooffice %s' % outfile)
+            
+        else:
+            os.startfile(outfile)
+        page.clean()
+        
 ####### More
 class Actions(object):
     def __init__(self, master=None):
@@ -562,6 +727,21 @@ class Actions(object):
     def on_record_display(self, new=None):
         """only defined for SqlMask"""
         pass
+    
+    def on_print(self, new=None):
+        """should prepare all names needed by pyopenoffice"""
+        if isinstance(self.master, sqlkit.SqlMask):
+            data = self.master.sqlData.get()
+            if data == None:
+                return None
+            for key, val in data.iteritems():
+                data[key] = str(val)
+            
+            return data
+
+        else:
+            ## FIXME
+            pass
     
     def on_record_clear(self, new, old):
         pass
