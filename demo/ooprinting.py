@@ -6,7 +6,7 @@ import sys, re, datetime
 sys.path.append ('../../')
 
 from ooffice import opop
-
+import tempfile, os
 
 page = opop.Sxw(file='eurotest.sxw', verbose=True)
 
@@ -31,7 +31,10 @@ page.lod[3]['titolo'] = """
       una prova di un paragrafo lungo"""
 
 
-#page.make_sxw(outfile='euro.sxw')
-page.make_pdf3(outfile='euro3.pdf')
-page.make_pdf(outfile='euro.pdf')
-page.clean()
+outfile = os.path.join(tempfile.gettempdir(), 'euro.sxw')
+
+page.make_sxw(outfile=outfile)
+#page.make_sxw(outfile=None)
+# page.make_pdf3(outfile='euro3.pdf')
+# page.make_pdf(outfile='euro.pdf')
+# page.clean()
