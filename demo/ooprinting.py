@@ -27,7 +27,7 @@ page.add({'user' : 'sandro dentella'})
 
 page.lod[3]['titolo'] = """
       Piu' che un titolo questa e' una lunga dissertazione su cosa 
-      convenga fare quando si vuole tutto nella vita perché devo fare
+      convenga fare quando si vuole tutto nella vita perche' devo fare
       una prova di un paragrafo lungo"""
 
 
