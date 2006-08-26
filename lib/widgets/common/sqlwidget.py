@@ -581,7 +581,7 @@ class SqlWidget(object):
             pass
         
         # check if a printing sistem is there
-        templates = self.get_templates()
+        templates, template_dir = self.get_templates()
 
         for template in templates:
             for format in template[1]:
@@ -589,6 +589,11 @@ class SqlWidget(object):
                 item.connect('activate', self.print_file, template[2], format)
                 sub.append(item)
 
+        if not templates:
+            item = gtk.MenuItem("No templates for nick '%s' in %s" %
+                                (self.nick, template_dir) )
+            sub.append(item)
+            
         sub.show_all()
         self.printing_menu_filled = True
                 
@@ -625,7 +630,7 @@ class SqlWidget(object):
                         for f in os.listdir(path):
                             self.parse_template_and_add(f, filenames, path)
 
-        return filenames
+        return (filenames, template_dir)
 
     def parse_template_and_add(self, template, filenames, path=None):                     
         """it check if it is a file, it not just returns. Otherwise it check the
@@ -685,7 +690,6 @@ class SqlWidget(object):
         outfile = page.make(format=format)
         if isinstance(outfile, list):
             outfile = outfile[0]
-        print page.lod
         if sys.platform.startswith('linux'):
             if format.startswith('pdf'):
                 try:
@@ -776,3 +780,6 @@ class Actions(object):
         return ('',{})
 
 
+def set_template_dir(dir):
+    global print_template_dir
+    print_template_dir = dir

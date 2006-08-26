@@ -32,9 +32,12 @@ page.lod[3]['titolo'] = """
 
 
 outfile = os.path.join(tempfile.gettempdir(), 'euro.sxw')
+outfile_pdf = os.path.join(tempfile.gettempdir(), 'euro.pdf')
+outfile_rml = os.path.join(tempfile.gettempdir(), 'euro.rml')
 
-page.make_sxw(outfile=outfile)
+#page.make_sxw(outfile=outfile)
 #page.make_sxw(outfile=None)
-# page.make_pdf3(outfile='euro3.pdf')
-# page.make_pdf(outfile='euro.pdf')
+#page.make_rml(outfile=outfile_rml)
+#page.make_pdf3(outfile=outfile_pdf)
+page.make_pdf(outfile=outfile_pdf)
 # page.clean()
