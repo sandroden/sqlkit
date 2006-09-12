@@ -429,6 +429,7 @@ def get_join_cnd_for_sync(t1, t2):
     mode: sa (sqlalchemy objects) or 'str' (string)
     """
     cnd = []
+    fields_dict = {}
     #dbg.write("tables:", tables)
 #    tbls = [col.table for col in t.c for t in tables]
 
@@ -439,13 +440,15 @@ def get_join_cnd_for_sync(t1, t2):
 
     DIR = ""
     field_names = []
-    fkeys = []
+    #fkeys = []
     cnd_str = []
     #dbg.write(t1)
     for col in t1.c:
         if col.foreign_key and col.foreign_key.column.table in tbls:
             field_names.extend([col.name])
-            fkeys.extend([(col.name, col.foreign_key.column.name)])
+            #fkeys.extend([(col.name, col.foreign_key.column.name)])
+            #fields_dict[col.name] =  col.foreign_key.column.name
+            fields_dict[col.foreign_key.column.name] =  col.name
             dbg.write("col:", col, " -- fk:", col.foreign_key.column)
             #cnd += [ col == col.foreign_key.column ]
             cnd_str = ["%s.%s = :%s" % (
@@ -462,7 +465,9 @@ def get_join_cnd_for_sync(t1, t2):
         for col in t2.c:
             if col.foreign_key and col.foreign_key.column.table in tbls:
                 field_names.extend([col.foreign_key.column.name])
-                fkeys.extend([(col.name, col.foreign_key.column.name)])
+                #fkeys.extend([(col.name, col.foreign_key.column.name)])
+                #fields_dict[col.name] = col.foreign_key.column.name
+                fields_dict[col.foreign_key.column.name] =  col.name
                 #dbg.write("col:", col, " -- fk:", col.foreign_key.column)
                 
                 #cnd += [ col == col.foreign_key.column ]
@@ -476,7 +481,8 @@ def get_join_cnd_for_sync(t1, t2):
         if cnd_str:
             DIR = 'ONE2MANY' 
 
-    return (DIR, "AND".join(cnd_str), field_names, fkeys)
+    #return (DIR, "AND".join(cnd_str), field_names, fkeys)
+    return (DIR, "AND".join(cnd_str), fields_dict)
 
 def get_props(mapper):
     props = []

@@ -1,6 +1,6 @@
 import sys, re, datetime, os
 #import config
-import inspect
+import inspect 
 #import common
 import layout
 import layout.dateedit as dateedit
@@ -10,12 +10,16 @@ import gtk, pango
 import decimal
 from sqlalchemy import *
 import dbg.gtk_dbg
+
 import sqlkit
 import sqlkit.sqlfilter as sqlfilter
 import sqlkit.sqldata as sqldata
-import sqlkit.inspect as inspect
+import sqlkit.minspect as minspect
 import sqlkit.parseopts as parseopts
 import sqlkit.completion as completion
+#from misc import rebuild
+#import new
+#import misc.autoreload
 
 class NoSyncError(Exception): pass
 class SyncNotAvailable(Exception): pass
@@ -27,6 +31,8 @@ class SqlWidget(object):
 #    tables = None    # Table objects referenced as foreign keys
     values = None    # real value for foreign key (when lookup is displeyed instead)
 #    __metaclass__ = dbg.LogTheMethods
+#    __metaclass__ = misc.autoreload.MetaAutoReloader
+    
     def __init__ (self, mapper=None,
                   lay = None,
                   naked=False,
@@ -178,16 +184,16 @@ class SqlWidget(object):
             #dbg.write()
             self.w = lay.w
             self.filter_panel = lay.filter_panel
+            ## NOTE: here I say that I can reach w/ _get_value also the
+            ##       values of the secondary mask. Of course you need to be
+            ##       carefull not to mix up filed-names
+            self.mwidgets = lay.mwidgets
             self._analize_widgets_in_layout()
             self._add_constraints_and_connect()
             self._add_colors_and_fonts()
             self.values = lay.values
             return (lay.lay_obj, lay.w)
         
-        if isinstance(self, sqlkit.SqlMask):
-            target = 'SqlMask'
-        else:
-            target = 'SqlTable'
         lay = TableLayoutGenerator(self, naked=naked, lay=lay).layout
         self.layout = lay
         #dbg.write(self.layout)
@@ -307,7 +313,7 @@ class SqlWidget(object):
 
         if constraint:
             self.constraint=constraint
-        dbg.write(self.nick, 'constraint', constraint)
+        #dbg.write(self.nick, 'constraint', constraint)
 
         if sql is None:
             sql = self.sql
@@ -321,7 +327,7 @@ class SqlWidget(object):
             params = None
 
         if reload_constraint == True:
-            dbg.write("add self.reload_sql_constraint", sql_str)
+            #dbg.write("add self.reload_sql_constraint", sql_str)
             self.sql = (sql_str, params)
 
         self.session.clear()
@@ -342,7 +348,15 @@ class SqlWidget(object):
             self.record_display()
 
         return self.sqlData.count()
-    
+
+    def reload_one(self,field, value):
+        """compact way to view a single record or records with a single property"""
+
+        sql = "%s = :%s" % (field, field)
+        bind_parameters = {field : value}
+        
+        self.reload(  (sql, bind_parameters)  )
+
     def reload_cb(self, widget):
         """issue a reload operation on master. Call back of reload button"""
         #limit=100
@@ -381,38 +395,43 @@ class SqlWidget(object):
 
         # sqlWidget : (DIR, cnd_str, field_names )
         if not cnd:
-            DIR, cnd_str, field_names, fkeys = inspect.get_join_cnd_for_sync(
+            DIR, cnd_str, fields_dict = minspect.get_join_cnd_for_sync(
                 self.mapper.local_table, sqlWidget.mapper.local_table)
         else:
-            DIR, cnd_str, field_names, fkeys = cnd
+            DIR, cnd_str, fields_dict = cnd
             
-        self.sync_dict[sqlWidget] = (DIR, cnd_str, field_names, fkeys )
-        dbg.write(DIR)
-        dbg.write('field_name', field_names)
+        self.sync_dict[sqlWidget] = (DIR, cnd_str, fields_dict )
+        ## a synced widget should not be edited if we don't have a record to sync...
+        if len(self.sqlData) == 0:
+            sqlWidget.sync_block()
+
+        dbg.write(DIR, direct=False)
 #        sqlWidget.reload_constraint(cnd_str)
 #         if sqlWidget.get_pk() != field_names:
 #             raise NoSyncError("non campi suff per match %s != %s" % (sqlWidget.get_pk(), field_names))
     def sync(self):
         """emit a reload to other SqlWidgets so that they keep in sync"""
         ## easy/simple (almost useless) case: we have a Many2One relation. A field
-        ## of primarytable has a fk to nother table
-        dbg.write(self.nick)
+        ## of primarytable has a fk to another table
+        #dbg.write(self.nick)
         for w, value in self.sync_dict.iteritems():
-            dbg.write(w, value)
-            DIR, sql, field_names, fkeys = value
+            #dbg.write(w, value)
+            #DIR, sql, field_names, fkeys = value
+            DIR, sql, fields_dict = value
             val = {}
             val_constr = {}
-            for fkey in fkeys:
-                name, referenced_name = fkey
+
+            ## constraints
+            for name, referenced_name in fields_dict.iteritems():
+                #name, referenced_name = fkey
                 #dbg.write(name, self._get_value(referenced_name, data=True))
-                val_constr[name] = self._get_value(referenced_name, data=True)
+                val_constr[referenced_name] = self._get_value(name, data=True)
 
-            for field_name in field_names:
-                #print self.nick,  "_get_value", field_name, 'data'
-                val[field_name] = self._get_value(field_name, data=True)
-                #w.reload(sql=(and_(sql), val)
+            ## bind_params
+            for field_name in fields_dict.keys():
+c                val[field_name] = self._get_value(field_name, data=True)
 
-            dbg.write(sql, val)
+            #dbg.write(sql, val)
 #            w.reload(  sql =  (and_(*[sql]),val)   )
             w.clear()
             w.reload(  sql =  (sql,val) , constraint=val_constr,
@@ -571,9 +590,8 @@ class SqlWidget(object):
 
         #Item1 = gtk.MenuItem('template 1')
         #SubMenu.append(Item1)
-
+    
     def print_fill_submenu(self, item, sub):
-
         try:
             a = self.printing_menu_filled
             return
@@ -597,7 +615,6 @@ class SqlWidget(object):
         sub.show_all()
         self.printing_menu_filled = True
                 
-        
     def get_templates(self):
         "return a list of tuples (name.sxw, entry name) for each template found"
 
@@ -631,7 +648,7 @@ class SqlWidget(object):
                             self.parse_template_and_add(f, filenames, path)
 
         return (filenames, template_dir)
-
+    
     def parse_template_and_add(self, template, filenames, path=None):                     
         """it check if it is a file, it not just returns. Otherwise it check the
         name to see:
@@ -674,7 +691,7 @@ class SqlWidget(object):
                 formats = ['pdf']
 
             filenames.append((name, formats, template))
-
+            
     def print_file(self, item, template, format):
 
         from ooffice import opop
@@ -709,7 +726,7 @@ class SqlWidget(object):
         else:
             os.startfile(outfile)
         page.clean()
-        
+
 ####### More
 class Actions(object):
     def __init__(self, master=None):
@@ -721,7 +738,8 @@ class Actions(object):
     def on_delete(self, new, old):
         pass
     
-    def on_insert(self, new, old):
+    def on_insert(self, new):
+        """invoked after any constraint is applied"""
         pass
     
     def on_record_display(self, new=None):

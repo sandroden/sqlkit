@@ -20,12 +20,10 @@ class TableLayoutGenerator (object):
         decimal.Decimal       : 'ae',
         }
     
-    def __init__ (self, master, naked=False, lay=None, target='SqlMask'):
+    def __init__ (self, master, naked=False, lay=None):
         """fields: an InspectMapper object
-        target: mask or table
         """
         self.master = master
-        self.target = target
         self.fields = master.fields
         #print self.fields.keys()
         if lay:
@@ -170,7 +168,7 @@ class TableLayoutGenerator (object):
         # a 'naked' mask is a mask w/o buttons. Maybe buttons are define by the
         # programmer inside the layout, maybe are not desired
 
-        if self.target == 'SqlMask':
+        if isinstance(self.master, sk.SqlMask):
             nav_buttons="tb=gtk-go-back tb=gtk-go-forward"
         else:
             nav_buttons=""

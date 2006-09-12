@@ -4,13 +4,12 @@ import sys
 
 sys.path.append ('../../')
 import sqlkit as sk
-from sqlkit.table import SqlWidgetTreeView
 import dbg
 import gtk
 
 from sqlalchemy import *
 
-engine = sk.config.spawnEngine(echo=False, globalconn=True)
+engine = sk.config.new_engine(echo=False, globalconn=True)
 
 
 zz = sk.SqlMask(table='euro_user', nick='zz')

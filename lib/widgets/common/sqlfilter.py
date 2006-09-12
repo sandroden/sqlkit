@@ -3,6 +3,7 @@ import layout
 import layout.misc
 import completion
 import dbg
+import re
 import sqlalchemy
 import sqlkit as sk
 
@@ -20,6 +21,7 @@ class FilterPanel(object):
         self.master = master
         self.get_layout(visible=visible)
         self.row =0  # counter for position of fields
+        self.default_reload = True
         
     def get_layout(self, visible=True):
         """create the filter panel widget"""
@@ -76,8 +78,17 @@ class FilterPanel(object):
         else:
             display = True
             
-        self.master.reload(sql=sql, limit=self.get_limit(), display=display )
-
+        if self.default_reload:
+            dbg.write('default.reload', self.default_reload)
+            self.master.reload(sql=sql, limit=self.get_limit(), display=display )
+            self.sqlData = self.master.sqlData
+        else:
+            res = self.master.session.query(self.mapper).select(
+                sql[0], params=sql[1], limit=self.get_limit())
+            self.sqlData = sk.sqldata.SqlData(res, self.map_fields,
+                                              self.master.session)
+#            self.sqlData.fields(['user_id','user_name','mail_user_id'])
+#            self.sqlData.printall()
         if 'TV=out' in self.w:
             self.fill_model()
             self.w['N.0'].set_current_page(1)
@@ -88,34 +99,112 @@ class FilterPanel(object):
         #print self.sql()
     
     
+    def set_reload(self, mapper=None, join=None, tables=None):
+        """A different method to filter & select is provided
+        the scenario is that you have many synced sqlwidgets, you want to provide the
+        possibility to select a record in a table with different records in other
+        tables and be able to select one particular pair of them from the
+        filter tree.
+
+        You need to pass a join to issue the select on and a method in
+        actions called 'on_filter_reload' to wich is passed only an
+        argument: a dictionary with all the attributes of the collected
+        record.
+
+        If you pass tables to set_reload, each table is autoloaded and joined
+        to the preceding. The returned join is used.
+        
+        """
+        self.default_reload = False
+
+        if tables:
+            if isinstance(tables, str):
+                T = {}
+                tables = re.split('[ ,]+',tables)
+                for tbl in tables:
+                    T[tbl] = sqlalchemy.Table(
+                        tbl, self.master.engine, autoload=True)
+
+                print "DBGGG", tables, tables[1:]
+                for tbl in tables[1:]:
+                    print "DBG", tbl
+                    join = T[tables[0]].join(T[tbl])
+                    print join
+                
+        if join:
+            class Join(object): pass
+            mapper = sqlalchemy.mapper(Join, join)
+
+        self.mapper = mapper
+        self.map_fields = sk.minspect.InspectMapper(mapper)
+
     def fill_model(self):
         """Fill the treeview with a clickable list """
         attr = self.master.completion._add_descriptor_fields(
             mode='ret', table_name = self.master.fields.get_primary_table())
+        if self.master.filter == True:
+            fmt = "%%(%s)s" % attr
+        elif isinstance(self.master.filter, list):
+            fmt = ["%%(%s)s" % f for f in self.master.filter]
+            fmt = " - ".join(fmt)
+            attr = self.master.filter[0]
+        else:
+            fmt = self.master.filter
+            
 
         self.model.clear()
-        for i, v in enumerate(self.master.sqlData.pointers):
-            R = self.master.sqlData.get(index=i)
-            self.model.append(None, [i, R[attr]])
-            
+        iter = {}
+        for i, v in enumerate(self.sqlData.pointers):
+            R = self.sqlData.get(index=i)
+            #dbg.write("R", R)
+            if R[attr] not in iter:
+                iterR = self.model.append(None)
+                self.model.set(iterR,
+                               0, i,
+                               1, fmt % R
+                               )
+                iter[R[attr]] = iterR
+            else:
+                iterR = self.model.append(iter[R[attr]])
+                self.model.set(iterR,
+                               0, i,
+                               1, fmt % R
+                               )
+        
+        self.tv_resize()
+
+    def tv_resize(self):
+        tv = self.w['TV=out']
+        tv.realize()
+        X, Y, width, height, bit = tv.window.get_geometry()
+        if height < 100:
+            tv.set_property('height-request', 300)
             
     def tv_changed_cb(self, *args):
         # when clicking om the teeview we get 2 args: treeView, event
-        # when changing selection we nly have 1 arg: gtk.treeSelection
+        # when changing selection we only have 1 arg: gtk.treeSelection
         # when clicking 'Refresh' we get e gtk.TreeSelection but no
         #      iter get selected
 
+        ## first guess: we selected w/ pointer
         model, iter = self.selection.get_selected()
+        ## we don't have a selection
         if not iter:
             try:
+                ## we moved along the treeview w/ arrows
                 wdg, ev = args
                 iter = model.get_iter(wdg.get_path_at_pos(int(ev.x), int(ev.y))[0])
-            except ValueError: # deselecting when clicking 'reload'
+            except ValueError:
+                ## deselecting when clicking 'reload'
                 return
             
         idx = self.model.get_value(iter, 0)
-        self.master.record_display(index=int(idx))
-
+        # dbg.write("index=%s" %int(idx))
+        if self.default_reload:
+            self.master.record_display(index=int(idx))
+        else:
+            ## sqlData is local to panel filter in this situation!
+            self.master.actions.on_filter_reload(self.sqlData.get(index=int(idx)))
     
 ##### handling
     def hide(self, wid, ev=None):

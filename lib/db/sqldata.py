@@ -7,7 +7,7 @@
 import sys
 import sqlalchemy
 import dbg
-import inspect
+import minspect as inspect
 
 
 
@@ -49,7 +49,10 @@ class SqlData(object):
         #for t in tables:
         #    dbg.write("Table: %s => %s" % (t, mapper_info.table_fields(t)))
         
-        
+
+    def __len__(self):
+        return len(self.pointers)
+
     def next(self, mode='dict', fields=None):
         return self.get(mode=mode, fields=fields, incr = 1)
     

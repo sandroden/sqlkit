@@ -15,6 +15,7 @@ import sys, re, datetime, os
 import os
 from ConfigParser import ConfigParser
 
+#sys.path.insert(0,'/usr/src/sqlalchemy/lib/')
 Dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(Dir, '../../'))
 import dbg
@@ -98,7 +99,7 @@ class choice(object):
             
 
     def fill_model(self):
-        tables = sk.inspect.list_tables(eng=engine)
+        tables = sk.minspect.list_tables(eng=engine)
         tables.sort()
         for table in tables:
             if table.startswith('pg_'):
@@ -144,6 +145,18 @@ def get_engine():
     sa.global_connect(option.url)
     return sa.default_metadata.engine
    
+def open_sqlwidget(table, single):
+    opts ={'table' : table,
+           'engine' : engine,
+           'dev' : option.dev,
+           'single' : single,
+           'nick' : table
+           }
+    if option.mask:
+        sk.SqlMask(**opts)
+    else:
+        sk.table.table.SqlTable(**opts)
+
 ###### Program
 
 #table_name = None
@@ -175,16 +188,13 @@ engine = sa.default_metadata.engine
 
 
 if option.table:
-    opts ={'table' : option.table,
-           'engine' : engine,
-           'dev' : option.dev,
-           'single' : True,
-           'nick' : option.table
-           }
-    if option.mask:
-        sk.SqlMask(**opts)
-    else:
-        sk.table.table.SqlTable(**opts)
+    tables = re.split('[ ,]+', option.table)
+    for t in tables:
+        if len(tables) > 1:
+            single = False
+        else:
+            single = True
+        open_sqlwidget(t, single)
 else:
     C = choice(engine=engine)    
 

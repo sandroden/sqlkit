@@ -1,5 +1,5 @@
 from sqlalchemy import *
-import sqlkit.inspect as inspect
+import sqlkit.minspect as minspect
 import dbg.gtk_dbg
 import re
 
@@ -53,11 +53,11 @@ def inspect_mapper(mapper, noup=None, mode=None):
     # A mapper created using .join or .outerjoin from one table
 
     if isinstance(mapper.local_table, sql.Join):
-        m=inspect.InspectJoinMapper(mapper, noup=noup, mode=mode)
+        m=minspect.InspectJoinMapper(mapper, noup=noup, mode=mode)
     # A mapper of a single table or a mapper creater with 'properties' option
     # that results in a Lazy/Eager load  one
     else:
-        m=inspect.InspectMapper(mapper, noup=noup, mode=mode)
+        m=minspect.InspectMapper(mapper, noup=noup, mode=mode)
     return m
 
 def join_table_old(tables, engine=None, master=None,  mode='outer'):
@@ -76,7 +76,7 @@ def join_table_old(tables, engine=None, master=None,  mode='outer'):
     T0 = tbl[tables[0]]
     T1 = tbl[tables[1]]
 
-    join_cnd = inspect.get_join_cnd([ T0, T1 ] )
+    join_cnd = minspect.get_join_cnd([ T0, T1 ] )
     J = T0.outerjoin(T1, *join_cnd)
     m = mapper(JoinAuto, J)
     return m
@@ -125,7 +125,7 @@ def join2tables(t1, t2, engine, mode='outerjoin'):
         T2_ret = False
         T2 = t2
 
-    join_cnd = inspect.get_join_cnd([ T1, T2 ] )
+    join_cnd = minspect.get_join_cnd([ T1, T2 ] )
     #dbg.write("join condition (%s -%s): %s" % (T1, T2, join_cnd))
     if mode in ('innerjoin', 'inner'):
         dbg.write('join... non outer')

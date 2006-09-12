@@ -9,7 +9,7 @@ import gtk
 
 from sqlalchemy import *
 
-engine = sk.config.spawnEngine(echo=False)
+engine = sk.config.new_engine(echo=False)
 
 
 zz = sk.SqlMask (table='euro_user', engine=engine, nick='user')

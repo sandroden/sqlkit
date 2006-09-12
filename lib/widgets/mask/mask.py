@@ -1,6 +1,6 @@
 import sys, re, datetime
 #import config
-import inspect
+#import inspect
 #import common
 import layout
 import layout.dateedit as dateedit
@@ -13,7 +13,7 @@ import dbg.gtk_dbg
 import sqlkit
 import sqlkit.sqlfilter as sqlfilter
 import sqlkit.sqldata as sqldata
-import sqlkit.inspect as inspect
+#import sqlkit.inspect as sinspect
 import sqlkit.validator as validator
 import sqlkit.parseopts as parseopts
 import sqlkit.completion as completion
@@ -22,6 +22,7 @@ import decimal
 import sqlkit
 
 class FieldNotInLayout(Exception): pass
+class FieldValueNotSet(Exception): pass
 
 #NOT_NULL_COLOR = gtk.gdk.color_parse('yellow')
 NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
@@ -57,7 +58,7 @@ class SqlMask (sqlwidget.SqlWidget):
         except:
             raise
             self.sb("no data to browse")
-            dbg.write("%s NO DATA to DISPLAY 1, skipping any sync" % self.nick)
+            #dbg.write("%s NO DATA to DISPLAY 1, skipping any sync" % self.nick)
             self.clear()
             return None
         #dbg.write("data_in", data_in)
@@ -65,14 +66,14 @@ class SqlMask (sqlwidget.SqlWidget):
         msg_info = "record %s/%s" % (idx , self.sqlData.count())
 
         self.clear()
-        dbg.write('values', self.values)
+        #dbg.write('values', self.values)
 
         if not data_in:
             if incr > 0:
                 self.sb('Already last ' + msg_info)
             else:
                 self.sb('Already first ' + msg_info)
-            dbg.write("%s NO DATA to DISPLAY 2" % self.nick)
+            #dbg.write("%s NO DATA to DISPLAY 2" % self.nick)
             
             #return None
         else:
@@ -111,7 +112,14 @@ class SqlMask (sqlwidget.SqlWidget):
         if self.fields[field_name]['fkey'] and field_name.endswith('_id'):
             #if field_name == 'a_id':
             #    dbg.write("nick: %s - self.values[%s] = %s" % (self.nick, field_name, field_value))
-            self.values[field_name] = field_value
+            if field_value is None:
+                try:
+                    del self.values[field_name]
+                except KeyError:
+                    pass
+            else:
+                self.values[field_name] = field_value
+
             field_value = self.completion._lookup_value(field_name, field_value)
 
         #dbg.write( "name: %s type: %s" % ( field_name, self.fields[field_name] ))
@@ -119,6 +127,7 @@ class SqlMask (sqlwidget.SqlWidget):
         if isinstance (widget, gtk.Entry):
             if field_value == None:
                 field_value = ''
+            #dbg.write("widget.set_text( str(%s))" % field_value, field_name )
             widget.set_text( str(field_value) )
         # Dates
         elif isinstance (widget, dateedit.DateEdit):
@@ -126,7 +135,7 @@ class SqlMask (sqlwidget.SqlWidget):
 
 
         # Text
-        if isinstance (widget, gtk.TextView):
+        elif isinstance (widget, gtk.TextView):
             if field_value is None:
                 field_value = ''
                 
@@ -142,18 +151,23 @@ class SqlMask (sqlwidget.SqlWidget):
             widget.set_active(field_value)
             #dbg.write("%s: %s" % (field_value, widget.get_active()))
 
-        return # self._get_value(field_name)
+        else:
+            raise FieldValueNotSet(
+                "_set_value does not know how to handle %s - (%s) and %s" % \
+                (field_name, field_value, widget.__class__))
         
-    def _get_value(self, field_name, data=False):
+    def _get_value(self, field_name, data=False, shown=False):
         """return the data for field_name
         in case self.values[field_name] exists, it gets that value instead
 
         data: boo - in case of a field not shown (es.: user_id) look for the value
               in self.data_in
+        shown: If true the value is returned as is shown: ie: if an id is
+               substituted by a lookup value, this latter value is returned
         """
 
         if field_name not in self.mwidgets:
-            dbg.write("%s Non in mwidgets %s" % (field_name, self.mwidgets.keys()))
+            #dbg.write("%s Non in mwidgets %s" % (field_name, self.mwidgets.keys()))
             if data:
                 # print self.nick, "CHIESTO", field_name,"->", self.data_in[field_name]
                 try:
@@ -169,11 +183,12 @@ class SqlMask (sqlwidget.SqlWidget):
         widget = self.mwidgets[field_name]
 
         ## give a try if we have stored a value
-        try:
-            #dbg.write('Accontentato con values', self.values[field_name], self.values.keys())
-            return self.values[field_name]
-        except:
-            pass
+        if shown is False:
+            try:
+                #dbg.write('Accontentato con values', self.values[field_name], self.values.keys())
+                return self.values[field_name]
+            except:
+                pass
         
         # Entry
         if isinstance (widget, gtk.Entry):
@@ -213,8 +228,6 @@ class SqlMask (sqlwidget.SqlWidget):
     def record_save(self, ev, constraint={}, *args):
         """invokes the validator before UPDATE/INSERT a record"""
         ## FIXME: validator
-        ## FIXME: passare da table -> mapper
-    
         
         #         if self.valid is not None:
         #             v = self.valid (self.table, record)
@@ -254,7 +267,7 @@ class SqlMask (sqlwidget.SqlWidget):
                    #                                value, self.data_in[field_name]))
                    R[field_name] = value
 
-        #dbg.write(R)
+        dbg.write("R", R)
         if R.keys():
             R.update(self.constraint)
             R.update(constraint)
@@ -263,7 +276,24 @@ class SqlMask (sqlwidget.SqlWidget):
 
         self.commit()
         self.record_save_sync()
+        
     def record_save_sync(self):
+        for w, value in self.sync_dict.iteritems():
+            w.sync_unblock()
+            dbg.write(w, value)
+            DIR, sql, fields_dict = value
+            val = {}
+            rdict = self.sqlData.get()
+            dbg.write('rdict=',rdict)
+            
+            for name, referenced_name in fields_dict.iteritems():
+                val[referenced_name] = rdict[name]
+
+            w.record_save('', constraint=val)
+#         for z in self.sync_dict:
+#             z.record_save('')
+        
+    def record_save_sync_old(self):
         for w, value in self.sync_dict.iteritems():
             w.sync_unblock()
             dbg.write(w, value)
@@ -312,6 +342,7 @@ class SqlMask (sqlwidget.SqlWidget):
                 pass
             else:
                 if value is not None:
+                    dbg.write("type of %s: %s" % (value, type(value)))
                     value = t(value)
                 
 #             if self.fields[field_name]['is_serial'] and not value:
@@ -321,6 +352,8 @@ class SqlMask (sqlwidget.SqlWidget):
         dbg.write(constraint, R)
         R.update(self.constraint)
         R.update(constraint)
+        self.actions.on_insert(R)
+        
         dbg.write(R)
         
         self.sqlData.add(R)
@@ -345,10 +378,10 @@ class SqlMask (sqlwidget.SqlWidget):
         
         for field_name in self.fields.keys():
             try:
-                self._set_value(field_name, '')
+                self._set_value(field_name, None)
             except FieldNotInLayout, e:
                 pass
-        self.values.clear()
+#        self.values.clear()
 
         ## sync
         for z in self.sync_dict:
@@ -491,10 +524,11 @@ class SqlMask (sqlwidget.SqlWidget):
                 #dbg.write("Per campo: %s manca widget %s" % (field_name, widget))
                 continue
 
-            try:
-                widget.set_property('editable', self.fields[field_name]['edit'])
-            except:
-                widget.set_property('sensitive', self.fields[field_name]['edit']) 
+            widget.set_property('sensitive', self.fields[field_name]['edit']) 
+            # try:
+#                 widget.set_property('editable', self.fields[field_name]['edit'])
+#             except:
+#                 widget.set_property('sensitive', self.fields[field_name]['edit']) 
 
             ## integer
             if field_type in sqlwidget.NUMBERS \
@@ -617,6 +651,7 @@ class Combo(SqlMask):
     
     def get_mapper(self, engine, mapper, tables):
         return parseopts.get_mapper(self.engine, mapper, tables[0])
+    
     def parse_fields(self, fields):
         self.table_field_list = fields
         return SqlMask.parse_fields(self, None)
