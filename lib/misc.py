@@ -68,6 +68,7 @@ class InputStream(object):
     def __init__(self, data):
         self.__data = [ '%s\n' % x for x in data.splitlines() ]
         self.__lcount = 0
+        
     def readline(self):
         try:
             line = self.__data[self.__lcount]
