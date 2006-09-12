@@ -7,7 +7,7 @@ from sqlalchemy import *
 #from layout import *
 import gtk
 
-engine = sk.config.spawnEngine(echo=False)
+engine = sk.config.new_engine(echo=False)
 
 tables=['euro_user', 'euro_mail', 'city']
 order_by=['city_pv','mail_address']

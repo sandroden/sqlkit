@@ -25,8 +25,8 @@ import common
 #import widgets
 #import widgets.table as table
 import table
-import inspect
-import validator
+import minspect 
+#import validator
 import config
 import parseopts
 import sqlwidget

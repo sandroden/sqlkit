@@ -3,6 +3,8 @@
 import sys, re, datetime
 
 sys.path.append ('../../')
+
+from ooffice import opop
 import dbg
 import layout
 dbg.debug(True)
