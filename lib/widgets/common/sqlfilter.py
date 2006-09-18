@@ -125,11 +125,8 @@ class FilterPanel(object):
                     T[tbl] = sqlalchemy.Table(
                         tbl, self.master.engine, autoload=True)
 
-                print "DBGGG", tables, tables[1:]
                 for tbl in tables[1:]:
-                    print "DBG", tbl
                     join = T[tables[0]].join(T[tbl])
-                    print join
                 
         if join:
             class Join(object): pass

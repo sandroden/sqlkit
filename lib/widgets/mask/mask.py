@@ -616,7 +616,9 @@ class SqlMask (sqlwidget.SqlWidget):
 class Combo(SqlMask):
     """
     This is meant to edit a normal situation of header/rows (eg. invoices)
-    table must be a list of two tables that will be synced automatically
+    table must be a list of two tables that will be synced automatically.
+
+    The layout should be explicitally provided.
     """
     def _get_layout(self, lay, naked):
         lay, w = SqlMask._get_layout(self, lay, naked)
@@ -639,6 +641,7 @@ class Combo(SqlMask):
                                         
                                         )
         self.sync_add(self.SqlTable)
+        self.SqlTable.SqlMask = self
         # self.lay_obj.prop('TV=tree', 'height-request', 150)        
 
         if self.sql:

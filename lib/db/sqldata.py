@@ -236,7 +236,7 @@ class SqlData(object):
             pointer = self.pointers[index]
 
         if not pointer:
-            dbg.write('current', self.current)
+            #dbg.write('current', self.current)
             pointer = self.pointers[self.current]
             #dbg.write("uso index self.current: %s" % self.current)
             #raise MissingPointerError('A pointer is needed', pointer)

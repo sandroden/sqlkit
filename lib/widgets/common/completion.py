@@ -142,7 +142,7 @@ class Completion(object):
             #dbg.write("%s %s" % (field_name,field_value))
             ftable, fname = self.master.fields[field_name]['fkey']
             descr_field = self._add_descriptor_fields(
-                mode='return', table_name=ftable)
+                mode='return', referenced_table=ftable, referenced_field=fname)
             if descr_field is None:
                 return field_value
             sql = "SELECT %s FROM %s WHERE %s = :%s" % (
@@ -214,15 +214,19 @@ class Completion(object):
         for R in ret:
             Rl = self.instance2list(R)
             Rd = self.instance2dict(R)
+            #if len(Rl) >= 2:
             if self.master.fields[field_name]['fkey']:
                 ftable = self.master.fields[field_name]['fkey'][0]
-                if ftable in tables and tables[ftable][2]:
+                if ftable in tables and tables[ftable][2] is not None:
                     # we have defined explicitly a format via "str" % dict
                     descr = tables[ftable][2] % Rd
                     listore.append([ Rl[0], Rl[1], descr, Rd ])
-                else:
+                elif len(Rl) > 1:
                     ## default format is all fields joined
                     listore.append([ Rl[0], Rl[1] or '', " - ".join(Rl[1:]), Rd ])
+                else:
+                    listore.append([ Rl[0], Rl[0] , Rl[0], Rd ])
+                    
             else:
                 listore.append([Rl[0], Rd])
 
@@ -253,28 +257,36 @@ class Completion(object):
             
 ### Call back
     def match_selected_cb(self, wdg, model, iter, field_name):
-        """after selecting an entry store the value in self.values and adjust
+        """after selecting an entry store the value in self.values and set
         the entry with the correct value.
         """
-        value = model.get(iter,0)[0]
-        dbg.write('value', value)
-        self.master.set_fkey_value(field_name, value)
-        # note: model.get() returns a tuple, one value each cell on the column
+        # the completion model has 1 or 4 columns (in case of FKey):
+        # 0:  the real value to be put in the db
+        # 1:  the value to be shown in the field
+        # 2:  the value to be shown in the drop down completion menu
+        # 3:  the row return by the SELECT when building the completion
+        #         if more fields are present more columns get written
 
+        value = model.get(iter,0)[0]
+        #self.master.set_fkey_value(field_name, value)
+        if isinstance(self.master, sqlkit.SqlTable):
+            self.master.editable.set_text(str(value))
+        self.master.set_value(field_name, value)
+        dbg.write('value', value)
+
+        ## Let's show a more usefull value than the id. 
         if self.master.fields[field_name]['fkey']:
+            # note: model.get() returns a tuple, one value each cell on the column
             show_value = model.get(iter,1)[0]
             Rd = model.get(iter,3)[0]
-            dbg.write('Rd type', type(Rd))
-            show_value = model.get(iter,1)[0]
             Rd[field_name] = show_value
+
+            dbg.write('Rd', Rd, 'Rd type', type(Rd))
                 
-            #dbg.write("Rd", Rd, field_name)
-            self.set_text(Rd, field_name)
+            self.set_text(Rd, exclude=field_name)
             ## reset the show value
             ##Rd[field_name] = show_value
         else:
-            #show_value = model.get(iter,0)[0]
-            #Rd = {field_name : show_value }
             Rd = {field_name : value }
             self.set_text(Rd)
         
@@ -300,10 +312,14 @@ class Completion(object):
         else:
             #dbg.write(Rd)
             for field_name, value in Rd.iteritems():
-                #dbg.write(field_name, value)
                 if field_name == exclude:
+                    #dbg.write("self.master.editable.set_text(str(value))", value)
+                    #self.master.editable.set_text(str(value))
+                    #dbg.write("%s/%s: continue" % (field_name, value))
                     continue
-                self.master.set_fkey_value(field_name, value)
+                if field_name in self.master.field_list:
+                    #self.master.set_fkey_value(field_name, value)
+                    self.master.set_value(field_name, value)
         return
 
 ### Sql SELECT
@@ -326,80 +342,141 @@ class Completion(object):
         
         ### field is a ForeignKey
         if I['fkey']:
-            sql_dict['table_name'] = I['fkey'][0]
+            ## set the referenced table' staff
+            sql_dict['referenced_table'] = I['fkey'][0]
             sql_dict['field_name'] = I['fkey'][1]
-            self._add_descriptor_fields(sql_dict)
-            sql_dict['field_comp'] = tables[sql_dict['table_name']][0]
-            dbg.dshow(sql_dict)
-            sql = """SELECT DISTINCT %(field_name)s,%(descr)s
-                 FROM %(table_name)s 
-                 WHERE %(field_comp)s %(oper)s :%(field_comp)s
-                 %(completion_constraint)s
-                 ORDER BY %(descr)s
+
+            try:
+                self._add_descriptor_fields(sql_dict)
+            except MissingDescriptorField:
+                pass
+                
+            #sql_dict['field_comp'] = tables[sql_dict['referenced_table']][0]
+            if tables[I['fkey'][0]][0] is not None:
+                sql_dict['descriptor_field'] = tables[sql_dict['referenced_table']][0]
+                sql_dict['order_by'] = re.sub('^,', '',sql_dict['descr'])
+                
+            else:
+                sql_dict['descriptor_field'] = I['fkey'][1]
+                sql_dict['order_by'] = I['fkey'][1]
+                
+            #dbg.dshow(sql_dict)
+            sql = """
+                 SELECT DISTINCT %(field_name)s %(descr)s
+                 FROM %(referenced_table)s 
+                 WHERE %(descriptor_field)s %(oper)s :%(descriptor_field)s
+                     %(completion_constraint)s
+                 ORDER BY %(order_by)s
                  """ % sql_dict
-            dbg.write(sql)
-            exec_dict.update({sql_dict['field_comp'] : sql_dict['val']})
+
+            exec_dict.update({sql_dict['descriptor_field'] : sql_dict['val']})
             exec_dict.update(constraint_params)
         else:
-            sql_dict['table_name'] = I['table_name']
+            sql_dict['referenced_table'] = I['table_name'] 
 
             if I['type'] == int:
                 ## pointless to regexp numbers...
                 sql = """SELECT DISTINCT %(field_name)s
-                FROM %(table_name)s 
+                FROM %(referenced_table)s 
                 ORDER BY %(field_name)s
                 """ % sql_dict
             else:
-                sql = """SELECT DISTINCT %(field_name)s
-                    FROM %(table_name)s 
+                sql = """
+                    SELECT DISTINCT %(field_name)s
+                    FROM %(referenced_table)s 
                     WHERE %(field_name)s %(oper)s :%(field_name)s
-                    %(completion_constraint)s
+                      %(completion_constraint)s
                     ORDER BY %(field_name)s
                     """ % sql_dict
                 exec_dict.update(constraint_params)
 
-        dbg.write(sql, exec_dict)
-        dbg.sql_debug(sql, exec_dict)
+        #dbg.write(sql, exec_dict)
+        #dbg.sql_debug(sql, exec_dict)
 #        s = text(sql, engine=self.mapper.engines[0])
         s = text(sql, engine=self.master.engine)
+        #dbg.write('exec_dict', exec_dict, sql)
         return s.execute(**exec_dict)
-    def _add_descriptor_fields(self, sql_dict=None, mode='add', table_name=None):
+    
+    def _add_descriptor_fields(self, sql_dict=None, mode='add',
+                               referenced_table=None,
+                               referenced_field=None,
+                               ):
+
         """search a possible field descriptor and add it to sql_dict
+
+        This is called by two functions:
+        _lookup_value: to substitute the id with a description (mode=return)
+        select_values: when proposing a list of completion values
+
+        mode: return. If mode='return' the value is returned and only one
+              field_name is returned
+
+              add. Dict sql_dict is added a 'descr' key. more fields can be defined
+              that will be usable in the label (see: set_description_field)
+              In this case 'referenced_table' is a key of sql_dict
+
 
         When displaying data for foreign keys the key that is referenced may be
         a serial or a code. A descriptor field can be shown instead. A default is
         to look for the first field terminating with _name or _descr.
 
+          Overwriting defaults (tables dictionary)
+          
         You can bypass this mechanism writing a comma separated list in
-        sqlkit.completion.tables[table_name] = [field_name[,field_name], [format]]
+        sqlkit.completion.tables[referenced_table] = [field_name[,field_name], [format]]
         use  set_description_fields for this purpouse.
 
         """
         global tables
-        if not table_name:
-            table_name = sql_dict['table_name']
+        ## args parsing
+        if not referenced_table:
+            referenced_table = sql_dict['referenced_table']
             
+        if not referenced_field:
+            referenced_field = sql_dict['field_name']
+            
+        description_field = self.get_description_field(referenced_table)
+        
+        if description_field is not None:
+            ## called from select_values, we also have a possible description
+            if mode == 'add':
+                sql_dict['descr'] = "," + tables[referenced_table][0]
+                if tables[referenced_table][1]:
+                    sql_dict['descr'] += "," + tables[referenced_table][1]
+            else:
+                ## called from lookup_value
+                return description_field 
+        else:
+            if mode == 'add':
+                sql_dict['descr'] = ''
+            else:
+                return referenced_field
+                
+#             txt = "Table %s does not have a descriptor field." % (referenced_table)
+#             txt += "You may set it with function 'set_description_field'" 
+#             tables[referenced_table] = (referenced_field, '')
+    
+    def get_description_field(self, table_name):
+        """look sif a description field is defined, if not use introspection
+        return the description field that can be None
+        """
+        
+        global tables
+        
+        ## first time we meet this table  -> inspect w/ autoload
         if table_name not in tables:
-            table = Table(table_name, self.master.engine, autoload=True)
-            for field_name in table.c.keys():
+            tbl = Table(table_name, self.master.engine, autoload=True)
+            descr_exists = False
+            for field_name in tbl.c.keys():
                 if re.search('_name|_descr', field_name, re.I):
                     tables[table_name] = [field_name, None, None]
+                    descr_exists = True
                     break
+                tables[table_name] = [None, None, None]
+                
+        return tables[table_name][0]
 
-        if table_name in tables:
-            if mode == 'add':
-                sql_dict['descr'] = tables[table_name][0]
-                if tables[table_name][1]:
-                    sql_dict['descr'] += "," + tables[table_name][1]
-            else:
-                return tables[table_name][0]
-        else:
-            txt = "table %s does not have a descriptor field. \
-            you may set it with function 'set_description_field'" % (table_name)
-            tables[table_name] = (None, )
-            raise MissingDescriptorField(txt)
-    
-    
+                          
 ### Misc
     def pop_menu(self, wdg, ev, field_name, num_button):
         #print "pop_menu", wdg, ev
@@ -526,12 +603,15 @@ class Completion(object):
     
 ### Functions
 def set_description_fields(table, descr, add=None, format=None):
-    """Set description field to table 'table
-    format can use any field that have been put in the 'add' field. Eg.:
+    """Set description field to table 'table'
+    add: a comma separated  list of fields that will be added to
+         the SELECT to make them available to format
+         
+    format: can use any field that have been put in the 'add' field. Eg.:
 
-    format = '%(city_name)s (%(city_pv)s - %(city_country)s)'
-    sk.completion.set_description_fields(
-         'city', 'city_name', 'city_pv, city_country', format)
+        format = '%(city_name)s (%(city_pv)s - %(city_country)s)'
+        sk.completion.set_description_fields(
+             'city', 'city_name', 'city_pv, city_country', format)
 
     
     """

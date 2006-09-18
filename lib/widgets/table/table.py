@@ -28,9 +28,6 @@ if sys.hexversion < 0x20401f0:
     
 import gtk, gobject, pango
 
-ALLOW_TWISTED_REBUILD = True
-
-
 class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
     date = None
     def __init__(self, date, pos=None, wdg=None, cell_area=None):
@@ -116,7 +113,7 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
         self.destroy()
         pass
     
-    def delete_event(self, w = None, e = None):
+    def delete_event(self,w = None, e = None):
         self.date=self.cal.get_date()
         self.emit('editing-done')
         self.w.destroy()
@@ -541,7 +538,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 mods.append(prefix)
 
         ksym = '_'.join(mods + [ksym])
-        dbg.write('ksym', ksym, 'mods', mods)
+        #dbg.write('ksym', ksym, 'mods', mods)
         
         if ksym in dir(self):
             return getattr(self, ksym)(wdg, event, data)
@@ -680,31 +677,20 @@ class SqlTable(sqlwidget.SqlWidget):
             dbg.write('deleting raw...')
             return True
 
-        ## in this case the  by 'set_fkey_value' in the liststore
-        ## in the cell the value is setvalue is set by self.set_fkey_descr
-        ## called by set_cell_data_func
-        
-        if self.fields[field_name]['fkey']:
-#             if new_text == '':
-#                 self.set_fkey_value(field_name, None)
-            return True
-        
         if self.model_path is None:
-            #dbg.write('non salvo il valore')
             return True
-        else:
-            pass
-            #dbg.write('model_path:', self.model_path)
-#         dbg.write('salvo il valore', new_text, field_name,
-#                   'rowCommit:', self.rowCommit)
+
         self.set_value(field_name, new_text, path)
+        return True
     
     def text_editing_started(self, cell, editable, path, field_name):
         #field_type = self.coltypes[col+1]
         field_type = self.fields[field_name]['type']
+        self.editable = editable
         #field_name = self.field_list[col]
         field_props = self.fields[field_name]
         if field_type == str or field_props['fkey']:
+            #dbg.write('editable', editable)
             #dbg.write("aggiungo <3> per %s type: %s fkey: %s editable: %s" % (
             #    field_name, field_type, field_props['fkey'], editable))
             editable.connect('button-press-event',self.completion.pop_menu,
@@ -793,7 +779,7 @@ class SqlTable(sqlwidget.SqlWidget):
             mode = 'UPDATE'
             if index is None:
                 mode = 'INSERT'
-            dbg.write('mode=',mode, 'index=', index)
+            #dbg.write('mode=',mode, 'index=', index)
         except IndexError, e:
             dbg.write('Era IndexError')
             mode = 'UPDATE'
@@ -816,7 +802,6 @@ class SqlTable(sqlwidget.SqlWidget):
             
             
         rdict = self.path2dict(self.model_path, mode=mode)
-        
         if constraint:
             self.constraint=constraint
         #dbg.write('self.constraint', self.constraint)
@@ -836,7 +821,7 @@ class SqlTable(sqlwidget.SqlWidget):
             #self.sqlData.set(rdict, index=int(self.model_path))
             self.sqlData.current = self.path2sqldata_index(self.model_path)
             self.sqlData.set(rdict)
-        dbg.write('ora committo')
+        #dbg.write('ora committo')
         self.commit()
         ### refresh the data
         idx=self.sqlData.current
@@ -886,9 +871,13 @@ class SqlTable(sqlwidget.SqlWidget):
                                          
     def set_value(self, field_name, value, path=None):
         """ called from within edited signal. Validation should live here"""
+
+        #dbg.show_caller(loc=False)
+        #dbg.write('field_name:', field_name, 'value:', value)
         if not path:
             path = self.get_selected_row()
-            
+
+        
         ptype = self.fields[field_name]['type']
         #dbg.write("type", ptype)
         try:
@@ -902,12 +891,9 @@ class SqlTable(sqlwidget.SqlWidget):
             #dbg.write( self.coltypes[colnum])
             data = str(value)
 
-        #dbg.write('self.liststore[%s][self.fname2model_col(%s)] = %s | %s' % (
-        #    path, field_name, data, len(self.liststore)))
-        try:
-            self.liststore[path][self.fname2model_col(field_name)] = data
-        except:
-            raise
+        idx = self.fname2model_col(field_name)
+        #dbg.write("self.liststore[%s][%s] = %s" % (path, idx, data))
+        self.liststore[path][idx] = data
         return True
     
     def get_selected_row(self):
@@ -1005,33 +991,16 @@ class SqlTable(sqlwidget.SqlWidget):
 
 #### completion
     def set_fkey_value(self, field_name, value):
-        ## field_name may not be in field_list becouse it was used in the
-        ## description of the drop down, 
-        if field_name not in self.field_list:
-            #dbg.write('abbandono', field_name)
-            return
+        
+        self.set_value(field_name, value)
 
-        idx = self.fname2model_col(field_name)
-        self.liststore[self.model_path][idx] = value
-        
-        return
-        #dbg.write(field_name, value, self.model_path)
-        try:
-            #idx = self.field_list.index(field_name)
-            idx = self.fname2model_col(field_name)
-            dbg.write(idx)
-            self.liststore[self.model_path][idx] = value
-            dbg.write('value', self.liststore[self.model_path][idx] )
-        except ValueError:
-            raise
-            #dbg.write('Value Error')
-            pass
-        
-        #self.model_path = None
-    
-    def set_fkey_descr(self, column, cell, tree, iter, i):
-        #dbg.write(dbg.caller(level=3))
-        fkey = tree.get(iter, i+1)[0]
+    def set_fkey_descr(self, column, cell, model, iter, i):
+        """cell_data_function used by column that have fkey
+        """
+        #dbg.show_caller(loc=False)
+        fkey = model.get(iter, i+1)[0]
+        path = model.get_path(iter)
+        #dbg.write("FKEY", fkey, path, i+1)
         field_name = self.field_list[i]
         value = self.completion._lookup_value(field_name, fkey)
         #dbg.write(i, field_name, fkey, value)

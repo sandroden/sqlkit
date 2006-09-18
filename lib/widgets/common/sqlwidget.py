@@ -364,7 +364,7 @@ class SqlWidget(object):
     def commit(self):
         PREV = self.engine.echo
         if dbg.debug() > 1:
-            dbg.write('dbg.debug()', dbg.debug())
+            #dbg.write('dbg.debug()', dbg.debug())
             pass
             self.engine.echo = True
             
@@ -429,7 +429,7 @@ class SqlWidget(object):
 
             ## bind_params
             for field_name in fields_dict.keys():
-c                val[field_name] = self._get_value(field_name, data=True)
+                val[field_name] = self._get_value(field_name, data=True)
 
             #dbg.write(sql, val)
 #            w.reload(  sql =  (and_(*[sql]),val)   )
