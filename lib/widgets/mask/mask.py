@@ -88,7 +88,6 @@ class SqlMask (sqlwidget.SqlWidget):
             self.status = self.sqlData.get_current()
 
         self.sync()
-        #dbg.write()
         self.actions.on_record_display(new=data_in)
         #sqlwidget.SqlWidget.record_display(self, new=data_in)
         

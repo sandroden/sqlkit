@@ -247,6 +247,7 @@ class InspectMapper(dict):
     
     def get_mapper(self, table_name):
         """return the mapper of that table"""
+        dbg.write('table_mappers', self.table_mappers)
         return self.table_mappers[table_name][1]
     
 #     def mapper(self, table_name):

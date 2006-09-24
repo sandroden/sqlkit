@@ -21,8 +21,6 @@ sys.path.append(os.path.join(Dir, '../../'))
 import dbg
 import layout
 import sqlalchemy as sa
-import sqlkit as sk
-import layout.misc
 import gtk
 import misc.optionparse as optionparse
 
@@ -93,9 +91,15 @@ class choice(object):
            'nick' : table
            }
         if mode == 'mask':
-            sk.SqlMask(**opts)
+            try:
+                sk.SqlMask(**opts)
+            except sk.completion.MissingDescriptorField:
+                pass
         else:
-            sk.table.table.SqlTable(**opts)
+            try:
+                sk.table.table.SqlTable(**opts)
+            except sk.completion.MissingDescriptorField:
+                pass
             
 
     def fill_model(self):
@@ -153,9 +157,17 @@ def open_sqlwidget(table, single):
            'nick' : table
            }
     if option.mask:
-        sk.SqlMask(**opts)
+        try:
+            sk.SqlMask(**opts)
+        except sk.completion.MissingDescriptorField:
+            pass
+
     else:
-        sk.table.table.SqlTable(**opts)
+        try:
+            sk.table.table.SqlTable(**opts)
+        except sk.completion.MissingDescriptorField:
+            pass
+            
 
 ###### Program
 
@@ -166,6 +178,9 @@ if not args and not option: optionparse.exit()
 
 if option.gtk_debug:
     dbg.ShowLogs(show=True)
+
+import sqlkit as sk
+import layout.misc
 
 if args:
     if re.search('://', args[0]):

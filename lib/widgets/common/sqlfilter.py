@@ -138,7 +138,7 @@ class FilterPanel(object):
     def fill_model(self):
         """Fill the treeview with a clickable list """
         attr = self.master.completion._add_descriptor_fields(
-            mode='ret', table_name = self.master.fields.get_primary_table())
+            mode='ret', referenced_table = self.master.fields.get_primary_table())
         if self.master.filter == True:
             fmt = "%%(%s)s" % attr
         elif isinstance(self.master.filter, list):

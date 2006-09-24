@@ -130,6 +130,7 @@ class Completion(object):
         wdg.emit('key-press-event',event)
 
         
+
 ### What to show
     def _lookup_value(self, field_name, field_value):
         """retrieve the value in a lookup table in case of foreign_key
@@ -162,6 +163,7 @@ class Completion(object):
         return value
     
     
+
 ### Filling the completion
     def match_func(self, completion, key, iter, func_data):
         column, mode = func_data
@@ -255,6 +257,7 @@ class Completion(object):
             print listore.get(iter,0), listore.get(iter,1), listore.get(iter,3)
             j += 1
             
+
 ### Call back
     def match_selected_cb(self, wdg, model, iter, field_name):
         """after selecting an entry store the value in self.values and set
@@ -432,7 +435,7 @@ class Completion(object):
         if not referenced_table:
             referenced_table = sql_dict['referenced_table']
             
-        if not referenced_field:
+        if not referenced_field and sql_dict:
             referenced_field = sql_dict['field_name']
             
         description_field = self.get_description_field(referenced_table)
@@ -477,6 +480,7 @@ class Completion(object):
         return tables[table_name][0]
 
                           
+
 ### Misc
     def pop_menu(self, wdg, ev, field_name, num_button):
         #print "pop_menu", wdg, ev
@@ -565,7 +569,7 @@ class Completion(object):
         
         if ksym in dir(self):
             return getattr(self, ksym)(wdg, event, data)
-
+    
     def key_entry_F1(self, wdg, event, data):
         self.show_possible_values(wdg, field_name=data, mode='regexp')
         return True
@@ -601,6 +605,7 @@ class Completion(object):
         if response == gtk.RESPONSE_OK:
             dialog.destroy()
     
+
 ### Functions
 def set_description_fields(table, descr, add=None, format=None):
     """Set description field to table 'table'
@@ -620,7 +625,6 @@ def set_description_fields(table, descr, add=None, format=None):
     global tables
     tables[table] = (descr, add, format)
     
-
 def get_description_fields(table):
     """Set description field to table 'table"""
     global tables

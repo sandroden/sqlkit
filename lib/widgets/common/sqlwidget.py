@@ -80,7 +80,6 @@ class SqlWidget(object):
         self.block = False
         self.icons = icons
         self.filter = filter
-        self.nick= nick
         self.xml = xml
         self.dev = dev
         # used in self.reload() to prevent expose loop 
@@ -97,6 +96,7 @@ class SqlWidget(object):
         if table and not tables:
             tables = table
         self.tables = tables
+        self.nick= self.get_nick(nick)
         self.mapper = self.get_mapper(self.engine, mapper, tables)
         self.mode = mode
         self.fields = parseopts.inspect_mapper(self.mapper, noup=noup, mode=mode)
@@ -162,6 +162,11 @@ class SqlWidget(object):
         actions.master = self
         return actions
     
+    def get_nick(self, nick):
+        if not nick:
+            nick = self.tables
+        return nick
+            
     def get_engine(self, engine, mapper):
         if not engine:
             if mapper:
@@ -377,6 +382,7 @@ class SqlWidget(object):
         self.engine.echo = PREV
     
     def SQLErrorHandler(self, e):
+        self.message(type='error', text=str(e.orig))
         self.sb(e.orig)
         dbg.write("Scritto %s su sb" % (e.orig))
             
@@ -477,13 +483,12 @@ class SqlWidget(object):
         dialog.show_all()
         return dialog
     
-    def message(self, type='question', text='', title=''):
+    def message(self, text='', type='question'):
         self.response = None
-        dialog, l = self.lay_obj.message(title=title, text=text,
-                                        type=type, show=False)
-        dialog.connect('response', self.response_cb )
-#        dialog.show_all()
-        dialog.run()
+        dialog, l = self.lay_obj.message(text=text, type=type)
+        #dialog.connect('response', self.response_cb )
+        self.response = dialog.run()
+        dialog.destroy()
         return dialog
     
     def response_cb(self, dialog, butt_id):
@@ -592,6 +597,7 @@ class SqlWidget(object):
         #SubMenu.append(Item1)
     
     def print_fill_submenu(self, item, sub):
+        print "print_fill", self.nick
         try:
             a = self.printing_menu_filled
             return
@@ -609,7 +615,7 @@ class SqlWidget(object):
 
         if not templates:
             item = gtk.MenuItem("No templates for nick '%s' in %s" %
-                                (self.nick, template_dir) )
+                                (self.nick.replace('_','__'), template_dir) )
             sub.append(item)
             
         sub.show_all()

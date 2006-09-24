@@ -669,10 +669,10 @@ class SqlTable(sqlwidget.SqlWidget):
         return True
     
     def edited_signal(self, cell, path, new_text, field_name):
+
         """called by connect 'edited' on cell_renderer """
+
         ## NOTE: liststore.clear will trigger edited_signal!!!
-        #dbg.write('')
-        #dbg.show_caller()
         if self.deleting_row:
             dbg.write('deleting raw...')
             return True
@@ -684,15 +684,11 @@ class SqlTable(sqlwidget.SqlWidget):
         return True
     
     def text_editing_started(self, cell, editable, path, field_name):
-        #field_type = self.coltypes[col+1]
+
         field_type = self.fields[field_name]['type']
         self.editable = editable
-        #field_name = self.field_list[col]
         field_props = self.fields[field_name]
         if field_type == str or field_props['fkey']:
-            #dbg.write('editable', editable)
-            #dbg.write("aggiungo <3> per %s type: %s fkey: %s editable: %s" % (
-            #    field_name, field_type, field_props['fkey'], editable))
             editable.connect('button-press-event',self.completion.pop_menu,
                            field_name, 3)
             editable.connect('key-press-event',
@@ -706,7 +702,6 @@ class SqlTable(sqlwidget.SqlWidget):
                 
         self.model_path = path
         self.rowCommit = True
-        #dbg.write('model_path', path, 'len', len(self.liststore))
         return True
     
 
@@ -768,9 +763,24 @@ class SqlTable(sqlwidget.SqlWidget):
         #sqlwidget.SqlWidget.record_display(new)
         
     def record_save(self, ev = None, constraint={}):
-        #dbg.write('')
-        #dbg.show_caller()
-        #rdict = self.path2dict(self.get_idx_of_selected_row())
+
+        """save the record. Uses path2dict: see there to understand the value handling
+
+         Detects if any editing has been done consulting self.model_path set
+         by text_editing_started.
+
+         Detects if INSERT or UPDATE mode by analizing if the liststore has a
+         value in column 0 (should be the index of sqlData)
+
+         constraint: this is a dictionary of values that are enforced. When two
+         sqlwidgets are synced is the way the 'master' adds the foreign key
+         constraint.
+
+         Constraints are applied *after* path2dict handling and before
+         actions.on_update / actions.on_insert
+
+        """
+
         if self.model_path is None: # no editing done
             return
         
@@ -779,57 +789,44 @@ class SqlTable(sqlwidget.SqlWidget):
             mode = 'UPDATE'
             if index is None:
                 mode = 'INSERT'
-            #dbg.write('mode=',mode, 'index=', index)
         except IndexError, e:
             dbg.write('Era IndexError')
             mode = 'UPDATE'
-            print e
             return
 
-#        dbg.write("MODE:", mode, 'index', index)
-
-#         if index is None:
-#              mode = 'INSERT'
-        
-        #dbg.write('model.path', self.model_path, 'index', index)
-
-
-#             mode = 'INSERT'
-#         if int(self.model_path) > self.sqlData.count() - 1:
-#             mode ='INSERT'
-#         else:
-#             mode = 'UPDATE'
-            
             
         rdict = self.path2dict(self.model_path, mode=mode)
-        if constraint:
-            self.constraint=constraint
-        #dbg.write('self.constraint', self.constraint)
-        rdict.update(self.constraint)
-        #dbg.write('RDICT', rdict)
+
+        ## 
         if not rdict:
             self.model_path = None
-            dbg.write('Model_Path', self.model_path)
             return
+
+        ## Applying constraint *after* check that I inserted something
+        if constraint:
+            self.constraint=constraint
+
+        rdict.update(self.constraint)
         
         if mode == 'INSERT':
+            self.actions.on_insert(new=rdict)
             dbg.write("INSERTING record", rdict)
             self.sqlData.add(rdict)
-        else:
+
+        elif mode == 'UPDATE':
             self.actions.on_update(new=rdict, old=self.sqlData.get())
-            #dbg.write("UPDATING record", rdict)
             #self.sqlData.set(rdict, index=int(self.model_path))
             self.sqlData.current = self.path2sqldata_index(self.model_path)
             self.sqlData.set(rdict)
-        #dbg.write('ora committo')
+
         self.commit()
+
         ### refresh the data
         idx=self.sqlData.current
         self.liststore[self.model_path][0] = idx
         self.model_path = None
-        #dbg.write('IDX', idx, type(idx))
         self.record_display(index=idx)
-        #dbg.write(self.sqlData.get(index=idx))
+
         
     def record_delete(self, widget=None):
         """Delete a row and corresponding record"""
@@ -911,18 +908,25 @@ class SqlTable(sqlwidget.SqlWidget):
         return self.liststore[path][0]
     
     def path2dict(self, path, mode=None):
-        #dbg.write()
-        #dbg.write(self.liststore[path])
-        #dbg.ddir(self.liststore[path])
+
+        """return a dict from a given path of the listore. Field_name in keys.
+
+        Takes care of a minimal value handling:
+           * numbers become None if empty
+           * not editable entries are discarded
+           * in UPDATE mode only changed values are returned
+           * in INSERT mode None and empty values are discarded
+           * in INSERT mode False boolean value are discarded (that's the
+                       default for checkbox cell)
+
+        """
+
         rdict = dict(map(None, self.field_list, list(self.liststore[path])[1:]))
 
         if mode == 'UPDATE':
             index = self.path2sqldata_index(path)
             orig = self.sqlData.get(index=index)
-            #dbg.dshow(orig, name='orig')
             
-        #dbg.dshow(rdict, name='rdict')
-
         for k in rdict.keys():
             ## For numbers we use 'object' column in listore.
             ## An empty str '' is really 'None'
@@ -930,34 +934,26 @@ class SqlTable(sqlwidget.SqlWidget):
                 if rdict[k] in ('', None):
                     rdict[k] = None
                 else:
-                    #dbg.write('%s - type: %s' % (k, type(rdict[k])))
                     rdict[k] = self.fields[k]['type'](rdict[k])
                 
-#             if mode == 'INSERT':
-#                 continue
-            
             ## let's get rid of key/value NULL or not updated
             if not self.fields[k]['edit']:
-                #dbg.write(k, "NON EDITABILE")
                 del rdict[k]
                 continue
                 
             if mode == 'UPDATE' and  orig[k] == rdict[k]:
-                #dbg.write(k, "Skip :: orig: %s = rdict: %s" % (orig[k], rdict[k]))
                 del rdict[k]
                 continue
 
             ## when inserting we only pass by NOT NULL values
             if mode == 'INSERT' and k in rdict:
                 if rdict[k] is None:
-                    #dbg.write("ELIMINO", k, rdict[k])
                     del rdict[k]
                 elif rdict[k] == '' and self.fields[k]['type'] == str:
-                    #dbg.write("ELIMINO per str", k, rdict[k])
+                    del rdict[k]
+                elif rdict[k] == False and self.fields[k]['type'] == bool:
                     del rdict[k]
 
-                #dbg.write("orig: %s-%s, rdict: %s-%s" % (
-                #    (orig[k], type(orig[k]), rdict[k], type(rdict[k]))))
         return rdict
     
     
