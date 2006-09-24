@@ -292,7 +292,7 @@ class SqlWidget(object):
             self.lay_obj.prop('O.tool', 'toolbar_style','GTK_TOOLBAR_ICONS')
     
 
-####### Record browsing & saving
+####### Saving
     def record_delete(self, widget=None):
         """invokes the validator before DELETing a record"""
         pass
@@ -305,6 +305,28 @@ class SqlWidget(object):
         """
         pass
     
+    def commit(self):
+        PREV = self.engine.echo
+        if dbg.debug() > 1:
+            #dbg.write('dbg.debug()', dbg.debug())
+            pass
+            self.engine.echo = True
+            
+        try:
+            self.session.flush()
+        except exceptions.SQLError, e:
+            print e
+            self.SQLErrorHandler(e)
+
+        self.engine.echo = PREV
+    
+    def SQLErrorHandler(self, e):
+        self.message(type='error', text=str(e.orig))
+        self.sb(e.orig)
+        dbg.write("Scritto %s su sb" % (e.orig))
+            
+
+####### Record browsing 
     def clear(self, widget=None):
         """clear the mask for a new record"""
         pass
@@ -353,7 +375,7 @@ class SqlWidget(object):
             self.record_display()
 
         return self.sqlData.count()
-
+    
     def reload_one(self,field, value):
         """compact way to view a single record or records with a single property"""
 
@@ -361,31 +383,11 @@ class SqlWidget(object):
         bind_parameters = {field : value}
         
         self.reload(  (sql, bind_parameters)  )
-
+    
     def reload_cb(self, widget):
         """issue a reload operation on master. Call back of reload button"""
         #limit=100
         self.reload( )
-    def commit(self):
-        PREV = self.engine.echo
-        if dbg.debug() > 1:
-            #dbg.write('dbg.debug()', dbg.debug())
-            pass
-            self.engine.echo = True
-            
-        try:
-            self.session.flush()
-        except exceptions.SQLError, e:
-            print e
-            self.SQLErrorHandler(e)
-
-        self.engine.echo = PREV
-    
-    def SQLErrorHandler(self, e):
-        self.message(type='error', text=str(e.orig))
-        self.sb(e.orig)
-        dbg.write("Scritto %s su sb" % (e.orig))
-            
     def record_forward(self):
         """it doesn't make any sense here, but we need it to prevent
         _add_actions_to_button from failing"""
@@ -395,6 +397,8 @@ class SqlWidget(object):
         _add_actions_to_button from failing"""
         pass
     
+
+####### Sync
     def sync_add(self, sqlWidget, cnd=None):
         if not isinstance(self, sqlkit.SqlMask):
             raise SyncNotAvailable("Sync only available for SqlMask")
@@ -495,11 +499,12 @@ class SqlWidget(object):
         self.response = butt_id
 
 ####### Misc
-    def set_fkey_value(self, field_name, value):
-        """needed for completion, to set real value when
-        description is shown instead
-        """
-        pass
+#     def set_fkey_value(self, field_name, value):
+#         """needed for completion, to set real value when
+#         description is shown instead
+#         """
+#         pass
+    
     def delete_event(self, *args):
         """Quit operations: check if need to save first """
         ### fixme: must add cheks
@@ -791,7 +796,7 @@ class Actions(object):
                     
                 page.add(diz)
             return True
-
+    
     def on_record_clear(self, new, old):
         pass
     

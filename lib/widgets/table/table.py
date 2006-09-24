@@ -402,7 +402,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 tvcolumn.pack_start(cell, True)
                 tvcolumn.add_attribute(cell, 'active', j )
                 cell.set_property('activatable', True)
-                cell.connect('toggled', self.toggled_signal, (self.liststore, j))
+                cell.connect('toggled', self.toggled_signal_cb, (self.liststore, j))
             #primary key and integer do not show
             elif ptype == int and self.fields[v]['pkey']:
                 #tvcolumn = gtk.TreeViewColumn(v)
@@ -418,16 +418,16 @@ class SqlTable(sqlwidget.SqlWidget):
                 cell.set_property('sensitive', False)
                 tvcolumn.pack_start(cell, True)
                 tvcolumn.add_attribute(cell, 'date', j )
-                cell.connect('editing-started', self.date_editing_started, j )
-                cell.connect('date-changed', self.date_changed, j )
+                cell.connect('editing-started', self.date_editing_started_cb, j )
+                cell.connect('date-changed', self.date_changed_cb, j )
             elif self.fields[v]['fkey'] and v.endswith('_id'):
                 # use set_fkey_descr function to put text in the cell if this is a foreign key
                 cell = gtk.CellRendererText()
                 cell.set_property('editable', True)
                 #cell.set_property('editable-set', True)
                 #cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-                cell.connect('edited', self.edited_signal, v)
-                cell.connect('editing-started', self.text_editing_started, v)
+                cell.connect('edited', self.text_edited_cb, v)
+                cell.connect('editing-started', self.text_editing_started_cb, v)
                 tvcolumn.pack_start(cell, True)
                 #tvcolumn.add_attribute(cell, 'text', j)
                 tvcolumn.set_cell_data_func(cell, self.set_fkey_descr, i)
@@ -436,8 +436,8 @@ class SqlTable(sqlwidget.SqlWidget):
                 cell.set_property('editable', True)
                 cell.set_property('editable-set', True)
                 cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-                cell.connect('edited', self.edited_signal, v)
-                cell.connect('editing-started', self.text_editing_started, v)
+                cell.connect('edited', self.text_edited_cb, v)
+                cell.connect('editing-started', self.text_editing_started_cb, v)
                 tvcolumn.pack_start(cell, True)
                 tvcolumn.add_attribute(cell, 'text', j )
 
@@ -507,15 +507,14 @@ class SqlTable(sqlwidget.SqlWidget):
         
             return True
         return False
-
+    
     def hide_column(self, menuItem, field_name,):
         self.tvcolumns[field_name].set_property('visible', False)
 
 #### event handling & accelerators
     def keyrelease_event_cb(self, wdg, event, data=None):
         return self.length_control(wdg, data)
-
-
+    
     def keypress_event_cb(self, wdg, event, data=None):
 
         if isinstance(wdg, gtk.TreeView):
@@ -544,7 +543,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return getattr(self, ksym)(wdg, event, data)
         else:
             self.write_info()
-
+    
     def key_tree_shift_ISO_Left_Tab(self, treeview, event):
         #dbg.write('Shift_Tab pressed')
         path, col = self.treeview.get_cursor()
@@ -633,7 +632,7 @@ class SqlTable(sqlwidget.SqlWidget):
     def key_entry_ctrl_Return(self, wdg, event, data):
         self.completion.show_possible_values(wdg, field_name=data, mode='regexp')
         return True
-
+    
     def length_control(self, wdg, field_name):
         if self.fields[field_name]['type'] is not str:
             return False
@@ -648,7 +647,7 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
 
 #### callbacks columns
-    def toggled_signal(self, cell, path, user_data):
+    def toggled_signal_cb(self, cell, path, user_data):
         liststore, colnum = user_data
 
 	self.model_path = path
@@ -659,20 +658,20 @@ class SqlTable(sqlwidget.SqlWidget):
         liststore[path][colnum ] = active
         return True
     
-    def date_editing_started(self, cell, editable, path, col):
+    def date_editing_started_cb(self, cell, editable, path, col):
         return True
     
-    def date_changed(self, event, path, date, col):
+    def date_changed_cb(self, event, path, date, col):
 	self.model_path = path
         
         self.liststore[path][col] = date
         return True
     
-    def edited_signal(self, cell, path, new_text, field_name):
+    def text_edited_cb(self, cell, path, new_text, field_name):
 
         """called by connect 'edited' on cell_renderer """
 
-        ## NOTE: liststore.clear will trigger edited_signal!!!
+        ## NOTE: liststore.clear will trigger text_edited_cb!!!
         if self.deleting_row:
             dbg.write('deleting raw...')
             return True
@@ -683,7 +682,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.set_value(field_name, new_text, path)
         return True
     
-    def text_editing_started(self, cell, editable, path, field_name):
+    def text_editing_started_cb(self, cell, editable, path, field_name):
 
         field_type = self.fields[field_name]['type']
         self.editable = editable
@@ -767,7 +766,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """save the record. Uses path2dict: see there to understand the value handling
 
          Detects if any editing has been done consulting self.model_path set
-         by text_editing_started.
+         by text_editing_started_cb.
 
          Detects if INSERT or UPDATE mode by analizing if the liststore has a
          value in column 0 (should be the index of sqlData)
@@ -961,14 +960,12 @@ class SqlTable(sqlwidget.SqlWidget):
         sel = self.treeview.get_selection()
         model, rows = sel.get_selected_rows()
         row = rows[0]
-#         dbg.write('row', row)
-#         dbg.write('row', row, 'idx', self.liststore[row])
         if row:
             dbg.write('idx', self.liststore[row][0])
             return self.liststore[row][0]
         else:
             return None
-
+    
     def write_info(self):
         path = self.get_selected_row()
         try:
@@ -987,8 +984,9 @@ class SqlTable(sqlwidget.SqlWidget):
 
 #### completion
     def set_fkey_value(self, field_name, value):
-        
-        self.set_value(field_name, value)
+
+        #self.set_value(field_name, value)
+        pass
 
     def set_fkey_descr(self, column, cell, model, iter, i):
         """cell_data_function used by column that have fkey

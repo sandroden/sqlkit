@@ -276,43 +276,6 @@ class SqlMask (sqlwidget.SqlWidget):
         self.commit()
         self.record_save_sync()
         
-    def record_save_sync(self):
-        for w, value in self.sync_dict.iteritems():
-            w.sync_unblock()
-            dbg.write(w, value)
-            DIR, sql, fields_dict = value
-            val = {}
-            rdict = self.sqlData.get()
-            dbg.write('rdict=',rdict)
-            
-            for name, referenced_name in fields_dict.iteritems():
-                val[referenced_name] = rdict[name]
-
-            w.record_save('', constraint=val)
-#         for z in self.sync_dict:
-#             z.record_save('')
-        
-    def record_save_sync_old(self):
-        for w, value in self.sync_dict.iteritems():
-            w.sync_unblock()
-            dbg.write(w, value)
-            DIR, sql, field_names, fkeys = value
-            val = {}
-            rdict = self.sqlData.get()
-            #print "RECORD_SAVE_SYNC", rdict
-            dbg.write('rdict=',rdict)
-            
-            for fkey in fkeys:
-                name, referenced_name = fkey
-                #dbg.write(name, self._get_value(referenced_name, data=True))
-                #val[name] = self._get_value(referenced_name, data=True)
-                val[name] = rdict[referenced_name]
-                #val[name] = getattr(self.status, referenced_name)
-
-            w.record_save('', constraint=val)
-#         for z in self.sync_dict:
-#             z.record_save('')
-        
     def record_save_new(self, wdg, constraint={}):
         """Insert a new record
         """
@@ -402,18 +365,6 @@ class SqlMask (sqlwidget.SqlWidget):
         
         return self.record_display(incr=1)
     
-    def record_forward_sync(self, incr=1):
-        for z in self.sync_dict:
-            if isinstance(z, sqlkit.SqlMask):
-                return z.record_forward('')
-        return False
-    
-    def record_back_sync(self, incr=1):
-        for z in self.sync_dict:
-            if isinstance(z, sqlkit.SqlMask):
-                return z.record_back('')
-        return False
-    
     def record_back(self, ev):
         """display the previous record in the mapper"""
         if self.sync_dict:
@@ -426,6 +377,36 @@ class SqlMask (sqlwidget.SqlWidget):
         return self.record_display(incr=-1)
 
     
+
+####### Sync
+    def record_back_sync(self, incr=1):
+        for z in self.sync_dict:
+            if isinstance(z, sqlkit.SqlMask):
+                return z.record_back('')
+        return False
+    
+    def record_forward_sync(self, incr=1):
+        for z in self.sync_dict:
+            if isinstance(z, sqlkit.SqlMask):
+                return z.record_forward('')
+        return False
+            
+    def record_save_sync(self):
+        for w, value in self.sync_dict.iteritems():
+            w.sync_unblock()
+            dbg.write(w, value)
+            DIR, sql, fields_dict = value
+            val = {}
+            rdict = self.sqlData.get()
+            dbg.write('rdict=',rdict)
+            
+            for name, referenced_name in fields_dict.iteritems():
+                val[referenced_name] = rdict[name]
+
+            w.record_save('', constraint=val)
+#         for z in self.sync_dict:
+#             z.record_save('')
+
 ####### Layout, Reflection & Analisys
     def _analize_widgets_in_layout(self):
         """fill variables from layout
@@ -577,6 +558,7 @@ class SqlMask (sqlwidget.SqlWidget):
                                   self.filter_panel.add, field_name)
 
             
+
 ####### Validation
     def focus_out__widget(self, widget, event, field_name):
         self.last_visited_field = field_name
@@ -593,6 +575,7 @@ class SqlMask (sqlwidget.SqlWidget):
     def select(self):
         pass
     
+
 ####### Misc
     def set_fkey_value(self, field_name, value):
         """needed for completion, to set real value when
