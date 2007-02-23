@@ -38,89 +38,8 @@ class InspectMapper(dict):
            mode: rw|ro if mode=ro no update/insert/delete will be possible
            """
         self.mode = mode
-        self.pytype = {}
-        ## used by postgresql
-        try:
-            self.pytype.update({
-                sqlalchemy.databases.postgres.PGString : str,
-                sqlalchemy.databases.postgres.PGInteger  : int,
-                sqlalchemy.databases.postgres.PGFloat  : float,
-                sqlalchemy.databases.postgres.PG2DateTime  : datetime.datetime,
-                sqlalchemy.databases.postgres.PG2Date  : datetime.date,
-                sqlalchemy.databases.postgres.PGNumeric : decimal.Decimal,
-#                sqlalchemy.databases.postgres.PGNumeric : float,
-                sqlalchemy.databases.postgres.PGChar  : str, 
-                sqlalchemy.databases.postgres.PGText  : str, 
-                sqlalchemy.databases.postgres.PGString  :  str, 
-                sqlalchemy.databases.postgres.PGBoolean  : bool, 
-                sqlalchemy.databases.postgres.PGBinary : str,
-                })
-        except:
-            #dbg.write("no pg types")
-            pass
-                              
-        ## used by sqlite
-        try:
-            self.pytype.update({
-                sqlalchemy.databases.sqlite.SLString : str,
-                sqlalchemy.databases.sqlite.SLInteger  : int,
-#                sqlalchemy.databases.sqlite.SLDouble  : float,
-                sqlalchemy.databases.sqlite.SLDateTime  : datetime.datetime,
-                sqlalchemy.databases.sqlite.SLDate  : datetime.date,
-                sqlalchemy.databases.sqlite.SLNumeric : decimal.Decimal,
-#                sqlalchemy.databases.sqlite.SLNumeric : float,
-                sqlalchemy.databases.sqlite.SLChar  : str, 
-                sqlalchemy.databases.sqlite.SLText  : str, 
-                sqlalchemy.databases.sqlite.SLString  :  str, 
-                sqlalchemy.databases.sqlite.SLBoolean  : bool, 
-                sqlalchemy.databases.sqlite.SLBinary : str,
-                })
-        except:
-            #raise 
-            #dbg.write("no sqlite types")
-            pass
-        ## used by sqlite
-        try:
-            self.pytype.update({
-                sqlalchemy.databases.mysql.MSString : str,
-                sqlalchemy.databases.mysql.MSInteger  : int,
-                sqlalchemy.databases.mysql.MSSmallInteger: int, 
-                sqlalchemy.databases.mysql.MSBigInteger: int, 
-                sqlalchemy.databases.mysql.MSDouble  : float,
-                sqlalchemy.databases.mysql.MSDateTime  : datetime.datetime,
-                sqlalchemy.databases.mysql.MSDate  : datetime.date,
-                sqlalchemy.databases.mysql.MSTime  : datetime.time,
-                sqlalchemy.databases.mysql.MSNumeric : decimal.Decimal,
-#                sqlalchemy.databases.mysql.MSNumeric : float,
-                sqlalchemy.databases.mysql.MSChar  : str, 
-                sqlalchemy.databases.mysql.MSText  : str, 
-                sqlalchemy.databases.mysql.MSLongText  : str, 
-                sqlalchemy.databases.mysql.MSMediumText  : str, 
-                sqlalchemy.databases.mysql.MSString  :  str, 
-                sqlalchemy.databases.mysql.MSBoolean  : bool, 
-                sqlalchemy.databases.mysql.MSBinary : str,
-                })
-        except:
-            #raise 
-            #dbg.write("no sqlite types")
-            pass
-                              
-        ## used by sqlite
-        try:
-            self.pytype.update({
-                sqlalchemy.types.String : str,
-                sqlalchemy.types.Integer  : int,
-                sqlalchemy.types.Float  : float,
-                sqlalchemy.types.DateTime  : datetime.datetime,
-                sqlalchemy.types.Date  : datetime.date,
-#                sqlalchemy.types.Char  : str,
-                sqlalchemy.types.String  :  str,
-                sqlalchemy.types.Boolean  : bool,
-                })
-        except:
-            dbg.write("no sa types")
-            pass
-
+        self.pytype = getattr(self, "get_%s_types" %
+                              mapper.local_table.engine.name)()
         self.fields = []
         self.primarytable = self.get_primary_table
         self.noup = self.parse_noup(noup)
@@ -131,7 +50,93 @@ class InspectMapper(dict):
         self.n = 0
         self.loop_on_props()
     
+    def get_postgres_types(self):
+        ## used by postgresql
+        return {
+            sqlalchemy.databases.postgres.PGString : str,
+            sqlalchemy.databases.postgres.PGInteger  : int,
+            sqlalchemy.databases.postgres.PGSmallInteger  : int,
+            sqlalchemy.databases.postgres.PGFloat  : float,
+            sqlalchemy.databases.postgres.PG2DateTime  : datetime.datetime,
+            sqlalchemy.databases.postgres.PG2Date  : datetime.date,
+            sqlalchemy.databases.postgres.PGNumeric : decimal.Decimal,
+            #                sqlalchemy.databases.postgres.PGNumeric : float,
+            sqlalchemy.databases.postgres.PGChar  : str, 
+            #sqlalchemy.databases.postgres.PGInet  : str, 
+            sqlalchemy.databases.postgres.PGText  : str, 
+            sqlalchemy.databases.postgres.PGString  :  str, 
+            sqlalchemy.databases.postgres.PGBoolean  : bool, 
+            sqlalchemy.databases.postgres.PGBinary : str,
+            }
+                              
+        
+    def get_sqlite_types(self):
+        ## used by sqlite
+        return {
+            sqlalchemy.databases.sqlite.SLString : str,
+            sqlalchemy.databases.sqlite.SLInteger  : int,
+            sqlalchemy.databases.sqlite.SLSmallInteger  : int,
+            #                sqlalchemy.databases.sqlite.SLDouble  : float,
+            sqlalchemy.databases.sqlite.SLDateTime  : datetime.datetime,
+            sqlalchemy.databases.sqlite.SLDate  : datetime.date,
+            sqlalchemy.databases.sqlite.SLNumeric : decimal.Decimal,
+            #                sqlalchemy.databases.sqlite.SLNumeric : float,
+            sqlalchemy.databases.sqlite.SLChar  : str, 
+            sqlalchemy.databases.sqlite.SLText  : str, 
+            sqlalchemy.databases.sqlite.SLString  :  str, 
+            sqlalchemy.databases.sqlite.SLBoolean  : bool, 
+            sqlalchemy.databases.sqlite.SLBinary : str,
+            }
+                               
+    def junk(self):
+       pass
+       #         ## used by sqlite
+       #         try:
+       #             self.pytype.update({
+       #                 sqlalchemy.types.String : str,
+       #                 sqlalchemy.types.Integer  : int,
+       #                 sqlalchemy.types.Float  : float,
+       #                 sqlalchemy.types.DateTime  : datetime.datetime,
+       #                 sqlalchemy.types.Date  : datetime.date,
+       # #                sqlalchemy.types.Char  : str,
+       #                 sqlalchemy.types.String  :  str,
+       #                 sqlalchemy.types.Boolean  : bool,
+       #                 })
+       #         except:
+       #             dbg.write("no sa types")
+       #             pass
+
+    def get_mysql_types(self):
+        return {
+            sqlalchemy.databases.mysql.MSString : str,
+            sqlalchemy.databases.mysql.MSInteger  : int,
+            sqlalchemy.databases.mysql.MSSmallInteger: int, 
+            sqlalchemy.databases.mysql.MSBigInteger: int, 
+            sqlalchemy.databases.mysql.MSDouble  : float,
+            sqlalchemy.databases.mysql.MSDateTime  : datetime.datetime,
+            sqlalchemy.databases.mysql.MSDate  : datetime.date,
+            sqlalchemy.databases.mysql.MSTime  : datetime.time,
+            sqlalchemy.databases.mysql.MSNumeric : decimal.Decimal,
+            #                sqlalchemy.databases.mysql.MSNumeric : float,
+            sqlalchemy.databases.mysql.MSChar  : str, 
+            sqlalchemy.databases.mysql.MSText  : str, 
+            sqlalchemy.databases.mysql.MSLongText  : str, 
+            sqlalchemy.databases.mysql.MSMediumText  : str, 
+            sqlalchemy.databases.mysql.MSString  :  str, 
+            sqlalchemy.databases.mysql.MSBoolean  : bool, 
+            sqlalchemy.databases.mysql.MSBinary : str,
+            }
+                              
+
+
+
     def loop_on_props(self):
+        for prop in self.mapper.props:
+            attr = self.mapper.props[prop]
+            self._add_field(prop, self.mapper)
+                
+
+    def loop_on_props_old(self):
         for prop in self.mapper.props:
             attr = self.mapper.props[prop]
             ## here we populate props
@@ -525,14 +530,51 @@ def list_tables(eng=None, schema=None):
                  AND pg_catalog.pg_table_is_visible(c.oid)
            ORDER BY 1,2;
            """ % (schema_constraint)
-        #,'v','S',''
-#        sql = "SELECT tablename FROM pg_tables WHERE schemaname = :schema "
+        # sequences and views can be found in postgres just changind this:
+        # c.relkind IN ('r') 'v','S'
     elif eng.name in ( 'mysql'):
         sql = "SHOW TABLES"
         
     ret = eng.text(sql).execute(schema=schema)
     tables = [R[0] for R in ret]
-    #dbg.write(tables)
     return tables
 
+
+def list_tables(eng=None, schema=None):
+    if not eng:
+        eng = schema.default_metadata.engine
+
+    if eng.name == 'sqlite':
+        sql = """
+        SELECT name FROM sqlite_master
+        WHERE type='table'
+        ORDER BY name;"""
+    elif eng.name == 'postgres':
+        if schema == None:
+            schema_constraint = ''
+        else:
+            schema_constraint = "AND n.nspname = :schema"
+        sql = """
+           SELECT c.relname as name,
+             n.nspname as schema,c.relkind,
+             u.usename as owner
+           FROM pg_catalog.pg_class c
+                LEFT JOIN pg_catalog.pg_user u ON u.usesysid = c.relowner
+                LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+           WHERE c.relkind IN ('r')
+                 %s
+                 AND pg_catalog.pg_table_is_visible(c.oid)
+           ORDER BY 1,2;
+           """ % (schema_constraint)
+        #,'v','S',''   for views or sequences
+
+        # the following will not consider visibility of the table
+        # sql = "SELECT tablename FROM pg_tables WHERE schemaname = :schema "
+    elif eng.name in ( 'mysql'):
+        sql = "SHOW TABLES"
+
+    ret = eng.text(sql).execute(schema=schema)
+    tables = [R[0] for R in ret]
+    dbg.write(tables)
+    return tables
 

@@ -81,8 +81,8 @@ class SqlMask (sqlwidget.SqlWidget):
             self.data_in = data_in
             for field_name, value in data_in.iteritems():
                 try:
-                    self._set_value(field_name, value)
-                    self._get_value(field_name)
+                    self.set_value(field_name, value)
+                    self.get_value(field_name)
                 except FieldNotInLayout, e:
                     pass
             self.status = self.sqlData.get_current()
@@ -97,7 +97,7 @@ class SqlMask (sqlwidget.SqlWidget):
         #dbg.write("%s DATA DISPLAYed " % self.nick)
         return True
         
-    def _set_value(self, field_name, field_value):
+    def set_value(self, field_name, field_value):
         """this is the method that knows how to handle different type of data
         if field_name is a FKey ending with _id, it retrieves the description,
         shows it in the entry but stores the id in self.values[field_name]
@@ -152,10 +152,10 @@ class SqlMask (sqlwidget.SqlWidget):
 
         else:
             raise FieldValueNotSet(
-                "_set_value does not know how to handle %s - (%s) and %s" % \
+                "set_value does not know how to handle %s - (%s) and %s" % \
                 (field_name, field_value, widget.__class__))
         
-    def _get_value(self, field_name, data=False, shown=False):
+    def get_value(self, field_name, data=False, shown=False):
         """return the data for field_name
         in case self.values[field_name] exists, it gets that value instead
 
@@ -214,11 +214,16 @@ class SqlMask (sqlwidget.SqlWidget):
             return widget.get_active( )
         return 
     
-    def record_delete(self, widget=None):
+    def record_delete(self, widget=None, interactive=True):
         """invokes the validator before DELETing a record"""
         ## FIXME: validator
 #        if self.sync_dict:
             
+        if interactive:
+            response = self.dialog(type='ok-cancel', text="Delete this record?")
+            if response == gtk.RESPONSE_CANCEL:
+                return
+
         self.sqlData.delete()
         
         self.commit()
@@ -239,7 +244,7 @@ class SqlMask (sqlwidget.SqlWidget):
         R = {}
         for field_name in self.field_list:      
             try:
-                value = self._get_value(field_name)
+                value = self.get_value(field_name)
             except FieldNotInLayout:
                 continue
             #dbg.write(field_name, value)
@@ -284,7 +289,7 @@ class SqlMask (sqlwidget.SqlWidget):
         for field_name in self.field_list:      
             dbg.write(self.field_list)
             try:
-                value = self._get_value(field_name)
+                value = self.get_value(field_name)
                 #dbg.write('value: ', value)
             except FieldNotInLayout:
                 continue
@@ -340,7 +345,7 @@ class SqlMask (sqlwidget.SqlWidget):
         
         for field_name in self.fields.keys():
             try:
-                self._set_value(field_name, None)
+                self.set_value(field_name, None)
             except FieldNotInLayout, e:
                 pass
 #        self.values.clear()
@@ -570,7 +575,7 @@ class SqlMask (sqlwidget.SqlWidget):
         pass
     
     def on_activate_cb(self, widget, field_name):
-        #print self._get_value(field_name)
+        #print self.get_value(field_name)
         self.select()
     def select(self):
         pass
@@ -587,11 +592,11 @@ class SqlMask (sqlwidget.SqlWidget):
         R = {}
         for field_name in self.field_list:
             try:
-                R[field_name] = self._get_value(field_name)
+                R[field_name] = self.get_value(field_name)
             except FieldNotInLayout, e:
                 #print "Field_notInLayout", e
                 pass
-        dbg.write(R)
+        #dbg.write(R)
         return R
             
 

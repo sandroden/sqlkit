@@ -539,6 +539,12 @@ class SqlTable(sqlwidget.SqlWidget):
         ksym = '_'.join(mods + [ksym])
         #dbg.write('ksym', ksym, 'mods', mods)
         
+        ## precedence to actions
+        if ksym in dir(self.actions):
+            ret = getattr(self.actions, ksym)(wdg, event, data)
+            dbg.write("RET: ", ret)
+            if ret == True:
+                return ret
         if ksym in dir(self):
             return getattr(self, ksym)(wdg, event, data)
         else:
@@ -595,6 +601,7 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
         
     def key_tree_ctrl_k(self, treeview, event, data):
+        
         self.record_delete(treeview)
         return False
     
@@ -623,14 +630,18 @@ class SqlTable(sqlwidget.SqlWidget):
 #         return False
     
     def key_entry_F1(self, wdg, event, data):
-        self.completion.show_possible_values(wdg, field_name=data, mode='regexp')
+        self.completion.show_possible_values(wdg, field_name=data, mode='like')
+        return True
+    
+    def key_entry_F2(self, wdg, event, data):
+        dbg.write("Eccmi")
         return True
     
     def key_entry_Down(self, wdg, event, data):
         return False
     
     def key_entry_ctrl_Return(self, wdg, event, data):
-        self.completion.show_possible_values(wdg, field_name=data, mode='regexp')
+        self.completion.show_possible_values(wdg, field_name=data, mode='like')
         return True
     
     def length_control(self, wdg, field_name):
@@ -667,25 +678,11 @@ class SqlTable(sqlwidget.SqlWidget):
         self.liststore[path][col] = date
         return True
     
-    def text_edited_cb(self, cell, path, new_text, field_name):
-
-        """called by connect 'edited' on cell_renderer """
-
-        ## NOTE: liststore.clear will trigger text_edited_cb!!!
-        if self.deleting_row:
-            dbg.write('deleting raw...')
-            return True
-
-        if self.model_path is None:
-            return True
-
-        self.set_value(field_name, new_text, path)
-        return True
-    
     def text_editing_started_cb(self, cell, editable, path, field_name):
 
         field_type = self.fields[field_name]['type']
         self.editable = editable
+        self.actions.set_entry_connect(self.editable, field_name)
         field_props = self.fields[field_name]
         if field_type == str or field_props['fkey']:
             editable.connect('button-press-event',self.completion.pop_menu,
@@ -701,6 +698,21 @@ class SqlTable(sqlwidget.SqlWidget):
                 
         self.model_path = path
         self.rowCommit = True
+        return True
+    
+    def text_edited_cb(self, cell, path, new_text, field_name):
+
+        """called by connect 'edited' on cell_renderer """
+
+        ## NOTE: liststore.clear will trigger text_edited_cb!!!
+        if self.deleting_row:
+            dbg.write('deleting raw...')
+            return True
+
+        if self.model_path is None:
+            return True
+
+        self.set_value(field_name, new_text, path)
         return True
     
 
@@ -827,10 +839,14 @@ class SqlTable(sqlwidget.SqlWidget):
         self.record_display(index=idx)
 
         
-    def record_delete(self, widget=None):
+    def record_delete(self, widget=None, interactive=True):
         """Delete a row and corresponding record"""
-        #dbg.write('DELETE')
-        #self.deleteRow(widget)
+
+        if interactive:
+            response = self.dialog(type='ok-cancel', text="Delete this record?")
+            if response == gtk.RESPONSE_CANCEL:
+                return
+
         self.deleting_row = True
         def do_del(tm, path, iter):
             """potentially can delete a selection of many rows
@@ -983,10 +999,10 @@ class SqlTable(sqlwidget.SqlWidget):
         return rdict
 
 #### completion
-    def set_fkey_value(self, field_name, value):
+#     def set_fkey_value(self, field_name, value):
 
-        #self.set_value(field_name, value)
-        pass
+#         #self.set_value(field_name, value)
+#         pass
 
     def set_fkey_descr(self, column, cell, model, iter, i):
         """cell_data_function used by column that have fkey

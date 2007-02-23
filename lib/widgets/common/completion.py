@@ -13,6 +13,13 @@ class MissingDescriptorField(Exception): pass
 # match_function filters using re.search from the listore to fill in the completion
 #
 tables = {}
+
+OP = {
+    'sqlite' : 'LIKE',
+    'postgres'     : '~',
+    'mysql'  : 'ILIKE',
+    }
+
 class Completion(object):
     __metaclass__ = dbg.LogTheMethods
     def __init__(self, master):
@@ -24,9 +31,10 @@ class Completion(object):
         already present in the db.
 
         A completion must be 'requested' (is only issued on demand). Normal
-        bindings are F1 or right-click and will add a gtk.EntryCompletion on
-        the fly to the widget that triggered the request, attach a listore,
-        fill the liststore with values accordingly.
+        bindings are F1 Control_Enter or right-click and will add a
+        gtk.EntryCompletion on the fly to the widget that triggered the
+        request, attach a listore, fill the liststore with values
+        accordingly.
 
         widget.connect('button-press-event',self.completion.pop_menu,field_name, 3)
         widget.connect('key-press-event', self.completion.entry_short_cut_event,
@@ -50,7 +58,8 @@ class Completion(object):
 #        self.tables = {}
         self.listores = {}  ## needed for entry_completion
         self.lookup_values = {}
-        
+        self.LIKE_OP = OP[self.master.engine.name]
+
     def get_widget(self, field_name):
         """return the widget to widh the entryCompletion should be attached
         """
@@ -192,21 +201,18 @@ class Completion(object):
         regexp: typed text is a regexp (*~ or ILIKE)
         all: all values
         """
-        #print "show_possible_values %s" % field_name
+
         sql_dict = {}
-        #wdg = self.get_widget(field_name)
         sql_dict['val'] = wdg.get_text()
-        #sql_dict['val'] = self.get_widget(field_name).get_text()
             
         if mode == 'start':
-            sql_dict['oper'] = 'ILIKE'
-            val = '%'
+            sql_dict['oper'] = self.LIKE_OP
         if mode == 'regexp':
-            sql_dict['oper'] = '~*'
+            sql_dict['oper'] = self.LIKE_OP
         else:
-            sql_dict['oper'] = '~'
-            sql_dict['val'] = "."
+            sql_dict['oper'] = self.LIKE_OP
 
+        self.add_for_LIKE(sql_dict, mode)
         sql_dict['field_name'] = field_name
             
         listore, completion = self.add_completion(field_name, mode, wdg)
@@ -256,7 +262,18 @@ class Completion(object):
             print iter
             print listore.get(iter,0), listore.get(iter,1), listore.get(iter,3)
             j += 1
-            
+
+    def add_for_LIKE(self, sql_dict, mode):
+        """add a % simbol to get expansion if completion is attempted in LIKE mode""" 
+
+        if self.LIKE_OP in ('LIKE', 'ILIKE'):
+            if mode == 'start':
+                if not sql_dict['val'].startswith('%'):
+                    sql_dict['val'] += '%'
+                
+            if mode == 'regexp':
+                if not sql_dict['val'].startswith('%'):
+                    sql_dict['val'] += '%' + sql_dict['val'] + '%'
 
 ### Call back
     def match_selected_cb(self, wdg, model, iter, field_name):
@@ -275,7 +292,7 @@ class Completion(object):
         if isinstance(self.master, sqlkit.SqlTable):
             self.master.editable.set_text(str(value))
         self.master.set_value(field_name, value)
-        dbg.write('value', value)
+        #dbg.write('value', value)
 
         ## Let's show a more usefull value than the id. 
         if self.master.fields[field_name]['fkey']:
@@ -284,7 +301,7 @@ class Completion(object):
             Rd = model.get(iter,3)[0]
             Rd[field_name] = show_value
 
-            dbg.write('Rd', Rd, 'Rd type', type(Rd))
+            #dbg.write('Rd', Rd, 'Rd type', type(Rd))
                 
             self.set_text(Rd, exclude=field_name)
             ## reset the show value
@@ -307,9 +324,9 @@ class Completion(object):
 #                 if field_name == exclude:
 #                     dbg.write('salto: ', field_name, Rd[field_name])
 #                     continue
-                dbg.write(field_name, value)
+                #dbg.write(field_name, value)
                 if field_name in self.master.mwidgets:
-                    dbg.write("%s.set_text(%s)" % (field_name, value))
+                    #dbg.write("%s.set_text(%s)" % (field_name, value))
                     self.master.mwidgets[field_name].set_text(value)
                     #self.master._set_value(field_name, Rd[field_name]
         else:
@@ -460,7 +477,7 @@ class Completion(object):
 #             tables[referenced_table] = (referenced_field, '')
     
     def get_description_field(self, table_name):
-        """look sif a description field is defined, if not use introspection
+        """look if a description field is defined, if not use introspection
         return the description field that can be None
         """
         
@@ -476,7 +493,15 @@ class Completion(object):
                     descr_exists = True
                     break
                 tables[table_name] = [None, None, None]
+
+            ## as a last resort use the first text field
+            if tables[table_name] == [None, None, None]:
+                for field_name in tbl.c.keys():
+                    if re.search("text|char", tbl.c[field_name].type.get_col_spec(), re.I):
+                        tables[table_name] = [field_name, None, None]
+                        break
                 
+
         return tables[table_name][0]
 
                           
@@ -565,7 +590,7 @@ class Completion(object):
                 mods.append(prefix)
 
         ksym = '_'.join(mods + [ksym])
-        dbg.write('ksym', ksym, 'mods', mods)
+        #dbg.write('ksym', ksym, 'mods', mods)
         
         if ksym in dir(self):
             return getattr(self, ksym)(wdg, event, data)
@@ -583,9 +608,9 @@ class Completion(object):
 
         accelname = gtk.accelerator_name(ev.keyval, ev.state)
         if accelname == 'F1':
-            self.show_possible_values (wdg, field_name, 'regexp')
+            self.show_possible_values (wdg, field_name, 'like')
         elif accelname == '<Control>F1':
-            self.show_possible_values (wdg, field_name, 'start')
+            self.show_possible_values (wdg, field_name, 'regexp')
     
     def show_field_info(self, wdg, field_name):
         """Pop a dialog to give info on the selected field"""

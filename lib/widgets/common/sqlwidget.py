@@ -1,7 +1,5 @@
 import sys, re, datetime, os
-#import config
 import inspect 
-#import common
 import layout
 import layout.dateedit as dateedit
 
@@ -17,9 +15,6 @@ import sqlkit.sqldata as sqldata
 import sqlkit.minspect as minspect
 import sqlkit.parseopts as parseopts
 import sqlkit.completion as completion
-#from misc import rebuild
-#import new
-#import misc.autoreload
 
 class NoSyncError(Exception): pass
 class SyncNotAvailable(Exception): pass
@@ -189,7 +184,7 @@ class SqlWidget(object):
             #dbg.write()
             self.w = lay.w
             self.filter_panel = lay.filter_panel
-            ## NOTE: here I say that I can reach w/ _get_value also the
+            ## NOTE: here I say that I can reach w/ get_value also the
             ##       values of the secondary mask. Of course you need to be
             ##       carefull not to mix up filed-names
             self.mwidgets = lay.mwidgets
@@ -434,12 +429,12 @@ class SqlWidget(object):
             ## constraints
             for name, referenced_name in fields_dict.iteritems():
                 #name, referenced_name = fkey
-                #dbg.write(name, self._get_value(referenced_name, data=True))
-                val_constr[referenced_name] = self._get_value(name, data=True)
+                #dbg.write(name, self.get_value(referenced_name, data=True))
+                val_constr[referenced_name] = self.get_value(name, data=True)
 
             ## bind_params
             for field_name in fields_dict.keys():
-                val[field_name] = self._get_value(field_name, data=True)
+                val[field_name] = self.get_value(field_name, data=True)
 
             #dbg.write(sql, val)
 #            w.reload(  sql =  (and_(*[sql]),val)   )
@@ -478,14 +473,16 @@ class SqlWidget(object):
         
 
 ####### Dialog
-    def dialog(self, type='yes-no', text='', title=''):
+    def dialog(self, type='ok-cancel', text='', title=''):
         dialog, l = self.lay_obj.dialog(lay="l=a", title=title,
                                         type=type, show=False)
         l.prop(('l=a', 'use_markup', True))
         l.widgets['l=a'].set_markup(
             '<span size="14000">%s</span>' % text)
         dialog.show_all()
-        return dialog
+        response = dialog.run()
+        dialog.destroy()
+        return response
     
     def message(self, text='', type='question'):
         self.response = None
@@ -495,15 +492,13 @@ class SqlWidget(object):
         dialog.destroy()
         return dialog
     
-    def response_cb(self, dialog, butt_id):
-        self.response = butt_id
 
 ####### Misc
-#     def set_fkey_value(self, field_name, value):
-#         """needed for completion, to set real value when
-#         description is shown instead
-#         """
-#         pass
+    def set_fkey_value(self, field_name, value):
+        """needed for completion, to set real value when
+        description is shown instead
+        """
+        pass
     
     def delete_event(self, *args):
         """Quit operations: check if need to save first """
@@ -808,6 +803,11 @@ class Actions(object):
         """
         return ('',{})
 
+    def set_entry_connect(self, entry, field_name):
+        """set connect for self.editable that is the
+        gtk.Entry in editable cell in SqlTable
+        """
+        pass
 
 def set_template_dir(dir):
     global print_template_dir
