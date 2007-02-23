@@ -29,12 +29,18 @@ class MissingNickDefinition(Exception): pass
 
 class choice(object):
     def __init__(self, engine=None):
-        lay = """ {O tb=gtk-quit tb=gtk-refresh}
+        lay = """ {O tb=gtk-quit tb=gtk-refresh }
+                   {- b=filter_tables e=filter}
                    TVS=tree"""
         self.tables = {}
         self.engine = engine
         self.l = layout.Layout(lay, opts='-')
-        self.w = self.l.show()
+        self.l.pack(
+            ## fill is just to avoid default that is expand
+            ('T.0',             'y-options', 'fill'),
+            ('b=filter_tables', 'x-options', 'fill'),
+            )
+        self.w = self.l.show(file='/tmp/sqledit.glade')
         self.tv = self.w['TV=tree']
         cols = ['table', 'def', 'pkey', 'fkey']
         self.stv = layout.misc.EasyTreeView(cols, tv=self.tv)
@@ -44,6 +50,8 @@ class choice(object):
         self.l.connect(
             ('tb=gtk-quit', 'clicked', gtk.main_quit),
             ('tb=gtk-refresh', 'clicked', self.reload),
+            ('b=filter_tables', 'clicked', self.fill_model),
+            ('e=filter', 'activate', self.fill_model),
             )
         self.fill_model()
 
@@ -101,12 +109,23 @@ class choice(object):
             except sk.completion.MissingDescriptorField:
                 pass
             
+    def skip_table(self, table):
+        """ this is just for skipping, must return True"""
+        
+        if self.engine.name == 'postgres' and table.startswith('pg_'):
+            return True
+        if not re.search(TABLE_MATCH, table):
+            return True
 
-    def fill_model(self):
+    def fill_model(self, *args):
+        """called by button filter_table and filter entry"""
+        global TABLE_MATCH
+        self.model.clear()
+        TABLE_MATCH = self.w['e=filter'].get_text() or ".*"
         tables = sk.minspect.list_tables(eng=engine)
         tables.sort()
         for table in tables:
-            if table.startswith('pg_'):
+            if self.skip_table(table):
                 continue
             iter = self.model.append(None)
             self.model.set(iter, 0, table)
@@ -143,7 +162,7 @@ def read_conf():
         raise MissingNickDefinition
         
 
-def get_engine(): 
+def get_engine_ko(): 
     global options
     
     sa.global_connect(option.url)
@@ -174,6 +193,8 @@ def open_sqlwidget(table, single):
 #table_name = None
 
 option, args = optionparse.parse(__doc__)
+print 'option:', option
+print 'args:', args
 if not args and not option: optionparse.exit()
 
 if option.gtk_debug:
