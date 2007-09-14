@@ -32,12 +32,12 @@ lay = """ {-
    
 zz = sk.SqlMask (table='euro_user', lay=lay, nick='user', single=True)
 zz.w['Window'].hide()
-z2 = sk.SqlTable(table='euro_mail', naked=True, addto=zz.w['Auno'],nick='mail')
+z2 = sk.SqlTable(table='euro_mail', naked=True, addto=zz.w['A=uno'],nick='mail')
 z2.lay_obj.prop('TV=tree', 'height-request', 150)
 zz.w['Window'].show_all()
 
 zz.sync_add(z2)
-zz.reload()
+#zz.reload()
 
 
 ## Completion - you may choose how to show the completion list

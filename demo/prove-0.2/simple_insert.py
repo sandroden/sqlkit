@@ -20,7 +20,7 @@ meta = default_metadata
 users_table = Table('user_tbl', meta,
               Column('user_id', Integer, primary_key = True),
               Column('user_name', String(30), nullable = False),
-              Column('password', String(30), nullable = False))
+              Column('password', String(30), nullable = True))
 
 
 #users_table.create()
@@ -37,9 +37,25 @@ usermapper = mapper(User, users_table)
 sq = session.query(usermapper)
 
 #eng.echo = True
-ret = session.query(usermapper).select("user_name LIKE 'S%'")
-M = sk.inspect.InspectMapper(usermapper)
-dd = sk.sqldata.SqlData(ret, M)
-dd.printall()
-    
-#user.user_name = 'fred jones'
+ret = sq.select("user_name LIKE 'S%'")
+R = User()
+session.save(R)
+R.user_id = '5'
+try:
+    session.flush()
+except exceptions.SQLError, e:
+    print e
+    print dir(e)
+    print 'args', e.args
+    print 'orig', e.orig
+    print 'params', e.params
+    print 'statement', e.statement
+#print 'R3', R.user_id
+
+#M = sk.inspect.InspectMapper(usermapper)
+#dd = sk.sqldata.SqlData(ret, M, session)
+#session.refresh(R)
+#R= dd.add({'user_id':'1'})
+#session.flush()
+#dd.printall()
+#print R.user_id

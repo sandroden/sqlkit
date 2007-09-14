@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 import sys, re, datetime
@@ -11,6 +12,7 @@ from sqlalchemy import *
 from layout import *
 
 engine = sk.config.new_engine(echo=False, globalconn=True)
+#engine = create_engine('postgres://sandro:vicie@localhost:5433/test')
 meta = default_metadata
 session = create_session()
 
@@ -27,7 +29,13 @@ class Join(object): pass
 join = user_table.outerjoin(
         mail_table,
         user_table.c.user_id == mail_table.c.mail_user_id
-        )
+        ).select()
+print str(join)
+#print str(mail_table.select(mail_table.c.mail_address))
+print join.select([join.c.user_name, join.c.mail_address], from_obj=[join])
+
+sys.exit()
+
 m = Join.mapper = mapper(
     Join, join
     #, primary_key=[user_table.c.user_id]

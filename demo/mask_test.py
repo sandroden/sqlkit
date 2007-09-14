@@ -27,7 +27,6 @@ class Mapper(object):
 #sql_text = "user_id > 5"
 zz = user_mask = sk.SqlMask (tables='euro_user, euro_mail', show=False,
                              noup=['user_active', 'user_age'], single=True, limit=20,
-                             session=session,
                              #filter="%(user_name)s (%(mail_address)s)",
                              filter=['user_name', 'mail_address'],
                              #filter=True,

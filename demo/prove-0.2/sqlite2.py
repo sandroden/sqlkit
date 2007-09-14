@@ -11,7 +11,8 @@ global_connect("sqlite://", echo=False)
 eng = schema.default_metadata.engine
 meta = default_metadata
 #eng = config.spawnEngine()
-session = create_session()
+#session = create_session()
+session = create_session(bind_to=eng)
 
 cities = Table('city_tbl', meta,
               Column('city_id', String(30), primary_key = True, unique=True),

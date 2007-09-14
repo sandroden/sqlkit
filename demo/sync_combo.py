@@ -39,6 +39,7 @@ zz = sk.Combo(tables=['euro_user','euro_mail'],
               filter=['user_name', 'mail_address'],
               field_list='mail_address, mail_info',
               actions=actions,
+              geom=(500,700),
               single=True)
 
 user_table = Table ('euro_user', engine, autoload=True)
