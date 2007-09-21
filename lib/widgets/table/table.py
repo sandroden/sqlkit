@@ -411,7 +411,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 tvcolumn.add_attribute(cell, 'text', j )
 #                tvcolumn.set_visible(False)
                 tvcolumn.set_visible(True)
-            elif issubclass(self.fields[v]['pg_type'], (sqltypes.Date, sqltypes.DateTime)):
+            elif issubclass(self.fields[v]['db_type'], (sqltypes.Date, sqltypes.DateTime)):
                 #dbg.write('%s is a date' % v)
                 cell = CellRendererDate()
                 cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
@@ -691,7 +691,8 @@ class SqlTable(sqlwidget.SqlWidget):
                              self.keypress_event_cb, field_name)
             if self.fields[field_name]['type'] is str:
                 length = self.fields[field_name]['length']
-                editable.set_max_length(length)
+                if length:
+                    editable.set_max_length(length)
 #             editable.connect('key-release-event',
 #                              self.keyrelease_event_cb, field_name)
 

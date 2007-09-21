@@ -61,7 +61,7 @@ class SqlWidget(object):
         lay:    a layout describing the desired layout (see layout package)
         actions: a validator to be used to validate fields and records
         naked:  in case the mask should *not* be added interactive buttons
-                neede if the layout already contains all the required buttons
+                needed if the layout already contains all the required buttons
         mode:   ro|rw. When in read-only no save/delete is alllowed
         noup:   list of field-name that cannot be updated, may be a comma
                 separated str

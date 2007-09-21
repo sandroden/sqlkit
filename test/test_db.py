@@ -34,12 +34,12 @@ class DbInspect(unittest.TestCase):
         self.user = Table('test_user', setup.eng, autoload=True)
         class User(object): pass
         self.mapper = mapper(User, self.user)
-        self.fields = sk.inspect.InspectMapper(self.mapper)
+        self.fields = sk.minspect.InspectMapper(self.mapper)
 
         self.mail = Table('test_mail', setup.eng, autoload=True)
         class Mail(object): pass
         self.mapper2 = mapper(Mail, self.mail)
-        self.fields2 = sk.inspect.InspectMapper(self.mapper2)
+        self.fields2 = sk.minspect.InspectMapper(self.mapper2)
 
     # ['pkey', 'name', 'nullable', 'edit', 'is_serial', 'col', 'col_spec',
     # 'length', 'table_name', 'fkey', 'table', 'property', 'type', 'pg_type',

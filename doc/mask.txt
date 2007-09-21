@@ -72,7 +72,7 @@ special ending for field_name are:
    - table_fields(table_name):  return all the fields in 'table_name' 
    - get_mapper(table_name): return the mapper for 'table_name'
    - get_class(table_name): return the class for 'table_name'
-   - pkeys(table_name): return a list for all pkeys of table_name
+   - get_pkeys(table_name): return a list for all pkeys of table_name
 
 .H 3 InspectMapper attributes
    InspectMapper provides several attributes, one for each field_name. Each

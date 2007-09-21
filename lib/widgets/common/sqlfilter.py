@@ -6,6 +6,7 @@ import dbg
 import re
 import sqlalchemy
 import sqlkit as sk
+from datetime import *
 
 class FilterPanel(object):
     """A filter panel has 'entry|operator|string' rows
@@ -134,7 +135,6 @@ class FilterPanel(object):
 
         self.mapper = mapper
         self.map_fields = sk.minspect.InspectMapper(mapper)
-
     def fill_model(self):
         """Fill the treeview with a clickable list """
         attr = self.master.completion._add_descriptor_fields(
@@ -169,7 +169,6 @@ class FilterPanel(object):
                                )
         
         self.tv_resize()
-
     def tv_resize(self):
         tv = self.w['TV=out']
         tv.realize()
@@ -213,6 +212,24 @@ class FilterPanel(object):
     def destroy(self):
         self.w['Window'].destroy()
     
+    def get_suitable_operators(self, field):
+        eng_type = self.master.engine.name
+        ftype = self.master.fields[field]['type']
+        print field, eng_type, ftype
+        STR_STD_OPERATORS = [ 'LIKE', 'NOT LIKE' ]
+        STD_OPERATORS = [ '=', '!=', '>', '>=','<','<=', 'IS NULL', 'IS NOT NULL' ]
+
+        if isinstance(ftype, (int, float, datetime, date, time)):
+            return STD_OPERATORS
+
+        if eng_type in 'sqlite':
+            return STR_STD_OPERATORS + STD_OPERATORS
+        
+        elif eng_type in 'mysql':
+            return [ 'REGEXP' ] + STD_OPERATORS
+
+        elif eng_type in 'postgres':
+            return  ['~*', '~', '!~*', '~*' ] + STD_OPERATORS
     def add(self, wdg, ev, field, after=None, show=True):
         """this adds a field to the filter panel + operator and string entry
         after: entry will be positioned after widget 'after'
@@ -233,8 +250,7 @@ class FilterPanel(object):
 
         ## combo for operator
         operator = gtk.combo_box_new_text()
-        operators = ['~*', '~', '=', '!=', '>', '>=','<','<=', 'IS NULL',
-                     'IS NOT NULL', 'LIKE' ]
+        operators = self.get_suitable_operators(field)
         for op in operators:
             operator.append_text(op)
         operator.set_active(0)

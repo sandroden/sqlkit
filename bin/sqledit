@@ -11,8 +11,9 @@ usage: %prog files [options] [[url|nick] table]
    -D, --debug: print debug
    -g, --gtk-debug: use LogTheMethods
 """
-import sys, re, datetime, os
+import sys, re, datetime
 import os
+import user
 from ConfigParser import ConfigParser
 
 #sys.path.insert(0,'/usr/src/sqlalchemy/lib/')
@@ -193,8 +194,7 @@ def open_sqlwidget(table, single):
 #table_name = None
 
 option, args = optionparse.parse(__doc__)
-print 'option:', option
-print 'args:', args
+
 if not args and not option: optionparse.exit()
 
 if option.gtk_debug:

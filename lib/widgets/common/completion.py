@@ -166,6 +166,13 @@ class Completion(object):
                 j += 1
                 if not j == 1:
                     raise LookupValueNotReturningOneValue("%s returns %s values" % (sql, j))
+            try:
+                a = value
+            except:
+                print "No value for %s: %s" % (field_name, field_value)
+                self.lookup_values[field_name][field_value] = field_value
+                #print self.lookup_values
+                return field_value
             if not field_name in self.lookup_values:
                 self.lookup_values[field_name] = {}
             self.lookup_values[field_name][field_value] = value

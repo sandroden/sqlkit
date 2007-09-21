@@ -22,7 +22,7 @@ class InspectMapper(dict):
     table_name  (string)
     name        (string)
     table       (sqlalchemy Table obj)
-    pg_type     (pg type)
+    db_type     (db type)
     type        (python-type) (not yet)
     col_spec    (string) eg: INTEGER, STRING
     is_serial   bool
@@ -167,7 +167,7 @@ class InspectMapper(dict):
             'name'        :  field_name,
             'table'       :  mapper.local_table ,
             'col'         :  mapper.c[field_name] ,
-            'pg_type'     :  type(mapper.c[field_name].type), 
+            'db_type'     :  type(mapper.c[field_name].type), 
             'type'        :  self.pytype[type(mapper.c[field_name].type)],
             'col_spec'    :  col_spec,
             'is_serial'   :  is_serial(mapper.c[field_name]),
@@ -358,7 +358,7 @@ class InspectJoinMapper(InspectMapper):
             'name'        :  col.name,
             'table'       :  col.table ,
             'col'         :  col,
-            'pg_type'     :  type(col.type), 
+            'db_type'     :  type(col.type), 
             'type'        :  self.pytype[type(col.type)],
             'col_spec'    :  col.type.get_col_spec(),
             'is_serial'   :  is_serial(col),
