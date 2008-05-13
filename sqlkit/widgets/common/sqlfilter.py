@@ -7,6 +7,7 @@ import re
 import sqlalchemy
 import sqlkit as sk
 from datetime import *
+from dry.dateutils import string2dates
 
 class FilterPanel(object):
     """A filter panel has 'entry|operator|string' rows
@@ -224,7 +225,7 @@ class FilterPanel(object):
 
         STR_STD_OPERATORS = [ 'LIKE', 'NOT LIKE' ]
         NULL_OPERATORS = [ 'IS NULL', 'IS NOT NULL' ]
-        STD_OPERATORS = [ '=', '!=', '>', '>=','<','<=', ] + NULL_OPERATORS
+        STD_OPERATORS = [ '>=','<=', '=', '!=', '>', '<', ] + NULL_OPERATORS
         BOOLEAN_OPERATORS = [ 'IS TRUE', 'IS FALSE' ] + NULL_OPERATORS
         #import pdb; pdb.set_trace()
         if issubclass(ftype, bool):
@@ -331,14 +332,34 @@ class FilterPanel(object):
                 else:
                     value = fld['entry'].get_text()
                     if value:
-                        ret += self._compose_field_whereclause(
-                            fld, values, value)
+                        if issubclass(fld['type'], date):
+                            self.handle_dates(ret, fld, values, value)
+                        else:
+                            ret += self._compose_field_whereclause(
+                                fld, values, value)
 
         sql = (sqlalchemy.and_(*ret), values)
         #self.sql_dbg(ret)
         #dbg.write(values)
         return sql
-    
+
+    def handle_dates(self, ret, fld, values, value):
+        start, stop = string2dates(value)
+
+        # If 'stop' is not None it means I have a period (eg.: 'y > M')
+        # and I use operators to delimit this
+        # period ignoring the operator from the widget
+                        
+        if not stop:
+            ret += self._compose_field_whereclause(fld, values, start)
+        else:
+            ## start
+            fld['op_value'] = ">="
+            ret += self._compose_field_whereclause(fld, values, start)
+            ## stop
+            fld['op_value'] = "<="
+            ret += self._compose_field_whereclause(fld, values, stop)
+                
     def sql_dbg(self, bool_conds):
         for c in bool_conds:
             print "DBG: ", c.left, c.operator, c.right
