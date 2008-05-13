@@ -3,9 +3,10 @@ import inspect
 import layout
 import layout.dateedit as dateedit
 
-from layoutgenerator import TableLayoutGenerator
+from layoutgenerator import LayoutGenerator
 import gtk, pango
 import decimal
+from sqlalchemy import exceptions
 from sqlalchemy.orm import scoped_session, sessionmaker
 #from sqlalchemy import *
 import dbg.gtk_dbg
@@ -199,7 +200,7 @@ class SqlWidget(object):
             self.values = lay.values
             return (lay.lay_obj, lay.w)
         
-        lay = TableLayoutGenerator(self, naked=naked, lay=lay).layout
+        lay = LayoutGenerator(self, naked=naked, lay=lay).layout
         self.layout = lay
         #dbg.write(self.layout)
         self.add_filter(visible=False)
@@ -232,6 +233,8 @@ class SqlWidget(object):
         return (self.lay_obj, self.w)
     
     def add_accelerators(self):
+        """Add accelerators: now Ctrl-h, Ctrl-q"""
+
         # key accelerators
         if self.addto:
             return
@@ -306,19 +309,21 @@ class SqlWidget(object):
         pass
     
     def commit(self):
-        PREV = self.engine.echo
+        dbg.write()
+        
+        PREV = self.metadata.bind.echo
         if dbg.debug() > 1:
             #dbg.write('dbg.debug()', dbg.debug())
             pass
-            self.engine.echo = True
+            self.metadata.bind.echo = True
             
         try:
-            self.session.flush()
+            self.session.commit()
         except exceptions.SQLError, e:
             print e
             self.SQLErrorHandler(e)
 
-        self.engine.echo = PREV
+        self.metadata.bind.echo = PREV
     
     def SQLErrorHandler(self, e):
         self.message(type='error', text=str(e.orig))
@@ -331,13 +336,19 @@ class SqlWidget(object):
         """clear the mask for a new record"""
         pass
     
-    def reload(self, sql=None, params=None, limit=100, constraint={},
-               reload_constraint=False, display=True):
+    def reload(self, sql=None, params=None, limit=None, constraint={},
+               reload_constraint=False, display=True, order_by=None):
         """reload data from db
 
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
         """
+        dbg.write("limit: %s" % limit)
+        if limit:
+            self.limit = limit
 
+        if order_by:
+            self.order_by = order_by
+            
         if constraint:
             self.constraint=constraint
         #dbg.write(self.nick, 'constraint', constraint)
@@ -361,7 +372,8 @@ class SqlWidget(object):
         #dbg.write(self.nick, "SQL: '%s'" % sql_str,
         #           'params', params, 'limit:', limit)
         #self.mapper.table.engine.echo = True
-        print "SQL: %s" % sql_str
+        dbg.write("SQL: %s -- params: %s" % (sql_str, params))
+        
         #import pdb; pdb.set_trace()
         records = self.session.query(self.mapper)
         records = records.filter(sql_str)
@@ -372,7 +384,6 @@ class SqlWidget(object):
         if self.limit:
             records = records.limit(self.limit)
                 
-
         #records = self.mapper.select_by(sql)
         #self.mapper.table.engine.echo = False
         if isinstance(self, sqlkit.SqlMask):

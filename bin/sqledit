@@ -2,19 +2,23 @@
 
 """
 usage: %prog files [options] [[url|nick] table]
-   -u, --url = URL: an url to open (eg: postgres://user:pass@host/dbname)
+   -u, --url = URL: an url to open (eg postgres://user:pass@host/dbname)
    -n, --nick = nick: a nick in ~/.sqleditdb
    -t, --table = table: open table 'table'
    -m, --mask: open a SqlMask (default is SqlTable)
-   -T, --sqltable: open a SqlTable
+   -T, --sqltable: open a SqlTable (default when -t is used)
    -d, --dev: open in 'dev' mode
    -D, --debug: print debug
    -g, --gtk-debug: use LogTheMethods
+   -S, --sql=statement: execute statement (requires -t)
+   -a, --all-tables: read all table on startup (very slow)
+   -f, --field_list=fields: comma (or space) separated field list 
+   -o, --order_by=fields: comma separated field list
 """
 import sys, re, datetime
 import os
 import user
-from ConfigParser import ConfigParser
+from ConfigParser import ConfigParser, NoSectionError
 import pdb
 
 #sys.path.insert(0,'/usr/src/sqlalchemy/lib/')
@@ -92,6 +96,11 @@ class choice(object):
         item.connect('activate', self.activate_cb, ('table', table ))
         menu.append(item)
 
+        ## add to filter
+        item = gtk.MenuItem(label="table reflection" )
+        item.connect('activate', self.get_table_info_in_model, (table, iter ))
+        menu.append(item)
+
         menu.show_all()
         menu.popup(None, None, None, ev.button, ev.time)
 
@@ -135,32 +144,37 @@ class choice(object):
                 continue
             iter = self.model.append(None)
             self.model.set(iter, 0, table)
-            tbl = sa.Table(table, db.metadata, autoload=True)
-            self.tables[table] = tbl
-            pks = []
-            for pk in tbl.primary_key:
-                pks += [pk.name]
-            self.model.set(iter, 2, ",".join(pks))
+            if opts.all_tables:
+                self.get_table_info_in_model(None, (table, iter))
+
+    def get_table_info_in_model(self, junk, (table_name, iter)):
+        #dbg.write(table_name, iter)
+        tbl = sa.Table(table_name, db.metadata, autoload=True)
+        self.tables[table_name] = tbl
+        pks = []
+        for pk in tbl.primary_key:
+            pks += [pk.name]
+        self.model.set(iter, 2, ",".join(pks))
             
-            for c in tbl.c:
-                col = self.model.append(iter)
-                self.model.set(col, 0, c.name )
-                self.model.set(col, 1, c.type.get_col_spec())
-                if c.primary_key:
-                    self.model.set(col, 2, 'X' )
-                if c.foreign_keys:
-                    self.model.set(col, 3, repr(c.foreign_keys) )
+        for c in tbl.c:
+            col = self.model.append(iter)
+            self.model.set(col, 0, c.name )
+            self.model.set(col, 1, c.type.get_col_spec())
+            if c.primary_key:
+                self.model.set(col, 2, 'X' )
+            if c.foreign_keys:
+                self.model.set(col, 3, repr(c.foreign_keys) )
                 
 
-def read_conf():
+def read_conf(nick):
     dbconf='.sqleditdb'
     dbconf = os.path.join(os.getenv('HOME'), dbconf)
     if os.path.exists(dbconf):
         c = ConfigParser()
         c.read(dbconf)
-        for tup in c.items(opts.nick):
+        for tup in c.items(nick):
             key, val = tup
-            if getattr(opts, key) is None:
+            if getattr(opts, key, None) is None:
                 setattr(opts, key, val)
     else:
         raise MissingNickDefinition
@@ -173,6 +187,9 @@ def open_sqlwidget(table, single):
               'single' : single,
               'nick' : table,
               'dbproxy' : db,
+              'sql' : opts.sql,
+              'field_list' : opts.field_list,
+              'order_by' : opts.order_by,
            }
     if opts.mask:
         try:
@@ -212,7 +229,11 @@ if opts.debug:
     dbg.debug(True)
 
 if opts.nick:
-    read_conf()
+    try:
+        read_conf(opts.nick)
+    except NoSectionError:
+        print "No nick named '%s'" % opts.nick
+        sys.exit(1)
 
 
 db = proxy.DbProxy(engine=opts.url)
@@ -236,6 +257,9 @@ if opts.table:
 else:
     C = choice(engine=session.bind)    
 
-gtk.main()
+try:
+    gtk.main()
+except KeyboardInterrupt:
+    pass
 
 

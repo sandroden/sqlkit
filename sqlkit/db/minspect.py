@@ -63,7 +63,7 @@ class InspectMapper(dict):
             sqlalchemy.databases.postgres.PGNumeric : decimal.Decimal,
             #                sqlalchemy.databases.postgres.PGNumeric : float,
             sqlalchemy.databases.postgres.PGChar  : str, 
-            #sqlalchemy.databases.postgres.PGInet  : str, 
+            sqlalchemy.databases.postgres.PGInet  : str, 
             sqlalchemy.databases.postgres.PGText  : str, 
             sqlalchemy.databases.postgres.PGString  :  str, 
             sqlalchemy.databases.postgres.PGBoolean  : bool, 
@@ -129,8 +129,8 @@ class InspectMapper(dict):
             col_spec = None
         d = {
             'table_name'  :  mapper.local_table.name ,
-            'name'        :  field_name,
-            'table'       :  mapper.local_table ,
+            'name'        :  str(field_name),
+            'table'       :  str(mapper.local_table) ,
             'col'         :  mapper.c[field_name] ,
             'db_type'     :  type(mapper.c[field_name].type), 
             'type'        :  self.pytype[type(mapper.c[field_name].type)],
@@ -183,7 +183,7 @@ class InspectMapper(dict):
 
     def __getitem__(self, item):
         #print "item", item, type(item)
-        return getattr(self, item)
+        return getattr(self, str(item))
     
     def __len__(self):
         return len(self.fields)

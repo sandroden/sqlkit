@@ -6,7 +6,7 @@ import layout
 import layout.dateedit as dateedit
 
 #import validator
-from sqlkit.widgets.common.layoutgenerator import TableLayoutGenerator
+from sqlkit.widgets.common.layoutgenerator import LayoutGenerator
 import gtk, pango
 from sqlalchemy import *
 import dbg.gtk_dbg
@@ -165,7 +165,7 @@ class SqlMask (sqlwidget.SqlWidget):
         """
 
         if field_name not in self.mwidgets:
-            #dbg.write("%s Non in mwidgets %s" % (field_name, self.mwidgets.keys()))
+            dbg.write("%s Non in mwidgets %s" % (field_name, self.mwidgets.keys()))
             if data:
                 # print self.nick, "CHIESTO", field_name,"->", self.data_in[field_name]
                 try:
@@ -507,7 +507,7 @@ class SqlMask (sqlwidget.SqlWidget):
                 continue
             widget = self.mwidgets[field_name]
             if not widget:
-                #dbg.write("Per campo: %s manca widget %s" % (field_name, widget))
+                #dbg.write("Per campo: %s manca widget %s" %(field_name,widget))
                 continue
 
             widget.set_property('sensitive', self.fields[field_name]['edit']) 

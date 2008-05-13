@@ -47,9 +47,9 @@ class FilterPanel(object):
         self.l.elements['H.a'].pack_properties['y-options'] = ''
         self.l.prop('O.a', 'toolbar_style', 'gtk.TOOLBAR_ICONS')
         self.w = self.l.show(x=self.hide)
-        self.w['s=limit'].set_value(self.master.limit)
+#        self.w['s=limit'].set_value(self.master.limit)
         adj = self.w['s=limit'].get_adjustment()
-        adj.upper = 10000
+        adj.set_all(self.master.limit, 0, 10000, 10, 100, 100)
         self.l.menu('m=opts',
                     ('-', ),
                     ('gtk-close', 'activate', self.hide),
@@ -202,24 +202,36 @@ class FilterPanel(object):
             ## sqlData is local to panel filter in this situation!
             self.master.actions.on_filter_reload(self.sqlData.get(index=int(idx)))
     
+    def pop_menu(self, wdg, ev, num_button):
+        #dbg.write(wdg, ev, num_button)
+        if ev.button == num_button:
+            self.w['M=opts'].popup(None, None, None, ev.button, ev.time )
+        
 ##### handling
     def hide(self, wid, ev=None):
         """hide FilterPanel."""
-        #print self.w['Window'], "destroy", "wid", wid
+
         self.w['Window'].set_property('visible', False)
         return True  # stops further processing...
     
     def destroy(self):
         self.w['Window'].destroy()
     
-    def get_suitable_operators(self, field):
-        eng_type = self.master.metadata.bind.name
-        ftype = self.master.fields[field]['type']
-        print field, eng_type, ftype
-        STR_STD_OPERATORS = [ 'LIKE', 'NOT LIKE' ]
-        STD_OPERATORS = [ '=', '!=', '>', '>=','<','<=', 'IS NULL', 'IS NOT NULL' ]
+    def get_suitable_operators(self, field_name, ftype, eng_type):
+        """return list of operators meaningfull for engine/data type
+        """
+        #dbg.write( field_name, ftype, eng_type)
 
-        if isinstance(ftype, (int, float, datetime, date, time)):
+        STR_STD_OPERATORS = [ 'LIKE', 'NOT LIKE' ]
+        NULL_OPERATORS = [ 'IS NULL', 'IS NOT NULL' ]
+        STD_OPERATORS = [ '=', '!=', '>', '>=','<','<=', ] + NULL_OPERATORS
+        BOOLEAN_OPERATORS = [ 'IS TRUE', 'IS FALSE' ] + NULL_OPERATORS
+        #import pdb; pdb.set_trace()
+        if issubclass(ftype, bool):
+            dbg.write('bool')
+            return BOOLEAN_OPERATORS
+        
+        if issubclass(ftype, (int, float, datetime, date, time)):
             return STD_OPERATORS
 
         if eng_type in 'sqlite':
@@ -230,27 +242,38 @@ class FilterPanel(object):
 
         elif eng_type in 'postgres':
             return  ['~*', '~', '!~*', '~*' ] + STD_OPERATORS
+
+    
+
     def add(self, wdg, ev, field, after=None, show=True):
         """add a field to the filter panel + operator and string entry
         after: entry will be positioned after widget 'after'
         """
         if ev.button == 3:
             self.w['Window'].present()
+            self.w['Window'].deiconify()
             return
+
+        eng_type = self.master.metadata.bind.name
+        ftype = self.master.fields[field]['type']
+        operators = self.get_suitable_operators(field, ftype, eng_type)
 
         ## labels
         field_name_event_box = gtk.EventBox()
-        field_name = gtk.Label(layout.get_label(field))
+        field_name           = gtk.Label(layout.get_label(field))
+        check_button         = gtk.CheckButton()
+
+        check_button.set_active(True)
+        self.l.tooltips.set_tip(check_button, "Check me to use this filter")
+        
         field_name_event_box.add(field_name)
         field_name.set_property('xalign', 0)
         field_name_event_box.connect('button-press-event', self.pop_menu,
                                      'show=True')
         #field_name_event_box.window.set_cursor(self.w['label-cursor'])
 
-
         ## combo for operator
         operator = gtk.combo_box_new_text()
-        operators = self.get_suitable_operators(field)
         for op in operators:
             operator.append_text(op)
         operator.set_active(0)
@@ -258,35 +281,39 @@ class FilterPanel(object):
 
         ## get_active_text per riprenderlo...
         ## entry
-        field_value = gtk.Entry()
-        field_value.connect('activate', self.reload_cb)
+
+        field_widget = gtk.Entry()
+        field_widget.connect('activate', self.reload_cb)
 
         Tbl = self.w['T.fld']
         r = self.row
         c = 0
-        for wdg in [ field_name_event_box, operator, field_value ]:
+        widgets = [ field_name_event_box, operator, check_button ]
+        if not issubclass(ftype, bool):
+            widgets += [field_widget]
+            
+        for wdg in widgets:
             Tbl.attach(wdg, c, c+1, r, r+1, xpadding=4)
             c += 1
         self.row += 1
         Tbl.show_all()
-    
+
         self.fields.append({
             'field':    field,
+            'type' :    ftype,
             'operator': operator,
-            'entry':    field_value
+            'entry':    field_widget,
+            'check_button': check_button,
             } )
         if show:
             self.w['Window'].show_all()
+
     
 ##### SQL
     def get_limit(self):
+        self.w['s=limit'].update()
         return  self.w['s=limit'].get_value_as_int()
     
-    def pop_menu(self, wdg, ev, num_button):
-        #print "pop_menu", wdg, ev
-        if ev.button == num_button:
-            self.w['M=opts'].popup(None, None, None, ev.button, ev.time )
-        
     def sql(self):
         """create a sql statement composing all requests
         returns a sql whereclause and a bindparam dictionary
@@ -295,19 +322,21 @@ class FilterPanel(object):
         #dbg.write(ret)
         values={}
         for fld in self.fields:
-            value = fld['entry'].get_text()
-            if len(value) > 0:
+            if fld['check_button'].get_active():
                 op = fld['operator'].get_active_text()
                 fld['op_value'] = op
-                if op in ('IS NULL', 'IS NOT NULL'):
-                    ret += [ "%(field)s %s" %(fld, op) ]
+                
+                if op in ('IS NULL', 'IS NOT NULL', 'IS TRUE', 'IS FALSE'):
+                    ret += [ "%(field)s %(op_value)s" % fld ]
                 else:
-                    #values[fld['field']] = value
-                    ret += self._compose_field_whereclause(fld, values, value)
-                    #ret += [self.master.fields[fld['field']]['col'].op(op)(value)]
+                    value = fld['entry'].get_text()
+                    if value:
+                        ret += self._compose_field_whereclause(
+                            fld, values, value)
+
         sql = (sqlalchemy.and_(*ret), values)
         #self.sql_dbg(ret)
-        #dbg.write(ret)
+        #dbg.write(values)
         return sql
     
     def sql_dbg(self, bool_conds):
@@ -326,18 +355,20 @@ class FilterPanel(object):
         #dbg.write(fld)
         info = self.master.fields[fld['field']]
         if fld['field'].endswith('_id') and info['fkey']:
-            fld['ftable'], fld['fname'] = info['fkey']
+            fld['ftable'], fld['fname'] = self.master.completion.get_foreign_info(fld['field'])
             fld['fdescr'] = self.master.completion._add_descriptor_fields(
-                mode='return', table_name=fld['ftable'])
+                mode='return', referenced_table=fld['ftable'])
 
             if fld['fdescr'] in F:
                 ## this means we have a mapper that has already this field
                 ## we don't need a subselect
                 #descr_col = F[fld['fdescr']]['col']
+                dbg.write("qui 1")
                 sql = F[fld['fdescr']]['col'].op(fld['op_value'])(value)
                 return [sql]
 
             if info['fkey']:
+                dbg.write("qui 2")
                 values[fld['field']] = value
 
                 ## FIXME: not using bind parameters

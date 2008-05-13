@@ -1,3 +1,4 @@
+
 import re
 from sqlalchemy import Table, MetaData, sql
 from sqlalchemy.orm import sessionmaker, mapper
@@ -5,9 +6,23 @@ from sqlkit.db import minspect
 
 import dbg.gtk_dbg
 
-
-
 class DbProxy(object):
+    """
+    A proxy do the database... it's meant to easy the way we pass information
+    to the sqkwidget in the simpler situation:
+
+    * if no metadata is passed, MetaData() will create it
+    * if engine is passed it will be put in metadata as 'bind' attribute
+    * if no session is passed a session is created via sessionmaker 
+
+      db = proxy.DbProxy(engine='postgres://localhost/fossati')
+      session = db.get_session()
+
+    at that point sqlwidget will retrieve info this way::
+
+      SqlTable(table="ticket_project", dbproxy=self.dbproxy)
+
+    """
     def __init__(self, metadata=None, engine=None, Session=None):
         if metadata:
             self.metadata = metadata

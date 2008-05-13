@@ -13,7 +13,6 @@ sys.path.append ('../../../')
 from datetime import datetime
 import sqlalchemy.types as sqltypes
 from sqlkit.widgets.common import sqlwidget
-#from sqlkit.layoutgenerator import TableLayoutGenerator
 import sqlalchemy
 import dbg
 import decimal
@@ -328,7 +327,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         ## sort
         item = gtk.MenuItem(label="sort")
-#        item.connect('activate', self.show_widget_properties, widget )
+        item.connect('activate', self.reload_sort, field_name )
         menu.append(item)
 
         ## hide
@@ -339,6 +338,10 @@ class SqlTable(sqlwidget.SqlWidget):
         menu.show_all()
         menu.popup(None, None, None, ev.button, ev.time)
         #menu.popup(None, None, None, 1, 1)
+        
+    def reload_sort(self, widget, field_name, *args):
+        dbg.write(widget, field_name)
+        self.reload(order_by=field_name)
         
     def mapToListStore(self):
         self.coltypes = [object]
@@ -352,18 +355,18 @@ class SqlTable(sqlwidget.SqlWidget):
             self.coltypes.append(ftype)
             
         coltypes = []
-        
         # try to convert types to gobject types
         for tp in self.coltypes:
             if tp in (int, float, decimal.Decimal):
                 coltypes.append(str)
             else:
                 try:
-                    coltypes.append(gobject.type_from_name(gobject.type_name(tp)))
+                    coltypes.append(
+                        gobject.type_from_name(gobject.type_name(tp)))
                 except TypeError:
                     coltypes.append(object)
 
-        #dbg.write('coltypes', coltypes)
+        dbg.write('coltypes', coltypes)
         if self.liststore is None:
             self.liststore = gtk.ListStore(*coltypes)
     

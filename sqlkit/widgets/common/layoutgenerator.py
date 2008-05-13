@@ -7,8 +7,20 @@ import sqlkit as sk
 from sqlalchemy import *
 
 
-class TableLayoutGenerator (object):
+class LayoutGenerator (object):
+    """creates an object whose .layout attribute is used
 
+    in case a layout is passed as argument, the content is parsed to add the
+    labels and to change the type of widget used to represent the data (using
+    the mapping in map_types)
+
+    A name of a field can also be of the form: table.field_name, in which case
+    the table is reflected to get the type of the column, to adjust for the
+    proper widget representation
+
+    
+    
+    """
     map_types = {
         datetime.datetime     : 'd',
         datetime.date         : 'd',
@@ -37,23 +49,22 @@ class TableLayoutGenerator (object):
 
         if not naked:
             self._add_default_buttons()
+        #dbg.write(self.layout)
 
     def create (self):
+        """create is only used when no layout is passed, so no need to use _sub
+        that searches also for tbl.field_name
+        """
         entries = []
         for field_name in self.master.field_list:
             entries.append( self.add_spec(field_name=field_name ))
         return ''.join (entries)
 
-    
     def add_spec(self, field_name=None):
-        ftype = getattr(self.fields, field_name)['type']
-        spec = self.map_types[ftype]
-        dim=''
-
-        if self.fields[field_name]['col_spec'] == 'TEXT':
-            spec = 'TXS'
-            dim = ":250.100"
-        return "L=%s %s=%s%s\n" % (field_name, spec, field_name, dim)
+        
+        widget = self.get_widget(field_name)
+        return "L=%s %s=%s%s\n" % (field_name, widget, field_name,
+                                   self.create_spec(field_name))
 
 
     def _parse_and_complete(self, lay):
@@ -71,12 +82,12 @@ class TableLayoutGenerator (object):
 #                     # this is to excude  {N   (container + flags)
 
         p2 = re.compile(r"""
-        (?<!\S)                    # next row must not match if preceded by any str
-                                   # %string is a qualifier for notebooks
-                                   # {N is for noteooks and so on
-        (?P<field>[a-z_A-Z\.]+)   # the field + a possible table (table.field)
-        (?![-=])                  # the row above is only mathced if not followed
-                                  # by - o = (b=gtk-save-as *must not* match)
+        (?<!\S)                # next row must not match if preceded by any str
+                               # %string is a qualifier for notebooks
+                               # {N is for noteooks and so on
+        (?P<field>[a-z_A-Z\.]+)  # the field + a possible table (table.field)
+        (?![-=])               # the row above is only mathced if not followed
+                               # by - o = (b=gtk-save-as *must not* match)
         (?P<spec>:[-<>.\d]*)?
         (?P<end>\b)
         """, re.VERBOSE | re.MULTILINE)
@@ -86,10 +97,9 @@ class TableLayoutGenerator (object):
     def _sub(self, m):
         ### not using add_spec just becouse of the way args are passed
         field_name = m.group('field')
-        #print 'field_name',field_name
-        if field_name in self.fields:
-            t = self.fields[field_name]['type']
-        else:
+
+        ## this is for reference of fields defined in other tables: tbl.field
+        if field_name not in self.fields:
             ## any field that is not explicitly here is mapped into 'str'
             #dbg.write('field_name', field_name)
             #print "ELSE", field_name
@@ -98,7 +108,7 @@ class TableLayoutGenerator (object):
                 return field_name
 
             #dbg.write("t=", t)
-        fmod = self.map_types[t]
+        widget = self.get_widget(field_name)
 
         spec = m.group('spec') or ''
         try:
@@ -109,18 +119,31 @@ class TableLayoutGenerator (object):
         if not spec:
             spec = self.create_spec(field_name, col_spec)
             #print field_name, spec
-        return " L=%s %s=%s%s" % (field_name, fmod, field_name,
-                                   spec)
+        return " L=%s %s=%s%s" % (field_name, widget, field_name, spec)
     
-    def create_spec(self, field_name, col_spec):
+    def get_widget(self, field_name):
+        ftype = self.fields[field_name]['type']
+        widget = self.map_types[ftype]
+        
+        if self.fields[field_name]['col_spec'] == 'TEXT':
+            widget = 'TXS'
+        return widget
+
+    def create_spec(self, field_name, col_spec=None):
         """create a spec string that decides how long en entry must be
            reflects fom db
            """
-        #print col_spec
+
+        if not col_spec:
+            col_spec = self.fields[field_name]['col_spec']
+            
         if col_spec == 'INTEGER':
             return ":8"
         elif col_spec.startswith('FLOAT'):
             return ":8"
+        elif col_spec == 'TEXT':
+            dim = ":250.100"
+        
         else:
             m = re.search('VARCHAR.(\d+).', col_spec)
             if m:

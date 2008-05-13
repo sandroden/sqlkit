@@ -17,7 +17,7 @@ tables = {}
 
 OP = {
     'sqlite' : 'LIKE',
-    'postgres'     : '~',
+    'postgres'     : '~*',
     'mysql'  : 'ILIKE',
     }
 
@@ -28,7 +28,7 @@ class Completion(object):
         """completion is the way we can find possible completions of text in
         a cell.  In case the edited field has a Foreign Key constraint
         completion will follow the table/field to retrieve the possible
-        values, in case we don't have an fk completion will suggest values
+        values, in case we don't have an fk, completion will suggest values
         already present in the db.
 
         A completion must be 'requested' (is only issued on demand). Normal
@@ -42,7 +42,7 @@ class Completion(object):
                         field_name, 'F1')
 
         It requires quite a lot of object be already setup in the master
-        (actually SqlMask or SqlTreeView?)
+        (actually SqlMask or SqlTable?)
         self.master.fields: an InspectMapper Object
         self.master.engine
         self.master.lay_obj a Layout object (for the tooltips method)
@@ -83,18 +83,22 @@ class Completion(object):
             entry = wdg
             
         completion = entry.get_completion()
-        if completion:
-            return (completion.get_model(), completion)
+# FIXME: we could do better but we should record the mode, otherwise a second
+# call on the same completion would not follow 
+#        if completion:
+#            return (completion.get_model(), completion)
 
         ## completion was not present
         completion = gtk.EntryCompletion()
-        completion.set_property('popup-set-width', False)
+        completion.set_property('popup-set-width', True)
         completion.set_property('minimum-key-length', 0)
         completion.connect('match-selected', self.match_selected_cb, field_name)
         renderer = gtk.CellRendererText()
         completion.pack_start(renderer)
             
+        print "FKEY", self.master.fields[field_name]['fkey']
         if self.master.fields[field_name]['fkey']:
+            print "FKEY DBG: dentro"
             col_num = 3
             col_entry = 1   # col for data to be shown *in the entry*
             col_dropdown = 2   # col for data to be shown *in the dropdown*
@@ -110,6 +114,9 @@ class Completion(object):
         listore = gtk.ListStore( *col_def)
             
         ## we match against the description field
+        ## from the reference docs:
+        # The match function is used by the entry completion to determine
+        # if a row of the associated tree model should be in the completion list
         completion.set_match_func(self.match_func, (col_entry, mode))
 
         self.listores[field_name] =  listore
@@ -182,7 +189,9 @@ class Completion(object):
         return value
 
     def get_foreign_info(self, field_name):
+        
         foreign_keys = self.master.fields[field_name]['fkey']
+            
         if len(foreign_keys) > 1:
             raise UnhandledMultipleForeignkeys(foreign_keys)
         else:
@@ -240,25 +249,30 @@ class Completion(object):
 #        self.add_NULL_value(listore)
         for R in ret:
             Rl = self.instance2list(R)
+            dbg.write(Rl)
             Rd = self.instance2dict(R)
             #if len(Rl) >= 2:
             if self.master.fields[field_name]['fkey']:
                 ftable = self.master.fields[field_name]['fkey'][0]
                 if ftable in tables and tables[ftable][2] is not None:
                     # we have defined explicitly a format via "str" % dict
+                    dbg.write(1)
                     descr = tables[ftable][2] % Rd
                     listore.append([ Rl[0], Rl[1], descr, Rd ])
                 elif len(Rl) > 1:
                     ## default format is all fields joined
+                    dbg.write(2)
                     listore.append([ Rl[0], Rl[1] or '', " - ".join(Rl[1:]), Rd ])
                 else:
+                    dbg.write(3)
+                    
                     listore.append([ Rl[0], Rl[0] , Rl[0], Rd ])
                     
             else:
                 listore.append([Rl[0], Rd])
 
         self.make_completion_to_pop(wdg)
-
+        dbg.write(listore)
 #     def add_NULL_value(self, liststore):
 #         liststore.append([{}] + [None] * (liststore.get_n_columns()-1))
     def instance2list(self, R):
@@ -311,7 +325,7 @@ class Completion(object):
         if isinstance(self.master, sqlkit.SqlTable):
             self.master.editable.set_text(str(value))
         self.master.set_value(field_name, value)
-        #dbg.write('value', value)
+        dbg.write('value', value)
 
         ## Let's show a more usefull value than the id. 
         if self.master.fields[field_name]['fkey']:
@@ -320,7 +334,7 @@ class Completion(object):
             Rd = model.get(iter,3)[0]
             Rd[field_name] = show_value
 
-            #dbg.write('Rd', Rd, 'Rd type', type(Rd))
+            dbg.write('Rd', Rd, 'Rd type', type(Rd))
                 
             self.set_text(Rd, exclude=field_name)
             ## reset the show value
@@ -337,7 +351,7 @@ class Completion(object):
     def set_text(self, Rd, exclude=None):
         """sets the values of field read by the select
         """
-        #dbg.write()
+        dbg.write()
         if isinstance(self.master, sqlkit.SqlMask):
             for field_name, value in Rd.iteritems():
 #                 if field_name == exclude:
@@ -345,7 +359,7 @@ class Completion(object):
 #                     continue
                 #dbg.write(field_name, value)
                 if field_name in self.master.mwidgets:
-                    #dbg.write("%s.set_text(%s)" % (field_name, value))
+                    dbg.write("%s.set_text(%s)" % (field_name, value))
                     self.master.mwidgets[field_name].set_text(value)
                     #self.master._set_value(field_name, Rd[field_name]
         else:
@@ -372,18 +386,18 @@ class Completion(object):
         """
         global tables
         I = self.master.fields[field_name]
-        exec_dict={field_name : sql_dict['val']}
+        exec_dict={str(field_name) : sql_dict['val']}
 
         sql, constraint_params = self.master.actions.on_completion(
             self.master.get_current_record(), field_name)
 
         sql_dict['completion_constraint'] = sql
-        
+        ftable, fkey = self.get_foreign_info(field_name)
         ### field is a ForeignKey
         if I['fkey']:
             ## set the referenced table' staff
-            sql_dict['referenced_table'] = I['fkey'][0]
-            sql_dict['field_name'] = I['fkey'][1]
+            sql_dict['referenced_table'] = ftable
+            sql_dict['field_name'] = fkey
 
             try:
                 self._add_descriptor_fields(sql_dict)
@@ -391,13 +405,13 @@ class Completion(object):
                 pass
                 
             #sql_dict['field_comp'] = tables[sql_dict['referenced_table']][0]
-            if tables[I['fkey'][0]][0] is not None:
+            if tables[ftable][0] is not None:
                 sql_dict['descriptor_field'] = tables[sql_dict['referenced_table']][0]
                 sql_dict['order_by'] = re.sub('^,', '',sql_dict['descr'])
                 
             else:
-                sql_dict['descriptor_field'] = I['fkey'][1]
-                sql_dict['order_by'] = I['fkey'][1]
+                sql_dict['descriptor_field'] = fkey
+                sql_dict['order_by'] = fkey
                 
             #dbg.dshow(sql_dict)
             sql = """
@@ -408,7 +422,7 @@ class Completion(object):
                  ORDER BY %(order_by)s
                  """ % sql_dict
 
-            exec_dict.update({sql_dict['descriptor_field'] : sql_dict['val']})
+            exec_dict.update({str(sql_dict['descriptor_field']) : sql_dict['val']})
             exec_dict.update(constraint_params)
         else:
             sql_dict['referenced_table'] = I['table_name'] 
@@ -432,7 +446,7 @@ class Completion(object):
         #dbg.write(sql, exec_dict)
         #dbg.sql_debug(sql, exec_dict)
 #        s = text(sql, engine=self.mapper.engines[0])
-        s = text(sql, engine=self.master.metadata.engine)
+        s = text(sql, bind=self.master.metadata.bind)
         #dbg.write('exec_dict', exec_dict, sql)
         return s.execute(**exec_dict)
     
