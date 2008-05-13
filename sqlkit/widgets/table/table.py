@@ -18,6 +18,10 @@ import dbg
 import decimal
 import layout.widgets as widgets
 import re
+import gobject
+import gtk
+import pango
+#from  cell_renderers import CellRendererDate, CellRendererDatetime
 #sys.path.append('../gdl')
 
 if sys.hexversion < 0x20401f0:
@@ -25,20 +29,17 @@ if sys.hexversion < 0x20401f0:
     print "needed python version >= ", hex(0x20401f0)
     sys.exit(-1)
     
-import gtk, gobject, pango
-
 class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
     date = None
-    def __init__(self, date, pos=None, wdg=None, cell_area=None):
+    def __init__(self, datetime, pos=None, wdg=None, cell_area=None):
 
-        self.date = date
-        
+        self.datetime = datetime
         gtk.TextView.__init__(self)
         #self.set_has_window(False)
         self.cal = gtk.Calendar()
         #self.cal.show()
-        self.cal.select_month(self.date.month - 1, self.date.year)
-        self.cal.select_day(self.date.day)
+        self.cal.select_month(self.datetime.month - 1, self.datetime.year)
+        self.cal.select_day(self.datetime.day)
         self.w = gtk.Window(gtk.WINDOW_POPUP)
         #self.set_editable(False)
         self.w.add(self.cal)
@@ -89,9 +90,7 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
         return False
         
     def cal_event(self, w, e):
-        text = "%02d/%02d/%d" % (self.cal.get_date()[2],
-                             self.cal.get_date()[1] + 1,
-                             self.cal.get_date()[0])
+        text = self.get_calendar_date().strftime("%d/%m/%y")
         tb = self.get_buffer()
         tb.set_text(text)
         return False
@@ -113,11 +112,25 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
         pass
     
     def delete_event(self,w = None, e = None):
-        self.date=self.cal.get_date()
+        date = self.get_calendar_date()
+        try:
+            self.datetime = datetime.combine(date, self.datetime.time())
+        except Exception, e:
+            print e
+            self.datetime = date
+            
         self.emit('editing-done')
         self.w.destroy()
         self.destroy()
         return True
+
+    def get_calendar_date(self):
+        """calendare return a tuple: genuary is 0!"""
+
+        calendar_tuple = list(self.cal.get_date())
+        calendar_tuple[1] += 1
+        return datetime(*tuple(calendar_tuple))
+        
     
 gobject.type_register(CellEditableCalendar)    
 
@@ -188,18 +201,22 @@ class CellRendererDate(gtk.GenericCellRenderer):
     
     
     def date_formatter(self, date):
-        if date is None: return "--/--/--"
-        return "%02d/%02d/%d" % (date.day, date.month, date.year)
+        if date is None:
+            return "--/--/--"
+
+        return date.strftime("%d/%m/%y")
     
     
-    def do_start_editing(self, event, widget, path, background_area, cell_area, flags):
+    def do_start_editing(self, event, widget, path, background_area,
+                         cell_area, flags):
 
         if self.date is None:
             date = datetime.now()
         else:
             date = self.date
         #dbg.ddir(cell_area)
-        ce = CellEditableCalendar(date = date, cell_area=cell_area, wdg=widget)
+        ce = CellEditableCalendar(datetime = date, cell_area=cell_area,
+                                  wdg=widget)
 #        ce = CellEditableCalendar(date = date, pos=(event.x, event.y))
         ce.show()
         ce.grab_focus()
@@ -209,18 +226,12 @@ class CellRendererDate(gtk.GenericCellRenderer):
     
     def editing_done(self, widget, treeview, path):
 
-        if type(widget.date) is tuple:
-            tdate = list(widget.date)
-            tdate[1] += 1
-            self.date = datetime(*tuple(tdate))
-        elif widget.date is None:
-            self.date = None
-            
         self.stop_editing(True)
-        self.emit('date-changed', path, self.date)
+        self.emit('date-changed', path, widget.datetime)
         return True
     
-    def do_render(self, window, widget, background_area, cell_area, expose_area, flags):
+    def do_render(self, window, widget, background_area,
+                  cell_area, expose_area, flags):
         
         #dbg.write()
         
@@ -241,6 +252,69 @@ class CellRendererDate(gtk.GenericCellRenderer):
         
 if gobject.pygtk_version < (2, 8):
     gobject.type_register(CellRendererDate)
+
+
+class CellRendererDatetime(CellRendererDate):
+    datetime = None
+##     editable = None
+
+    __gproperties__ = {
+        'datetime': (gobject.TYPE_PYOBJECT,
+                 'datetime of cell',
+                 'datetime object contained in cell',
+                 gobject.PARAM_READWRITE)
+        }
+
+    __gsignals__ = {
+        'datetime-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,
+                         (gobject.TYPE_STRING, gobject.TYPE_PYOBJECT)
+                          )
+        }    
+
+    def __init__(self, *args, **kwargs):
+        #dbg.write()
+        self.datetime = None
+
+        return gtk.CellRenderer.__gobject_init__(self, *args, **kwargs)
+    
+    def do_pango_layout(self, widget):
+        pc = widget.get_pango_context()
+        pl = pango.Layout(pc)
+        pl.set_text(self.date_formatter(self.datetime))
+        return pl
+    
+    
+    def date_formatter(self, date_time):
+        if date_time is None:
+            return "--/--/-- --:--"
+        ## FIXME: should be read from some settings...
+        return date_time.strftime('%d/%m/%Y %H:%M')
+
+    def do_start_editing(self, event, widget, path, background_area,
+                         cell_area, flags):
+
+        if self.datetime is None:
+            date_time = datetime.now()
+        else:
+            date_time = self.datetime
+        #dbg.ddir(cell_area)
+        ce = CellEditableCalendar(datetime = date_time, cell_area=cell_area,
+                                  wdg=widget)
+
+#        ce = CellEditableCalendar(date = date, pos=(event.x, event.y))
+
+        ce.show()
+        ce.grab_focus()
+        ce.connect('editing-done', self.editing_done, widget, path)
+        
+        return ce
+    
+    def editing_done(self, widget, treeview, path):
+            
+        self.stop_editing(True)
+        self.emit('datetime-changed', path, widget.datetime)
+        return True
+    
 
 
     
@@ -405,8 +479,10 @@ class SqlTable(sqlwidget.SqlWidget):
                 tvcolumn.pack_start(cell, True)
                 tvcolumn.add_attribute(cell, 'active', j )
                 cell.set_property('activatable', True)
-                cell.connect('toggled', self.toggled_signal_cb, (self.liststore, j))
-            #primary key and integer do not show
+                cell.connect('toggled', self.toggled_signal_cb,
+                             (self.liststore, j))
+                
+            # primary key and integer do not show
             elif ptype == int and self.fields[v]['pkey']:
                 #tvcolumn = gtk.TreeViewColumn(v)
                 cell = gtk.CellRendererText()
@@ -414,7 +490,8 @@ class SqlTable(sqlwidget.SqlWidget):
                 tvcolumn.add_attribute(cell, 'text', j )
 #                tvcolumn.set_visible(False)
                 tvcolumn.set_visible(True)
-            elif issubclass(self.fields[v]['db_type'], (sqltypes.Date, sqltypes.DateTime)):
+
+            elif issubclass(self.fields[v]['db_type'], (sqltypes.Date)):
                 #dbg.write('%s is a date' % v)
                 cell = CellRendererDate()
                 cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
@@ -423,8 +500,20 @@ class SqlTable(sqlwidget.SqlWidget):
                 tvcolumn.add_attribute(cell, 'date', j )
                 cell.connect('editing-started', self.date_editing_started_cb, j )
                 cell.connect('date-changed', self.date_changed_cb, j )
+
+            elif issubclass(self.fields[v]['db_type'], (sqltypes.DateTime)):
+                #dbg.write('%s is a date' % v)
+                cell = CellRendererDatetime()
+                cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+                cell.set_property('sensitive', False)
+                tvcolumn.pack_start(cell, True)
+                tvcolumn.add_attribute(cell, 'datetime', j )
+                cell.connect('editing-started', self.date_editing_started_cb, j )
+                cell.connect('datetime-changed', self.date_changed_cb, j )
+
             elif self.fields[v]['fkey'] and v.endswith('_id'):
-                # use set_fkey_descr function to put text in the cell if this is a foreign key
+                # use set_fkey_descr function to put text in the cell
+                # if this is a foreign key
                 cell = gtk.CellRendererText()
                 cell.set_property('editable', True)
                 #cell.set_property('editable-set', True)
