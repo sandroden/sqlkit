@@ -96,9 +96,7 @@ class Completion(object):
         renderer = gtk.CellRendererText()
         completion.pack_start(renderer)
             
-        print "FKEY", self.master.fields[field_name]['fkey']
         if self.master.fields[field_name]['fkey']:
-            print "FKEY DBG: dentro"
             col_num = 3
             col_entry = 1   # col for data to be shown *in the entry*
             col_dropdown = 2   # col for data to be shown *in the dropdown*
@@ -189,9 +187,9 @@ class Completion(object):
         return value
 
     def get_foreign_info(self, field_name):
-        
+        #import pdb; pdb.set_trace()
         foreign_keys = self.master.fields[field_name]['fkey']
-            
+        
         if len(foreign_keys) > 1:
             raise UnhandledMultipleForeignkeys(foreign_keys)
         else:
@@ -392,9 +390,9 @@ class Completion(object):
             self.master.get_current_record(), field_name)
 
         sql_dict['completion_constraint'] = sql
-        ftable, fkey = self.get_foreign_info(field_name)
         ### field is a ForeignKey
         if I['fkey']:
+            ftable, fkey = self.get_foreign_info(field_name)
             ## set the referenced table' staff
             sql_dict['referenced_table'] = ftable
             sql_dict['field_name'] = fkey
