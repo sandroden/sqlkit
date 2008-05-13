@@ -6,6 +6,7 @@ import sqlkit
 
 class LookupValueNotReturningOneValue(Exception): pass
 class MissingDescriptorField(Exception): pass
+class UnhandledMultipleForeignkeys(Exception): pass
 
 ####### Completion
 # EntryCompletion widgets are added on the fly triggered by F1, C-F1 or menu items
@@ -58,7 +59,7 @@ class Completion(object):
 #        self.tables = {}
         self.listores = {}  ## needed for entry_completion
         self.lookup_values = {}
-        self.LIKE_OP = OP[self.master.engine.name]
+        self.LIKE_OP = OP[self.master.metadata.bind.name]
 
     def get_widget(self, field_name):
         """return the widget to widh the entryCompletion should be attached
@@ -149,8 +150,10 @@ class Completion(object):
         try:
             return self.lookup_values[field_name][field_value]
         except:
+            #import pdb; pdb.set_trace()
             #dbg.write("%s %s" % (field_name,field_value))
-            ftable, fname = self.master.fields[field_name]['fkey']
+            ftable, fname = self.get_foreign_info(field_name)
+            #ftable, fname = self.master.fields[field_name]['fkey']
             descr_field = self._add_descriptor_fields(
                 mode='return', referenced_table=ftable, referenced_field=fname)
             if descr_field is None:
@@ -158,7 +161,7 @@ class Completion(object):
             sql = "SELECT %s FROM %s WHERE %s = :%s" % (
                 descr_field,
                 ftable, fname, fname)
-            t = text(sql, engine=self.master.engine)
+            t = text(sql, bind=self.master.metadata.bind)
             ret = t.execute(**{fname : field_value})
             j = 0
             for R in ret:
@@ -177,7 +180,16 @@ class Completion(object):
                 self.lookup_values[field_name] = {}
             self.lookup_values[field_name][field_value] = value
         return value
-    
+
+    def get_foreign_info(self, field_name):
+        foreign_keys = self.master.fields[field_name]['fkey']
+        if len(foreign_keys) > 1:
+            raise UnhandledMultipleForeignkeys(foreign_keys)
+        else:
+            fkcol = foreign_keys[0]
+            ## table/column name are unicode but they must be strng to be
+            ##     used as key in dicts
+            return (str(fkcol.column.table.name), str(fkcol.column.name))
     
 
 ### Filling the completion
@@ -420,7 +432,7 @@ class Completion(object):
         #dbg.write(sql, exec_dict)
         #dbg.sql_debug(sql, exec_dict)
 #        s = text(sql, engine=self.mapper.engines[0])
-        s = text(sql, engine=self.master.engine)
+        s = text(sql, engine=self.master.metadata.engine)
         #dbg.write('exec_dict', exec_dict, sql)
         return s.execute(**exec_dict)
     
@@ -492,7 +504,9 @@ class Completion(object):
         
         ## first time we meet this table  -> inspect w/ autoload
         if table_name not in tables:
-            tbl = Table(table_name, self.master.engine, autoload=True)
+            #import pdb; pdb.set_trace()
+            tbl = Table(table_name, self.master.metadata, autoload=True)
+            
             descr_exists = False
             for field_name in tbl.c.keys():
                 if re.search('_name|_descr', field_name, re.I):

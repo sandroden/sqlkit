@@ -6,15 +6,14 @@ import layout.dateedit as dateedit
 from layoutgenerator import TableLayoutGenerator
 import gtk, pango
 import decimal
-from sqlalchemy import *
+from sqlalchemy.orm import scoped_session, sessionmaker
+#from sqlalchemy import *
 import dbg.gtk_dbg
 
 import sqlkit
-import sqlkit.sqlfilter as sqlfilter
-import sqlkit.sqldata as sqldata
-import sqlkit.minspect as minspect
-import sqlkit.parseopts as parseopts
-import sqlkit.completion as completion
+from sqlkit import sqlfilter 
+from sqlkit.db import sqldata, minspect
+from sqlkit.widgets.common import completion
 
 class NoSyncError(Exception): pass
 class SyncNotAvailable(Exception): pass
@@ -29,8 +28,15 @@ class SqlWidget(object):
 #    __metaclass__ = misc.autoreload.MetaAutoReloader
     
     def __init__ (self, mapper=None,
+                  ## geometry
                   lay = None,
                   naked=False,
+                  geom=(-1,300),
+                  addto=None,
+                  title=None,
+                  show=True,
+                  icons='',
+                  # SQL
                   table=None,
                   tables=None,
                   join=None,
@@ -38,22 +44,18 @@ class SqlWidget(object):
                   noup=[],
                   sql=None,
                   constraint={},
-                  engine=None,
-                  title=None,
+                  dbproxy = None,
                   order_by=None,
-                  show=True,
-                  single=False,
                   limit=100,
-                  nick=None,
-                  geom=(-1,300),
-                  addto=None,
-                  actions=None,
                   field_list=None,
+                  filter=True,
                   session=None,
+                  ## more
+                  single=False,
+                  nick=None,
+                  actions=None,
                   dev=False,
                   xml=False,
-                  filter=True,
-                  icons='',
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -72,7 +74,7 @@ class SqlWidget(object):
         dev:    if dev=False (default) fields ending with '_id' and not fk
                 are not shown
         """
-        self.block = False
+        self.block = False   # used whensync-ing widgets
         self.icons = icons
         self.filter = filter
         self.xml = xml
@@ -84,7 +86,9 @@ class SqlWidget(object):
         self.actions = self.get_actions(actions)
         self.constraint=constraint
         self.sync_dict = {}
-        self.engine = self.get_engine(engine, mapper)
+        self.dbproxy = dbproxy
+        self.metadata = dbproxy.metadata
+#        self.engine = self.get_engine(engine, mapper)
         self.session = self.get_session(session)
         self.order_by = order_by
         ## we can use singular or plural as an option, plural in the code
@@ -92,9 +96,10 @@ class SqlWidget(object):
             tables = table
         self.tables = tables
         self.nick= self.get_nick(nick)
-        self.mapper = self.get_mapper(self.engine, mapper, tables)
+        self.mapper = self.get_mapper(mapper, tables)
         self.mode = mode
-        self.fields = parseopts.inspect_mapper(self.mapper, noup=noup, mode=mode)
+        self.fields = self.dbproxy.inspect_mapper(
+            self.mapper, noup=noup, mode=mode)
         self.field_list = self.parse_fields(field_list)
         self.title = self._get_title(title)
 #        self.tables = {}
@@ -128,11 +133,11 @@ class SqlWidget(object):
         if session:
             return session
         else:
-            return create_session()
+            return self.dbproxy.get_session()
     
-    def get_mapper(self, engine, mapper, tables):
-        return parseopts.get_mapper(self.engine, mapper, tables)
-        
+    def get_mapper(self, mapper, tables):
+        return self.dbproxy.get_mapper(mapper, tables)
+
     def parse_fields(self, fields):
         if not fields:
             if self.dev:
@@ -162,19 +167,19 @@ class SqlWidget(object):
             nick = self.tables
         return nick
             
-    def get_engine(self, engine, mapper):
-        if not engine:
-            if mapper:
-                dbg.write(mapper)
-                engine = mapper.local_table.engine
-            else:
-                try:
-                    engine = schema.default_metadata.engine
-                except:
-                    msg = "You may want to use globalconn when creating engine"
-                    raise MissingEngine(msg)
+#     def get_engine(self, engine, mapper):
+#         if not engine:
+#             if mapper:
+#                 dbg.write(mapper)
+#                 engine = mapper.local_table.engine
+#             else:
+#                 try:
+#                     engine = schema.default_metadata.engine
+#                 except:
+#                     msg = "You may want to use globalconn when creating engine"
+#                     raise MissingEngine(msg)
                 
-        return engine
+#         return engine
     
     def _get_layout(self, lay, naked):
         ## layout
@@ -356,11 +361,18 @@ class SqlWidget(object):
         #dbg.write(self.nick, "SQL: '%s'" % sql_str,
         #           'params', params, 'limit:', limit)
         #self.mapper.table.engine.echo = True
-        records = self.session.query(self.mapper).select(sql_str, params=params,
-                                                         order_by=self.order_by,
-                                                         limit=limit)
-        if self.nick == 'art_var_filo':
-            self.engine.echo = False
+        print "SQL: %s" % sql_str
+        #import pdb; pdb.set_trace()
+        records = self.session.query(self.mapper)
+        records = records.filter(sql_str)
+        if params:
+            records = records.params(**params)
+        if self.order_by:
+            records = records.order_by(self.order_by)
+        if self.limit:
+            records = records.limit(self.limit)
+                
+
         #records = self.mapper.select_by(sql)
         #self.mapper.table.engine.echo = False
         if isinstance(self, sqlkit.SqlMask):

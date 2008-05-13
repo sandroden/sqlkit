@@ -6,18 +6,17 @@ import layout
 import layout.dateedit as dateedit
 
 #import validator
-from sqlkit.layoutgenerator import TableLayoutGenerator
+from sqlkit.widgets.common.layoutgenerator import TableLayoutGenerator
 import gtk, pango
 from sqlalchemy import *
 import dbg.gtk_dbg
 import sqlkit
-import sqlkit.sqlfilter as sqlfilter
-import sqlkit.sqldata as sqldata
+from sqlkit.widgets.common import sqlfilter
+from sqlkit.db import sqldata
+#import sqlkit.sqldata as sqldata
 #import sqlkit.inspect as sinspect
-import sqlkit.validator as validator
-import sqlkit.parseopts as parseopts
-import sqlkit.completion as completion
-import sqlkit.sqlwidget as sqlwidget
+from sqlkit.validation import validator
+from sqlkit.widgets.common import completion, sqlwidget
 import decimal
 import sqlkit
 
@@ -470,6 +469,8 @@ class SqlMask (sqlwidget.SqlWidget):
             if field_name in self.labels:
                 lbl    = self.labels[field_name]
                 ev_wdg = self.labels[field_name].parent
+                ## FIXME: is there a situation when I don't whant
+                ##        blinking labels?
                 if self.filter:
                     ev_wdg.connect('enter-notify-event', self.ene_cb)
                     ev_wdg.connect('leave-notify-event', self.lne_cb)
@@ -639,9 +640,9 @@ class Combo(SqlMask):
             
         return (lay, w)
     
-    def get_mapper(self, engine, mapper, tables):
-        return parseopts.get_mapper(self.engine, mapper, tables[0])
-    
+    def get_mapper(self, mapper, tables):
+        return self.dbproxy.get_mapper(mapper, tables[0])
+
     def parse_fields(self, fields):
         self.table_field_list = fields
         return SqlMask.parse_fields(self, None)

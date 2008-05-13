@@ -12,7 +12,7 @@ sys.path.append ('../../../')
 #import layout
 from datetime import datetime
 import sqlalchemy.types as sqltypes
-import sqlkit.sqlwidget as sqlwidget
+from sqlkit.widgets.common import sqlwidget
 #from sqlkit.layoutgenerator import TableLayoutGenerator
 import sqlalchemy
 import dbg

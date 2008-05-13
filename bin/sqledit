@@ -3,7 +3,7 @@
 """
 usage: %prog files [options] [[url|nick] table]
    -u, --url = URL: an url to open (eg: postgres://user:pass@host/dbname)
-   -n, --nick = nick: a nick in ~.sqledit
+   -n, --nick = nick: a nick in ~/.sqleditdb
    -t, --table = table: open table 'table'
    -m, --mask: open a SqlMask (default is SqlTable)
    -T, --sqltable: open a SqlTable
@@ -15,16 +15,21 @@ import sys, re, datetime
 import os
 import user
 from ConfigParser import ConfigParser
+import pdb
 
 #sys.path.insert(0,'/usr/src/sqlalchemy/lib/')
 Dir = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(os.path.join(Dir, '../../'))
+sys.path.insert(0, os.path.join(Dir, '../'))
 import dbg
-import layout
+from layout import layout
 import sqlalchemy as sa
+from sqlalchemy.orm import sessionmaker
 import gtk
-import misc.optionparse as optionparse
-
+from dry import optionparse
+import sqlkit
+from sqlkit import SqlTable, SqlMask
+from sqlkit.db import proxy
+import layout.misc
 
 class MissingNickDefinition(Exception): pass
 
@@ -34,7 +39,7 @@ class choice(object):
                    {- b=filter_tables e=filter}
                    TVS=tree"""
         self.tables = {}
-        self.engine = engine
+#        self.engine = engine
         self.l = layout.Layout(lay, opts='-')
         self.l.pack(
             ## fill is just to avoid default that is expand
@@ -58,10 +63,10 @@ class choice(object):
 
     def reload(self, *args):
         dbg.write('reloading sqlkit')
-        print reload(sk)
-        #reload(sk.sqlwidget)
-        print reload(sk.table.table)
-        #reload(sk.mask.mask)
+        print reload(sqlkit)
+        #reload(sqlkit.sqlwidget)
+        print reload(sqlkit.table.table)
+        #reload(sqlkit.mask.mask)
         
     def popup_col_menu(self, wdg, ev ):
         try:
@@ -92,28 +97,28 @@ class choice(object):
 
     def activate_cb(self, wdg, data):
         #dbg.write()
-        global option
         mode, table = data
-        opts ={'table' : table,
-           'dev' : option.dev,
-           'single' : False,
-           'nick' : table
+        options ={'table' : table,
+               'dev' : opts.dev,
+               'single' : False,
+               'nick' : table,
+               'dbproxy' : db,
            }
         if mode == 'mask':
             try:
-                sk.SqlMask(**opts)
-            except sk.completion.MissingDescriptorField:
+                SqlMask(**options)
+            except sqlkit.completion.MissingDescriptorField:
                 pass
         else:
             try:
-                sk.table.table.SqlTable(**opts)
-            except sk.completion.MissingDescriptorField:
+                SqlTable(**options)
+            except sqlkit.completion.MissingDescriptorField:
                 pass
             
     def skip_table(self, table):
         """ this is just for skipping, must return True"""
         
-        if self.engine.name == 'postgres' and table.startswith('pg_'):
+        if db.metadata.bind.name == 'postgres' and table.startswith('pg_'):
             return True
         if not re.search(TABLE_MATCH, table):
             return True
@@ -123,14 +128,14 @@ class choice(object):
         global TABLE_MATCH
         self.model.clear()
         TABLE_MATCH = self.w['e=filter'].get_text() or ".*"
-        tables = sk.minspect.list_tables(eng=engine)
+        tables = db.metadata.bind.table_names()
         tables.sort()
         for table in tables:
             if self.skip_table(table):
                 continue
             iter = self.model.append(None)
             self.model.set(iter, 0, table)
-            tbl = sa.Table(table, self.engine, autoload=True)
+            tbl = sa.Table(table, db.metadata, autoload=True)
             self.tables[table] = tbl
             pks = []
             for pk in tbl.primary_key:
@@ -143,49 +148,42 @@ class choice(object):
                 self.model.set(col, 1, c.type.get_col_spec())
                 if c.primary_key:
                     self.model.set(col, 2, 'X' )
-                if c.foreign_key:
-                    self.model.set(col, 3, repr(c.foreign_key) )
+                if c.foreign_keys:
+                    self.model.set(col, 3, repr(c.foreign_keys) )
                 
 
 def read_conf():
-    global option
-    
     dbconf='.sqleditdb'
     dbconf = os.path.join(os.getenv('HOME'), dbconf)
     if os.path.exists(dbconf):
         c = ConfigParser()
         c.read(dbconf)
-        for tup in c.items(option.nick):
+        for tup in c.items(opts.nick):
             key, val = tup
-            if getattr(option, key) is None:
-                setattr(option, key, val)
+            if getattr(opts, key) is None:
+                setattr(opts, key, val)
     else:
         raise MissingNickDefinition
         
 
-def get_engine_ko(): 
-    global options
-    
-    sa.global_connect(option.url)
-    return sa.default_metadata.engine
-   
 def open_sqlwidget(table, single):
-    opts ={'table' : table,
-           'engine' : engine,
-           'dev' : option.dev,
-           'single' : single,
-           'nick' : table
+    global opts
+    options ={'table' : table,
+              'dev' : opts.dev,
+              'single' : single,
+              'nick' : table,
+              'dbproxy' : db,
            }
-    if option.mask:
+    if opts.mask:
         try:
-            sk.SqlMask(**opts)
-        except sk.completion.MissingDescriptorField:
+            SqlMask(**options)
+        except sqlkit.completion.MissingDescriptorField:
             pass
 
     else:
         try:
-            sk.table.table.SqlTable(**opts)
-        except sk.completion.MissingDescriptorField:
+            SqlTable(**options)
+        except sqlkit.completion.MissingDescriptorField:
             pass
             
 
@@ -193,38 +191,42 @@ def open_sqlwidget(table, single):
 
 #table_name = None
 
-option, args = optionparse.parse(__doc__)
+opts, args = optionparse.parse(__doc__)
+#print opts
 
-if not args and not option: optionparse.exit()
+if not args and not opts: optionparse.exit()
 
-if option.gtk_debug:
+if opts.gtk_debug:
     dbg.ShowLogs(show=True)
-
-import sqlkit as sk
-import layout.misc
 
 if args:
     if re.search('://', args[0]):
-        option.url = args[0]
+        opts.url = args[0]
     else:
-        option.nick = args[0]
+        opts.nick = args[0]
     
 if len(args) >1:
-    option.table = args[1]
+    opts.table = args[1]
     
-if option.debug:
+if opts.debug:
     dbg.debug(True)
 
-if option.nick:
+if opts.nick:
     read_conf()
 
 
-sa.global_connect(option.url)
-engine = sa.default_metadata.engine
+db = proxy.DbProxy(engine=opts.url)
+session = db.get_session()
+
+#engine = sa.create_engine(opts.url)
+#metadata = sa.MetaData(bind=opts.url)
+#session = sessionmaker(bind=engine,transactional=True)()
+#sa.global_connect(opts.url)
+#engine = sa.default_metadata.engine
 
 
-if option.table:
-    tables = re.split('[ ,]+', option.table)
+if opts.table:
+    tables = re.split('[ ,]+', opts.table)
     for t in tables:
         if len(tables) > 1:
             single = False
@@ -232,7 +234,7 @@ if option.table:
             single = True
         open_sqlwidget(t, single)
 else:
-    C = choice(engine=engine)    
+    C = choice(engine=session.bind)    
 
 gtk.main()
 

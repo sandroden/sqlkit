@@ -1,5 +1,5 @@
 import gtk
-import layout
+from layout import layout
 import layout.misc
 import completion
 import dbg
@@ -124,7 +124,7 @@ class FilterPanel(object):
                 tables = re.split('[ ,]+',tables)
                 for tbl in tables:
                     T[tbl] = sqlalchemy.Table(
-                        tbl, self.master.engine, autoload=True)
+                        tbl, self.master.metadata, autoload=True)
 
                 for tbl in tables[1:]:
                     join = T[tables[0]].join(T[tbl])
@@ -213,7 +213,7 @@ class FilterPanel(object):
         self.w['Window'].destroy()
     
     def get_suitable_operators(self, field):
-        eng_type = self.master.engine.name
+        eng_type = self.master.metadata.bind.name
         ftype = self.master.fields[field]['type']
         print field, eng_type, ftype
         STR_STD_OPERATORS = [ 'LIKE', 'NOT LIKE' ]
@@ -231,7 +231,7 @@ class FilterPanel(object):
         elif eng_type in 'postgres':
             return  ['~*', '~', '!~*', '~*' ] + STD_OPERATORS
     def add(self, wdg, ev, field, after=None, show=True):
-        """this adds a field to the filter panel + operator and string entry
+        """add a field to the filter panel + operator and string entry
         after: entry will be positioned after widget 'after'
         """
         if ev.button == 3:
@@ -348,36 +348,7 @@ class FilterPanel(object):
                 ## the select to match it
                 del values[fld['field']]
 
-#                 s = """%(ftable)s.%(field)s FROM %(ftable)s
-#                 WHERE %(ftable)s.%(fdescr)s %(op_value)s :%(fname)s) """ % (fld)
-
-#                 attr_col = F[fld['field']]['col']
-#                 descr_col = F[fld['fdescr']]['col']
-#                 s = sqlalchemy.select(["%(ftable)s.%(field)s" % fld],
-#                                       descr_col.op(fld['op_value'])(value))
-
                 sql = F[fld['field']]['col'].in_(sqlalchemy.select([s]))
 
         return [ sql ]
 
-#     def _compose_field_whereclause_old(self, fld):
-#         """return a sql whereclause for field
-
-#         In case field is a fkey, terminating with _id, and the destination
-#         lookup field is not in the mapper, it composes a subselect
-#         """
-#         sql = "%(field)s %(op_value)s :%(field)s"% (fld)
-        
-#         if fld['field'].endswith('_id'):
-#             info = self.master.fields[fld['field']]
-#             fld['fdescr'] = self.master._add_descriptor_fields(
-#                 mode='return', table_name='city')
-#             if info['fkey']:
-#                 fld['ftable'], fld['fname'] = info['fkey']
-#                 sql = """%(field)s IN (
-#                 SELECT %(field)s FROM %(ftable)s
-#                 WHERE %(fdescr)s %(op_value)s :%(fname)s) """ % (fld)
-
-#         return [ sql ]
-        
-        

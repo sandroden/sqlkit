@@ -4,8 +4,9 @@ import sys, dbg
 import datetime
 import decimal
 import re
+from  sqlalchemy.orm import properties
 
-PROPERTIES = sqlalchemy.orm.properties
+PROPERTIES = properties
 class MissingPrimaryKeyError(Exception): pass
 def is_serial (c):
     if hasattr (c.default, 'arg') and hasattr (c.default.arg, 'text'):
@@ -39,7 +40,7 @@ class InspectMapper(dict):
            """
         self.mode = mode
         self.pytype = getattr(self, "get_%s_types" %
-                              mapper.local_table.engine.name)()
+                              mapper.local_table.bind.name)()
         self.fields = []
         self.primarytable = self.get_primary_table
         self.noup = self.parse_noup(noup)
@@ -57,8 +58,8 @@ class InspectMapper(dict):
             sqlalchemy.databases.postgres.PGInteger  : int,
             sqlalchemy.databases.postgres.PGSmallInteger  : int,
             sqlalchemy.databases.postgres.PGFloat  : float,
-            sqlalchemy.databases.postgres.PG2DateTime  : datetime.datetime,
-            sqlalchemy.databases.postgres.PG2Date  : datetime.date,
+            sqlalchemy.databases.postgres.PGDateTime  : datetime.datetime,
+            sqlalchemy.databases.postgres.PGDate  : datetime.date,
             sqlalchemy.databases.postgres.PGNumeric : decimal.Decimal,
             #                sqlalchemy.databases.postgres.PGNumeric : float,
             sqlalchemy.databases.postgres.PGChar  : str, 
@@ -88,24 +89,6 @@ class InspectMapper(dict):
             sqlalchemy.databases.sqlite.SLBinary : str,
             }
                                
-    def junk(self):
-       pass
-       #         ## used by sqlite
-       #         try:
-       #             self.pytype.update({
-       #                 sqlalchemy.types.String : str,
-       #                 sqlalchemy.types.Integer  : int,
-       #                 sqlalchemy.types.Float  : float,
-       #                 sqlalchemy.types.DateTime  : datetime.datetime,
-       #                 sqlalchemy.types.Date  : datetime.date,
-       # #                sqlalchemy.types.Char  : str,
-       #                 sqlalchemy.types.String  :  str,
-       #                 sqlalchemy.types.Boolean  : bool,
-       #                 })
-       #         except:
-       #             dbg.write("no sa types")
-       #             pass
-
     def get_mysql_types(self):
         return {
             sqlalchemy.databases.mysql.MSString : str,
@@ -127,28 +110,10 @@ class InspectMapper(dict):
             sqlalchemy.databases.mysql.MSBinary : str,
             }
                               
-
-
-
     def loop_on_props(self):
-        for prop in self.mapper.props:
-            attr = self.mapper.props[prop]
-            self._add_field(prop, self.mapper)
-                
-
-    def loop_on_props_old(self):
-        for prop in self.mapper.props:
-            attr = self.mapper.props[prop]
-            ## here we populate props
-            if isinstance(attr, sqlalchemy.orm.properties.LazyLoader) or \
-               isinstance(attr, sqlalchemy.orm.properties.EagerLoader):
-                #self.props[prop] = attr.target.name  # the table reached thru 'prop'
-                m = attr.mapper
-                self.props += [(prop, attr.direction, m.local_table.name)]
-                for field_name in m.c.keys():
-                    self._add_field(field_name, m, prop)
-            else:
-                self._add_field(prop, self.mapper)
+        props = self.mapper.iterate_properties
+        for prop in props:
+            self._add_field(prop.key, self.mapper)
 
     def _add_field(self, field_name, mapper, property=None):
         if field_name in self:
@@ -192,11 +157,12 @@ class InspectMapper(dict):
         if d['pkey']:
             #dbg.write("si %s -> %s" % (field_name, mapper.local_table.name ))
             self.pkeys[mapper.local_table.name] += [field_name]
-            #print self.pkeys
 
-        if mapper.c[field_name].foreign_key:
-             d['fkey'] = (mapper.c[field_name].foreign_key.column.table.name,
-                        mapper.c[field_name].foreign_key.column.name)
+        d['fkey'] = mapper.c[field_name].foreign_keys
+
+#         if mapper.c[field_name].foreign_keys:
+#              d['fkey'] = (mapper.c[field_name].foreign_key.column.table.name,
+#                         mapper.c[field_name].foreign_key.column.name)
         setattr(self, field_name,  d)
 
     def keys(self):
@@ -539,42 +505,4 @@ def list_tables(eng=None, schema=None):
     tables = [R[0] for R in ret]
     return tables
 
-
-def list_tables(eng=None, schema=None):
-    if not eng:
-        eng = schema.default_metadata.engine
-
-    if eng.name == 'sqlite':
-        sql = """
-        SELECT name FROM sqlite_master
-        WHERE type='table'
-        ORDER BY name;"""
-    elif eng.name == 'postgres':
-        if schema == None:
-            schema_constraint = ''
-        else:
-            schema_constraint = "AND n.nspname = :schema"
-        sql = """
-           SELECT c.relname as name,
-             n.nspname as schema,c.relkind,
-             u.usename as owner
-           FROM pg_catalog.pg_class c
-                LEFT JOIN pg_catalog.pg_user u ON u.usesysid = c.relowner
-                LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-           WHERE c.relkind IN ('r')
-                 %s
-                 AND pg_catalog.pg_table_is_visible(c.oid)
-           ORDER BY 1,2;
-           """ % (schema_constraint)
-        #,'v','S',''   for views or sequences
-
-        # the following will not consider visibility of the table
-        # sql = "SELECT tablename FROM pg_tables WHERE schemaname = :schema "
-    elif eng.name in ( 'mysql'):
-        sql = "SHOW TABLES"
-
-    ret = eng.text(sql).execute(schema=schema)
-    tables = [R[0] for R in ret]
-    dbg.write(tables)
-    return tables
 
