@@ -201,6 +201,7 @@ class SqlTable(sqlwidget.SqlWidget):
 #                tvcolumn.set_visible(False)
                 tvcolumn.set_visible(True)
 
+            ## Dates
             elif issubclass(self.fields[v]['db_type'], (sqltypes.Date)):
                 #dbg.write('%s is a date' % v)
                 cell = CellRendererDate()
@@ -211,6 +212,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 cell.connect('editing-started', self.date_editing_started_cb, j )
                 cell.connect('date-changed', self.date_changed_cb, j )
 
+            ## Datetime
             elif issubclass(self.fields[v]['db_type'], (sqltypes.DateTime)):
                 #dbg.write('%s is a date' % v)
                 cell = CellRendererDatetime()
@@ -370,7 +372,7 @@ class SqlTable(sqlwidget.SqlWidget):
         path, col = self.treeview.get_cursor()
         ## only visible columns!!
         columns = [c for c in self.treeview.get_columns() if c.get_visible()]
-        dbg.write(columns)
+#        dbg.write(columns)
         colnum = columns.index(col)
         if colnum + 1 < len(columns):
             gobject.idle_add(self.treeview.set_cursor, path, columns[colnum + 1], True)
@@ -381,7 +383,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 titer = tmodel.get_iter_first()
             path = tmodel.get_path(titer)
             gobject.idle_add(self.treeview.set_cursor, path, columns[1], True)
-        return True
+        return False
     
     def key_tree_ctrl_n(self, treeview, event, data):
         dbg.write('OK')
