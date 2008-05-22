@@ -28,6 +28,7 @@ import dbg
 from layout import layout
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exceptions import OperationalError
 import gtk
 from dry import optionparse
 import sqlkit
@@ -214,7 +215,11 @@ opts, args = optionparse.parse(__doc__)
 if not args and not opts: optionparse.exit()
 
 if opts.gtk_debug:
-    dbg.ShowLogs(show=True)
+    #dbg.conf_class_trace(ok='SqlTable|SqlMask')
+    #dbg.debug(2)
+    lgm = dbg.ShowLogs(show=True)
+    #lgm.conf(but='set_fkey_descr|(lookup|set|get)_value|[el]ne_cb|match_func')
+    lgm.conf(but='write_info')
 
 if args:
     if re.search('://', args[0]):
@@ -246,20 +251,29 @@ session = db.get_session()
 #engine = sa.default_metadata.engine
 
 
-if opts.table:
-    tables = re.split('[ ,]+', opts.table)
-    for t in tables:
-        if len(tables) > 1:
-            single = False
-        else:
-            single = True
-        open_sqlwidget(t, single)
-else:
-    C = choice(engine=session.bind)    
+try:
+     if opts.table:
+         tables = re.split('[ ,]+', opts.table)
+         for t in tables:
+             if len(tables) > 1:
+                 single = False
+             else:
+                 single = True
+             open_sqlwidget(t, single)
+     else:
+         C = choice(engine=session.bind)    
 
+except OperationalError, e:
+    if opts.debug:
+        raise e
+    else:
+        print e.orig
+        sys.exit(1)
+     
 try:
     gtk.main()
 except KeyboardInterrupt:
     pass
+
 
 
