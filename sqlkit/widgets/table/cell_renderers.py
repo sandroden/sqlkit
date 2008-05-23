@@ -3,7 +3,12 @@ import gtk, gobject, pango
 import dbg
 
 class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
-    date = None
+    """An editable that allows to edit dates via a calnda popup
+    Can also edit datetime but the popup will just change the date, not allow
+    to edit the time
+    """
+
+    datetime = None
     def __init__(self, datetime, pos=None, wdg=None, cell_area=None):
 
         self.datetime = datetime
@@ -14,7 +19,7 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
         self.cal.select_month(self.datetime.month - 1, self.datetime.year)
         self.cal.select_day(self.datetime.day)
         self.w = gtk.Window(gtk.WINDOW_POPUP)
-        #self.set_editable(False)
+        self.set_editable(True)
         self.w.add(self.cal)
         #self.w.connect("delete_event", self.delete_event)
         self.cal.connect("day-selected-double-click", self.delete_event)
@@ -201,13 +206,10 @@ class CellRendererDate(gtk.GenericCellRenderer):
 
         self.stop_editing(True)
         self.emit('date-changed', path, widget.datetime)
-        print "NUOVA", widget.datetime
         return True
     
     def do_render(self, window, widget, background_area,
                   cell_area, expose_area, flags):
-        
-        #dbg.write()
         
         x_offset, y_offset, width, height = self.do_get_size(widget, cell_area)
         pl = self.do_pango_layout(widget)
