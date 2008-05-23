@@ -11,7 +11,7 @@ import gtk, pango
 from sqlalchemy import *
 import dbg.gtk_dbg
 import sqlkit
-from sqlkit.widgets.common import sqlfilter
+#from sqlkit.widgets.common import sqlfilter
 from sqlkit.db import sqldata
 #import sqlkit.sqldata as sqldata
 #import sqlkit.inspect as sinspect
@@ -338,7 +338,6 @@ class SqlMask (sqlwidget.SqlWidget):
         
     def clear(self, widget=None):
         """clear the mask for a new record"""
-
         self.status = None
         self.sb("New Record")
         
@@ -379,8 +378,26 @@ class SqlMask (sqlwidget.SqlWidget):
                 return
         
         return self.record_display(incr=-1)
+    def add_accelerators(self):
+        """
+        C-S-n clear
+        C-s  save- record
+        """
+        
+        sqlwidget.SqlWidget.add_accelerators(self)
 
-    
+        self.accel_group.connect_group(
+            ord('n'), gtk.gdk.CONTROL_MASK|gtk.gdk.SHIFT_MASK,  
+            gtk.ACCEL_LOCKED, self.clear_cb)
+
+        self.accel_group.connect_group(
+            ord('s'), gtk.gdk.CONTROL_MASK,
+            gtk.ACCEL_LOCKED, self.record_save_cb)
+    def clear_cb(self, accell_group, window, ord, flags):
+        self.clear()
+        
+    def record_save_cb(self,  accell_group, window, ord, flags):
+        self.record_save(None)
 
 ####### Sync
     def record_back_sync(self, incr=1):

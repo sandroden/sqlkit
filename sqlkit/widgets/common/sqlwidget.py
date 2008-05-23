@@ -248,14 +248,6 @@ class SqlWidget(object):
                                        gtk.gdk.CONTROL_MASK, 
                                        gtk.ACCEL_LOCKED, 
                                        self.gquit)
-#         self.accel_group.connect_group(ord('n'), 
-#                                        gtk.gdk.CONTROL_MASK, 
-#                                        gtk.ACCEL_LOCKED, 
-#                                        self.record_clear)
-#         self.accel_group.connect_group(ord('s'), 
-#                                        gtk.gdk.CONTROL_MASK, 
-#                                        gtk.ACCEL_LOCKED, 
-#                                        self.record_save)
         self.w['Window'].add_accel_group(self.accel_group)
             
         
@@ -554,7 +546,8 @@ class SqlWidget(object):
     def add_filter(self, event=None, visible=True):
         """Pop a Filter Panel"""
         try:
-            self.filter_panel.w['Window'].set_property('visible', True)
+            self.filter_panel.w['Window'].present()
+            #self.filter_panel.w['Window'].set_property('visible', True)
             #print "add_filter: esisteva"
         except:
             self.filter_panel = sqlfilter.FilterPanel(self, visible=visible)
