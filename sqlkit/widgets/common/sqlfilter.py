@@ -19,11 +19,16 @@ class FilterPanel(object):
     def __init__(self, master, visible=True):
         
         """constructor need to know who is the 'master' ie the widget (a mask
-        or a table instance) that will display the result"""
+        or a table instance) that will display the result
+
+        search_fields = { 'field-name' :[(operator, bool, value),(operator...)])
+        """
         self.master = master
         self.get_layout(visible=visible)
         self.row =0  # counter for position of fields
         self.default_reload = True
+        
+        self.search_fields = {}
         
     def get_layout(self, visible=True):
         """create the filter panel widget"""
@@ -250,11 +255,21 @@ class FilterPanel(object):
         """add a field to the filter panel + operator and string entry
         after: entry will be positioned after widget 'after'
         """
-        if ev.button == 3:
+
+        ## I'd like *not* to .present the widget for any successive field added
+        ## but I have not been able to get focus on the window w/o .present()
+        
+        if field in self.search_fields and ev.button != 3:
             self.w['Window'].present()
             self.w['Window'].deiconify()
             return
 
+        info = (field, True, '')
+        if field not in self.search_fields:
+            self.search_fields[field] = [info]
+        else:
+            self.search_fields[field] += [info]
+            
         eng_type = self.master.metadata.bind.name
         ftype = self.master.fields[field]['type']
         operators = self.get_suitable_operators(field, ftype, eng_type)
@@ -298,6 +313,8 @@ class FilterPanel(object):
             c += 1
         self.row += 1
         Tbl.show_all()
+        field_widget.grab_focus()
+        
 
         self.fields.append({
             'field':    field,
@@ -308,6 +325,7 @@ class FilterPanel(object):
             } )
         if show:
             self.w['Window'].show_all()
+        self.w['Window'].present()
 
     
 ##### SQL
