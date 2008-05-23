@@ -125,8 +125,19 @@ class SqlTable(sqlwidget.SqlWidget):
         
     def reload_sort(self, widget, field_name, *args):
         dbg.write(widget, field_name)
-        self.reload(order_by=field_name)
+        self.order_by = field_name
+        self.reload_cb(None)
         
+    def reload_cb(self, *args):
+        """this is the real callback: C-r and toolbutton 
+        """
+
+        if hasattr(self, 'filter_panel'):
+            self.filter_panel.reload_cb(None)
+        else:
+            self.reload()
+
+
     def mapToListStore(self):
         self.coltypes = [object]
         for v in self.field_list:
@@ -410,7 +421,7 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
     
     def key_tree_ctrl_r(self, treeview, event, data):
-        self.reload()
+        self.reload_cb()
         return True
     
     def key_tree_Down(self, treeview, event, data):
