@@ -6,10 +6,21 @@ import layout, pango, inspect
 import tokenize
 import keyword
 import time
+import inspect
 
 class_regexp_ok = '^$'
 class_regexp_ko = '^$'
-DBGLogger = None
+
+class FakeLogger(object):
+    def add(self, *args,**kw):
+        pass
+    def write(self, *args, **kw):
+         write(*args, **kw)
+    def ret(self, iter, value):
+        return value
+
+DBGLogger = FakeLogger()
+#DBGLogger = None
 DBG = False
 
 def test():
@@ -280,20 +291,27 @@ def logmethod(methodname):
         global DBGLogger
         #print "DBG", methodname,  argl, argd
         #parse the arguments and create a string representation
+        #import pdb; pdb.set_trace()
         args = []
         for item in argl:
             args.append('%s' % str(item))
         for key,item in argd.items():
             args.append('%s=%s' % (key,str(item)))
         argstr = ','.join(args)   
-        caller_class = re.sub('(.*)\.(.*)',r'\2', caller(level=1).replace('._method',''))
-        caller_meth = re.sub('(.*)\.(.*)',r'\2', caller(level=2))
-
+        
+        caller1 = caller(level=1).replace('._method','')
+        caller2 = caller(level=2)
+        #print "claaer1, caller2", caller1, caller2, methodname
+        #caller_class = re.sub('(.*)\.(.*)',r'\2', caller1)
+        #caller_meth = re.sub('(.*)\.(.*)',r'\2', caller2)
+        caller_class = caller1
+        caller_meth = caller2
+        
         try:
             class_str = self.nick
         except:
             class_str = caller_class
-        if DBGLogger:
+        if DBG:
             iter = DBGLogger.add(Class=class_str, meth=methodname, indent=indent,
                                  caller=caller_meth, line=caller(mode='lineno'),
                                  args=args, class_obj=caller(mode='Class'))
@@ -301,7 +319,10 @@ def logmethod(methodname):
         indent += 1
         # do the actual method call
         try:
-            returnval = getattr(self,'_H_%s' % methodname)(*argl,**argd)
+            f = getattr(self,'_H_%s' % methodname)
+            #print inspect.getsource(f)
+            returnval = f(*argl,**argd)
+            
             indent -= 1
         except Exception, e:
             DBGLogger.add(Class=class_str, meth=str(e.__class__), indent=indent,
@@ -310,7 +331,7 @@ def logmethod(methodname):
             indent -= 1
             raise
 
-        if DBGLogger:
+        if DBG:
             ## iter is not defined if the method si not traced
             if iter:
                 DBGLogger.ret(iter, str(returnval))
@@ -325,7 +346,7 @@ class LogTheMethods(type):
         logmatch = re.compile(classdict.get('logMatch','.*'))
         global class_regexp_ok
         global class_regexp_ko
-        
+
         if re.search(class_regexp_ok, classname):
             #print "Passato", classname, class_regexp_ok
             if not re.search(class_regexp_ko, classname):
@@ -334,6 +355,7 @@ class LogTheMethods(type):
             return type.__new__(cls,classname,bases,classdict)
 
         meths = {}
+        #import pdb; pdb.set_trace()
         meths.update(dict(classdict.items()))
         for base in bases:
             for attr in dir(base):
@@ -344,6 +366,7 @@ class LogTheMethods(type):
         
 #        for attr,item in classdict.items():
         for attr, item in meths.items():
+            #print "LogTheMethods", attr, item
             if attr.startswith('_H_') or attr.startswith('__'):
                 continue
 
@@ -351,7 +374,9 @@ class LogTheMethods(type):
                 classdict['_H_%s'%attr] = item    # rebind the method
                 classdict[attr] = logmethod(attr) # replace method by wrapper
 
-        return type.__new__(cls,classname,bases,classdict)
+        ret = type.__new__(cls, classname, bases, classdict)
+
+        return ret
 
 class ShowLogs(object):
     def __init__(self, model=None, show=False):
@@ -369,9 +394,8 @@ class ShowLogs(object):
         iter = {}
         self.indent = {}
         ## method, args, caller, line
-        #model = gtk.TreeStore(str, str, str, str)
         cols = ['meth','class', 'args', 'caller', 'line',
-                'ret code', ('class', object), 'time']
+                'ret code', 'class', 'time']
         self.easytv = layout.misc.EasyTreeView(
             cols, sort=False, show=show, but='tb=gtk-close tb=gtk-open')
         self.time = time.time()
@@ -574,8 +598,11 @@ class ShowLogs(object):
     def add(self, txt='', Class='', line=None,
               caller='', meth=None, indent=0, args=[], ret=None,
               class_obj=None):
-
-
+        """adds to the TreeModel. If a method is called from another, its line
+        will be a sun of the previous and the color will be changed with
+        markup
+        """
+        
         col = {0: 'navyblue', 1:'slateblue', 2:'red', 3: 'seagreen',
                4: 'gray50', 5: 'gray60', 6: 'gray65', 7:'gray70'}
 
@@ -591,6 +618,7 @@ class ShowLogs(object):
             col.get(indent, 'palevioletred'), meth)
 
         self.last_indent = indent
+
         if indent == 0:  
             self.iter[indent] = self.model.append(None)
         else:
@@ -601,6 +629,7 @@ class ShowLogs(object):
         except IndexError:
             txt = ''
         now = time.time()
+        
         self.model.set(  self.iter[indent],
                          1, Class,
                          0, meth_str,
@@ -611,6 +640,8 @@ class ShowLogs(object):
                          7, "%.3f - %.4f" % (now - self.time, now - self.last_time)
                          )
         self.last_time = now
+        ## args to the functions are written one per line, the first is already
+        ## written, now the other come...
         for arg in args[1:]:
             self.model.set(self.model.append(self.iter[indent]),
                       2, arg[0:100]
