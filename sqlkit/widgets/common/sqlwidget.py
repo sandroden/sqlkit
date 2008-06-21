@@ -313,11 +313,8 @@ class SqlWidget(object):
         pass
     
     def commit(self):
-        dbg.write()
         PREV = self.metadata.bind.echo
         if dbg.debug() > 1:
-            #dbg.write('dbg.debug()', dbg.debug())
-            pass
             self.metadata.bind.echo = True
             
         try:
@@ -535,6 +532,15 @@ class SqlWidget(object):
         ### fixme: must add cheks
         ### fixme2: must the toplevel be destrouyed (or is reparented?)
         #print widget
+        if self.session.dirty or self.session.new:
+            response = self.dialog(type='yes-no-cancel',
+                                   text="Save unsaved data?")
+            if response == gtk.RESPONSE_CANCEL:
+                return 
+
+            if response == gtk.RESPONSE_YES:
+                self.session.commit()
+
         self.w['Window'].destroy()
         self.filter_panel.destroy()
         if self.single:
