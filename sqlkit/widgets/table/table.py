@@ -22,6 +22,7 @@ import gobject
 import gtk
 from  cell_renderers import CellRendererDate, CellRendererDatetime
 #sys.path.append('../gdl')
+NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
 
 if sys.hexversion < 0x20401f0:
     print "your python version: ", hex(sys.hexversion)
@@ -43,7 +44,7 @@ class SqlTable(sqlwidget.SqlWidget):
     deleting_row = False
     tvcolumns = None
     trace_regexp = 'rowCommit'
-    __metaclass__ = dbg.LogTheMethods
+#    __metaclass__ = dbg.LogTheMethods
          
     def _get_layout(self, lay, naked):
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
@@ -131,13 +132,13 @@ class SqlTable(sqlwidget.SqlWidget):
     def reload_cb(self, *args):
         """this is the real callback: C-r and toolbutton 
         """
-
+        dbg.write('pre')
         if hasattr(self, 'filter_panel'):
             self.filter_panel.reload_cb(None)
         else:
             self.reload()
-
-
+        dbg.write('post')
+        
     def mapToListStore(self):
         self.coltypes = [object]
         for v in self.field_list:
@@ -217,7 +218,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 #dbg.write('%s is a date' % v)
                 cell = CellRendererDate()
                 cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-                cell.set_property('sensitive', False)
+                cell.set_property('sensitive', True)
                 tvcolumn.pack_start(cell, True)
                 tvcolumn.add_attribute(cell, 'date', j )
                 cell.connect('editing-started', self.date_editing_started_cb, j )
@@ -294,9 +295,9 @@ class SqlTable(sqlwidget.SqlWidget):
 
 #### callbacks treeview
     def selection_changed_cb(self, treeselection):
-        #dbg.write('model_path', self.model_path, 'rowCommit',self.rowCommit)
+        dbg.write('model_path', self.model_path, 'rowCommit',self.rowCommit)
         if self.model_path is None:
-            #dbg.write('model_path None, nulla da salvare')
+            dbg.write('model_path None, nulla da salvare')
             return False
         
         if self.rowCommit:
@@ -306,10 +307,12 @@ class SqlTable(sqlwidget.SqlWidget):
         else:
             pass
             #dbg.write('non self.rowCommit')
+            
         return False
     
-    def select_cursor_row_cb(self, treeview, start_editing, user_data = None):
+    def select_cursor_row_cb(self, treeview, start_editing, user_data):
         return False
+    
     def cursor_changed_cb(self, treeview, user_data = None):
         return False
         
@@ -397,7 +400,6 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
     
     def key_tree_ctrl_n(self, treeview, event, data):
-        dbg.write('OK')
         self.record_new(treeview)
         return False
         
@@ -513,13 +515,14 @@ class SqlTable(sqlwidget.SqlWidget):
 
                 
         self.model_path = path
+        dbg.write("self.model_path = %s" % (self.model_path))
         self.rowCommit = True
         return True
     
     def text_edited_cb(self, cell, path, new_text, field_name):
 
         """called by connect 'edited' on cell_renderer """
-
+        dbg.write(path, new_text, field_name)
         ## NOTE: liststore.clear will trigger text_edited_cb!!!
         if self.deleting_row:
             dbg.write('deleting raw...')
@@ -549,7 +552,6 @@ class SqlTable(sqlwidget.SqlWidget):
 
         # get the first visible col to position the cursor on
         for field in self.field_list:
-            # FIXME: it should also be editable
             if self.tvcolumns[field].get_visible() and self.fields[field]['edit']:
                 col = self.tvcolumns[field]
                 break
@@ -694,6 +696,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.rowCommit = False
         #self.set_height_request()
         self.model_path = None
+        
         self.reloading = False
         return ret
                                          
@@ -711,17 +714,20 @@ class SqlTable(sqlwidget.SqlWidget):
         try:
             data = ptype(value)
         except ValueError:
-            if value == '' and ptype in (int, float, decimal.Decimal):
-                data = value
+            if value == '' and ptype in sqlwidget.NUMBERS:
+                data = None
             else:
                 raise
         except TypeError, e:
             #dbg.write( self.coltypes[colnum])
             data = str(value)
 
+        self.set_value_real( field_name, data, path)
+        
+    def set_value_real(self, field_name, value, path):
         idx = self.fname2model_col(field_name)
         #dbg.write("self.liststore[%s][%s] = %s" % (path, idx, data))
-        self.liststore[path][idx] = data
+        self.liststore[path][idx] = value
         return True
     
     def get_selected_row(self):
