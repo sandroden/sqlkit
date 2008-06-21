@@ -138,6 +138,7 @@ class InspectMapper(dict):
             'is_serial'   :  is_serial(mapper.c[field_name]),
             'property'    :  property,
             'fkey'        :  False,
+            'default'     :  mapper.c[field_name].default,
             'pkey'        :  mapper.c[field_name].primary_key,
             'nullable'    :  mapper.c[field_name].nullable,
             'mapper'      :  mapper,
