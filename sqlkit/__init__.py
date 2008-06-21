@@ -36,5 +36,5 @@ from db import config
 from widgets.mask import SqlMask
 from widgets.mask import Combo
 from widgets.common.sqlwidget import SqlWidget
-from widgets.table import  SqlTable
+from widgets.table import  SqlTable, SqlTable2
 #from SqlTreeView import  SqlTable

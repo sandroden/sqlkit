@@ -90,11 +90,13 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
         pass
     
     def delete_event(self,w = None, e = None):
+
         date = self.get_calendar_date()
         try:
+            ## in case self.datetime is a date, we preserve the time
             self.datetime = datetime.combine(date, self.datetime.time())
         except Exception, e:
-            print e
+            ## self.datetime may just be a date...
             self.datetime = date
             
         self.emit('editing-done')
