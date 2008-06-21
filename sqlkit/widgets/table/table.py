@@ -22,7 +22,6 @@ import gobject
 import gtk
 from  cell_renderers import CellRendererDate, CellRendererDatetime
 #sys.path.append('../gdl')
-NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
 
 if sys.hexversion < 0x20401f0:
     print "your python version: ", hex(sys.hexversion)
@@ -132,13 +131,13 @@ class SqlTable(sqlwidget.SqlWidget):
     def reload_cb(self, *args):
         """this is the real callback: C-r and toolbutton 
         """
-        dbg.write('pre')
+
         if hasattr(self, 'filter_panel'):
             self.filter_panel.reload_cb(None)
         else:
             self.reload()
-        dbg.write('post')
-        
+
+
     def mapToListStore(self):
         self.coltypes = [object]
         for v in self.field_list:
@@ -295,9 +294,9 @@ class SqlTable(sqlwidget.SqlWidget):
 
 #### callbacks treeview
     def selection_changed_cb(self, treeselection):
-        dbg.write('model_path', self.model_path, 'rowCommit',self.rowCommit)
+        #dbg.write('model_path', self.model_path, 'rowCommit',self.rowCommit)
         if self.model_path is None:
-            dbg.write('model_path None, nulla da salvare')
+            #dbg.write('model_path None, nulla da salvare')
             return False
         
         if self.rowCommit:
