@@ -24,7 +24,8 @@ NUMBERS = (int, float, decimal.Decimal)
 class SqlWidget(object):
     fields   = None  # fields to use (InspectMapper)
 #    tables = None    # Table objects referenced as foreign keys
-    values = None    # real value for foreign key (when lookup is displeyed instead)
+    values = None    # real value for foreign key
+                     # (when lookup is displeyed instead)
 #    __metaclass__ = dbg.LogTheMethods
 #    __metaclass__ = misc.autoreload.MetaAutoReloader
     
@@ -51,6 +52,7 @@ class SqlWidget(object):
                   field_list=None,
                   filter=True,
                   session=None,
+                  hide = None,
                   ## more
                   single=False,
                   nick=None,
@@ -74,6 +76,7 @@ class SqlWidget(object):
         addto:  passed to layout
         dev:    if dev=False (default) fields ending with '_id' and not fk
                 are not shown
+        hide:   fields not to be shown (space or comma separated or list)
         """
         self.block = False   # used whensync-ing widgets
         self.icons = icons
@@ -99,9 +102,12 @@ class SqlWidget(object):
         self.nick= self.get_nick(nick)
         self.mapper = self.get_mapper(mapper, tables)
         self.mode = mode
+        self.hide = hide
         self.fields = self.dbproxy.inspect_mapper(
             self.mapper, noup=noup, mode=mode)
         self.field_list = self.parse_fields(field_list)
+        if hide:
+            self.hide_fields()
         self.title = self._get_title(title)
 #        self.tables = {}
         self.values = {}
@@ -130,6 +136,12 @@ class SqlWidget(object):
         #dbg.write('lcontainer_name: ', el_def)
         self.w[el_def].show()
         
+    def hide_fields(self):
+        if isinstance(self.hide, str):
+            self.hide = re.split('[ ,]+', self.hide)
+        for field in self.hide:
+            self.field_list.remove(field)
+            
     def get_session(self, session):
         if session:
             return session
@@ -211,8 +223,8 @@ class SqlWidget(object):
         #dbg.write(self.layout)
         self.lay_obj = layout.Layout(self.layout, addto=self.addto,
                                      title=self.title, opts='T-')
-        if self.xml:
-            self.lay_obj.xml('/tmp/m_%s.glade' % self.nick)
+        #if self.xml:
+        #    self.lay_obj.xml('/tmp/m_%s.glade' % self.nick)
         if 'Window' in self.lay_obj.elements:
             self.lay_obj.prop('Window', 'visible', False)
         self.w       = self.lay_obj.show()
@@ -302,7 +314,6 @@ class SqlWidget(object):
     
     def commit(self):
         dbg.write()
-        
         PREV = self.metadata.bind.echo
         if dbg.debug() > 1:
             #dbg.write('dbg.debug()', dbg.debug())
@@ -334,7 +345,7 @@ class SqlWidget(object):
 
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
         """
-        dbg.write("limit: %s" % limit)
+        # dbg.write("limit: %s" % limit)
         if limit:
             self.limit = limit
 
@@ -343,14 +354,14 @@ class SqlWidget(object):
             
         if constraint:
             self.constraint=constraint
-        #dbg.write(self.nick, 'constraint', constraint)
+        # dbg.write(self.nick, 'constraint', constraint)
 
         if sql is None:
             sql = self.sql
 
         if isinstance(sql, tuple) and len(sql) == 2:
             sql_str, params = sql
-            #dbg.write('type sql_str', type(sql_str), 'type params', type(params))
+            #dbg.write('type sql_str',type(sql_str),'type params', type(params))
             #dbg.sql_debug(sql_str, params)
         else:
             sql_str = sql
@@ -361,12 +372,12 @@ class SqlWidget(object):
             self.sql = (sql_str, params)
 
         self.session.clear()
-        #dbg.write(self.nick, "SQL: '%s'" % sql_str,
+        # dbg.write(self.nick, "SQL: '%s'" % sql_str,
         #           'params', params, 'limit:', limit)
-        #self.mapper.table.engine.echo = True
-        dbg.write("SQL: %s -- params: %s" % (sql_str, params))
+        # self.mapper.table.engine.echo = True
+        # dbg.write("SQL: %s -- params: %s" % (sql_str, params))
         
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         records = self.session.query(self.mapper)
         records = records.filter(sql_str)
         if params:
@@ -376,16 +387,20 @@ class SqlWidget(object):
         if self.limit:
             records = records.limit(self.limit)
                 
-        #records = self.mapper.select_by(sql)
-        #self.mapper.table.engine.echo = False
+        # records = self.mapper.select_by(sql)
+        # self.mapper.table.engine.echo = False
         if isinstance(self, sqlkit.SqlMask):
             self.clear()
+        self.records = records
         self.sqlData = sqldata.SqlData(records, self.fields, self.session)
         if display:
             self.record_display()
 
         return self.sqlData.count()
-    
+
+    def handle_fresh_data(self, records, fields, session):
+        return sqldata.SqlData(records, self.fields, self.session)
+        
     def reload_one(self,field, value):
         """compact way to view a single record or records with a single property"""
 
