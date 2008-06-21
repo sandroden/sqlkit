@@ -277,19 +277,26 @@ class SqlTable2(SqlTable):
             """
 
             obj = model[path][0]
-            self.session.delete(obj)
+            if obj in self.session.new:
+                self.session.expunge(obj)
+            else:
+                self.session.delete(obj)
+            del obj
+            self.model_path = None
             model.remove(iter)
             
         sel = self.treeview.get_selection()
         model, paths = sel.get_selected_rows()
         sel.selected_foreach(do_del)
-        self.commit()
 
         ## select the same row or the preceding
         row_n = paths[0][0]  # path is a tuple here
         if row_n >= len(model):
             row_n -= 1
-        sel.select_path(row_n)
+
+            
+        if len(model):  # prevent warning for empty models
+            sel.select_path(row_n)
         
         self.deleting_row = False
 
@@ -312,7 +319,7 @@ class SqlTable2(SqlTable):
         if self.model_path is None: # no editing done
             dbg.write('no self.model_path, nothing to save', self.model_path)
             return
-        
+        #import pdb; pdb.set_trace()
         obj = self.liststore[self.model_path][0]
         ## if _sqlkit_mode is not set as after a SELECT, it defaults to UPDATE
         ## _sqlkit_mode is set in record_new

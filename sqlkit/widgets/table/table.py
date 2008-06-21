@@ -701,19 +701,23 @@ class SqlTable(sqlwidget.SqlWidget):
         self.liststore.clear()
     
     def reload(self, *args, **kwargs):
-        commit_allowed = self.commit_allowed
-#        self.commit_allowed = None
-        #dbg.write('type(session)', type(self.session))
-        self.record_save()
+        # commit_allowed = self.commit_allowed
+        # self.commit_allowed = None
+
+        try:
+            self.record_save()
+        except ValidationError:
+            return
+        
         self.session.clear()
         self.clear()
         ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
-#        self.commit_allowed = commit_allowed
+        # self.commit_allowed = commit_allowed
         self.commit_allowed = False
-        #self.set_height_request()
+        # self.set_height_request()
         self.model_path = None
         
-        self.reloading = False
+        # self.reloading = False
         return ret
                                          
     def set_value(self, field_name, value, path=None):
