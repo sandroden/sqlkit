@@ -12,7 +12,7 @@ sys.path.append ('../../../')
 #import layout
 from datetime import datetime
 import sqlalchemy.types as sqltypes
-from sqlkit.widgets.common import sqlwidget, CommitError
+from sqlkit.widgets.common import sqlwidget, CommitError, ValidationError
 import sqlalchemy
 import dbg
 import decimal
@@ -748,7 +748,8 @@ class SqlTable(sqlwidget.SqlWidget):
     
     def get_selected_row(self):
         selection = self.treeview.get_selection()
-        rows = selection.get_selected_rows()[1]
+        model, rows = selection.get_selected_rows()
+        ## we use junst the first selected
         if rows:
             return rows[0][0]
         else:

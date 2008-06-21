@@ -19,7 +19,8 @@ from sqlkit.widgets.common import completion
 class NoSyncError(Exception): pass
 class SyncNotAvailable(Exception): pass
 class MissingEngine(Exception): pass
-class CommitError(Exception): pass
+class ValidationError(Exception): pass
+class CommitError(ValidationError): pass
 
 NUMBERS = (int, float, decimal.Decimal)
 
@@ -309,12 +310,14 @@ class SqlWidget(object):
     def record_save(self, ev):
         """invokes the validator before UPDATE/INSERT a record"""
         pass
-    def record_save_new(self, wdg, constraint):
-        """Insert a new record
-        """
-        pass
+    
+#     def record_save_new(self, wdg, constraint):
+#         """Insert a new record
+#         """
+#         pass
     
     def commit(self):
+
         PREV = self.metadata.bind.echo
         if dbg.debug() > 1:
             self.metadata.bind.echo = True
@@ -322,7 +325,7 @@ class SqlWidget(object):
         try:
             self.session.commit()
         except exceptions.SQLError, e:
-            #self.SQLErrorHandler(e)
+            self.SQLErrorHandler(e)
             dbg.write("Exception: %s" % e.orig) 
             self.message(str(e.orig))
             self.session.rollback()
@@ -331,9 +334,44 @@ class SqlWidget(object):
         self.metadata.bind.echo = PREV
     
     def SQLErrorHandler(self, e):
-        self.message(type='error', text=str(e.orig))
+        self.message(type='error',
+                     text="%s - Dirty objects: %s - New objects: % s" %
+                     (str(e.orig),len(self.session.dirty),len(self.session.new)))
         self.sb(e.orig)
         dbg.write("Scritto %s su sb" % (e.orig))
+
+    def record_validate(self, obj, mode, constraint={} ):
+        """any validation should live here
+
+        constraint: this is a dictionary of values that are enforced. When two
+        sqlwidgets are synced is the way the 'master' adds the foreign key
+        constraint.
+
+        Constraints are applied *after* path2dict handling and before
+        actions.on_update / actions.on_insert
+
+        """
+        ## FIXME: vars(obj) means nothing...
+        rdict = vars(obj)
+        ## Applying constraint *after* check that I inserted something
+        if constraint:
+            self.constraint=constraint
+
+        if mode == 'INSERT':
+            self.actions.on_insert(new=rdict)
+            #dbg.write("INSERTING record", rdict)
+            #self.sqlData.add(rdict)
+
+        elif mode == 'UPDATE':
+            self.actions.on_update(new=rdict, old=self.sqlData.get())
+            #self.sqlData.set(rdict, index=int(self.model_path))
+            #self.sqlData.current = self.path2sqldata_index(self.model_path)
+            #self.sqlData.set(rdict)
+        pass
+    
+    def handle_validation_error(self, error):
+        """to be overloaded"""
+        pass
             
 
 ####### Record browsing 
