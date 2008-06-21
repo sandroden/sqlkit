@@ -19,6 +19,8 @@ from sqlkit.widgets.common import completion
 class NoSyncError(Exception): pass
 class SyncNotAvailable(Exception): pass
 class MissingEngine(Exception): pass
+class CommitError(Exception): pass
+
 NUMBERS = (int, float, decimal.Decimal)
 
 class SqlWidget(object):
@@ -320,9 +322,12 @@ class SqlWidget(object):
         try:
             self.session.commit()
         except exceptions.SQLError, e:
-            print e
-            self.SQLErrorHandler(e)
-
+            #self.SQLErrorHandler(e)
+            dbg.write("Exception: %s" % e.orig) 
+            self.message(str(e.orig))
+            self.session.rollback()
+            raise CommitError
+            
         self.metadata.bind.echo = PREV
     
     def SQLErrorHandler(self, e):
@@ -849,3 +854,5 @@ class Actions(object):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+

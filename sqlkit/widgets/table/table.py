@@ -1,4 +1,4 @@
-#!/bin/env python
+|#!/bin/env python
 # SqlTreeView.py -- Class for viewing sqldata in a TreeView.
 #
 #
@@ -12,7 +12,7 @@ sys.path.append ('../../../')
 #import layout
 from datetime import datetime
 import sqlalchemy.types as sqltypes
-from sqlkit.widgets.common import sqlwidget
+from sqlkit.widgets.common import sqlwidget, CommitError
 import sqlalchemy
 import dbg
 import decimal
@@ -427,9 +427,22 @@ class SqlTable(sqlwidget.SqlWidget):
     
     def key_tree_Down(self, treeview, event, data):
         # dbg.write(, len(self.liststore))
-        if self.get_selected_row()+1 == len(self.liststore):
-            self.record_save()
-            self.record_new(treeview)
+        if self.get_selected_row() + 1 == len(self.liststore):
+            try:
+                self.record_save()
+                ### record_new will focus the next line, that is an empty line
+                ### that triggers a selection_change_cb
+                ### that would normally issue a .commit()
+                ### I need to prevent a commit in this situation as the
+                ### object is empty and would not validate
+
+                self.commit_allowed = False
+                self.record_new(treeview)
+                self.commit_allowed = True
+                dbg.write("PASSATO")
+            except CommitError, e:
+                return False
+
         return False
 
         
@@ -843,4 +856,6 @@ class SqlTable(sqlwidget.SqlWidget):
     
     
     
+
+
 

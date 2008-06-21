@@ -1,0 +1,1 @@
+from sqlwidget import CommitError
