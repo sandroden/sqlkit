@@ -1,4 +1,4 @@
-|#!/bin/env python
+#!/bin/env python
 # SqlTreeView.py -- Class for viewing sqldata in a TreeView.
 #
 #
@@ -16,7 +16,7 @@ from sqlkit.widgets.common import sqlwidget, CommitError
 import sqlalchemy
 import dbg
 import decimal
-import layout.widgets as widgets
+from  layout import widgets 
 import re
 import gobject
 import gtk
@@ -38,12 +38,12 @@ class SqlTable(sqlwidget.SqlWidget):
     tvcolumns = None
     mc = None
     mapper = None
-    #rowCommit = dbg.TraceIt(True, name='rowCommit', mode='rw')
-    rowCommit = True
+    commit_allowed = dbg.TraceIt(True, name='commit_allowed', mode='rw')
+    #commit_allowed = True
     deleting_row = False
     tvcolumns = None
-    trace_regexp = 'rowCommit'
-#    __metaclass__ = dbg.LogTheMethods
+#    trace_regexp = 'commit_allowed'
+    __metaclass__ = dbg.LogTheMethods
          
     def _get_layout(self, lay, naked):
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
@@ -62,7 +62,7 @@ class SqlTable(sqlwidget.SqlWidget):
         #callback for selection changes
         treeselection.connect('changed', self.selection_changed_cb)
         self.treeview.connect('cursor-changed', self.cursor_changed_cb)
-        self.treeview.connect('select-cursor-row', self.select_cursor_row_cb)
+#        self.treeview.connect('select-cursor-row', self.select_cursor_row_cb)
         #register callback to toplevel window
         self.treeview.get_toplevel().connect("delete_event", self.delete_event)
         self.treeview.connect('key-press-event', self.keypress_event_cb)
@@ -293,19 +293,23 @@ class SqlTable(sqlwidget.SqlWidget):
             #tvcolumn.set_fixed_width(self.width)
 
 #### callbacks treeview
+    def clear(self, *args):
+        self.model.clear()
+    
     def selection_changed_cb(self, treeselection):
-        #dbg.write('model_path', self.model_path, 'rowCommit',self.rowCommit)
+        """
+        Main callback triggered when the TreeSelection changes. When it happens
+        this function tries to record_save()
+        """
+
         if self.model_path is None:
-            #dbg.write('model_path None, nulla da salvare')
             return False
         
-        if self.rowCommit:
+        ## commit_allowed is a flag that prevents .commit() if a new object
+        ## has been created but not yet filled: it wouldn't validate
+        if self.commit_allowed:
             self.record_save()
-            #self.commit()
             self.model_path = None
-        else:
-            pass
-            #dbg.write('non self.rowCommit')
             
         return False
     
@@ -360,7 +364,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if ksym in dir(self.actions):
             ret = getattr(self.actions, ksym)(wdg, event, data)
             dbg.write("RET: ", ret)
-            if ret == True:
+            if ret is True:
                 return ret
         if ksym in dir(self):
             return getattr(self, ksym)(wdg, event, data)
@@ -463,7 +467,6 @@ class SqlTable(sqlwidget.SqlWidget):
         return True
     
     def key_entry_F2(self, wdg, event, data):
-        dbg.write("Eccmi")
         return True
     
     def key_entry_Down(self, wdg, event, data):
@@ -528,12 +531,13 @@ class SqlTable(sqlwidget.SqlWidget):
                 
         self.model_path = path
         dbg.write("self.model_path = %s" % (self.model_path))
-        self.rowCommit = True
+        self.commit_allowed = True
         return True
     
     def text_edited_cb(self, cell, path, new_text, field_name):
 
         """called by connect 'edited' on cell_renderer """
+
         dbg.write(path, new_text, field_name)
         ## NOTE: liststore.clear will trigger text_edited_cb!!!
         if self.deleting_row:
@@ -556,13 +560,13 @@ class SqlTable(sqlwidget.SqlWidget):
                 dialog.destroy()
             return
 
-#        rowCommit = self.rowCommit
-#        self.rowCommit = False
+#        commit_allowed = self.commit_allowed
+#        self.commit_allowed = False
 
 
-        columns = self.treeview.get_columns()
 
         # get the first visible col to position the cursor on
+        columns = self.treeview.get_columns()
         for field in self.field_list:
             if self.tvcolumns[field].get_visible() and self.fields[field]['edit']:
                 col = self.tvcolumns[field]
@@ -575,9 +579,9 @@ class SqlTable(sqlwidget.SqlWidget):
         self.treeview.set_cursor(path = path,
                                  focus_column = col,
                                  start_editing = True)
-#        self.rowCommit = rowCommit
-        self.rowCommit = True
-        #dbg.write('row_commit', self.rowCommit)
+#        self.commit_allowed = commit_allowed
+        self.commit_allowed = True
+        #dbg.write('row_commit', self.commit_allowed)
         return True
         
     def record_display(self, index=None):
@@ -697,15 +701,15 @@ class SqlTable(sqlwidget.SqlWidget):
         self.liststore.clear()
     
     def reload(self, *args, **kwargs):
-        rowCommit = self.rowCommit
-#        self.rowCommit = None
+        commit_allowed = self.commit_allowed
+#        self.commit_allowed = None
         #dbg.write('type(session)', type(self.session))
         self.record_save()
         self.session.clear()
         self.clear()
         ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
-#        self.rowCommit = rowCommit
-        self.rowCommit = False
+#        self.commit_allowed = commit_allowed
+        self.commit_allowed = False
         #self.set_height_request()
         self.model_path = None
         
@@ -769,7 +773,6 @@ class SqlTable(sqlwidget.SqlWidget):
                        default for checkbox cell)
 
         """
-
         rdict = dict(map(None, self.field_list, list(self.liststore[path])[1:]))
 
         if mode == 'UPDATE':

@@ -12,7 +12,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 import dbg.gtk_dbg
 
 import sqlkit
-from sqlkit import sqlfilter 
+import sqlfilter 
 from sqlkit.db import sqldata, minspect
 from sqlkit.widgets.common import completion
 
@@ -50,7 +50,7 @@ class SqlWidget(object):
                   constraint={},
                   dbproxy = None,
                   order_by=None,
-                  limit=100,
+                  limit=200,
                   field_list=None,
                   filter=True,
                   session=None,
@@ -600,16 +600,20 @@ class SqlWidget(object):
     def _fill_menubar_menu(self):
         """here all menus are filled for filtering,  sorting, ro, query..."""
         if 'm=file' in self.w:
-            self.lay_obj.menu('m=file',
-                              ('filter panel',  'activate', self.add_filter),
-                              ('-', None),
-                              ('inspect tables', 'activate',  self.show_mapper_info),
-                              ('inspect widgets', 'activate', self.show_widget_info),
-                              ('inspect class', 'activate', self.show_class_info),
-                              ('-', None),
-                              ('gtk-quit', 'activate', self.delete_event)
-                              )
+            self.lay_obj.menu(
+                'm=file',
+                ('filter panel',  'activate', self.add_filter),
+                ('-', None),
+                ('gtk-clear', 'activate',  self.clear_cb),
+                ('inspect tables', 'activate',  self.show_mapper_info),
+                ('inspect widgets', 'activate', self.show_widget_info),
+                ('inspect class', 'activate', self.show_class_info),
+                ('-', None),
+                ('gtk-quit', 'activate', self.delete_event)
+                )
             self.printing()
+    def clear_cb(self, *args):
+        self.clear()
 
 ####### printing
     def printing(self):
@@ -639,7 +643,6 @@ class SqlWidget(object):
         #SubMenu.append(Item1)
     
     def print_fill_submenu(self, item, sub):
-        print "print_fill", self.nick
         try:
             a = self.printing_menu_filled
             return
@@ -854,5 +857,9 @@ class Actions(object):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+
+
+
 
 
