@@ -32,8 +32,7 @@ from sqlalchemy.exceptions import OperationalError
 import gtk
 from dry import optionparse
 import sqlkit
-from sqlkit import SqlTable2 as SqlTable
-from sqlkit import SqlMask
+from sqlkit import SqlTable, SqlMask
 from sqlkit.db import proxy
 import layout.misc
 

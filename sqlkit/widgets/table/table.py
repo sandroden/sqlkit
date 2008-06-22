@@ -139,31 +139,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
 
     def mapToListStore(self):
-        self.coltypes = [object]
-        for v in self.field_list:
-            if self.fields[v]['fkey'] and v.endswith('_id'):
-                ftype = type(self.completion._lookup_value(v, ''))
-            else:
-                ftype = self.fields[v]['type']
-            if ftype in sqlwidget.NUMBERS:
-                ftype = str
-            self.coltypes.append(ftype)
-            
-        coltypes = []
-        # try to convert types to gobject types
-        for tp in self.coltypes:
-            if tp in (int, float, decimal.Decimal):
-                coltypes.append(str)
-            else:
-                try:
-                    coltypes.append(
-                        gobject.type_from_name(gobject.type_name(tp)))
-                except TypeError:
-                    coltypes.append(object)
-
-        dbg.write('coltypes', coltypes)
-        if self.liststore is None:
-            self.liststore = gtk.ListStore(*coltypes)
+        self.liststore = gtk.ListStore(object)
+        pass
     
     def set_height_request(self):
         area = self.treeview.get_cell_area(0, self.treeview.get_column(0))
@@ -181,7 +158,9 @@ class SqlTable(sqlwidget.SqlWidget):
         """Setup the presentation of columns.
         Some assumptions are made:
         - bool render to toggles
-        - other render to editable text cells"""
+        - other render to editable text cells
+        """
+
         #create and append columns
         self.tvcolumns = {}
         for i,v in enumerate(self.field_list):
@@ -198,30 +177,34 @@ class SqlTable(sqlwidget.SqlWidget):
             if ptype == bool:
                 cell = gtk.CellRendererToggle()
                 tvcolumn.pack_start(cell, True)
-                tvcolumn.add_attribute(cell, 'active', j )
+                #tvcolumn.add_attribute(cell, 'active', j )
                 cell.set_property('activatable', True)
                 cell.connect('toggled', self.toggled_signal_cb,
-                             (self.liststore, j))
+                             (self.liststore, v))
+                tvcolumn.set_cell_data_func(cell, self.cell_bool_cb, v)
                 
-            # primary key and integer do not show
-            elif ptype == int and self.fields[v]['pkey']:
-                #tvcolumn = gtk.TreeViewColumn(v)
-                cell = gtk.CellRendererText()
-                tvcolumn.pack_start(cell, True)
-                tvcolumn.add_attribute(cell, 'text', j )
-#                tvcolumn.set_visible(False)
-                tvcolumn.set_visible(True)
+#             # primary key and integer do not show
+#             elif ptype == int and self.fields[v]['pkey']:
+#                 #tvcolumn = gtk.TreeViewColumn(v)
+#                 cell = gtk.CellRendererText()
+#                 tvcolumn.pack_start(cell, True)
+#                 #tvcolumn.add_attribute(cell, 'text', j )
+# #                tvcolumn.set_visible(False)
+#                 tvcolumn.set_visible(True)
+#                 tvcolumn.set_cell_data_func(cell, self.cell_fk_text_cb, v)
 
             ## Dates
             elif issubclass(self.fields[v]['db_type'], (sqltypes.Date)):
                 #dbg.write('%s is a date' % v)
                 cell = CellRendererDate()
                 cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-                cell.set_property('sensitive', True)
+                cell.set_property('sensitive', False)
                 tvcolumn.pack_start(cell, True)
-                tvcolumn.add_attribute(cell, 'date', j )
+                #tvcolumn.add_attribute(cell, 'date', j )
                 cell.connect('editing-started', self.date_editing_started_cb, j )
-                cell.connect('date-changed', self.date_changed_cb, j )
+                cell.connect('date-changed', self.date_changed_cb, v )
+                tvcolumn.set_cell_data_func(cell, self.cell_default_cb,
+                                            ('date', v) )
 
             ## Datetime
             elif issubclass(self.fields[v]['db_type'], (sqltypes.DateTime)):
@@ -230,11 +213,14 @@ class SqlTable(sqlwidget.SqlWidget):
                 cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
                 cell.set_property('sensitive', False)
                 tvcolumn.pack_start(cell, True)
-                tvcolumn.add_attribute(cell, 'datetime', j )
+                #tvcolumn.add_attribute(cell, 'datetime', j )
                 cell.connect('editing-started', self.date_editing_started_cb, j )
-                cell.connect('datetime-changed', self.date_changed_cb, j )
+                cell.connect('datetime-changed', self.date_changed_cb, v )
+                tvcolumn.set_cell_data_func(cell, self.cell_default_cb,
+                                            ('datetime', v) )
 
-            elif self.fields[v]['fkey'] and v.endswith('_id'):
+            ### FIXME: only terminating with _id???
+            elif self.fields[v]['fkey'] and v.endswith('id'):
                 # use set_fkey_descr function to put text in the cell
                 # if this is a foreign key
                 cell = gtk.CellRendererText()
@@ -245,7 +231,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 cell.connect('editing-started', self.text_editing_started_cb, v)
                 tvcolumn.pack_start(cell, True)
                 #tvcolumn.add_attribute(cell, 'text', j)
-                tvcolumn.set_cell_data_func(cell, self.set_fkey_descr, i)
+                tvcolumn.set_cell_data_func(cell, self.set_fkey_descr, v)
             else:
                 cell = gtk.CellRendererText()
                 cell.set_property('editable', True)
@@ -254,13 +240,24 @@ class SqlTable(sqlwidget.SqlWidget):
                 cell.connect('edited', self.text_edited_cb, v)
                 cell.connect('editing-started', self.text_editing_started_cb, v)
                 tvcolumn.pack_start(cell, True)
-                tvcolumn.add_attribute(cell, 'text', j )
-
+                #tvcolumn.add_attribute(cell, 'text', j )
+                tvcolumn.set_cell_data_func(cell, self.cell_default_cb,
+                                            ('text', v) )
 
             self.tvcolumns[v] = tvcolumn
+            event_box = gtk.EventBox()
+            label = gtk.Label()
+            label.set_markup(v)
+            event_box.add(label)
+            event_box.show_all()
+            tvcolumn.set_widget(event_box)
+
             #tvcolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
             tvcolumn.set_resizable(True)
             tvcolumn.set_expand(True)
+            if not self.fields[v]['nullable'] and not self.fields[v]['default']:
+                label.set_markup('<b><i>%s</i></b>' % v)
+                
             if not self.fields[v]['edit']:
                 #dbg.write('%s not editable' % v)
                 try:
@@ -268,6 +265,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 except:
                     cell.set_property('sensitive', False)
 
+            ## left alignment for NUMBERS
             if self.fields[v]['type'] in sqlwidget.NUMBERS and \
                    not self.fields[v]['fkey'] :
                 cell.set_property('xalign', 1.0)
@@ -275,11 +273,12 @@ class SqlTable(sqlwidget.SqlWidget):
             if self.fields[v]['fkey']:
                 cell.set_property('foreground', 'navyblue')
 
+            ## positioning for string
             if self.fields[v]['type'] == str :
                 length = re.search('(\d*)', self.fields[v]['col_spec']).group(1)
                 try:
                     #dbg.write('lung',length)
-                    ## if field has less then 3 char, position it in the middle
+                    ## if field has less then 3 chars, position it in the middle
                     if int(length) <= 3:
                         dbg.write(v, 'in centro', length, int(length))
                         cell.set_property('xalign', 0.5)
@@ -291,6 +290,7 @@ class SqlTable(sqlwidget.SqlWidget):
             tvcolumn.set_clickable(True)
             tvcolumn.connect('clicked', self.clicked_cb, v)
             #tvcolumn.set_fixed_width(self.width)
+            
 
 #### callbacks treeview
     def clear(self, *args):
@@ -478,24 +478,24 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
 
 #### callbacks columns
-    def toggled_signal_cb(self, cell, path, user_data):
-        liststore, colnum = user_data
+    def toggled_signal_cb(self, cell, path, (model, name)):
+        """callback that cicle into tri-state"""
 
 	self.model_path = path
 
-        active = not liststore[path][colnum ]
-
-
-        liststore[path][colnum ] = active
+        obj = self.liststore[path][0]
+        status = getattr(obj, name)
+        # status may be True/False/None - I want to cicle
+        if status == True:
+            setattr(obj, name, False)
+        if status == False:
+            setattr(obj, name, None)
+        if status == None:
+            setattr(obj, name, True)
+            
         return True
     
     def date_editing_started_cb(self, cell, editable, path, col):
-        return True
-    
-    def date_changed_cb(self, event, path, date, col):
-	self.model_path = path
-        
-        self.liststore[path][col] = date
         return True
     
     def text_editing_started_cb(self, cell, editable, path, field_name):
@@ -538,7 +538,43 @@ class SqlTable(sqlwidget.SqlWidget):
         self.set_value(field_name, new_text, path)
         return True
     
+    def cell_bool_cb(self, column, cell, model, iter, name):
+        """function set by set_cell_data_func for boolean"""
 
+        obj = model.get_value(iter, 0) 
+        value = getattr(obj, name)
+        cell.set_property('active', value)        
+
+        if value is None:
+            cell.set_property('inconsistent', True)
+        else:    
+            cell.set_property('inconsistent', False)
+    
+    def cell_default_cb(self, column, cell, model, iter, (prop_name, name)):
+        """function set by set_cell_data_func
+        gets the attribute from the record and returns it
+        """
+        obj = model.get_value(iter, 0) 
+        value = getattr(obj, name)
+        cell.set_property(prop_name, value)        
+        
+    def cell_fk_text_cb(self, column, cell, model, iter, (col_num, name)):
+        """function set by set_cell_data_func for foreign key
+        when the field is a fk, we substitute the value with the one found
+        in the referred table"""
+        ### FIXME: not implemented
+        obj = model.get_value(iter, col_num) 
+        value = getattr(obj, name)
+        cell.set_property("text", value)        
+        
+    def date_changed_cb(self, event, path, date, col):
+	self.model_path = path
+        
+        obj = self.liststore[path][0]
+        setattr(obj, col, date)
+        return True
+    
+        
 #### model handling & sqlwidget overload
     def record_new(self, widget=None, *args):
         if self.block:
@@ -548,9 +584,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 dialog.destroy()
             return
 
-#        commit_allowed = self.commit_allowed
-#        self.commit_allowed = False
-
+        self.record_save()
 
 
         # get the first visible col to position the cursor on
@@ -560,19 +594,33 @@ class SqlTable(sqlwidget.SqlWidget):
                 col = self.tvcolumns[field]
                 break
 
-        #dbg.write(dir(self.liststore))
         self.treeview.get_toplevel().set_focus(None)
-        path = self.liststore.get_path(self.liststore.append())
+
+        new_obj = self.mapper.class_()
+        new_obj._sqlkit_mode = 'INSERT'
+        self.session.save(new_obj)
+
+        # focus the row & start editing
+
+        ## scroll_to_cell will trigger selection_changed_cb
+        ## when the new_obj has been added but not yet edited.
+        ## we inhibit this 
+        commit_allowed_status = self.commit_allowed
+        self.commit_allowed = False
+
+        treeiter = self.liststore.append([new_obj])
+        path = self.liststore.get_path(treeiter)
         self.treeview.scroll_to_cell(path, col)
         self.treeview.set_cursor(path = path,
                                  focus_column = col,
                                  start_editing = True)
-#        self.commit_allowed = commit_allowed
-        self.commit_allowed = True
-        #dbg.write('row_commit', self.commit_allowed)
+
+        self.commit_allowed = commit_allowed_status
+
         return True
         
     def record_display(self, index=None):
+
         if index == None:
             self.liststore.clear()
             indexes = range(self.sqlData.count())
@@ -580,89 +628,63 @@ class SqlTable(sqlwidget.SqlWidget):
             #dbg.write('type index', type(index), index)
             indexes = [int(index)]
             
-        for i in indexes:
-            values = self.sqlData.get(i, mode='dict')
-            #dbg.write(values)
-            l = [i]
-            for k in self.field_list:
-                if index is not None:  # refreshing a just inserted row
-                    self.liststore[i][self.fname2model_col(k)] = values[k]
-                else:
-                    l.append(values[k])
-            if index == None:
-                self.liststore.append(l)
+        for record in self.records:
+            self.liststore.append([record])
+
     
         self.sb("Total N. of records: %s" % (len(self.liststore)))
-        #sqlwidget.SqlWidget.record_display(new)
         
     def record_save(self, ev = None, constraint={}):
 
-        """save the record. Uses path2dict: see there to understand the value handling
+        """save the record
 
-         Detects if any editing has been done consulting self.model_path set
-         by text_editing_started_cb.
+        Detects if any editing has been done consulting self.model_path set
+        by text_editing_started_cb.
 
-         Detects if INSERT or UPDATE mode by analizing if the liststore has a
-         value in column 0 (should be the index of sqlData)
+        Detects if INSERT or UPDATE mode by analizing _sqlkit_mode
 
-         constraint: this is a dictionary of values that are enforced. When two
-         sqlwidgets are synced is the way the 'master' adds the foreign key
-         constraint.
-
-         Constraints are applied *after* path2dict handling and before
-         actions.on_update / actions.on_insert
-
+        see record_validate for constraint explanation
         """
 
         if self.model_path is None: # no editing done
-            return
-        
-        try:
-            index = self.liststore[self.model_path][0]
-            mode = 'UPDATE'
-            if index is None:
-                mode = 'INSERT'
-        except IndexError, e:
-            dbg.write('Era IndexError')
-            mode = 'UPDATE'
+            dbg.write('no self.model_path, nothing to save', self.model_path)
             return
 
+        obj = self.liststore[self.model_path][0]
+        ## if _sqlkit_mode is not set as after a SELECT, it defaults to UPDATE
+        ## _sqlkit_mode is set in record_new
+    
+        mode = getattr(obj, '_sqlkit_mode', 'UPDATE')
             
-        rdict = self.path2dict(self.model_path, mode=mode)
-
+        #rdict = self.path2dict(self.model_path, mode=mode)
+        rdict = vars(obj)
         ## 
         if not rdict:
             self.model_path = None
             return
 
-        ## Applying constraint *after* check that I inserted something
-        if constraint:
-            self.constraint=constraint
-
-        rdict.update(self.constraint)
-        
-        if mode == 'INSERT':
-            self.actions.on_insert(new=rdict)
-            dbg.write("INSERTING record", rdict)
-            self.sqlData.add(rdict)
-
-        elif mode == 'UPDATE':
-            self.actions.on_update(new=rdict, old=self.sqlData.get())
-            #self.sqlData.set(rdict, index=int(self.model_path))
-            self.sqlData.current = self.path2sqldata_index(self.model_path)
-            self.sqlData.set(rdict)
-
+        #rdict.update(self.constraint)
+        try:
+            self.record_validate(obj, mode, constraint)
+        except ValidationError, e:
+            self.handle_validate_error(e)
+            
         self.commit()
+        
+        if hasattr(obj, '_sqlkit_mode'):
+            del obj._sqlkit_mode
 
         ### refresh the data
-        idx=self.sqlData.current
-        self.liststore[self.model_path][0] = idx
-        self.model_path = None
-        self.record_display(index=idx)
+        #idx = self.sqlData.current
+        #self.liststore[self.model_path][0] = idx
+        #self.model_path = None
+        #self.record_display(index=idx)
 
         
     def record_delete(self, widget=None, interactive=True):
-        """Delete a row and corresponding record"""
+        """
+        Delete a row and corresponding record
+        """
 
         if interactive:
             response = self.dialog(type='ok-cancel', text="Delete this record?")
@@ -670,16 +692,35 @@ class SqlTable(sqlwidget.SqlWidget):
                 return
 
         self.deleting_row = True
-        def do_del(tm, path, iter):
-            """potentially can delete a selection of many rows
+
+        def do_del(model, path, iter):
+            """
+            potentially can delete a selection of many rows
             but get_idx_of_selected() supposes that just one row is returned
             """
-            self.sqlData.delete(index=self.get_idx_of_selected_row())
-            del tm[path]
-            self.commit()
+
+            obj = model[path][0]
+            if obj in self.session.new:
+                self.session.expunge(obj)
+            else:
+                self.session.delete(obj)
+            del obj
+            self.model_path = None
+            model.remove(iter)
             
         sel = self.treeview.get_selection()
+        model, paths = sel.get_selected_rows()
         sel.selected_foreach(do_del)
+
+        ## select the same row or the preceding
+        row_n = paths[0][0]  # path is a tuple here
+        if row_n >= len(model):
+            row_n -= 1
+
+            
+        if len(model):  # prevent warning for empty models
+            sel.select_path(row_n)
+        
         self.deleting_row = False
 
         self.sb("total N. of records: %s" % len(self.liststore))
@@ -733,9 +774,9 @@ class SqlTable(sqlwidget.SqlWidget):
         self.set_value_real( field_name, data, path)
         
     def set_value_real(self, field_name, value, path):
-        idx = self.fname2model_col(field_name)
-        #dbg.write("self.liststore[%s][%s] = %s" % (path, idx, data))
-        self.liststore[path][idx] = value
+
+        obj = self.liststore[path][0]
+        setattr(obj, field_name, value)
         return True
     
     def get_selected_row(self):
@@ -823,35 +864,32 @@ class SqlTable(sqlwidget.SqlWidget):
             pass  # no selection...
         
     def get_current_record(self):
-        """returns a dict of the current selected row"""
+        """returns the corrently selected obj"""
+
         row_n = self.get_selected_row()
-        rdict = dict(map(None, self.field_list, list(self.liststore[row_n])[1:]))
-        return rdict
+        obj = self.model[row_n][0]
+
+        ## FIXME:  why this?
+        if not obj:
+            obj = self.mapper.class_
+
+        return obj
+    
+    def handle_fresh_data(self, records, fields, session):
+        self.records = records
+        return sqldata.SqlData(records, self.fields, self.session)
+    
 
 #### completion
-#     def set_fkey_value(self, field_name, value):
 
-#         #self.set_value(field_name, value)
-#         pass
-
-    def set_fkey_descr(self, column, cell, model, iter, i):
+    def set_fkey_descr(self, column, cell, model, iter, field_name):
         """cell_data_function used by column that have fkey
         """
         #dbg.show_caller(loc=False)
-        fkey = model.get(iter, i+1)[0]
+        fkey = getattr(model.get(iter, 0)[0], field_name)
         path = model.get_path(iter)
         #dbg.write("FKEY", fkey, path, i+1)
-        field_name = self.field_list[i]
+        #field_name = self.field_list[i]
         value = self.completion._lookup_value(field_name, fkey)
         #dbg.write(i, field_name, fkey, value)
         cell.set_property('text', value)
-        
-
-    
-    
-    
-    
-    
-
-
-
