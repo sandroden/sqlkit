@@ -3,7 +3,7 @@
 #
 #
 # Copyright (C) 2005-2006, Michele Comitini <mcm@glisco.it>
-# Copyright (C) 2006, Sandro Dentella <sandro@e-den.it>
+# Copyright (C) 2005-2008, Sandro Dentella <sandro@e-den.it>
 # 
 
 import sys
@@ -138,8 +138,7 @@ class SqlTable(sqlwidget.SqlWidget):
             self.filter_panel.reload_cb(None)
         else:
             self.reload()
-
-
+    
     def set_height_request(self):
         area = self.treeview.get_cell_area(0, self.treeview.get_column(0))
         rows = len(self.liststore)
@@ -291,9 +290,6 @@ class SqlTable(sqlwidget.SqlWidget):
             
 
 #### callbacks treeview
-    def clear(self, *args):
-        self.model.clear()
-    
     def selection_changed_cb(self, treeselection):
         """
         Main callback triggered when the TreeSelection changes. When it happens
@@ -573,6 +569,7 @@ class SqlTable(sqlwidget.SqlWidget):
         return True
     
         
+
 #### model handling & sqlwidget overload
     def record_new(self, widget=None, *args):
         if self.block:
@@ -618,18 +615,14 @@ class SqlTable(sqlwidget.SqlWidget):
         return True
         
     def record_display(self, index=None):
+        """Display all records (appending them to liststore)"""
 
         if index == None:
             self.liststore.clear()
-            indexes = range(self.sqlData.count())
-        else:
-            #dbg.write('type index', type(index), index)
-            indexes = [int(index)]
-            
-        for record in self.records:
-            self.liststore.append([record])
 
-    
+            for record in self.records:
+                self.liststore.append([record])
+
         self.sb("Total N. of records: %s" % (len(self.liststore)))
         
     def record_save(self, ev = None, constraint={}, discard_empty=False):
@@ -707,7 +700,6 @@ class SqlTable(sqlwidget.SqlWidget):
         def do_del(model, path, iter):
             """
             potentially can delete a selection of many rows
-            but get_idx_of_selected() supposes that just one row is returned
             """
 
             obj = model[path][0]
@@ -741,10 +733,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.liststore.clear()
     
     def reload(self, *args, **kwargs):
-        # commit_allowed = self.commit_allowed
-        # self.commit_allowed = None
 
-        
         try:
             self.record_save(discard_empty=True)
         except ValidationError:
@@ -757,7 +746,6 @@ class SqlTable(sqlwidget.SqlWidget):
         # self.set_height_request()
         self.model_path = None
         
-        # self.reloading = False
         return ret
                                          
     def set_value(self, field_name, value, path=None):
@@ -799,71 +787,6 @@ class SqlTable(sqlwidget.SqlWidget):
         else:
             return None
     
-    def fname2model_col(self, field_name):
-        return self.field_list.index(field_name) + 1
-    
-    def path2sqldata_index(self, path=None):
-        return self.liststore[path][0]
-    
-    def path2dict(self, path, mode=None):
-
-        """return a dict from a given path of the listore. Field_name in keys.
-
-        Takes care of a minimal value handling:
-           * numbers become None if empty
-           * not editable entries are discarded
-           * in UPDATE mode only changed values are returned
-           * in INSERT mode None and empty values are discarded
-           * in INSERT mode False boolean value are discarded (that's the
-                       default for checkbox cell)
-
-        """
-        rdict = dict(map(None, self.field_list, list(self.liststore[path])[1:]))
-
-        if mode == 'UPDATE':
-            index = self.path2sqldata_index(path)
-            orig = self.sqlData.get(index=index)
-            
-        for k in rdict.keys():
-            ## For numbers we use 'object' column in listore.
-            ## An empty str '' is really 'None'
-            if self.fields[k]['type'] in sqlwidget.NUMBERS:
-                if rdict[k] in ('', None):
-                    rdict[k] = None
-                else:
-                    rdict[k] = self.fields[k]['type'](rdict[k])
-                
-            ## let's get rid of key/value NULL or not updated
-            if not self.fields[k]['edit']:
-                del rdict[k]
-                continue
-                
-            if mode == 'UPDATE' and  orig[k] == rdict[k]:
-                del rdict[k]
-                continue
-
-            ## when inserting we only pass by NOT NULL values
-            if mode == 'INSERT' and k in rdict:
-                if rdict[k] is None:
-                    del rdict[k]
-                elif rdict[k] == '' and self.fields[k]['type'] == str:
-                    del rdict[k]
-                elif rdict[k] == False and self.fields[k]['type'] == bool:
-                    del rdict[k]
-
-        return rdict
-    
-    
-    def get_idx_of_selected_row(self):
-        sel = self.treeview.get_selection()
-        model, rows = sel.get_selected_rows()
-        row = rows[0]
-        if row:
-            dbg.write('idx', self.liststore[row][0])
-            return self.liststore[row][0]
-        else:
-            return None
-    
     def write_info(self):
         path = self.get_selected_row()
         try:
@@ -880,9 +803,9 @@ class SqlTable(sqlwidget.SqlWidget):
         row_n = self.get_selected_row()
         obj = self.model[row_n][0]
 
-        ## FIXME:  why this?
-        if not obj:
-            obj = self.mapper.class_
+#         ## FIXME:  why this?
+#         if not obj:
+#             obj = self.mapper.class_
 
         return obj
     
