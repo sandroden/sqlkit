@@ -751,10 +751,9 @@ class SqlTable(sqlwidget.SqlWidget):
             return
         
         self.session.clear()
+        self.commit_allowed = False
         self.clear()
         ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
-        # self.commit_allowed = commit_allowed
-        self.commit_allowed = False
         # self.set_height_request()
         self.model_path = None
         
@@ -905,3 +904,5 @@ class SqlTable(sqlwidget.SqlWidget):
         value = self.completion._lookup_value(field_name, fkey)
         #dbg.write(i, field_name, fkey, value)
         cell.set_property('text', value)
+
+
