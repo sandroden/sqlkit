@@ -314,12 +314,11 @@ class SqlTable2(SqlTable):
 
         see record_validate for constraint explanation
         """
-        dbg.write("model_path", self.model_path)
-        #import pdb; pdb.set_trace()
+
         if self.model_path is None: # no editing done
             dbg.write('no self.model_path, nothing to save', self.model_path)
             return
-        #import pdb; pdb.set_trace()
+
         obj = self.liststore[self.model_path][0]
         ## if _sqlkit_mode is not set as after a SELECT, it defaults to UPDATE
         ## _sqlkit_mode is set in record_new
@@ -340,6 +339,9 @@ class SqlTable2(SqlTable):
             self.handle_validate_error(e)
             
         self.commit()
+        
+        if hasattr(obj, '_sqlkit_mode'):
+            del obj._sqlkit_mode
 
         ### refresh the data
         #idx = self.sqlData.current
@@ -368,11 +370,6 @@ class SqlTable2(SqlTable):
             return
 
         self.record_save()
-        ## scroll_to_cell will trigger selection_changed_cb
-        ## when the new_obj has been added but not yet edited.
-        ## we inhibit this 
-        commit_allowed_status = self.commit_allowed
-        self.commit_allowed = False
 
 
         # get the first visible col to position the cursor on
@@ -382,20 +379,28 @@ class SqlTable2(SqlTable):
                 col = self.tvcolumns[field]
                 break
 
-        #dbg.write(dir(self.liststore))
         self.treeview.get_toplevel().set_focus(None)
+
         new_obj = self.mapper.class_()
         new_obj._sqlkit_mode = 'INSERT'
         self.session.save(new_obj)
-        dbg.write(new_obj, vars(new_obj))
-        path = self.liststore.get_path(self.liststore.append([new_obj]))
-        dbg.write('appended new empty obj')
+
+        # focus the row & start editing
+
+        ## scroll_to_cell will trigger selection_changed_cb
+        ## when the new_obj has been added but not yet edited.
+        ## we inhibit this 
+        commit_allowed_status = self.commit_allowed
+        self.commit_allowed = False
+
+        treeiter = self.liststore.append([new_obj])
+        path = self.liststore.get_path(treeiter)
         self.treeview.scroll_to_cell(path, col)
         self.treeview.set_cursor(path = path,
                                  focus_column = col,
                                  start_editing = True)
+
         self.commit_allowed = commit_allowed_status
-#        self.commit_allowed = commit_allowed
-        #dbg.write('row_commit', self.commit_allowed)
+
         return True
         

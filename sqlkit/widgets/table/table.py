@@ -358,7 +358,6 @@ class SqlTable(sqlwidget.SqlWidget):
                 mods.append(prefix)
 
         ksym = '_'.join(mods + [ksym])
-        #dbg.write('ksym', ksym, 'mods', mods)
         
         ## precedence to actions
         if ksym in dir(self.actions):
@@ -371,8 +370,8 @@ class SqlTable(sqlwidget.SqlWidget):
         else:
             self.write_info()
     
-    def key_tree_shift_ISO_Left_Tab(self, treeview, event):
-        #dbg.write('Shift_Tab pressed')
+    def key_tree_shift_ISO_Left_Tab(self, treeview, event, data):
+
         path, col = self.treeview.get_cursor()
         columns = self.treeview.get_columns()
         colnum = columns.index(col)
@@ -389,7 +388,6 @@ class SqlTable(sqlwidget.SqlWidget):
         path, col = self.treeview.get_cursor()
         ## only visible columns!!
         columns = [c for c in self.treeview.get_columns() if c.get_visible()]
-#        dbg.write(columns)
         colnum = columns.index(col)
         if colnum + 1 < len(columns):
             gobject.idle_add(self.treeview.set_cursor, path, columns[colnum + 1], True)
@@ -407,12 +405,12 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
         
     def key_tree_ctrl_shift_N(self, treeview, event, data):
-        dbg.write('OK')
+
         self.record_new(treeview)
         return False
         
     def key_tree_alt_n(self, treeview, event, data):
-        dbg.write('OK')
+
         self.record_new(treeview)
         return False
         
@@ -430,20 +428,10 @@ class SqlTable(sqlwidget.SqlWidget):
         return True
     
     def key_tree_Down(self, treeview, event, data):
-        # dbg.write(, len(self.liststore))
+
         if self.get_selected_row() + 1 == len(self.liststore):
             try:
-                self.record_save()
-                ### record_new will focus the next line, that is an empty line
-                ### that triggers a selection_change_cb
-                ### that would normally issue a .commit()
-                ### I need to prevent a commit in this situation as the
-                ### object is empty and would not validate
-
-                self.commit_allowed = False
                 self.record_new(treeview)
-                self.commit_allowed = True
-                dbg.write("PASSATO")
             except CommitError, e:
                 return False
 
