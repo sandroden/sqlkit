@@ -30,7 +30,9 @@ if sys.hexversion < 0x20401f0:
     
 
 class SqlTable(sqlwidget.SqlWidget):
-    """ variant with first column to store the index in sqlData"""
+    """implementation with a listore with a single column that holds the
+    sqlalchemy obj
+    """
 
     model_path = None
     treeview = None
@@ -47,7 +49,7 @@ class SqlTable(sqlwidget.SqlWidget):
          
     def _get_layout(self, lay, naked):
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
-        self.mapToListStore()
+        self.liststore = gtk.ListStore(object)
         ## layout
         self.treeview = self.w["TV=tree"]
         self.treeview.set_enable_search(False)
@@ -138,10 +140,6 @@ class SqlTable(sqlwidget.SqlWidget):
             self.reload()
 
 
-    def mapToListStore(self):
-        self.liststore = gtk.ListStore(object)
-        pass
-    
     def set_height_request(self):
         area = self.treeview.get_cell_area(0, self.treeview.get_column(0))
         rows = len(self.liststore)
@@ -634,7 +632,7 @@ class SqlTable(sqlwidget.SqlWidget):
     
         self.sb("Total N. of records: %s" % (len(self.liststore)))
         
-    def record_save(self, ev = None, constraint={}):
+    def record_save(self, ev = None, constraint={}, discard_empty=False):
 
         """save the record
 
@@ -644,6 +642,10 @@ class SqlTable(sqlwidget.SqlWidget):
         Detects if INSERT or UPDATE mode by analizing _sqlkit_mode
 
         see record_validate for constraint explanation
+
+        discard_empty: when record_save is called bu reload, an empty record
+                       does not need validationx
+
         """
 
         if self.model_path is None: # no editing done
@@ -651,6 +653,15 @@ class SqlTable(sqlwidget.SqlWidget):
             return
 
         obj = self.liststore[self.model_path][0]
+
+        if discard_empty:
+            dbg.write(obj, )
+            if not self.session.is_modified(obj):
+                self.session.expunge(obj)
+                del obj
+                self.model_path = None
+                return
+            
         ## if _sqlkit_mode is not set as after a SELECT, it defaults to UPDATE
         ## _sqlkit_mode is set in record_new
     
@@ -733,8 +744,9 @@ class SqlTable(sqlwidget.SqlWidget):
         # commit_allowed = self.commit_allowed
         # self.commit_allowed = None
 
+        
         try:
-            self.record_save()
+            self.record_save(discard_empty=True)
         except ValidationError:
             return
         

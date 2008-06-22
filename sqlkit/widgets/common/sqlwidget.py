@@ -327,7 +327,7 @@ class SqlWidget(object):
         except exceptions.SQLError, e:
             self.SQLErrorHandler(e)
             dbg.write("Exception: %s" % e.orig) 
-            self.message(str(e.orig))
+            #self.message(str(e.orig))
             self.session.rollback()
             raise CommitError
             
@@ -572,10 +572,11 @@ class SqlWidget(object):
     
     def delete_event(self, *args):
         """Quit operations: check if need to save first """
+
         ### fixme: must add cheks
         ### fixme2: must the toplevel be destrouyed (or is reparented?)
-        #print widget
-        if self.session.dirty or self.session.new:
+
+        if self.unsaved_changes_exist():
             response = self.dialog(type='yes-no-cancel',
                                    text="Save unsaved data?")
             if response == gtk.RESPONSE_CANCEL:
@@ -588,7 +589,19 @@ class SqlWidget(object):
         self.filter_panel.destroy()
         if self.single:
             self.gquit()
-        
+
+    def unsaved_changes_exist(self):
+        """check if session needs committing"""
+
+        if self.session.dirty or self.session.deleted:
+            return True
+
+        if self.session.new:
+            for obj in self.session.new:
+                if self.session.is_modified(obj):
+                    return True
+        return False
+    
     def gquit(self, *args):
         gtk.main_quit()
                        
