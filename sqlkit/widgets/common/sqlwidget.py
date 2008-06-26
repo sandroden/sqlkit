@@ -119,7 +119,7 @@ class SqlWidget(object):
         self.naked = naked
         self.lay   = lay
         self.sql   = sql
-        self.sqlData = sqldata.SqlData(None, self.fields, self.session)
+#        self.sqlData = sqldata.SqlData(None, self.fields, self.session)
         self.single = single
         self.limit=limit
         if show:
@@ -358,12 +358,12 @@ class SqlWidget(object):
             self.constraint=constraint
 
         if mode == 'INSERT':
-            self.actions.on_insert(new=rdict)
+            self.actions.on_insert(new=obj)
             #dbg.write("INSERTING record", rdict)
             #self.sqlData.add(rdict)
 
         elif mode == 'UPDATE':
-            self.actions.on_update(new=rdict, old=self.sqlData.get())
+            self.actions.on_update(new=obj)
             #self.sqlData.set(rdict, index=int(self.model_path))
             #self.sqlData.current = self.path2sqldata_index(self.model_path)
             #self.sqlData.set(rdict)
@@ -418,29 +418,28 @@ class SqlWidget(object):
         # dbg.write("SQL: %s -- params: %s" % (sql_str, params))
         
         # import pdb; pdb.set_trace()
-        records = self.session.query(self.mapper)
-        records = records.filter(sql_str)
+        query = self.session.query(self.mapper)
+        query = query.filter(sql_str)
         if params:
-            records = records.params(**params)
+            query = query.params(**params)
         if self.order_by:
-            records = records.order_by(self.order_by)
+            query = query.order_by(self.order_by)
         if self.limit:
-            records = records.limit(self.limit)
+            query = query.limit(self.limit)
                 
         # records = self.mapper.select_by(sql)
         # self.mapper.table.engine.echo = False
         if isinstance(self, sqlkit.SqlMask):
             self.clear()
-        self.records = records
-        self.sqlData = sqldata.SqlData(records, self.fields, self.session)
+#        self.sqlData = sqldata.SqlData(query.all(), self.fields, self.session)
+#        self.sqlData = query.all()
+#        self.records = self.sqlData.res_obj
+        self.records = query.all()
         if display:
             self.record_display()
 
-        return self.sqlData.count()
+        return len(self.records)
 
-    def handle_fresh_data(self, records, fields, session):
-        return sqldata.SqlData(records, self.fields, self.session)
-        
     def reload_one(self,field, value):
         """compact way to view a single record or records with a single property"""
 
@@ -451,17 +450,27 @@ class SqlWidget(object):
     
     def reload_cb(self, widget):
         """issue a reload operation on master. Call back of reload button"""
-        #limit=100
         self.reload( )
+
     def record_forward(self):
         """it doesn't make any sense here, but we need it to prevent
         _add_actions_to_button from failing"""
         pass
+
     def record_back(self):
         """it doesn't make any sense here, but we need it to prevent
         _add_actions_to_button from failing"""
         pass
     
+    def get_new_object(self):
+        new_obj = self.mapper.class_()
+        new_obj._sqlkit_mode = 'INSERT'
+        self.session.save(new_obj)
+        return new_obj
+
+    def add_constraints(self, obj):
+        """Add constraints and any needed check  """
+        return obj
 
 ####### Sync
     def sync_add(self, sqlWidget, cnd=None):
@@ -477,7 +486,7 @@ class SqlWidget(object):
             
         self.sync_dict[sqlWidget] = (DIR, cnd_str, fields_dict )
         ## a synced widget should not be edited if we don't have a record to sync...
-        if len(self.sqlData) == 0:
+        if len(self.records) == 0:
             sqlWidget.sync_block()
 
         dbg.write(DIR, direct=False)
@@ -858,14 +867,16 @@ class Actions(object):
 
         ## SqlMask
         if isinstance(self.master, sqlkit.SqlMask):
-            data = self.master.sqlData.get()
-            if data == None:
+            ## FIXME: sqlData no longer exists...
+            obj = self.master.records[self.current_idx]
+            if doj == None:
                 return None
 
             for key in lookup_flds:
                 try:
-                    data[key] = self.master.completion._lookup_value(
-                            key, data[key])
+                    ## FIXME data is now an object
+                    #data[key] = self.master.completion._lookup_value(
+                    #        key, data[key])
                 except Exception, e:
                     print e
                     pass
@@ -876,6 +887,7 @@ class Actions(object):
 
         else:
             ## SqlTable
+            ## FIXME: sqlData no longer exists...
             for diz in self.master.sqlData.all_as_dicts():
                 for key in lookup_flds:
                     try:

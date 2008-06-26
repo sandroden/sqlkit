@@ -591,10 +591,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.treeview.get_toplevel().set_focus(None)
 
-        new_obj = self.mapper.class_()
-        new_obj._sqlkit_mode = 'INSERT'
-        self.session.save(new_obj)
-
+        self.get_new_object()
         # focus the row & start editing
 
         ## scroll_to_cell will trigger selection_changed_cb
@@ -808,10 +805,6 @@ class SqlTable(sqlwidget.SqlWidget):
 #             obj = self.mapper.class_
 
         return obj
-    
-    def handle_fresh_data(self, records, fields, session):
-        self.records = records
-        return sqldata.SqlData(records, self.fields, self.session)
     
 
 #### completion

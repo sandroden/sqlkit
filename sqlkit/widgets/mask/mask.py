@@ -12,7 +12,7 @@ from sqlalchemy import *
 import dbg.gtk_dbg
 import sqlkit
 #from sqlkit.widgets.common import sqlfilter
-from sqlkit.db import sqldata
+#from sqlkit.db import sqldata
 #import sqlkit.sqldata as sqldata
 #import sqlkit.inspect as sinspect
 from sqlkit.validation import validator
@@ -38,56 +38,44 @@ class SqlMask (sqlwidget.SqlWidget):
 #    map_record_n = 0  # number of the displayed record within mapper
     row_count = 0    # number of records in the mapper
     status = None
+    current_idx = 0
 ####### Record browsing & saving
     def record_display(self, record=None, incr=0, index=None):
-        """display a SqlData record in the mask
+        """display an object record in the mask
 
-        display the data provided by self.sqlData.get()
-        incr: incr=incr arg to sqlData.get()
+        display the data provided by self.records[self.current + incr]
+        incr: incr=incr 
         """
-        #dbg.write('Record_display %s n: %s' % (self.nick, self.sqlData.index()))
-        ## fill in the data
-        #self.clear()
+        if index:
+            to_display = index
+        else:
+            to_display = self.current_idx + incr
+        
         try:
-            if index is not None:
-                data_in = self.sqlData.get(index=index)
-            else:
-                data_in = self.sqlData.get(incr=incr)
-            #dbg.write('%s data_in %s' % (self.nick,data_in))
-        except:
-            raise
-            self.sb("no data to browse")
-            #dbg.write("%s NO DATA to DISPLAY 1, skipping any sync" % self.nick)
-            self.clear()
-            return None
-        #dbg.write("data_in", data_in)
-        idx = self.sqlData.index()+1
-        msg_info = "record %s/%s" % (idx , self.sqlData.count())
-
-        self.clear()
-        #dbg.write('values', self.values)
-
-        if not data_in:
+            obj = self.records[to_display]
+            self.current_idx = to_display
+        except IndexError:
             if incr > 0:
                 self.sb('Already last ' + msg_info)
             else:
                 self.sb('Already first ' + msg_info)
-            #dbg.write("%s NO DATA to DISPLAY 2" % self.nick)
-            
-            #return None
-        else:
-            self.sb(msg_info)
-            self.data_in = data_in
-            for field_name, value in data_in.iteritems():
-                try:
-                    self.set_value(field_name, value)
-                    self.get_value(field_name)
-                except FieldNotInLayout, e:
-                    pass
-            self.status = self.sqlData.get_current()
+            return None
+
+        self.clear()
+        msg_info = "record %s/%s" % (to_display , len(self.records))
+
+        self.sb(msg_info)
+        self.data_in = obj
+        for field_name in self.field_list:
+            try:
+                self.set_value(field_name, getattr(obj, field_name))
+                #self.get_value(field_name) ????
+            except FieldNotInLayout, e:
+                pass
+        self.status = index
 
         self.sync()
-        self.actions.on_record_display(new=data_in)
+        self.actions.on_record_display(new=obj)
         #sqlwidget.SqlWidget.record_display(self, new=data_in)
         
         ## return True if a record has beeen displayed. In case we 2 Mask in sync
@@ -223,10 +211,11 @@ class SqlMask (sqlwidget.SqlWidget):
             if response == gtk.RESPONSE_CANCEL:
                 return
 
-        self.sqlData.delete()
+        self.session.delete(self.records[self.current_idx])
+        #self.sqlData.delete()
         
         self.commit()
-        self.clear()
+        self.clear() ## FIXME: is this necessary?
     
     def record_save(self, ev, constraint={}, *args):
         """invokes the validator before UPDATE/INSERT a record"""
@@ -241,6 +230,7 @@ class SqlMask (sqlwidget.SqlWidget):
             return
     
         R = {}
+        obj = self.records[self.currend_idx]
         for field_name in self.field_list:      
             try:
                 value = self.get_value(field_name)
@@ -268,14 +258,15 @@ class SqlMask (sqlwidget.SqlWidget):
                else:
                    #dbg.write("%s: %r is not %r" % (field_name,
                    #                                value, self.data_in[field_name]))
-                   R[field_name] = value
+                   #R[field_name] = value
+                   setattr(obj, field_name, value)
 
-        dbg.write("R", R)
-        if R.keys():
-            R.update(self.constraint)
-            R.update(constraint)
-            dbg.write("CONSTRAINT:", R, constraint)
-            self.sqlData.set(R)
+##  FIXME: constraints
+#         if R.keys():
+#             R.update(self.constraint)
+#             R.update(constraint)
+#             dbg.write("CONSTRAINT:", R, constraint)
+#             self.sqlData.set(R)
 
         self.commit()
         self.record_save_sync()
@@ -284,9 +275,8 @@ class SqlMask (sqlwidget.SqlWidget):
         """Insert a new record
         """
         
-        R = {}
+        obj = self.get_new_object()
         for field_name in self.field_list:      
-            dbg.write(self.field_list)
             try:
                 value = self.get_value(field_name)
                 #dbg.write('value: ', value)
@@ -296,7 +286,7 @@ class SqlMask (sqlwidget.SqlWidget):
             t = self.fields[field_name]['type']
             if t == int and value == '':
                 # skip type casting
-                R[field_name] = None
+                #setattr(obj, field_name, None)
                 continue
             #dbg.write("%s: - value: %r t: %s" % (field_name, value, t))
             if t == datetime.date:
@@ -311,19 +301,13 @@ class SqlMask (sqlwidget.SqlWidget):
                     dbg.write("type of %s: %s" % (value, type(value)))
                     value = t(value)
                 
-#             if self.fields[field_name]['is_serial'] and not value:
-#                 value = self.next_serial(field_name)
-            R[field_name] = value
+            setattr(obj, field_name, value)
 
-        dbg.write(constraint, R)
-        R.update(self.constraint)
-        R.update(constraint)
-        self.actions.on_insert(R)
-        
-        dbg.write(R)
-        
-        self.sqlData.add(R)
-        self.status = self.sqlData.get_current()
+
+        obj = self.add_contraints(obj)
+        self.actions.on_insert(obj)
+        self.session.save(obj)
+        self.status = obj
         dbg.write("self.status", self.status)
 
 #         for z in self.sync_dict:
@@ -418,6 +402,7 @@ class SqlMask (sqlwidget.SqlWidget):
             dbg.write(w, value)
             DIR, sql, fields_dict = value
             val = {}
+            ### FIXME: sqldata
             rdict = self.sqlData.get()
             dbg.write('rdict=',rdict)
             

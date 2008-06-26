@@ -45,11 +45,6 @@ class SqlData(object):
             fields = self.mapper_info.fields
         self.field_list = fields
         
-        #tables = mapper_info.tables()
-        #for t in tables:
-        #    dbg.write("Table: %s => %s" % (t, mapper_info.table_fields(t)))
-        
-
     def __len__(self):
         return len(self.pointers)
 
@@ -116,6 +111,13 @@ class SqlData(object):
         #print dicts
         return dicts
         
+    def get_current(self):
+        return self.pointers[self.current]
+    
+    def index(self):
+        return self.current
+    
+
     def _instance2dict(self, instance):
         """return a dict representing the data of an instance. If the instance has
         a property representing a MANYTOONE relation it returns those values too,
@@ -299,12 +301,6 @@ class SqlData(object):
         
         return inst
                         
-    def get_current(self):
-        return self.pointers[self.current]
-    
-    def index(self):
-        return self.current
-    
     def check_prim_keys(self, pointer=None):
         """Check that the row is completely defined, ie: all primary keys are
         present in the specification.

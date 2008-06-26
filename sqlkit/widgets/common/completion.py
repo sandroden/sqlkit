@@ -72,7 +72,7 @@ class Completion(object):
         return a listore to be filled
 
         ForeignKey: when the field to complete is a foreign key, the lookup table
-        is analized to search if a descriptor field exits. In that case a
+        is analized to search if a descriptor field exists. In that case a
         cellRenderer is added to the completion to show that data and that field is
         used in the field
         """

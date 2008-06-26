@@ -9,6 +9,8 @@ import sqlkit as sk
 from datetime import *
 from dry.dateutils import string2dates
 
+class SqlDataFixNeeded(Exception): pass
+
 class FilterPanel(object):
     """A filter panel has 'entry|operator|string' rows
 
@@ -19,7 +21,10 @@ class FilterPanel(object):
     def __init__(self, master, visible=True):
         
         """constructor need to know who is the 'master' ie the widget (a mask
-        or a table instance) that will display the result
+        or a table instance) that will display the result. 
+
+        The filter for a SqlMask has a TreeView to show the resul and to easy
+        browse them.
 
         search_fields = { 'field-name' :[(operator, bool, value),(operator...)])
         """
@@ -88,24 +93,20 @@ class FilterPanel(object):
         if self.default_reload:
             dbg.write('default.reload', self.default_reload)
             self.master.reload(sql=sql, limit=self.get_limit(), display=display )
-            self.sqlData = self.master.sqlData
+            #self.sqlData = self.master.sqlData
         else:
+            ## FIXME: sqlData no longe exists
+            ## we get here if we use set_reload
+            raise SqlDataFixNeeded()
             res = self.master.session.query(self.mapper).select(
                 sql[0], params=sql[1], limit=self.get_limit())
-            self.sqlData = sk.sqldata.SqlData(res, self.map_fields,
-                                              self.master.session)
-#            self.sqlData.fields(['user_id','user_name','mail_user_id'])
-#            self.sqlData.printall()
+            #self.sqlData = sk.sqldata.SqlData(res, self.map_fields,
+            #                                  self.master.session)
+
         if 'TV=out' in self.w:
             self.fill_model()
             self.w['N.0'].set_current_page(1)
             
-        #dbg.write("%s type: %s" % (bind_params, type(bind_params)))
-        #self.master.reload(sql=(sql, bind_params), limit=limit )
-        #self.master.record_display()
-        #print self.sql()
-    
-    
     def set_reload(self, mapper=None, join=None, tables=None):
         """A different method to filter & select is provided
         the scenario is that you have many synced sqlwidgets, you want to provide the
@@ -141,8 +142,13 @@ class FilterPanel(object):
 
         self.mapper = mapper
         self.map_fields = sk.minspect.InspectMapper(mapper)
+
     def fill_model(self):
-        """Fill the treeview with a clickable list """
+        """Fill the treeview with a clickable list 
+
+        Fill the model of the treeview that holds the data
+        """
+
         attr = self.master.completion._add_descriptor_fields(
             mode='ret', referenced_table = self.master.fields.get_primary_table())
         if self.master.filter == True:
@@ -157,24 +163,26 @@ class FilterPanel(object):
 
         self.model.clear()
         iter = {}
-        for i, v in enumerate(self.sqlData.pointers):
-            R = self.sqlData.get(index=i)
-            #dbg.write("R", R)
-            if R[attr] not in iter:
+        i = 0
+        for obj in self.master.records:
+            attr_value = getattr(obj, attr)
+            if attr_value not in iter:
                 iterR = self.model.append(None)
                 self.model.set(iterR,
                                0, i,
-                               1, fmt % R
+                               1, fmt % vars(obj),
                                )
-                iter[R[attr]] = iterR
+                iter[attr_value] = iterR
             else:
-                iterR = self.model.append(iter[R[attr]])
+                iterR = self.model.append(iter[attr_value])
                 self.model.set(iterR,
                                0, i,
-                               1, fmt % R
+                               1, fmt % vars(obj),
                                )
-        
+            i += 1
+
         self.tv_resize()
+
     def tv_resize(self):
         tv = self.w['TV=out']
         tv.realize()
@@ -205,7 +213,10 @@ class FilterPanel(object):
         if self.default_reload:
             self.master.record_display(index=int(idx))
         else:
+            ## FIXME: this is a not supported configuration at the  moment
+            ## when set_reload is used
             ## sqlData is local to panel filter in this situation!
+            raise SqlDataFixNeeded()
             self.master.actions.on_filter_reload(self.sqlData.get(index=int(idx)))
     
     def pop_menu(self, wdg, ev, num_button):
