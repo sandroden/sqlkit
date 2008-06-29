@@ -33,7 +33,7 @@ class DbProxy(object):
 
         if not Session:
             self.Session = sessionmaker(bind=self.metadata.bind,
-                                        transactional=True)
+                                        autocommit=False)
         else:
             self.Session = Session
             

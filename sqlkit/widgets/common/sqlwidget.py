@@ -15,6 +15,7 @@ import sqlkit
 import sqlfilter 
 from sqlkit.db import sqldata, minspect
 from sqlkit.widgets.common import completion
+from sqlalchemy.orm import attributes
 
 class NoSyncError(Exception): pass
 class SyncNotAvailable(Exception): pass
@@ -123,6 +124,7 @@ class SqlWidget(object):
 #        self.sqlData = sqldata.SqlData(None, self.fields, self.session)
         self.single = single
         self.limit=limit
+        self.records = []
         if show:
             self.show()
             
@@ -458,12 +460,23 @@ class SqlWidget(object):
         """
         new_obj = self.mapper.class_()
         new_obj._sqlkit_mode = 'INSERT'
-        self.session.save(new_obj)
+        self.session.add(new_obj)
         return new_obj
 
     def add_constraints(self, obj):
         """Add constraints and any needed check  """
         return obj
+    
+    def get_differences(self, obj):
+        """show differences between old and new version of an object
+        """
+        msg = []
+        for field_name in self.field_list:
+            new, unchanged, old =  attributes.get_history(
+                attributes.instance_state(obj), field_name)
+            if new:
+                msg += ["%s: %s -> %s" % (field_name, old, new)]
+        return "\n".join(msg)
 
 ####### Sync
     def sync_add(self, sqlWidget, cnd=None):
@@ -597,6 +610,7 @@ class SqlWidget(object):
             if self.session.dirty:
                 dbg.write("unsaved", self.session.dirty)
                 msg += ['unsaved: %s' % (len(self.session.dirty))]
+                msg += [self.get_differences(o) for o in self.session.dirty]
             if self.session.new:
                 msg += ['new: %s' % (len(self.session.new))]
 
@@ -952,6 +966,8 @@ class Actions(object):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+
 
 
 

@@ -279,7 +279,7 @@ class SqlData(object):
         self.pointers.append([new])
         self.current = len(self.pointers)-1
         #dbg.write("new", new, "current", self.current, self.pointers[self.current])
-        self.session.save(new)
+        self.session.add(new)
         return new
         ## attach other instances
         for prop in inspect.get_props(main_mapper):
