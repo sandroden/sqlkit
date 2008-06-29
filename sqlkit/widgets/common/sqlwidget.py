@@ -31,6 +31,7 @@ class SqlWidget(object):
                      # (when lookup is displeyed instead)
 #    __metaclass__ = dbg.LogTheMethods
 #    __metaclass__ = misc.autoreload.MetaAutoReloader
+    records = None
     
     def __init__ (self, mapper=None,
                   ## geometry
@@ -385,7 +386,6 @@ class SqlWidget(object):
 
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
         """
-        # dbg.write("limit: %s" % limit)
         if limit:
             self.limit = limit
 
@@ -394,30 +394,20 @@ class SqlWidget(object):
             
         if constraint:
             self.constraint=constraint
-        # dbg.write(self.nick, 'constraint', constraint)
 
         if sql is None:
             sql = self.sql
 
         if isinstance(sql, tuple) and len(sql) == 2:
             sql_str, params = sql
-            #dbg.write('type sql_str',type(sql_str),'type params', type(params))
-            #dbg.sql_debug(sql_str, params)
         else:
             sql_str = sql
             params = None
 
         if reload_constraint == True:
-            #dbg.write("add self.reload_sql_constraint", sql_str)
             self.sql = (sql_str, params)
 
         self.session.clear()
-        # dbg.write(self.nick, "SQL: '%s'" % sql_str,
-        #           'params', params, 'limit:', limit)
-        # self.mapper.table.engine.echo = True
-        # dbg.write("SQL: %s -- params: %s" % (sql_str, params))
-        
-        # import pdb; pdb.set_trace()
         query = self.session.query(self.mapper)
         query = query.filter(sql_str)
         if params:
@@ -463,6 +453,9 @@ class SqlWidget(object):
         pass
     
     def get_new_object(self):
+        """create a new object from the class of the mapper and 
+        place it in the session
+        """
         new_obj = self.mapper.class_()
         new_obj._sqlkit_mode = 'INSERT'
         self.session.save(new_obj)
@@ -585,27 +578,60 @@ class SqlWidget(object):
         ### fixme: must add cheks
         ### fixme2: must the toplevel be destrouyed (or is reparented?)
 
-        if self.unsaved_changes_exist():
-            response = self.dialog(type='yes-no-cancel',
-                                   text="Save unsaved data?")
-            if response == gtk.RESPONSE_CANCEL:
-                return 
-
-            if response == gtk.RESPONSE_YES:
-                self.session.commit()
+        if not self.save_unsaved():
+            return
 
         self.w['Window'].destroy()
         self.filter_panel.destroy()
         if self.single:
             self.gquit()
 
+    def save_unsaved(self, refresh=True):
+        """check if it needs saving. In case ask for confirmation and proceed
+        
+        Return False if cancel is pressed
+        """
+
+        if self.unsaved_changes_exist():
+            msg = ["Save unsaved data?"]
+            if self.session.dirty:
+                dbg.write("unsaved", self.session.dirty)
+                msg += ['unsaved: %s' % (len(self.session.dirty))]
+            if self.session.new:
+                msg += ['new: %s' % (len(self.session.new))]
+
+            response = self.dialog(type='yes-no-cancel', text="\n".join(msg))
+                                   
+            if response == gtk.RESPONSE_CANCEL:
+                return False
+
+            if response == gtk.RESPONSE_YES:
+                self.session.commit()
+
+            ## you don't want to save. Let's prevent a delayed commit
+            ## we don't need to care about deleted becouse when you delete
+            ## the commit is immediate
+            if response == gtk.RESPONSE_NO:
+                if refresh:
+                    for obj in self.session.dirty:
+                        dbg.write("session.refresh(%s)" % obj)
+                        self.session.refresh(obj)
+                    for obj in self.session.new:
+                        dbg.write("session.expunge(%s)" % obj)
+                        self.session.expunge(obj)
+                dbg.write(self.session.dirty)
+     
+        return True
+
     def unsaved_changes_exist(self):
-        """check if session needs committing"""
+        """check if session needs committing by looking dirty, deleted and new"""
 
         if self.session.dirty or self.session.deleted:
+            dbg.write("DIRTY: %s, DELETED: %s" % (self.session.dirty, self.session.deleted))
             return True
 
         if self.session.new:
+            dbg.write("NEW: ", self.session.new)
             for obj in self.session.new:
                 if self.session.is_modified(obj):
                     return True
@@ -843,10 +869,15 @@ class Actions(object):
     def __init__(self, master=None):
         self.master = master
     
-    def on_update(self, new, old):
+    def on_save(self, new, mode=None):
+        """actions to be taken when a record is saved. Mode is 'INSERT|UPDATE' 
+        """
         pass
     
-    def on_delete(self, new, old):
+    def on_update(self, new):
+        pass
+    
+    def on_delete(self, new):
         pass
     
     def on_insert(self, new):
@@ -874,6 +905,7 @@ class Actions(object):
 
             for key in lookup_flds:
                 try:
+                    pass
                     ## FIXME data is now an object
                     #data[key] = self.master.completion._lookup_value(
                     #        key, data[key])

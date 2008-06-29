@@ -37,42 +37,56 @@ class SqlMask (sqlwidget.SqlWidget):
     labels   = None  # correspondance Label <-> EventBox
 #    map_record_n = 0  # number of the displayed record within mapper
     row_count = 0    # number of records in the mapper
-    status = None
+    current = dbg.TraceIt(None, name='current', mode='rw')
     current_idx = 0
+    current_mode = dbg.TraceIt(None, name='current_mode', mode='rw')
+
 ####### Record browsing & saving
+    def reload(self, **kw):
+
+        if not self.save_unsaved():
+            return
+        sqlwidget.SqlWidget.reload(self, **kw)
+
     def record_display(self, record=None, incr=0, index=None):
         """display an object record in the mask
 
         display the data provided by self.records[self.current + incr]
         incr: incr=incr 
         """
+        if not self.records:
+            self.sb('No records to browse')
+            return
+        self.record_save(None, ask=True)
+
         if index:
-            to_display = index
+            display_idx = index
         else:
-            to_display = self.current_idx + incr
-        
+            display_idx = (self.current_idx or 0) + incr 
+
         try:
-            obj = self.records[to_display]
-            self.current_idx = to_display
-        except IndexError:
-            if incr > 0:
+            assert display_idx >= 0
+            obj = self.records[display_idx]
+            self.clear_mask(check=False)
+            self.current_idx = display_idx
+            self.current = obj
+            msg_info = "record %s/%s" % (display_idx +1, len(self.records))
+        except (IndexError, AssertionError):
+            msg_info = "record %s/%s" % (self.current_idx +1, len(self.records))
+            if incr >= 0:
                 self.sb('Already last ' + msg_info)
             else:
                 self.sb('Already first ' + msg_info)
             return None
 
-        self.clear()
-        msg_info = "record %s/%s" % (to_display , len(self.records))
 
         self.sb(msg_info)
-        self.data_in = obj
         for field_name in self.field_list:
             try:
                 self.set_value(field_name, getattr(obj, field_name))
                 #self.get_value(field_name) ????
             except FieldNotInLayout, e:
                 pass
-        self.status = index
 
         self.sync()
         self.actions.on_record_display(new=obj)
@@ -130,12 +144,12 @@ class SqlMask (sqlwidget.SqlWidget):
 
         # Boolean
         elif self.fields[field_name]['type'] == bool:
-            if not field_value :
-#                 dbg.write("impongo false per %s che era '%s'" % (
-#                     field_name, field_value))
-                field_value = False
-            widget.set_active(field_value)
-            #dbg.write("%s: %s" % (field_value, widget.get_active()))
+            if field_value == None:
+                widget.set_inconsistent(True)
+            else:
+                widget.set_active(field_value)
+                widget.set_inconsistent(False)
+                
 
         else:
             raise FieldValueNotSet(
@@ -147,7 +161,7 @@ class SqlMask (sqlwidget.SqlWidget):
         in case self.values[field_name] exists, it gets that value instead
 
         data: boo - in case of a field not shown (es.: user_id) look for the value
-              in self.data_in
+              in self.current
         shown: If true the value is returned as is shown: ie: if an id is
                substituted by a lookup value, this latter value is returned
         """
@@ -158,7 +172,7 @@ class SqlMask (sqlwidget.SqlWidget):
                 # print self.nick, "CHIESTO", field_name,"->", self.data_in[field_name]
                 try:
                     #dbg.write('Soddisfatto con dati ingresso')
-                    return self.data_in[field_name]
+                    return getattr(obj, field_name)
                 
                 except AttributeError, e:
                     
@@ -198,8 +212,10 @@ class SqlMask (sqlwidget.SqlWidget):
 
         # Boolean
         elif self.fields[field_name]['type'] == bool:
-            return widget.get_active( )
-        return 
+            if widget.get_inconsistent():
+                return None
+            else:
+                return widget.get_active( )
     
     def record_delete(self, widget=None, interactive=True):
         """invokes the validator before DELETing a record"""
@@ -215,9 +231,9 @@ class SqlMask (sqlwidget.SqlWidget):
         #self.sqlData.delete()
         
         self.commit()
-        self.clear() ## FIXME: is this necessary?
+        self.clear_mask() ## FIXME: is this necessary?
     
-    def record_save(self, ev, constraint={}, *args):
+    def record_save(self, ev, constraint={}, ask=True, *args):
         """invokes the validator before UPDATE/INSERT a record"""
         ## FIXME: validator
         
@@ -225,12 +241,39 @@ class SqlMask (sqlwidget.SqlWidget):
         #             v = self.valid (self.table, record)
         #             v.validate ()
 
-        if not self.status:
-            self.record_save_new(None, constraint=constraint)
-            return
+        obj = self.record_mask2obj(self.current)
+
+        self.actions.on_save(obj, mode=self.current_mode)
     
-        R = {}
-        obj = self.records[self.currend_idx]
+
+        ##  FIXME: constraints
+        #         if R.keys():
+        #             R.update(self.constraint)
+        #             R.update(constraint)
+        #             dbg.write("CONSTRAINT:", R, constraint)
+        #             self.sqlData.set(R)
+        
+        if ask:
+            if not self.save_unsaved():
+                return
+        else:
+            self.mask2obj(obj)
+            self.commit()
+
+        self.current_mode = 'UPDATE'
+        self.record_save_sync()
+        
+    def record_save_new(self, wdg, constraint={}):
+        """create a new record by cloning the present
+        """
+        
+        raise NotImplemented
+        
+    def record_mask2obj(self, obj=None):
+        """collect data from the mask and set into the object
+        """
+        if not obj:
+            return obj
         for field_name in self.field_list:      
             try:
                 value = self.get_value(field_name)
@@ -252,85 +295,30 @@ class SqlMask (sqlwidget.SqlWidget):
                     #dbg.write("value is", value)
                     value = t(value)
 
-            if value != self.data_in[field_name]:
-               if value == '' and self.data_in[field_name] == None:
+            if value != getattr(obj, field_name):
+               if value == '' and getattr(obj, field_name) == None:
                    pass
                else:
                    #dbg.write("%s: %r is not %r" % (field_name,
                    #                                value, self.data_in[field_name]))
                    #R[field_name] = value
                    setattr(obj, field_name, value)
+        return obj
 
-##  FIXME: constraints
-#         if R.keys():
-#             R.update(self.constraint)
-#             R.update(constraint)
-#             dbg.write("CONSTRAINT:", R, constraint)
-#             self.sqlData.set(R)
-
-        self.commit()
-        self.record_save_sync()
-        
-    def record_save_new(self, wdg, constraint={}):
-        """Insert a new record
-        """
-        
-        obj = self.get_new_object()
-        for field_name in self.field_list:      
-            try:
-                value = self.get_value(field_name)
-                #dbg.write('value: ', value)
-            except FieldNotInLayout:
-                continue
-            
-            t = self.fields[field_name]['type']
-            if t == int and value == '':
-                # skip type casting
-                #setattr(obj, field_name, None)
-                continue
-            #dbg.write("%s: - value: %r t: %s" % (field_name, value, t))
-            if t == datetime.date:
-                #value = t(value.year, value.month, value.day)
-                pass
-            elif t == datetime.datetime:
-                #value = t(value.year, value.month, value.day,
-                #          value.hour, value.minute, value.second)
-                pass
-            else:
-                if value is not None:
-                    dbg.write("type of %s: %s" % (value, type(value)))
-                    value = t(value)
-                
-            setattr(obj, field_name, value)
-
-
-        obj = self.add_contraints(obj)
-        self.actions.on_insert(obj)
-        self.session.save(obj)
-        self.status = obj
-        dbg.write("self.status", self.status)
-
-#         for z in self.sync_dict:
-#             dbg.write('constraint', constraint)
-#             z.record_save_new(None, constraint=constraint)
-
-        self.commit ()
-        self.record_save_sync()
-        
-        self.record_display()
-
-        
-    def clear(self, widget=None):
+    def clear_mask(self, widget=None, check=True):
         """clear the mask for a new record"""
-        self.status = None
-        self.sb("New Record")
+
+        if check and  not self.save_unsaved():
+            return
+
+        self.current_idx = None
+        self.current = None
         
         for field_name in self.fields.keys():
             try:
                 self.set_value(field_name, None)
             except FieldNotInLayout, e:
                 pass
-#        self.values.clear()
 
         ## sync
         for z in self.sync_dict:
@@ -338,7 +326,12 @@ class SqlMask (sqlwidget.SqlWidget):
             z.sync_block()
         
     def record_new(self, widget=None):
-        self.clear()
+        """prepare a new object and set 
+        """
+        self.clear_mask()
+        self.current = self.get_new_object()
+        self.current_idx = len(self.records) + 1
+        self.current_mode = 'INSERT'
         
     def record_forward(self, ev):
         """display the next record in the mapper"""
@@ -378,11 +371,18 @@ class SqlMask (sqlwidget.SqlWidget):
             ord('s'), gtk.gdk.CONTROL_MASK,
             gtk.ACCEL_LOCKED, self.record_save_cb)
     def clear_cb(self, accell_group, window, ord, flags):
-        self.clear()
+        self.record_new()
         
     def record_save_cb(self,  accell_group, window, ord, flags):
         self.record_save(None)
 
+    def unsaved_changes_exist(self):
+        """collect possible changes and test if save is needed
+        """
+
+        self.record_mask2obj(self.current)
+        return sqlwidget.SqlWidget.unsaved_changes_exist(self)
+        
 ####### Sync
     def record_back_sync(self, incr=1):
         for z in self.sync_dict:
@@ -439,8 +439,11 @@ class SqlMask (sqlwidget.SqlWidget):
                 try:
                     widget = self.w["%s=%s" % (mod, field_name)]
                     self.mwidgets[field_name] = widget
+                    if isinstance (widget, gtk.CheckButton):
+                        widget.connect('clicked', self.toggle_with_null_cb)
                 except:
                     pass
+
             # (gtkClass , gtkWidget)
 
         ## all EventBox 
@@ -455,6 +458,30 @@ class SqlMask (sqlwidget.SqlWidget):
             else:
                 #dbg.write("Missing event_box for %s" % (field_name))
                 pass
+    
+    def toggle_with_null_cb(self, button):
+        """a toggle function that loops through inconsinstent state also
+        """
+        value = v = button.get_active()
+        null = n = button.get_inconsistent()
+
+        ## -   -> True  -> False
+        if null:  # - next is True
+            button.set_active(True)
+            button.set_inconsistent(False)
+        else:
+            dbg.write("Null False")
+            if value == True:
+                dbg.write('Vero passo a Falso')
+                button.set_inconsistent(False)
+                button.set_active(False) 
+            else:
+                dbg.write('False passo a Null')
+                button.set_inconsistent(True)
+
+        return True
+            
+            
             
     def _add_colors_and_fonts(self):
         """add bg colors and fonts to signal needed fields"""
@@ -638,7 +665,7 @@ class Combo(SqlMask):
             self.reload(self.sql)
         else:
             pass
-            self.clear()
+            self.clear_mask()
             
         return (lay, w)
     
