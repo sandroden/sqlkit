@@ -22,6 +22,7 @@ import sqlkit
 
 class FieldNotInLayout(Exception): pass
 class FieldValueNotSet(Exception): pass
+class CancelledAction(Exception): pass
 
 #NOT_NULL_COLOR = gtk.gdk.color_parse('yellow')
 NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
@@ -37,18 +38,20 @@ class SqlMask (sqlwidget.SqlWidget):
     labels   = None  # correspondance Label <-> EventBox
 #    map_record_n = 0  # number of the displayed record within mapper
     row_count = 0    # number of records in the mapper
-    current = dbg.TraceIt(None, name='current', mode='rw')
-    current_idx = 0
-    current_mode = dbg.TraceIt(None, name='current_mode', mode='rw')
+    #current = dbg.TraceIt(None, name='current', mode='rw')
+    current = None
+    current_idx = dbg.TraceIt(0, name='current_idx', mode='rw')
+    current_mode = None
 
 ####### Record browsing & saving
     def reload(self, **kw):
 
         if not self.save_unsaved():
             return
+        self.current_idx = 0
         sqlwidget.SqlWidget.reload(self, **kw)
 
-    def record_display(self, record=None, incr=0, index=None):
+    def record_display(self, record=None, incr=0, index=None, reread=False):
         """display an object record in the mask
 
         display the data provided by self.records[self.current + incr]
@@ -57,21 +60,26 @@ class SqlMask (sqlwidget.SqlWidget):
         if not self.records:
             self.sb('No records to browse')
             return
-        self.record_save(None, ask=True)
+        if not reread:
+            try:
+                self.record_save(None, ask=True)
+            except CancelledAction:
+                return
 
         if index:
             display_idx = index
         else:
             display_idx = (self.current_idx or 0) + incr 
 
+            #dbg.set_trace()
         try:
-            assert display_idx >= 0
+            assert display_idx >= 0  # no negative indexes
             obj = self.records[display_idx]
             self.clear_mask(check=False)
             self.current_idx = display_idx
             self.current = obj
             msg_info = "record %s/%s" % (display_idx +1, len(self.records))
-        except (IndexError, AssertionError):
+        except (IndexError, AssertionError), e:
             msg_info = "record %s/%s" % (self.current_idx +1, len(self.records))
             if incr >= 0:
                 self.sb('Already last ' + msg_info)
@@ -231,7 +239,8 @@ class SqlMask (sqlwidget.SqlWidget):
         #self.sqlData.delete()
         
         self.commit()
-        self.clear_mask() ## FIXME: is this necessary?
+        self.records.pop(self.current_idx)
+        self.record_display()
     
     def record_save(self, ev, constraint={}, ask=True, *args):
         """invokes the validator before UPDATE/INSERT a record"""
@@ -255,11 +264,12 @@ class SqlMask (sqlwidget.SqlWidget):
         
         if ask:
             if not self.save_unsaved():
-                return
+                raise CancelledAction
         else:
             self.mask2obj(obj)
             self.commit()
 
+        self.record_display(reread=True)
         self.current_mode = 'UPDATE'
         self.record_save_sync()
         
@@ -311,7 +321,7 @@ class SqlMask (sqlwidget.SqlWidget):
         if check and  not self.save_unsaved():
             return
 
-        self.current_idx = None
+#        self.current_idx = None
         self.current = None
         
         for field_name in self.fields.keys():
@@ -330,7 +340,9 @@ class SqlMask (sqlwidget.SqlWidget):
         """
         self.clear_mask()
         self.current = self.get_new_object()
-        self.current_idx = len(self.records) + 1
+        self.records += [self.current]
+        self.current_idx = len(self.records) -1
+        self.sb("New record %s" % (self.current_idx +1))
         self.current_mode = 'INSERT'
         
     def record_forward(self, ev):
@@ -374,7 +386,10 @@ class SqlMask (sqlwidget.SqlWidget):
         self.record_new()
         
     def record_save_cb(self,  accell_group, window, ord, flags):
-        self.record_save(None)
+        try:
+            self.record_save(None)
+        except CancelledAction:
+            pass
 
     def unsaved_changes_exist(self):
         """collect possible changes and test if save is needed

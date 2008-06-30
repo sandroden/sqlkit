@@ -591,7 +591,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.treeview.get_toplevel().set_focus(None)
 
-        self.get_new_object()
+        new_obj = self.get_new_object()
         # focus the row & start editing
 
         ## scroll_to_cell will trigger selection_changed_cb
