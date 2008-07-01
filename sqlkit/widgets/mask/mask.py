@@ -292,7 +292,9 @@ class SqlMask (sqlwidget.SqlWidget):
             #dbg.write(field_name, value)
             
             t = self.fields[field_name]['type']
-            #dbg.write("%s: - value: %r T: %s" % (field_name, value, t))
+
+            obj_attr_value = getattr(obj, field_name)
+
             if t == datetime.date:
                 if value is not None:
                     value = t(value.year, value.month, value.day)
@@ -300,12 +302,16 @@ class SqlMask (sqlwidget.SqlWidget):
                 if value is not None:
                     value = t(value.year, value.month, value.day,
                               value.hour, value.minute, value.second)
+                    ## FIXME: this is due to a limitation in the widget that
+                    ##        don't allow to set microseconds, should be in a 
+                    ##        field widget.
+                    obj_attr_value = obj_attr_value.replace(tzinfo=None, microsecond=0)
             else:
                 if value is not None:
                     #dbg.write("value is", value)
                     value = t(value)
 
-            if value != getattr(obj, field_name):
+            if value != obj_attr_value:
                if value == '' and getattr(obj, field_name) == None:
                    pass
                else:
