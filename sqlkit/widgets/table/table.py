@@ -798,7 +798,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """returns the corrently selected obj"""
 
         row_n = self.get_selected_row()
-        obj = self.model[row_n][0]
+        obj = self.liststore[row_n][0]
 
 #         ## FIXME:  why this?
 #         if not obj:
