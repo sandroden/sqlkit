@@ -57,6 +57,7 @@ class SqlWidget(object):
                   field_list=None,
                   filter=True,
                   session=None,
+                  metadata = None,
                   hide = None,
                   ## more
                   single=False,
@@ -96,7 +97,7 @@ class SqlWidget(object):
         self.constraint=constraint
         self.sync_dict = {}
         self.dbproxy = dbproxy
-        self.metadata = dbproxy.metadata
+        self.metadata = metadata or dbproxy.metadata
 #        self.engine = self.get_engine(engine, mapper)
         self.session = self.get_session(session)
         self.order_by = order_by
@@ -104,12 +105,12 @@ class SqlWidget(object):
         if table and not tables:
             tables = table
         self.tables = tables
-        self.nick= self.get_nick(nick)
         self.mapper = self.get_mapper(mapper, tables)
+        self.nick= self.get_nick(nick)
         self.mode = mode
+        self.noup = noup
         self.hide = hide
-        self.fields = self.dbproxy.inspect_mapper(
-            self.mapper, noup=noup, mode=mode)
+        self.fields = self.get_fields()
         self.field_list = self.parse_fields(field_list)
         if hide:
             self.hide_fields()
@@ -155,7 +156,8 @@ class SqlWidget(object):
             return self.dbproxy.get_session()
     
     def get_mapper(self, mapper, tables):
-        return self.dbproxy.get_mapper(mapper, tables)
+        
+        return mapper or self.dbproxy.get_mapper(mapper, tables)
 
     def parse_fields(self, fields):
         if not fields:
@@ -183,7 +185,10 @@ class SqlWidget(object):
     
     def get_nick(self, nick):
         if not nick:
-            nick = self.tables
+            if self.tables:
+                nick = self.tables
+            else:
+                nick = self.mapper.tables[0].name
         return nick
             
 #     def get_engine(self, engine, mapper):
@@ -200,6 +205,16 @@ class SqlWidget(object):
                 
 #         return engine
     
+    def get_fields(self):
+        """Fields is a dictionary with info on the fields derived from the
+        db via the mapper (inspecting it)
+        """
+        if self.dbproxy:
+            return self.dbproxy.inspect_mapper(self.mapper, noup=self.noup, mode=self.mode)
+        else:
+            from sqlkit.db import minspect
+            return minspect.InspectMapper(self.mapper, noup=self.noup, mode=self.mode)
+        
     def _get_layout(self, lay, naked):
         ## layout
         #dbg.write('target', self.Class)
@@ -432,6 +447,17 @@ class SqlWidget(object):
 
         return len(self.records)
 
+
+    def set_records(self, records):
+        """set 'records' as the list of record to manage
+        """
+        self.records = records
+        self.record_refresh()
+
+    def record_refresh(self):
+        """to be overloaded: 
+        """
+        pass
     def reload_one(self,field, value):
         """compact way to view a single record or records with a single property"""
 
