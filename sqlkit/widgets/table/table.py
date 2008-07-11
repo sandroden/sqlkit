@@ -445,7 +445,7 @@ class SqlTable(sqlwidget.SqlWidget):
 #         return False
     
     def key_entry_F1(self, wdg, event, data):
-        self.completion.show_possible_values(wdg, field_name=data, mode='like')
+        self.completion.show_possible_values(wdg, field_name=data, mode='regexp')
         return True
     
     def key_entry_F2(self, wdg, event, data):
@@ -820,5 +820,7 @@ class SqlTable(sqlwidget.SqlWidget):
         value = self.completion._lookup_value(field_name, fkey)
         #dbg.write(i, field_name, fkey, value)
         cell.set_property('text', value)
+
+
 
 
