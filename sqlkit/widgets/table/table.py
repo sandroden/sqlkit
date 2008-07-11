@@ -272,16 +272,18 @@ class SqlTable(sqlwidget.SqlWidget):
 
             ## positioning for string
             if self.fields[v]['type'] == str :
-                length = re.search('(\d*)', self.fields[v]['col_spec']).group(1)
-                try:
-                    #dbg.write('lung',length)
-                    ## if field has less then 3 chars, position it in the middle
-                    if int(length) <= 3:
-                        dbg.write(v, 'in centro', length, int(length))
-                        cell.set_property('xalign', 0.5)
-                except:
-                    pass
-
+                specs = self.fields[v]['col_spec']
+                if specs:
+                    length = re.search('(\d*)', specs).group(1)
+                    try:
+                        #dbg.write('lung',length)
+                        ## if field has less then 3 chars, position it in the middle
+                        if int(length) <= 3:
+                            dbg.write(v, 'in centro', length, int(length))
+                            cell.set_property('xalign', 0.5)
+                    except:
+                        pass
+    
             self.treeview.append_column(tvcolumn)
             self.treeview.columns_autosize()
             tvcolumn.set_clickable(True)
@@ -820,6 +822,10 @@ class SqlTable(sqlwidget.SqlWidget):
         value = self.completion._lookup_value(field_name, fkey)
         #dbg.write(i, field_name, fkey, value)
         cell.set_property('text', value)
+
+
+
+
 
 
 
