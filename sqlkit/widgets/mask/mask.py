@@ -42,6 +42,12 @@ class SqlMask (sqlwidget.SqlWidget):
     current = None
     current_idx = dbg.TraceIt(0, name='current_idx', mode='rw')
     current_mode = None
+    def __init__(self, *args, **kw):
+        """Prepare for a new record
+        """
+
+        sqlwidget.SqlWidget.__init__(self, *args, **kw)
+        self.record_new()
 
 ####### Record browsing & saving
     def reload(self, **kw):
@@ -696,3 +702,5 @@ class Combo(SqlMask):
     def parse_fields(self, fields):
         self.table_field_list = fields
         return SqlMask.parse_fields(self, None)
+
+
