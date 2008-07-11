@@ -747,6 +747,15 @@ class SqlTable(sqlwidget.SqlWidget):
         
         return ret
                                          
+    def record_refresh(self):
+        """when self.refresh is called other programs have selected the records
+        
+        """
+        self.liststore.clear()
+        for i in self.records:
+            self.liststore.append([i])
+
+
     def set_value(self, field_name, value, path=None):
         """ called from within edited signal. Validation should live here"""
 
