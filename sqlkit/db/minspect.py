@@ -5,6 +5,7 @@ import datetime
 import decimal
 import re
 from  sqlalchemy.orm import properties
+import sqlalchemy.orm.properties 
 
 PROPERTIES = properties
 class MissingPrimaryKeyError(Exception): pass
@@ -41,6 +42,7 @@ class InspectMapper(dict):
         self.mode = mode
         self.pytype = getattr(self, "get_%s_types" %
                               mapper.local_table.bind.name)()
+        self.pytype.update(self.get_sa_types())
         self.fields = []
         self.primarytable = self.get_primary_table
         self.noup = self.parse_noup(noup)
@@ -51,6 +53,23 @@ class InspectMapper(dict):
         self.n = 0
         self.loop_on_props()
     
+    def get_sa_types(self):
+        ## used by sa when no reflection is used? to be verified
+        return {
+            sqlalchemy.types.String : str,
+            sqlalchemy.types.Integer  : int,
+            sqlalchemy.types.Float  : float,
+            sqlalchemy.types.DateTime  : datetime.datetime,
+            sqlalchemy.types.Date  : datetime.date,
+            sqlalchemy.types.Numeric : decimal.Decimal,
+#            sqlalchemy.types.Char  : str, 
+#            sqlalchemy.types.Inet  : str, 
+            sqlalchemy.types.Text  : str, 
+            sqlalchemy.types.Boolean  : bool, 
+            sqlalchemy.types.Binary : str, # ????
+            }
+                              
+        
     def get_postgres_types(self):
         ## used by postgresql
         return {
@@ -111,9 +130,14 @@ class InspectMapper(dict):
             }
                               
     def loop_on_props(self):
+        """Add field gathering info from the mapper 
+        At the mome we only use properties that are 
+        """
         props = self.mapper.iterate_properties
+        
         for prop in props:
-            self._add_field(prop.key, self.mapper)
+            if isinstance(prop, properties.ColumnProperty):
+                self._add_field(prop.key, self.mapper)
 
     def _add_field(self, field_name, mapper, property=None):
         if field_name in self:
