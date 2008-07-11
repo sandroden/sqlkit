@@ -137,6 +137,8 @@ class LayoutGenerator (object):
         if not col_spec:
             col_spec = self.fields[field_name]['col_spec']
             
+        if not col_spec:
+            return ''
         if col_spec == 'INTEGER':
             return ":8"
         elif col_spec.startswith('FLOAT'):
