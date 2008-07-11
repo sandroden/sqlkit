@@ -311,7 +311,8 @@ class SqlMask (sqlwidget.SqlWidget):
                     ## FIXME: this is due to a limitation in the widget that
                     ##        don't allow to set microseconds, should be in a 
                     ##        field widget.
-                    obj_attr_value = obj_attr_value.replace(tzinfo=None, microsecond=0)
+                    if obj_attr_value:
+                        obj_attr_value = obj_attr_value.replace(tzinfo=None, microsecond=0)
             else:
                 if value is not None:
                     #dbg.write("value is", value)
@@ -702,5 +703,7 @@ class Combo(SqlMask):
     def parse_fields(self, fields):
         self.table_field_list = fields
         return SqlMask.parse_fields(self, None)
+
+
 
 
