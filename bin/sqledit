@@ -25,16 +25,12 @@ import pdb
 Dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(Dir, '../'))
 import dbg
-from layout import layout
+import layout
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exceptions import OperationalError
 import gtk
 from dry import optionparse
-import sqlkit
-from sqlkit import SqlTable, SqlMask
-from sqlkit.db import proxy
-import layout.misc
 
 class MissingNickDefinition(Exception): pass
 
@@ -215,11 +211,17 @@ opts, args = optionparse.parse(__doc__)
 if not args and not opts: optionparse.exit()
 
 if opts.gtk_debug:
-    #dbg.conf_class_trace(ok='SqlTable|SqlMask')
-    #dbg.debug(2)
+    dbg.trace_class(ok='SqlTable|SqlMask')
+    but = 'set_fkey_descr|(lookup|set|get)_value|[el]ne_cb|match_func' + \
+       '|cell_default_cb|cell_bool_cb|_lookup_value'
+    dbg.trace_function(exclude=but)
+    dbg.debug(True)
     lgm = dbg.ShowLogs(show=True)
-    #lgm.conf(but='set_fkey_descr|(lookup|set|get)_value|[el]ne_cb|match_func')
-    lgm.conf(but='write_info')
+
+import sqlkit
+from sqlkit import SqlTable, SqlMask
+from sqlkit.db import proxy
+import layout.misc
 
 if args:
     if re.search('://', args[0]):
@@ -274,6 +276,3 @@ try:
     gtk.main()
 except KeyboardInterrupt:
     pass
-
-
-
