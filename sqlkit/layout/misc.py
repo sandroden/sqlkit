@@ -31,7 +31,7 @@ class EasyTreeView(object):
             self.model = gtk.TreeStore(*self.columns)
         else:
             self.model = model
-            
+
         self.tv.set_enable_search(True)
         self.tv.set_model(self.model)
         self.tvc = {}
