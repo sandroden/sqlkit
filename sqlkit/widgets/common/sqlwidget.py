@@ -36,7 +36,7 @@ class SqlWidget(object):
     
     def __init__ (self, mapper=None,
                   ## geometry
-                  lay = None,
+                  layout = None,
                   naked=False,
                   geom=(-1,300),
                   addto=None,
@@ -69,7 +69,7 @@ class SqlWidget(object):
         """create an interface and allow to save/store data from a database
 
         mapper: a sqlalchemy mapper
-        lay:    a layout describing the desired layout (see layout package)
+        layout:    a layout describing the desired layout (see layout package)
         actions: a validator to be used to validate fields and records
         naked:  in case the mask should *not* be added interactive buttons
                 needed if the layout already contains all the required buttons
@@ -120,7 +120,7 @@ class SqlWidget(object):
         self.completion = completion.Completion(self)
         ## create the interface and add obvious constraints
         self.naked = naked
-        self.lay   = lay
+        self.lay   = layout
         self.sql   = sql
 #        self.sqlData = sqldata.SqlData(None, self.fields, self.session)
         self.single = single

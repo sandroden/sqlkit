@@ -6,7 +6,7 @@ import layout
 import layout.dateedit as dateedit
 
 #import validator
-from sqlkit.widgets.common.layoutgenerator import LayoutGenerator
+#from sqlkit.widgets.common.layoutgenerator import LayoutGenerator
 import gtk, pango
 from sqlalchemy import *
 import dbg.gtk_dbg
@@ -674,7 +674,7 @@ class Combo(SqlMask):
             
         self.SqlTable = sqlkit.SqlTable(tables=self.tables[1],
                                         naked=True,
-                                        lay=None,
+                                        layout=None,
                                         engine=self.engine,
                                         addto=self.w['A=table'],
                                         mode=self.mode,
