@@ -8,17 +8,29 @@ from sqlalchemy import *
 
 
 class LayoutGenerator (object):
-    """creates an object whose .layout attribute is used
+    """build up the layout definition suitable for layout.Layout
 
-    in case a layout is passed as argument, the content is parsed to add the
-    labels and to change the type of widget used to represent the data (using
-    the mapping in map_types)
+    Buiding layout from scratch
+    ----------------------------
+
+    In case no layout is passed, a simple layout is built consisting of all
+    fields vertically packed based on field in field_list
+    
+
+    Passing a  layout
+    -------------------
+
+    In case a layout is passed as argument, the content is parsed to add the
+    labels and to set the type of widget used to represent the data (using
+    the mapping in map_types) unless a type is passed in the layout
+
+    
+    Reference to other tables
+    ---------------------------
 
     A name of a field can also be of the form: table.field_name, in which case
     the table is reflected to get the type of the column, to adjust for the
     proper widget representation
-
-    
     
     """
     map_types = {
@@ -37,35 +49,19 @@ class LayoutGenerator (object):
         """
         self.master = master
         self.fields = master.fields
-        #print self.fields.keys()
-        if lay:
+        #self.used_field_dict = {}
+        if isinstance(master, sk.SqlMask):
+            if not lay:
+                lay = "\n".join(self.master.field_list)
             self.layout = self._parse_and_complete(lay)
-            #print self.layout
+
         else:
-            if isinstance(master, sk.SqlMask):
-                self.layout = self.create ()
-            else:
-                self.layout = self.create_for_table()
+            self.layout = self.create_for_table()
 
         if not naked:
             self._add_default_buttons()
+        #print self.layout
         #dbg.write(self.layout)
-
-    def create (self):
-        """create is only used when no layout is passed, so no need to use _sub
-        that searches also for tbl.field_name
-        """
-        entries = []
-        for field_name in self.master.field_list:
-            entries.append( self.add_spec(field_name=field_name ))
-        return ''.join (entries)
-
-    def add_spec(self, field_name=None):
-        
-        widget = self.get_widget(field_name)
-        return "L=%s %s=%s%s\n" % (field_name, widget, field_name,
-                                   self.create_spec(field_name))
-
 
     def _parse_and_complete(self, lay):
         """parse the layout and substitute all field_name with:
@@ -86,7 +82,7 @@ class LayoutGenerator (object):
                                # %string is a qualifier for notebooks
                                # {N is for noteooks and so on
         (?P<field>[a-z_A-Z\.]+)  # the field + a possible table (table.field)
-        (?![-=])               # the row above is only mathced if not followed
+        (?![-=])               # the row above is only matched if not followed
                                # by - o = (b=gtk-save-as *must not* match)
         (?P<spec>:[-<>.\d]*)?
         (?P<end>\b)
@@ -95,19 +91,15 @@ class LayoutGenerator (object):
         return p2.sub(self._sub, lay)
     
     def _sub(self, m):
-        ### not using add_spec just becouse of the way args are passed
         field_name = m.group('field')
 
         ## this is for reference of fields defined in other tables: tbl.field
         if field_name not in self.fields:
             ## any field that is not explicitly here is mapped into 'str'
-            #dbg.write('field_name', field_name)
-            #print "ELSE", field_name
             field_name, t, col_spec = self.register(field_name)
             if t is None:  # this is not a db field
                 return field_name
 
-            #dbg.write("t=", t)
         widget = self.get_widget(field_name)
 
         spec = m.group('spec') or ''
@@ -118,10 +110,19 @@ class LayoutGenerator (object):
             
         if not spec:
             spec = self.create_spec(field_name, col_spec)
-            #print field_name, spec
+
         return " L=%s %s=%s%s" % (field_name, widget, field_name, spec)
     
     def get_widget(self, field_name):
+        """choose appropriate widget to represent this field
+        """
+
+        #self.used_field_dict[field_name] = 
+
+        if self.fields[field_name]['fkey']:
+            ## ComboBox for foreign key
+            return "Ce"
+
         ftype = self.fields[field_name]['type']
         widget = self.map_types[ftype]
         
@@ -137,7 +138,7 @@ class LayoutGenerator (object):
         if not col_spec:
             col_spec = self.fields[field_name]['col_spec']
             
-        if not col_spec:
+        if not col_spec or self.fields[field_name]['fkey']:
             return ''
         if col_spec == 'INTEGER':
             return ":8"
@@ -154,7 +155,8 @@ class LayoutGenerator (object):
                 ## (but you can obverride this by hand!...
                 if length > 50:
                     length = 50
-                ## now alignment
+                ## now alignment: thisn will ensure it will grow
+                ##  if more space is given to the window via rezising
                 spec = ":%s" % length
                 if length> 20:
                     spec += "-"
