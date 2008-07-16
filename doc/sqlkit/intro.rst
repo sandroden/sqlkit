@@ -39,7 +39,7 @@ special endings for field_name are:
 sqlkit pre-conditions
 ======================
 
-1. I suppose that you use PrimaryKeys and ForeignaKes throughout the db.
+1. I suppose that you use PrimaryKeys and ForeignKeys throughout the db.
    If you don't use ForeignKeys sqlkit will just work w/o any special
    behaviour. If you don't use PrimaryKeys sqlkit will not be able to update.
 
