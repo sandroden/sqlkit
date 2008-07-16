@@ -90,7 +90,7 @@ class Completion(object):
 
         ## completion was not present
         completion = gtk.EntryCompletion()
-        completion.set_property('popup-set-width', True)
+        completion.set_property('popup-set-width', False)
         completion.set_property('minimum-key-length', 0)
         completion.connect('match-selected', self.match_selected_cb, field_name)
         renderer = gtk.CellRendererText()
@@ -322,8 +322,10 @@ class Completion(object):
         #self.master.set_fkey_value(field_name, value)
         if isinstance(self.master, sqlkit.SqlTable):
             self.master.editable.set_text(str(value))
-        self.master.set_value(field_name, value)
-        dbg.write('value', value)
+
+        self.master.set_value(field_name, str(value))
+        return True
+        #dbg.write('value for ', field_name, value)
 
         ## Let's show a more usefull value than the id. 
         if self.master.fields[field_name]['fkey']:
@@ -349,7 +351,6 @@ class Completion(object):
     def set_text(self, Rd, exclude=None):
         """sets the values of field read by the select
         """
-        dbg.write()
         if isinstance(self.master, sqlkit.SqlMask):
             for field_name, value in Rd.iteritems():
 #                 if field_name == exclude:
@@ -689,4 +690,6 @@ def get_description_fields(table):
     #dbg.dshow(tables)
     return tables[table]
     
+
+
 
