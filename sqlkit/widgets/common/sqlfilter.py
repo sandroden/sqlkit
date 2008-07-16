@@ -248,6 +248,12 @@ class FilterPanel(object):
             dbg.write('bool')
             return BOOLEAN_OPERATORS
         
+        if self.master.fields[field_name]['fkey']:
+            if eng_type in ('postgres'):
+                return  ['~*', '~', '!~*', '~*' ] + STD_OPERATORS
+            elif eng_type in ('mysql'):
+                return ['REGEXP' ] + STD_OPERATORS
+
         if issubclass(ftype, (int, float, datetime, date, time)):
             return STD_OPERATORS
 

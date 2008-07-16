@@ -485,8 +485,10 @@ class SqlWidget(object):
         place it in the session
         """
         new_obj = self.mapper.class_()
-        new_obj._sqlkit_mode = 'INSERT'
-        self.session.add(new_obj)
+        #new_obj._sqlkit_mode = 'INSERT'
+
+        if session:
+            self.session.add(new_obj)
         return new_obj
 
     def add_constraints(self, obj):
@@ -643,15 +645,18 @@ class SqlWidget(object):
             response = self.dialog(type='yes-no-cancel', text="\n".join(msg))
                                    
             if response == gtk.RESPONSE_CANCEL:
+                dbg.write("Response CANCEL")
                 return False
 
             if response == gtk.RESPONSE_YES:
+                dbg.write("Response YES")
                 self.session.commit()
 
             ## you don't want to save. Let's prevent a delayed commit
             ## we don't need to care about deleted becouse when you delete
             ## the commit is immediate
             if response == gtk.RESPONSE_NO:
+                dbg.write("RESPONSE NO")
                 if refresh:
                     for obj in self.session.dirty:
                         dbg.write("session.refresh(%s)" % obj)
@@ -659,6 +664,8 @@ class SqlWidget(object):
                     for obj in self.session.new:
                         dbg.write("session.expunge(%s)" % obj)
                         self.session.expunge(obj)
+                else:
+                    dbg.write("refresh:", refresh)
                 dbg.write(self.session.dirty)
      
         return True
@@ -666,7 +673,11 @@ class SqlWidget(object):
     def unsaved_changes_exist(self):
         """check if session needs committing by looking dirty, deleted and new"""
 
-        if self.session.dirty or self.session.deleted:
+        if self.session.dirty:
+            for dirty in self.session.dirty:
+                if self.session.is_modified(dirty):
+                    return True
+        if self.session.deleted:
             dbg.write("DIRTY: %s, DELETED: %s" % (self.session.dirty, self.session.deleted))
             return True
 
@@ -992,6 +1003,8 @@ class Actions(object):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+
 
 
 

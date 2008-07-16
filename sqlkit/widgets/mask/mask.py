@@ -352,7 +352,7 @@ class SqlMask (sqlwidget.SqlWidget):
         """prepare a new object and set 
         """
         self.clear_mask()
-        self.current = self.get_new_object()
+        self.current = self.get_new_object(session=False)
         self.records += [self.current]
         self.current_idx = len(self.records) -1
         self.sb("New record %s" % (self.current_idx +1))
@@ -703,6 +703,8 @@ class Combo(SqlMask):
     def parse_fields(self, fields):
         self.table_field_list = fields
         return SqlMask.parse_fields(self, None)
+
+
 
 
 
