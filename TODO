@@ -1,0 +1,122 @@
+sqlite
+=======
+
+implementare la ricerca per espressioni regolari
+
+
+gettext
+==========
+
+Va aggiunta localizzazione. In realtà va agiunta a layout più che a sqlkit.
+
+cut & paste
+============
+
+Aggiungere gestione taglia e incolla: ora il click destro apre dei menu dove
+non è possibie fare cut & paste. Vanno aggiunti al menu
+
+gestione errori sqlalchemy
+===========================
+
+
+gestione default
+=================
+Non dovrebbe essere difficile ora che ci sono i miniwidgets
+
+DateEdit
+=========
+
+1. deve avere un gtk.Alignement per evitare di espandersi
+
+2. deve gestire anche time TZinfo (con aggiunta di una proprietà)
+   Al momento ha una sola proprietà 'time' (oltre a (show-time) per
+   gestire datetime). Bisogna aggiungere una gestione 
+
+CheckBox 
+=========
+
+per boolean: deve esistere anche tri-state come quello per TreeView
+deve esseere possibile scegliere il CheckBox tri-state o quello
+normale a seconda che il campo nel db sia nullable o meno
+(widget.mask.miniwidget.BooleanNullWidget)
+
+
+ForeignKey
+============
+
+deve usare ComboBoxEntry (per via della freccia che dà idea che si
+può scegliere fra alcuni valori). Non riesco a capire come fare
+a intercettare un segnale per quando viene cliccata la freccia
+in modo da cercare *in quel momento* quali valori proporre,
+ovvero filtrarli tramite il valore attuale.
+
+SqlTable
+===========
+ 
+* aggiungere una funzione che permetta di impostare il numero di righe
+
+* aggiungere la possibilità di muovere le colonne
+  magari via "modifica -> scelta cambi -> ordinamento"
+
+* pensare a come permettere di riordinare le righe (ha implicazioni con
+  l'ordinamento del modello sottostante. Ha senso solo se c'è una olonna che
+  memorizza l'ordine nel db)
+
+* pensare come editare i campi a più righe o con righe molto lunghe. Occorre
+  creare un popup con il testo e poi sincronizzarlo. Hai idee migliori?
+
+
+PyGtkMVC
+==========
+
+Andrebbe aggiunto in alcune parti. In particolare direi nel SqlMask e nel
+filter. Non ho ancora le idee chiare.
+
+
+Vorrei anche aggiungerlo come elemento opzionale in un elemento layout, in
+modo da poter avere on oggetto (dizionario?) che mi rappresenta lo stato del
+layout e che se lo modifico mi cambia o stato del layout.
+
+
+SqlMask
+==========
+
+Deve essere aggiunta la possibilità di sfogliare dei record che hanno a loro
+volta collezioni di record: Sfoglio i registi cui son collegati i film
+fatti. La serie di film fatti deve essere rappresentata in un treeview che a
+sua volta deve essere messo nel layout.
+
+Il treeView non è altro che una SqlTable senza fronzoli (bottoni)
+sincronizzata con la prima. In passato avevo già fatto tutto il codice per
+questo genere di cose ma era troppo arzigogolato e non sfruttava (perché non
+le avevo capite) tutte le possibilità di sqlalchemy. In realtà se
+opportunamente istruite le classi che raffigurano gli oggetti del database
+hanno delle proprietà che sono a loro volta dei "Loader" di altre classi (ti
+consiglio di leggere attentamente il tutorial di elixir come inizio), quindi
+-se lo chiedi- quando fai una select di un oggetto ti trovi già pronta anche
+la collezione degli oggetti corrlati (i film del regista nel nostro
+caso). Questa è una lista che può essere impostata come self.records della
+SqlTable.
+
+Il bello è che riesci in questo modo a trattare non solo le relazioni
+OneToMany come Regista -> Film ma anche ManyToMany (Film -> Attore) e questo
+grazie a sqlalchemy.
+
+Vanno poi prese alcune precauzioni che nuovo oggetti creati (ad esempio nuovi
+film) se creati in questa SqlTable vengano aggiunti alla lista dei record
+del regista e non solo alla sessione. Non ho ancora chiaro quale sia il modo
+più naturale di fare questo (ascoltando qualche segnale del modello del
+TreeView?) 
+
+Validazione
+============
+
+Capitolo importante da affrontare. non è difficile aggiunere validazioni, più
+complesso gestire la parte GTK di rimando, colorazione dei campi errati....
+guardare anche i widget di validazione come:
+http://www.astro.umass.edu/~dpopowich/python/ 
+
+Constraint
+===========
+
+Todo completely
