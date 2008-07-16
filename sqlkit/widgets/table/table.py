@@ -828,7 +828,7 @@ class SqlTable(sqlwidget.SqlWidget):
         path = model.get_path(iter)
         #dbg.write("FKEY", fkey, path, i+1)
         #field_name = self.field_list[i]
-        value = self.completion._lookup_value(field_name, fkey)
+        value = self.completion.lookup_value(field_name, fkey)
         #dbg.write(i, field_name, fkey, value)
         cell.set_property('text', value)
 

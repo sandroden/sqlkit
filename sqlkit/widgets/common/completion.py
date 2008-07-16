@@ -50,7 +50,7 @@ class Completion(object):
         self.master.values in case of an id, completion will substitute it
              with a description field, for the user benefit. The real value
              of the field will be hold there.
-        self.master.mwidgets (mask wdgets): the mapping field_name -> widget
+        self.master.mfields (mask wdgets): the mapping field_name -> widget
         
         """
 
@@ -65,7 +65,7 @@ class Completion(object):
         """return the widget to widh the entryCompletion should be attached
         """
         if self.master.__class__.__name__ == 'SqlMask':
-            return self.master.mwidgets[field_name]
+            return self.master.mfields[field_name]
         
     def add_completion(self, field_name, mode, wdg = None):
         """ add a completionEntry to an Entry
@@ -83,11 +83,11 @@ class Completion(object):
             entry = wdg
             
         completion = entry.get_completion()
-# FIXME: we could do better but we should record the mode, otherwise a second
-# call on the same completion would not follow 
-#        if completion:
-#            return (completion.get_model(), completion)
-
+        # FIXME: we could do better but we should record the mode, otherwise a second
+        # call on the same completion would not follow 
+        #        if completion:
+        #            return (completion.get_model(), completion)
+        
         ## completion was not present
         completion = gtk.EntryCompletion()
         completion.set_property('popup-set-width', False)
@@ -147,7 +147,7 @@ class Completion(object):
         
 
 ### What to show
-    def _lookup_value(self, field_name, field_value):
+    def lookup_value(self, field_name, field_value):
         """retrieve the value in a lookup table in case of foreign_key
         """
         if not field_value:
@@ -220,6 +220,7 @@ class Completion(object):
             return True
         #dbg.write("rifiuto: %s" % text)
         return False
+
     def show_possible_values(self, wdg, field_name, mode):
         """fill in a ListStore to use with completion, fetch data from db
         mode determines the match of the already typed text:
@@ -229,7 +230,7 @@ class Completion(object):
         """
 
         sql_dict = {}
-        sql_dict['val'] = wdg.get_text()
+        sql_dict['val'] = self.master.get_value(field_name, shown=True)
             
         if mode == 'start':
             sql_dict['oper'] = self.LIKE_OP
@@ -241,38 +242,40 @@ class Completion(object):
         self.add_for_LIKE(sql_dict, mode)
         sql_dict['field_name'] = field_name
             
-        listore, completion = self.add_completion(field_name, mode, wdg)
-        listore.clear()
+        liststore, completion = self.add_completion(field_name, mode, wdg)
+        liststore.clear()
         ret = self.select_values(field_name, sql_dict)
-#        self.add_NULL_value(listore)
+#        self.add_NULL_value(liststore)
         for R in ret:
             Rl = self.instance2list(R)
             dbg.write(Rl)
             Rd = self.instance2dict(R)
-            #if len(Rl) >= 2:
+
             if self.master.fields[field_name]['fkey']:
-                ftable = self.master.fields[field_name]['fkey'][0]
-                if ftable in tables and tables[ftable][2] is not None:
+                fk_table = self.master.fields[field_name]['fkey'][0]
+                dbg.write("fk_table: %s" % fk_table)
+
+                if fk_table in tables and tables[fk_table][2] is not None:
                     # we have defined explicitly a format via "str" % dict
-                    dbg.write(1)
-                    descr = tables[ftable][2] % Rd
-                    listore.append([ Rl[0], Rl[1], descr, Rd ])
+                    descr = tables[fk_table][2] % Rd
+                    liststore.append([ Rl[0], Rl[1], descr, Rd ])
+
                 elif len(Rl) > 1:
+                    dbg.write("> 1 -- Rl", Rl)
                     ## default format is all fields joined
-                    dbg.write(2)
-                    listore.append([ Rl[0], Rl[1] or '', " - ".join(Rl[1:]), Rd ])
+                    liststore.append([ Rl[0], Rl[1] or '', " - ".join(Rl[1:]), Rd ])
+
                 else:
-                    dbg.write(3)
-                    
-                    listore.append([ Rl[0], Rl[0] , Rl[0], Rd ])
+                    liststore.append([ Rl[0], Rl[0] , Rl[0], Rd ])
                     
             else:
-                listore.append([Rl[0], Rd])
+                liststore.append([Rl[0], Rd])
 
         self.make_completion_to_pop(wdg)
-        dbg.write(listore)
+        dbg.write(liststore)
 #     def add_NULL_value(self, liststore):
 #         liststore.append([{}] + [None] * (liststore.get_n_columns()-1))
+
     def instance2list(self, R):
         ## NOTE: a NULL from the db gets casted to ''
         ret = [getattr(R, i) or '' for i in R.keys()]
@@ -332,7 +335,9 @@ class Completion(object):
             # note: model.get() returns a tuple, one value each cell on the column
             show_value = model.get(iter,1)[0]
             Rd = model.get(iter,3)[0]
+            dbg.write("Rd: %s" % Rd)
             Rd[field_name] = show_value
+            dbg.write("Rd: %s" % Rd)
 
             dbg.write('Rd', Rd, 'Rd type', type(Rd))
                 
@@ -357,10 +362,14 @@ class Completion(object):
 #                     dbg.write('salto: ', field_name, Rd[field_name])
 #                     continue
                 #dbg.write(field_name, value)
-                if field_name in self.master.mwidgets:
-                    dbg.write("%s.set_text(%s)" % (field_name, value))
-                    self.master.mwidgets[field_name].set_text(value)
-                    #self.master._set_value(field_name, Rd[field_name]
+                if field_name in self.master.mfields:
+                    dbg.write("field_name : %s value: %s Rd %s" % (
+                            field_name, value, Rd))
+                    print "self.master.set_value(%s, %s)" % (field_name, value)
+                    self.master.set_value(field_name, value)
+
+                    #self.master.set_value(field_name, Rd[field_name])
+                    #setattr(self.master.current, field_name, Rd[field_name])
         else:
             #dbg.write(Rd)
             for field_name, value in Rd.iteritems():
@@ -457,7 +466,7 @@ class Completion(object):
         """search a possible field descriptor and add it to sql_dict
 
         This is called by two functions:
-        _lookup_value: to substitute the id with a description (mode=return)
+        lookup_value: to substitute the id with a description (mode=return)
         select_values: when proposing a list of completion values
 
         mode: return. If mode='return' the value is returned and only one
@@ -685,11 +694,12 @@ def set_description_fields(table, descr, add=None, format=None):
     tables[table] = (descr, add, format)
     
 def get_description_fields(table):
-    """Set description field to table 'table"""
+    """Get description field to table 'table"""
     global tables
-    #dbg.dshow(tables)
-    return tables[table]
-    
 
+    if table in tables:
+        return tables[table]
+    return None
+    
 
 

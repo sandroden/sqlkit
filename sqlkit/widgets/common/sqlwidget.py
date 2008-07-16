@@ -216,39 +216,36 @@ class SqlWidget(object):
             return minspect.InspectMapper(self.mapper, noup=self.noup, mode=self.mode)
         
     def _get_layout(self, lay, naked):
-        ## layout
-        #dbg.write('target', self.Class)
+        """lay may be a definition string or another SqlMask in case a the layout has
+        just been build bya another SqlMask object and we just need to
+        add controls and so on
+        """
 
         if isinstance(lay, sqlkit.SqlMask):
-            #dbg.write()
             self.w = lay.w
             self.filter_panel = lay.filter_panel
             ## NOTE: here I say that I can reach w/ get_value also the
             ##       values of the secondary mask. Of course you need to be
             ##       carefull not to mix up filed-names
-            self.mwidgets = lay.mwidgets
+            self.mfields = lay.mfields
             self._analize_widgets_in_layout()
-            self._add_constraints_and_connect()
-            self._add_colors_and_fonts()
+            self._add_click_for_filter()
+            self._add_color_to_labels()
             self.values = lay.values
             return (lay.lay_obj, lay.w)
         
         lay = LayoutGenerator(self, naked=naked, lay=lay).layout
         self.layout = lay
-        #dbg.write(self.layout)
         self.add_filter(visible=False)
-
-        ## add default buttons if needed
-        #self._add_default_buttons(naked)
-        #print self.layout
-        #dbg.write(self.layout)
         self.lay_obj = layout.Layout(self.layout, addto=self.addto,
                                      title=self.title, opts='T-')
         #if self.xml:
         #    self.lay_obj.xml('/tmp/m_%s.glade' % self.nick)
+
         if 'Window' in self.lay_obj.elements:
             self.lay_obj.prop('Window', 'visible', False)
-        self.w       = self.lay_obj.show()
+
+        self.w = self.lay_obj.show()
 
         if 'Window' in self.lay_obj.elements:
             self.lay_obj.connect(('Window', 'delete_event', self.delete_event))
@@ -256,8 +253,8 @@ class SqlWidget(object):
 
         if isinstance(self, sqlkit.SqlMask):
             self._analize_widgets_in_layout()
-            self._add_constraints_and_connect()
-            self._add_colors_and_fonts()
+            self._add_click_for_filter()
+            self._add_color_to_labels()
 
 
         self._add_actions_to_buttons()
@@ -480,7 +477,7 @@ class SqlWidget(object):
         _add_actions_to_button from failing"""
         pass
     
-    def get_new_object(self):
+    def get_new_object(self, session=True):
         """create a new object from the class of the mapper and 
         place it in the session
         """
@@ -499,9 +496,11 @@ class SqlWidget(object):
         """show differences between old and new version of an object
         """
         msg = []
+#        for field_name in self.mapper.columns.keys():
         for field_name in self.field_list:
             new, unchanged, old =  attributes.get_history(
                 attributes.instance_state(obj), field_name)
+            #print field_name, new, unchanged, old
             if new:
                 msg += ["%s: %s -> %s" % (field_name, old, new)]
         return "\n".join(msg)
@@ -590,8 +589,9 @@ class SqlWidget(object):
         dialog, l = self.lay_obj.dialog(lay="l=a", title=title,
                                         type=type, show=False)
         l.prop(('l=a', 'use_markup', True))
-        l.widgets['l=a'].set_markup(
-            '<span size="14000">%s</span>' % text)
+        l.widgets['l=a'].set_text(text)
+#         l.widgets['l=a'].set_markup(
+#             '<span size="14000">%s</span>' % text)
         dialog.show_all()
         response = dialog.run()
         dialog.destroy()
@@ -958,7 +958,7 @@ class Actions(object):
                 try:
                     pass
                     ## FIXME data is now an object
-                    #data[key] = self.master.completion._lookup_value(
+                    #data[key] = self.master.completion.lookup_value(
                     #        key, data[key])
                 except Exception, e:
                     print e
@@ -974,7 +974,7 @@ class Actions(object):
             for diz in self.master.sqlData.all_as_dicts():
                 for key in lookup_flds:
                     try:
-                        diz[key] = self.master.completion._lookup_value(
+                        diz[key] = self.master.completion.lookup_value(
                             key, diz[key])
                     except Exception, e:
                         print e
