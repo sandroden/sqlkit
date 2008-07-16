@@ -25,7 +25,6 @@ class FieldValueNotSet(Exception): pass
 class CancelledAction(Exception): pass
 
 #NOT_NULL_COLOR = gtk.gdk.color_parse('yellow')
-NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
 FK_COLOR = gtk.gdk.color_parse('navyblue')
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
 
@@ -34,7 +33,7 @@ class SqlMask (sqlwidget.SqlWidget):
     """
 
     __metaclass__ = dbg.LogTheMethods
-    mwidgets = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
+    mfields = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
     labels   = None  # correspondance Label <-> EventBox
 #    map_record_n = 0  # number of the displayed record within mapper
     row_count = 0    # number of records in the mapper
@@ -118,119 +117,33 @@ class SqlMask (sqlwidget.SqlWidget):
         shows it in the entry but stores the id in self.values[field_name]
         """
         #dbg.write("%s: %s" % (field_name, field_value))
-        if field_name not in self.mwidgets:
+        if field_name not in self.mfields:
             raise FieldNotInLayout("field_name: %s" % (field_name))
 
-        widget = self.mwidgets[field_name]
-        #print field_name, field_value
-        if self.fields[field_name]['fkey'] and field_name.endswith('_id'):
-            #if field_name == 'a_id':
-            #    dbg.write("nick: %s - self.values[%s] = %s" % (self.nick, field_name, field_value))
-            if field_value is None:
-                try:
-                    del self.values[field_name]
-                except KeyError:
-                    pass
-            else:
-                self.values[field_name] = field_value
+        self.mfields[field_name].set_value(field_value)
+        
+        
+    def clear_value(self, field_name):
+        """clear the value
+        """
+        if field_name not in self.mfields:
+            raise FieldNotInLayout("field_name: %s" % (field_name))
 
-            field_value = self.completion._lookup_value(field_name, field_value)
-
-        #dbg.write( "name: %s type: %s" % ( field_name, self.fields[field_name] ))
-        # Entry
-        if isinstance (widget, gtk.Entry):
-            if field_value == None:
-                field_value = ''
-            #dbg.write("widget.set_text( str(%s))" % field_value, field_name )
-            widget.set_text( str(field_value) )
-        # Dates
-        elif isinstance (widget, dateedit.DateEdit):
-            widget.set_property('time', field_value)
-
-
-        # Text
-        elif isinstance (widget, gtk.TextView):
-            if field_value is None:
-                field_value = ''
-                
-            buff = widget.get_buffer()
-            buff.set_text( field_value)
-
-        # Boolean
-        elif self.fields[field_name]['type'] == bool:
-            if field_value == None:
-                widget.set_inconsistent(True)
-            else:
-                widget.set_active(field_value)
-                widget.set_inconsistent(False)
-                
-
-        else:
-            raise FieldValueNotSet(
-                "set_value does not know how to handle %s - (%s) and %s" % \
-                (field_name, field_value, widget.__class__))
+        self.mfields[field_name].clear_value()
+        
         
     def get_value(self, field_name, data=False, shown=False):
-        """return the data for field_name
-        in case self.values[field_name] exists, it gets that value instead
-
-        data: boo - in case of a field not shown (es.: user_id) look for the value
-              in self.current
-        shown: If true the value is returned as is shown: ie: if an id is
-               substituted by a lookup value, this latter value is returned
+        """return the value trom the widget
         """
 
-        if field_name not in self.mwidgets:
-            dbg.write("%s Non in mwidgets %s" % (field_name, self.mwidgets.keys()))
-            if data:
-                # print self.nick, "CHIESTO", field_name,"->", self.data_in[field_name]
-                try:
-                    #dbg.write('Soddisfatto con dati ingresso')
-                    return getattr(obj, field_name)
-                
-                except AttributeError, e:
-                    
-                    return 
-
+        if field_name not in self.mfields:
+            dbg.write("%s Non in mfields %s" % (field_name, self.mfields.keys()))
             raise FieldNotInLayout("field_name: %s" % (field_name))
 
-        widget = self.mwidgets[field_name]
-
-        ## give a try if we have stored a value
-        if shown is False:
-            try:
-                #dbg.write('Accontentato con values', self.values[field_name], self.values.keys())
-                return self.values[field_name]
-            except:
-                pass
+        field = self.mfields[field_name]
         
-        # Entry
-        if isinstance (widget, gtk.Entry):
-            text = widget.get_text( )
-            if text == '':
-                if self.fields[field_name]['type'] in sqlwidget.NUMBERS:
-                    return None
-            return text
+        return field.get_value(shown=shown)
 
-        # Text
-        if isinstance (widget, gtk.TextView):
-            buff = widget.get_buffer()
-            ts = buff.get_iter_at_offset(0)
-            te = buff.get_iter_at_offset(-1)
-            text = buff.get_text(ts, te)
-            #dbg.write(text)
-            return text
-        # Dates
-        if isinstance (widget, dateedit.DateEdit):
-            return widget.get_property('time')
-
-        # Boolean
-        elif self.fields[field_name]['type'] == bool:
-            if widget.get_inconsistent():
-                return None
-            else:
-                return widget.get_active( )
-    
     def record_delete(self, widget=None, interactive=True):
         """invokes the validator before DELETing a record"""
         ## FIXME: validator
@@ -295,37 +208,10 @@ class SqlMask (sqlwidget.SqlWidget):
                 value = self.get_value(field_name)
             except FieldNotInLayout:
                 continue
-            #dbg.write(field_name, value)
-            
-            t = self.fields[field_name]['type']
 
-            obj_attr_value = getattr(obj, field_name)
+            #print "setattr(obj, %s, %s)" % (field_name, self.get_value(field_name))
+            setattr(obj, field_name, self.get_value(field_name))
 
-            if t == datetime.date:
-                if value is not None:
-                    value = t(value.year, value.month, value.day)
-            elif t == datetime.datetime:
-                if value is not None:
-                    value = t(value.year, value.month, value.day,
-                              value.hour, value.minute, value.second)
-                    ## FIXME: this is due to a limitation in the widget that
-                    ##        don't allow to set microseconds, should be in a 
-                    ##        field widget.
-                    if obj_attr_value:
-                        obj_attr_value = obj_attr_value.replace(tzinfo=None, microsecond=0)
-            else:
-                if value is not None:
-                    #dbg.write("value is", value)
-                    value = t(value)
-
-            if value != obj_attr_value:
-               if value == '' and getattr(obj, field_name) == None:
-                   pass
-               else:
-                   #dbg.write("%s: %r is not %r" % (field_name,
-                   #                                value, self.data_in[field_name]))
-                   #R[field_name] = value
-                   setattr(obj, field_name, value)
         return obj
 
     def clear_mask(self, widget=None, check=True):
@@ -339,7 +225,7 @@ class SqlMask (sqlwidget.SqlWidget):
         
         for field_name in self.fields.keys():
             try:
-                self.set_value(field_name, None)
+                self.clear_value(field_name)
             except FieldNotInLayout, e:
                 pass
 
@@ -356,6 +242,7 @@ class SqlMask (sqlwidget.SqlWidget):
         self.records += [self.current]
         self.current_idx = len(self.records) -1
         self.sb("New record %s" % (self.current_idx +1))
+        dbg.write( "RECORD_NEW, new", self.session.new)
         self.current_mode = 'INSERT'
         
     def record_forward(self, ev):
@@ -445,38 +332,43 @@ class SqlMask (sqlwidget.SqlWidget):
     def _analize_widgets_in_layout(self):
         """fill variables from layout
 
-        mwidgets: dict to store mask widgets { field_name : gtk_widget }
-        also field that are not part of the table can be registered here
-        (eg: a field that is ony filled by entry_completion)
-                 
+        mfields
+        --------
+        is a dict: 
+           :key:   is the field_name
+           :value: is a field from sqlkit.widget.mask.fields
+
         """
-        #dbg.show_caller()
         ## FIXME: does not work when renaming: euro.user_id -> euro_user_id
 
-        ## mwidgets can be passed as argument of the class. In that case widgets
+        ## mfields can be passed as argument of the class. In that case widgets
         ## used to represent the data are provided by another SqlMask
-        if not self.mwidgets:
-            self.mwidgets = {}
-        ## by now I only use entry, date, radio and menu to represent data
+        if not self.mfields:
+            self.mfields = {}
+        ## by now I only use entry, date, radio, checbuttom, comboBox to represent data
         #dbg.dshow(self.w, 'e=')
 #         if self.nick == 'art':
 #             print self.w.keys()
+
+        from fields import FieldChooser
+        field_chooser = FieldChooser(self.w, self)
+
         for field_name in self.fields.keys():
             #dbg.write(field_name)
-            for mod in ('e','d','r','m','c', 'TX'):
+            for mod in ('e','d','r','c', 'TX', 'Ce'):
                 try:
-                    widget = self.w["%s=%s" % (mod, field_name)]
-                    self.mwidgets[field_name] = widget
-                    if isinstance (widget, gtk.CheckButton):
-                        widget.connect('clicked', self.toggle_with_null_cb)
-                except:
-                    pass
+                    key = "%s=%s" % (mod, field_name)
+                    widget = self.w[key]
+                    field = field_chooser.get_field(field_name, self.fields[field_name], key)
 
+                    self.mfields[field_name] = field
+                    
+                except KeyError, e:
+                    pass
+            
             # (gtkClass , gtkWidget)
 
         ## all EventBox 
-        #dbg.write("self.w: %s" % self.w)
-        #dbg.dshow(self.w, 'E=')
         self.labels = {}
         for field_name in self.fields.keys():
             lbl_name_wdg = "l=%s" % field_name
@@ -511,16 +403,8 @@ class SqlMask (sqlwidget.SqlWidget):
             
             
             
-    def _add_colors_and_fonts(self):
+    def _add_color_to_labels(self):
         """add bg colors and fonts to signal needed fields"""
-
-        for field_name in self.fields.keys():
-            if field_name in self.mwidgets and self.fields[field_name]['edit']:
-                if not self.fields[field_name]['nullable'] or \
-                       self.fields[field_name]['pkey'] :
-                    wdg = self.mwidgets[field_name]
-                    #dbg.write(field_name)
-                    wdg.modify_base(gtk.STATE_NORMAL, NOT_NULL_COLOR)
 
         for field_name in self.fields.keys():
             if field_name in self.labels:
@@ -548,69 +432,13 @@ class SqlMask (sqlwidget.SqlWidget):
         eb.get_child().set_state(gtk.STATE_NORMAL)
         return True
         
-    def _add_constraints_and_connect(self):
+    def _add_click_for_filter(self):
         """Add controls according to data type represented
         check on input for integers
         configuring date / datetime for time*
         adding focus-out staff
         adding tooltips and click for filter_panel
         """
-        for field_name in self.fields.keys():
-            field_type = self.fields[field_name]['type']
-            ## the widget may not be there, is layout has been provided
-            ## as an argument
-            if field_name not in self.mwidgets:
-                #dbg.write("skip %s" % field_name)
-                continue
-            widget = self.mwidgets[field_name]
-            if not widget:
-                #dbg.write("Per campo: %s manca widget %s" %(field_name,widget))
-                continue
-
-            widget.set_property('sensitive', self.fields[field_name]['edit']) 
-            # try:
-#                 widget.set_property('editable', self.fields[field_name]['edit'])
-#             except:
-#                 widget.set_property('sensitive', self.fields[field_name]['edit']) 
-
-            ## integer
-            if field_type in sqlwidget.NUMBERS \
-                   and not self.fields[field_name]['fkey']:
-                # left justified
-                #print "field_name:", field_name
-                widget.set_alignment(1), widget
-                # check the input
-                widget.connect('key-press-event', self.digits_check_input_cb  )
-                
-            ## Strings
-            if field_type == str or self.fields[field_name]['fkey']:
-                #dbg.write("aggiungo <3> per %s" % (field_name))
-                widget.connect('button-press-event',self.completion.pop_menu,
-                               field_name, 3)
-                widget.connect('key-press-event',
-                               self.completion.keypress_event_cb,
-                               field_name)
-#                 widget.connect('key-press-event',
-#                                self.completion.entry_short_cut_event,
-#                                field_name)
-
-
-#             else:
-#                 dbg.write("fkey per %s: %s" %
-#                          (field_name, self.fields[field_name]['fkey']))
-            ## Dates / Datetime
-            if field_type == datetime.date:
-                widget.set_property('show-time', False)
-            elif field_type == datetime.datetime:
-                widget.set_property('show-time', True)
-                
-            #widget.connect('focus-out-event',self.focus_out__widget, field_name)
-            #widget.connect('focus-in-event',self.focus_in__widget)
-            try:
-                widget.connect('activate',self.on_activate_cb, field_name)
-            except:
-                # FIX? dateedit don't have 'activate'
-                pass
 
         ## add click that pops filter_panel
         if self.filter:
@@ -632,11 +460,6 @@ class SqlMask (sqlwidget.SqlWidget):
         #print "more: ",more
         pass
     
-    def on_activate_cb(self, widget, field_name):
-        #print self.get_value(field_name)
-        self.select()
-    def select(self):
-        pass
     
 
 ####### Misc
@@ -658,6 +481,7 @@ class SqlMask (sqlwidget.SqlWidget):
         return R
             
 
+    
 class Combo(SqlMask):
     """
     This is meant to edit a normal situation of header/rows (eg. invoices)
@@ -703,6 +527,10 @@ class Combo(SqlMask):
     def parse_fields(self, fields):
         self.table_field_list = fields
         return SqlMask.parse_fields(self, None)
+
+
+
+
 
 
 
