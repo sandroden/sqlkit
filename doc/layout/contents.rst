@@ -41,7 +41,7 @@ Description of the language
 
 a starting example::
     
-    layout = """
+    layout = """ 
        el=first_name  el=last_name
        el=address     -
     """
@@ -59,8 +59,8 @@ A layout is a sequence of tokens and display modifiers.
   
   or in regexp notation and more precise::
   
-    (key=)string(.[0-9a-z])?(/variable)((:width.)(width))?
-     key   txt    id          var        width1    width2
+    (key=)string(.[0-9a-z])?(/variable)((:width.)(width)([-<>]))?
+     key   txt    id          var        width1   width2  align
   
   
   no element is needed apart the 'string', the key defauls to 'el' (Entry +
@@ -68,7 +68,17 @@ A layout is a sequence of tokens and display modifiers.
   below) use GtkWidget defaults. 
   
   The string part may end with .[a-z0-9] just to be able to refer in a
-  unique way to single elements that are apparently equal (see element names)
+  unique way to single elements that are apparently equal (see :ref:`names`)
+
+  an indication of the desider alignement may be given using one of ('-',
+  '<', '>'). this take effect oly if the element is position in a
+  gtk.Alignement (eg. 'ae' element ie: entry with width). in that case:
+
+    :>: right alignement   (xalign = 1)
+    :<: left alignement    (xalign = 0)
+    :-: xscale of the alignement is set to 1 i.e. the child of the
+        alignement (the entry in the example will grow when more space
+	is given to the widget)
   
   A token may further be:
  
@@ -266,7 +276,9 @@ NOTE: some methods can only be called after 'show' has being called. These
 methods use gtk directly, not glade.
 
 
-   :xml(file=None): will produce the xml needed for glade, may be writte to file
+   :xml(file=None): 
+             will produce the xml needed for glade, may be writte to file
+
    :show(action=function_name): will directly call glade to display the
              GUI, returns a dict of Gtk objects whose keys are the element
              *keys*. After this method there is no point in changing
@@ -274,37 +286,47 @@ methods use gtk directly, not glade.
 	     
    :elements: a dict of all lwidgets. The keys are the element
      definitions. Any element can be configure up to the moment show is called.
-   :conf(el,property): will set a property for an element of the layout:
-     .br
-     equivalent to elements['el_key'].properties['name'] = value
-     .br
-   :sig(list): will set handlers for the signal for each widget. The list
+
+   :conf(el,property): 
+     will set a property for an element of the layout  equivalent to::
+
+           elements['el_key'].properties['name'] = value
+
+   :sig(list): 
+     will set handlers for the signal for each widget. The list
      is a list of tuples of 3 elements:
-     el_key, handler, signal. If the last is missing, clicked is used
-   :tip (el, text): a tooltip for the element 'el'. It tip is called before 
+     
+        * el_key 
+	* handler 
+	* signal. If the last is missing, clicked is used
+
+   :tip (el, text): 
+         a tooltip for the element 'el'. It tip is called before 
          'show', it will end up in xml+glade, otherwise it will call 
 	 gtkTooltip directly
-   :sb(text): will push text on the StatusBar
+
+   :sb(text): 
+        will push text on the StatusBar
+
    :menu('el_key', (entry-name, handler, signal=activated), 'i'), (), ():
         Will add MenuItems (Stock ImageMenuItems if 4^ element is 'i')
+
    :notebook('el_key', ['label 1', 'label2',...],position):
         Adds the label to tabs and allow to set the position (top,left,
         right, bottom) for a GtkNotebook. There is another way to obtain
         this effect. You can add %label as first entry in the block that
         will be enclosed in the notebook. See below: notebook
+
    :frame('el_key', 'label'):
         Adds a label to a frame, and writes it w/ bold face
+
    :prop(el_key,property_name, value):
         Sets a property  for element el_key
+
    :pack(el_key,property_name, value):
         Sets a pack property for element el_key
 
-
-
-
-
-
-
+.. _names:
 
 element names
 =============

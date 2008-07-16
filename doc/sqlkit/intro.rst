@@ -54,9 +54,11 @@ sqlkit pre-conditions
 
    This will happen also if we are not editing a join but just a single
    table. Each time we finish editing a field (ie: 
+
       - we move the focus to another entry in the mask, or 
       - we try to save, or
       - we accept a value from a completion entry) 
+
     a select will retrieve the values from the secondary table 
 
 3. A field name terminating with _id will not be shown (in normal mode)
@@ -82,121 +84,55 @@ sqlkit data structure
 2. SqlMask/SqlTable must accept a table or a mapper (a list of tables in the
    future, in that case a join will be done using cascade_mappers).
 
-.H 2 InspectMapper 
+InspectMapper 
+=============
 
    InspectMapper is used (w/ autoloading) to inspect the structure of the db
    relative to the mapper used. InspectMapper has the following methods:
    
-.H 3 InspectMapper methods
-   - keys: returns all the keys (field_names) present in the mapper
-   - tables: return the table names present in the mapper. If mode='mapper'
-             it will return the mapper of each table
-   - table_fields(table_name):  return all the fields in 'table_name' 
-   - get_mapper(table_name): return the mapper for 'table_name'
-   - get_class(table_name): return the class for 'table_name'
-   - get_pkeys(table_name): return a list for all pkeys of table_name
+InspectMapper methods
+----------------------
+   :keys: 
+       returns all the keys (field_names) present in the mapper
 
-.H 3 InspectMapper attributes
+   :tables: 
+       return the table names present in the mapper. If mode='mapper'
+       it will return the mapper of each table
+
+   :table_fields(table_name):  
+       return all the fields in 'table_name' 
+
+   :get_mapper(table_name): 
+       return the mapper for 'table_name'
+
+   :get_class(table_name): 
+       return the class for 'table_name'
+
+   :get_pkeys(table_name): 
+       return a list for all pkeys of table_name
+
+InspectMapper attributes
+-------------------------
+
    InspectMapper provides several attributes, one for each field_name. Each
    attribute is a dictionary with the following keys:
 
-            'table_name'  :  mapper.table.name ,
-            'name'        :  field_name,
-            'table'       :  mapper.table ,
-            'pg_type'     :  type(mapper.c[field_name].type), 
-            'type'        :  self.pytype[type(mapper.c[field_name].type)],
-            'col_spec'    :  mapper.c[field_name].type.get_col_spec(),
-            'is_serial'   :  is_serial(mapper.c[field_name]),
-            'property'    :  property,
-            'fkey'        :  (table, field_name) or False,
-            'pkey'        :  mapper.c[field_name].primary_key,
-            'mapper'      :  mapper,
-	    'length'      :  in case of strings fields,
+            :table_name:    mapper.table.name ,
+            :name:          field_name,
+            :table:         mapper.table ,
+            :pg_type:       type(mapper.c[field_name].type), 
+            :type:          self.pytype[type(mapper.c[field_name].type)],
+            :col_spec:      mapper.c[field_name].type.get_col_spec(),
+            :is_serial:     is_serial(mapper.c[field_name]),
+            :property:      property,
+            :fkey:          (table, field_name) or False,
+            :pkey:          mapper.c[field_name].primary_key,
+            :mapper:        mapper,
+	    :length:        in case of strings fields,
 
-.H 2 SqlData
-   SqlData is the main interface to write and read data from the result of a
-   mapper.select(). It's main purpouse is to easy things so that
-   dictionaries are used to set and retrieve data independently from the
-   table where the data is.
+SqlMask
+=========
 
-   SqlData when instantiated builds an index of all the records containted
-   in the ResulProxy.  At the moment there is no way to retrieve data
-   retainig the order given from the db driver if ORDER BY is a field in a
-   cascaded table. This is a sqlalchemy limit.
-
-.H 3 SqlData: main table and update
-
-   It is important to understand that even if we can deal (update/delete) a
-   join when doing this we need to know exactly what we expect it to do. It
-   all depends on which is the 'primary' table.
-
-   1. Updating a field of the primary table, w/o foreign key is easy.
-
-   2. Updating a field of the primary table, that has a foreign key constraint
-      (ONETOMANY) will result in 
-      - a change of the record attached (ie: another record is selected)
-        if the record exists, or 
-
-      - a MissingValueFromSelectError In any case no new record will be
-        created, since a ForeignKey must be thought of as a constraint
-
-    3. Updating a field in a related table, that is not a ForeignKey is easy
-       the GUI (SqlMask) need to tell the user that is dagerous: it will
-       probably impact on other records.
-      
-    4. Updating a field in a joined table that reference a field of the
-       primary table (MANYTOONE)...
-
-    In no way SqlAlchemy allow to update a PrimaryKey.
-
-.H 3 Pointers list
-
-   The pointers list is a list of pointers to the records (ie: the class
-   instances one instance for each table).
-
-   Keep in mind that when selecting from a join we get one new object (instance)
-   class for each table/row. A child object (eg: ONETOMANY relation) is appended to
-   the main object in case of a MANYTOONE many child objects are appended to
-   the same object.
-   
-   Each pointer is a list of objects, so that looping on these values will
-   transverse the whole returned rowset. self._create_pointers is a
-   recursive function to assure all records are considered. Analizes
-   mapper.props to determine which are the properties of an instance that
-   will 'open' to a new object.
-
-   An 'index' is an index in the pointers list. It is a usefull way to loop
-   over the data.
-
-   'Row' refers to the single row as would have been thought of if the query
-   was issued in the db console. 
-
-
-.H 2 SqlData methods
-
-   
-   - get(index=None, pointer=None, mode='dict|value', fields=None, incr=0):
-     returns an array of all the data in the referred 'row'. If mode =
-     values, only the vlues are returned.
-     incr: adds incr to the current index
-     fields: only return those fields
-
-   - next(): return next row 
-
-   - prev(): return prev row 
-
-   - set(index=None, pointer=None, mode='dict|value'): set the values of the
-     row. See the notes on this in 'main table and update'
-
-   - fields(filed_list): sets the fields that we are interested in when get-ting.
-   
-   - printall(mode='dict|values'): loops over the result (nice when debugging)
-
-   - count(): return the ength of the pointers list (that is *not* the
-     lenght of the ResulProxy, in case of a ONETOMANY join)
-   ...
-
-.H 1 SqlMask
 
     SqlMask is the main editing tool along with SqlTable.
     It creates a mapper on the fly if not provided and will use
@@ -209,11 +145,12 @@ sqlkit data structure
     in case a menubar and a toolbar are added.
 
     Fields will be shown in appropriate widgets:
+
       - gtk.Entry for Strings and integers (le latter are right aligned if
         they're not foreign keys)
       - dateedit.dateedit for dates and timestamp
       - gtk.Checkbox for bool
-      ...
+
     All fields will have a label that is sensible to mouse clicks. A mouse
     click pops up a filter widget
     
@@ -221,7 +158,10 @@ sqlkit data structure
     right-clik, F1 and Control-F1 that allows the completion of the values to
     occur. 
 
-.H 2 Completion
+
+Completion
+===========
+
     Completion works well for entries in the mapper and for entries that
     point to a foreign table/fkey.
     
