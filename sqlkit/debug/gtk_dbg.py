@@ -398,8 +398,11 @@ class show_widgets(object):
         
         return
     
-    def show_widget_packing(self):
-        pass
+    def show_widget_packing(self, menu, widget):
+        dialog, l = self.l.message(type='warning' , text="Not Implemented Yet")
+        self.response = dialog.run()
+        dialog.destroy()
+        return dialog
     
     def show_widget_connect(self):
         pass

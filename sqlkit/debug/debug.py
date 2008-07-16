@@ -1,4 +1,79 @@
-"""some useful functions..."""
+"""
+This module provides easy way to debug with print commands. This may not be
+the best way to debug, many times pdb will be much more powerfull. Nevertheless
+I found mysel in need of these functions...
+
+The way to use this is
+
+  1. in you library::
+
+     import dbg
+     dbg.write('text message', 'text2')
+
+  2. in you application::
+
+     import dbg
+     dbg.debug(True)
+
+write() - caller()
+------------------
+     
+from now on, each time you use dbg.write()/dbg.caller() you'll see the text you
+want to log anly if you enabled it with dbg.debug(True)
+
+If you want the log to happen in a gtk.TreeView window, you can specify:;
+
+     import dbg
+     dbg.debug(True, gtk=True)
+
+
+Logging methods
+---------------
+
+Following recepe 198078 in the ASP Python CookBook (see in the code)
+this module provides also a metaclass to trace the use of methods of a
+particular class. It will be instantiated as::
+
+   class A(object):
+       __metaclass__ = dbg.LogTheMethods
+
+for each method call a line will be logged (unless configured to be ignored)
+with
+
+    function called
+    caller class
+    arguments
+    caller function
+    line of code
+    return code
+    calling class
+    time elapsed
+
+IMPORTANT: since the logging occurs with metaclasses you need to import dbg and
+           set debugging *before* importing the class you want to trace::
+
+    import dbg
+    dbg.debug(True, gtk=True)
+    dbg.trace_class('SqlTable2')  # optional
+    dbg.trace_function(exclude='cell_default_cb|cell_bool_cb')  # optional
+    import sqlkit
+
+TraceIt
+-------
+
+in case you need to understand who is changeing the value of a variable, you
+can use TraceIt as::
+
+    commit_allowed = dbg.TraceIt(True, name='commit_allowed', mode='rw')
+
+and use it as a normal variable.  You'll get lines in your output stating
+who changed the value of that variable, in the form::
+
+     __str__/function_name:  old_value => new_value
+     __get__/function_name:  value
+
+  
+"""
 
 import sys, re
 import new
@@ -7,9 +82,12 @@ import tokenize
 import keyword
 import time
 import inspect
+from  pdb import set_trace
 
-class_regexp_ok = '^$'
-class_regexp_ko = '^$'
+CLASS_INCLUDE = '^.*$'
+CLASS_EXCLUDE = '^$'
+FUNCTION_INCLUDE = re.compile('.*')
+FUNCTION_EXCLUDE = re.compile('^$')
 
 class FakeLogger(object):
     def add(self, *args,**kw):
@@ -27,22 +105,20 @@ def test():
     global DBG
     print "DBG:", DBG
     
-def debug(x=None):
+def debug(x=None, gtk=False):
+    global DBGLogger
     global DBG
-    if x is None:
-        return DBG
+    
+    if gtk == True:
+        DBGLogger = ShowLogs(show=True)
+
     if x is True:
         DBG = 1
-        return
     if x is False:
         DBG = 0
-        return
     if isinstance(x , int):
         DBG = x
-        return
-        
-    print """dbg.debug now is called dbg.write, dbg.debug accept True|False
-    and will switch debugging on or off"""
+
     
 def write(*text, **kwargs):
     global DBG
@@ -237,6 +313,16 @@ indent = 0
 class TraceIt(object):
      """A data descriptor that sets and returns values
         normally and prints a message logging their access.
+        Usi it in code like this::
+
+           rowCommit = dbg.TraceIt(True, name='rowCommit', mode='rw')
+
+     and use it as a normal variable.  You'll get lines in your output stating
+     who changed the value of that variable, in the form::
+
+     __str__/function_name:  old_value => new_value
+     __get__/function_name:  value
+
      """
 
      def __init__(self, initval=None, name='var', mode='rw'):
@@ -252,43 +338,57 @@ class TraceIt(object):
          self.name = name
 
      def __get__(self, obj, objtype):
+
          if self.read:
-             Caller= re.sub('.*\.([^\.]+$)', r'\1', caller(level=2))
+             Caller = re.sub('.*\.([^\.]+$)', r'\1', caller(level=2))
              write("%s read %s" % (self.name, self.val),
-                 called_by=Caller, meth='__str__/'+Caller)
+                 called_by=Caller, meth='%s - r/%s' % (self.name, Caller))
+
          return self.val
 
      def __set__(self, obj, val):
          if self.write:
              Caller= re.sub('.*\.([^\.]+$)', r'\1', caller(level=2))
              write("%s: %s -> %s" % (self.name, self.val, val),
-                 called_by=Caller, meth='__str__/'+Caller)
+                 called_by=Caller, meth='%s - w/%s' % (self.name,Caller))
          self.val = val
 
 
 
 ### from a recepe in ASP:
 # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/198078
-def conf_class_trace(ok=None, ko=None):
+def trace_class(ok=None, ko=None):
     """set pattern for classes that should be traced by LogTheMethods
     Rememeber that this command need to be issued before importing the package that
     should be traced
     """
 
-    global class_regexp_ok
-    global class_regexp_ko
+    global CLASS_INCLUDE
+    global CLASS_EXCLUDE
     if ok:
-        class_regexp_ok = ok
+        CLASS_INCLUDE = ok
 
     if ko:
-        class_regexp_ko = ko
+        CLASS_EXCLUDE = ko
         
+def trace_function(exclude=None, include='.*'):
+    """set pattern for functions/methods that should not be traced"""
 
+    global FUNCTION_EXCLUDE
+    global FUNCTION_INCLUDE
+
+    if exclude:
+        FUNCTION_EXCLUDE = re.compile(exclude)
+
+    if not include == '.*':
+        FUNCTION_INCLUDE = re.compile(exclude)
     
 def logmethod(methodname):
     def _method(self,*argl,**argd):
         global indent
         global DBGLogger
+        global DBG
+        
         #print "DBG", methodname,  argl, argd
         #parse the arguments and create a string representation
         #import pdb; pdb.set_trace()
@@ -301,9 +401,6 @@ def logmethod(methodname):
         
         caller1 = caller(level=1).replace('._method','')
         caller2 = caller(level=2)
-        #print "claaer1, caller2", caller1, caller2, methodname
-        #caller_class = re.sub('(.*)\.(.*)',r'\2', caller1)
-        #caller_meth = re.sub('(.*)\.(.*)',r'\2', caller2)
         caller_class = caller1
         caller_meth = caller2
         
@@ -320,7 +417,7 @@ def logmethod(methodname):
         # do the actual method call
         try:
             f = getattr(self,'_H_%s' % methodname)
-            #print inspect.getsource(f)
+
             returnval = f(*argl,**argd)
             
             indent -= 1
@@ -342,21 +439,18 @@ def logmethod(methodname):
 
 
 class LogTheMethods(type):
-    def __new__(cls,classname,bases,classdict):
-        logmatch = re.compile(classdict.get('logMatch','.*'))
-        global class_regexp_ok
-        global class_regexp_ko
+    def __new__(cls, classname, bases, classdict):
 
-        if re.search(class_regexp_ok, classname):
-            #print "Passato", classname, class_regexp_ok
-            if not re.search(class_regexp_ko, classname):
+        if re.search(CLASS_INCLUDE, classname):
+            if not re.search(CLASS_EXCLUDE, classname):
                 pass
         else:
             return type.__new__(cls,classname,bases,classdict)
 
         meths = {}
-        #import pdb; pdb.set_trace()
+
         meths.update(dict(classdict.items()))
+
         for base in bases:
             for attr in dir(base):
                 # don't override the methods...
@@ -370,9 +464,11 @@ class LogTheMethods(type):
             if attr.startswith('_H_') or attr.startswith('__'):
                 continue
 
-            if callable(item) and logmatch.match(attr):
-                classdict['_H_%s'%attr] = item    # rebind the method
-                classdict[attr] = logmethod(attr) # replace method by wrapper
+            if callable(item) and FUNCTION_INCLUDE.match(attr) and  not \
+                   FUNCTION_EXCLUDE.match(attr):
+                if '_H_%s'%attr not in meths: # prevent infinite loop
+                    classdict['_H_%s'%attr] = item    # rebind the method
+                    classdict[attr] = logmethod(attr) # replace  by wrapper
 
         ret = type.__new__(cls, classname, bases, classdict)
 
@@ -454,7 +550,7 @@ class ShowLogs(object):
                     return
                     pass
         obj = attr
-        print attr, meth
+
         l = layout.Layout('TXS=a:700.400',opts="V")
         w=l.show()
         buff = w['TX=a'].get_buffer()
@@ -584,8 +680,8 @@ class ShowLogs(object):
         for attr in dir(obj):
             if attr.startswith('__') and attr != '__init__':
                 continue
-#             if but.search(attr):
-#                 continue
+            if but.search(attr):
+                continue
 #             if not only.search(attr):
 #                 continue
             item = getattr(obj, attr)
@@ -602,7 +698,6 @@ class ShowLogs(object):
         will be a sun of the previous and the color will be changed with
         markup
         """
-        
         col = {0: 'navyblue', 1:'slateblue', 2:'red', 3: 'seagreen',
                4: 'gray50', 5: 'gray60', 6: 'gray65', 7:'gray70'}
 
@@ -615,7 +710,7 @@ class ShowLogs(object):
 
         meth_str = meth
         meth_str = "<span foreground='%s'>%s</span>" % (
-            col.get(indent, 'palevioletred'), meth)
+            col.get(indent, 'palevioletred'), self.quote(meth))
 
         self.last_indent = indent
 
@@ -629,7 +724,6 @@ class ShowLogs(object):
         except IndexError:
             txt = ''
         now = time.time()
-        
         self.model.set(  self.iter[indent],
                          1, Class,
                          0, meth_str,
@@ -677,7 +771,8 @@ class ShowLogs(object):
             'write' : 'blue',
             }
         meth = re.sub('(.*)\.(.*)',r'\2', str(meth))
-        meth_str = "<span foreground='%s'>%s</span>" % (color[mode], meth)
+        meth_str = "<span foreground='%s'>%s</span>" % (
+            color[mode], self.quote(meth))
 
         now = time.time()
         self.model.set(  iter,
@@ -692,7 +787,12 @@ class ShowLogs(object):
 
         return iter
 
-
+    def quote(self, text):
+        """quote string from undesired chars in pango markup"""
+        #text = re.sub('([<\'>])', r'\\\1', text)
+        text = re.sub('([<\'>])', '', text)
+        return text
+    
     def ret(self, iter, txt):
         self.model.set(iter, 5, txt[0:100])
         return iter
