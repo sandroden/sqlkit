@@ -35,6 +35,12 @@ class Widget(object):
         """
         pass
 
+    def get_changed(self):
+        """true if value is different from initial setting
+        """
+        #print "get_changed - %r: or: %r ==> %r" % (self.field_name, self.value, self.get_value())
+        return not self.get_value() == self.value
+    
     def get_value(self):
         pass
 
@@ -55,9 +61,9 @@ class VarcharWidget(Widget):
 
     def set_value(self, value):
         # Entry
-        self.value = value
         if value == None:
             value = ''
+        self.value = value
         self.gtkwidget.set_text( str(value) )
         
     def get_value(self, shown=False):
@@ -76,11 +82,18 @@ class IntegerWidget(VarcharWidget):
         self.gtkwidget.set_alignment(1), self.gtkwidget
         self.gtkwidget.connect('key-press-event', self.master.digits_check_input_cb  )
                 
+    def set_value(self, value):
+        # Entry
+        self.value = value
+        if value == None:
+            value = ''
+        self.gtkwidget.set_text( str(value) )
+        
     def get_value(self, shown=False):
         text = self.gtkwidget.get_text( )
         if text == '':
             return None
-        return text
+        return int(text)
 
 class FloatWidget(IntegerWidget):
 
@@ -88,7 +101,7 @@ class FloatWidget(IntegerWidget):
         text = self.gtkwidget.get_text( )
         if text == '':
             return None
-        return text
+        return float(text)
 
 class DateWidget(Widget):
 
@@ -97,6 +110,7 @@ class DateWidget(Widget):
         self.gtkwidget.set_property('show-time', False)
 
     def set_value(self, value):
+        self.value = value
         self.gtkwidget.set_property('time', value)
 
     def get_value(self, shown=False):
@@ -116,6 +130,7 @@ class DateTimeWidget(Widget):
         
     def set_value(self, value):
         ## FIXME: datetime has only time?
+        self.value = value
         self.gtkwidget.set_property('time', value)
 
     def get_value(self, shown=False):
@@ -135,6 +150,8 @@ class DateTimeTZWidget(DateTimeWidget):
         else:
             self.TZ = None
             self.microsecond = 0
+        self.value = value
+
 
     def get_value(self, shown=False):
         value = self.gtkwidget.get_property('time')
@@ -158,6 +175,7 @@ class TextWidget(Widget):
                 
         buff = self.gtkwidget.get_buffer()
         buff.set_text( value)
+        self.value = value
 
     def get_value(self, shown=False):
         buff = self.gtkwidget.get_buffer()
@@ -175,6 +193,7 @@ class BooleanWidget(Widget):
             raise ValidationError("Null value not admittable for field '%s'" % self.field_name) 
             
         self.gtkwidget.set_active(value)
+        self.value = value
 
     def get_value(self, shown=False):
         return self.gtkwidget.get_active( )
@@ -192,6 +211,7 @@ class BooleanNullWidget(Widget):
         else:
             self.gtkwidget.set_active(value)
             self.gtkwidget.set_inconsistent(False)
+        self.value = value
 
     def get_value(self, shown=False):
         if self.gtkwidget.get_inconsistent():
@@ -235,7 +255,7 @@ class ForeignKeyWidget(Widget):
         """We have a 'real_value' that is normally an id or a key and a 'display_value'
         that is the value we want to show
         """
-        self.real_value = value
+        self.value = value
 
         display_value = self.master.completion.lookup_value(self.field.field_name, value)
         if value == None:
@@ -244,8 +264,8 @@ class ForeignKeyWidget(Widget):
 
         self.model.clear()
         self.model.append([value, display_value])
-        self.gtkwidget.set_active(0)
-        self.real_value = True
+        self.gtkwidget.set_active(0)   # which column 
+#        self.real_value = True  ?????
 
         #self.gtkwidget.set_text( str(value) )
         

@@ -117,6 +117,11 @@ class Field(object):
 
     def set_completion(self, regexp):
         pass
+
+    def get_changed(self):
+        """return if field has changed after last set
+        """
+        return self.widget.get_changed()
     
     def validate(self):
         pass

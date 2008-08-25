@@ -323,13 +323,10 @@ class SqlWidget(object):
         pass
     
     def record_save(self, ev):
-        """invokes the validator before UPDATE/INSERT a record"""
+        """Save the record and invokes the validator before UPDATE/INSERT a record
+        NOTE: the way it detact if changes have been made is different between Mask & Table
+        """
         pass
-    
-#     def record_save_new(self, wdg, constraint):
-#         """Insert a new record
-#         """
-#         pass
     
     def commit(self):
 
@@ -482,7 +479,6 @@ class SqlWidget(object):
         place it in the session
         """
         new_obj = self.mapper.class_()
-        #new_obj._sqlkit_mode = 'INSERT'
 
         if session:
             self.session.add(new_obj)
@@ -628,7 +624,9 @@ class SqlWidget(object):
             self.gquit()
 
     def save_unsaved(self, refresh=True):
-        """check if it needs saving. In case ask for confirmation and proceed
+        """check if it needs saving. In case ask for confirmation and proceed.
+        This triggers both session changes *AND* changes to the current mask that
+        may not be in the session.
         
         Return False if cancel is pressed
         """
@@ -672,7 +670,7 @@ class SqlWidget(object):
 
     def unsaved_changes_exist(self):
         """check if session needs committing by looking dirty, deleted and new"""
-
+        
         if self.session.dirty:
             for dirty in self.session.dirty:
                 if self.session.is_modified(dirty):

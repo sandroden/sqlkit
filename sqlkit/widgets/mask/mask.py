@@ -133,7 +133,7 @@ class SqlMask (sqlwidget.SqlWidget):
         
         
     def get_value(self, field_name, data=False, shown=False):
-        """return the value trom the widget
+        """return the value from the widget
         """
 
         if field_name not in self.mfields:
@@ -143,6 +143,18 @@ class SqlMask (sqlwidget.SqlWidget):
         field = self.mfields[field_name]
         
         return field.get_value(shown=shown)
+
+    def get_changed(self, field_name):
+        """return the value from the widget
+        """
+
+        if field_name not in self.mfields:
+            dbg.write("%s Non in mfields %s" % (field_name, self.mfields.keys()))
+            raise FieldNotInLayout("field_name: %s" % (field_name))
+
+        field = self.mfields[field_name]
+        
+        return field.get_changed()
 
     def record_delete(self, widget=None, interactive=True):
         """invokes the validator before DELETing a record"""
@@ -185,7 +197,6 @@ class SqlMask (sqlwidget.SqlWidget):
             if not self.save_unsaved():
                 raise CancelledAction
         else:
-            self.mask2obj(obj)
             self.commit()
 
         self.record_display(reread=True)
@@ -203,6 +214,12 @@ class SqlMask (sqlwidget.SqlWidget):
         """
         if not obj:
             return obj
+
+        ## see note in record_new
+        if obj not in self.session:
+            if self.record_changed():
+                self.session.add(obj)
+                
         for field_name in self.field_list:      
             try:
                 value = self.get_value(field_name)
@@ -238,6 +255,12 @@ class SqlMask (sqlwidget.SqlWidget):
         """prepare a new object and set 
         """
         self.clear_mask()
+        ## we delay adding obj to the session till the moment we know that
+        ## some modification has really been made (record.canched())
+        ## within record_mask2obj.
+        ## this prevents unsaved_changes_exist() to complain that a commit is
+        ## needed no editing has been done
+
         self.current = self.get_new_object(session=False)
         self.records += [self.current]
         self.current_idx = len(self.records) -1
@@ -290,6 +313,26 @@ class SqlMask (sqlwidget.SqlWidget):
             self.record_save(None)
         except CancelledAction:
             pass
+
+    def record_changed(self):
+        """check if any data has been written in the fields after
+        record display. Uses field.get_changed()
+        """
+        ## this is needed since it's hard to say if an instance has been modified
+        ## eg: a new item is added to the session, no editing is done. A reload is issued
+        ## I want to avoid the dialog: do you want to save?
+        ## session.dirty would (correctly) say a commit is needed
+
+        for field_name in self.field_list:      
+            try:
+                changed = self.get_changed(field_name)
+            except FieldNotInLayout:
+                continue
+
+            if changed:
+                return True
+
+        return False
 
     def unsaved_changes_exist(self):
         """collect possible changes and test if save is needed
