@@ -107,7 +107,7 @@ class choice(object):
         options ={'table' : table,
                'dev' : opts.dev,
                'single' : False,
-               'nick' : table,
+               'nick' : "%s_%s" % (table, mode),
                'dbproxy' : db,
            }
         if mode == 'mask':

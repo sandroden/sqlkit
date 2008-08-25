@@ -7,7 +7,7 @@ implementare la ricerca per espressioni regolari
 gettext
 ==========
 
-Va aggiunta localizzazione. In realtà va agiunta a layout più che a sqlkit.
+Va aggiunta localizzazione. In realtà va aggiunta a layout più che a sqlkit.
 
 cut & paste
 ============
@@ -94,7 +94,7 @@ opportunamente istruite le classi che raffigurano gli oggetti del database
 hanno delle proprietà che sono a loro volta dei "Loader" di altre classi (ti
 consiglio di leggere attentamente il tutorial di elixir come inizio), quindi
 -se lo chiedi- quando fai una select di un oggetto ti trovi già pronta anche
-la collezione degli oggetti corrlati (i film del regista nel nostro
+la collezione degli oggetti correlati (i film del regista, nel nostro
 caso). Questa è una lista che può essere impostata come self.records della
 SqlTable.
 
