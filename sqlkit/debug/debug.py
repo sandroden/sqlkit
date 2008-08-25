@@ -491,7 +491,7 @@ class ShowLogs(object):
         self.indent = {}
         ## method, args, caller, line
         cols = ['meth','class', 'args', 'caller', 'line',
-                'ret code', 'class', 'time']
+                'ret code', 'class', 'time', 'all_args']
         self.easytv = layout.misc.EasyTreeView(
             cols, sort=False, show=show, but='tb=gtk-close tb=gtk-open')
         self.time = time.time()
@@ -512,6 +512,10 @@ class ShowLogs(object):
         self.model.connect('row-inserted', self.get_there)
         self.conf()
         self.easytv.tv.connect('button-press-event', self.button_press_cb)
+        try:
+            self.add_tooltips()
+        except:
+            pass
         
     def button_press_cb(self, wdg, ev):
         if ev.button != 3:
@@ -569,6 +573,10 @@ class ShowLogs(object):
         txt.extend(inspect.getsource(obj))
         #buff.set_text(txt)
         self.insert_source("".join(txt), buff)
+
+    def add_tooltips(self):
+        tips = DebugTreeView(self.model)
+        tips.add_view(self.easytv.tv)
 
     def insert_source(self, data, buf):
         buf.delete(*buf.get_bounds())
@@ -727,19 +735,21 @@ class ShowLogs(object):
         self.model.set(  self.iter[indent],
                          1, Class,
                          0, meth_str,
-                         2, txt,
+#                         2, txt,
+                         2, ", ".join(args),
                          3, caller,
                          4, line,
                          6, class_obj,
-                         7, "%.3f - %.4f" % (now - self.time, now - self.last_time)
+                         7, "%.3f - %.4f" % (now - self.time, now - self.last_time),
+                         8, args,
                          )
         self.last_time = now
         ## args to the functions are written one per line, the first is already
         ## written, now the other come...
-        for arg in args[1:]:
-            self.model.set(self.model.append(self.iter[indent]),
-                      2, arg[0:100]
-                      )
+#         for arg in args[1:]:
+#             self.model.set(self.model.append(self.iter[indent]),
+#                       2, arg[0:100]
+#                       )
         self.indent[meth] = indent
         #print "self.indent[%s] = %s" % (meth, indent)
         return self.iter[indent]
@@ -799,3 +809,34 @@ class ShowLogs(object):
 
 #DBGLogger = LogTheMethods()
 
+try:
+    from TreeViewTooltips import TreeViewTooltips
+    class DebugTreeView(TreeViewTooltips):
+        def __init__(self, model):
+            self.model = model
+            TreeViewTooltips.__init__(self)
+
+
+        def quote(self, text):
+            """quote string from undesired chars in pango markup"""
+            text = re.sub('([<\'>])', '', str(text))
+            return text
+
+        def get_tooltip(self, view, column, path):
+            meth, args, ret, caller, line = self.model.get(
+                self.model.get_iter(path), 0, 2, 5, 3, 4)
+            ret  = re.sub('[<>]','', str(ret))
+            args = re.sub('[<>]','', str(args))
+            
+            try:
+                caller = ".".join(caller.split('.')[-2:])
+            except:
+                pass
+            caller = re.sub('[<>]','', str(caller))
+
+            txt = """<i>%s</i>(<tt>%s</tt>)\n<b>%s</b>\n<i>%s:%s</i>""" % (
+                meth, args, ret, caller, line
+        )
+            return txt
+except:
+    pass
