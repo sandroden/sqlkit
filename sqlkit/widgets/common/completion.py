@@ -322,16 +322,18 @@ class Completion(object):
         #         if more fields are present more columns get written
 
         value = model.get(iter,0)[0]
-        #self.master.set_fkey_value(field_name, value)
-        if isinstance(self.master, sqlkit.SqlTable):
-            self.master.editable.set_text(str(value))
+        try:
+            fkvalue = model.get(iter,1)[0]
+        except ValueError:
+            fkvalue = None
 
-        self.master.set_value(field_name, str(value))
+        self.master.set_value(field_name, value, fkvalue=fkvalue)
+
         return True
         #dbg.write('value for ', field_name, value)
 
         ## Let's show a more usefull value than the id. 
-        if self.master.fields[field_name]['fkey']:
+        if self.master.is_fkey(field_name):
             # note: model.get() returns a tuple, one value each cell on the column
             show_value = model.get(iter,1)[0]
             Rd = model.get(iter,3)[0]
@@ -365,7 +367,7 @@ class Completion(object):
                 if field_name in self.master.mfields:
                     dbg.write("field_name : %s value: %s Rd %s" % (
                             field_name, value, Rd))
-                    print "self.master.set_value(%s, %s)" % (field_name, value)
+                    #print "self.master.set_value(%s, %s)" % (field_name, value)
                     self.master.set_value(field_name, value)
 
                     #self.master.set_value(field_name, Rd[field_name])
@@ -397,7 +399,7 @@ class Completion(object):
         exec_dict={str(field_name) : sql_dict['val']}
 
         sql, constraint_params = self.master.actions.on_completion(
-            self.master.get_current_record(), field_name)
+            self.master.get_current_obj(), field_name)
 
         sql_dict['completion_constraint'] = sql
         ### field is a ForeignKey

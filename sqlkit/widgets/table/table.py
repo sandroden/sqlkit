@@ -525,7 +525,6 @@ class SqlTable(sqlwidget.SqlWidget):
         dbg.write(path, new_text, field_name)
         ## NOTE: liststore.clear will trigger text_edited_cb!!!
         if self.deleting_row:
-            dbg.write('deleting raw...')
             return True
 
         if self.model_path is None:
@@ -572,7 +571,7 @@ class SqlTable(sqlwidget.SqlWidget):
     
         
 
-#### model handling & sqlwidget overload
+#### model handling & sqlwidget override
     def record_new(self, widget=None, *args):
         if self.block:
             dialog = self.message(type='error', title='Save needed',
@@ -756,37 +755,50 @@ class SqlTable(sqlwidget.SqlWidget):
             self.liststore.append([i])
 
 
-    def set_value(self, field_name, value, path=None):
-        """ called from within edited signal. Validation should live here"""
+    def set_value(self, field_name, value, path=None, fkvalue=None):
+        """called from within edited signal and completion.
+        Validation should live here?
+        If path, it not passed (as when used from completion)
+        it is deduced from selection
+        fkey: if True the value is handled as a primary key. Used from completion
+        """
 
-        #dbg.show_caller(loc=False)
-        #dbg.write('field_name:', field_name, 'value:', value)
-        if not path:
-            path = self.get_selected_row()
+        obj = self.get_current_obj(path=path)
 
-        
-        ptype = self.fields[field_name]['type']
-        #dbg.write("type", ptype)
+        ## casting of value
+        ptype = self.get_field_type(field_name)
+        if value == '' and ptype in sqlwidget.NUMBERS:
+            value = None
+
         try:
-            data = ptype(value)
+            value = ptype(value)
+
         except ValueError:
-            if value == '' and ptype in sqlwidget.NUMBERS:
-                data = None
+            ## cast may fail becouse you wrote text in a context in which
+            ## a fkey is 
+            # eg.: you are editing an fk, you wrote text (that is not admitted)
+            # just ignore
+            # NOTE: you may also have is_fkey = True but with a string key
+            #       this case will raise (possibly) a db error on commit
+
+            if self.is_fkey(field_name) and not fkvalue:
+                return
             else:
+                ## we should not come here, but thare may be cases I'm missing
                 raise
-        except TypeError, e:
-            #dbg.write( self.coltypes[colnum])
-            data = str(value)
 
-        self.set_value_real( field_name, data, path)
         
-    def set_value_real(self, field_name, value, path):
-
-        obj = self.liststore[path][0]
         setattr(obj, field_name, value)
+        ## text would come up automatically but only after
+        ## loosing the focus...
+        if fkvalue:
+            self.editable.set_text(fkvalue)
+
         return True
     
     def get_selected_row(self):
+        """Return the path of the selected row or None
+        """
         selection = self.treeview.get_selection()
         model, rows = selection.get_selected_rows()
         ## we use junst the first selected
@@ -805,18 +817,15 @@ class SqlTable(sqlwidget.SqlWidget):
         except:
             pass  # no selection...
         
-    def get_current_record(self):
-        """returns the corrently selected obj"""
+    def get_current_obj(self, path=None):
+        """returns the corrently selected obj or obj at path"""
 
-        row_n = self.get_selected_row()
-        obj = self.liststore[row_n][0]
+        if not path:
+            path = self.get_selected_row()
 
-#         ## FIXME:  why this?
-#         if not obj:
-#             obj = self.mapper.class_
+        obj = self.liststore[path][0]
 
         return obj
-    
 
 #### completion
 
@@ -832,10 +841,12 @@ class SqlTable(sqlwidget.SqlWidget):
         #dbg.write(i, field_name, fkey, value)
         cell.set_property('text', value)
 
+    def get_value(self, field_name, shown=True):
+        """return the value of the cell **currently edited***
+        The name is possibly misleading due to parallelism with
+        mask. 
 
-
-
-
-
-
+        shown: compatibility with mask version
+        """
+        return self.editable.get_text()
 

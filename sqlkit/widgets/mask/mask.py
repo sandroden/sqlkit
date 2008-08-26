@@ -111,10 +111,12 @@ class SqlMask (sqlwidget.SqlWidget):
         #dbg.write("%s DATA DISPLAYed " % self.nick)
         return True
         
-    def set_value(self, field_name, field_value):
+    def set_value(self, field_name, field_value, fkvalue=None):
         """this is the method that knows how to handle different type of data
         if field_name is a FKey ending with _id, it retrieves the description,
         shows it in the entry but stores the id in self.values[field_name]
+
+        fkvalue: compatibility with SqlTable's one
         """
         #dbg.write("%s: %s" % (field_name, field_value))
         if field_name not in self.mfields:
@@ -570,6 +572,8 @@ class Combo(SqlMask):
     def parse_fields(self, fields):
         self.table_field_list = fields
         return SqlMask.parse_fields(self, None)
+
+
 
 
 
