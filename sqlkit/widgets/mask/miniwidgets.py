@@ -38,8 +38,8 @@ class Widget(object):
     def get_changed(self):
         """true if value is different from initial setting
         """
-        #print "get_changed - %r: or: %r ==> %r" % (self.field_name, self.value, self.get_value())
-        return not self.get_value() == self.value
+        #print "get_changed - %r: or: %r ==> %r" % (self.field_name, self.initial_value, self.get_value())
+        return not self.get_value() == self.initial_value
     
     def get_value(self):
         pass
@@ -63,14 +63,13 @@ class VarcharWidget(Widget):
         # Entry
         if value == None:
             value = ''
-        self.value = value
+        self.initial_value = value
         self.gtkwidget.set_text( str(value) )
         
     def get_value(self, shown=False):
         value = self.gtkwidget.get_text( )
-        ##
-        stored = getattr(self, 'value', None)
-        if value == '' and stored is None:
+        ## don't change from None to '' 
+        if value == '' and self.initial_value is None:
             return None
         return value
 
@@ -84,10 +83,12 @@ class IntegerWidget(VarcharWidget):
                 
     def set_value(self, value):
         # Entry
-        self.value = value
-        if value == None:
-            value = ''
-        self.gtkwidget.set_text( str(value) )
+        if value == '':
+            self.initial_value = None
+        else:
+            self.initial_value = value
+
+        self.gtkwidget.set_text( str(value or '') )
         
     def get_value(self, shown=False):
         text = self.gtkwidget.get_text( )
@@ -110,7 +111,7 @@ class DateWidget(Widget):
         self.gtkwidget.set_property('show-time', False)
 
     def set_value(self, value):
-        self.value = value
+        self.initial_value = value
         self.gtkwidget.set_property('time', value)
 
     def get_value(self, shown=False):
@@ -130,7 +131,7 @@ class DateTimeWidget(Widget):
         
     def set_value(self, value):
         ## FIXME: datetime has only time?
-        self.value = value
+        self.initial_value = value
         self.gtkwidget.set_property('time', value)
 
     def get_value(self, shown=False):
@@ -150,7 +151,7 @@ class DateTimeTZWidget(DateTimeWidget):
         else:
             self.TZ = None
             self.microsecond = 0
-        self.value = value
+        self.initial_value = value
 
 
     def get_value(self, shown=False):
@@ -175,7 +176,7 @@ class TextWidget(Widget):
                 
         buff = self.gtkwidget.get_buffer()
         buff.set_text( value)
-        self.value = value
+        self.initial_value = value
 
     def get_value(self, shown=False):
         buff = self.gtkwidget.get_buffer()
@@ -193,7 +194,7 @@ class BooleanWidget(Widget):
             raise ValidationError("Null value not admittable for field '%s'" % self.field_name) 
             
         self.gtkwidget.set_active(value)
-        self.value = value
+        self.initial_value = value
 
     def get_value(self, shown=False):
         return self.gtkwidget.get_active( )
@@ -211,7 +212,7 @@ class BooleanNullWidget(Widget):
         else:
             self.gtkwidget.set_active(value)
             self.gtkwidget.set_inconsistent(False)
-        self.value = value
+        self.initial_value = value
 
     def get_value(self, shown=False):
         if self.gtkwidget.get_inconsistent():
@@ -255,8 +256,8 @@ class ForeignKeyWidget(Widget):
         """We have a 'real_value' that is normally an id or a key and a 'display_value'
         that is the value we want to show
         """
-        self.value = value
-
+        self.initial_value = value
+        
         display_value = self.master.completion.lookup_value(self.field.field_name, value)
         if value == None:
             if self.field.db_spec['type'] == str:
@@ -273,12 +274,10 @@ class ForeignKeyWidget(Widget):
         #dbg.write()
 
         idx = self.gtkwidget.get_active()
+        value, display_value = self.model[idx]
 
         if shown == True:
-            return self.model[idx][1]
-
-        if self.real_value == True:
-            value = self.model[idx][0]
+            return display_value
 
         return  value
 
