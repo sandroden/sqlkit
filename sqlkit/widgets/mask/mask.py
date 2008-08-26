@@ -183,6 +183,9 @@ class SqlMask (sqlwidget.SqlWidget):
         #             v = self.valid (self.table, record)
         #             v.validate ()
 
+        if not self.record_changed():
+            return
+
         obj = self.record_mask2obj(self.current)
 
         self.actions.on_save(obj, mode=self.current_mode)
@@ -208,28 +211,33 @@ class SqlMask (sqlwidget.SqlWidget):
     def record_save_new(self, wdg, constraint={}):
         """create a new record by cloning the present
         """
-        
         raise NotImplemented
+    ## missing handling of Primary Key:
+    ## should I delete the old one? should I look for editable attribute of the
+    ## gtk widget?
+        self.record_new(clear=False)
+        self.record_save()
+        
         
     def record_mask2obj(self, obj=None):
-        """collect data from the mask and set into the object
+        """collect data from the mask and set into the object if record_changed())
         """
         if not obj:
             return obj
 
-        ## see note in record_new
-        if obj not in self.session:
-            if self.record_changed():
+
+        if self.record_changed():
+            if obj not in self.session:     # see note in record_new
                 self.session.add(obj)
                 
-        for field_name in self.field_list:      
-            try:
-                value = self.get_value(field_name)
-            except FieldNotInLayout:
-                continue
+            for field_name in self.field_list:      
+                try:
+                    value = self.get_value(field_name)
+                except FieldNotInLayout:
+                    continue
 
-            #print "setattr(obj, %s, %s)" % (field_name, self.get_value(field_name))
-            setattr(obj, field_name, self.get_value(field_name))
+                #print "setattr(obj, %s, %s)" % (field_name, self.get_value(field_name))
+                setattr(obj, field_name, self.get_value(field_name))
 
         return obj
 
@@ -253,10 +261,12 @@ class SqlMask (sqlwidget.SqlWidget):
             z.clear()
             z.sync_block()
         
-    def record_new(self, widget=None):
+    def record_new(self, widget=None, clear=True):
         """prepare a new object and set 
         """
-        self.clear_mask()
+        if clear:
+            self.clear_mask()
+
         ## we delay adding obj to the session till the moment we know that
         ## some modification has really been made (record.canched())
         ## within record_mask2obj.
@@ -505,27 +515,6 @@ class SqlMask (sqlwidget.SqlWidget):
         #print "more: ",more
         pass
     
-    
-
-####### Misc
-    def set_fkey_value(self, field_name, value):
-        """needed for completion, to set real value when
-        description is shown instead
-        """
-        self.values[field_name] = value
-        
-    def get_current_record(self):
-        R = {}
-        for field_name in self.field_list:
-            try:
-                R[field_name] = self.get_value(field_name)
-            except FieldNotInLayout, e:
-                #print "Field_notInLayout", e
-                pass
-        #dbg.write(R)
-        return R
-            
-
     
 class Combo(SqlMask):
     """
