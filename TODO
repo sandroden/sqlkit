@@ -1,7 +1,8 @@
 sqlite
 =======
 
-implementare la ricerca per espressioni regolari
+implementare la ricerca per espressioni regolari... pare sia già in
+sqlalchemy anche per sqlite
 
 
 gettext
@@ -26,7 +27,7 @@ Non dovrebbe essere difficile ora che ci sono i miniwidgets
 DateEdit
 =========
 
-1. deve avere un gtk.Alignement per evitare di espandersi
+1. deve avere un gtk.Alignement per evitare di espandersi  (Pietro 5)
 
 2. deve gestire anche time TZinfo (con aggiunta di una proprietà)
    Al momento ha una sola proprietà 'time' (oltre a (show-time) per
@@ -54,16 +55,48 @@ SqlTable
 ===========
  
 * aggiungere una funzione che permetta di impostare il numero di righe
+  (Pietro 10)
 
 * aggiungere la possibilità di muovere le colonne
-  magari via "modifica -> scelta cambi -> ordinamento"
+  magari via "modifica -> scelta cambi -> ordinamento"  (pietro 2)
+
+* microwidget per nascondere e rimettere colonne in alo a destra sopra barra
+  scorrimento (pietro 3)
 
 * pensare a come permettere di riordinare le righe (ha implicazioni con
-  l'ordinamento del modello sottostante. Ha senso solo se c'è una olonna che
+  l'ordinamento del modello sottostante. Ha senso solo se c'è una colonna che
   memorizza l'ordine nel db)
 
 * pensare come editare i campi a più righe o con righe molto lunghe. Occorre
   creare un popup con il testo e poi sincronizzarlo. Hai idee migliori?
+  (Pietro 5)
+
+* Evitare editing di colonne fk altro che via completion. Attualmente se
+  esite un valore (corretto, ovvero descrizione di una fk), clicco (si
+  prepara per editing) e poi do Enter mi da errore perché cerca di impostare
+  quel valore (stringa) come id  (pietro 8)
+
+* Imporre refresh della funzione cell_data_func per fk dopo avere impostato
+  il dato. Attualmente quando imposto una cella fk via menu, viene impostato
+  correttamente il valore, ma occorre togliere e rimettere il fuoco per
+  vedere il risultato.
+
+* Simulare 'Esc' dopo completion: dopo avere scelto una voce del popup
+  della completion la cella rimane in modo 'edit' ed è necessario premere
+  esc per tornare al modo normale, deve invece tornare al modo normale
+  subito. (pietro 9)
+
+* Permettere uso freccia in completion. Attualmente non funziona l'uso della
+  freccia per la completion che è invece un binding normale della
+  completion. Ripristinare il normale funzionamento (pietro 6)
+
+
+* deve potersi cancellare una data nel formato tabellare (pietro 8). 
+
+* valutare l'uso di combobox anche in table. Ho visto un esempio in cui il
+  click sulla cella trasformava la cella stessa in un combobox per
+  editing. (pietro 4). In realtà la priorità di questo sale se risulta più
+  facile ed intuitivo risolvere il problema in questo modo...
 
 
 PyGtkMVC
@@ -108,6 +141,18 @@ del regista e non solo alla sessione. Non ho ancora chiaro quale sia il modo
 più naturale di fare questo (ascoltando qualche segnale del modello del
 TreeView?) 
 
+Fields / Miniwidgets
+=======================
+
+Attualmente alcune manipolazioni dei dati avvengono nei miniwidgets mentre
+dovrebbero avvenire nei fields. (simone?, pietro?)
+
+Number localization
+====================
+
+come si deve affrontare il problema di scrivere i numeri?
+come fare per usare il formato europeo dei divisori decimali? (pietro 7)
+
 Validazione
 ============
 
@@ -120,3 +165,11 @@ Constraint
 ===========
 
 Todo completely
+
+
+Dialogo Save
+===============
+
+Trovare un modo carino di mostrare le modifiche che verrebbero salvate
+(Pietro 7)
+
