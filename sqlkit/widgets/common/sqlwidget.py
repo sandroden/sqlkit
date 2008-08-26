@@ -750,6 +750,12 @@ class SqlWidget(object):
     def clear_cb(self, *args):
         self.clear()
 
+    def is_fkey(self, field_name):
+        return bool(self.fields[field_name]['fkey'])
+
+    def get_field_type(self, field_name):
+        return self.fields[field_name]['type']
+    
 ####### printing
     def printing(self):
         """this will pop entries in the print setup to allow for printing
