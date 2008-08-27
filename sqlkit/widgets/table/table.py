@@ -435,7 +435,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         
     def key_entry_shift_Return(self, wdg, event, data):
-        self.completion.show_possible_values(wdg, field_name=data, mode='start')
+        self.completion.show_possible_completion(wdg, field_name=data, mode='start')
         return True
     
 #     def key_tree_Return(self, wdg, event, data):
@@ -446,18 +446,18 @@ class SqlTable(sqlwidget.SqlWidget):
 #         #dbg.write('TEXT',wdg.get_text())
 #         return False
     
-    def key_entry_F1(self, wdg, event, data):
-        self.completion.show_possible_values(wdg, field_name=data, mode='regexp')
-        return True
+#     def key_entry_F1(self, wdg, event, data):
+#         self.completion.show_possible_completion(wdg, field_name=data, mode='regexp')
+#         return True
     
-    def key_entry_F2(self, wdg, event, data):
-        return True
+#     def key_entry_F2(self, wdg, event, data):
+#         return True
     
-    def key_entry_Down(self, wdg, event, data):
-        return False
+# #     def key_entry_Down(self, wdg, event, data):
+# #         return 
     
     def key_entry_ctrl_Return(self, wdg, event, data):
-        self.completion.show_possible_values(wdg, field_name=data, mode='like')
+        self.completion.show_possible_completion(wdg, field_name=data, mode='like')
         return True
     
     def length_control(self, wdg, field_name):
@@ -500,11 +500,18 @@ class SqlTable(sqlwidget.SqlWidget):
         self.editable = editable
         self.actions.set_entry_connect(self.editable, field_name)
         field_props = self.fields[field_name]
-        if field_type == str or field_props['fkey']:
-            editable.connect('button-press-event',self.completion.pop_menu,
-                           field_name, 3)
-            editable.connect('key-press-event',
-                             self.keypress_event_cb, field_name)
+        if field_type == str or self.is_fkey(field_name):
+
+            if self.is_fkey(field_name):
+                self.completion.add_completion(field_name, 'regex', editable)
+            else:
+                self.completion.add_simple_completion(field_name, 'regex', editable)
+
+            ## COMPLETION
+            editable.connect('button-press-event',self.completion.pop_menu, field_name, 3)
+            editable.connect('key-press-event', self.completion.keypress_event_cb, field_name)
+
+            ## MAX LENGTH
             if self.fields[field_name]['type'] is str:
                 length = self.fields[field_name]['length']
                 if length:
@@ -772,7 +779,11 @@ class SqlTable(sqlwidget.SqlWidget):
 
         try:
             value = ptype(value)
-
+        except TypeError:
+            if value is None:  #eg: setting a field to NULL 
+                pass
+            else:
+                raise
         except ValueError:
             ## cast may fail becouse you wrote text in a context in which
             ## a fkey is 
@@ -784,16 +795,20 @@ class SqlTable(sqlwidget.SqlWidget):
             if self.is_fkey(field_name) and not fkvalue:
                 return
             else:
-                ## we should not come here, but thare may be cases I'm missing
+                ## we should not come here, but there may be cases I'm missing now...
                 raise
 
         
         setattr(obj, field_name, value)
+
         ## text would come up automatically but only after
         ## loosing the focus...
         if fkvalue:
             self.editable.set_text(fkvalue)
-
+        else:
+            if value and not self.is_fkey(field_name):
+                self.editable.set_text(value)
+            
         return True
     
     def get_selected_row(self):

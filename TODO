@@ -15,6 +15,10 @@ cut & paste
 
 Aggiungere gestione taglia e incolla: ora il click destro apre dei menu dove
 non è possibie fare cut & paste. Vanno aggiunti al menu
+(completion.pop_menu) (pietro 6)
+
+Far funzionare la voce del menu per editare la tabella a cui punta una FKey
+(funzione completion.edit_foreign_key_table)
 
 gestione errori sqlalchemy
 ===========================
@@ -31,7 +35,7 @@ DateEdit
 
 2. deve gestire anche time TZinfo (con aggiunta di una proprietà)
    Al momento ha una sola proprietà 'time' (oltre a (show-time) per
-   gestire datetime). Bisogna aggiungere una gestione 
+   gestire datetime). Bisogna aggiungere una gestione del TZ
 
 CheckBox 
 =========
@@ -49,7 +53,13 @@ deve usare ComboBoxEntry (per via della freccia che dà idea che si
 può scegliere fra alcuni valori). Non riesco a capire come fare
 a intercettare un segnale per quando viene cliccata la freccia
 in modo da cercare *in quel momento* quali valori proporre,
-ovvero filtrarli tramite il valore attuale.
+ovvero filtrarli tramite il valore attuale. (pietro 6)
+
+Al momento funziona premendo prima F1... e comunque non si comporta come 
+si comporta invece una entry normale con completamento: quando scrivo nella
+entry il completamento cambia in automatico.
+
+Da valutare se tornare a una entry semplice o ad un checkBoxEntry self-made
 
 SqlTable
 ===========
@@ -60,8 +70,9 @@ SqlTable
 * aggiungere la possibilità di muovere le colonne
   magari via "modifica -> scelta cambi -> ordinamento"  (pietro 2)
 
-* microwidget per nascondere e rimettere colonne in alo a destra sopra barra
-  scorrimento (pietro 3)
+* microwidget per nascondere e rimettere colonne in alto a destra sopra barra
+  scorrimento (pietro 3). Molti esempi in rete, uno fra i tanti sunbird, sia
+  nellélenco eventi che nell'elenco task.
 
 * pensare a come permettere di riordinare le righe (ha implicazioni con
   l'ordinamento del modello sottostante. Ha senso solo se c'è una colonna che
@@ -71,32 +82,25 @@ SqlTable
   creare un popup con il testo e poi sincronizzarlo. Hai idee migliori?
   (Pietro 5)
 
-* Evitare editing di colonne fk altro che via completion. Attualmente se
-  esite un valore (corretto, ovvero descrizione di una fk), clicco (si
-  prepara per editing) e poi do Enter mi da errore perché cerca di impostare
-  quel valore (stringa) come id  (pietro 8)
+* Evitare editing di colonne fkey altro che via completion.  (pietro 8)
 
 * Imporre refresh della funzione cell_data_func per fk dopo avere impostato
   il dato. Attualmente quando imposto una cella fk via menu, viene impostato
   correttamente il valore, ma occorre togliere e rimettere il fuoco per
-  vedere il risultato.
-
-* Simulare 'Esc' dopo completion: dopo avere scelto una voce del popup
-  della completion la cella rimane in modo 'edit' ed è necessario premere
-  esc per tornare al modo normale, deve invece tornare al modo normale
-  subito. (pietro 9)
-
-* Permettere uso freccia in completion. Attualmente non funziona l'uso della
-  freccia per la completion che è invece un binding normale della
-  completion. Ripristinare il normale funzionamento (pietro 6)
-
+  vedere il risultato. (fatto workaround)
 
 * deve potersi cancellare una data nel formato tabellare (pietro 8). 
+
+* quando si passa con Tab su una data non deve aprirsi il calendarietto fino
+  a quando non clicco Enter (pietro 5)
 
 * valutare l'uso di combobox anche in table. Ho visto un esempio in cui il
   click sulla cella trasformava la cella stessa in un combobox per
   editing. (pietro 4). In realtà la priorità di questo sale se risulta più
   facile ed intuitivo risolvere il problema in questo modo...
+
+  ma forse il comportamento è migliore con un edit normale e quindi è meglio 
+  parlarne assieme
 
 
 PyGtkMVC

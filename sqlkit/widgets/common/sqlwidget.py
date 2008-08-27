@@ -841,7 +841,7 @@ class SqlWidget(object):
 
         return (filenames, template_dir)
     
-    def parse_template_and_add(self, template, filenames, path=None):                     
+    def parse_template_and_add(self, template, filenames, path=None):
         """it check if it is a file, it not just returns. Otherwise it check the
         name to see:
         1. if it ends with .sxw (otherway it returns)

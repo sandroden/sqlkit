@@ -503,7 +503,15 @@ class SqlMask (sqlwidget.SqlWidget):
                 event_box.connect('button-press-event',
                                   self.filter_panel.add, field_name)
 
-            
+    def get_current_obj(self):
+        """Return the object that is currently edited"""
+        return self.current
+
+    def get_widget(self, field_name):
+        """get the widget that render field_name"""
+
+        return self.mfields[field_name].widget.gtkwidget
+
 
 ####### Validation
     def focus_out__widget(self, widget, event, field_name):

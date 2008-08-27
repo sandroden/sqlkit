@@ -52,12 +52,18 @@ class VarcharWidget(Widget):
     def __init__(self, *args):
 
         Widget.__init__(self, *args)
+        self.add_completion()
+
+    def add_completion(self):
+        """add complition bindings and liststore
+        """
         self.gtkwidget.connect(
-            'button-press-event', self.master.completion.pop_menu,
-            self.field_name, 3)
+            'button-press-event', self.master.completion.pop_menu,  self.field_name, 3)
         self.gtkwidget.connect(
-            'key-press-event', self.master.completion.keypress_event_cb,
-            self.field_name)
+            'key-press-event', self.master.completion.keypress_event_cb,  self.field_name)
+
+        self.master.completion.add_simple_completion(
+            self.field_name, 'regexp', self.gtkwidget)
 
     def set_value(self, value):
         # Entry
@@ -231,22 +237,34 @@ class ForeignKeyWidget(Widget):
     def __init__(self, *args):
 
         Widget.__init__(self, *args)
-        ## the first column is the int of key, the second is the display_value
-        #self.model_def = (self.field.db_spec['type'], str)
-        #self.model = gtk.ListStore(*self.model_def)
+        ## see completion.append_to_model() to understand the meaning of these 4 columns
+        # add to a model that has 4 cols:
+        #       0: the value to be used as foreign key
+        #       1: the value to be shown in the entry 
+        #       2: data to be shown in the dropdown
+        #       3: a dictionary of all fields in the returned row
+        #          this can be used to set additional fields
+                    
 
-        self.model = gtk.ListStore(object, str)
+        self.model = gtk.ListStore(object, str, str, object)
 
         self.gtkwidget.connect('changed', self.clean_real_value)
         self.gtkwidget.set_model(self.model)
         self.gtkwidget.set_text_column(1)
 
         self.gtkwidget.connect(
-            'button-press-event', self.master.completion.pop_menu,
-            self.field_name, 3)
+            'button-press-event', self.master.completion.pop_menu, self.field_name, 3)
         self.gtkwidget.connect(
-            'key-press-event', self.master.completion.keypress_event_cb,
-            self.field_name)
+            'key-press-event', self.master.completion.keypress_event_cb, self.field_name)
+
+        self.gtkwidget.connect('popup', self.fill_model)
+
+    def fill_model(self, *args):
+        self.model.clear()
+        self.model.append(1, 'uno')
+        self.model.append(2, 'due')
+        self.model.append(3, 'tre')
+        self.model.append(4, 'quattro')
 
     def clean_real_value(self, *args):
         ## the EntryText has been changed. The value may no longe be  valid
@@ -264,7 +282,7 @@ class ForeignKeyWidget(Widget):
                 value = ''
 
         self.model.clear()
-        self.model.append([value, display_value])
+        self.model.append([value, display_value, '',''])
         self.gtkwidget.set_active(0)   # which column 
 #        self.real_value = True  ?????
 
@@ -273,11 +291,13 @@ class ForeignKeyWidget(Widget):
     def get_value(self, shown=False):
         #dbg.write()
 
-        idx = self.gtkwidget.get_active()
-        value, display_value = self.model[idx]
-
         if shown == True:
-            return display_value
+            ## this is for completion. The value needed is the value in the entry not in the model
+            entry = self.gtkwidget.child
+            return entry.get_text()
+
+        idx = self.gtkwidget.get_active()
+        value, display_value, descr, obj_dict = self.model[idx]
 
         return  value
 
