@@ -204,9 +204,7 @@ class Completion(object):
             try:
                 a = value
             except:
-                print "No value for %s: %s" % (field_name, field_value)
                 self.lookup_values[field_name][field_value] = field_value
-                #print self.lookup_values
                 return field_value
             if not field_name in self.lookup_values:
                 self.lookup_values[field_name] = {}
@@ -271,7 +269,7 @@ class Completion(object):
 
         self.make_completion_to_pop(widget)
 
-    def append_to_model_fkey(self, model, obj, field_name):
+    def append_to_model_fkey(self, liststore, obj, field_name):
         """add to a model that has 4 cols:
              0: the value to be used as foreign key
              1: the value to be shown in the entry 
@@ -287,12 +285,11 @@ class Completion(object):
         fvalue = obj_list[0]
         fdescr = obj_list[1] or ''
         
-        fk_table = self.master.fields[field_name]['fkey'][0]
-        dbg.write("fk_table: %s" % fk_table)
-
+        #fk_table = self.master.fields[field_name]['fkey'][0]
+        fk_table, fk_key = self.get_foreign_info(field_name)
         descr = self.get_description_for_fkey(obj, fk_table) or fdescr
 
-        model.append([ fvalue, fdescr, descr, obj_dict ])
+        liststore.append([ fvalue, fdescr, descr, obj_dict ])
 
     def get_description_for_fkey(self, obj, fk_table):
         """get the best possible description for a record. Should be
@@ -304,8 +301,7 @@ class Completion(object):
         """
         
         if fk_table in tables and tables[fk_table][2] is not None:
-            description = tables[fk_table][2] % vars(obj)
-
+            description = tables[fk_table][2] % self.instance2dict(obj)
         else:
             description = " - ".join(self.instance2list(obj)[2:])
 
@@ -391,7 +387,6 @@ class Completion(object):
         j = 0
         for l in listore:
             iter = listore.get_iter_from_string(str(j))
-            print iter
             print listore.get(iter,0), listore.get(iter,1), listore.get(iter,3)
             j += 1
 
@@ -571,7 +566,6 @@ class Completion(object):
 #        s = text(sql, engine=self.mapper.engines[0])
         s = text(sql, bind=self.master.metadata.bind)
         dbg.write('exec_dict', exec_dict, sql)
-        print exec_dict, '///', sql
         return s.execute(**exec_dict)
     
     def _add_descriptor_fields(self, sql_dict=None, mode='add',
@@ -671,7 +665,6 @@ class Completion(object):
               - regexp
               - start
         """
-        #print "pop_menu", wdg, ev
         if not ev.button == num_button:
             return False
 
@@ -712,25 +705,23 @@ class Completion(object):
         menu.append(item)
 
         ## edit table referenced as foreign key
-        item = gtk.MenuItem(label="Edit fk table")
-        item.connect('activate', self.edit_foreign_key_table, field_name)
-        label = "Edita la tabella da cui sono presi i valori permessi per questo \
-        campo"
-        self.master.lay_obj.tooltips.set_tip(item, label)
-        menu.append(item)
+        if self.master.is_fkey(field_name):
+            item = gtk.MenuItem(label="Edit fk table")
+            item.connect('activate', self.edit_foreign_key_table, field_name)
+            label = "Edita la tabella da cui sono presi i valori permessi per questo \
+            campo"
+            self.master.lay_obj.tooltips.set_tip(item, label)
+            menu.append(item)
 
         menu.show_all()
         menu.popup(None, None, None, ev.button, ev.time)
         
         return True
-    def edit_foreign_key_table(self, wdg, field):
+    def edit_foreign_key_table(self, wdg, field_name):
         """open a SqlMask to edit the table referenced by this ForeignKey"""
 
-        tbl  = self.master.fields[field]['table_name']
-        fkey = self.master.fields[field]['fkey']
-        txt = "table:  %s - fkey: %s" % (tbl, fkey)
-        dbg.write(txt)        
-#        sqlkit.SqlMask(table)
+        ftable, fkey = self.get_foreign_info(field_name)
+        sqlkit.SqlMask(table=ftable, dbproxy=self.master.dbproxy)
     
     def keypress_event_cb(self, wdg, event, data=None):
         """impleents various callback to keypress

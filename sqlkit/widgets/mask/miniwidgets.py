@@ -250,21 +250,13 @@ class ForeignKeyWidget(Widget):
 
         self.gtkwidget.connect('changed', self.clean_real_value)
         self.gtkwidget.set_model(self.model)
-        self.gtkwidget.set_text_column(1)
+        self.gtkwidget.set_text_column(2)
 
         self.gtkwidget.connect(
             'button-press-event', self.master.completion.pop_menu, self.field_name, 3)
         self.gtkwidget.connect(
             'key-press-event', self.master.completion.keypress_event_cb, self.field_name)
 
-        self.gtkwidget.connect('popup', self.fill_model)
-
-    def fill_model(self, *args):
-        self.model.clear()
-        self.model.append(1, 'uno')
-        self.model.append(2, 'due')
-        self.model.append(3, 'tre')
-        self.model.append(4, 'quattro')
 
     def clean_real_value(self, *args):
         ## the EntryText has been changed. The value may no longe be  valid
