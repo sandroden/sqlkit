@@ -1,4 +1,4 @@
-=======================
+======================= 
 Sqlkit feature's tour
 =======================
 
@@ -47,15 +47,15 @@ Each label of both views can be clicked to get a filter panel:
 Completion
 ============
 
-Completion in triggered by F1 key. If the field is a foreign key it will pop
-up a list of foreign values (broket at the moment) otherwise it will show
+Completion is triggered by F1 key. If the field is a foreign key it will pop
+up a list of foreign values (broken at the moment) otherwise it will show
 values cirrently used (just for varchar fields)
 
 
 Layout
 ========
 
-Very easy way to draw a layout. See Layout widgets for a tour.
+Very easy way to draw a layout. See :ref:`layout` widgets for a tour.
 
 
 Sqledit
@@ -66,7 +66,7 @@ options (``sqledit -h``).
 
 ..  image:: ../img/sqledit.png
 
-Just try it out on your preferred database using the url in a forma as one
+Just try it out on your preferred database using the url in a form as one
 of the examples::
 
   sqledit postgres://localhost/mydb

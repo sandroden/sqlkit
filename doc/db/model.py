@@ -11,17 +11,21 @@ but = 'set_fkey_descr|(lookup|set|get)_value|[el]ne_cb|match_func' + \
        '|cell_default_cb|cell_bool_cb|lookup_value'
 dbg.trace_function(exclude=but)
 
-from elixir import *
-
-metadata.bind = "sqlite:///movies.sqlite"
-#metadata.bind.echo = True
-
+#from elixir import *
+import elixir
 from datetime import datetime, timedelta
 
 import time
 import sqlkit 
 from sqlkit.db import proxy
+from sqlkit import completion
+#from sqlkit.completion import set_description_field
 import gtk
+
+elixir.metadata.bind = "sqlite:///movies.sqlite"
+metadata = elixir.metadata
+#metadata.bind.echo = True
+
 db = proxy.DbProxy(engine="sqlite:///movies.sqlite")
 
 def get_session(obj):
@@ -29,42 +33,42 @@ def get_session(obj):
     Session = sessionmaker(bind=metadata.bind)
     return Session.object_session(obj)
 
-class Director(Entity):
-    last_name = Field(String(60))
-    first_name = Field(String(60))
-    movies = OneToMany('Movie', inverse='director')
-    using_options(tablename='director')
+class Director(elixir.Entity):
+    last_name = elixir.Field(elixir.String(60))
+    first_name = elixir.Field(elixir.String(60))
+    movies = elixir.OneToMany('Movie', inverse='director')
+    elixir.using_options(tablename='director')
 
     def __repr__(self):
         return u'<Director: %s>' %self.last_name
 
-class Movie(Entity):
+class Movie(elixir.Entity):
     #id = Field(Integer, primary_key=True)
-    title = Field(String(60))
-    description = Field(String(512))
-    date_release = Field(DateTime)
-    director = ManyToOne('Director', inverse='movies')
-    actors = ManyToMany('Actor', inverse='movies', tablename='movie_casting')
-    genres = ManyToMany('Genre', inverse='movies', tablename='movie_genre')   
-    using_options(tablename='movie')
+    title = elixir.Field(elixir.String(60))
+    description = elixir.Field(elixir.String(512))
+    year = elixir.Field(elixir.Integer())
+    director = elixir.ManyToOne('Director', inverse='movies')
+    actors = elixir.ManyToMany('Actor', inverse='movies', tablename='movie_casting')
+    genres = elixir.ManyToMany('Genre', inverse='movies', tablename='movie_genre')   
+    elixir.using_options(tablename='movie')
 
     def __repr__(self):
         return u'<Movie: %s>' % self.title
 
-class Genre(Entity):
-    name = Field(Unicode(15), primary_key=True)
-    movies = ManyToMany('Movie')
-    using_options(tablename='genre')
+class Genre(elixir.Entity):
+    name = elixir.Field(elixir.Unicode(15), primary_key=True)
+    movies = elixir.ManyToMany('Movie')
+    elixir.using_options(tablename='genre')
     
     def __repr__(self):
         return u'<Genre "%s">' % self.name
 
-class Actor(Entity):
-    name = Field(String(60))
-    movies = ManyToMany('Movie', inverse='actors', tablename='movie_casting')
-    using_options(tablename='actor')
+class Actor(elixir.Entity):
+    name = elixir.Field(elixir.String(60))
+    movies = elixir.ManyToMany('Movie', inverse='actors', tablename='movie_casting')
+    elixir.using_options(tablename='actor')
 
-setup_all()
+elixir.setup_all()
 
 olmi = Director.get_by(last_name='Olmi', first_name='Ermanno')
 f100 = Movie.get_by(title='100 chiodi')
@@ -79,9 +83,18 @@ f100 = Movie.get_by(title='100 chiodi')
 
 #session.flush()
 
-t1 = sqlkit.SqlMask(mapper=Movie.mapper, metadata=metadata, session=session,)
+#t1 = sqlkit.SqlMask(mapper=Movie.mapper, metadata=metadata, session=elixir.session,)
 #t1.reload()
-#t2 = sqlkit.SqlTable(mapper=Director.mapper, metadata=metadata, session=session)
+td = sqlkit.SqlTable(mapper=Movie.mapper, metadata=metadata, session=elixir.session)
+#td = sqlkit.SqlTable(mapper=Movie.mapper, dbproxy=db)
+
+tm = sqlkit.SqlMask(mapper=Movie.mapper, metadata=metadata, session=elixir.session)
+
+completion.set_description_fields('director', 'last_name', add='first_name',
+                      format="%(first_name)s %(last_name)s")
+
+completion.set_description_fields('director', 'last_name', add='first_name',
+                      format="%(last_name)s - (%(first_name)s)")
 
 #print f100.director
 #print t1.records
