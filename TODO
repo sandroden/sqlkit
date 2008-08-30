@@ -177,3 +177,11 @@ Dialogo Save
 Trovare un modo carino di mostrare le modifiche che verrebbero salvate
 (Pietro 7)
 
+filter-panel
+=============
+
+Operatori: aggiungere label di spiegazione (es: LIKE ha %, regexp ha ^, .*,
+           etc) (pietro 6)
+
+Status bar: aggiungere alla status bar un avviso che non si è usato il % se
+            operatore è LIKE e non lo si è usato...

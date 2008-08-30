@@ -52,7 +52,7 @@ class FilterPanel(object):
                {|T.fld }
 
             """
-        self.l = layout.Layout(lay, title='Filter Panel')
+        self.l = layout.Layout(lay, title='Filter Panel', opts="s")
         self.l.prop('Window', 'visible', visible)
         self.l.prop('O.a', 'show_arrow', 'FALSE')
         self.l.elements['H.a'].pack_properties['y-options'] = ''
