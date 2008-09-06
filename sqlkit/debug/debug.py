@@ -457,10 +457,9 @@ class LogTheMethods(type):
                 if attr not in meths:
                     meths[attr] = getattr(base, attr)
 
-        
-#        for attr,item in classdict.items():
         for attr, item in meths.items():
-            #print "LogTheMethods", attr, item
+            if not DBG:
+                continue
             if attr.startswith('_H_') or attr.startswith('__'):
                 continue
 
