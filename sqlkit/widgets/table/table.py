@@ -141,14 +141,29 @@ class SqlTable(sqlwidget.SqlWidget):
     
     def set_height_request(self):
         area = self.treeview.get_cell_area(0, self.treeview.get_column(0))
+
+        col=self.treeview.get_column(1)
+        renderer=col.get_cell_renderers()[0]
+        padding=renderer.get_property('ypad')
+
         rows = len(self.liststore)
+
         if rows == 0:
             rows = 10
         if rows > 30:
             rows = 30
-        needed_height = area.height * rows
+
+        # The pygtk reference says "/2" shouldn't be needed - but it is
+        needed_height = (area.height+padding/2) * rows
         dbg.write('area',area, 'needed', needed_height, 'area.h', area.height)
-        self.treeview.set_property('height-request', needed_height)
+
+        # This would not be needed if a previous call to "height-request" hadn't
+        # been made. However, there was maybe a reason to do it.
+        self.treeview.set_property('height-request', -1)
+
+        toplevel = self.treeview.get_toplevel()
+        missing_height = needed_height - self.treeview.get_visible_rect().height
+        toplevel.resize(toplevel.get_allocation().width, toplevel.get_allocation().height+missing_height)
         
     
     def setupTreeColumns(self):
@@ -748,7 +763,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.commit_allowed = False
         self.clear()
         ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
-        # self.set_height_request()
+        self.set_height_request()
         self.model_path = None
         
         return ret
