@@ -144,7 +144,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         col=self.treeview.get_column(1)
         renderer=col.get_cell_renderers()[0]
-        padding=renderer.get_property('ypad')
+        spacing = self.treeview.style_get_property('vertical-separator')
 
         rows = len(self.liststore)
 
@@ -153,8 +153,8 @@ class SqlTable(sqlwidget.SqlWidget):
         if rows > 30:
             rows = 30
 
-        # The pygtk reference says "/2" shouldn't be needed - but it is
-        needed_height = (area.height+padding/2) * rows
+        # It is not clear where the "+1" pixel comes from, but it's there
+        needed_height = (area.height+1) * rows + (spacing) * (rows-1)
         dbg.write('area',area, 'needed', needed_height, 'area.h', area.height)
 
         # This would not be needed if a previous call to "height-request" hadn't
