@@ -57,6 +57,7 @@ class InspectMapper(dict):
         ## used by sa when no reflection is used? to be verified
         return {
             sqlalchemy.types.String : str,
+            sqlalchemy.types.Unicode : str,
             sqlalchemy.types.Integer  : int,
             sqlalchemy.types.Float  : float,
             sqlalchemy.types.DateTime  : datetime.datetime,
@@ -588,5 +589,7 @@ def list_tables(eng=None, schema=None):
     ret = eng.text(sql).execute(schema=schema)
     tables = [R[0] for R in ret]
     return tables
+
+
 
 
