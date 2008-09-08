@@ -342,10 +342,6 @@ class InspectMapper(dict):
         if field_name in self.noup:
             #dbg.write("2", field_name, 'noup')
             edit = False
-
-        if col.primary_key:
-            #dbg.write(field_name, 'pkey')
-            edit = False
             
         return edit
         
