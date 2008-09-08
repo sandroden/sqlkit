@@ -21,6 +21,7 @@ class Widget(object):
         self.field = field
         self.master = field.master
         self.field_name = field.field_name
+        self.initial_value = None
 
         if self.field.db_spec['edit']:
             if not self.field.db_spec['nullable'] or self.field.db_spec['pkey']:
@@ -38,7 +39,8 @@ class Widget(object):
     def get_changed(self):
         """true if value is different from initial setting
         """
-        #print "get_changed - %r: or: %r ==> %r" % (self.field_name, self.initial_value, self.get_value())
+        dbg.write("get_changed - %r: or: %r ==> %r" % (
+            self.field_name, self.initial_value, self.get_value()))
         return not self.get_value() == self.initial_value
     
     def get_value(self):
@@ -248,7 +250,7 @@ class ForeignKeyWidget(Widget):
 
         self.model = gtk.ListStore(object, str, str, object)
 
-        self.gtkwidget.connect('changed', self.clean_real_value)
+#        self.gtkwidget.connect('changed', self.clean_real_value)
         self.gtkwidget.set_model(self.model)
         self.gtkwidget.set_text_column(2)
 
@@ -256,7 +258,19 @@ class ForeignKeyWidget(Widget):
             'button-press-event', self.master.completion.pop_menu, self.field_name, 3)
         self.gtkwidget.connect(
             'key-press-event', self.master.completion.keypress_event_cb, self.field_name)
+        self.entry = self.gtkwidget.child
+        completion = self.master.completion.prepare_completion(self.field_name, mode='regexp',
+                                                               match_col=2)
+        completion.set_model(self.model)
+        self.entry.set_completion(completion)
+        self.gtkwidget.connect('notify::popup-shown', self.on_popup)        
 
+    def on_popup(self, widget, params):
+        """the popup should be empty. We force the completion instead
+        """
+        self.master.completion.show_possible_completion(
+            self.gtkwidget, field_name=self.field_name, mode='regexp')
+        return True
 
     def clean_real_value(self, *args):
         ## the EntryText has been changed. The value may no longe be  valid
@@ -274,7 +288,7 @@ class ForeignKeyWidget(Widget):
                 value = ''
 
         self.model.clear()
-        self.model.append([value, display_value, '',''])
+        self.model.append([value, display_value, display_value,''])
         self.gtkwidget.set_active(0)   # which column 
 #        self.real_value = True  ?????
 
@@ -285,8 +299,7 @@ class ForeignKeyWidget(Widget):
 
         if shown == True:
             ## this is for completion. The value needed is the value in the entry not in the model
-            entry = self.gtkwidget.child
-            return entry.get_text()
+            return self.entry.get_text()
 
         idx = self.gtkwidget.get_active()
         value, display_value, descr, obj_dict = self.model[idx]
@@ -302,4 +315,41 @@ class ForeignKeyWidget(Widget):
     #raise NotImplemented
     
 
+class CollectionWidget(Widget):
+    """
+    a SqlTable widget that represents a collection of records
+    """
+    def __init__(self, *args):
         
+        Widget.__init__(self, *args)
+        table = self.field.db_spec['table']
+
+        from sqlkit import SqlTable
+
+        self.table = SqlTable(
+            table=table.name,
+            mapper = self.field.db_spec['mapper'],
+            session=self.master.session,
+            metadata=self.master.metadata,
+            dbproxy=self.master.dbproxy,
+            naked=True, addto=self.gtkwidget,
+            icons='b=gtk-new b=gtk-delete b=gtk-save',
+            hide = self.field.db_spec['remote_attr'],
+            dev = self.master.dev,
+            )
+        self.initial_value = []
+        self.table.relationship_mode = "M2M"
+
+        self.gtkwidget.set_property('sensitive', True) 
+
+    def set_value(self, value):
+        from copy import copy
+        
+        if value is None:
+            value = []
+        self.initial_value = copy(value)
+
+        self.table.set_records(value)
+
+    def get_value(self, shown=False):
+        return self.table.records 

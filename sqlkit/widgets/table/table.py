@@ -11,7 +11,6 @@ sys.path.append ('../../../')
 #from sqlalchemy import *
 #import layout
 from datetime import datetime
-import sqlalchemy.types as sqltypes
 from sqlkit.widgets.common import sqlwidget, CommitError, ValidationError
 import sqlalchemy
 import dbg
@@ -69,7 +68,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.treeview.get_toplevel().connect("delete_event", self.delete_event)
         self.treeview.connect('key-press-event', self.keypress_event_cb)
 
-        self.setupTreeColumns()
+        self.setup_treeview_columns()
         ## let tree use all the available space... 
         if not self.naked:
             self.lay_obj.prop('A.0','yscale',1)
@@ -166,7 +165,7 @@ class SqlTable(sqlwidget.SqlWidget):
         toplevel.resize(toplevel.get_allocation().width, toplevel.get_allocation().height+missing_height)
         
     
-    def setupTreeColumns(self):
+    def setup_treeview_columns(self):
         """Setup the presentation of columns.
         Some assumptions are made:
         - bool render to toggles
@@ -206,7 +205,7 @@ class SqlTable(sqlwidget.SqlWidget):
 #                 tvcolumn.set_cell_data_func(cell, self.cell_fk_text_cb, v)
 
             ## Dates
-            elif issubclass(self.fields[v]['db_type'], (sqltypes.Date)):
+            elif self.is_date(v):
                 #dbg.write('%s is a date' % v)
                 cell = CellRendererDate()
                 cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
@@ -219,7 +218,7 @@ class SqlTable(sqlwidget.SqlWidget):
                                             ('date', v) )
 
             ## Datetime
-            elif issubclass(self.fields[v]['db_type'], (sqltypes.DateTime)):
+            elif self.is_datetime(v):
                 #dbg.write('%s is a date' % v)
                 cell = CellRendererDatetime()
                 cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
@@ -656,8 +655,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
         see record_validate for constraint explanation
 
-        discard_empty: when record_save is called bu reload, an empty record
-                       does not need validationx
+        discard_empty: when record_save is called by reload, an empty record
+                       does not need validation
 
         """
 
@@ -674,7 +673,10 @@ class SqlTable(sqlwidget.SqlWidget):
                 del obj
                 self.model_path = None
                 return
-            
+
+        self.records += [obj]  ## adding to records is vital to get fk correctly in
+                               ## case this table is a M2M of M2O
+
         ## if _sqlkit_mode is not set as after a SELECT, it defaults to UPDATE
         ## _sqlkit_mode is set in record_new
     
@@ -723,14 +725,26 @@ class SqlTable(sqlwidget.SqlWidget):
             """
 
             obj = model[path][0]
-            if obj in self.session.new:
-                self.session.expunge(obj)
+            self.records.remove(obj)
+            if self.relationship_mode == 'SINGLE':
+                if obj in self.session.new:
+                    self.session.expunge(obj)
+                else:
+                    self.session.delete(obj)
+                #self.session.flush([obj])
+                self.commit()
             else:
-                self.session.delete(obj)
-            del obj
+                pass
+                ## we're in M2M relationship or equivalent:
+                ## we don't want to delete the object, just delete the relationship
+                ## with the referred father
+#                self.session.expunge(obj)
+
+#                del obj
+
             self.model_path = None
             model.remove(iter)
-            
+        
         sel = self.treeview.get_selection()
         model, paths = sel.get_selected_rows()
         sel.selected_foreach(do_del)
@@ -772,6 +786,8 @@ class SqlTable(sqlwidget.SqlWidget):
         """when self.refresh is called other programs have selected the records
         
         """
+        self.model_path = None  # must be set *before* clear()
+                                # to inhibit selection_changed_cp
         self.liststore.clear()
         for i in self.records:
             self.liststore.append([i])
@@ -822,7 +838,7 @@ class SqlTable(sqlwidget.SqlWidget):
             self.editable.set_text(fkvalue)
         else:
             if value and not self.is_fkey(field_name):
-                self.editable.set_text(value)
+                self.editable.set_text(str(value))
             
         return True
     

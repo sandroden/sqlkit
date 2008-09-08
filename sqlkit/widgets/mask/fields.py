@@ -54,6 +54,9 @@ class FieldChooser(object):
         if db_spec['fkey']:
             return ForeignKeyField(*args)
 
+        if self.master.is_loader(field_name):
+            return CollectionField(*args)
+        
         COL_SPEC = db_spec['col_spec']
         DB_TYPE = db_spec['type']
 
@@ -180,14 +183,11 @@ class ForeignKeyField(Field):
     """
     Widget = ForeignKeyWidget
 
-class Collection(Field):
+class CollectionField(Field):
     """A field that uses a SqlTable to show and edit a collection
     in read-wite mode
     Used in OneTomany or ManyToMany db fields
 
     """
+    Widget = CollectionWidget
     
-    
-
-
-

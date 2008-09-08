@@ -228,6 +228,9 @@ class SqlMask (sqlwidget.SqlWidget):
 
         if self.record_changed():
             if obj not in self.session:     # see note in record_new
+#                 for i in self.session:
+#                     print i, id(i)
+#                 print "OBJ:", obj, id(obj), obj not in self.session
                 self.session.add(obj)
                 
             for field_name in self.field_list:      
@@ -242,7 +245,9 @@ class SqlMask (sqlwidget.SqlWidget):
         return obj
 
     def clear_mask(self, widget=None, check=True):
-        """clear the mask for a new record"""
+        """clear the mask for a new record
+        NOTE: this does NOT prepare for a new record (missing obj)
+        """
 
         if check and  not self.save_unsaved():
             return
@@ -250,7 +255,7 @@ class SqlMask (sqlwidget.SqlWidget):
 #        self.current_idx = None
         self.current = None
         
-        for field_name in self.fields.keys():
+        for field_name in self.field_list:
             try:
                 self.clear_value(field_name)
             except FieldNotInLayout, e:
@@ -260,7 +265,7 @@ class SqlMask (sqlwidget.SqlWidget):
         for z in self.sync_dict:
             z.clear()
             z.sync_block()
-        
+    clear = clear_mask
     def record_new(self, widget=None, clear=True):
         """prepare a new object and set 
         """
@@ -268,7 +273,7 @@ class SqlMask (sqlwidget.SqlWidget):
             self.clear_mask()
 
         ## we delay adding obj to the session till the moment we know that
-        ## some modification has really been made (record.canched())
+        ## some modification has really been made (record_changed())
         ## within record_mask2obj.
         ## this prevents unsaved_changes_exist() to complain that a commit is
         ## needed no editing has been done
@@ -408,9 +413,10 @@ class SqlMask (sqlwidget.SqlWidget):
         from fields import FieldChooser
         field_chooser = FieldChooser(self.w, self)
 
-        for field_name in self.fields.keys():
-            #dbg.write(field_name)
-            for mod in ('e','d','r','c', 'TX', 'Ce'):
+        for field_name in self.field_list:
+            ## MM is a workarond to bypass the fact that if I use 'A'
+            ## I'll ind *many* alignement for InterField
+            for mod in ('e','d','r','c', 'TX', 'Ce', 'm2m', 'm2o', 'o2m', 'o2o'):
                 try:
                     key = "%s=%s" % (mod, field_name)
                     widget = self.w[key]

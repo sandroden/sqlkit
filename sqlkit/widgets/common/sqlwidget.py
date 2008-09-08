@@ -2,6 +2,7 @@ import sys, re, datetime, os
 import inspect 
 import layout
 import layout.dateedit as dateedit
+import sqlalchemy.types as sqltypes
 
 from layoutgenerator import LayoutGenerator
 import gtk, pango
@@ -33,7 +34,6 @@ class SqlWidget(object):
 #    __metaclass__ = dbg.LogTheMethods
 #    __metaclass__ = misc.autoreload.MetaAutoReloader
     records = None
-    
     def __init__ (self, mapper=None,
                   ## geometry
                   layout = None,
@@ -65,6 +65,7 @@ class SqlWidget(object):
                   actions=None,
                   dev=False,
                   xml=False,
+                  relationship_mode = 'SINGLE',
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -111,7 +112,7 @@ class SqlWidget(object):
         self.noup = noup
         self.hide = hide
         self.fields = self.get_fields()
-        self.field_list = self.parse_fields(field_list)
+        self.field_list = self.parse_fields(field_list, layout)
         if hide:
             self.hide_fields()
         self.title = self._get_title(title)
@@ -125,6 +126,7 @@ class SqlWidget(object):
 #        self.sqlData = sqldata.SqlData(None, self.fields, self.session)
         self.single = single
         self.limit=limit
+        self.relationship_mode = relationship_mode
         self.records = []
         if show:
             self.show()
@@ -159,23 +161,36 @@ class SqlWidget(object):
         
         return mapper or self.dbproxy.get_mapper(mapper, tables)
 
-    def parse_fields(self, fields):
-        if not fields:
+    def parse_fields(self, field_list, layout):
+        if not field_list:
+            ### if no layout was defined and no field_list was passed
+            ### we don't add PropertyLoader (ManyToMany relations):
+            ### we would't know where to represent them.
+            ###
+            ### If a layout was defined, we add propertyLoader only for SqlMask
+            ###
+            if isinstance(self, sqlkit.SqlMask) and layout:
+                get_the_keys = self.fields.all_keys
+            else:
+                get_the_keys = self.fields.keys
+                
             if self.dev:
-                fields = self.fields.keys()
+                new_field_list = get_the_keys()
             else:
                 ## I want all fields not ending with _id
                 ## *AND* all fields that REFERENCE other keys
                 ## i.e.: if you have city_id that references a city I want
                 ## to see it, but I don't want to see a sequence normally.
-                fields = [f for f in self.fields.keys()
-                          if not f.endswith('_id') or self.fields[f]['fkey'] ]
+                new_field_list = [f for f in get_the_keys()
+                          if not f == 'id' or self.fields[f]['fkey'] ]
 
             
-        if isinstance(fields, str):
-            fields = re.split('[ ,]+',fields)
-        #dbg.write(self.nick, fields)
-        return fields
+        else:
+            if isinstance(field_list, str):
+                new_field_list = re.split('[ ,]+',field_list)
+            else:
+                new_field_list = field_list
+        return new_field_list
     
     def get_actions(self, actions):
         if not actions:
@@ -494,9 +509,13 @@ class SqlWidget(object):
         msg = []
 #        for field_name in self.mapper.columns.keys():
         for field_name in self.field_list:
-            new, unchanged, old =  attributes.get_history(
-                attributes.instance_state(obj), field_name)
-            #print field_name, new, unchanged, old
+            #print "FIELD_LIST", self.field_list
+            try:
+                new, unchanged, old =  attributes.get_history(
+                    attributes.instance_state(obj), field_name)
+                #print "%s:: new: %s - unchanged: %s - old: %s" % (field_name, new, unchanged, old)
+            except:
+                pass
             if new:
                 msg += ["%s: %s -> %s" % (field_name, old, new)]
         return "\n".join(msg)
@@ -751,11 +770,64 @@ class SqlWidget(object):
         self.clear()
 
     def is_fkey(self, field_name):
+        """
+        return True if this field is a foreign key
+        """
         return bool(self.fields[field_name]['fkey'])
 
+    def is_loader(self, field_name):
+        """
+        True if field_name is a loader for a related table
+        """
+
+        from  sqlalchemy.orm import properties
+        prop = self.fields[field_name]['property']
+        if isinstance(prop, properties.PropertyLoader):
+            return True
+        return False
+
+
+    def is_date(self, field_name):
+        """
+        Return true if this field is  date
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.Date))
+        else:
+            return False
+
+    def is_datetime(self, field_name):
+        """
+        Return true if this field is  date
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.DateTime))
+        else:
+            return False
+                
+        
     def get_field_type(self, field_name):
         return self.fields[field_name]['type']
-    
+
+    def session_show(self, k=None):
+        """just for debugging 
+        """
+        l = []
+        j = 0
+        for i in self.session:
+            if k is not None:
+                print "%.2d %s" % (j, i)
+            l += [i]
+            j += 1
+            
+        if k is None:
+            return l
+        else:
+            return l[k]
+        
+
 ####### printing
     def printing(self):
         """this will pop entries in the print setup to allow for printing

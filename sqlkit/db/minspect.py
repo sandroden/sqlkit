@@ -138,7 +138,9 @@ class InspectMapper(dict):
         for prop in props:
             if isinstance(prop, properties.ColumnProperty):
                 self._add_field(prop.key, self.mapper)
-
+            elif isinstance(prop, properties.PropertyLoader):
+                self._add_loader_field(prop.key, self.mapper, property=prop)
+                
     def _add_field(self, field_name, mapper, property=None):
         if field_name in self:
             dbg.write("%s precedentemente definito, cerchi guai..." % field_name)
@@ -190,12 +192,67 @@ class InspectMapper(dict):
 #                         mapper.c[field_name].foreign_key.column.name)
         setattr(self, field_name,  d)
 
+    def _add_loader_field(self, field_name, mapper, property=None):
+        """
+        Add db_specs for a field that correspond to a Loader of a foreign field
+        This is the loader of a field in a table connected via an intermediate one or
+        via a OneToMany relation
+
+        No real attribute is present in the db table
+        """
+
+        if field_name in self:
+            dbg.write("%s precedentemente definito, cerchi guai..." % field_name)
+            return
+        
+        self.fields += [ field_name ]
+
+        d = {
+            'mapper'  :  property.mapper ,
+            'name'        :  str(field_name),
+            'table'       :  property.table,
+            'table_name'       :  property.table.name,
+#            'col'         :  mapper.c[field_name] ,
+            'db_type'     :  None,   ## FIXME: this is used tor table 
+            'type'        :  str,  # FIXME
+            'col_spec'    :  None,
+            'is_serial'   :  False,
+            'property'    :  property,
+            'fkey'        :  False,
+            'default'     :  None,
+            'pkey'        :  None,
+            'nullable'    :  True,
+#            'mapper'      :  property.table.mapper,
+            'edit'        :  False, ## FIXME
+#            'direction'   :  mapper.props[field_name].direction
+            'remote_attr' : [c.name for c in property.remote_side]
+            }
+        try:
+            d['length'] = 40  # FIXME
+        except:
+            d['length'] = None
+
+        table_name = mapper.local_table.name
+        if table_name not in self.table_mappers:
+            self.table_mappers[table_name] = (mapper.class_, mapper)
+            self.pkeys[table_name] = []
+
+        setattr(self, field_name,  d)
+
     def keys(self):
-        """Return all the field_names in the mapper
+        """Return all the field_names in the mapper but not loaders
         """
         ret = []
         for m in self.tables(mode='mapper' ):
             ret += m.c.keys()
+        return ret
+
+    def all_keys(self):
+        """Return all the field_names in the mapper comprising loaders
+        """
+        ret = []
+        for prop in self.mapper.iterate_properties:
+            ret += [prop.key]
         return ret
 
     def __iter__(self):
@@ -319,8 +376,10 @@ class InspectMapper(dict):
         return r
 
     def __str__(self):
-        #dbg.show_caller()
         return "InspectMapper for keys: %s" % self.keys()
+        
+    def __repr__(self):
+        return "<InspectMapper for keys: %s>" % self.keys()
         
 #     def get(self, record, field_name, n=0):
 #         at = getattr(self, field_name)
