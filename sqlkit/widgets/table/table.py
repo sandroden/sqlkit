@@ -138,19 +138,20 @@ class SqlTable(sqlwidget.SqlWidget):
         else:
             self.reload()
     
-    def set_height_request(self):
+    def set_height_request(self, rows=None):
         area = self.treeview.get_cell_area(0, self.treeview.get_column(0))
 
-        col=self.treeview.get_column(1)
-        renderer=col.get_cell_renderers()[0]
-        spacing = self.treeview.style_get_property('vertical-separator')
+        col      = self.treeview.get_column(0)
+        renderer = col.get_cell_renderers()[0]
+        spacing  = self.treeview.style_get_property('vertical-separator')
 
-        rows = len(self.liststore)
+        if not rows:
+            rows = len(self.liststore)
 
-        if rows == 0:
-            rows = 10
-        if rows > 30:
-            rows = 30
+            if rows == 0:
+                rows = 10
+            if rows > 30:
+                rows = 30
 
         # It is not clear where the "+1" pixel comes from, but it's there
         needed_height = (area.height+1) * rows + (spacing) * (rows-1)
@@ -162,7 +163,10 @@ class SqlTable(sqlwidget.SqlWidget):
 
         toplevel = self.treeview.get_toplevel()
         missing_height = needed_height - self.treeview.get_visible_rect().height
-        toplevel.resize(toplevel.get_allocation().width, toplevel.get_allocation().height+missing_height)
+
+        width  = toplevel.get_allocation().width
+        height = toplevel.get_allocation().height 
+        toplevel.resize(width, height + missing_height)
         
     
     def setup_treeview_columns(self):
