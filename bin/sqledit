@@ -211,9 +211,9 @@ opts, args = optionparse.parse(__doc__)
 if not args and not opts: optionparse.exit()
 
 if opts.gtk_debug:
-    dbg.trace_class(ok='SqlTable|SqlMask')
+    dbg.trace_class(ok='SqlTable|SqlMask|Completion')
     but = 'set_fkey_descr|(lookup|set|get)_value|[el]ne_cb|match_func' + \
-       '|cell_default_cb|cell_bool_cb|_lookup_value'
+       '|cell_default_cb|cell_bool_cb|_lookup_value|is_fkey'
     dbg.trace_function(exclude=but)
     dbg.debug(True)
     lgm = dbg.ShowLogs(show=True)
@@ -243,7 +243,14 @@ if opts.nick:
         sys.exit(1)
 
 
-db = proxy.DbProxy(engine=opts.url)
+try:
+    db = proxy.DbProxy(engine=opts.url)
+except ImportError, e:
+    print e.message
+    if e.message == 'No module named MySQLdb':
+        print "You need to install mysql driver (python-mysqldb under debian)"
+    sys.exit(1)
+    
 session = db.get_session()
 
 #engine = sa.create_engine(opts.url)
