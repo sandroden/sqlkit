@@ -283,7 +283,10 @@ class Completion(object):
         obj_list = self.instance2list(obj)
         obj_dict = self.instance2dict(obj)
         fvalue = obj_list[0]
-        fdescr = obj_list[1] or ''
+        try:
+            fdescr = obj_list[1] or ''
+        except IndexError, e:
+            fdescr = obj_list[0]  # a fk that is a key, not an id and is the only one
         
         #fk_table = self.master.fields[field_name]['fkey'][0]
         fk_table, fk_key = self.get_foreign_info(field_name)
@@ -526,6 +529,9 @@ class Completion(object):
             if tables[ftable][0] is not None:
                 sql_dict['descriptor_field'] = tables[sql_dict['referenced_table']][0]
                 sql_dict['order_by'] = re.sub('^,', '',sql_dict['descr'])
+                ## in case is not an ID but a key *and* te only field
+                if not sql_dict['order_by']:
+                    sql_dict['order_by'] = sql_dict['field_name']
                 
             else:
                 sql_dict['descriptor_field'] = fkey
@@ -599,6 +605,7 @@ class Completion(object):
 
         """
         global tables
+
         ## args parsing
         if not referenced_table:
             referenced_table = sql_dict['referenced_table']
@@ -606,14 +613,18 @@ class Completion(object):
         if not referenced_field and sql_dict:
             referenced_field = sql_dict['field_name']
             
-        description_field = self.get_description_field(referenced_table)
+        description_field, more_fields = self.get_description_field(referenced_table)
         
         if description_field is not None:
             ## called from select_values, we also have a possible description
-            if mode == 'add':
-                sql_dict['descr'] = "," + tables[referenced_table][0]
-                if tables[referenced_table][1]:
-                    sql_dict['descr'] += "," + tables[referenced_table][1]
+            ## description field may be exactly field_name if it's a key
+            if mode == 'add' :
+                if not description_field == referenced_field:
+                    sql_dict['descr'] = "," + description_field
+                else:
+                    sql_dict['descr'] = ""
+                if more_fields:
+                    sql_dict['descr'] += "," + more_fields
             else:
                 ## called from lookup_value
                 return description_field 
@@ -630,6 +641,7 @@ class Completion(object):
     def get_description_field(self, table_name):
         """look if a description field is defined, if not use introspection
         return the description field that can be None
+        
         """
         
         global tables
@@ -655,7 +667,7 @@ class Completion(object):
                         break
                 
 
-        return tables[table_name][0]
+        return tables[table_name][0:2]
 
                           
 

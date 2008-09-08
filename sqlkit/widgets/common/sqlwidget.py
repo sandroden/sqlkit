@@ -510,6 +510,7 @@ class SqlWidget(object):
 #        for field_name in self.mapper.columns.keys():
         for field_name in self.field_list:
             #print "FIELD_LIST", self.field_list
+            new = None
             try:
                 new, unchanged, old =  attributes.get_history(
                     attributes.instance_state(obj), field_name)
