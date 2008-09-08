@@ -34,6 +34,10 @@ class FilterPanel(object):
         self.default_reload = True
         
         self.search_fields = {}
+        self.bind_name = self.master.metadata.bind.name
+        
+    def __del__(self):
+        self.destroy()
         
     def get_layout(self, visible=True):
         """create the filter panel widget"""
@@ -234,10 +238,10 @@ class FilterPanel(object):
     def destroy(self):
         self.w['Window'].destroy()
     
-    def get_suitable_operators(self, field_name, ftype, eng_type):
+    def get_suitable_operators(self, field_name, ftype, bind_name):
         """return list of operators meaningfull for engine/data type
         """
-        #dbg.write( field_name, ftype, eng_type)
+        #dbg.write( field_name, ftype, bind_name)
 
         STR_STD_OPERATORS = [ 'LIKE', 'NOT LIKE' ]
         NULL_OPERATORS = [ 'IS NULL', 'IS NOT NULL' ]
@@ -249,21 +253,21 @@ class FilterPanel(object):
             return BOOLEAN_OPERATORS
         
         if self.master.fields[field_name]['fkey']:
-            if eng_type in ('postgres'):
+            if bind_name in ('postgres'):
                 return  ['~*', '~', '!~*', '~*' ] + STD_OPERATORS
-            elif eng_type in ('mysql'):
+            elif bind_name in ('mysql'):
                 return ['REGEXP' ] + STD_OPERATORS
 
         if issubclass(ftype, (int, float, datetime, date, time)):
             return STD_OPERATORS
 
-        if eng_type in 'sqlite':
+        if bind_name in 'sqlite':
             return STR_STD_OPERATORS + STD_OPERATORS
         
-        elif eng_type in 'mysql':
+        elif bind_name in 'mysql':
             return [ 'REGEXP' ] + STD_OPERATORS
 
-        elif eng_type in 'postgres':
+        elif bind_name in 'postgres':
             return  ['~*', '~', '!~*', '~*' ] + STD_OPERATORS
 
     
@@ -287,9 +291,8 @@ class FilterPanel(object):
         else:
             self.search_fields[field] += [info]
             
-        eng_type = self.master.metadata.bind.name
         ftype = self.master.fields[field]['type']
-        operators = self.get_suitable_operators(field, ftype, eng_type)
+        operators = self.get_suitable_operators(field, ftype, self.bind_name)
 
         ## labels
         field_name_event_box = gtk.EventBox()
