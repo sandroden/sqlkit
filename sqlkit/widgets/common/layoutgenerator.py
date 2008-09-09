@@ -117,11 +117,14 @@ class LayoutGenerator (object):
 
         #self.used_field_dict[field_name] = 
 
-        if self.fields[field_name]['fkey']:
+        if self.master.is_fkey(field_name):
             ## ComboBox for foreign key
             return "Ce"
 
-        ftype = self.fields[field_name]['type']
+        if self.master.is_loader(field_name):
+            return "m2m"
+        
+        ftype = self.master.get_field_type(field_name)
         widget = self.map_types[ftype]
         
         if self.fields[field_name]['col_spec'] == 'TEXT':

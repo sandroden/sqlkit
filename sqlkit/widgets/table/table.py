@@ -96,6 +96,7 @@ class SqlTable(sqlwidget.SqlWidget):
         return (self.lay_obj, self.w)
     
     def popup_col_menu(self, ev, field_name):
+
         try:
             self.w['M=popup'].destroy()
         except:
@@ -334,6 +335,8 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
         
     def clicked_cb(self, treeview, field_name):
+        if not self.relationship_mode == 'SINGLE':
+            return False
         if self.filter:
             event =   gtk.gdk.Event(gtk.gdk.BUTTON_PRESS)
             event.button = 1
@@ -730,7 +733,8 @@ class SqlTable(sqlwidget.SqlWidget):
             """
 
             obj = model[path][0]
-            self.records.remove(obj)
+            if obj in self.records:
+                self.records.remove(obj)
             if self.relationship_mode == 'SINGLE':
                 if obj in self.session.new:
                     self.session.expunge(obj)
@@ -925,6 +929,8 @@ class SqlTable(sqlwidget.SqlWidget):
         shown: compatibility with mask version
         """
         return self.editable.get_text()
+
+
 
 
 
