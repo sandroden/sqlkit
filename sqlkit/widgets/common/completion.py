@@ -64,14 +64,9 @@ class Completion(object):
         self.lookup_values = {}
         self.LIKE_OP = OP[self.master.metadata.bind.name]
 
-#     def get_widget(self, field_name):
-#         """return the widget to widh the entryCompletion should be attached
-#         """
-#         if self.master.__class__.__name__ == 'SqlMask':
-#             return self.master.mfields[field_name]
-        
-    def add_simple_completion(self, field_name, mode, wdg = None):
-        """ add a completionEntry to an Entry. No foreign key
+    def prepare_completion(self, field_name, mode='regexp', match_col=0):
+        """
+        Prepare an EntryCompletion suitable for... sqlcompletion
         """
 
         completion = gtk.EntryCompletion()
@@ -80,15 +75,24 @@ class Completion(object):
         completion.connect('match-selected', self.match_selected_cb, field_name)
         renderer = gtk.CellRendererText()
         completion.pack_start(renderer)
-            
-        completion.add_attribute(renderer, 'text', 0)
-        listore = gtk.ListStore(str)
-            
+
+        completion.add_attribute(renderer, 'text', match_col)
+
+
         ## we match against the description field
         ## from the reference docs:
         # The match function is used by the entry completion to determine
         # if a row of the associated tree model should be in the completion list
-        completion.set_match_func(self.match_func, (0, mode))
+        completion.set_match_func(self.match_func, (match_col, mode))
+        return completion
+
+
+    def add_simple_completion(self, field_name, mode, wdg = None):
+        """ add a completionEntry to an Entry. No foreign key
+        """
+
+        completion = self.prepare_completion(field_name, match_col=0)
+        listore = gtk.ListStore(str)
         completion.set_model(listore)
         
         wdg.set_completion(completion)
@@ -110,11 +114,7 @@ class Completion(object):
             entry = wdg
             
         completion = entry.get_completion()
-        # FIXME: we could do better but we should record the mode, otherwise a second
-        # call on the same completion would not follow 
-        #        if completion:
-        #            return (completion.get_model(), completion)
-        
+
         ## completion was not present
         completion = gtk.EntryCompletion()
         completion.set_property('popup-set-width', False)
@@ -125,7 +125,7 @@ class Completion(object):
             
         if self.master.is_fkey(field_name):
             col_num = 3
-            col_entry = 1   # col for data to be shown *in the entry*
+            col_entry = 2   # col for data to be shown *in the entry*
             col_dropdown = 2   # col for data to be shown *in the dropdown*
             completion.add_attribute(renderer, 'text', 2)
         else:
@@ -160,6 +160,12 @@ class Completion(object):
     
     
     def make_completion_to_pop(self, wdg):
+        """
+        Create an event that will cause completion to pop
+        """
+        if isinstance(wdg, gtk.ComboBoxEntry):
+            wdg = wdg.child
+
 #        completion.complete()
         event =   gtk.gdk.Event(gtk.gdk.KEY_PRESS)
         event.keyval = gtk.keysyms.period  #ord(".")
@@ -267,6 +273,7 @@ class Completion(object):
                 ## we're selection in the same column where we triggered completion
                 liststore.append([getattr(obj, field_name)])
 
+        dbg.write("%s - %s" % ('make_completion_to_pop', widget))
         self.make_completion_to_pop(widget)
 
     def append_to_model_fkey(self, liststore, obj, field_name):
@@ -291,7 +298,7 @@ class Completion(object):
         #fk_table = self.master.fields[field_name]['fkey'][0]
         fk_table, fk_key = self.get_foreign_info(field_name)
         descr = self.get_description_for_fkey(obj, fk_table) or fdescr
-
+        dbg.write(fvalue, fdescr, descr, obj_dict )
         liststore.append([ fvalue, fdescr, descr, obj_dict ])
 
     def get_description_for_fkey(self, obj, fk_table):
@@ -314,9 +321,10 @@ class Completion(object):
         """return the liststore associated with widget (that can be Entry or ComboBoxEntry)
         """
         if isinstance(widget, gtk.ComboBoxEntry):
-            return widget.get_model()
-        else:
-            return widget.get_completion().get_model()
+            #return widget.childget_model()
+            widget = widget.child
+
+        return widget.get_completion().get_model()
         
 #     def show_possible_completion_old(self, wdg, field_name, mode):
 #         """fill in a ListStore to use with completion, fetch data from db
