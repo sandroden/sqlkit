@@ -231,8 +231,8 @@ class SqlWidget(object):
             return minspect.InspectMapper(self.mapper, noup=self.noup, mode=self.mode)
         
     def _get_layout(self, lay, naked):
-        """lay may be a definition string or another SqlMask in case a the layout has
-        just been build bya another SqlMask object and we just need to
+        """lay may be a definition string or another SqlMask in case the layout has
+        just been build by another SqlMask object and we just need to
         add controls and so on
         """
 

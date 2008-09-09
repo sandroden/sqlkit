@@ -334,11 +334,11 @@ class CollectionWidget(Widget):
             dbproxy=self.master.dbproxy,
             naked=True, addto=self.gtkwidget,
             icons='b=gtk-new b=gtk-delete b=gtk-save',
-            hide = self.field.db_spec['remote_attr'],
+#            hide = self.field.db_spec['remote_attr'],
             dev = self.master.dev,
             )
         self.initial_value = []
-        self.table.relationship_mode = "M2M"
+        self.table.relationship_mode = "m2m"
 
         self.gtkwidget.set_property('sensitive', True) 
 
