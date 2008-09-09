@@ -1,3 +1,5 @@
+
+================
 Relationship
 ================
 
@@ -5,7 +7,7 @@ Sqlkit makes editing of data that have relation as one2many of many2many
 very simple. It's as easy as adding a field in the layout of the SqlMask.
 
 One2Many in a SqlMak
-----------------------
+=====================
 
 This is a very powerfull feature of ``sqlkit`` that is built on top of
 ``sqlalchemy``'s mechanism of properties and session and on the ability of
@@ -56,7 +58,7 @@ Ad you will get a mask that looks like this:
 
 
 delete behaviour
-================
+----------------
 
 We leave to sqlalchemy the responsability to decide if a film must be
 deleted from the database or must just updated to set the director_id to NULL.
@@ -77,9 +79,37 @@ in this way::
 .. _elixir: http://elixir.ematia.de
 
 limitation
-==========
+-----------
 
 
 The current version does not allows to filter on the fields of a related
 table.
+
+Many2many relationship
+=========================
+
+many2many relationship are as easy as one2many. Once again sqlalchemy
+does the heavy job. Definition is as simple as::
+
+
+    lay = """year title
+             m2o=genres - - -
+             """
+    tm = sqlkit.SqlMask(mapper=Movie.mapper, metadata=__metadata__, 
+                        session=elixir.session,layout=lay)
+    lay = """
+         name 
+         m2m=movies -
+    """
+    tm2 = sqlkit.SqlMask(mapper=Genre.mapper, metadata=__metadata__, 
+                         session=elixir.session,layout=lay)
+      
+
+and will pop up a couple of windows as the following, showing the same data
+from the two different main tables: movies with theis genres and genres with
+they're movies.
+
+.. image:: ../img/m2m.png
+
+  
 
