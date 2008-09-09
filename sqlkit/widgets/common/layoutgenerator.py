@@ -91,8 +91,10 @@ class LayoutGenerator (object):
         return p2.sub(self._sub, lay)
     
     def _sub(self, m):
+        """called from inside regexp
+        """
         field_name = m.group('field')
-
+        
         ## this is for reference of fields defined in other tables: tbl.field
         if field_name not in self.fields:
             ## any field that is not explicitly here is mapped into 'str'
@@ -103,13 +105,9 @@ class LayoutGenerator (object):
         widget = self.get_widget(field_name)
 
         spec = m.group('spec') or ''
-        try:
-            col_spec = self.fields[field_name]['col_spec']
-        except:
-            col_spec = col_spec
-            
+
         if not spec:
-            spec = self.create_spec(field_name, col_spec)
+            spec = self.create_spec(field_name)
 
         return " L=%s %s=%s%s" % (field_name, widget, field_name, spec)
     
@@ -130,19 +128,21 @@ class LayoutGenerator (object):
             widget = 'TXS'
         return widget
 
-    def create_spec(self, field_name, col_spec=None):
+    def create_spec(self, field_name):
         """create a spec string that decides how long en entry must be
            reflects fom db
            """
 
-        if not col_spec:
-            col_spec = self.fields[field_name]['col_spec']
+        pytype = self.fields[field_name]['type']
+        col_spec = self.fields[field_name]['col_spec'] or ''
+
             
-        if not col_spec or self.fields[field_name]['fkey']:
+        if self.master.is_fkey(field_name):
+            ### FIXME: I should set the length of the foreign key?
             return ''
-        if col_spec == 'INTEGER':
+        if col_spec == 'INTEGER' or pytype == int:
             return ":8"
-        elif col_spec.startswith('FLOAT'):
+        elif col_spec.startswith('FLOAT') or pytype == float:
             return ":8"
         elif col_spec == 'TEXT':
             dim = ":250.100"
@@ -151,11 +151,11 @@ class LayoutGenerator (object):
             m = re.search('VARCHAR.(\d+).', col_spec)
             if m:
                 length = int(m.group(1))
-                ## really long field should not at up all the space
-                ## (but you can obverride this by hand!...
+                ## really long field should not eat up all the space
+                ## (but you can override this by hand!...
                 if length > 50:
                     length = 50
-                ## now alignment: thisn will ensure it will grow
+                ## now alignment: this will ensure it will grow
                 ##  if more space is given to the window via rezising
                 spec = ":%s" % length
                 if length> 20:
