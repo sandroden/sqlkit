@@ -150,8 +150,9 @@ class SqlWidget(object):
     def hide_fields(self):
         if isinstance(self.hide, str):
             self.hide = re.split('[ ,]+', self.hide)
-        for field in self.hide:
-            self.field_list.remove(field)
+        for field_name in self.hide:
+            if field_name in self.field_list:
+                self.field_list.remove(field_name)
             
     def get_session(self, session):
         if session:
