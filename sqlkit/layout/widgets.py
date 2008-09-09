@@ -1061,6 +1061,10 @@ _W = {
     'Fix' : Fixed,
     'F' : FrameWithLabel,
     'A' : Alignment,
+    'm2m' : Alignment,  # used in sqlkit m2m, m2o layout definition
+    'm2o' : Alignment,
+    'o2m' : Alignment,
+    'o2o' : Alignment,
     'Lay' : Layout,
     'LS' : ScrolledLayout,
     
