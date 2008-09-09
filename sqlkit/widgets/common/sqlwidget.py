@@ -39,6 +39,7 @@ class SqlWidget(object):
                   layout = None,
                   naked=False,
                   geom=(-1,300),
+                  rows=10,
                   addto=None,
                   title=None,
                   show=True,
@@ -110,6 +111,7 @@ class SqlWidget(object):
         self.nick= self.get_nick(nick)
         self.mode = mode
         self.noup = noup
+        self.rows = rows
         self.hide = hide
         self.fields = self.get_fields()
         self.field_list = self.parse_fields(field_list, layout)
@@ -776,6 +778,12 @@ class SqlWidget(object):
         """
         return bool(self.fields[field_name]['fkey'])
 
+    def is_primary(self, field_name):
+        """
+        return True if this field is a Primary Key
+        """
+        return bool(self.fields[field_name]['pkey'])
+
     def is_loader(self, field_name):
         """
         True if field_name is a loader for a related table
@@ -812,6 +820,10 @@ class SqlWidget(object):
     def get_field_type(self, field_name):
         return self.fields[field_name]['type']
 
+    def set_current(self, pk=None):
+        """retrieve a record and set it as current
+        """
+        raise NotImplemented
     def session_show(self, k=None):
         """just for debugging 
         """

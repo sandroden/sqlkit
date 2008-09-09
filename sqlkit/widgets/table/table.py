@@ -678,8 +678,9 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.model_path = None
                 return
 
-        self.records += [obj]  ## adding to records is vital to get fk correctly in
-                               ## case this table is a M2M of M2O
+        if obj not in self.records:
+            self.records += [obj]  ## adding to records is vital to get fk correctly in
+                                   ## case this table is a M2M of M2O
 
         ## if _sqlkit_mode is not set as after a SELECT, it defaults to UPDATE
         ## _sqlkit_mode is set in record_new
@@ -851,7 +852,10 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         selection = self.treeview.get_selection()
         model, rows = selection.get_selected_rows()
-        ## we use junst the first selected
+        ## we use just the first selected
+        #  >>> sel.get_selected_rows()
+        #  (<gtk.ListStore object at 0x8dd61bc (GtkListStore at 0x8da6090)>, [(1,)])
+
         if rows:
             return rows[0][0]
         else:
@@ -877,6 +881,28 @@ class SqlTable(sqlwidget.SqlWidget):
 
         return obj
 
+    def set_current(self, pk=None, substitute=False):
+        """
+        retrieve object with primary key pk and set it as current object
+        ie: in the row currently selected
+        This is mainly used in completion callback for m2m relationship_mode
+        """
+
+        
+        row = self.get_selected_row()
+        if substitute:
+            self.session.expunge(self.liststore[row][0])
+        obj = self.session.query(self.mapper).get(pk)
+        self.liststore[row][0] = obj
+        self.records += [obj]
+
+    def set_rows(self, n):
+        """
+        set treeview visible rows to n
+        """
+        self.set_height_request(n)
+        
+
 #### completion
 
     def set_fkey_descr(self, column, cell, model, iter, field_name):
@@ -899,4 +925,6 @@ class SqlTable(sqlwidget.SqlWidget):
         shown: compatibility with mask version
         """
         return self.editable.get_text()
+
+
 

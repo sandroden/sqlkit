@@ -328,6 +328,7 @@ class CollectionWidget(Widget):
 
         self.table = SqlTable(
             table=table.name,
+            geom = (-1, 160),
             mapper = self.field.db_spec['mapper'],
             session=self.master.session,
             metadata=self.master.metadata,

@@ -82,7 +82,7 @@ SqlTable
   creare un popup con il testo e poi sincronizzarlo. Hai idee migliori?
   (Pietro 5)
 
-* Evitare editing di colonne fkey altro che via completion.  (pietro 8)
+* Evitare editing di colonne fkey altro che via completion.  (pietro 5)
 
 * Imporre refresh della funzione cell_data_func per fk dopo avere impostato
   il dato. Attualmente quando imposto una cella fk via menu, viene impostato

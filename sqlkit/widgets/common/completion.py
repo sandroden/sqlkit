@@ -419,12 +419,20 @@ class Completion(object):
         #         if more fields are present more columns get written
 
         value = model.get(iter,0)[0]
+
         if self.master.is_fkey(field_name):
             fkvalue = model.get(iter,1)[0]
         else:
             fkvalue = None
 
-        self.master.set_value(field_name, value, fkvalue=fkvalue)
+        if self.master.is_primary(field_name) and self.master.relationship_mode == "m2m":
+            ## when the Table is used to render a m2m field
+            ## we don't want to "create" a new match, just pick an old one
+            ## and use that one
+            self.master.set_current(pk=value, substitute=True)
+        else:
+            ## normal case
+            self.master.set_value(field_name, value, fkvalue=fkvalue)
 
         return True
 #         #dbg.write('value for ', field_name, value)
