@@ -49,7 +49,7 @@ class Widget(object):
 class VarcharWidget(Widget):
     #  to prevent to change NULL to '' and viceversa
     #  we store the value when setting it 
-    #  and compare it wher getting
+    #  and compare it when getting
 
     def __init__(self, *args):
 
@@ -335,7 +335,7 @@ class CollectionWidget(Widget):
             dbproxy=self.master.dbproxy,
             naked=True, addto=self.gtkwidget,
             icons='b=gtk-new b=gtk-delete b=gtk-save',
-#            hide = self.field.db_spec['remote_attr'],
+            hide = self.field.db_spec['remote_attr'],
             dev = self.master.dev,
             )
         self.initial_value = []
