@@ -102,7 +102,7 @@ class LWidget(object):
           (?:(?P<flag>\w+)=)?      # ignore if passed the full string
           (?P<val>[^/:<>]*)        # value
           (?:/(?P<var>[^:]+))?     # variable
-          (?:(?::(?P<w>-?[\d]*))?      # width
+          (?:(?::(?P<w>[\d]*))?      # width
           \.?
           (?P<h>-?[\d]+)?)?            # height
           (?P<align>[-<>])?         # align, a < or a > at the end of the string
@@ -115,9 +115,9 @@ class LWidget(object):
         self.h = match.group("h")
         self.align = match.group("align")
         #dbg.write("el: %s w=%s h=%s align=%s-" % (el_def,self.w,self.h, self.align))
-        #print  "_parse_cell_def: el: %s var=%s val=%s" % (
-        #    el_def,self.var,self.val)
-
+        #print  "_parse_cell_def: el: %s var=%s val=%s h=%s align=%s" % (
+        #    el_def,self.var,self.val, self.h, self.align)
+        #print match.groups()
         if not self.var:
             ## radiobutton use self.val as 'group'
             if not re.search("GtkRadioButton",self.gtkClass):
