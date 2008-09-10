@@ -138,7 +138,7 @@ class InspectMapper(dict):
         
         for prop in props:
             if isinstance(prop, properties.ColumnProperty):
-                self._add_field(prop.key, self.mapper)
+                self._add_field(prop.key, self.mapper, property=prop)
             elif isinstance(prop, properties.PropertyLoader):
                 self._add_loader_field(prop.key, self.mapper, property=prop)
                 
@@ -200,6 +200,9 @@ class InspectMapper(dict):
         via a OneToMany relation
 
         No real attribute is present in the db table
+
+        SqlMask will use CollectionWidget to represent it and will explicily be asked to
+        via a field in the layout
         """
 
         if field_name in self:
@@ -224,14 +227,10 @@ class InspectMapper(dict):
             'pkey'        :  None,
             'nullable'    :  True,
 #            'mapper'      :  property.table.mapper,
-            'edit'        :  False, ## FIXME
+            'edit'        :  True,
 #            'direction'   :  mapper.props[field_name].direction
             'remote_attr' : [c.name for c in property.remote_side]
             }
-        try:
-            d['length'] = 40  # FIXME
-        except:
-            d['length'] = None
 
         table_name = mapper.local_table.name
         if table_name not in self.table_mappers:

@@ -77,6 +77,9 @@ class SqlTable(sqlwidget.SqlWidget):
             self.lay_obj.prop('TV=tree', 'width-request', self.geom[0])
             self.lay_obj.prop('TV=tree', 'height-request', self.geom[1])
 
+#         if self.rows:
+#             self.set_height_request()
+
         if self.icons:
             self.lay_obj.prop(
                 ('A.icons', 'xscale', 0),
@@ -786,7 +789,6 @@ class SqlTable(sqlwidget.SqlWidget):
         self.commit_allowed = False
         self.clear()
         ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
-        self.set_height_request()
         self.model_path = None
         
         return ret

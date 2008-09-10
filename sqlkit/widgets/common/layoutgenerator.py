@@ -136,7 +136,8 @@ class LayoutGenerator (object):
            reflects fom db
            """
 
-        pytype = self.fields[field_name]['type']
+        length = self.fields[field_name]['type']
+        pytype = self.fields[field_name]['length']
         col_spec = self.fields[field_name]['col_spec'] or ''
 
             
@@ -151,9 +152,11 @@ class LayoutGenerator (object):
             dim = ":250.100"
         
         else:
-            m = re.search('VARCHAR.(\d+).', col_spec)
-            if m:
-                length = int(m.group(1))
+            if not length:
+                m = re.search('VARCHAR.(\d+).', col_spec)
+                if m:
+                    length = int(m.group(1))
+            if length:
                 ## really long field should not eat up all the space
                 ## (but you can override this by hand!...
                 if length > 50:

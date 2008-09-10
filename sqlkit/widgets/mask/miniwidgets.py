@@ -3,6 +3,9 @@ Gtk Widgets
 ===========
 
 widgets to be used by fields to display values and edit 
+at the time of writing, intial value is stored here but should be moved to fields
+widgets only interpret gtk, while fields teat with real values and do validation
+
 
 """
 
@@ -45,6 +48,9 @@ class Widget(object):
     
     def get_value(self):
         pass
+
+    def __repr__(self):
+        return "< %s - %s >" % (self.__class__.__name__, self.field_name)
 
 class VarcharWidget(Widget):
     #  to prevent to change NULL to '' and viceversa
@@ -341,7 +347,7 @@ class CollectionWidget(Widget):
         self.initial_value = []
         self.table.relationship_mode = "m2m"
 
-        self.gtkwidget.set_property('sensitive', True) 
+        #self.gtkwidget.set_property('sensitive', True) 
 
     def set_value(self, value):
         from copy import copy

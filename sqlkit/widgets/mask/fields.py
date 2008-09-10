@@ -129,6 +129,9 @@ class Field(object):
     def validate(self):
         pass
 
+    def __repr__(self):
+        return "<%s - %s >" % (self.__class__.__name__, self.field_name)
+
 class IntegerField(Field):
     Widget = IntegerWidget
     def get_value(self, shown=False):
