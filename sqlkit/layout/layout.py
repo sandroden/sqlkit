@@ -118,8 +118,8 @@ class Layout(object):
                 ### col span
                 if el in '-':
                     self._colspan(row,col)
+                    col = col + 1
                     continue
-                col = col + 1
                 ### row span
                 if el in '^':
                     self._rowspan()
