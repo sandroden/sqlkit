@@ -76,6 +76,7 @@ class InspectMapper(dict):
         return {
             sqlalchemy.databases.postgres.PGString : str,
             sqlalchemy.databases.postgres.PGInteger  : int,
+            sqlalchemy.databases.postgres.PGBigInteger : int,
             sqlalchemy.databases.postgres.PGSmallInteger  : int,
             sqlalchemy.databases.postgres.PGFloat  : float,
             sqlalchemy.databases.postgres.PGDateTime  : datetime.datetime,
