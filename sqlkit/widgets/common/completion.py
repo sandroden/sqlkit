@@ -678,14 +678,11 @@ class Completion(object):
             ## as a last resort use the first text field
             if tables[table_name] == [None, None, None]:
                 for field_name in tbl.c.keys():
-                    if re.search("text|char", tbl.c[field_name].type.get_col_spec(), re.I):
+                    if re.search("string|text|char", tbl.c[field_name].type.__class__.__name__, re.I):
                         tables[table_name] = [field_name, None, None]
                         break
                 
-
         return tables[table_name][0:2]
-
-                          
 
 ### Misc
     def pop_menu(self, wdg, ev, field_name, num_button):
@@ -843,5 +840,3 @@ def get_description_fields(table):
         return tables[table]
     return None
     
-
-
