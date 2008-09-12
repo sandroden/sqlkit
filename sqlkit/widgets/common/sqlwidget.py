@@ -1,19 +1,20 @@
 import sys, re, datetime, os
 import inspect 
 import layout
-import layout.dateedit as dateedit
 import sqlalchemy.types as sqltypes
+from sqlalchemy.exc import InvalidRequestError
 
 from layoutgenerator import LayoutGenerator
 import gtk, pango
 import decimal
 from sqlalchemy import exceptions
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper
 #from sqlalchemy import *
 import dbg.gtk_dbg
 
 import sqlkit
-import sqlfilter 
+import sqlfilter
+#from sqlkit.widgets.common import sqlfilter2 as sqlfilter
 from sqlkit.db import sqldata, minspect
 from sqlkit.widgets.common import completion
 from sqlalchemy.orm import attributes
@@ -25,6 +26,7 @@ class ValidationError(Exception): pass
 class CommitError(ValidationError): pass
 
 NUMBERS = (int, float, decimal.Decimal)
+
 
 class SqlWidget(object):
     fields   = None  # fields to use (InspectMapper)
@@ -47,6 +49,7 @@ class SqlWidget(object):
                   # SQL
                   table=None,
                   tables=None,
+                  Class=None,
                   join=None,
                   mode='rw',
                   noup=[],
@@ -107,7 +110,7 @@ class SqlWidget(object):
         if table and not tables:
             tables = table
         self.tables = tables
-        self.mapper = self.get_mapper(mapper, tables)
+        self.mapper = self.get_mapper(mapper, tables, Class)
         self.nick= self.get_nick(nick)
         self.mode = mode
         self.noup = noup
@@ -160,9 +163,17 @@ class SqlWidget(object):
         else:
             return self.dbproxy.get_session()
     
-    def get_mapper(self, mapper, tables):
-        
-        return mapper or self.dbproxy.get_mapper(mapper, tables)
+    def get_mapper(self, mapper, tables, Class=None):
+
+        if mapper:
+            pass
+        elif Class:
+            mapper = class_mapper(Class)
+        else:
+            mapper = self.dbproxy.get_mapper(mapper, tables)
+            
+        self.tables = [mapper.local_table.name]  ## FIXME: what when we have a join?
+        return mapper
 
     def parse_fields(self, field_list, layout):
         if not field_list:
@@ -190,7 +201,7 @@ class SqlWidget(object):
             
         else:
             if isinstance(field_list, str):
-                new_field_list = re.split('[ ,]+',field_list)
+                new_field_list = [f for f in re.split('[ ,]+',field_list) if f]
             else:
                 new_field_list = field_list
         return new_field_list
@@ -303,6 +314,7 @@ class SqlWidget(object):
         """ Add default actions to std buttons"""
         actions = {
             ## std toolbutton
+            'tb=gtk-save-as'       : self.record_save_new,
             'tb=gtk-save'       : self.record_save,
             'tb=gtk-new'        : self.record_new,
             'tb=gtk-delete'     : self.record_delete,
@@ -312,6 +324,7 @@ class SqlWidget(object):
             'tb=gtk-go-back'    : self.record_back,
 
             ## in case the programmers has set them
+            'b=gtk-save-as'       : self.record_save_new,
             'b=gtk-save'       : self.record_save,
             'b=gtk-new'        : self.record_new,
             'b=gtk-delete'     : self.record_delete,
@@ -346,6 +359,11 @@ class SqlWidget(object):
         """
         pass
     
+    def record_save_new(self, ev):
+        """Save the record as a new record, ie letting pk not be set 
+        """
+        raise NotImplementedError
+
     def commit(self):
 
         PREV = self.metadata.bind.echo
@@ -762,7 +780,8 @@ class SqlWidget(object):
                 'm=file',
                 ('filter panel',  'activate', self.add_filter),
                 ('-', None),
-                ('gtk-clear', 'activate',  self.clear_cb),
+                ('gtk-clear', 'activate',  self.record_new),
+                ('gtk-save-as', 'activate',  self.record_save_new),
                 ('inspect tables', 'activate',  self.show_mapper_info),
                 ('inspect widgets', 'activate', self.show_widget_info),
                 ('inspect class', 'activate', self.show_class_info),
@@ -804,6 +823,26 @@ class SqlWidget(object):
         db_type = self.fields[field_name]['db_type']
         if db_type:
             return issubclass(db_type, (sqltypes.Date))
+        else:
+            return False
+
+    def is_boolean(self, field_name):
+        """
+        Return true if this field is  date
+        """
+        py_type = self.fields[field_name]['type']
+        if py_type:
+            return issubclass(py_type, bool)
+        else:
+            return False
+
+    def is_number(self, field_name):
+        """
+        Return true if this field is  date
+        """
+        py_type = self.fields[field_name]['type']
+        if py_type:
+            return issubclass(py_type, (int, float, decimal.Decimal))
         else:
             return False
 
@@ -870,6 +909,7 @@ class SqlWidget(object):
         #SubMenu.append(Item1)
     
     def print_fill_submenu(self, item, sub):
+        return
         try:
             a = self.printing_menu_filled
             return

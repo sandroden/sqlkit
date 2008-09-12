@@ -7,7 +7,6 @@ import re
 import sqlalchemy
 import sqlkit as sk
 from datetime import *
-from dry.dateutils import string2dates
 
 class SqlDataFixNeeded(Exception): pass
 
@@ -33,7 +32,8 @@ class FilterPanel(object):
         self.row =0  # counter for position of fields
         self.default_reload = True
         
-        self.search_fields = {}
+        self.search_filter_widgets = []
+        self.search_filter_field_names = []
         self.bind_name = self.master.metadata.bind.name
         
     def __del__(self):
@@ -84,6 +84,30 @@ class FilterPanel(object):
             self.easytv.tv.connect('button_press_event', self.tv_changed_cb)
             self.easytv.tvc['id'].set_property('visible', False)
 
+    def add(self, wdg, ev, field_name, after=None, show=True):
+        """add a field to the filter panel + operator and string entry
+        after: entry will be positioned after widget 'after'
+        """
+        ## FIXME: after and show?
+        if not field_name in self.search_filter_field_names:
+            widget = get_filter_widget(field_name, self, self.master)
+            widget.add(field_name)
+            self.search_filter_widgets += [ widget]
+            self.search_filter_field_names    += [field_name]
+            
+        if show:
+            self.w['Window'].show_all()
+        self.w['Window'].present()
+
+    def hide(self, wid, ev=None):
+        """hide FilterPanel."""
+
+        self.w['Window'].set_property('visible', False)
+        return True  # stops further processing...
+    
+    def destroy(self):
+        self.w['Window'].destroy()
+    
 ##### reload & TreeView
     def reload_cb(self, widget):
         """issue a reload operation on master. Call back of reload button"""
@@ -223,133 +247,11 @@ class FilterPanel(object):
             raise SqlDataFixNeeded()
             self.master.actions.on_filter_reload(self.sqlData.get(index=int(idx)))
     
-    def pop_menu(self, wdg, ev, num_button):
-        #dbg.write(wdg, ev, num_button)
-        if ev.button == num_button:
-            self.w['M=opts'].popup(None, None, None, ev.button, ev.time )
-        
-##### handling
-    def hide(self, wid, ev=None):
-        """hide FilterPanel."""
-
-        self.w['Window'].set_property('visible', False)
-        return True  # stops further processing...
-    
-    def destroy(self):
-        self.w['Window'].destroy()
-    
-    def get_suitable_operators(self, field_name, ftype, bind_name):
-        """return list of operators meaningfull for engine/data type
-        """
-        #dbg.write( field_name, ftype, bind_name)
-
-        STR_STD_OPERATORS = [ 'LIKE', 'NOT LIKE' ]
-        NULL_OPERATORS = [ 'IS NULL', 'IS NOT NULL' ]
-        STD_OPERATORS = [ '>=','<=', '=', '!=', '>', '<', ] + NULL_OPERATORS
-        BOOLEAN_OPERATORS = [ 'IS TRUE', 'IS FALSE' ] + NULL_OPERATORS
-        #import pdb; pdb.set_trace()
-        if issubclass(ftype, bool):
-            dbg.write('bool')
-            return BOOLEAN_OPERATORS
-        
-        if self.master.fields[field_name]['fkey']:
-            if bind_name in ('postgres'):
-                return  ['~*', '~', '!~*', '~*' ] + STD_OPERATORS
-            elif bind_name in ('mysql'):
-                return ['REGEXP' ] + STD_OPERATORS
-
-        if issubclass(ftype, (int, float, datetime, date, time)):
-            return STD_OPERATORS
-
-        if bind_name in 'sqlite':
-            return STR_STD_OPERATORS + STD_OPERATORS
-        
-        elif bind_name in 'mysql':
-            return [ 'REGEXP' ] + STD_OPERATORS
-
-        elif bind_name in 'postgres':
-            return  ['~*', '~', '!~*', '~*' ] + STD_OPERATORS
-
-    
-
-    def add(self, wdg, ev, field, after=None, show=True):
-        """add a field to the filter panel + operator and string entry
-        after: entry will be positioned after widget 'after'
-        """
-
-        ## I'd like *not* to .present the widget for any successive field added
-        ## but I have not been able to get focus on the window w/o .present()
-        
-        if field in self.search_fields and ev.button != 3:
-            self.w['Window'].present()
-            self.w['Window'].deiconify()
-            return
-
-        info = (field, True, '')
-        if field not in self.search_fields:
-            self.search_fields[field] = [info]
-        else:
-            self.search_fields[field] += [info]
-            
-        ftype = self.master.fields[field]['type']
-        operators = self.get_suitable_operators(field, ftype, self.bind_name)
-
-        ## labels
-        field_name_event_box = gtk.EventBox()
-        field_name           = gtk.Label(layout.get_label(field))
-        check_button         = gtk.CheckButton()
-
-        check_button.set_active(True)
-        self.l.tooltips.set_tip(check_button, "Check me to use this filter")
-        
-        field_name_event_box.add(field_name)
-        field_name.set_property('xalign', 0)
-        field_name_event_box.connect('button-press-event', self.pop_menu,
-                                     'show=True')
-        #field_name_event_box.window.set_cursor(self.w['label-cursor'])
-
-        ## combo for operator
-        operator = gtk.combo_box_new_text()
-        for op in operators:
-            operator.append_text(op)
-        operator.set_active(0)
-        #operator.set_property('can_focus', False)
-
-        ## get_active_text per riprenderlo...
-        ## entry
-
-        field_widget = gtk.Entry()
-        field_widget.connect('activate', self.reload_cb)
-
-        Tbl = self.w['T.fld']
-        r = self.row
-        c = 0
-        widgets = [ field_name_event_box, operator, check_button ]
-        if not issubclass(ftype, bool):
-            widgets += [field_widget]
-            
-        for wdg in widgets:
-            Tbl.attach(wdg, c, c+1, r, r+1, xpadding=4)
-            c += 1
-        self.row += 1
-        Tbl.show_all()
-        field_widget.grab_focus()
-        
-
-        self.fields.append({
-            'field':    field,
-            'type' :    ftype,
-            'operator': operator,
-            'entry':    field_widget,
-            'check_button': check_button,
-            } )
-        if show:
-            self.w['Window'].show_all()
-        self.w['Window'].present()
-
-    
 ##### SQL
     def get_limit(self):
+        """
+        Get limits of the select we are issuing
+        """
         self.w['s=limit'].update()
         return  self.w['s=limit'].get_value_as_int()
     
@@ -357,31 +259,165 @@ class FilterPanel(object):
         """create a sql statement composing all requests
         returns a sql whereclause and a bindparam dictionary
         """
-        ret = self.master.fields.get_join_cnd()
-        #dbg.write(ret)
+        #ret = self.master.fields.get_join_cnd()
+        ret = []
         values={}
-        for fld in self.fields:
-            if fld['check_button'].get_active():
-                op = fld['operator'].get_active_text()
-                fld['op_value'] = op
-                
-                if op in ('IS NULL', 'IS NOT NULL', 'IS TRUE', 'IS FALSE'):
-                    ret += [ "%(field)s %(op_value)s" % fld ]
-                else:
-                    value = fld['entry'].get_text()
-                    if value:
-                        if issubclass(fld['type'], date):
-                            self.handle_dates(ret, fld, values, value)
-                        else:
-                            ret += self._compose_field_whereclause(
-                                fld, values, value)
+        
+        for pwidget in self.search_filter_widgets:
+            ret += pwidget.get_filter_condition(values)
 
         sql = (sqlalchemy.and_(*ret), values)
         #self.sql_dbg(ret)
-        #dbg.write(values)
+        #print sql
         return sql
 
+
+    def sql_dbg(self, bool_conds):
+        for c in bool_conds:
+            print "DBG: ", c.left, c.operator, c.right
+        
+
+class FilterWidget(object):
+    STR_STD_OPERATORS = [ 'LIKE', 'NOT LIKE' ]
+    NULL_OPERATORS = [ 'IS NULL', 'IS NOT NULL' ]
+    STD_OPERATORS = [ '>=','<=', '=', '!=', '>', '<', ] + NULL_OPERATORS
+
+    def __init__(self, field_name, panel, master):
+        self.panel = panel
+        self.master = master
+        self.field_name = field_name
+        self.db_spec = self.master.fields[field_name]
+        self.col = self.db_spec['col']
+        self.bind_name = self.master.metadata.bind.name
+
+
+##### handling
+    def get_suitable_operators(self):
+        """return list of operators meaningfull for engine/data type
+        """
+        return self.STD_OPERATORS
+
+    def add(self, field_name, after=None, show=True):
+        """add a field to the filter panel + operator and string entry
+        after: entry will be positioned after widget 'after'
+        """
+
+        ## I'd like *not* to .present the widget for any successive field added
+        ## but I have not been able to get focus on the window w/o .present()
+        
+        operators = self.get_suitable_operators()
+
+        ## labels
+        self.field_name_event_box = gtk.EventBox()
+        self.field_label           = gtk.Label(layout.get_label(field_name))
+        self.check_button         = gtk.CheckButton()
+
+        self.check_button.set_active(True)
+        self.panel.l.tooltips.set_tip(self.check_button, "Check me to use this filter")
+        
+        self.field_name_event_box.add(self.field_label)
+        self.field_label.set_property('xalign', 0)
+        self.field_name_event_box.connect('button-press-event', self.pop_menu,
+                                     'show=True')
+        #field_name_event_box.window.set_cursor(self.w['label-cursor'])
+
+        ## combo for operator
+        self.operator = gtk.combo_box_new_text()
+        for op in operators:
+            self.operator.append_text(op)
+        self.operator.set_active(0)
+        #operator.set_property('can_focus', False)
+
+        ## get_active_text per riprenderlo...
+        ## entry
+
+        self.field_widget = gtk.Entry()
+        self.field_widget.connect('activate', self.panel.reload_cb)
+
+        Tbl = self.panel.w['T.fld']
+        r = self.panel.row
+        c = 0
+        widgets = [ self.field_name_event_box, self.operator, self.check_button ]
+        ftype  = self.master.get_field_type(field_name)
+        if not issubclass(ftype, bool):
+            widgets += [self.field_widget]
+            
+        for wdg in widgets:
+            Tbl.attach(wdg, c, c+1, r, r+1, xpadding=4)
+            c += 1
+        self.panel.row += 1
+        Tbl.show_all()
+        self.field_widget.grab_focus()
+        
+
+    
+    def get_filter_condition(self, values):
+        if not self.check_button.get_active():
+            return []
+        
+        ret = []
+        op_value = self.operator.get_active_text()
+                
+        if op_value in ('IS NULL', 'IS NOT NULL', 'IS TRUE', 'IS FALSE'):
+            ret += [ "%s %s" % (self.field_name, op_value) ]
+        else:
+            value = self.field_widget.get_text()
+            if value:
+                ret += self._compose_field_whereclause(values, value, op_value)
+        return ret
+        
+
+    def _compose_field_whereclause(self, values, value, op_value):
+        """return a sql whereclause for field
+
+        """
+        sql = self.col.op(op_value)(value)
+
+        return [ sql ]
+
+    def pop_menu(self, wdg, ev, num_button):
+        #dbg.write(wdg, ev, num_button)
+        if ev.button == num_button:
+            self.w['M=opts'].popup(None, None, None, ev.button, ev.time )
+        
+    
+
+class FilterStringWidget(FilterWidget):
+
+    def get_suitable_operators(self ):
+        if self.bind_name in 'sqlite':
+            return self.STR_STD_OPERATORS + self.STD_OPERATORS
+        
+        elif self.bind_name in 'mysql':
+            return [ 'REGEXP' ] + self.STD_OPERATORS
+
+        elif self.bind_name in 'postgres':
+            return  ['~*', '~', '!~*', '~*' ] + self.STD_OPERATORS
+
+class FilterBooleanWidget(FilterWidget):
+
+    def get_suitable_operators(self):
+        return [ 'IS TRUE', 'IS FALSE' ] + self.NULL_OPERATORS
+
+class FilterDateWidget(FilterWidget):
+
+    def get_filter_condition(self, values):
+        if not self.check_button.get_active():
+            return []
+        
+        op = self.operator.get_active_text()
+                
+        if op in ('IS NULL', 'IS NOT NULL', 'IS TRUE', 'IS FALSE'):
+            ret += [ "%s %s" % (self.field_name, op) ]
+        else:
+            value = self.field_widget.get_text()
+            if value:
+                self.handle_dates(ret, fld, values, value)
+        return ret
+        
+
     def handle_dates(self, ret, fld, values, value):
+        from dry.dateutils import string2dates
         start, stop = string2dates(value)
 
         # If 'stop' is not None it means I have a period (eg.: 'y > M')
@@ -398,47 +434,73 @@ class FilterPanel(object):
             fld['op_value'] = "<="
             ret += self._compose_field_whereclause(fld, values, stop)
                 
-    def sql_dbg(self, bool_conds):
-        for c in bool_conds:
-            print "DBG: ", c.left, c.operator, c.right
         
-    def _compose_field_whereclause(self, fld, values, value):
+class FilterFKeyWidget(FilterWidget):
+
+    def get_suitable_operators(self):
+        if self.bind_name in ('postgres'):
+            return  ['~*', '~', '!~*', '~*' ] + self.STD_OPERATORS
+        elif self.bind_name in ('mysql'):
+            return ['REGEXP' ] + self.STD_OPERATORS
+        elif self.bind_name in ('mysql'):
+            return ['MATCH' ] + self.STD_OPERATORS
+
+    def _compose_field_whereclause(self, values, value, op_value):
         """return a sql whereclause for field
 
-        In case field is a fkey, terminating with _id, and the destination
-        lookup field is not in the mapper, it composes a subselect
+        In case field is a fkey, and the destination lookup field is not in
+        the mapper, it composes a subselect
         """
-        F = self.master.fields
-        fld['value'] = value
-        sql = F[fld['field']]['col'].op(fld['op_value'])(value)
-        #dbg.write(fld)
-        info = self.master.fields[fld['field']]
-        if fld['field'].endswith('_id') and info['fkey']:
-            fld['ftable'], fld['fname'] = self.master.completion.get_foreign_info(fld['field'])
-            fld['fdescr'] = self.master.completion._add_descriptor_fields(
-                mode='return', referenced_table=fld['ftable'])
+        sql = self.col.op(op_value)(value)
 
-            if fld['fdescr'] in F:
-                ## this means we have a mapper that has already this field
-                ## we don't need a subselect
-                #descr_col = F[fld['fdescr']]['col']
-                dbg.write("qui 1")
-                sql = F[fld['fdescr']]['col'].op(fld['op_value'])(value)
-                return [sql]
+        fld = {'op_value' : op_value, 'value' : value}
+        fld['ftable'], fld['fname'] = self.master.completion.get_foreign_info(self.field_name)
+        fld['fdescr'] = self.master.completion._add_descriptor_fields(
+            mode='return', referenced_table=fld['ftable'])
 
-            if info['fkey']:
-                dbg.write("qui 2")
-                values[fld['field']] = value
+#         if fld['fdescr'] in F:
+#             ## this means we have a mapper that has already this field
+#             ## we don't need a subselect
+#             #descr_col = F[fld['fdescr']]['col']
+#             dbg.write("qui 1")
+#             sql = F[fld['fdescr']]['col'].op(fld['op_value'])(value)
+#             return [sql]
 
-                ## FIXME: not using bind parameters
-                s = """%(ftable)s.%(fname)s FROM %(ftable)s
-                WHERE %(ftable)s.%(fdescr)s %(op_value)s '%(value)s' """ % (fld)
-                dbg.write(s)
-                ## if this parameters is not deleted, SA will add a condition to
-                ## the select to match it
-                del values[fld['field']]
+        #values[fld['field']] = value
 
-                sql = F[fld['field']]['col'].in_(sqlalchemy.select([s]))
+        ## FIXME: not using bind parameters
+        s = """%(ftable)s.%(fname)s FROM %(ftable)s
+        WHERE %(ftable)s.%(fdescr)s %(op_value)s '%(value)s' """ % (fld)
+
+        dbg.write(s)
+
+        ## if this parameters is not deleted, SA will add a condition to
+        ## the select to match it
+        #del values[fld['field']]
+
+        sql = self.col.in_(sqlalchemy.select([s]))
 
         return [ sql ]
 
+
+def get_filter_widget(field_name, panel, master):
+    """
+    return an instance of a proper FilterWidget according to type
+    """
+
+    args = field_name, panel, master
+    if master.is_date(field_name) or master.is_datetime(field_name):
+        return FilterDateWidget(*args)
+
+    elif master.is_fkey(field_name):
+        return FilterFKeyWidget(*args)
+
+    elif master.is_boolean(field_name):
+        return FilterBooleanWidget(*args)
+    
+    elif master.is_number(field_name):
+        return FilterWidget(*args)
+    
+    else:
+        return FilterStringWidget(*args)
+        
