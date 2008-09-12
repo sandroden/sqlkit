@@ -81,7 +81,7 @@ class LayoutGenerator (object):
         (?<!\S)                # next row must not match if preceded by any str
                                # %string is a qualifier for notebooks
                                # {N is for noteooks and so on
-        (?P<field>[a-z_A-Z\.]+)  # the field + a possible table (table.field)
+        (?P<field>[a-z_0-9A-Z\.]+)  # the field + a possible table (table.field)
         (?![-=])               # the row above is only matched if not followed
                                # by - o = (b=gtk-save-as *must not* match)
         (?P<spec>:[-<>.\d]*)?
@@ -135,15 +135,14 @@ class LayoutGenerator (object):
         """create a spec string that decides how long en entry must be
            reflects fom db
            """
-
         length = self.fields[field_name]['type']
-        pytype = self.fields[field_name]['length']
         col_spec = self.fields[field_name]['col_spec'] or ''
 
             
-        if self.master.is_fkey(field_name):
+        if self.master.is_fkey(field_name) or self.master.is_loader(field_name):
             ### FIXME: I should set the length of the foreign key?
             return ''
+        pytype = self.fields[field_name]['length']
         if col_spec == 'INTEGER' or pytype == int:
             return ":8"
         elif col_spec.startswith('FLOAT') or pytype == float:
@@ -208,7 +207,7 @@ class LayoutGenerator (object):
             
         self.layout = """
         {B m=file m=modifica m=opzioni m=aiuto}
-        {O.tool tb=gtk-save tb=gtk-delete tb=gtk-new tb=gtk-refresh tb=gtk-quit
+        {O.tool tb=gtk-save tb=gtk-save-as tb=gtk-delete tb=gtk-new tb=gtk-refresh tb=gtk-quit
         %s}
         {A { %s}}
         sb=StBar
