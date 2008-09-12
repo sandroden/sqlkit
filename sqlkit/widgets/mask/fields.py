@@ -82,11 +82,11 @@ class FieldChooser(object):
         if COL_SPEC == 'TIME' :
             return TimeField(*args)
 
-        if COL_SPEC == 'TIMESTAMP WITH TIME ZONE' or DB_TYPE == datetime:
-            return DateTimeTZField(*args)
-
-        if COL_SPEC == 'TIMESTAMP WITHOUT TIME ZONE':
+        if COL_SPEC == 'TIMESTAMP WITHOUT TIME ZONE'  or DB_TYPE == datetime:
             return DateTimeField(*args)
+
+        if COL_SPEC == 'TIMESTAMP WITH TIME ZONE':
+            return DateTimeTZField(*args)
 
         raise NotHandledField("Field %s is not handled in any way")
 
