@@ -1,4 +1,4 @@
-def set_height_request(self, treeview, rows):
+def set_height_request(treeview, rows):
     """Show a given number of rows in the treeview.
     Untested with multiline rows.
     """
