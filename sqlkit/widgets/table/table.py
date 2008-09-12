@@ -654,6 +654,10 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.sb("Total N. of records: %s" % (len(self.liststore)))
         
+    def record_save_new(self, ev):
+        ## the problem here is to prevent changes in the already used record
+        raise NotImplementedError
+    
     def record_save(self, ev = None, constraint={}, discard_empty=False):
 
         """save the record

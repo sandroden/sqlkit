@@ -9,6 +9,7 @@ import layout.dateedit as dateedit
 #from sqlkit.widgets.common.layoutgenerator import LayoutGenerator
 import gtk, pango
 from sqlalchemy import *
+from sqlalchemy.exc import InvalidRequestError
 import dbg.gtk_dbg
 import sqlkit
 #from sqlkit.widgets.common import sqlfilter
@@ -211,13 +212,26 @@ class SqlMask (sqlwidget.SqlWidget):
     def record_save_new(self, wdg, constraint={}):
         """create a new record by cloning the present
         """
-        raise NotImplemented
-    ## missing handling of Primary Key:
-    ## should I delete the old one? should I look for editable attribute of the
-    ## gtk widget?
+
+        ## if PKey is editable we should add a check that is not the same
+        if isinstance(self.tables, list):
+            tbl = self.tables[0]
+        else:
+            tbl = self.tables
+        for key in self.fields.get_pkeys(tbl):
+            if key in self.mfields and self.is_editable(key):
+                raise NotImplemented
+            
+        ## missing handling of Primary Key:
+        ## should I delete the old one? should I look for editable attribute of the
+        ## gtk widget?
+
         self.record_new(clear=False)
-        self.record_save()
-        
+        try:
+            self.record_save(self.current)
+        except InvalidRequestError, e:
+            print e.message
+            raise
         
     def record_mask2obj(self, obj=None):
         """collect data from the mask and set into the object if record_changed())
@@ -276,7 +290,7 @@ class SqlMask (sqlwidget.SqlWidget):
         ## some modification has really been made (record_changed())
         ## within record_mask2obj.
         ## this prevents unsaved_changes_exist() to complain that a commit is
-        ## needed no editing has been done
+        ## needed when no editing has been done
 
         self.current = self.get_new_object(session=False)
         self.records += [self.current]
