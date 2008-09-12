@@ -141,36 +141,6 @@ class SqlTable(sqlwidget.SqlWidget):
             self.filter_panel.reload_cb(None)
         else:
             self.reload()
-    
-    def set_height_request(self, rows=None):
-        area = self.treeview.get_cell_area(0, self.treeview.get_column(0))
-
-        col      = self.treeview.get_column(0)
-        renderer = col.get_cell_renderers()[0]
-        spacing  = self.treeview.style_get_property('vertical-separator')
-
-        if not rows:
-            rows = len(self.liststore)
-
-            if rows == 0:
-                rows = 10
-            if rows > 30:
-                rows = 30
-
-        # It is not clear where the "+1" pixel comes from, but it's there
-        needed_height = (area.height+1) * rows + (spacing) * (rows-1)
-        dbg.write('area',area, 'needed', needed_height, 'area.h', area.height)
-
-        # This would not be needed if a previous call to "height-request" hadn't
-        # been made. However, there was maybe a reason to do it.
-        self.treeview.set_property('height-request', -1)
-
-        toplevel = self.treeview.get_toplevel()
-        missing_height = needed_height - self.treeview.get_visible_rect().height
-
-        width  = toplevel.get_allocation().width
-        height = toplevel.get_allocation().height 
-        toplevel.resize(width, height + missing_height)
         
     
     def setup_treeview_columns(self):
@@ -910,7 +880,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         set treeview visible rows to n
         """
-        self.set_height_request(n)
+        self.set_height_request(self.treeview, n)
         
 
 #### completion
