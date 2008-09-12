@@ -217,7 +217,7 @@ class InspectMapper(dict):
             'name'        :  str(field_name),
             'table'       :  property.table,
             'table_name'       :  property.table.name,
-#            'col'         :  mapper.c[field_name] ,
+#            'col'         :  property.mapper.c[field_name] ,
             'db_type'     :  None,   ## FIXME: this is used tor table 
             'type'        :  str,  # FIXME
             'col_spec'    :  None,
