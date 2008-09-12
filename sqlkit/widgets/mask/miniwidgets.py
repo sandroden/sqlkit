@@ -14,6 +14,7 @@ class ValidationError(Exception): pass
 import localtimezone
 import gtk
 import dbg
+from datetime import timedelta
 
 NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
 
@@ -142,15 +143,23 @@ class DateTimeWidget(Widget):
     def __init__(self, *args):
         Widget.__init__(self, *args)
         self.gtkwidget.set_property('show-time', True)
+        self.initial_delta = timedelta(0)
         
     def set_value(self, value):
         ## FIXME: datetime has only time?
-        self.initial_value = value
         self.gtkwidget.set_property('time', value)
+        self.initial_value = value
+
+        if value:
+            self.microsecond = value.microsecond
+        else:
+            self.microsecond = 0
 
     def get_value(self, shown=False):
-        time = self.gtkwidget.get_property('time')
-        return time.replace(microsecond=0)
+        value = self.gtkwidget.get_property('time')
+        if value:
+            return value.replace(microsecond=self.microsecond)
+        return value 
 
 class DateTimeTZWidget(DateTimeWidget):
 
@@ -176,10 +185,9 @@ class DateTimeTZWidget(DateTimeWidget):
             self.TZ = localtimezone.Local
             self.microsecond = 0
 
-        if value is None:
-            return None
-        else:
+        if time:
             return value.replace(tzinfo=self.TZ, microsecond=self.microsecond)
+        return None
 
 
 class TextWidget(Widget):
