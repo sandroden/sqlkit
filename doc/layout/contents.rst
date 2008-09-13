@@ -3,7 +3,7 @@
 =========================================================
 Layout GUI built on the fly  - A GUI description language
 =========================================================
-
+ 
 .. sidebar:: Note
 
    this page needs to be reviewed. While it should be mostly correct
@@ -23,21 +23,21 @@ provided to refine the layout and it isn't difficult to add GtkObjects or
 features.
 
 The purpouse is to easy things with simple setup, not to cover any possible
-graphical layout. The main purpouse is to be used in layout or record editor
-for db, but it can be used with any other program as well.
+graphical layout. The main purpouse is to be used in desiging layout of
+record editor (:ref:`sqlkit`) for db, but it can be used with any other
+program as well.
 
-Layout uses glade to create the GUI, ie: it produces xml for glade... this
-may change in the future. 
+Layout is not an interactive tool: it uses glade xml to create the GUI, ie:
+it produces xml for glade... this may change in the future.
 
-Care must be used to create use names for the elements that are unique in
+Care must be used to create names for the elements that are unique in
 the single layout, so as to be able to reach any single object, not only to
 refine configuration but also to interact with the GtkObj in the
 program. This reflects in the fact that the name is unique.
 
-A normal GUI is plenty of labels and tooltip. The nick the programmer uses
-for both these object will be mapped to a different name, both for
-translations and for beautyfication. A function map_labels is provided for this.
-
+A normal GUI is plenty of labels and tooltip. 
+At the moment of this writing no localization is provided but gettext
+support is in program. 
 
 Description of the language
 
@@ -81,7 +81,15 @@ A layout is a sequence of tokens and display modifiers.
     :-: xscale of the alignement is set to 1 i.e. the child of the
         alignement (the entry in the example will grow when more space
 	is given to the widget)
-  
+	
+.. sidebar:: Automatisms with sqlkit
+
+   Note that when used from within sqlkit layout definition any text
+   field is rendered with entry within an alignement (ae element) and an
+   alignement of '-' is added to any text field longer tha 20 chars.
+
+    
+:spare token:
   A token may further be:
  
     :@:
@@ -340,7 +348,7 @@ results in being already used it buids a unique name adding a number, but that
 may result in difficulty to interact with it from inside the program.
 
 If that's an issue try being clear when creating the layout. Use ids, the
-string separated by a '.' that uou can add to element names and to container
+string separated by a '.' that you can add to element names and to container
 flags:
 
   :container:
@@ -348,7 +356,7 @@ flags:
 
       {H.Z   {B.id0
 
-  - element names:
+  :element names:
     ::
 
        e=name.id1/string

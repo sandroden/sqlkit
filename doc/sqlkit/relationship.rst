@@ -46,7 +46,7 @@ To get a mask that:
 You just have to start te SqlMask like this:
 
   lay = """first_name last_name
-         o2m=movies      - - -
+         movies      - - -
          """
   SqlMask(mapper=Director.mapper, metadata=__metadata__, 
           session=elixir.session,layout=lay)
@@ -93,13 +93,13 @@ does the heavy job. Definition is as simple as::
 
 
     lay = """year title
-             m2o=genres - - -
+             genres - - -
              """
     tm = sqlkit.SqlMask(mapper=Movie.mapper, metadata=__metadata__, 
                         session=elixir.session,layout=lay)
     lay = """
          name 
-         m2m=movies -
+         movies -
     """
     tm2 = sqlkit.SqlMask(mapper=Genre.mapper, metadata=__metadata__, 
                          session=elixir.session,layout=lay)
@@ -110,6 +110,40 @@ from the two different main tables: movies with theis genres and genres with
 they're movies.
 
 .. image:: ../img/m2m.png
+
+readability
+------------
+
+Just for readability, if you prefere you can write explicitly the widget you
+want to use, that in any case will be m2m or o2m::
+
+  
+    lay = """year title
+             o2m=genres - - -
+             """
+
+    lay = """
+         name 
+         m2m=movies -
+    """
+
+Many2One or ForeigKey
+======================
+
+Many2One is a simpler case. The table we start from **has** a field that
+holds a ForeignKey, we just need to follow it to know the value. This again
+happens with no effort at all. In this case it's also possible to use this
+field in a filter selection. 
+
+
+Behind the scenes
+===================
+
+The way sqlkit understands that ``movies`` is an entry point for a
+relationship is that it analizes the ``mapper``, looks for a property with
+that name and realizes that it's a PropertyLoader. That means that such an
+entry point has been put there by a ``relation``. 
+
 
   
 

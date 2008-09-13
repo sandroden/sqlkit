@@ -47,9 +47,15 @@ Each label of both views can be clicked to get a filter panel:
 Completion
 ============
 
-Completion is triggered by F1 key. If the field is a foreign key it will pop
-up a list of foreign values (broken at the moment) otherwise it will show
-values cirrently used (just for varchar fields)
+Completion is triggered by F1 key, Contrl-Enter or Shift-Enter.  If the
+field is a foreign key it will pop up a list of foreign values otherwise it
+will show values currently used (just for varchar fields). 
+
+The search for completion is done using the (possibly) already written
+letters as filter: Control will match them at the beginning ot the field,
+Shift (and F1) will match them in any part. The search is made using
+``LIKE`` operators or ``regexp`` according to whatever is available in the
+db engine in use.
 
 
 Layout

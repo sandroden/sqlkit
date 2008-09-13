@@ -1,3 +1,5 @@
+.. _sqlkit:
+
 =======
 sqlkit
 =======
@@ -61,18 +63,13 @@ sqlkit pre-conditions
 
     a select will retrieve the values from the secondary table 
 
-3. A field name terminating with _id will not be shown (in normal mode)
-   if a foreignKey constraint exists. In this case the lookup table will be
-   parsed and the *first* field name terminating with _name or _descr will
-   be used as descriptor. 
+3. A numerical Primary Key will not be shown (in normal mode, but dev=True
+   change this behaviour).  If a foreignKey constraint exists. In this case
+   the lookup table will be parsed and the *first* field name terminating
+   with _name or _descr will be used as descriptor.
 
-   It is possible to overwrite this behaviour setting:
-
-   sqlmask.tables[table_name] = [ 'field1,field2', 'format']
-
-   Format is not yet implemented but will allow to determine what info will
-   be displayed in the dropdown when looking for a completion.
-
+   It is possible to overwrite this behaviour using
+   sqlkit.completion.set_description_field 
 
 
 sqlkit data structure
@@ -83,52 +80,6 @@ sqlkit data structure
 
 2. SqlMask/SqlTable must accept a table or a mapper (a list of tables in the
    future, in that case a join will be done using cascade_mappers).
-
-InspectMapper 
-=============
-
-   InspectMapper is used (w/ autoloading) to inspect the structure of the db
-   relative to the mapper used. InspectMapper has the following methods:
-   
-InspectMapper methods
-----------------------
-   :keys: 
-       returns all the keys (field_names) present in the mapper
-
-   :tables: 
-       return the table names present in the mapper. If mode='mapper'
-       it will return the mapper of each table
-
-   :table_fields(table_name):  
-       return all the fields in 'table_name' 
-
-   :get_mapper(table_name): 
-       return the mapper for 'table_name'
-
-   :get_class(table_name): 
-       return the class for 'table_name'
-
-   :get_pkeys(table_name): 
-       return a list for all pkeys of table_name
-
-InspectMapper attributes
--------------------------
-
-   InspectMapper provides several attributes, one for each field_name. Each
-   attribute is a dictionary with the following keys:
-
-            :table_name:    mapper.table.name ,
-            :name:          field_name,
-            :table:         mapper.table ,
-            :pg_type:       type(mapper.c[field_name].type), 
-            :type:          self.pytype[type(mapper.c[field_name].type)],
-            :col_spec:      mapper.c[field_name].type.get_col_spec(),
-            :is_serial:     is_serial(mapper.c[field_name]),
-            :property:      property,
-            :fkey:          (table, field_name) or False,
-            :pkey:          mapper.c[field_name].primary_key,
-            :mapper:        mapper,
-	    :length:        in case of strings fields,
 
 SqlMask
 =========

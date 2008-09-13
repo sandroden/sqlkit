@@ -76,7 +76,7 @@ pdf:    latex
 	cd .build/latex; make all-pdf
 
 galeon: 
-	galeon ./.build/html/index.html
+	galeon .build/html/contents.html
 
 firefox: 
 	firefox ./.build/html/index.html
