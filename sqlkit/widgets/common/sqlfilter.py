@@ -79,9 +79,9 @@ class FilterPanel(object):
             self.easytv = layout.misc.EasyTreeView(
                 ['id', 'output'], tv=self.w['TV=out'], )
             self.selection = self.easytv.tv.get_selection()
-            self.selection.connect('changed',self.tv_changed_cb)
+            self.selection.connect('changed',self.on_selection_changed)
             self.model = self.easytv.tv.get_model()
-            self.easytv.tv.connect('button_press_event', self.tv_changed_cb)
+            self.easytv.tv.connect('button_press_event', self.on_selection_changed)
             self.easytv.tvc['id'].set_property('visible', False)
 
     def add(self, wdg, ev, field_name, after=None, show=True):
@@ -218,7 +218,7 @@ class FilterPanel(object):
         if height < 100:
             tv.set_property('height-request', 300)
             
-    def tv_changed_cb(self, *args):
+    def on_selection_changed(self, *args):
         # when clicking om the teeview we get 2 args: treeView, event
         # when changing selection we only have 1 arg: gtk.treeSelection
         # when clicking 'Refresh' we get e gtk.TreeSelection but no
@@ -226,8 +226,9 @@ class FilterPanel(object):
 
         ## first guess: we selected w/ pointer
         model, iter = self.selection.get_selected()
+
         ## we don't have a selection
-        if not iter:
+        if iter is None:
             try:
                 ## we moved along the treeview w/ arrows
                 wdg, ev = args
@@ -237,7 +238,6 @@ class FilterPanel(object):
                 return
             
         idx = self.model.get_value(iter, 0)
-        # dbg.write("index=%s" %int(idx))
         if self.default_reload:
             self.master.record_display(index=int(idx))
         else:
@@ -371,6 +371,11 @@ class FilterWidget(object):
         """return a sql whereclause for field
 
         """
+        
+        if self.bind_name == "sqlite" and op_value == "MATCH":
+            op_value = 'LIKE'
+            value = '%' + value + '%'
+
         sql = self.col.op(op_value)(value)
 
         return [ sql ]
@@ -386,13 +391,14 @@ class FilterStringWidget(FilterWidget):
 
     def get_suitable_operators(self ):
         if self.bind_name in 'sqlite':
-            return self.STR_STD_OPERATORS + self.STD_OPERATORS
+            return ['MATCH'] + self.STR_STD_OPERATORS + self.STD_OPERATORS
         
         elif self.bind_name in 'mysql':
             return [ 'REGEXP' ] + self.STD_OPERATORS
 
         elif self.bind_name in 'postgres':
             return  ['~*', '~', '!~*', '~*' ] + self.STD_OPERATORS
+
 
 class FilterBooleanWidget(FilterWidget):
 
@@ -442,7 +448,7 @@ class FilterFKeyWidget(FilterWidget):
             return  ['~*', '~', '!~*', '~*' ] + self.STD_OPERATORS
         elif self.bind_name in ('mysql'):
             return ['REGEXP' ] + self.STD_OPERATORS
-        elif self.bind_name in ('mysql'):
+        elif self.bind_name in ('sqlite'):
             return ['MATCH' ] + self.STD_OPERATORS
 
     def _compose_field_whereclause(self, values, value, op_value):
@@ -453,6 +459,9 @@ class FilterFKeyWidget(FilterWidget):
         """
         sql = self.col.op(op_value)(value)
 
+        if self.bind_name == "sqlite" and op_value == "MATCH":
+            op_value = 'LIKE'
+            value = '%' + value + '%'
         fld = {'op_value' : op_value, 'value' : value}
         fld['ftable'], fld['fname'] = self.master.completion.get_foreign_info(self.field_name)
         fld['fdescr'] = self.master.completion._add_descriptor_fields(

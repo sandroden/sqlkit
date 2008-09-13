@@ -102,15 +102,15 @@ class SqlWidget(object):
         self.constraint=constraint
         self.sync_dict = {}
         self.dbproxy = dbproxy
-        self.metadata = metadata or dbproxy.metadata
 #        self.engine = self.get_engine(engine, mapper)
         self.session = self.get_session(session)
         self.order_by = order_by
+        self.mapper = self.get_mapper(mapper, tables, Class)
+        self.metadata = self.get_metadata(metadata, self.mapper)
         ## we can use singular or plural as an option, plural in the code
         if table and not tables:
             tables = table
         self.tables = tables
-        self.mapper = self.get_mapper(mapper, tables, Class)
         self.nick= self.get_nick(nick)
         self.mode = mode
         self.noup = noup
@@ -175,6 +175,16 @@ class SqlWidget(object):
         self.tables = [mapper.local_table.name]  ## FIXME: what when we have a join?
         return mapper
 
+    def get_metadata(self, metadata, mapper):
+        if metadata:
+            return metadata
+        if self.dbproxy:
+            return self.dbproxy.metadata
+        if mapper:
+            ## FIXME: no good in general? what if you have more that
+            ## one metadata in the same session?... boh
+            return mapper.local_table.metadata
+        
     def parse_fields(self, field_list, layout):
         if not field_list:
             ### if no layout was defined and no field_list was passed
@@ -366,10 +376,6 @@ class SqlWidget(object):
 
     def commit(self):
 
-        PREV = self.metadata.bind.echo
-        if dbg.debug() > 1:
-            self.metadata.bind.echo = True
-            
         try:
             self.session.commit()
         except exceptions.SQLError, e:
@@ -379,8 +385,6 @@ class SqlWidget(object):
             self.session.rollback()
             raise CommitError
             
-        self.metadata.bind.echo = PREV
-    
     def SQLErrorHandler(self, e):
         self.message(type='error',
                      text="%s - Dirty objects: %s - New objects: % s" %
