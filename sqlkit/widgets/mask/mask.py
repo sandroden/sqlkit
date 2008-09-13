@@ -72,7 +72,7 @@ class SqlMask (sqlwidget.SqlWidget):
             except CancelledAction:
                 return
 
-        if index:
+        if index is not None:
             display_idx = index
         else:
             display_idx = (self.current_idx or 0) + incr 
