@@ -47,7 +47,7 @@ class choice(object):
             ('T.0',             'y-options', 'fill'),
             ('b=filter_tables', 'x-options', 'fill'),
             )
-        self.w = self.l.show(file='/tmp/sqledit.glade')
+        self.w = self.l.show()
         self.tv = self.w['TV=tree']
         cols = ['table', 'def', 'pkey', 'fkey']
         self.stv = layout.misc.EasyTreeView(cols, tv=self.tv)
