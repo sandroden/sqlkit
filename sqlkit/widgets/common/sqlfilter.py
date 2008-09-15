@@ -464,6 +464,11 @@ class FilterFKeyWidget(FilterWidget):
         s = """%(ftable)s.%(fname)s FROM %(ftable)s
         WHERE %(ftable)s.%(fdescr)s %(op_value)s '%(value)s' """ % (fld)
 
+        query = query.reset_joinpoint()
+
+        if self.master.relationship_path:
+            query = query.join(self.master.relationship_path)
+            
         return query.filter(self.col.in_(sqlalchemy.select([s])))
 
 
