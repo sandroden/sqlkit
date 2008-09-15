@@ -106,18 +106,19 @@ class SqlTable(sqlwidget.SqlWidget):
             pass
 
         
-   #self.w['M=popup'] = 
         menu = self.w['M=popup'] = gtk.Menu()
 
         ## add to filter
         item = gtk.MenuItem(label="add %s to filter" % field_name.replace('_', ' '))
-        item.connect('activate', self.filter_panel.add, ev, field_name )
+#        item.connect('activate', self.filter_panel.add, ev, field_name )
+        item.connect('activate', self.filter_panel.add, ev, field_name, self )
         menu.append(item)
 
         ## sort
-        item = gtk.MenuItem(label="sort")
-        item.connect('activate', self.reload_sort, field_name )
-        menu.append(item)
+        if not self.relationship_leader:
+            item = gtk.MenuItem(label="sort")
+            item.connect('activate', self.reload_sort, field_name )
+            menu.append(item)
 
         ## hide
         item = gtk.MenuItem(label="hide")
@@ -308,16 +309,12 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
         
     def clicked_cb(self, treeview, field_name):
-        if not self.relationship_mode == 'SINGLE':
-            return False
-        if self.filter:
-            event =   gtk.gdk.Event(gtk.gdk.BUTTON_PRESS)
-            event.button = 1
-            dbg.write(event)
-            self.popup_col_menu(event, field_name)
+        event =   gtk.gdk.Event(gtk.gdk.BUTTON_PRESS)
+        event.button = 1
+        dbg.write(event)
+        self.popup_col_menu(event, field_name)
         
-            return True
-        return False
+        return True
     
     def hide_column(self, menuItem, field_name,):
         self.tvcolumns[field_name].set_property('visible', False)

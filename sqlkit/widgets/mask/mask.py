@@ -485,12 +485,10 @@ class SqlMask (sqlwidget.SqlWidget):
             if field_name in self.labels:
                 lbl    = self.labels[field_name]
                 ev_wdg = self.labels[field_name].parent
-                ## FIXME: is there a situation when I don't whant
-                ##        blinking labels?
-                if self.filter:
-                    ev_wdg.connect('enter-notify-event', self.ene_cb)
-                    ev_wdg.connect('leave-notify-event', self.lne_cb)
-                    lbl.modify_fg(gtk.STATE_PRELIGHT, LBL_HOOVER_STYLE)
+
+                ev_wdg.connect('enter-notify-event', self.ene_cb)
+                ev_wdg.connect('leave-notify-event', self.lne_cb)
+                lbl.modify_fg(gtk.STATE_PRELIGHT, LBL_HOOVER_STYLE)
 
                 ## label FK_COLOR to tell it's a foreign key
                 if self.fields[field_name]['fkey'] :
@@ -516,12 +514,11 @@ class SqlMask (sqlwidget.SqlWidget):
         """
 
         ## add click that pops filter_panel
-        if self.filter:
-            for field_name, label in self.labels.iteritems():
-                #print "label", label, 'field_name', field_name
-                event_box = label.parent
-                event_box.connect('button-press-event',
-                                  self.filter_panel.add, field_name)
+        for field_name, label in self.labels.iteritems():
+            #print "label", label, 'field_name', field_name
+            event_box = label.parent
+            event_box.connect('button-press-event',
+                              self.filter_panel.add, field_name, self)
 
     def get_current_obj(self):
         """Return the object that is currently edited"""

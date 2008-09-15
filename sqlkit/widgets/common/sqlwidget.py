@@ -59,7 +59,7 @@ class SqlWidget(object):
                   order_by=None,
                   limit=200,
                   field_list=None,
-                  filter=True,
+#                  filter=True,
                   session=None,
                   metadata = None,
                   hide = None,
@@ -70,6 +70,8 @@ class SqlWidget(object):
                   dev=False,
                   xml=False,
                   relationship_mode = 'SINGLE',
+                  relationship_path = None,
+                  relationship_leader = None,
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -93,10 +95,16 @@ class SqlWidget(object):
         mapper: a sqlalchemy mapper. a Class is built runtime, metadata is read from local_table
         session: the session where to put all data.
 
+        relationship_mode: SINGLE, m2m, m2o, o2m
+        relationship_path: the path needed to join two tables. See sqlalchemy on 'quering
+                  with joins'. Used by filter_panel to setup join condition when filtering
+                  when relationship_mode is not SINGLE. May be a list or a string:
+                  'genres', 'director nationality', ['director','nationality']
+        relationship_leader: the main sqlmask (sqltable) that "owns" the filter_panel
         """
         self.block = False   # used whensync-ing widgets
         self.icons = icons
-        self.filter = filter
+#        self.filter = filter
         self.xml = xml
         self.dev = dev
         # used in self.reload() to prevent expose loop 
@@ -137,7 +145,10 @@ class SqlWidget(object):
         self.single = single
         self.limit=limit
         self.relationship_mode = relationship_mode
+        self.relationship_path = self._get_relationship_path(relationship_path)
+        self.relationship_leader = relationship_leader
         self.records = []
+        self.filter_panel = self._get_filter_panel()
         if show:
             self.show()
             
@@ -280,7 +291,6 @@ class SqlWidget(object):
         
         lay = LayoutGenerator(self, naked=naked, lay=lay).layout
         self.layout = lay
-        self.add_filter(visible=False)
         self.lay_obj = layout.Layout(self.layout, addto=self.addto,
                                      title=self.title, opts='T-')
         #if self.xml:
@@ -306,6 +316,21 @@ class SqlWidget(object):
         self.add_accelerators()
         return (self.lay_obj, self.w)
     
+    def _get_relationship_path(self, path):
+        if not path:
+            return None
+        
+        if isinstance(path, (tuple, list)):
+            return path
+        else:
+            return re.split("[ ,]+", path)
+        
+    def _get_filter_panel(self):
+        if self.relationship_leader:
+            return self.relationship_leader.filter_panel
+        
+        return sqlfilter.FilterPanel(self, visible=False)
+
     def add_accelerators(self):
         """Add accelerators: now Ctrl-h, Ctrl-q"""
 
@@ -758,19 +783,9 @@ class SqlWidget(object):
         return title
     
     def add_filter(self, event=None, visible=True):
-        """Pop a Filter Panel"""
-        try:
-            self.filter_panel.w['Window'].present()
-            #self.filter_panel.w['Window'].set_property('visible', True)
-            #print "add_filter: esisteva"
-        except:
-            self.filter_panel = sqlfilter.FilterPanel(self, visible=visible)
-            #print "add_filter: mancava"
-            #return sqlfilter.FilterPanel(self)
-        return self.filter_panel
-    
-    #filter_panel = property(add_filter)
-            
+        """Pop a Filter Panel, called from menu item"""
+
+        self.filter_panel.w['Window'].present()
     
     def show_mapper_info(self, *args):
         dbg.gtk_dbg.ShowMapperInfo(self.fields)

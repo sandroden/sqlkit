@@ -16,7 +16,7 @@ class FilterPanel(object):
     the user must be able to enter filter conditions on each operator or add
     filter on the same field 
     """
-    fields = [] # [ { 'field' : 'value', 'operator' : widget, 'entry' : widget }, {...} ]
+
     def __init__(self, master, visible=True):
         
         """constructor need to know who is the 'master' ie the widget (a mask
@@ -83,13 +83,13 @@ class FilterPanel(object):
             self.easytv.tv.connect('button_press_event', self.on_selection_changed)
             self.easytv.tvc['id'].set_property('visible', False)
 
-    def add(self, wdg, ev, field_name, after=None, show=True):
+    def add(self, wdg, ev, field_name, master, after=None, show=True):
         """add a field to the filter panel + operator and string entry
         after: entry will be positioned after widget 'after'
         """
         ## FIXME: after and show?
         if not field_name in self.search_filter_field_names:
-            widget = get_filter_widget(field_name, self, self.master)
+            widget = get_filter_widget(field_name, self, master)
             widget.add(field_name)
             self.search_filter_widgets += [ widget]
             self.search_filter_field_names    += [field_name]
@@ -176,14 +176,13 @@ class FilterPanel(object):
 
         attr = self.master.completion._add_descriptor_fields(
             mode='ret', referenced_table = self.master.fields.get_primary_table())
-        if self.master.filter == True:
-            fmt = "%%(%s)s" % attr
-        elif isinstance(self.master.filter, list):
-            fmt = ["%%(%s)s" % f for f in self.master.filter]
-            fmt = " - ".join(fmt)
-            attr = self.master.filter[0]
-        else:
-            fmt = self.master.filter
+        fmt = "%%(%s)s" % attr
+#         if isinstance(self.master.filter, list):
+#             fmt = ["%%(%s)s" % f for f in self.master.filter]
+#             fmt = " - ".join(fmt)
+#             attr = self.master.filter[0]
+#         else:
+        #fmt = self.master.filter
             
 
         self.model.clear()
@@ -229,9 +228,11 @@ class FilterPanel(object):
             try:
                 ## we moved along the treeview w/ arrows
                 wdg, ev = args
-                iter = model.get_iter(wdg.get_path_at_pos(int(ev.x), int(ev.y))[0])
-            except ValueError:
-                ## deselecting when clicking 'reload'
+                path = wdg.get_path_at_pos(int(ev.x), int(ev.y))[0]
+                iter = model.get_iter(path)
+            except (ValueError, TypeError), e:
+                ## ValueError: deselecting when clicking 'reload'
+                ## TypeError: no data in the treeview
                 return
             
         idx = self.model.get_value(iter, 0)
@@ -346,7 +347,7 @@ class FilterWidget(object):
     
     def add_filter_condition(self, query):
         if not self.check_button.get_active():
-            return 
+            return query
         
         op_value = self.operator.get_active_text()
                 
@@ -369,6 +370,11 @@ class FilterWidget(object):
             op_value = 'LIKE'
             value = '%' + value + '%'
 
+        query = query.reset_joinpoint()
+
+        if self.master.relationship_path:
+            query = query.join(self.master.relationship_path)
+            
         return query.filter(self.col.op(op_value)(value))
 
     def pop_menu(self, wdg, ev, num_button):

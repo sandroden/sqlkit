@@ -347,10 +347,14 @@ class CollectionWidget(Widget):
             session=self.master.session,
             metadata=self.master.metadata,
             dbproxy=self.master.dbproxy,
-            naked=True, addto=self.gtkwidget,
+            naked=True,
+            addto=self.gtkwidget,
             icons='b=gtk-new b=gtk-delete b=gtk-save',
             hide = self.field.db_spec['remote_attr'],
             dev = self.master.dev,
+            relationship_leader = self.master,
+            relationship_path = self.field_name,  # FIXME: not good for longer relationships
+            
             )
         self.initial_value = []
         self.table.relationship_mode = "m2m"
