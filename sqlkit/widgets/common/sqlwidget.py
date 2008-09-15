@@ -470,6 +470,9 @@ class SqlWidget(object):
             query = query.params(**params)
         if self.order_by:
             query = query.order_by(self.order_by)
+
+        query = self.filter_panel.add_filter_conditions(query)
+
         if self.limit:
             query = query.limit(self.limit)
                 

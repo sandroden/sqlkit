@@ -22,18 +22,17 @@ class FilterPanel(object):
         """constructor need to know who is the 'master' ie the widget (a mask
         or a table instance) that will display the result. 
 
-        The filter for a SqlMask has a TreeView to show the resul and to easy
+        The filter for a SqlMask has a TreeView to show the results and to easy
         browse them.
 
-        search_fields = { 'field-name' :[(operator, bool, value),(operator...)])
         """
         self.master = master
         self.get_layout(visible=visible)
         self.row =0  # counter for position of fields
         self.default_reload = True
         
-        self.search_filter_widgets = []
-        self.search_filter_field_names = []
+        self.search_filter_widgets = []         ## list of FIlterWidgets instances
+        self.search_filter_field_names = []     ## field_names used
         self.bind_name = self.master.metadata.bind.name
         
     def __del__(self):
@@ -111,17 +110,15 @@ class FilterPanel(object):
 ##### reload & TreeView
     def reload_cb(self, widget):
         """issue a reload operation on master. Call back of reload button"""
-        #sql, bind_params = self.sql()
-        sql = self.sql()
+
         if 'TV=out' in self.w:
             display = False
         else:
             display = True
             
         if self.default_reload:
-            dbg.write('default.reload', self.default_reload)
-            self.master.reload(sql=sql, limit=self.get_limit(), display=display )
-            #self.sqlData = self.master.sqlData
+            self.master.reload(limit=self.get_limit(), display=display )
+
         else:
             ## FIXME: sqlData no longe exists
             ## we get here if we use set_reload
@@ -255,20 +252,17 @@ class FilterPanel(object):
         self.w['s=limit'].update()
         return  self.w['s=limit'].get_value_as_int()
     
-    def sql(self):
-        """create a sql statement composing all requests
-        returns a sql whereclause and a bindparam dictionary
+    def add_filter_conditions(self, query):
+        """Adds to the query all filter conditions
         """
-        #ret = self.master.fields.get_join_cnd()
-        ret = []
         
         for pwidget in self.search_filter_widgets:
-            ret += pwidget.get_filter_condition()
+            query = pwidget.add_filter_condition(query)
 
-        sql = (sqlalchemy.and_(*ret))
+        #sql = (sqlalchemy.and_(*ret))
         #self.sql_dbg(ret)
         #print sql
-        return sql
+        return  query
 
 
     def sql_dbg(self, bool_conds):
@@ -350,23 +344,23 @@ class FilterWidget(object):
         
 
     
-    def get_filter_condition(self):
+    def add_filter_condition(self, query):
         if not self.check_button.get_active():
-            return []
+            return 
         
-        ret = []
         op_value = self.operator.get_active_text()
                 
         if op_value in ('IS NULL', 'IS NOT NULL', 'IS TRUE', 'IS FALSE'):
-            ret += [ "%s %s" % (self.field_name, op_value) ]
+            query = query.filter("%s %s" % (self.field_name, op_value))
+            #ret += [ "%s %s" % (self.field_name, op_value) ]
         else:
             value = self.field_widget.get_text()
             if value:
-                ret += self._compose_field_whereclause(value, op_value)
-        return ret
+                query = self._compose_field_whereclause(query, value, op_value)
+        return query
         
 
-    def _compose_field_whereclause(self, value, op_value):
+    def _compose_field_whereclause(self, query, value, op_value):
         """return a sql whereclause for field
 
         """
@@ -375,9 +369,7 @@ class FilterWidget(object):
             op_value = 'LIKE'
             value = '%' + value + '%'
 
-        sql = self.col.op(op_value)(value)
-
-        return [ sql ]
+        return query.filter(self.col.op(op_value)(value))
 
     def pop_menu(self, wdg, ev, num_button):
         #dbg.write(wdg, ev, num_button)
@@ -407,7 +399,7 @@ class FilterBooleanWidget(FilterWidget):
 class FilterDateWidget(FilterWidget):
 
 
-    def _compose_field_whereclause(self, value, op_value):
+    def _compose_field_whereclause(self, query, value, op_value):
         """Implement the mini date algebra to allow for relative dates
         see dry.dateutils
 
@@ -422,16 +414,15 @@ class FilterDateWidget(FilterWidget):
                         
         op_value = self.operator.get_active_text()
         if not stop:
-            ret = [self.col.op(op_value)(start)]
+            query = query.filter(self.col.op(op_value)(start))
         else:
-            ret =  []
             ## start
-            ret += [self.col.op(">=")(start)]
+            query = query.filter(self.col.op(">=")(start))
             ## stop
-            ret += [self.col.op("<=")(stop)]
-                
+            query = query.filter(self.col.op("<=")(stop))
+            #ret += [self.col.op("<=")(stop)]
 
-        return  ret 
+        return  query
 
 class FilterFKeyWidget(FilterWidget):
 
@@ -446,13 +437,12 @@ class FilterFKeyWidget(FilterWidget):
         elif self.bind_name in ('sqlite'):
             return ['MATCH' ] + self.STD_OPERATORS
 
-    def _compose_field_whereclause(self, value, op_value):
+    def _compose_field_whereclause(self, query, value, op_value):
         """return a sql whereclause for field
 
         In case field is a fkey, and the destination lookup field is not in
         the mapper, it composes a subselect
         """
-        sql = self.col.op(op_value)(value)
 
         if self.bind_name == "sqlite" and op_value == "MATCH":
             op_value = 'LIKE'
@@ -468,9 +458,7 @@ class FilterFKeyWidget(FilterWidget):
         s = """%(ftable)s.%(fname)s FROM %(ftable)s
         WHERE %(ftable)s.%(fdescr)s %(op_value)s '%(value)s' """ % (fld)
 
-        sql = self.col.in_(sqlalchemy.select([s]))
-
-        return [ sql ]
+        return query.filter(self.col.in_(sqlalchemy.select([s])))
 
 
 def get_filter_widget(field_name, panel, master):
