@@ -73,7 +73,6 @@ class SqlWidget(object):
                   ):
         """create an interface and allow to save/store data from a database
 
-        mapper: a sqlalchemy mapper
         layout:    a layout describing the desired layout (see layout package)
         actions: a validator to be used to validate fields and records
         naked:  in case the mask should *not* be added interactive buttons
@@ -88,6 +87,12 @@ class SqlWidget(object):
         dev:    if dev=False (default) fields ending with '_id' and not fk
                 are not shown
         hide:   fields not to be shown (space or comma separated or list)
+        Class:  an instrumented class (one connected o a mapper). This along with
+                session may be the only parameters
+        table[s]: a table name. The plural is left for a possibe extensions to automatic join
+        mapper: a sqlalchemy mapper. a Class is built runtime, metadata is read from local_table
+        session: the session where to put all data.
+
         """
         self.block = False   # used whensync-ing widgets
         self.icons = icons
@@ -105,7 +110,7 @@ class SqlWidget(object):
 #        self.engine = self.get_engine(engine, mapper)
         self.session = self.get_session(session)
         self.order_by = order_by
-        self.mapper = self.get_mapper(mapper, tables, Class)
+        self.mapper = self.get_mapper(mapper, table or tables, Class)
         self.metadata = self.get_metadata(metadata, self.mapper)
         ## we can use singular or plural as an option, plural in the code
         if table and not tables:
@@ -166,7 +171,7 @@ class SqlWidget(object):
     def get_mapper(self, mapper, tables, Class=None):
 
         if mapper:
-            pass
+            return mapper
         elif Class:
             mapper = class_mapper(Class)
         else:
