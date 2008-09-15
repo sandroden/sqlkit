@@ -261,12 +261,11 @@ class FilterPanel(object):
         """
         #ret = self.master.fields.get_join_cnd()
         ret = []
-        values={}
         
         for pwidget in self.search_filter_widgets:
-            ret += pwidget.get_filter_condition(values)
+            ret += pwidget.get_filter_condition()
 
-        sql = (sqlalchemy.and_(*ret), values)
+        sql = (sqlalchemy.and_(*ret))
         #self.sql_dbg(ret)
         #print sql
         return sql
@@ -351,7 +350,7 @@ class FilterWidget(object):
         
 
     
-    def get_filter_condition(self, values):
+    def get_filter_condition(self):
         if not self.check_button.get_active():
             return []
         
@@ -363,11 +362,11 @@ class FilterWidget(object):
         else:
             value = self.field_widget.get_text()
             if value:
-                ret += self._compose_field_whereclause(values, value, op_value)
+                ret += self._compose_field_whereclause(value, op_value)
         return ret
         
 
-    def _compose_field_whereclause(self, values, value, op_value):
+    def _compose_field_whereclause(self, value, op_value):
         """return a sql whereclause for field
 
         """
@@ -407,22 +406,13 @@ class FilterBooleanWidget(FilterWidget):
 
 class FilterDateWidget(FilterWidget):
 
-    def get_filter_condition(self, values):
-        if not self.check_button.get_active():
-            return []
-        
-        op = self.operator.get_active_text()
-                
-        if op in ('IS NULL', 'IS NOT NULL', 'IS TRUE', 'IS FALSE'):
-            ret += [ "%s %s" % (self.field_name, op) ]
-        else:
-            value = self.field_widget.get_text()
-            if value:
-                self.handle_dates(ret, fld, values, value)
-        return ret
-        
 
-    def handle_dates(self, ret, fld, values, value):
+    def _compose_field_whereclause(self, value, op_value):
+        """Implement the mini date algebra to allow for relative dates
+        see dry.dateutils
+
+        """
+
         from dry.dateutils import string2dates
         start, stop = string2dates(value)
 
@@ -430,28 +420,33 @@ class FilterDateWidget(FilterWidget):
         # and I use operators to delimit this
         # period ignoring the operator from the widget
                         
+        op_value = self.operator.get_active_text()
         if not stop:
-            ret += self._compose_field_whereclause(fld, values, start)
+            ret = [self.col.op(op_value)(start)]
         else:
+            ret =  []
             ## start
-            fld['op_value'] = ">="
-            ret += self._compose_field_whereclause(fld, values, start)
+            ret += [self.col.op(">=")(start)]
             ## stop
-            fld['op_value'] = "<="
-            ret += self._compose_field_whereclause(fld, values, stop)
+            ret += [self.col.op("<=")(stop)]
                 
-        
+
+        return  ret 
+
 class FilterFKeyWidget(FilterWidget):
 
     def get_suitable_operators(self):
+
         if self.bind_name in ('postgres'):
             return  ['~*', '~', '!~*', '~*' ] + self.STD_OPERATORS
+
         elif self.bind_name in ('mysql'):
             return ['REGEXP' ] + self.STD_OPERATORS
+
         elif self.bind_name in ('sqlite'):
             return ['MATCH' ] + self.STD_OPERATORS
 
-    def _compose_field_whereclause(self, values, value, op_value):
+    def _compose_field_whereclause(self, value, op_value):
         """return a sql whereclause for field
 
         In case field is a fkey, and the destination lookup field is not in
@@ -462,30 +457,16 @@ class FilterFKeyWidget(FilterWidget):
         if self.bind_name == "sqlite" and op_value == "MATCH":
             op_value = 'LIKE'
             value = '%' + value + '%'
+
         fld = {'op_value' : op_value, 'value' : value}
         fld['ftable'], fld['fname'] = self.master.completion.get_foreign_info(self.field_name)
         fld['fdescr'] = self.master.completion._add_descriptor_fields(
             mode='return', referenced_table=fld['ftable'])
 
-#         if fld['fdescr'] in F:
-#             ## this means we have a mapper that has already this field
-#             ## we don't need a subselect
-#             #descr_col = F[fld['fdescr']]['col']
-#             dbg.write("qui 1")
-#             sql = F[fld['fdescr']]['col'].op(fld['op_value'])(value)
-#             return [sql]
-
-        #values[fld['field']] = value
 
         ## FIXME: not using bind parameters
         s = """%(ftable)s.%(fname)s FROM %(ftable)s
         WHERE %(ftable)s.%(fdescr)s %(op_value)s '%(value)s' """ % (fld)
-
-        dbg.write(s)
-
-        ## if this parameters is not deleted, SA will add a condition to
-        ## the select to match it
-        #del values[fld['field']]
 
         sql = self.col.in_(sqlalchemy.select([s]))
 
