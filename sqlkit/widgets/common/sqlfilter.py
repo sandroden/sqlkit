@@ -88,12 +88,13 @@ class FilterPanel(object):
         after: entry will be positioned after widget 'after'
         """
         ## FIXME: after and show?
-        if not field_name in self.search_filter_field_names:
+        search_path = "%s__%s" % (master.relationship_path, field_name)
+        if not search_path in self.search_filter_field_names:
             widget = get_filter_widget(field_name, self, master)
             widget.add(field_name)
             self.search_filter_widgets += [ widget]
-            self.search_filter_field_names    += [field_name]
-            
+            self.search_filter_field_names  += [search_path]
+
         if show:
             self.w['Window'].show_all()
         self.w['Window'].present()
