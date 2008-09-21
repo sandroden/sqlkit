@@ -150,6 +150,7 @@ class SqlMask (sqlwidget.SqlWidget):
                 return
 
         self.session.delete(self.records[self.current_idx])
+        self.last_new_obj = None
         #self.sqlData.delete()
         
         self.commit()
@@ -274,7 +275,8 @@ class SqlMask (sqlwidget.SqlWidget):
         ## this prevents unsaved_changes_exist() to complain that a commit is
         ## needed when no editing has been done
 
-        self.current = self.get_new_object(session=False)
+#        self.current = self.get_new_object(session=False)
+        self.current = self.get_new_object()
         self.records += [self.current]
         self.current_idx = len(self.records) -1
         self.sb("New record %s" % (self.current_idx +1))

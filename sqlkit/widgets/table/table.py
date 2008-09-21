@@ -535,7 +535,7 @@ class SqlTable(sqlwidget.SqlWidget):
         return True
     
     def generic_editing_started_cb(self, cell, editable, path, field_name):
-        print 'generic_editing_started_cb', field_name
+
         self.currently_edited_field_name = field_name
         return True
     
@@ -661,6 +661,9 @@ class SqlTable(sqlwidget.SqlWidget):
         for field_name in self.field_list:
             self.vfields[field_name].set_default()
 
+        self.records += [self.last_new_obj]  ## adding to records is vital to get fk correctly in
+                                             ## case this table is a M2M of M2O
+
         self.commit_inhibited = False
 
         return True
@@ -717,10 +720,6 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.edited_row_model_path = None
                 return
 
-        if obj not in self.records:
-            self.records += [obj]  ## adding to records is vital to get fk correctly in
-                                   ## case this table is a M2M of M2O
-
         ## if _sqlkit_mode is not set as after a SELECT, it defaults to UPDATE
         ## _sqlkit_mode is set in record_new
     
@@ -749,6 +748,17 @@ class SqlTable(sqlwidget.SqlWidget):
         #self.edited_row_model_path = None
         #self.record_display(index=idx)
 
+    def unsaved_changes_exist(self):
+        """collect possible changes and test if save is needed
+        """
+
+        if not self.record_has_changed():
+            if self.last_new_obj:
+                self.session.expunge(self.last_new_obj)
+                del self.last_new_obj
+                self.last_new_obj = None
+
+        return sqlwidget.SqlWidget.unsaved_changes_exist(self)
         
     def record_delete(self, widget=None, interactive=True):
         """
