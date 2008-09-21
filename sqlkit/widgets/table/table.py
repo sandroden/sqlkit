@@ -10,14 +10,6 @@ SqlTable: a widget to edit sql in table mode
 a model (self.listore) holds one single instance of the class is linked with the
 mapper. column.set_cell_data_func on each column will set the value from there.
 
-A second dummy instance will be used by method self.record_changed to tell if a
-record needs saving. So each rendered, when exiting from 'edited' signal needs to
-save both in the object *and* in this dummy class.
-
-This is necessary since it is difficoult to understand when an instance has been
-changed in presence of an added default. record_changed() will tell if the record
-has been changed based on the dummy instance
-
 """
 
 
@@ -49,16 +41,19 @@ class SqlTable(sqlwidget.SqlWidget):
     sqlalchemy obj
     """
 
-    model_path = None
+    edited_row_model_path = None
+    currently_edited_field_name = None
     treeview = None
     liststore = None
     tvcolumns = None
     mc = None
     mapper = None
-    commit_allowed = dbg.TraceIt(True, name='commit_allowed', mode='rw')
-    #commit_allowed = True
+    editable = None
+#    commit_allowed = dbg.TraceIt(True, name='commit_allowed', mode='rw')
+    commit_inhibited = False
     deleting_row = False
     tvcolumns = None
+    last_new_obj = None
 #    trace_regexp = 'commit_allowed'
     __metaclass__ = dbg.LogTheMethods
          
@@ -312,18 +307,38 @@ class SqlTable(sqlwidget.SqlWidget):
         Main callback triggered when the TreeSelection changes. When it happens
         this function tries to record_save()
         """
+        # selection change in several different ways:
 
-        if self.model_path is None:
+        # 1. no selection -> selection of existing row
+        # 2. no selection -> selection on new row
+        # 3. no selection -> reload (does it change?)
+        # 4. selected existent record -> reload
+        # 5. selected existent record -> other record
+        # 6. selected existent record -> new record
+        # 7. selected existent record -> delete
+        # 8. selected existent LAST record -> delete
+        
+
+        if self.edited_row_model_path is None:
+            self.record_initialize_vfields()
             return False
         
         ## commit_allowed is a flag that prevents .commit() if a new object
         ## has been created but not yet filled: it wouldn't validate
-        if self.commit_allowed:
+        if not self.commit_inhibited:
             self.record_save()
-            self.model_path = None
+            self.record_initialize_vfields()
+            self.edited_row_model_path = None
             
         return False
     
+    def record_initialize_vfields(self):
+        obj = self.get_current_obj()
+        if obj:
+            for field_name in self.field_list:
+                value = getattr(obj, field_name)
+                self.vfields[field_name].set_value(value)
+            
     def select_cursor_row_cb(self, treeview, start_editing, user_data):
         return False
     
@@ -438,7 +453,10 @@ class SqlTable(sqlwidget.SqlWidget):
     
     def key_tree_Down(self, treeview, event, data):
 
-        if self.get_selected_row() + 1 == len(self.liststore):
+        row = self.get_selected_row() 
+        if row is None:
+            row = -1
+        if row + 1 == len(self.liststore):
             try:
                 self.record_new(treeview)
             except CommitError, e:
@@ -487,48 +505,43 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
 
 #### callbacks columns
-    def toggled_null_signal_cb(self, cell, path, (model, name)):
+    def toggled_null_signal_cb(self, cell, path, (model, field_name)):
         """callback that cicle into tri-state"""
 
-	self.model_path = path
+        self.currently_edited_field_name = field_name
+	self.edited_row_model_path = path
 
         obj = self.liststore[path][0]
-        status = getattr(obj, name)
+        status = getattr(obj, field_name)
         # status may be True/False/None - I want to cicle
-        if status == True:
-            status = False
-        if status == False:
-            status = None
-        if status == None:
-            status = True
+        if   status == True:    status = False
+        elif status == False:   status = None
+        elif status == None:    status = True
 
-        self.vfields[field_name].set_value( status )        
+        self.vfields[field_name].set_value( status, initial=False )        
             
         return True
     
-    def toggled_signal_cb(self, cell, path, (model, name)):
+    def toggled_signal_cb(self, cell, path, (model, field_name)):
         """callback that cicle into True/False"""
 
-	self.model_path = path
+	self.edited_row_model_path = path
 
         obj = self.liststore[path][0]
-        status = getattr(obj, name)
+        status = getattr(obj, field_name)
 
-        self.vfields[field_name].set_value(not status)
+        self.vfields[field_name].set_value(not status, initial=False)
         
-#         if status == True:
-#             setattr(obj, name, False)
-#         if status == False:
-#             setattr(obj, name, True)
-            
         return True
     
     def generic_editing_started_cb(self, cell, editable, path, field_name):
+        print 'generic_editing_started_cb', field_name
         self.currently_edited_field_name = field_name
         return True
     
     def text_editing_started_cb(self, cell, editable, path, field_name):
 
+        self.currently_edited_field_name = field_name
         field_type = self.fields[field_name]['type']
         self.editable = editable
         self.actions.set_entry_connect(self.editable, field_name)
@@ -553,9 +566,9 @@ class SqlTable(sqlwidget.SqlWidget):
 #                              self.keyrelease_event_cb, field_name)
 
                 
-        self.model_path = path
-        dbg.write("self.model_path = %s" % (self.model_path))
-        self.commit_allowed = True
+        self.edited_row_model_path = path
+        dbg.write("self.edited_row_model_path = %s" % (self.edited_row_model_path))
+        self.commit_inhibited = False
         return True
     
     def text_edited_cb(self, cell, path, new_text, field_name):
@@ -567,10 +580,10 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.deleting_row:
             return True
 
-        if self.model_path is None:
+        if self.edited_row_model_path is None:
             return True
 
-        self.vfields[field_name].set_value(new_text)
+        self.vfields[field_name].set_value(new_text, initial=False)
         return True
     
 #### cell_data_func
@@ -604,7 +617,7 @@ class SqlTable(sqlwidget.SqlWidget):
         cell.set_property('text', value)
 
     def date_changed_cb(self, event, path, date, col):
-	self.model_path = path
+	self.edited_row_model_path = path
         
         obj = self.liststore[path][0]
         setattr(obj, col, date)
@@ -616,27 +629,27 @@ class SqlTable(sqlwidget.SqlWidget):
     def record_new(self, widget=None, *args):
         """prepare for 
         """
-        if self.block:
-            dialog = self.message(type='error', title='Save needed',
-                        text='Editing blocked until other field saved')
-            if self.response == gtk.RESPONSE_OK:
-                dialog.destroy()
-            return
 
+        ## I want to avoid generating a new obj if an object was created 
+        ## and not modified (as when you press Down Arrow several times
+        ## beyond the lower row)
+        if not self.record_has_changed():
+            if self.last_new_obj:
+                self.sb("Already at new record")
+                return
         self.record_save()
-
         self.treeview.get_toplevel().set_focus(None)
 
-        new_obj = self.get_new_object()
+        self.last_new_obj = self.get_new_object()
         # focus the row & start editing
 
         ## scroll_to_cell will trigger selection_changed_cb
         ## when the new_obj has been added but not yet edited.
         ## we inhibit this 
-        commit_allowed_status = self.commit_allowed
-        self.commit_allowed = False
+        #commit_allowed_status = self.commit_allowed
+        self.commit_inhibited = True
 
-        treeiter = self.liststore.append([new_obj])
+        treeiter = self.liststore.append([self.last_new_obj])
         path = self.liststore.get_path(treeiter)
         col = self.get_first_editable_col()
 
@@ -644,8 +657,11 @@ class SqlTable(sqlwidget.SqlWidget):
         self.treeview.set_cursor(path = path,
                                  focus_column = col,
                                  start_editing = True)
+        ## set defaults
+        for field_name in self.field_list:
+            self.vfields[field_name].set_default()
 
-        self.commit_allowed = commit_allowed_status
+        self.commit_inhibited = False
 
         return True
         
@@ -660,15 +676,20 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.sb("Total N. of records: %s" % (len(self.liststore)))
         
+    def record_has_changed(self):
+        if self.edited_row_model_path is None:
+            return False
+        return sqlwidget.SqlWidget.record_has_changed(self)
+
     def record_save_new(self, ev):
         ## the problem here is to prevent changes in the already used record
         raise NotImplementedError
     
-    def record_save(self, ev = None, constraint={}, discard_empty=False):
+    def record_save(self, ev = None, constraint={}, discard_unchanged=False):
 
         """save the record
 
-        Detects if any editing has been done consulting self.model_path set
+        Detects if any editing has been done consulting self.edited_row_model_path set
         by text_editing_started_cb.
 
         Detects if INSERT or UPDATE mode by analizing _sqlkit_mode
@@ -680,18 +701,20 @@ class SqlTable(sqlwidget.SqlWidget):
 
         """
 
-        if self.model_path is None: # no editing done
-            dbg.write('no self.model_path, nothing to save', self.model_path)
+        if self.edited_row_model_path is None: # no editing done
+            dbg.write('no self.edited_row_model_path, nothing to save', self.edited_row_model_path)
             return
 
-        obj = self.liststore[self.model_path][0]
+        obj = self.liststore[self.edited_row_model_path][0]
 
-        if discard_empty:
+        if discard_unchanged:
             dbg.write(obj, )
-            if not self.session.is_modified(obj):
+            #if not self.session.is_modified(obj):
+            if not self.record_has_changed():
                 self.session.expunge(obj)
                 del obj
-                self.model_path = None
+                self.last_new_obj = None
+                self.edited_row_model_path = None
                 return
 
         if obj not in self.records:
@@ -703,11 +726,9 @@ class SqlTable(sqlwidget.SqlWidget):
     
         mode = getattr(obj, '_sqlkit_mode', 'UPDATE')
             
-        #rdict = self.path2dict(self.model_path, mode=mode)
-        rdict = vars(obj)
         ## 
-        if not rdict:
-            self.model_path = None
+        if not self.record_has_changed():
+            self.edited_row_model_path = None
             return
 
         #rdict.update(self.constraint)
@@ -717,14 +738,15 @@ class SqlTable(sqlwidget.SqlWidget):
             self.handle_validate_error(e)
             
         self.commit()
+        self.last_new_obj = None
         
         if hasattr(obj, '_sqlkit_mode'):
             del obj._sqlkit_mode
 
         ### refresh the data
         #idx = self.sqlData.current
-        #self.liststore[self.model_path][0] = idx
-        #self.model_path = None
+        #self.liststore[self.edited_row_model_path][0] = idx
+        #self.edited_row_model_path = None
         #self.record_display(index=idx)
 
         
@@ -764,7 +786,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
 #                del obj
 
-            self.model_path = None
+            self.edited_row_model_path = None
             model.remove(iter)
         
         sel = self.treeview.get_selection()
@@ -791,15 +813,16 @@ class SqlTable(sqlwidget.SqlWidget):
     def reload(self, *args, **kwargs):
 
         try:
-            self.record_save(discard_empty=True)
+            self.record_save(discard_unchanged=True)
         except ValidationError:
             return
         
         self.session.clear()
-        self.commit_allowed = False
+        self.commit_inhibited = True
         self.clear()
         ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
-        self.model_path = None
+        self.edited_row_model_path = None
+        self.commit_inhibited = False
         
         return ret
                                          
@@ -807,7 +830,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """when self.refresh is called other programs have selected the records
         
         """
-        self.model_path = None  # must be set *before* clear()
+        self.edited_row_model_path = None  # must be set *before* clear()
                                 # to inhibit selection_changed_cp
         self.liststore.clear()
         for i in self.records:
@@ -858,7 +881,10 @@ class SqlTable(sqlwidget.SqlWidget):
             self.editable.set_text(fkvalue)
         else:
             if value and not self.is_fkey(field_name):
-                self.editable.set_text(str(value))
+                ## editable, if any, points to the last used editable
+                ## that may not be the one that belogs to field_name...
+                if self.editable and field_name == self.currently_edited_field_name:
+                    self.editable.set_text(str(value))
             
         return True
     
@@ -887,14 +913,15 @@ class SqlTable(sqlwidget.SqlWidget):
             pass  # no selection...
         
     def get_current_obj(self, path=None):
-        """returns the corrently selected obj or obj at path"""
+        """returns the corrently selected obj or obj at path. Return None if no selection"""
 
         if not path:
             path = self.get_selected_row()
 
-        obj = self.liststore[path][0]
-
-        return obj
+        if path is None:
+            return None
+        else:
+            return self.liststore[path][0]
 
     def set_current(self, pk=None, substitute=False):
         """
@@ -937,7 +964,10 @@ class SqlTable(sqlwidget.SqlWidget):
 
         shown: compatibility with mask version
         """
-        return self.editable.get_text()
+        
+        if field_name == self.currently_edited_field_name:
+            return self.editable.get_text()
+        return getattr(self.get_current_obj(), field_name)
 
 
 

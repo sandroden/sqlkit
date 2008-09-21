@@ -26,7 +26,7 @@ class SqlMask (sqlwidget.SqlWidget):
     """
 
     __metaclass__ = dbg.LogTheMethods
-    mfields = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
+    vfields = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
     labels   = None  # correspondance Label <-> EventBox
 #    map_record_n = 0  # number of the displayed record within mapper
     row_count = 0    # number of records in the mapper
@@ -112,44 +112,32 @@ class SqlMask (sqlwidget.SqlWidget):
         fkvalue: compatibility with SqlTable's one
         """
         #dbg.write("%s: %s" % (field_name, field_value))
-        if field_name not in self.mfields:
+        if field_name not in self.vfields:
             raise FieldNotInLayout("field_name: %s" % (field_name))
 
-        self.mfields[field_name].set_value(field_value)
+        self.vfields[field_name].set_value(field_value)
         
         
     def clear_value(self, field_name):
         """clear the value
         """
-        if field_name not in self.mfields:
+        if field_name not in self.vfields:
             raise FieldNotInLayout("field_name: %s" % (field_name))
 
-        self.mfields[field_name].clear_value()
+        self.vfields[field_name].set_default()
         
         
     def get_value(self, field_name, data=False, shown=False):
         """return the value from the widget
         """
 
-        if field_name not in self.mfields:
-            dbg.write("%s Non in mfields %s" % (field_name, self.mfields.keys()))
+        if field_name not in self.vfields:
+            dbg.write("%s Non in vfields %s" % (field_name, self.vfields.keys()))
             raise FieldNotInLayout("field_name: %s" % (field_name))
 
-        field = self.mfields[field_name]
+        field = self.vfields[field_name]
         
         return field.get_value(shown=shown)
-
-    def get_changed(self, field_name):
-        """return the value from the widget
-        """
-
-        if field_name not in self.mfields:
-            dbg.write("%s Non in mfields %s" % (field_name, self.mfields.keys()))
-            raise FieldNotInLayout("field_name: %s" % (field_name))
-
-        field = self.mfields[field_name]
-        
-        return field.get_changed()
 
     def record_delete(self, widget=None, interactive=True):
         """invokes the validator before DELETing a record"""
@@ -176,7 +164,7 @@ class SqlMask (sqlwidget.SqlWidget):
         #             v = self.valid (self.table, record)
         #             v.validate ()
 
-        if not self.record_changed():
+        if not self.record_has_changed():
             return
 
         obj = self.record_mask2obj(self.current)
@@ -211,7 +199,7 @@ class SqlMask (sqlwidget.SqlWidget):
         else:
             tbl = self.tables
         for key in self.fields.get_pkeys(tbl):
-            if key in self.mfields and self.is_editable(key):
+            if key in self.vfields and self.is_editable(key):
                 raise NotImplemented
             
         ## missing handling of Primary Key:
@@ -226,13 +214,13 @@ class SqlMask (sqlwidget.SqlWidget):
             raise
         
     def record_mask2obj(self, obj=None):
-        """collect data from the mask and set into the object if record_changed())
+        """collect data from the mask and set into the object if record_has_changed())
         """
         if not obj:
             return obj
 
 
-        if self.record_changed():
+        if self.record_has_changed():
             if obj not in self.session:     # see note in record_new
 #                 for i in self.session:
 #                     print i, id(i)
@@ -281,7 +269,7 @@ class SqlMask (sqlwidget.SqlWidget):
             self.clear_mask()
 
         ## we delay adding obj to the session till the moment we know that
-        ## some modification has really been made (record_changed())
+        ## some modification has really been made (record_has_changed())
         ## within record_mask2obj.
         ## this prevents unsaved_changes_exist() to complain that a commit is
         ## needed when no editing has been done
@@ -338,26 +326,6 @@ class SqlMask (sqlwidget.SqlWidget):
         except CancelledAction:
             pass
 
-    def record_changed(self):
-        """check if any data has been written in the fields after
-        record display. Uses field.get_changed()
-        """
-        ## this is needed since it's hard to say if an instance has been modified
-        ## eg: a new item is added to the session, no editing is done. A reload is issued
-        ## I want to avoid the dialog: do you want to save?
-        ## session.dirty would (correctly) say a commit is needed
-
-        for field_name in self.field_list:      
-            try:
-                changed = self.get_changed(field_name)
-            except FieldNotInLayout:
-                continue
-
-            if changed:
-                return True
-
-        return False
-
     def unsaved_changes_exist(self):
         """collect possible changes and test if save is needed
         """
@@ -399,7 +367,7 @@ class SqlMask (sqlwidget.SqlWidget):
     def _analize_widgets_in_layout(self):
         """fill variables from layout
 
-        mfields
+        vfields
         --------
         is a dict: 
            :key:   is the field_name
@@ -408,10 +376,10 @@ class SqlMask (sqlwidget.SqlWidget):
         """
         ## FIXME: does not work when renaming: euro.user_id -> euro_user_id
 
-        ## mfields can be passed as argument of the class. In that case widgets
+        ## vfields can be passed as argument of the class. In that case widgets
         ## used to represent the data are provided by another SqlMask
-        if not self.mfields:
-            self.mfields = {}
+        if not self.vfields:
+            self.vfields = {}
         ## by now I only use entry, date, radio, checbuttom, comboBox to represent data
         #dbg.dshow(self.w, 'e=')
 #         if self.nick == 'art':
@@ -428,7 +396,7 @@ class SqlMask (sqlwidget.SqlWidget):
                     widget = self.w[key]
                     field = field_chooser.get_field(field_name, self.fields[field_name], key)
 
-                    self.mfields[field_name] = field
+                    self.vfields[field_name] = field
                     
                 except KeyError, e:
                     pass
@@ -519,7 +487,7 @@ class SqlMask (sqlwidget.SqlWidget):
     def get_widget(self, field_name):
         """get the widget that render field_name"""
 
-        return self.mfields[field_name].widget.gtkwidget
+        return self.vfields[field_name].widget.gtkwidget
 
 
 ####### Validation

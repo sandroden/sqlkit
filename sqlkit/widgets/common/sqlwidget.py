@@ -582,6 +582,43 @@ class SqlWidget(object):
                 msg += ["%s: %s -> %s" % (field_name, old, new)]
         return "\n".join(msg)
 
+    def has_changed(self, field_name):
+        """return the value from the widget
+        """
+        
+        from sqlkit.widgets.mask.mask import FieldNotInLayout
+        if field_name not in self.vfields:
+            dbg.write("%s Non in vfields %s" % (field_name, self.vfields.keys()))
+            raise FieldNotInLayout("field_name: %s" % (field_name))
+
+        field = self.vfields[field_name]
+        
+        return field.has_changed()
+
+    def record_has_changed(self):
+        """check if any data has been written in the fields after
+        record display. Uses field.has_changed()
+        """
+        ## this is needed since it's hard to say if an instance has been modified
+        ## eg: a new item is added to the session, no editing is done. A reload is issued
+        ## I want to avoid the dialog: do you want to save?
+        ## session.dirty would (correctly) say a commit is needed
+
+        
+        from  sqlkit.widgets.mask.mask import FieldNotInLayout
+        
+        for field_name in self.field_list:      
+            try:
+                changed = self.has_changed(field_name)
+            except FieldNotInLayout:
+                continue
+
+            if changed:
+                return True
+
+        return False
+
+
 ####### Sync
     def sync_add(self, sqlWidget, cnd=None):
         if not isinstance(self, sqlkit.SqlMask):

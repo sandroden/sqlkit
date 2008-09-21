@@ -118,9 +118,11 @@ class Field(object):
             ### used in SqlTable
             self.widget = CellWidget(self)
 
-    def set_value(self, value):
-       self.initial_value = self.clean_initial_value(value)
-       self.widget.set_value(self.initial_value)
+    def set_value(self, value, initial=True):
+        value = self.clean_initial_value(value)
+        if initial:
+            self.initial_value = value
+        self.widget.set_value(value)
 
     def get_value(self, shown=None):
         return self.widget.get_value(shown=shown)
@@ -131,10 +133,10 @@ class Field(object):
     def set_completion(self, regexp):
         pass
 
-    def get_changed(self):
+    def has_changed(self, verbose=False):
         """return True if field has changed after last set
         """
-        dbg.write("get_changed - %r: or: %r ==> %r" % (
+        dbg.write("has_changed - %r: or: %r ==> %r" % (
             self.field_name, self.initial_value, self.get_value()))
 
         return not self.get_value() == self.initial_value
@@ -152,12 +154,16 @@ class Field(object):
                 pass
         return value
         
+    def set_default(self):
+        self.set_value(self.get_default())
+        
     def clean_initial_value(self, value):
         return value
    
     def validate(self):
         pass
 
+        
     def __repr__(self):
         return "<%s - %s >" % (self.__class__.__name__, self.field_name)
 
@@ -179,7 +185,7 @@ class IntegerField(Field):
     Widget = IntegerWidget
     def get_value(self, shown=False):
         value = self.widget.get_value()
-        if value == None:
+        if value in (None, ''):
             return None
         else:
             return int(value)
