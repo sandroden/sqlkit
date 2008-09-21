@@ -233,9 +233,13 @@ class BooleanField(Field):
     Widget = BooleanWidget
 
     def clean_initial_value(self, value):
+        if value is None:
+            value = False
         if value not in (True, False):
-            raise ValidationError("Null value not admissable for field %s" % self.field) 
-
+            msg = "Null value not admissable for field %s" % self.field_name
+            raise ValidationError(msg) 
+        return value
+    
     def clear_value(self):
         ## should I check the default here?
         self.set_value(False)
@@ -247,8 +251,9 @@ class BooleanNullField(Field):
 
     def clean_initial_value(self, value):
         if value not in (True, False, None):
-            raise ValidationError("Null value not admissable for field %s" % self.field) 
-
+            msg = "Null value not admissable for field %s" % self.field_name
+            raise ValidationError(msg) 
+        return value
     
 class ForeignKeyField(Field):
     """A field that uses ComboBoxEntry

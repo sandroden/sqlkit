@@ -123,7 +123,7 @@ class SqlWidget(object):
         ## we can use singular or plural as an option, plural in the code
         if table and not tables:
             tables = table
-        self.tables = tables
+        self.tables = self.get_table(tables)
         self.nick= self.get_nick(nick)
         self.mode = mode
         self.noup = noup
@@ -201,6 +201,12 @@ class SqlWidget(object):
             ## one metadata in the same session?... boh
             return mapper.local_table.metadata
         
+    def get_table(self, tables):
+        if tables:
+            return tables.split()[0]  ## FIXME: works for 1 single table
+        if self.mapper:
+            return self.mapper.local_table.name
+
     def parse_fields(self, field_list, layout):
         if not field_list:
             ### if no layout was defined and no field_list was passed
@@ -501,13 +507,8 @@ class SqlWidget(object):
         if self.limit:
             query = query.limit(self.limit)
                 
-        # records = self.mapper.select_by(sql)
-        # self.mapper.table.engine.echo = False
         if isinstance(self, sqlkit.SqlMask):
             self.clear()
-#        self.sqlData = sqldata.SqlData(query.all(), self.fields, self.session)
-#        self.sqlData = query.all()
-#        self.records = self.sqlData.res_obj
         self.records = query.all()
         if display:
             self.record_display()
@@ -522,6 +523,7 @@ class SqlWidget(object):
         """set 'records' as the list of record to manage
         """
         self.records = records
+        self.last_new_obj = None
         self.record_refresh()
 
     def record_refresh(self):
