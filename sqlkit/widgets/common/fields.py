@@ -13,10 +13,14 @@ fields classes to handle all details:
    
 """
 
-from miniwidgets import *
+from sqlkit.widgets.mask.miniwidgets import *
+from sqlkit.widgets.table.tablewidgets import CellWidget
 from datetime import datetime, time, date
 import gtk
 from pprint import pprint 
+from sqlkit.db import defaults
+
+class ValidationError(Exception): pass
 
 class FieldChooser(object):
 
@@ -29,15 +33,15 @@ class FieldChooser(object):
         
     """
 
-    def __init__(self, w, master):
+    def __init__(self, master, w=None):
         """    
         w:           the widget dictionary retuned by Layout
         master:      the sqlkit widget (SqlMask)
         """
-        self.w = w 
         self.master = master
+        self.w = w or {}
 
-    def get_field(self, field_name, db_spec, def_str):
+    def get_field(self, field_name, db_spec, def_str=None):
         """return a field
 
         field_name:  the name of the field in the db
@@ -46,11 +50,10 @@ class FieldChooser(object):
                      the gtk.Widget (eg.: c=married, e=first_name)
         """        
 
-        gtk_widget = self.w[def_str]
+        gtk_widget = self.w.get(def_str, None)
     
         args = (field_name, db_spec, def_str, self.master, gtk_widget)
     
-        ## FIXME: it doesn't handle OneToMany or ManyToMany
         if db_spec['fkey']:
             return ForeignKeyField(*args)
 
@@ -106,31 +109,71 @@ class Field(object):
         self.db_spec = db_spec
         self.def_str = def_str
         self.master = master
-
-        self.widget = self.Widget(gtkwidget, self)
+        self.initial_value = None
+ 
+        if gtkwidget:
+            ## used in SqlMask
+            self.widget = self.Widget(gtkwidget, self)
+        else:
+            ### used in SqlTable
+            self.widget = CellWidget(self)
 
     def set_value(self, value):
-        self.widget.set_value(value)
+       self.initial_value = self.clean_initial_value(value)
+       self.widget.set_value(self.initial_value)
 
     def get_value(self, shown=None):
         return self.widget.get_value(shown=shown)
 
     def clear_value(self):
-        self.widget.set_value(None)
+        self.set_value(None)
 
     def set_completion(self, regexp):
         pass
 
     def get_changed(self):
-        """return if field has changed after last set
+        """return True if field has changed after last set
         """
-        return self.widget.get_changed()
+        dbg.write("get_changed - %r: or: %r ==> %r" % (
+            self.field_name, self.initial_value, self.get_value()))
+
+        return not self.get_value() == self.initial_value
     
+    def get_default(self):
+        """
+        return the default value for this object
+        """
+
+        value = defaults.get_default(self.master.tables, self.field_name)
+        if not value:
+            try:
+                value = self.db_spec['default']
+            except KeyError:
+                pass
+        return value
+        
+    def clean_initial_value(self, value):
+        return value
+   
     def validate(self):
         pass
 
     def __repr__(self):
         return "<%s - %s >" % (self.__class__.__name__, self.field_name)
+
+class VarcharField(Field):
+    Widget = VarcharWidget
+
+    def clean_initial_value(self, value):
+        if value == None:
+            value = ''
+        return value
+
+    def get_value(self, shown=False):
+        value = self.widget.get_value()
+        if value == '' and self.initial_value is None:
+            return None
+        return value
 
 class IntegerField(Field):
     Widget = IntegerWidget
@@ -141,17 +184,30 @@ class IntegerField(Field):
         else:
             return int(value)
 
-class FloatField(Field):
-    Windget = FloatWidget
-    def get_value(self, show=False):
-        return float(self.widget.get_value())
+    def clean_initial_value(self, value):
+        if value == '':
+            return None
+        else:
+            return value
 
-class VarcharField(Field):
-    Widget = VarcharWidget
+class FloatField(IntegerField):
+    Windget = FloatWidget
+
+    def get_value(self, show=False):
+        value = self.widget.get_value()
+        if value == None:
+            return None
+        else:
+            return float(self.widget.get_value())
 
 class TextField(Field):
     Widget = TextWidget
 
+    def clean_initial_value(self, value):
+        if value is None:
+            value = ''
+        return value    
+        
 class DateField(Field):
     Widget = DateWidget
 
@@ -170,14 +226,22 @@ class BooleanField(Field):
 
     Widget = BooleanWidget
 
+    def clean_initial_value(self, value):
+        if value not in (True, False):
+            raise ValidationError("Null value not admissable for field %s" % self.field) 
+
     def clear_value(self):
         ## should I check the default here?
-        self.widget.set_value(False)
+        self.set_value(False)
 
 class BooleanNullField(Field):
     """A boolean field that allows to set NULL
     """
     Widget = BooleanNullWidget
+
+    def clean_initial_value(self, value):
+        if value not in (True, False, None):
+            raise ValidationError("Null value not admissable for field %s" % self.field) 
 
     
 class ForeignKeyField(Field):
@@ -193,4 +257,23 @@ class CollectionField(Field):
 
     """
     Widget = CollectionWidget
+
+    def __init__(self, field_name, db_spec, def_str, master, gtkwidget):
+        Field.__init__(self, field_name, db_spec, def_str, master, gtkwidget)
+        self.initial_value = []
+        
+    def clean_initial_value(self, value):
+        from copy import copy
+        
+        if value is None:
+            value = []
+        return copy(value)
+
+    def set_value(self, value):
+        self.initial_value = self.clean_initial_value(value)
+        if value is None:
+            value = []
+        self.widget.set_value(value)
+
+
     

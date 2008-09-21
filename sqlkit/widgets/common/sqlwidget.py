@@ -512,7 +512,10 @@ class SqlWidget(object):
         if display:
             self.record_display()
 
-        return len(self.records)
+        length = len(self.records)
+        if not length:
+            self.record_new()
+        return length
 
 
     def set_records(self, records):
@@ -862,6 +865,18 @@ class SqlWidget(object):
             return issubclass(py_type, bool)
         else:
             return False
+
+    def is_nullable(self, field_name):
+        """
+        Return true if this field is  date
+        """
+        return self.fields[field_name]['nullable']
+
+    def is_editable(self, field_name):
+        """
+        Return true if this field is  date
+        """
+        return self.fields[field_name]['edit']
 
     def is_number(self, field_name):
         """

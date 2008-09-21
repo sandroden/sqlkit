@@ -6,3 +6,5 @@ dbg
 layout
 sqlalchemy
 html
+prove
+test

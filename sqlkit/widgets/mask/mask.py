@@ -1,25 +1,17 @@
 import sys, re, datetime
-#import config
-#import inspect
-#import common
 import layout
 import layout.dateedit as dateedit
 
-#import validator
-#from sqlkit.widgets.common.layoutgenerator import LayoutGenerator
 import gtk, pango
 from sqlalchemy import *
 from sqlalchemy.exc import InvalidRequestError
-import dbg.gtk_dbg
+from sqlkit.widgets.common.fields import FieldChooser
 import sqlkit
-#from sqlkit.widgets.common import sqlfilter
-#from sqlkit.db import sqldata
-#import sqlkit.sqldata as sqldata
-#import sqlkit.inspect as sinspect
 from sqlkit.validation import validator
 from sqlkit.widgets.common import completion, sqlwidget
 import decimal
 import sqlkit
+import dbg
 
 class FieldNotInLayout(Exception): pass
 class FieldValueNotSet(Exception): pass
@@ -279,7 +271,9 @@ class SqlMask (sqlwidget.SqlWidget):
         for z in self.sync_dict:
             z.clear()
             z.sync_block()
+            
     clear = clear_mask
+    
     def record_new(self, widget=None, clear=True):
         """prepare a new object and set 
         """
@@ -296,7 +290,6 @@ class SqlMask (sqlwidget.SqlWidget):
         self.records += [self.current]
         self.current_idx = len(self.records) -1
         self.sb("New record %s" % (self.current_idx +1))
-        dbg.write( "RECORD_NEW, new", self.session.new)
         self.current_mode = 'INSERT'
         
     def record_forward(self, ev):
@@ -424,8 +417,7 @@ class SqlMask (sqlwidget.SqlWidget):
 #         if self.nick == 'art':
 #             print self.w.keys()
 
-        from fields import FieldChooser
-        field_chooser = FieldChooser(self.w, self)
+        field_chooser = FieldChooser(self, self.w)
 
         for field_name in self.field_list:
             ## MM is a workarond to bypass the fact that if I use 'A'

@@ -10,8 +10,7 @@ widgets only interpret gtk, while fields teat with real values and do validation
 """
 
 
-class ValidationError(Exception): pass
-import localtimezone
+from sqlkit.widgets.common import localtimezone
 import gtk
 import dbg
 from datetime import timedelta
@@ -25,7 +24,6 @@ class Widget(object):
         self.field = field
         self.master = field.master
         self.field_name = field.field_name
-        self.initial_value = None
 
         if self.field.db_spec['edit']:
             if not self.field.db_spec['nullable'] or self.field.db_spec['pkey']:
@@ -36,17 +34,10 @@ class Widget(object):
     def set_value(self, value, displayed=False):
         """if shown is True, the displayed value is returned also in any
         case. The difference is only for ForeignKey
-        The displayed valu may be used for completion purpouses
+        The displayed value may be used for completion purpouses
         """
         pass
 
-    def get_changed(self):
-        """true if value is different from initial setting
-        """
-        dbg.write("get_changed - %r: or: %r ==> %r" % (
-            self.field_name, self.initial_value, self.get_value()))
-        return not self.get_value() == self.initial_value
-    
     def get_value(self):
         pass
 
@@ -76,16 +67,11 @@ class VarcharWidget(Widget):
 
     def set_value(self, value):
         # Entry
-        if value == None:
-            value = ''
-        self.initial_value = value
         self.gtkwidget.set_text( str(value) )
         
     def get_value(self, shown=False):
         value = self.gtkwidget.get_text( )
         ## don't change from None to '' 
-        if value == '' and self.initial_value is None:
-            return None
         return value
 
         
@@ -98,11 +84,6 @@ class IntegerWidget(VarcharWidget):
                 
     def set_value(self, value):
         # Entry
-        if value == '':
-            self.initial_value = None
-        else:
-            self.initial_value = value
-
         self.gtkwidget.set_text( str(value or '') )
         
     def get_value(self, shown=False):
@@ -126,7 +107,6 @@ class DateWidget(Widget):
         self.gtkwidget.set_property('show-time', False)
 
     def set_value(self, value):
-        self.initial_value = value
         self.gtkwidget.set_property('time', value)
 
     def get_value(self, shown=False):
@@ -148,7 +128,6 @@ class DateTimeWidget(Widget):
     def set_value(self, value):
         ## FIXME: datetime has only time?
         self.gtkwidget.set_property('time', value)
-        self.initial_value = value
 
         if value:
             self.microsecond = value.microsecond
@@ -174,8 +153,6 @@ class DateTimeTZWidget(DateTimeWidget):
         else:
             self.TZ = None
             self.microsecond = 0
-        self.initial_value = value
-
 
     def get_value(self, shown=False):
         value = self.gtkwidget.get_property('time')
@@ -193,12 +170,8 @@ class DateTimeTZWidget(DateTimeWidget):
 class TextWidget(Widget):
 
     def set_value(self, value):
-        if value is None:
-            value = ''
-                
         buff = self.gtkwidget.get_buffer()
         buff.set_text( value)
-        self.initial_value = value
 
     def get_value(self, shown=False):
         buff = self.gtkwidget.get_buffer()
@@ -212,11 +185,7 @@ class BooleanWidget(Widget):
     """Null value is not admittable"""
 
     def set_value(self, value):
-        if value not in (True, False):
-            raise ValidationError("Null value not admittable for field '%s'" % self.field_name) 
-            
         self.gtkwidget.set_active(value)
-        self.initial_value = value
 
     def get_value(self, shown=False):
         return self.gtkwidget.get_active( )
@@ -226,15 +195,11 @@ class BooleanNullWidget(Widget):
     """
 
     def set_value(self, value):
-        if value not in (True, False, None):
-            raise ValidationError("Null value not admissable for field %s" % self.field) 
-            
         if value == None:
             self.gtkwidget.set_inconsistent(True)
         else:
             self.gtkwidget.set_active(value)
             self.gtkwidget.set_inconsistent(False)
-        self.initial_value = value
 
     def get_value(self, shown=False):
         if self.gtkwidget.get_inconsistent():
@@ -294,8 +259,6 @@ class ForeignKeyWidget(Widget):
         """We have a 'real_value' that is normally an id or a key and a 'display_value'
         that is the value we want to show
         """
-        self.initial_value = value
-        
         display_value = self.master.completion.lookup_value(self.field.field_name, value)
         if value == None:
             if self.field.db_spec['type'] == str:
@@ -356,18 +319,12 @@ class CollectionWidget(Widget):
             relationship_path = self.field_name,  # FIXME: not good for longer relationships
             
             )
-        self.initial_value = []
+#       self.initial_value = []
         self.table.relationship_mode = "m2m"
 
         #self.gtkwidget.set_property('sensitive', True) 
 
     def set_value(self, value):
-        from copy import copy
-        
-        if value is None:
-            value = []
-        self.initial_value = copy(value)
-
         self.table.set_records(value)
 
     def get_value(self, shown=False):
