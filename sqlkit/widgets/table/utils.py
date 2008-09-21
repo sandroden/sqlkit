@@ -1,7 +1,16 @@
-def set_height_request(treeview, rows):
-    """Show a given number of rows in the treeview.
+def set_height_request(treeview, rows=None):
+    """Show "rows" rows in the treeview,
+    or a reasonable number if "rows" is not set.
     Untested with multiline rows.
     """
+
+    if not rows:
+        rows = len(self.liststore)
+        if rows == 0:
+            rows = 10
+        if rows > 30:
+            rows = 30
+
 
     column      = treeview.get_column(0)
     cell_height = column.cell_get_size()[4]
