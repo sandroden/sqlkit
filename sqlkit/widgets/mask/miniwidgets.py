@@ -185,7 +185,7 @@ class BooleanWidget(Widget):
     """Null value is not admittable"""
 
     def set_value(self, value):
-        self.gtkwidget.set_active(value)
+        self.gtkwidget.set_active(bool(value))
 
     def get_value(self, shown=False):
         return self.gtkwidget.get_active( )
