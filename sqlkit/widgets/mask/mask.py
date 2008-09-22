@@ -94,7 +94,7 @@ class SqlMask (sqlwidget.SqlWidget):
             except FieldNotInLayout, e:
                 pass
 
-        self.sync()
+        #self.sync()
         self.actions.on_record_display(new=obj)
         #sqlwidget.SqlWidget.record_display(self, new=data_in)
         
@@ -141,8 +141,6 @@ class SqlMask (sqlwidget.SqlWidget):
 
     def record_delete(self, widget=None, interactive=True):
         """invokes the validator before DELETing a record"""
-        ## FIXME: validator
-#        if self.sync_dict:
             
         if interactive:
             response = self.dialog(type='ok-cancel', text="Delete this record?")
@@ -151,11 +149,12 @@ class SqlMask (sqlwidget.SqlWidget):
 
         self.session.delete(self.records[self.current_idx])
         self.last_new_obj = None
-        #self.sqlData.delete()
         
         self.commit()
         self.records.pop(self.current_idx)
-        self.record_display()
+        if self.current_idx  > len(self.records) -1:
+            self.current_idx -= 1
+        self.record_display(index=self.current_idx)
     
     def record_save(self, ev, constraint={}, ask=True, *args):
         """invokes the validator before UPDATE/INSERT a record"""
@@ -269,13 +268,6 @@ class SqlMask (sqlwidget.SqlWidget):
         if clear:
             self.clear_mask()
 
-        ## we delay adding obj to the session till the moment we know that
-        ## some modification has really been made (record_has_changed())
-        ## within record_mask2obj.
-        ## this prevents unsaved_changes_exist() to complain that a commit is
-        ## needed when no editing has been done
-
-#        self.current = self.get_new_object(session=False)
         self.current = self.get_new_object()
         self.records += [self.current]
         self.current_idx = len(self.records) -1
@@ -285,25 +277,13 @@ class SqlMask (sqlwidget.SqlWidget):
     def record_forward(self, ev):
         """display the next record in the mapper"""
 
-        if self.sync_dict:
-            ris = self.record_forward_sync(incr=1)
-            #dbg.write('ris', ris)
-            if ris:
-                #dbg.write('esco')
-                return
-        
         return self.record_display(incr=1)
     
     def record_back(self, ev):
         """display the previous record in the mapper"""
-        if self.sync_dict:
-            ris = self.record_back_sync(incr=-1)
-            #dbg.write('ris', ris)
-            if ris:
-                #dbg.write('esco')
-                return
         
         return self.record_display(incr=-1)
+    
     def add_accelerators(self):
         """
         C-S-n clear
@@ -548,6 +528,8 @@ class Combo(SqlMask):
     def parse_fields(self, fields):
         self.table_field_list = fields
         return SqlMask.parse_fields(self, None)
+
+
 
 
 
