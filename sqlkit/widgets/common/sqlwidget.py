@@ -36,6 +36,7 @@ class SqlWidget(object):
 #    __metaclass__ = dbg.LogTheMethods
 #    __metaclass__ = misc.autoreload.MetaAutoReloader
     records = None
+    last_new_obj = None
     def __init__ (self, mapper=None,
                   ## geometry
                   layout = None,
@@ -495,6 +496,7 @@ class SqlWidget(object):
             self.sql = (sql_str, params)
 
         self.session.clear()
+        self.last_new_obj = None
         query = self.session.query(self.mapper)
         query = query.filter(sql_str)
         if params:
@@ -508,7 +510,8 @@ class SqlWidget(object):
             query = query.limit(self.limit)
                 
         if isinstance(self, sqlkit.SqlMask):
-            self.clear()
+            self.current = None
+            self.clear(check=False)
         self.records = query.all()
         if display:
             self.record_display()
@@ -769,6 +772,7 @@ class SqlWidget(object):
             if response == gtk.RESPONSE_YES:
                 dbg.write("Response YES")
                 self.session.commit()
+                self.last_new_obj = None
 
             ## you don't want to save. Let's prevent a delayed commit
             ## we don't need to care about deleted becouse when you delete
@@ -782,6 +786,7 @@ class SqlWidget(object):
                     for obj in self.session.new:
                         dbg.write("session.expunge(%s)" % obj)
                         self.session.expunge(obj)
+                    self.last_new_obj = None  ## FIXME: unsure...
                 else:
                     dbg.write("refresh:", refresh)
                 dbg.write(self.session.dirty)
@@ -1228,6 +1233,8 @@ class Actions(object):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+
 
 
 

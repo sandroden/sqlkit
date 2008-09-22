@@ -53,7 +53,6 @@ class SqlTable(sqlwidget.SqlWidget):
     commit_inhibited = False
     deleting_row = False
     tvcolumns = None
-    last_new_obj = None
 #    trace_regexp = 'commit_allowed'
     __metaclass__ = dbg.LogTheMethods
          
@@ -757,7 +756,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.session.expunge(self.last_new_obj)
                 del self.last_new_obj
                 self.last_new_obj = None
-
+                
         return sqlwidget.SqlWidget.unsaved_changes_exist(self)
         
     def record_delete(self, widget=None, interactive=True):
@@ -827,7 +826,7 @@ class SqlTable(sqlwidget.SqlWidget):
         except ValidationError:
             return
         
-        self.session.clear()
+#        self.session.clear()
         self.commit_inhibited = True
         self.clear()
         ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)

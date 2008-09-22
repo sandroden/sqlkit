@@ -87,9 +87,12 @@ class SqlMask (sqlwidget.SqlWidget):
 
 
         self.sb(msg_info)
+
         for field_name in self.field_list:
             try:
-                self.set_value(field_name, getattr(obj, field_name))
+                value = getattr(obj, field_name)
+                dbg.write("VALUE (%s): %s" % (field_name, value))
+                self.set_value(field_name, value)
                 #self.get_value(field_name) ????
             except FieldNotInLayout, e:
                 pass
@@ -165,6 +168,13 @@ class SqlMask (sqlwidget.SqlWidget):
         #             v.validate ()
 
         if not self.record_has_changed():
+            if self.last_new_obj:
+                ## very important: existence of an instance that is not
+                ## persinstant will turn out in an error if it cannot be
+                ## saved. That can occur also when simply setting a loader attribute.
+                self.session.expunge(self.last_new_obj)
+                self.current = None
+                self.last_new_obj = None
             return
 
         obj = self.record_mask2obj(self.current)
@@ -184,7 +194,8 @@ class SqlMask (sqlwidget.SqlWidget):
                 raise CancelledAction
         else:
             self.commit()
-
+            self.last_new_obj = None
+            
         self.record_display(reread=True)
         self.current_mode = 'UPDATE'
         self.record_save_sync()
@@ -265,14 +276,32 @@ class SqlMask (sqlwidget.SqlWidget):
     def record_new(self, widget=None, clear=True):
         """prepare a new object and set 
         """
+        if self.current and  not self.record_has_changed():
+            if self.last_new_obj:
+                self.sb("Already at new record")
+                return
+        
         if clear:
             self.clear_mask()
 
         self.current = self.get_new_object()
+        self.last_new_obj = self.current
         self.records += [self.current]
         self.current_idx = len(self.records) -1
         self.sb("New record %s" % (self.current_idx +1))
         self.current_mode = 'INSERT'
+        
+    def unsaved_changes_exist(self):
+        """collect possible changes and test if save is needed
+        """
+
+        if self.current and not self.record_has_changed():
+            if self.last_new_obj:
+                self.session.expunge(self.last_new_obj)
+                del self.last_new_obj
+                self.last_new_obj = None
+
+        return sqlwidget.SqlWidget.unsaved_changes_exist(self)
         
     def record_forward(self, ev):
         """display the next record in the mapper"""
@@ -528,6 +557,8 @@ class Combo(SqlMask):
     def parse_fields(self, fields):
         self.table_field_list = fields
         return SqlMask.parse_fields(self, None)
+
+
 
 
 
