@@ -50,8 +50,11 @@ class Defaults(object):
             conn = self.metadata.bind.connect()
             result = conn.execute(s)
             row = result.fetchone()
-            tables[self.table_name][field_name] = row[fk_col.name]
-            return row[fk_col.name]
+            if row:
+                tables[self.table_name][field_name] = row[fk_col.name]
+            else:
+                tables[self.table_name][field_name] = None
+            return tables[self.table_name][field_name]
         
         self.set_default(field_name, get_by_description)
     
