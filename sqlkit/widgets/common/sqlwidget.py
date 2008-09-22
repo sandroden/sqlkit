@@ -950,18 +950,32 @@ class SqlWidget(object):
         """
         l = []
         j = 0
-        for i in self.session:
+        for obj in self.session:
             if k is not None:
-                print "%.2d %s" % (j, i)
-            l += [i]
+                print "%.2d %s %s" % (j, obj, hex(id(obj)))
+            l += [(hex(id(obj)), obj)]
             j += 1
-            
+
+        l += [('dirty', self.session.dirty)]
+        l += [('new', self.session.new)]
+        l += [('delete', self.session.deleted)]
         if k is None:
             return l
         else:
             return l[k]
         
-
+    def mostra(self, what):
+        """
+        debug: show all attribute of an object
+        """
+        if isinstance(what, int):
+            obj = self.records[what]
+        else:
+            obj = what
+            
+        for attr in self.field_list:
+            print attr, getattr(obj, attr)
+            
 ####### printing
     def printing(self):
         """this will pop entries in the print setup to allow for printing
@@ -1214,6 +1228,8 @@ class Actions(object):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+
 
 
 
