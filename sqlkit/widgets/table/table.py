@@ -961,10 +961,16 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         
         columns = self.treeview.get_columns()
+        second_choice = []
         for field_name in self.field_list:
             if self.tvcolumns[field_name].get_visible() and self.is_editable(field_name):
-                return self.tvcolumns[field_name]
-        
+                if self.vfields[field_name].get_default():
+                    second_choice += [self.tvcolumns[field_name]]
+                else:
+                    return self.tvcolumns[field_name]
+        if second_choice:
+            return second_choice[0]
+           
 #### completion
 
     def get_value(self, field_name, shown=True):
@@ -976,8 +982,11 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         
         if field_name == self.currently_edited_field_name:
-            return self.editable.get_text()
+            if self.editable:
+                return self.editable.get_text()
         return getattr(self.get_current_obj(), field_name)
+
+
 
 
 
