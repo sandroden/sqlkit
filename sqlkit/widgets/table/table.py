@@ -865,7 +865,9 @@ class SqlTable(sqlwidget.SqlWidget):
         try:
             value = ptype(value)
         except TypeError:
-            if value is None:  #eg: setting a field to NULL 
+            # eg: setting a field to NULL
+            # or: a date that is already in the correct type
+            if value is None or type(value) == ptype:
                 pass
             else:
                 raise
@@ -985,6 +987,8 @@ class SqlTable(sqlwidget.SqlWidget):
             if self.editable:
                 return self.editable.get_text()
         return getattr(self.get_current_obj(), field_name)
+
+
 
 
 
