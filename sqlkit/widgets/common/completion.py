@@ -434,7 +434,7 @@ class Completion(object):
             self.master.set_current(pk=value, substitute=True)
         else:
             ## normal case
-            self.master.set_value(field_name, value, fkvalue=fkvalue)
+            self.master.set_value(field_name, value, fkvalue=fkvalue, initial=False)
 
         return True
 #         #dbg.write('value for ', field_name, value)

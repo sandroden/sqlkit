@@ -280,7 +280,7 @@ class CollectionField(Field):
             value = []
         return copy(value)
 
-    def set_value(self, value):
+    def set_value(self, value, initial=True):
         self.initial_value = self.clean_initial_value(value)
         if value is None:
             value = []

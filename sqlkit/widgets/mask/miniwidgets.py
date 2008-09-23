@@ -259,7 +259,7 @@ class ForeignKeyWidget(Widget):
         """We have a 'real_value' that is normally an id or a key and a 'display_value'
         that is the value we want to show
         """
-        display_value = self.master.completion.lookup_value(self.field.field_name, value)
+        display_value = self.master.completion.lookup_value(self.field_name, value)
         if value == None:
             if self.field.db_spec['type'] == str:
                 value = ''

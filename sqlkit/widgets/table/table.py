@@ -846,7 +846,7 @@ class SqlTable(sqlwidget.SqlWidget):
             self.liststore.append([i])
 
 
-    def set_value(self, field_name, value, path=None, fkvalue=None):
+    def set_value(self, field_name, value, path=None, fkvalue=None, initial=False):
         """called from within edited signal and completion.
         Validation should live here?
         If path, is not passed (as when used from completion)
@@ -881,7 +881,7 @@ class SqlTable(sqlwidget.SqlWidget):
             if self.is_fkey(field_name) and not fkvalue:
                 return
             else:
-                ## we should not come here, but there may be cases I'm missing now...
+                ## we should not arrive here, but there may be cases I'm missing now...
                 raise
 
         setattr(obj, field_name, value)
