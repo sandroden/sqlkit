@@ -43,19 +43,22 @@ class SqlTable(sqlwidget.SqlWidget):
 
     edited_row_model_path = None
     currently_edited_field_name = None
-    treeview = None
-    liststore = None
-    tvcolumns = None
-    mc = None
     mapper = None
     editable = None
 #    commit_allowed = dbg.TraceIt(True, name='commit_allowed', mode='rw')
-    commit_inhibited = False
-    deleting_row = False
-    tvcolumns = None
 #    trace_regexp = 'commit_allowed'
     __metaclass__ = dbg.LogTheMethods
          
+    def __init__(self, *args, **kwargs):
+        self.treeview = None
+        self.liststore = None
+        self.tvcolumns = None
+        self.commit_inhibited = False
+        self.deleting_row = False
+        self.tvcolumns = None
+        self.totals = Totals(self)
+        sqlwidget.SqlWidget.__init__(self, *args, **kwargs)
+        
     def _get_layout(self, lay, naked):
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
         self.liststore = gtk.ListStore(object)
@@ -136,10 +139,28 @@ class SqlTable(sqlwidget.SqlWidget):
         item.connect('activate', self.hide_column, field_name )
         menu.append(item)
 
+        ## totals
+        if self.get_field_type(field_name) in sqlwidget.NUMBERS and not self.is_fkey(field_name):
+            item = gtk.MenuItem(label="create total")
+            item.connect('activate', self.add_total_cb, field_name )
+            menu.append(item)
+
+        ## subtotals
+        item = gtk.MenuItem(label="subtotal on %s" % (field_name))
+        item.connect('activate', self.totals.add_brake, field_name )
+        menu.append(item)
+
+
         menu.show_all()
         menu.popup(None, None, None, ev.button, ev.time)
         #menu.popup(None, None, None, 1, 1)
         
+    def add_total_cb(self, menu_item, field_name):
+        self.totals.add_total(field_name)
+        
+    def add_subtotal_cb(self, menu_item, field_name):
+        self.totals.add_brake(field_name)
+
     def reload_sort(self, widget, field_name, *args):
         dbg.write(widget, field_name)
         self.order_by = field_name
@@ -257,6 +278,7 @@ class SqlTable(sqlwidget.SqlWidget):
             event_box.add(label)
             event_box.show_all()
             tvcolumn.set_widget(event_box)
+            tvcolumn.set_reorderable(True)
 
             #tvcolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
             tvcolumn.set_resizable(True)
@@ -605,6 +627,9 @@ class SqlTable(sqlwidget.SqlWidget):
         obj = model.get_value(iter, 0) 
         value = getattr(obj, name)
         cell.set_property(prop_name, value)        
+        #if isinstance(obj, TotalObj):
+        #    #cell.set_property('cell-background', 'yellow')        
+        #    print hex(id(cell)), name
         
     def set_fkey_descr(self, column, cell, model, iter, field_name):
         """cell_data_function used by column that have fkey
@@ -736,6 +761,7 @@ class SqlTable(sqlwidget.SqlWidget):
             self.handle_validate_error(e)
             
         self.commit()
+        self.totals.compute()
         self.last_new_obj = None
         
         if hasattr(obj, '_sqlkit_mode'):
@@ -812,7 +838,8 @@ class SqlTable(sqlwidget.SqlWidget):
             sel.select_path(row_n)
         
         self.deleting_row = False
-
+        self.totals.compute()
+        
         self.sb("total N. of records: %s" % len(self.liststore))
         return True
     
@@ -832,7 +859,7 @@ class SqlTable(sqlwidget.SqlWidget):
         ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
         self.edited_row_model_path = None
         self.commit_inhibited = False
-        
+        self.totals.compute()
         return ret
                                          
     def record_refresh(self):
@@ -995,3 +1022,120 @@ class SqlTable(sqlwidget.SqlWidget):
 
 
 
+
+class TotalObj(object):
+    def __init__(self, fields):
+        for name in fields:
+            setattr(self, name, None)
+
+class Totals(object):
+    """
+    An object whose 'compute' method adds TotalObjets to show
+    partial totals/grand totals to a table.
+    A TotalObject is inserted each time total_by changes.
+    If total_by is a callable, it's evaluated to detect is a partial total
+    must be inserted
+    """
+    def __init__(self, table):
+        self.table = table
+        self.totals = {}
+        self.subtotals = {}
+        self.brake_func = None
+        self.prev = None
+
+    def add_total(self, field_name):
+        """
+        Add a total object each time subtotal changes
+        """
+
+        if not self.table.get_field_type(field_name) in sqlwidget.NUMBERS:
+            raise NotImplemented("%s is not a number" % field_name)
+        self.totals[field_name] = 0
+        self.subtotals[field_name] = 0
+        self.compute()
+            
+    def del_total(self, field_name):
+        del self.totals[field_name]
+
+    def add_brake(self, func, *args):
+        """
+        if func is a string,  is taken as a field_name, any change on that field value
+        will trigger a subtotal via brake_func
+
+        If func is a function it will be set as brake_function with argumnets args
+        """
+        if isinstance(func, str):
+            field_name = func
+            def subtotal_diff(obj):
+                return getattr(obj, field_name)
+            self.brake_func = subtotal_diff
+        self.compute()
+
+    def is_different(self, obj):
+        if self.prev is None:
+            self.prev = self.brake_func(obj)
+            return False
+        
+        if self.prev != self.brake_func(obj):
+            return True
+        
+        return False
+
+    def initialize(self):
+        self.prev = None
+        for field_name in self.totals.keys():
+            self.totals[field_name]    = 0
+            self.subtotals[field_name] = 0
+        
+    def sum(self, obj):
+        for field_name in self.totals.keys():
+            self.totals[field_name]    += getattr(obj, field_name, 0) or 0
+            self.subtotals[field_name] += getattr(obj, field_name, 0) or 0
+
+    def reset_subtotals(self):
+        for field_name in self.totals:
+            self.subtotals[field_name] = 0
+
+    def insert(self, row, after=None):
+        tot = TotalObj(self.table.field_list)
+        if after:
+            piter = self.table.liststore.insert_after(row.iter)
+        else:
+            piter = self.table.liststore.insert_before(row.iter)            
+        self.table.liststore.set_value(piter, 0, tot)
+        return tot
+
+    def insert_subtotal(self, row, after=False):
+        tot = self.insert(row, after=after)
+        for field_name in self.totals:
+            setattr(tot, field_name, self.subtotals[field_name])
+            
+    def insert_total(self, row, after=False):
+        tot = self.insert(row, after=after)
+        for field_name in self.totals:
+            setattr(tot, field_name, self.totals[field_name])
+            
+    def remove(self, row):
+        self.table.liststore.remove(row.iter)
+        
+    def compute(self):
+        if not self.totals.keys():
+            return
+        if not self.table.records:
+            return
+        
+        self.initialize()
+        for row in self.table.liststore:
+            obj = self.table.liststore[row.path][0]
+            if isinstance(obj, TotalObj):
+                self.remove(row)
+            else:
+                if self.is_different(obj):
+                    self.insert_subtotal(row)
+                    self.prev = self.brake_func(obj)
+                    self.reset_subtotals()
+                self.sum(obj)
+                
+        #self.insert_subtotal(row, after=True)
+        self.insert_total(row, after=True)
+        
