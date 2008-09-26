@@ -321,6 +321,7 @@ class CollectionWidget(Widget):
             )
 #       self.initial_value = []
         self.table.relationship_mode = "m2m"
+        self.master.related.add_related(self.field_name, self.table)
 
         #self.gtkwidget.set_property('sensitive', True) 
 

@@ -103,6 +103,7 @@ class SqlWidget(object):
                   'genres', 'director nationality', ['director','nationality']
         relationship_leader: the main sqlmask (sqltable) that "owns" the filter_panel
         """
+        self.related = Related()
         self.block = False   # used whensync-ing widgets
         self.icons = icons
 #        self.filter = filter
@@ -1236,14 +1237,40 @@ def set_template_dir(dir):
 
 
 
+class Related(object):
+    """
+    a related object in any sqlwidget will inform wich related sqlwidgets are present
+    """
+    def __init__(self):
+        self.related_attrs = []
+        self._n = 0
 
+    def add_related(self, attr_name, sqlwidget):
+        setattr(self, attr_name, sqlwidget)
+        self.related_attrs += [attr_name]
 
+    def keys(self):
+        return self.related_attrs
+ 
+    def __getitem__(self, key):
+        print key, type(key)
+        return getattr(self, key)
+    
+    def __iter__(self):
+        return self
 
+    def next(self):
+        """return the next item in the data set or raise StopIteration"""
 
+        try:
+            r = getattr(self, self.related_attrs[self._n])
+            self._n += 1
+        except:
+            self._n = 0
+            raise StopIteration
+      
+        return r
 
-
-
-
-
-
+    def __repr__(self):
+        return "%s" % self.related
 
