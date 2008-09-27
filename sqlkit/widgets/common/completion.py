@@ -64,7 +64,7 @@ class Completion(object):
         self.lookup_values = {}
         self.LIKE_OP = OP[self.master.metadata.bind.name]
 
-    def prepare_completion(self, field_name, mode='regexp', match_col=0):
+    def prepare_completion(self, field_name, match_col=0):
         """
         Prepare an EntryCompletion suitable for... sqlcompletion
         """
@@ -83,11 +83,11 @@ class Completion(object):
         ## from the reference docs:
         # The match function is used by the entry completion to determine
         # if a row of the associated tree model should be in the completion list
-        completion.set_match_func(self.match_func, (match_col, mode))
+        completion.set_match_func(self.match_func, match_col)
         return completion
 
 
-    def add_simple_completion(self, field_name, mode, wdg = None):
+    def add_simple_completion(self, field_name, wdg = None):
         """ add a completionEntry to an Entry. No foreign key
         """
 
@@ -98,7 +98,7 @@ class Completion(object):
         wdg.set_completion(completion)
         return (listore, completion)
     
-    def add_completion(self, field_name, mode, wdg = None):
+    def add_completion(self, field_name, wdg = None):
         """ add a completionEntry to an Entry
         return a listore to be filled
 
@@ -113,8 +113,6 @@ class Completion(object):
         else:
             entry = wdg
             
-        completion = entry.get_completion()
-
         ## completion was not present
         completion = gtk.EntryCompletion()
         completion.set_property('popup-set-width', False)
@@ -142,39 +140,33 @@ class Completion(object):
         ## from the reference docs:
         # The match function is used by the entry completion to determine
         # if a row of the associated tree model should be in the completion list
-        completion.set_match_func(self.match_func, (col_entry, mode))
+        completion.set_match_func(self.match_func, col_entry)
 
         self.listores[field_name] =  listore
-#         if mode == 'regexp':
-#             completion.insert_action_text(1,'start with...')
-#         else:
-#             completion.insert_action_text(2,'regexp')
 
         completion.set_model(listore)
-        
-        #completion.set_inline_completion(True)  'Segfault'a in gtk2.6
-        #completion.set_text_column(col_entry)
         
         entry.set_completion(completion)
         return (listore, completion)
     
     
-    def make_completion_to_pop(self, wdg):
+    def make_completion_to_pop(self, entry):
         """
         Create an event that will cause completion to pop
         """
         entry.grab_focus()
 
-#        completion.complete()
         event =   gtk.gdk.Event(gtk.gdk.KEY_PRESS)
+
+        ## write something
         event.keyval = gtk.keysyms.period  #ord(".")
-        event.window = wdg.window
-        wdg.emit('key-press-event',event)
+        event.window = entry.window
+        entry.emit('key-press-event',event)
+
+        ## and delete it...
         event.keyval = gtk.keysyms.BackSpace
         event.hardware_keycode = 22
-        #event.window = self.get_widget(field_name).window
-        ## FIXME: non funziona
-        wdg.emit('key-press-event',event)
+        entry.emit('key-press-event',event)
 
         
 
@@ -187,10 +179,7 @@ class Completion(object):
         try:
             return self.lookup_values[field_name][field_value]
         except:
-            #import pdb; pdb.set_trace()
-            #dbg.write("%s %s" % (field_name,field_value))
             ftable, fname = self.get_foreign_info(field_name)
-            #ftable, fname = self.master.fields[field_name]['fkey']
             descr_field = self._add_descriptor_fields(
                 mode='return', referenced_table=ftable, referenced_field=fname)
             if descr_field is None:
@@ -224,25 +213,22 @@ class Completion(object):
         return get_foreign_info(foreign_keys)
 
 ### Filling the completion
-    def match_func(self, completion, key, iter, func_data):
-        column, mode = func_data
+    def match_func(self, completion, key, iter, column):
+        
         model = completion.get_model()
         text = model.get_value(iter, column)
-        #dbg.write("column: %s  - mode: %s" % (column, mode))
         if not text:
             text = ''
-        #return False
         # start
-        if mode == 'start':
+        if self.mode == 'start':
             if re.search("^%s" %(key), text, re.IGNORECASE):
                 return True
             else:
                 return False
         # regexp
         if re.search(key, text, re.IGNORECASE):
-            #dbg.write("accetto: %s col: %s" % (text, column))
             return True
-        #dbg.write("rifiuto: %s" % text)
+
         return False
 
     def show_possible_completion(self, widget, field_name, mode):
@@ -252,8 +238,7 @@ class Completion(object):
         regexp: typed text is a regexp (*~ or ILIKE)
         all: all values
         """
-
-        # liststore = self.master.get_completion_listore(field_name, mode, widget)
+        self.mode = mode
         liststore = self.get_liststore(field_name, mode, widget)
         liststore.clear()
 
@@ -266,7 +251,6 @@ class Completion(object):
                 ## we're selection in the same column where we triggered completion
                 liststore.append([getattr(obj, field_name)])
 
-        dbg.write("%s - %s" % ('make_completion_to_pop', widget))
         self.make_completion_to_pop(widget)
 
     def append_to_model_fkey(self, liststore, obj, field_name):
@@ -288,7 +272,6 @@ class Completion(object):
         except IndexError, e:
             fdescr = obj_list[0]  # a fk that is a key, not an id and is the only one
         
-        #fk_table = self.master.fields[field_name]['fkey'][0]
         fk_table, fk_key = self.get_foreign_info(field_name)
         descr = self.get_description_for_fkey(obj, fk_table) or fdescr
         dbg.write(fvalue, fdescr, descr, obj_dict )
@@ -314,65 +297,10 @@ class Completion(object):
         """return the liststore associated with widget (that can be Entry or ComboBoxEntry)
         """
         if isinstance(widget, gtk.ComboBoxEntry):
-            #return widget.childget_model()
             widget = widget.child
 
         return widget.get_completion().get_model()
         
-#     def show_possible_completion_old(self, wdg, field_name, mode):
-#         """fill in a ListStore to use with completion, fetch data from db
-#         mode determines the match of the already typed text:
-#         start: only matching data starting with typed text
-#         regexp: typed text is a regexp (*~ or ILIKE)
-#         all: all values
-#         """
-
-#         sql_dict = {}
-#         sql_dict['val'] = self.master.get_value(field_name, shown=True)
-            
-#         if mode == 'start':
-#             sql_dict['oper'] = self.LIKE_OP
-#         if mode == 'regexp':
-#             sql_dict['oper'] = self.LIKE_OP
-#         else:
-#             sql_dict['oper'] = self.LIKE_OP
-
-#         self.add_for_LIKE(sql_dict, mode)
-#         sql_dict['field_name'] = field_name
-            
-#         liststore, completion = self.add_completion(field_name, mode, wdg)
-#         liststore.clear()
-#         ret = self.select_values(field_name, sql_dict)
-# #        self.add_NULL_value(liststore)
-#         for R in ret:
-#             Rl = self.instance2list(R)
-#             dbg.write(Rl)
-#             Rd = self.instance2dict(R)
-
-#             if self.master.is_fkey(field_name):
-#                 fk_table = self.master.fields[field_name]['fkey'][0]
-#                 dbg.write("fk_table: %s" % fk_table)
-
-#                 if fk_table in tables and tables[fk_table][2] is not None:
-#                     # we have defined explicitly a format via "str" % dict
-#                     descr = tables[fk_table][2] % Rd
-#                     liststore.append([ Rl[0], Rl[1], descr, Rd ])
-
-#                 elif len(Rl) > 1:
-#                     dbg.write("> 1 -- Rl", Rl)
-#                     ## default format is all fields joined
-#                     liststore.append([ Rl[0], Rl[1] or '', " - ".join(Rl[1:]), Rd ])
-
-#                 else:
-#                     liststore.append([ Rl[0], Rl[0] , Rl[0], Rd ])
-                    
-#             else:
-#                 liststore.append([Rl[0], Rd])
-
-#         self.make_completion_to_pop(wdg)
-#         dbg.write(liststore)
-#     def add_NULL_value(self, liststore):
-#         liststore.append([{}] + [None] * (liststore.get_n_columns()-1))
 
     def instance2list(self, R):
         ## NOTE: a NULL from the db gets casted to ''
@@ -436,60 +364,6 @@ class Completion(object):
             self.master.set_value(field_name, value, fkvalue=fkvalue, initial=False)
 
         return True
-#         #dbg.write('value for ', field_name, value)
-
-#         ## Let's show a more usefull value than the id. 
-#         if self.master.is_fkey(field_name):
-#             # note: model.get() returns a tuple, one value each cell on the column
-#             show_value = model.get(iter,1)[0]
-#             Rd = model.get(iter,3)[0]
-#             dbg.write("Rd: %s" % Rd)
-#             Rd[field_name] = show_value
-#             dbg.write("Rd: %s" % Rd)
-
-#             dbg.write('Rd', Rd, 'Rd type', type(Rd))
-                
-#             self.set_text(Rd, exclude=field_name)
-#             ## reset the show value
-#             ##Rd[field_name] = show_value
-#         else:
-#             Rd = {field_name : value }
-#             self.set_text(Rd)
-        
-
-#     ## FIXME for Sandro: use virtual methods by calling master.set_value
-#     ## instead of checking type of master class
-#     ## see the else case.
-#     ## suggested name "set_value" for this method (mcm)
-#     def set_text(self, Rd, exclude=None):
-#         """sets the values of field read by the select
-#         """
-#         if isinstance(self.master, sqlkit.SqlMask):
-#             for field_name, value in Rd.iteritems():
-# #                 if field_name == exclude:
-# #                     dbg.write('salto: ', field_name, Rd[field_name])
-# #                     continue
-#                 #dbg.write(field_name, value)
-#                 if field_name in self.master.mfields:
-#                     dbg.write("field_name : %s value: %s Rd %s" % (
-#                             field_name, value, Rd))
-#                     #print "self.master.set_value(%s, %s)" % (field_name, value)
-#                     self.master.set_value(field_name, value)
-
-#                     #self.master.set_value(field_name, Rd[field_name])
-#                     #setattr(self.master.current, field_name, Rd[field_name])
-#         else:
-#             #dbg.write(Rd)
-#             for field_name, value in Rd.iteritems():
-#                 if field_name == exclude:
-#                     #dbg.write("self.master.editable.set_text(str(value))", value)
-#                     #self.master.editable.set_text(str(value))
-#                     #dbg.write("%s/%s: continue" % (field_name, value))
-#                     continue
-#                 if field_name in self.master.field_list:
-#                     #self.master.set_fkey_value(field_name, value)
-#                     self.master.set_value(field_name, value)
-#         return
 
 ### Sql SELECT
     def select_values(self, field_name, mode):
@@ -576,9 +450,6 @@ class Completion(object):
                     """ % sql_dict
                 exec_dict.update(constraint_params)
 
-        #dbg.write(sql, exec_dict)
-        #dbg.sql_debug(sql, exec_dict)
-#        s = text(sql, engine=self.mapper.engines[0])
         s = text(sql, bind=self.master.metadata.bind)
         dbg.write('exec_dict', exec_dict, sql)
         return s.execute(**exec_dict)
@@ -701,13 +572,6 @@ class Completion(object):
         self.master.lay_obj.tooltips.set_tip(item,label)
         menu.append(item)
         
-#         ## possible values
-#         item = gtk.MenuItem(label="possible values")
-#         item.connect('activate', self.show_possible_completion, field_name, 'all')
-#         label = "Mostra tutti i valori attualmente nel db"
-#         self.lay_obj.tooltips.set_tip(item,label)
-#         menu.append(item)
-
         ## possible values regexp
         item = gtk.MenuItem(label="possible values: regexp  - F1")
         item.connect('activate', self.show_possible_completion, field_name, 'regexp')
@@ -775,7 +639,15 @@ class Completion(object):
         return True
     
     def key_entry_shift_Return(self, wdg, event, data):
+        self.show_possible_completion(wdg, field_name=data, mode='start')
+        return True
+        
+    def key_entry_Return(self, wdg, event, data):
         self.show_possible_completion(wdg, field_name=data, mode='regexp')
+        return True
+        
+    def key_entry_control_Return(self, wdg, event, data):
+        self.show_possible_completion(wdg, field_name=data, mode='start')
         return True
         
     def entry_short_cut_event(self, wdg, ev, field_name, key):
