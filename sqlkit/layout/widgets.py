@@ -452,6 +452,12 @@ class DateEdit(LWidget):
         'use-24h-format' : False
         }
             
+class FkEdit(LWidget):
+    gtkClass = 'Custom'
+    class_properties = {
+        'creation_function' : 'fk_edit',
+        }
+            
 class Calendar(LWidget):
     # TODO: add a constructor to pass dates in a friendly way
     gtkClass = 'GtkCalendar'
@@ -1034,6 +1040,7 @@ _W = {
     'Toll'   : Tollerance,
     'C'   : ComboBox,
     'Ce'  : ComboBoxEntry,
+    'fk'  : FkEdit,
     'TV'  : TreeView,
     'TX'  : TextView,
     'daS' : ScrolledDrawingArea,
@@ -1080,14 +1087,19 @@ _W = {
     }
 
 
-def custom_widget(glade, function_name, widget_name, str1=None, str2=None, int1=None , int2=None):
+def custom_widget(glade, function_name, widget_name,
+                  str1=None, str2=None, int1=None , int2=None):
+
     if function_name == 'lay_dateedit':
         import dateedit
-        #print "wn: %s - str1: %s - str2: %s" % (widget_name, str1, str2)
         d = dateedit.DateEdit()
         d.set_property('show-time', False)
         d.show()
         return d
 
-
+    if function_name == 'fk_edit':
+        import fk_entry
+        fk = fk_entry.FkEdit()
+        fk.show()
+        return fk
 
