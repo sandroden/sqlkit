@@ -53,7 +53,6 @@ class FieldChooser(object):
         gtk_widget = self.w.get(def_str, None)
     
         args = (field_name, db_spec, def_str, self.master, gtk_widget)
-    
         if db_spec['fkey']:
             return ForeignKeyField(*args)
 
@@ -117,6 +116,7 @@ class Field(object):
         else:
             ### used in SqlTable
             self.widget = CellWidget(self)
+        self.master.widgets[field_name] = self.widget
 
     def set_value(self, value, initial=True):
         value = self.clean_initial_value(value)

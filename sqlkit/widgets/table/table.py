@@ -179,7 +179,6 @@ class SqlTable(sqlwidget.SqlWidget):
     def setup_field_validation(self):
         from sqlkit.widgets.common.fields import FieldChooser
         field_chooser = FieldChooser(self)
-        self.vfields = {}
         for field_name in self.field_list:
             ## vfield as validation...
             
