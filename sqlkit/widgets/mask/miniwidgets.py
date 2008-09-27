@@ -14,6 +14,7 @@ from sqlkit.widgets.common import localtimezone
 import gtk
 import dbg
 from datetime import timedelta
+from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion
 
 NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
 
@@ -55,14 +56,17 @@ class VarcharWidget(Widget):
         self.add_completion()
 
     def add_completion(self):
-        """add complition bindings and liststore
+        """add completion bindings and liststore
         """
-        self.gtkwidget.connect(
-            'button-press-event', self.master.completion.pop_menu,  self.field_name, 3)
-        self.gtkwidget.connect(
-            'key-press-event', self.master.completion.keypress_event_cb,  self.field_name)
+        self.completion = SimpleCompletion(self.master, self, self.field_name)
+        self.completion.add_completion(self.gtkwidget)
+        self.master.completions[self.field_name] = self.completion
 
-        self.master.completion.add_simple_completion(self.field_name, self.gtkwidget)
+        self.gtkwidget.connect(
+            'button-press-event', self.completion.pop_menu,  self.field_name, 3)
+        self.gtkwidget.connect(
+            'key-press-event', self.completion.keypress_event_cb,  self.field_name)
+
             
 
     def set_value(self, value):
@@ -233,11 +237,11 @@ class ForeignKeyComboboxWidget(Widget):
         self.gtkwidget.set_text_column(2)
 
         self.gtkwidget.connect(
-            'button-press-event', self.master.completion.pop_menu, self.field_name, 3)
+            'button-press-event', self.completion.pop_menu, self.field_name, 3)
         self.gtkwidget.connect(
-            'key-press-event', self.master.completion.keypress_event_cb, self.field_name)
+            'key-press-event', self.completion.keypress_event_cb, self.field_name)
         self.entry = self.gtkwidget.child
-        completion = self.master.completion.prepare_completion(self.field_name, mode='regexp',
+        completion = self.completion.prepare_completion(self.field_name, mode='regexp',
                                                                match_col=2)
         completion.set_model(self.model)
         self.entry.set_completion(completion)
@@ -246,7 +250,7 @@ class ForeignKeyComboboxWidget(Widget):
     def on_popup(self, widget, params):
         """the popup should be empty. We force the completion instead
         """
-        self.master.completion.show_possible_completion(
+        self.completion.show_possible_completion(
             self.gtkwidget, field_name=self.field_name, mode='regexp')
         return True
 
@@ -258,7 +262,7 @@ class ForeignKeyComboboxWidget(Widget):
         """We have a 'real_value' that is normally an id or a key and a 'display_value'
         that is the value we want to show
         """
-        display_value = self.master.completion.lookup_value(self.field_name, value)
+        display_value = self.completion.lookup_value(self.field_name, value)
         if value == None:
             if self.field.db_spec['type'] == str:
                 value = ''
@@ -297,31 +301,31 @@ class ForeignKeyWidget(Widget):
         self.button = self.gtkwidget.button
         self.add_completion()
         self.real_value = True
+        self.master.completions[self.field_name] = self.completion
                     
     def add_completion(self):
         """add completion bindings and liststore
         """
-        self.master.completion.add_completion(self.field_name, self.entry)
+        self.completion = FkeyCompletion(self.master, self, self.field_name)
+        self.completion.add_completion(self.entry)
+        self.master.completions[self.field_name] = self.completion
 
         ## button connect
-        self.button.connect('button-press-event', self.master.completion.pop_menu,  self.field_name, 3)
+        self.button.connect('button-press-event', self.completion.pop_menu,  self.field_name, 3)
         self.button.connect('clicked', self.on_button_clicked)
 
         ## entry connect
-#        self.entry.connect(
-#            'key-press-event', self.master.completion.keypress_event_cb,  self.field_name)
-
         self.entry.connect('key-press-event', self.on_key_press)
 #        self.entry.connect('changed', self.on_entry_changed)
         
 
     def on_button_clicked(self, widget):
-        self.master.completion.show_possible_completion(
+        self.completion.show_possible_completion(
             self.entry, field_name=self.field_name, mode='regexp')
         return True
 
     def on_key_press(self, widget, event, ):
-        return self.master.completion.keypress_event_cb(self.entry, event, self.field_name)
+        return self.completion.keypress_event_cb(self.entry, event, self.field_name)
 
     def on_entry_changed(self, editable):
         ## Don't trust this value, shown value and self.value are not coherent
@@ -337,7 +341,7 @@ class ForeignKeyWidget(Widget):
         that is the value we want to show
         """
         self.value = value
-        display_value = self.master.completion.lookup_value(self.field_name, value)
+        display_value = self.completion.lookup_value(self.field_name, value)
         self.entry.set_text(display_value)
         self.real_value = True  # we can trust this value, has been set by procedures
         

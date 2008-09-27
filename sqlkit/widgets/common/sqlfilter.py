@@ -175,8 +175,9 @@ class FilterPanel(object):
         Fill the model of the treeview that holds the data
         """
 
-        attr = self.master.completion._add_descriptor_fields(
-            mode='ret', referenced_table = self.master.fields.get_primary_table())
+        table = self.master.fields.get_primary_table()
+        attr, all = completion.get_descriptor_fields(table, None, self.master.metadata)
+        
         fmt = "%%(%s)s" % attr
 #         if isinstance(self.master.filter, list):
 #             fmt = ["%%(%s)s" % f for f in self.master.filter]
@@ -455,15 +456,26 @@ class FilterFKeyWidget(FilterWidget):
             op_value = 'LIKE'
             value = '%' + value + '%'
 
-        fld = {'op_value' : op_value, 'value' : value}
-        fld['ftable'], fld['fname'] = self.master.completion.get_foreign_info(self.field_name)
-        fld['fdescr'] = self.master.completion._add_descriptor_fields(
-            mode='return', referenced_table=fld['ftable'])
 
+        from sqlkit.db.minspect import get_foreign_info
+            
+        foreign_keys = self.master.fields[self.field_name]['fkey']
+        ftable, fname = get_foreign_info(foreign_keys)
+
+        #ftable, fname = self.master.completion.get_foreign_info(self.field_name)
+        fdescr, all = completion.get_descriptor_fields(ftable, fname, self.master.metadata)
+
+        fld = {
+            'op_value' :    op_value,
+            'value'    :    value,
+            'ftable'   :    ftable,
+            'fname'    :    fname,
+            'fdescr'   :    fdescr,
+            }
 
         ## FIXME: not using bind parameters
         s = """%(ftable)s.%(fname)s FROM %(ftable)s
-        WHERE %(ftable)s.%(fdescr)s %(op_value)s '%(value)s' """ % (fld)
+               WHERE %(ftable)s.%(fdescr)s %(op_value)s '%(value)s' """ % (fld)
 
         query = query.reset_joinpoint()
 

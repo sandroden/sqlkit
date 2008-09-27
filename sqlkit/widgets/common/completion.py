@@ -1,9 +1,8 @@
 import re
-from sqlalchemy import *
 import gtk
 import dbg
 import sqlkit
-
+from sqlalchemy import text, Table
 class LookupValueNotReturningOneValue(Exception): pass
 class MissingDescriptorField(Exception): pass
 class UnhandledMultipleForeignkeys(Exception): pass
@@ -21,9 +20,10 @@ OP = {
     'mysql'  : 'ILIKE',
     }
 
-class Completion(object):
+class SimpleCompletion(object):
     __metaclass__ = dbg.LogTheMethods
-    def __init__(self, master):
+    MATCH_COL = 0
+    def __init__(self, master, widget, field_name):
 
         """completion is the way we can find possible completions of text in
         a cell.  In case the edited field has a Foreign Key constraint
@@ -40,9 +40,7 @@ class Completion(object):
         Bindings are set in SqlText inside text_editing_started_cb
         while in SqlMask inside miniwidets (actually only VarcharWidget and FKeyWidget)
 
-        widget.connect('button-press-event',self.completion.pop_menu,field_name, 3)
-        widget.connect('key-press-event', self.completion.entry_short_cut_event,
-                        field_name, 'F1')
+        widget.connect('button-press-event',self.completion.keypress_event_cb,  self.field_name)
 
         It requires quite a lot of object be already setup in the master
         (actually SqlMask or SqlTable?)
@@ -59,12 +57,13 @@ class Completion(object):
 
 
         self.master = master
-#        self.tables = {}
-        self.listores = {}  ## needed for entry_completion
         self.lookup_values = {}
-        self.LIKE_OP = OP[self.master.metadata.bind.name]
+        self.MATCH_OPERATOR = OP[self.master.metadata.bind.name] or 'LIKE'
+        self.widget = widget
+        self.field_name = field_name
+        self.completion = self.prepare_completion()
 
-    def prepare_completion(self, field_name, match_col=0):
+    def prepare_completion(self):
         """
         Prepare an EntryCompletion suitable for... sqlcompletion
         """
@@ -72,147 +71,34 @@ class Completion(object):
         completion = gtk.EntryCompletion()
         completion.set_property('popup-set-width', False)
         completion.set_property('minimum-key-length', 0)
-        completion.connect('match-selected', self.match_selected_cb, field_name)
+#        completion.set_property('popup-single-match', False)   ???
+        completion.connect('match-selected', self.match_selected_cb, self.field_name)
         renderer = gtk.CellRendererText()
         completion.pack_start(renderer)
 
-        completion.add_attribute(renderer, 'text', match_col)
+        completion.add_attribute(renderer, 'text', self.MATCH_COL)
 
 
         ## we match against the description field
         ## from the reference docs:
         # The match function is used by the entry completion to determine
         # if a row of the associated tree model should be in the completion list
-        completion.set_match_func(self.match_func, match_col)
+        completion.set_match_func(self.match_func, self.MATCH_COL)
+        self.liststore = self.prepare_liststore()
+        completion.set_model(self.liststore)
+        
         return completion
 
-
-    def add_simple_completion(self, field_name, wdg = None):
-        """ add a completionEntry to an Entry. No foreign key
-        """
-
-        completion = self.prepare_completion(field_name, match_col=0)
-        listore = gtk.ListStore(str)
-        completion.set_model(listore)
-        
-        wdg.set_completion(completion)
-        return (listore, completion)
+    def prepare_liststore(self):
+        return gtk.ListStore(str)
     
-    def add_completion(self, field_name, wdg = None):
+    def add_completion(self, entry):
         """ add a completionEntry to an Entry
-        return a listore to be filled
-
-        ForeignKey: when the field to complete is a foreign key, the lookup table
-        is analized to search if a descriptor field exists. In that case a
-        cellRenderer is added to the completion to show that data and that field is
-        used in the field
         """
 
-        if wdg is None:
-            entry = self.master.get_widget(field_name)
-        else:
-            entry = wdg
-            
-        ## completion was not present
-        completion = gtk.EntryCompletion()
-        completion.set_property('popup-set-width', False)
-        completion.set_property('minimum-key-length', 0)
-        completion.connect('match-selected', self.match_selected_cb, field_name)
-        renderer = gtk.CellRendererText()
-        completion.pack_start(renderer)
-            
-        if self.master.is_fkey(field_name):
-            col_num = 3
-            col_entry = 2   # col for data to be shown *in the entry*
-            col_dropdown = 2   # col for data to be shown *in the dropdown*
-            completion.add_attribute(renderer, 'text', 2)
-        else:
-            col_num = 1
-            col_entry = 0
-            col_dropdown = 0
-            completion.add_attribute(renderer, 'text', 0)
-            
-        ## object col is to hold a dict of all values
-        col_def = [str for x in range(col_num)] + [object]
-        listore = gtk.ListStore( *col_def)
-            
-        ## we match against the description field
-        ## from the reference docs:
-        # The match function is used by the entry completion to determine
-        # if a row of the associated tree model should be in the completion list
-        completion.set_match_func(self.match_func, col_entry)
-
-        self.listores[field_name] =  listore
-
-        completion.set_model(listore)
-        
-        entry.set_completion(completion)
-        return (listore, completion)
+        entry.set_completion(self.completion)
     
-    
-    def make_completion_to_pop(self, entry):
-        """
-        Create an event that will cause completion to pop
-        """
-        entry.grab_focus()
-
-        event =   gtk.gdk.Event(gtk.gdk.KEY_PRESS)
-
-        ## write something
-        event.keyval = gtk.keysyms.period  #ord(".")
-        event.window = entry.window
-        entry.emit('key-press-event',event)
-
-        ## and delete it...
-        event.keyval = gtk.keysyms.BackSpace
-        event.hardware_keycode = 22
-        entry.emit('key-press-event',event)
-
-        
-
-### What to show
-    def lookup_value(self, field_name, field_value):
-        """retrieve the value in a lookup table in case of foreign_key
-        """
-        if not field_value:
-            return ''
-        try:
-            return self.lookup_values[field_name][field_value]
-        except:
-            ftable, fname = self.get_foreign_info(field_name)
-            descr_field = self._add_descriptor_fields(
-                mode='return', referenced_table=ftable, referenced_field=fname)
-            if descr_field is None:
-                return field_value
-            sql = "SELECT %s FROM %s WHERE %s = :%s" % (
-                descr_field,
-                ftable, fname, fname)
-            t = text(sql, bind=self.master.metadata.bind)
-            ret = t.execute(**{fname : field_value})
-            j = 0
-            for R in ret:
-                value = R[0]
-                j += 1
-                if not j == 1:
-                    raise LookupValueNotReturningOneValue("%s returns %s values" % (sql, j))
-            try:
-                a = value
-            except:
-                self.lookup_values[field_name][field_value] = field_value
-                return field_value
-            if not field_name in self.lookup_values:
-                self.lookup_values[field_name] = {}
-            self.lookup_values[field_name][field_value] = value
-        return value
-
-    def get_foreign_info(self, field_name):
-
-        from sqlkit.db.minspect import get_foreign_info
-
-        foreign_keys = self.master.fields[field_name]['fkey']
-        return get_foreign_info(foreign_keys)
-
-### Filling the completion
+### Filling & popping the completion
     def match_func(self, completion, key, iter, column):
         
         model = completion.get_model()
@@ -239,98 +125,45 @@ class Completion(object):
         all: all values
         """
         self.mode = mode
-        liststore = self.get_liststore(field_name, mode, widget)
-        liststore.clear()
+        self.liststore.clear()
 
         result = self.select_values(field_name, mode)
 
         for obj in result:
-            if self.master.is_fkey(field_name):
-                self.append_to_model_fkey(liststore, obj, field_name)
-            else:
-                ## we're selection in the same column where we triggered completion
-                liststore.append([getattr(obj, field_name)])
+            self.append_to_model(obj)
 
         self.make_completion_to_pop(widget)
 
-    def append_to_model_fkey(self, liststore, obj, field_name):
-        """add to a model that has 4 cols:
-             0: the value to be used as foreign key
-             1: the value to be shown in the entry 
-             2: data to be shown in the dropdown
-             3: a dictionary of all fields in the returned row
-                this can be used to set additional fields
+    def append_to_model(self, obj):
+        self.liststore.append([getattr(obj, self.field_name)])
 
+    def make_completion_to_pop(self, entry):
         """
-
-
-        obj_list = self.instance2list(obj)
-        obj_dict = self.instance2dict(obj)
-        fvalue = obj_list[0]
-        try:
-            fdescr = obj_list[1] or ''
-        except IndexError, e:
-            fdescr = obj_list[0]  # a fk that is a key, not an id and is the only one
-        
-        fk_table, fk_key = self.get_foreign_info(field_name)
-        descr = self.get_description_for_fkey(obj, fk_table) or fdescr
-        dbg.write(fvalue, fdescr, descr, obj_dict )
-        liststore.append([ fvalue, fdescr, descr, obj_dict ])
-
-    def get_description_for_fkey(self, obj, fk_table):
-        """get the best possible description for a record. Should be
-        the __str__ of that instance but we don't always have it.
-
-        At the moment the description is the first matching of:
-          - a description defined via set_description_field (if any))
-          - the first string column of the table
+        Create an event that will cause completion to pop
         """
-        
-        if fk_table in tables and tables[fk_table][2] is not None:
-            description = tables[fk_table][2] % self.instance2dict(obj)
-        else:
-            description = " - ".join(self.instance2list(obj)[2:])
+        entry.grab_focus()
 
-        return description
+        event =   gtk.gdk.Event(gtk.gdk.KEY_PRESS)
 
-    def get_liststore(self, field_name, mode, widget):
-        """return the liststore associated with widget (that can be Entry or ComboBoxEntry)
-        """
-        if isinstance(widget, gtk.ComboBoxEntry):
-            widget = widget.child
+        ## write something
+        event.keyval = gtk.keysyms.period  #ord(".")
+        event.window = entry.window
+        entry.emit('key-press-event',event)
 
-        return widget.get_completion().get_model()
-        
+        ## and delete it...
+        event.keyval = gtk.keysyms.BackSpace
+        event.hardware_keycode = 22
+        entry.emit('key-press-event',event)
 
-    def instance2list(self, R):
-        ## NOTE: a NULL from the db gets casted to ''
-        ret = [getattr(R, i) or '' for i in R.keys()]
-        return ret
-            
-    def instance2dict(self, R):
-        ret = [getattr(R, i) for i in R.keys()]
-        ret = {}
-        for i in R.keys():
-            ret[i] = getattr(R, i)
-        return ret
-            
-    
-    def debug_listore(self, listore):
-        j = 0
-        for l in listore:
-            iter = listore.get_iter_from_string(str(j))
-            print listore.get(iter,0), listore.get(iter,1), listore.get(iter,3)
-            j += 1
-
-    def add_for_LIKE(self, value, mode):
+    def add_for_LIKE(self, value):
         """add a % simbol to get expansion if completion is attempted in LIKE mode""" 
 
-        if self.LIKE_OP in ('LIKE', 'ILIKE'):
-            if mode == 'start':
+        if self.MATCH_OPERATOR in ('LIKE', 'ILIKE'):
+            if self.mode == 'start':
                 if not value.startswith('%'):
                     value += '%'
                 
-            if mode == 'regexp':
+            if self.mode == 'regexp':
                 if not value.startswith('%'):
                     value = '%' + value + '%'
         return value
@@ -353,7 +186,7 @@ class Completion(object):
             fkvalue = model.get(iter,1)[0]
         else:
             fkvalue = None
-
+        
         if self.master.is_primary(field_name) and self.master.relationship_mode == "m2m":
             ## when the Table is used to render a m2m field
             ## we don't want to "create" a new match, just pick an old one
@@ -366,6 +199,23 @@ class Completion(object):
         return True
 
 ### Sql SELECT
+    def get_displayed_value(self, ):
+
+        val = self.master.get_value(self.field_name, shown=True)
+        return self.add_for_LIKE(val)
+
+    def get_match_operator(self):
+        
+        ## FIXME: pretty stupid at the moment...
+        if self.mode == 'start':
+            oper = self.MATCH_OPERATOR
+        if self.mode == 'regexp':
+            oper = self.MATCH_OPERATOR
+        else:
+            oper = self.MATCH_OPERATOR
+
+        return oper
+
     def select_values(self, field_name, mode):
         """execute the SELECT DISTINCT and return values
         In case FKeys it behaves in a much more complicated way.
@@ -373,181 +223,52 @@ class Completion(object):
         normally be an id. 
 
         """
-        global tables
 
-        sql_dict = {}
-        sql_dict['val'] = self.master.get_value(field_name, shown=True)
-            
-        if mode == 'start':
-            sql_dict['oper'] = self.LIKE_OP
-        if mode == 'regexp':
-            sql_dict['oper'] = self.LIKE_OP
-        else:
-            sql_dict['oper'] = self.LIKE_OP
-
-        sql_dict['val'] = self.add_for_LIKE(sql_dict['val'], mode)
-        sql_dict['field_name'] = field_name
-            
+        # the text in the field with possibly '%' for like if no ~ avail
+        filtering_value = self.get_displayed_value()
         
-        I = self.master.fields[field_name]
-        exec_dict={str(field_name) : sql_dict['val']}
-
         sql, constraint_params = self.master.actions.on_completion(
             self.master.get_current_obj(), field_name)
 
-        sql_dict['completion_constraint'] = sql
-        ### field is a ForeignKey
-        if I['fkey']:
-            ftable, fkey = self.get_foreign_info(field_name)
-            ## set the referenced table' staff
-            sql_dict['referenced_table'] = ftable
-            sql_dict['field_name'] = fkey
-
-            try:
-                self._add_descriptor_fields(sql_dict)
-            except MissingDescriptorField:
-                pass
-                
-            #sql_dict['field_comp'] = tables[sql_dict['referenced_table']][0]
-            if tables[ftable][0] is not None:
-                sql_dict['descriptor_field'] = tables[sql_dict['referenced_table']][0]
-                sql_dict['order_by'] = re.sub('^,', '',sql_dict['descr'])
-                ## in case is not an ID but a key *and* te only field
-                if not sql_dict['order_by']:
-                    sql_dict['order_by'] = sql_dict['field_name']
-                
-            else:
-                sql_dict['descriptor_field'] = fkey
-                sql_dict['order_by'] = fkey
-                
-            #dbg.dshow(sql_dict)
-            sql = """
-                 SELECT DISTINCT %(field_name)s %(descr)s
-                 FROM %(referenced_table)s 
-                 WHERE %(descriptor_field)s %(oper)s :%(descriptor_field)s
-                     %(completion_constraint)s
-                 ORDER BY %(order_by)s
-                 """ % sql_dict
-
-            exec_dict.update({str(sql_dict['descriptor_field']) : sql_dict['val']})
-            exec_dict.update(constraint_params)
-        else:
-            sql_dict['referenced_table'] = I['table_name'] 
-
-            if I['type'] == int:
-                ## pointless to regexp numbers... probably pointless to complete numbers?
-                sql = """SELECT DISTINCT %(field_name)s
-                FROM %(referenced_table)s 
-                ORDER BY %(field_name)s
-                """ % sql_dict
-            else:
-                sql = """
-                    SELECT DISTINCT %(field_name)s
-                    FROM %(referenced_table)s 
-                    WHERE %(field_name)s %(oper)s :%(field_name)s
-                      %(completion_constraint)s
-                    ORDER BY %(field_name)s
-                    """ % sql_dict
-                exec_dict.update(constraint_params)
+        sql_dict = {
+            'oper'                   : self.get_match_operator(),
+            'field_name'             : self.field_name,
+            'completion_constraint' : sql,
+            }
+        
+        sql, filtering_field_name = self.compose_select_statement(sql_dict)
 
         s = text(sql, bind=self.master.metadata.bind)
+
+        exec_dict={
+            str(filtering_field_name) : filtering_value
+            }
+        exec_dict.update(constraint_params)
         dbg.write('exec_dict', exec_dict, sql)
         return s.execute(**exec_dict)
     
-    def _add_descriptor_fields(self, sql_dict=None, mode='add',
-                               referenced_table=None,
-                               referenced_field=None,
-                               ):
+    def compose_select_statement(self, sql_dict):
 
-        """search a possible field descriptor and add it to sql_dict
+        sql_dict.update({
+            'referenced_table' : self.widget.field.db_spec['table_name']
+            })
 
-        This is called by two functions:
-        lookup_value: to substitute the id with a description (mode=return)
-        select_values: when proposing a list of completion values
-
-        mode: return. If mode='return' the value is returned and only one
-              field_name is returned
-
-              add. Dict sql_dict is added a 'descr' key. more fields can be defined
-              that will be usable in the label (see: set_description_field)
-              In this case 'referenced_table' is a key of sql_dict
-
-
-        When displaying data for foreign keys the key that is referenced may be
-        a serial or a code. A descriptor field can be shown instead. A default is
-        to look for the first field terminating with _name or _descr.
-
-          Overwriting defaults (tables dictionary)
-          
-        You can bypass this mechanism writing a comma separated list in
-        sqlkit.completion.tables[referenced_table] = [field_name[,field_name], [format]]
-        use  set_description_fields for this purpouse.
-
-        """
-        global tables
-
-        ## args parsing
-        if not referenced_table:
-            referenced_table = sql_dict['referenced_table']
-            
-        if not referenced_field and sql_dict:
-            referenced_field = sql_dict['field_name']
-            
-        description_field, more_fields = self.get_description_field(referenced_table)
-        
-        if description_field is not None:
-            ## called from select_values, we also have a possible description
-            ## description field may be exactly field_name if it's a key
-            if mode == 'add' :
-                if not description_field == referenced_field:
-                    sql_dict['descr'] = "," + description_field
-                else:
-                    sql_dict['descr'] = ""
-                if more_fields:
-                    sql_dict['descr'] += "," + more_fields
-            else:
-                ## called from lookup_value
-                return description_field 
+        if self.master.is_number(self.field_name) :
+            ## pointless to regexp numbers... probably pointless to complete numbers?
+            sql = """SELECT DISTINCT %(field_name)s
+                  FROM %(referenced_table)s 
+                  ORDER BY %(field_name)s
+                  """    %    sql_dict
         else:
-            if mode == 'add':
-                sql_dict['descr'] = ''
-            else:
-                return referenced_field
-                
-#             txt = "Table %s does not have a descriptor field." % (referenced_table)
-#             txt += "You may set it with function 'set_description_field'" 
-#             tables[referenced_table] = (referenced_field, '')
-    
-    def get_description_field(self, table_name):
-        """look if a description field is defined, if not use introspection
-        return the description field that can be None
+            sql = """
+                SELECT DISTINCT %(field_name)s
+                FROM %(referenced_table)s 
+                WHERE %(field_name)s %(oper)s :%(field_name)s
+                  %(completion_constraint)s
+                ORDER BY %(field_name)s
+                """ % sql_dict
+        return (sql, self.field_name)
         
-        """
-        
-        global tables
-        
-        ## first time we meet this table  -> inspect w/ autoload
-        if table_name not in tables:
-            #import pdb; pdb.set_trace()
-            tbl = Table(table_name, self.master.metadata, autoload=True)
-            
-            descr_exists = False
-            for field_name in tbl.c.keys():
-                if re.search('_name|_descr', field_name, re.I):
-                    tables[table_name] = [field_name, None, None]
-                    descr_exists = True
-                    break
-                tables[table_name] = [None, None, None]
-
-            ## as a last resort use the first text field
-            if tables[table_name] == [None, None, None]:
-                for field_name in tbl.c.keys():
-                    if re.search("string|text|char", tbl.c[field_name].type.__class__.__name__, re.I):
-                        tables[table_name] = [field_name, None, None]
-                        break
-                
-        return tables[table_name][0:2]
-
 ### Misc
     def pop_menu(self, wdg, ev, field_name, num_button):
         """pops a menu with chooices of different completion::
@@ -589,7 +310,7 @@ class Completion(object):
         ## edit table referenced as foreign key
         if self.master.is_fkey(field_name):
             item = gtk.MenuItem(label="Edit fk table")
-            item.connect('activate', self.edit_foreign_key_table, field_name)
+            item.connect('activate', edit_foreign_key_table, (self.master, field_name))
             label = "Edita la tabella da cui sono presi i valori permessi per questo \
             campo"
             self.master.lay_obj.tooltips.set_tip(item, label)
@@ -599,12 +320,6 @@ class Completion(object):
         menu.popup(None, None, None, ev.button, ev.time)
         
         return True
-    def edit_foreign_key_table(self, wdg, field_name):
-        """open a SqlMask to edit the table referenced by this ForeignKey"""
-
-        ftable, fkey = self.get_foreign_info(field_name)
-        sqlkit.SqlMask(table=ftable, dbproxy=self.master.dbproxy)
-    
     def keypress_event_cb(self, wdg, event, data=None):
         """impleents various callback to keypress
         Set in miniwidgets or in text_editing_started_cb
@@ -642,23 +357,10 @@ class Completion(object):
         self.show_possible_completion(wdg, field_name=data, mode='start')
         return True
         
-    def key_entry_Return(self, wdg, event, data):
-        self.show_possible_completion(wdg, field_name=data, mode='regexp')
-        return True
-        
     def key_entry_control_Return(self, wdg, event, data):
         self.show_possible_completion(wdg, field_name=data, mode='start')
         return True
         
-    def entry_short_cut_event(self, wdg, ev, field_name, key):
-        """callback of key-press-button in (string) entries"""
-
-        accelname = gtk.accelerator_name(ev.keyval, ev.state)
-        if accelname == 'F1':
-            self.show_possible_completion (wdg, field_name, 'like')
-        elif accelname == '<Control>F1':
-            self.show_possible_completion (wdg, field_name, 'regexp')
-    
     def show_field_info(self, wdg, field_name):
         """Pop a dialog to give info on the selected field"""
 #         dialog = gtk.Dialog("info on %s" % field_name,
@@ -678,6 +380,126 @@ class Completion(object):
             dialog.destroy()
     
 
+
+class FkeyCompletion(SimpleCompletion):
+    MATCH_COL = 2
+
+    def prepare_liststore(self):
+        return gtk.ListStore(str, str, str, object)
+    
+### What to show
+    def lookup_value(self, field_name, field_value):
+        """retrieve the value in a lookup table in case of foreign_key
+        """
+        if not field_value:
+            return ''
+        try:
+            return self.lookup_values[field_name][field_value]
+        except:
+            ftable, fname = get_foreign_info(self.master, field_name)
+            descr_field, all = get_descriptor_fields(ftable, fname, self.master.metadata)
+            if descr_field is None:
+                return field_value
+            sql = "SELECT %s FROM %s WHERE %s = :%s" % (
+                descr_field,
+                ftable, fname, fname)
+            t = text(sql, bind=self.master.metadata.bind)
+
+            all = t.execute(**{fname : field_value}).fetchall()
+            if len(all) != 1:
+                raise LookupValueNotReturningOneValue("%s returns %s values" % (sql, j))
+            else:
+                value = all[0][0]
+                try:
+                    self.lookup_values[field_name][field_value] = value
+                    return value
+                except KeyError:
+                    self.lookup_values[field_name] = {}
+                    self.lookup_values[field_name][field_value] = value
+                    return value
+
+            self.lookup_values[field_name][field_value] = value
+        return value
+
+
+
+    def append_to_model(self, obj):
+        """add to a model that has 4 cols:
+             0: the value to be used as foreign key
+             1: the value to be shown in the entry 
+             2: data to be shown in the dropdown
+             3: a dictionary of all fields in the returned row
+                this can be used to set additional fields
+
+        """
+
+        obj_list = self.instance2list(obj)
+        obj_dict = self.instance2dict(obj)
+        fvalue = obj_list[0]
+        try:
+            fdescr = obj_list[1] or ''
+        except IndexError, e:
+            fdescr = obj_list[0]  # a fk that is a key, not an id and is the only one
+        
+        fk_table, fk_key = get_foreign_info(self.master, self.field_name)
+        descr = self.get_description_for_fkey(obj, fk_table) or fdescr
+        self.liststore.append([ fvalue, fdescr, descr, obj_dict ])
+
+
+    def get_description_for_fkey(self, obj, fk_table):
+        """get the best possible description for a record. Should be
+        the __str__ of that instance but we don't always have it.
+
+        At the moment the description is the first matching of:
+          - a description defined via set_description_field (if any))
+          - the first string column of the table
+        """
+        
+        if fk_table in tables and tables[fk_table][2] is not None:
+            description = tables[fk_table][2] % self.instance2dict(obj)
+        else:
+            description = " - ".join(self.instance2list(obj)[2:])
+
+        return description
+
+    
+    def instance2list(self, R):
+        ## NOTE: a NULL from the db gets casted to ''
+        ret = [getattr(R, i) or '' for i in R.keys()]
+        return ret
+            
+    def instance2dict(self, R):
+        ret = [getattr(R, i) for i in R.keys()]
+        ret = {}
+        for i in R.keys():
+            ret[i] = getattr(R, i)
+        return ret
+            
+    def compose_select_statement(self, sql_dict):
+
+        ftable, fkey = get_foreign_info(self.master, self.field_name)
+        description, field_list = get_descriptor_fields(ftable,  fkey, self.master.metadata)
+
+
+        sql_dict.update({
+            'referenced_table' : ftable,
+            'field_name'       : fkey,
+            'descriptor_field' : description,
+            'order_by'          : field_list,
+            'field_list'       : ",".join([fkey] + field_list.split(",")),
+            })
+        
+        sql = """
+             SELECT DISTINCT %(field_list)s
+             FROM %(referenced_table)s 
+             WHERE %(descriptor_field)s %(oper)s :%(descriptor_field)s
+                  %(completion_constraint)s
+             ORDER BY %(order_by)s
+             """ % sql_dict
+
+        return (sql, description)
+        
+
 ### Functions
 def set_description_fields(table, descr, add=None, format=None):
     """Set description field to table 'table'
@@ -696,7 +518,12 @@ def set_description_fields(table, descr, add=None, format=None):
         add = []
     global tables
     tables[table] = (descr, add, format)
-    
+
+def has_description(self, table):
+    if table in tables:
+        return bool(tables[table][0])
+    return False
+
 def get_description_fields(table):
     """Get description field to table 'table"""
     global tables
@@ -704,6 +531,100 @@ def get_description_fields(table):
     if table in tables:
         return tables[table]
     return None
+
+def get_description_field(table_name, metadata):
+    """look if a description field is defined, if not use introspection
+    return the description field or None
+
+    """
+    from sqlalchemy import Table
+    global tables
+
+    ## first time we meet this table  -> inspect w/ autoload
+    if table_name not in tables:
+        #import pdb; pdb.set_trace()
+        tbl = Table(table_name, metadata, autoload=True)
+
+        descr_exists = False
+        for field_name in tbl.c.keys():
+            if re.search('_name|_descr', field_name, re.I):
+                tables[table_name] = [field_name, None, None]
+                descr_exists = True
+                break
+            tables[table_name] = [None, None, None]
+
+        ## as a last resort use the first text field
+        if tables[table_name] == [None, None, None]:
+            for field_name in tbl.c.keys():
+                if re.search("string|text|char", tbl.c[field_name].type.__class__.__name__, re.I):
+                    tables[table_name] = [field_name, None, None]
+                    break
+
+    return tables[table_name][0:2]
     
 
 
+def debug_liststore(listore):
+    j = 0
+    for l in listore:
+        iter = listore.get_iter_from_string(str(j))
+        print listore.get(iter,0), listore.get(iter,1), listore.get(iter,3)
+        j += 1
+
+def edit_foreign_key_table(master, wdg, field_name):
+    """open a SqlMask to edit the table referenced by this ForeignKey"""
+    ## FIXME
+    ftable, fkey = get_foreign_info(master, field_name)
+    sqlkit.SqlMask(table=ftable, dbproxy=master.dbproxy)
+    
+def get_foreign_info(master, field_name):
+
+    from sqlkit.db.minspect import get_foreign_info
+
+    foreign_keys = master.fields[field_name]['fkey']
+    return get_foreign_info(foreign_keys)
+
+def get_descriptor_fields(referenced_table, referenced_field, metadata):
+
+    """search a possible field descriptor and add it to sql_dict
+
+    This is called by two functions:
+    lookup_value: to substitute the id with a description (mode=return)
+    compose_select_statement: when proposing a list of completion values
+
+    mode: return. If mode='return' the value is returned and only one
+          field_name is returned
+
+          add. Dict sql_dict is added a 'descr' key. more fields can be defined
+          that will be usable in the label (see: set_description_field)
+          In this case 'referenced_table' is a key of sql_dict
+
+
+    When displaying data for foreign keys the key that is referenced may be
+    a serial or a code. A descriptor field can be shown instead. A default is
+    to look for the first field terminating with _name or _descr.
+
+      Overwriting defaults (tables dictionary)
+
+    You can bypass this mechanism writing a comma separated list in
+    sqlkit.completion.tables[referenced_table] = [field_name[,field_name], [format]]
+    use  set_description_fields for this purpouse.
+
+    """
+
+    description_field, more_fields = \
+                       get_description_field(referenced_table, metadata)
+
+    if description_field:
+        if more_fields:  # fields to be included to be used by formatting rules
+            all_fields = "%s, %s" % (description_field, more_fields)
+        else:
+            all_fields = description_field
+        return (description_field, all_fields)
+
+    else:
+        return (referenced_field, referenced_field)
+
+
+class FkeyCompletion2(FkeyCompletion):
+    pass

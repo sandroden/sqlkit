@@ -142,7 +142,6 @@ class SqlWidget(object):
         self.title = self._get_title(title)
 #        self.tables = {}
         self.values = {}
-        self.completion = completion.Completion(self)
         ## create the interface and add obvious constraints
         self.naked = naked
         self.lay   = layout
