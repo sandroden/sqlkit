@@ -140,15 +140,22 @@ class DateEdit(gtk.HBox):
         self.__date_entry.connect('focus-out-event', self.date_entry_focus_out_event)
         self.__date_entry.set_max_length(12)
         self.__date_entry.set_width_chars(10)
+        self.__align_entry = gtk.Alignment(1,0,1,0)
         #self.pack_start(self.__date_entry, True, True, 0)
-        date_box.add(self.__date_entry)
+        date_box.add(self.__align_entry)
+        self.__align_entry.add(self.__date_entry)
+        self.__align_entry.show()
         self.__date_entry.show()
         
         # the date button
         self.__date_button = gtk.Button()
+        self.__align_arrow = gtk.Alignment(0,0,0,0)
+        self.__align_arrow.show()
+        self.__align_arrow.add(self.__date_button)
+
         self.__date_button.connect('clicked', self.date_button_clicked)
         #self.pack_start(self.__date_button, False, False, 0)
-        date_box.add(self.__date_button)
+        date_box.add(self.__align_arrow)
         # the down arrow
         arrow = gtk.Arrow(gtk.ARROW_DOWN, gtk.SHADOW_OUT)
         self.__date_button.add(arrow)
