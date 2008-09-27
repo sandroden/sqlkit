@@ -118,8 +118,8 @@ class LayoutGenerator (object):
         #self.used_field_dict[field_name] = 
 
         if self.master.is_fkey(field_name):
-            ## ComboBox for foreign key
-            return "Ce"
+            ## ForeignKey for foreign key
+            return "fk"
 
         if self.master.is_loader(field_name):
             return "m2m"

@@ -62,8 +62,8 @@ class VarcharWidget(Widget):
         self.gtkwidget.connect(
             'key-press-event', self.master.completion.keypress_event_cb,  self.field_name)
 
-        self.master.completion.add_simple_completion(
-            self.field_name, 'regexp', self.gtkwidget)
+        self.master.completion.add_simple_completion(self.field_name, self.gtkwidget)
+            
 
     def set_value(self, value):
         # Entry
@@ -207,8 +207,7 @@ class BooleanNullWidget(Widget):
         else:
             return self.gtkwidget.get_active( )
             
-
-class ForeignKeyWidget(Widget):
+class ForeignKeyComboboxWidget(Widget):
     """a ComboBoxEntry with 2 columns
 
     In any case for the moment we need to click on a choice from the completion
@@ -283,14 +282,73 @@ class ForeignKeyWidget(Widget):
 
         return  value
 
-        #return self.model.get_active
-            
-            ## we're here if the user has written the text by hand
-            ## not choosing from the list
-            ## need to get the value of the id from the foreign table
-            ## and cope with possible inexistend values
-    #raise NotImplemented
+class ForeignKeyWidget(Widget):
+    """a ComboBoxEntry with 2 columns
+
+    In any case for the moment we need to click on a choice from the completion
+    (we cannot just write a correct value), since completion also retrieves the id
+    """
+
+    def __init__(self, *args):
+
+        Widget.__init__(self, *args)
+
+        self.entry  = self.gtkwidget.entry
+        self.button = self.gtkwidget.button
+        self.add_completion()
+        self.real_value = True
+                    
+    def add_completion(self):
+        """add completion bindings and liststore
+        """
+        self.master.completion.add_completion(self.field_name, self.entry)
+
+        ## button connect
+        self.button.connect('button-press-event', self.master.completion.pop_menu,  self.field_name, 3)
+        self.button.connect('clicked', self.on_button_clicked)
+
+        ## entry connect
+#        self.entry.connect(
+#            'key-press-event', self.master.completion.keypress_event_cb,  self.field_name)
+
+        self.entry.connect('key-press-event', self.on_key_press)
+#        self.entry.connect('changed', self.on_entry_changed)
+        
+
+    def on_button_clicked(self, widget):
+        self.master.completion.show_possible_completion(
+            self.entry, field_name=self.field_name, mode='regexp')
+        return True
+
+    def on_key_press(self, widget, event, ):
+        return self.master.completion.keypress_event_cb(self.entry, event, self.field_name)
+
+    def on_entry_changed(self, editable):
+        ## Don't trust this value, shown value and self.value are not coherent
+        self.real_value = False
+        return False
+
+    def clean_real_value(self, *args):
+        ## the EntryText has been changed. The value may no longe be  valid
+        self.real_value = False
+
+    def set_value(self, value):
+        """We have a real 'value' that is normally an id or a key and a 'display_value'
+        that is the value we want to show
+        """
+        self.value = value
+        display_value = self.master.completion.lookup_value(self.field_name, value)
+        self.entry.set_text(display_value)
+        self.real_value = True  # we can trust this value, has been set by procedures
+        
     
+    def get_value(self, shown=False):
+        if shown:
+            return self.entry.get_text()
+        if self.real_value:
+            return self.value
+        else:
+            raise NotImplementedError
 
 class CollectionWidget(Widget):
     """
@@ -321,7 +379,7 @@ class CollectionWidget(Widget):
             )
 #       self.initial_value = []
         self.table.relationship_mode = "m2m"
-        self.master.related.add_related(self.field_name, self.table)
+        self.master.related.add_element(self.field_name, self.table)
 
         #self.gtkwidget.set_property('sensitive', True) 
 

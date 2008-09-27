@@ -26,7 +26,7 @@ class SqlMask (sqlwidget.SqlWidget):
     """
 
     __metaclass__ = dbg.LogTheMethods
-    vfields = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
+#    vfields = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
     labels   = None  # correspondance Label <-> EventBox
 #    map_record_n = 0  # number of the displayed record within mapper
     row_count = 0    # number of records in the mapper
@@ -401,7 +401,7 @@ class SqlMask (sqlwidget.SqlWidget):
         for field_name in self.field_list:
             ## MM is a workarond to bypass the fact that if I use 'A'
             ## I'll ind *many* alignement for InterField
-            for mod in ('e','d','r','c', 'TX', 'Ce', 'm2m', 'm2o', 'o2m', 'o2o'):
+            for mod in ('e','d','r','c', 'TX', 'Ce', 'm2m', 'm2o', 'o2m', 'o2o', 'fk'):
                 try:
                     key = "%s=%s" % (mod, field_name)
                     widget = self.w[key]

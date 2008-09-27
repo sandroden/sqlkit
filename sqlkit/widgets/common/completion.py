@@ -163,8 +163,7 @@ class Completion(object):
         """
         Create an event that will cause completion to pop
         """
-        if isinstance(wdg, gtk.ComboBoxEntry):
-            wdg = wdg.child
+        entry.grab_focus()
 
 #        completion.complete()
         event =   gtk.gdk.Event(gtk.gdk.KEY_PRESS)
@@ -834,3 +833,5 @@ def get_description_fields(table):
         return tables[table]
     return None
     
+
+
