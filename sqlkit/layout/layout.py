@@ -402,7 +402,7 @@ class Layout(object):
             
     def _set_dim(self,row,col):
         self.rows, self.cols = max(self.rows, row), max(self.cols, col)
-    def xml(self, file=None, tmpfile=None):
+    def xml(self, filename=None, tmpfile=None, logfile=None):
         """Produces the xml for glade to create the GUI, possibly writes it to file"""
 
         start = '<?xml version="1.0" standalone="no"?> <!--*- mode: nxml -*-->'+\
@@ -415,17 +415,17 @@ class Layout(object):
         if self.level > 0:
             start = end = ''
 
-        #  write it to file?
-        if file:
-            f = open(file,'w')
-            f.write(self.xml())
-            f.close()
-
-        if tmpfile:
-            tmpfile.write(self.xml())
-        
         txt = self._clean_items(self.lcontainer.xml())
-        return "%s\n%s\n%s" % (start, txt, end)
+        if tmpfile:
+            tmpfile.write(txt)
+        
+        #  write it to file?
+        if filename:
+            f = open(filename,'w')
+            f.write(txt)
+            f.close()
+        else:
+            return "%s\n%s\n%s" % (start, txt, end)
  
     def create(self, file=None, tmpfile=None):
         """pack the widgets using gtk function (no glade), start from lcontainer"""
@@ -438,16 +438,16 @@ class Layout(object):
         pat = re.compile('^(\s+)([^\s<])',re.MULTILINE|re.DOTALL)
         return pat.sub(r'\2', txt)
     
-    def dbg_xml(self):
+    def  dbg_xml(self):
         return self.lcontainer.dbg_xml()
     def dim(self):
         return "DIM %s,%s" % (self.rows+1, self.cols+1)
-    def show(self,action=None, x=None, file=None):
+    def show(self,action=None, x=None):
         gtk.glade.set_custom_handler(widgets.custom_widget)
         if self.shown:
             self.widgets['Window'].show()
         else:
-            XML = self.xml(file=file)
+            XML = self.xml()
             glade = gtk.glade.xml_new_from_buffer(XML,len(XML))
             glade.signal_autoconnect(self)
             self.widgets = {}
