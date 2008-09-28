@@ -566,22 +566,21 @@ class SqlTable(sqlwidget.SqlWidget):
         self.editable = editable
         self.actions.set_entry_connect(self.editable, field_name)
         field_props = self.fields[field_name]
-        if field_type == str or self.is_fkey(field_name):
 
-            if self.is_fkey(field_name):
-                self.completion.add_completion(field_name, 'regex', editable)
-            else:
-                self.completion.add_simple_completion(field_name, 'regex', editable)
+        if hasattr(self.widgets[field_name], 'completion'):
+            completion = self.widgets[field_name].completion
+            completion .add_completion(editable)
 
             ## COMPLETION
-            editable.connect('button-press-event',self.completion.pop_menu, field_name, 3)
-            editable.connect('key-press-event', self.completion.keypress_event_cb, field_name)
+            editable.connect('button-press-event',completion.pop_menu, field_name, 3)
+            editable.connect('key-press-event', completion.keypress_event_cb, field_name)
 
-            ## MAX LENGTH
-            if self.fields[field_name]['type'] is str:
-                length = self.fields[field_name]['length']
-                if length:
-                    editable.set_max_length(length)
+        ## MAX LENGTH
+        if self.fields[field_name]['type'] is str:
+            length = self.fields[field_name]['length']
+            if length:
+                editable.set_max_length(length)
+
 #             editable.connect('key-release-event',
 #                              self.keyrelease_event_cb, field_name)
 
@@ -634,9 +633,9 @@ class SqlTable(sqlwidget.SqlWidget):
         """cell_data_function used by column that have fkey
         """
 
-        fkey = getattr(model.get(iter, 0)[0], field_name)
+        fkey_value = getattr(model.get(iter, 0)[0], field_name)
         path = model.get_path(iter)
-        value = self.completion.lookup_value(field_name, fkey)
+        value = self.completions[field_name].lookup_value(field_name, fkey_value)
         cell.set_property('text', value)
 
     def date_changed_cb(self, event, path, date, col):
@@ -966,11 +965,13 @@ class SqlTable(sqlwidget.SqlWidget):
         ie: in the row currently selected
         This is mainly used in completion callback for m2m relationship_mode
         """
-
         
         row = self.get_selected_row()
         if substitute:
-            self.session.expunge(self.liststore[row][0])
+            expired_obj = self.liststore[row][0]
+            self.session.expunge(expired_obj)
+            self.records.remove(expired_obj)
+            
         obj = self.session.query(self.mapper).get(pk)
         self.liststore[row][0] = obj
         self.records += [obj]
