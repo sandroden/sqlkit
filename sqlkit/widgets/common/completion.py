@@ -24,6 +24,9 @@ OP = {
 
 class SimpleCompletion(object):
     __metaclass__ = dbg.LogTheMethods
+    autostart = False
+    autostart_last_length = 100
+    
     MATCH_COL = 0
     def __init__(self, master, widget, field_name):
 
@@ -204,6 +207,7 @@ class SimpleCompletion(object):
 
         oper = self.get_match_operator()
         filtering_value = self.get_displayed_value()
+        self.autostart_last_length = len(filtering_value)
 
         sql = self.compose_select_statement(oper, filtering_value)
         self.sql = sql
@@ -220,6 +224,7 @@ class SimpleCompletion(object):
     def get_displayed_value(self, ):
 
         val = self.master.get_value(self.field_name, shown=True)
+        self.autostart_last_length = len(val)
         return self.add_for_LIKE(val)
 
     def get_match_operator(self):
@@ -248,6 +253,23 @@ class SimpleCompletion(object):
         return value
     
 ### Misc
+    def autostart_completion(self):
+        """
+        Completion starts on demand or:
+        1. when more that self.autostart chars have been written
+        2. if text in entry has fewer chars than chars that triggered it
+        """
+        
+        if self.autostart:
+            length = len(self.master.get_value(self.field_name, shown=True))
+            dbg.write('length: %s  - autostart_last_length: %s' % (length, self.autostart_last_length))
+            if length + 1 < self.autostart_last_length:
+                autostart = self.autostart
+                self.autostart = False
+                self.show_possible_completion(self.widget.entry, self.field_name, 'regexp')
+                self.autostart = autostart
+        return True
+    
     def pop_menu(self, wdg, ev, field_name, num_button):
         """pops a menu with chooices of different completion::
               - regexp
@@ -331,7 +353,8 @@ class SimpleCompletion(object):
 
         ksym = '_'.join(mods + [ksym])
         #dbg.write('ksym', ksym, 'mods', mods)
-        
+        self.autostart_completion()
+
         if ksym in dir(self):
             return getattr(self, ksym)(wdg, event, data)
     
@@ -384,7 +407,7 @@ class FkeyCompletion(SimpleCompletion):
         description = tables[self.table.name].description
         
         where = self.table.columns[description].op(oper)(value)
-        sql = select(field_list, where).order_by(description).dictinct()
+        sql = select(field_list, where).order_by(description).distinct()
 
         return sql
     
