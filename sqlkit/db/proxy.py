@@ -73,13 +73,24 @@ class DbProxy(object):
             return self.table2mapper(tables[0])
         else:
             return self.join_tables(tables)
-    
-    def table2mapper(self, table):
+
+    def get_default_class(self, table):
+        """
+        Create on the fly a proper class
+        """
         name = "%s_class" % (table)
+        def __str__(self):
+            return "< %s >" % (table.name.title())
+
         if isinstance(table, str ):
             table = self.get_table(name)
             
-        X = type(name, (object,), {})
+        X = type(name, (object,), {'__repr__' : __str__})
+        return X
+    
+    def table2mapper(self, table):
+
+        X = self.get_default_class(table)
         m = mapper(X, table)
         return m
         

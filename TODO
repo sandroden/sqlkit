@@ -1,37 +1,14 @@
-sqlite
-=======
-
-implementare la ricerca per espressioni regolari... pare sia già in
-sqlalchemy anche per sqlite
-
-
 gettext
 ==========
 
 Va aggiunta localizzazione. In realtà va aggiunta a layout più che a sqlkit.
 
-cut & paste
-============
-
-Aggiungere gestione taglia e incolla: ora il click destro apre dei menu dove
-non è possibie fare cut & paste. Vanno aggiunti al menu
-(completion.pop_menu) (pietro 6)
-
-Far funzionare la voce del menu per editare la tabella a cui punta una FKey
-(funzione completion.edit_foreign_key_table)
-
 gestione errori sqlalchemy
 ===========================
 
 
-gestione default
-=================
-Non dovrebbe essere difficile ora che ci sono i miniwidgets
-
 DateEdit
 =========
-
-1. deve avere un gtk.Alignement per evitare di espandersi  (Pietro 5)
 
 2. deve gestire anche time TZinfo (con aggiunta di una proprietà)
    Al momento ha una sola proprietà 'time' (oltre a (show-time) per
@@ -46,33 +23,15 @@ normale a seconda che il campo nel db sia nullable o meno
 (widget.mask.miniwidget.BooleanNullWidget)
 
 
-ForeignKey
-============
-
-deve usare ComboBoxEntry (per via della freccia che dà idea che si
-può scegliere fra alcuni valori). Non riesco a capire come fare
-a intercettare un segnale per quando viene cliccata la freccia
-in modo da cercare *in quel momento* quali valori proporre,
-ovvero filtrarli tramite il valore attuale. (pietro 6)
-
-Al momento funziona premendo prima F1... e comunque non si comporta come 
-si comporta invece una entry normale con completamento: quando scrivo nella
-entry il completamento cambia in automatico.
-
-Da valutare se tornare a una entry semplice o ad un checkBoxEntry self-made
-
 SqlTable
 ===========
  
 * aggiungere una funzione che permetta di impostare il numero di righe
   (Pietro 10)
 
-* aggiungere la possibilità di muovere le colonne
-  magari via "modifica -> scelta cambi -> ordinamento"  (pietro 2)
-
 * microwidget per nascondere e rimettere colonne in alto a destra sopra barra
   scorrimento (pietro 3). Molti esempi in rete, uno fra i tanti sunbird, sia
-  nellélenco eventi che nell'elenco task.
+  nell'elenco eventi che nell'elenco task.
 
 * pensare a come permettere di riordinare le righe (ha implicazioni con
   l'ordinamento del modello sottostante. Ha senso solo se c'è una colonna che
@@ -80,23 +39,16 @@ SqlTable
 
 * pensare come editare i campi a più righe o con righe molto lunghe. Occorre
   creare un popup con il testo e poi sincronizzarlo. Hai idee migliori?
-  (Pietro 5)
-
-* Evitare editing di colonne fkey altro che via completion.  (pietro 5)
-
-* Imporre refresh della funzione cell_data_func per fk dopo avere impostato
-  il dato. Attualmente quando imposto una cella fk via menu, viene impostato
-  correttamente il valore, ma occorre togliere e rimettere il fuoco per
-  vedere il risultato. (fatto workaround)
+  (Pietro 6)
 
 * deve potersi cancellare una data nel formato tabellare (pietro 8). 
 
 * quando si passa con Tab su una data non deve aprirsi il calendarietto fino
-  a quando non clicco Enter (pietro 5)
+  a quando non clicco Enter (pietro 7)
 
 * valutare l'uso di combobox anche in table. Ho visto un esempio in cui il
   click sulla cella trasformava la cella stessa in un combobox per
-  editing. (pietro 4). In realtà la priorità di questo sale se risulta più
+  editing. In realtà la priorità di questo sale se risulta più
   facile ed intuitivo risolvere il problema in questo modo...
 
   ma forse il comportamento è migliore con un edit normale e quindi è meglio 
@@ -115,47 +67,14 @@ modo da poter avere on oggetto (dizionario?) che mi rappresenta lo stato del
 layout e che se lo modifico mi cambia o stato del layout.
 
 
-SqlMask
-==========
-
-Deve essere aggiunta la possibilità di sfogliare dei record che hanno a loro
-volta collezioni di record: Sfoglio i registi cui son collegati i film
-fatti. La serie di film fatti deve essere rappresentata in un treeview che a
-sua volta deve essere messo nel layout.
-
-Il treeView non è altro che una SqlTable senza fronzoli (bottoni)
-sincronizzata con la prima. In passato avevo già fatto tutto il codice per
-questo genere di cose ma era troppo arzigogolato e non sfruttava (perché non
-le avevo capite) tutte le possibilità di sqlalchemy. In realtà se
-opportunamente istruite le classi che raffigurano gli oggetti del database
-hanno delle proprietà che sono a loro volta dei "Loader" di altre classi (ti
-consiglio di leggere attentamente il tutorial di elixir come inizio), quindi
--se lo chiedi- quando fai una select di un oggetto ti trovi già pronta anche
-la collezione degli oggetti correlati (i film del regista, nel nostro
-caso). Questa è una lista che può essere impostata come self.records della
-SqlTable.
-
-Il bello è che riesci in questo modo a trattare non solo le relazioni
-OneToMany come Regista -> Film ma anche ManyToMany (Film -> Attore) e questo
-grazie a sqlalchemy.
-
-Vanno poi prese alcune precauzioni che nuovo oggetti creati (ad esempio nuovi
-film) se creati in questa SqlTable vengano aggiunti alla lista dei record
-del regista e non solo alla sessione. Non ho ancora chiaro quale sia il modo
-più naturale di fare questo (ascoltando qualche segnale del modello del
-TreeView?) 
-
-Fields / Miniwidgets
-=======================
-
-Attualmente alcune manipolazioni dei dati avvengono nei miniwidgets mentre
-dovrebbero avvenire nei fields. (simone?, pietro?)
-
-Number localization
+localization
 ====================
 
-come si deve affrontare il problema di scrivere i numeri?
-come fare per usare il formato europeo dei divisori decimali? (pietro 7)
+1. gettext: (pietro 9) credevo avessi già qualcosa da mostrare
+    
+2. come si deve affrontare il problema di scrivere i numeri?
+   come fare per usare il formato europeo dei divisori decimali? (pietro 7)
+   credo che si debba chiedere in lista
 
 Validazione
 ============
@@ -175,13 +94,10 @@ Dialogo Save
 ===============
 
 Trovare un modo carino di mostrare le modifiche che verrebbero salvate
-(Pietro 7)
+(Pietro 4)
 
 filter-panel
 =============
 
 Operatori: aggiungere label di spiegazione (es: LIKE ha %, regexp ha ^, .*,
            etc) (pietro 6)
-
-Status bar: aggiungere alla status bar un avviso che non si è usato il % se
-            operatore è LIKE e non lo si è usato...

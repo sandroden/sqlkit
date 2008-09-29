@@ -5,7 +5,9 @@ import completion
 import dbg
 import re
 import sqlalchemy
+from sqlalchemy.sql import select
 import sqlkit as sk
+from sqlkit.db.utils import tables, get_description
 from datetime import *
 
 class SqlDataFixNeeded(Exception): pass
@@ -176,34 +178,26 @@ class FilterPanel(object):
         """
 
         table = self.master.fields.get_primary_table()
-        attr, all = completion.get_descriptor_fields(table, None, self.master.metadata)
-        
-        fmt = "%%(%s)s" % attr
-#         if isinstance(self.master.filter, list):
-#             fmt = ["%%(%s)s" % f for f in self.master.filter]
-#             fmt = " - ".join(fmt)
-#             attr = self.master.filter[0]
-#         else:
-        #fmt = self.master.filter
-            
+        format_string = get_description(table, metadata=self.master.metadata, attr='format')
+        description = tables[table].description
 
         self.model.clear()
         iter = {}
         i = 0
         for obj in self.master.records:
-            attr_value = getattr(obj, attr)
+            attr_value = getattr(obj, description)
             if attr_value not in iter:
                 iterR = self.model.append(None)
                 self.model.set(iterR,
                                0, i,
-                               1, fmt % vars(obj),
+                               1, format_string % vars(obj),
                                )
                 iter[attr_value] = iterR
             else:
                 iterR = self.model.append(iter[attr_value])
                 self.model.set(iterR,
                                0, i,
-                               1, fmt % vars(obj),
+                               1, format_string % vars(obj),
                                )
             i += 1
 
@@ -463,7 +457,7 @@ class FilterFKeyWidget(FilterWidget):
         ftable, fname = get_foreign_info(foreign_keys)
 
         #ftable, fname = self.master.completion.get_foreign_info(self.field_name)
-        fdescr, all = completion.get_descriptor_fields(ftable, fname, self.master.metadata)
+        fdescr = get_description(ftable, metadata=self.master.metadata)
 
         fld = {
             'op_value' :    op_value,
@@ -474,15 +468,17 @@ class FilterFKeyWidget(FilterWidget):
             }
 
         ## FIXME: not using bind parameters
-        s = """%(ftable)s.%(fname)s FROM %(ftable)s
-               WHERE %(ftable)s.%(fdescr)s %(op_value)s '%(value)s' """ % (fld)
+#         sql = """%(ftable)s.%(fname)s FROM %(ftable)s
+#                WHERE %(ftable)s.%(fdescr)s %(op_value)s '%(value)s' """ % (fld)
+
+        sql = select(self.col, self.table.columns[fdescr].op(op_value)(value))
 
         query = query.reset_joinpoint()
 
         if self.master.relationship_path:
             query = query.join(self.master.relationship_path)
             
-        return query.filter(self.col.in_(sqlalchemy.select([s])))
+        return query.filter(self.col.in_(sqlalchemy.select([sql])))
 
 
 def get_filter_widget(field_name, panel, master):
