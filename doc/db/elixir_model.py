@@ -19,6 +19,7 @@ class Movie(elixir.Entity):
     title = elixir.Field(elixir.String(60))
     description = elixir.Field(elixir.String(512))
     year = elixir.Field(elixir.Integer())
+    date_release = elixir.Field(elixir.Date())
     director = elixir.ManyToOne('Director', inverse='movies')
     actors = elixir.ManyToMany('Actor', inverse='movies', tablename='movie_casting')
     genres = elixir.ManyToMany('Genre', inverse='movies', tablename='movie_genre')   

@@ -10,6 +10,7 @@ Main features of sqlkit:
  - completion both on local same field and foreign key fields
  - very easy way to draw a layout for mask views
  - sqledit: python script to edit db
+ - completely effortless editing of :ref:`relationships`
 
 Views
 ======
@@ -47,7 +48,7 @@ Each label of both views can be clicked to get a filter panel:
 Completion
 ============
 
-Completion is triggered by F1 key, Contrl-Enter or Shift-Enter.  If the
+ref:``completion`` is triggered by F1 key, Contrl-Enter or Shift-Enter.  If the
 field is a foreign key it will pop up a list of foreign values otherwise it
 will show values currently used (just for varchar fields). 
 
@@ -83,5 +84,12 @@ of the examples::
 
 the last is a very minimal db present in ``doc/db/movies.sqlite``
 
+Relationships
+==============
 
-  
+:many2one: are just recognized automatically with simple introspection
+:many2many: is very simply added to SqlMask declaring in the layout and
+            attribute with that name
+:one2many:  same as many2many
+
+Many more detail in :ref:`relationships`

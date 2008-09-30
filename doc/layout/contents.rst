@@ -85,8 +85,8 @@ A layout is a sequence of tokens and display modifiers.
 .. sidebar:: Automatisms with sqlkit
 
    Note that when used from within sqlkit layout definition any text
-   field is rendered with entry within an alignement (ae element) and an
-   alignement of '-' is added to any text field longer tha 20 chars.
+   field is rendered with entry within an alignement (``ae`` element) and an
+   alignement of '-' is added to any text field longer than 20 chars.
 
     
 :spare token:
@@ -118,28 +118,28 @@ A layout is a sequence of tokens and display modifiers.
        part see below (container naming)
        
     
-       Possible opts are [XTHVbNPSvhpOBmMFA]:
+       Possible opts are XTHVbNPSvhpOBmMFA:
     
-       :T: gtkTable
-       :H: gtkHBox
-       :V: gtkVBox
-       :N: gtkNotebook
-       :F: gtkFrame	
-       :M: gtkMenubar
-       :t: gtkToolBar
-       :h: gtkHPaned
-       :v: gtkVPaned
-       :S: gtkScrolledWindow
-       :B: gtkMenuBar
-       :M: gtkMenu
-       :m: gtkMenuItem
-       :O: gtkToolbar
-       :W: Window
-       :E: EventBox
-       :X: Expander
-       :p: ViewPort
-       :A: Alignment
-        
+         :T: gtkTable
+         :H: gtkHBox
+         :V: gtkVBox
+         :N: gtkNotebook
+         :F: gtkFrame	
+         :M: gtkMenubar
+         :t: gtkToolBar
+         :h: gtkHPaned
+         :v: gtkVPaned
+         :S: gtkScrolledWindow
+         :B: gtkMenuBar
+         :M: gtkMenu
+         :m: gtkMenuItem
+         :O: gtkToolbar
+         :W: Window
+         :E: EventBox
+         :X: Expander
+         :p: ViewPort
+         :A: Alignment
+          
     
 
   Elements will be packed in a table widget unless changed by a option

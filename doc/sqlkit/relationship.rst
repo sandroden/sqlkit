@@ -1,6 +1,7 @@
+.. _relationships:
 
 ================
-Relationship
+Relationships
 ================
 
 Sqlkit makes editing of data that have relation as one2many of many2many
@@ -43,7 +44,7 @@ To get a mask that:
  1. lets you see director and films toghether
  2. lets you edit them adding adn deleting at will
 
-You just have to start te SqlMask like this:
+You just have to start te SqlMask like this::
 
   lay = """first_name last_name
          movies      - - -
@@ -78,12 +79,12 @@ in this way::
 
 .. _elixir: http://elixir.ematia.de
 
-limitation
+Filtering
 -----------
 
+It is now possible to filter on a fields present in related tables, eg.:
+filtering all films that have a certain genre.
 
-The current version does not allows to filter on the fields of a related
-table.
 
 Many2many relationship
 =========================

@@ -2,6 +2,5 @@
 	
    tour
    intro
-   table
-   mask
    relationship
+   completion

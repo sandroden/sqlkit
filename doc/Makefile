@@ -72,8 +72,12 @@ linkcheck:
 rsync:	html
 	rsync -r --delete --progress --stats .build/html/ www2:docs/sqlkit/
 
-pdf:    latex
+pdf:    
+#latex
 	cd .build/latex; make all-pdf
+	Print -s -o "-b 20" .build/latex/sqlkit.pdf
+	gv --orientation=seascape .build/latex/sqlkit.2.ps
+
 
 galeon: 
 	galeon .build/html/contents.html
