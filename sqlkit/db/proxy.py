@@ -2,7 +2,7 @@
 import re
 from sqlalchemy import Table, MetaData, sql
 from sqlalchemy.orm import sessionmaker, mapper
-from sqlkit.db import minspect
+from sqlkit.db import minspect, utils
 
 import dbg.gtk_dbg
 
@@ -76,16 +76,24 @@ class DbProxy(object):
 
     def get_default_class(self, table):
         """
-        Create on the fly a proper class
+        Create on the fly a proper class. 'table' is a sqlalchemy.Table object
         """
         name = "%s_class" % (table)
+        format = utils.get_description(table.name, metadata=table.metadata, attr='format')
         def __str__(self):
-            return "< %s >" % (table.name.title())
+            try:
+                return format % vars(self)
+            except KeyError:
+                ## empt classe miss attributs...
+                return "< %s: %s >" % (table.name.title(), hex(id(self)))
+
+        def __repr__(self):
+            return "< %s: %s >" % (table.name.title(), str(self))
 
         if isinstance(table, str ):
             table = self.get_table(name)
             
-        X = type(name, (object,), {'__repr__' : __str__})
+        X = type(name, (object,), {'__repr__' : __repr__, '__str__' : __str__})
         return X
     
     def table2mapper(self, table):
