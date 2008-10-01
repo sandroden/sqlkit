@@ -1149,6 +1149,12 @@ class SqlWidget(object):
             os.startfile(outfile)
         page.clean()
 
+    def __repr__(self):
+        return '<%s: %s>' % (self.__class__.__name__, self.tables)
+
+    def __str__(self):
+        return '<%s: %s>' % (self.__class__.__name__, self.tables)
+
 ####### More
 class Actions(object):
     def __init__(self, master=None):
