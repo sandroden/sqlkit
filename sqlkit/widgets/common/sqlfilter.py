@@ -113,14 +113,14 @@ class FilterPanel(object):
 ##### reload & TreeView
     def reload_cb(self, widget):
         """issue a reload operation on master. Call back of reload button"""
-
+        length = 0
         if 'TV=out' in self.w:
             display = False
         else:
             display = True
             
         if self.default_reload:
-            self.master.reload(limit=self.get_limit(), display=display )
+            length = self.master.reload(limit=self.get_limit(), display=display )
 
         else:
             ## FIXME: sqlData no longe exists
@@ -132,8 +132,9 @@ class FilterPanel(object):
             #                                  self.master.session)
 
         if 'TV=out' in self.w:
-            self.fill_model()
-            self.w['N.0'].set_current_page(1)
+            if length:
+                self.fill_model()
+                self.w['N.0'].set_current_page(1)
             
     def set_reload(self, mapper=None, join=None, tables=None):
         """A different method to filter & select is provided
@@ -256,9 +257,6 @@ class FilterPanel(object):
         for pwidget in self.search_filter_widgets:
             query = pwidget.add_filter_condition(query)
 
-        #sql = (sqlalchemy.and_(*ret))
-        #self.sql_dbg(ret)
-        #print sql
         return  query
 
 
@@ -278,6 +276,7 @@ class FilterWidget(object):
         self.field_name = field_name
         self.db_spec = self.master.fields[field_name]
         self.col = self.db_spec['col']
+        self.table = self.db_spec['table']
         self.bind_name = self.master.metadata.bind.name
 
 
@@ -428,6 +427,15 @@ class FilterDateWidget(FilterWidget):
 
 class FilterFKeyWidget(FilterWidget):
 
+    def __init__(self, field_name, panel, master):
+
+        FilterWidget.__init__(self, field_name, panel, master)
+
+        from sqlkit.db.minspect import get_foreign_info
+
+        foreign_keys = self.master.fields[self.field_name]['fkey']
+        self.ftable, self.fcol = get_foreign_info(foreign_keys, names=False)
+
     def get_suitable_operators(self):
 
         if self.bind_name in ('postgres'):
@@ -445,40 +453,19 @@ class FilterFKeyWidget(FilterWidget):
         In case field is a fkey, and the destination lookup field is not in
         the mapper, it composes a subselect
         """
-
         if self.bind_name == "sqlite" and op_value == "MATCH":
             op_value = 'LIKE'
             value = '%' + value + '%'
 
+        fdescr = get_description(self.ftable, attr='description')
 
-        from sqlkit.db.minspect import get_foreign_info
-            
-        foreign_keys = self.master.fields[self.field_name]['fkey']
-        ftable, fname = get_foreign_info(foreign_keys)
-
-        #ftable, fname = self.master.completion.get_foreign_info(self.field_name)
-        fdescr = get_description(ftable, metadata=self.master.metadata)
-
-        fld = {
-            'op_value' :    op_value,
-            'value'    :    value,
-            'ftable'   :    ftable,
-            'fname'    :    fname,
-            'fdescr'   :    fdescr,
-            }
-
-        ## FIXME: not using bind parameters
-#         sql = """%(ftable)s.%(fname)s FROM %(ftable)s
-#                WHERE %(ftable)s.%(fdescr)s %(op_value)s '%(value)s' """ % (fld)
-
-        sql = select(self.col, self.table.columns[fdescr].op(op_value)(value))
-
+        ids = select([self.fcol], self.ftable.columns[fdescr].op(op_value)(value))
         query = query.reset_joinpoint()
 
         if self.master.relationship_path:
             query = query.join(self.master.relationship_path)
-            
-        return query.filter(self.col.in_(sqlalchemy.select([sql])))
+
+        return query.filter(self.col.in_(ids))
 
 
 def get_filter_widget(field_name, panel, master):
