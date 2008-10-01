@@ -97,7 +97,9 @@ class FilterPanel(object):
             self.search_filter_widgets += [ widget]
             self.search_filter_field_names  += [search_path]
 
-        self.w['N.0'].set_current_page(0)
+        if 'N.0' in self.w:
+            self.w['N.0'].set_current_page(0)
+
         if show:
             self.w['Window'].show_all()
         self.w['Window'].present()
