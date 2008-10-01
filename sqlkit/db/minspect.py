@@ -158,7 +158,7 @@ class InspectMapper(dict):
         d = {
             'table_name'  :  mapper.local_table.name ,
             'name'        :  str(field_name),
-            'table'       :  str(mapper.local_table) ,
+            'table'       :  mapper.local_table ,
             'col'         :  mapper.c[field_name] ,
             'db_type'     :  type(mapper.c[field_name].type), 
             'type'        :  self.pytype[type(mapper.c[field_name].type)],
@@ -349,13 +349,15 @@ class InspectMapper(dict):
         tables = self.tables(mode='mapper')
         return get_join_cnd(tables)
 
-    def get_primary_table(self):
+    def get_primary_table(self, name=True):
         primarytable = self.mapper.local_table
         while isinstance(primarytable, sqlalchemy.sql.Join):
             primarytable = primarytable.left
-        primarytable = primarytable.name
-        return primarytable
-        #dbg.write('primarytable', table)
+        if name:
+            return primarytable.name
+        else:
+            return primarytable
+
     def next(self):
         """returns the next item in the data set,
         or tells Python to stop"""
