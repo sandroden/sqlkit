@@ -69,7 +69,7 @@ class SimpleCompletion(object):
         self.completion = self.prepare_completion()
         self.table = self.master.mapper.local_table
         self.column = self.master.fields[field_name]['col']
-        self.format = get_description(self.table.name, self.master.metadata, attr='format')
+        self.format = get_description(self.table, attr='format')
 
     def prepare_completion(self):
         """
@@ -420,7 +420,7 @@ class FkeyCompletion(SimpleCompletion):
         try:
             return self.lookup_values[field_name][field_value]
         except:
-            descr_fields =  tables[self.table.name].attrs
+            descr_fields =  get_description(self.table)
             format =        tables[self.table.name].format
             fields = [self.table.columns[field_name] for field_name in descr_fields]
 

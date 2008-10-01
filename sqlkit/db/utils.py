@@ -26,13 +26,15 @@ tables = Tables()
 
 class TableDescr(object):
     pattern = '%\((\w+)\)'
-    def __init__(self, table_name, format=None, pk=None, metadata=None):
+    def __init__(self, table, format=None, pk=None, metadata=None):
         """
         Format may be eather a normal python format string (eg.: "%(title)s - %(year)s")
         in which case each prenthesized token must be a field_name
         or a simple string that again must be a field_name
+        'table' may be a string or a sqlalchemy.Table object
 
         Metadata is not necessary to pick primary key or when autoloadin is required
+        unless a Table object is given
 
 
         self.format is always a proper format string
@@ -40,6 +42,13 @@ class TableDescr(object):
         self.search: this is the field that will be searched for in a foreign key context
         """
         global tables
+
+        if isinstance(table , Table):
+            table_name = table.name
+            self.table = table
+        else:
+            table_name = table
+            
         self.table_name = table_name
         self.format = format
         self.metadata = metadata
@@ -90,8 +99,11 @@ class TableDescr(object):
                 self.attrs.insert(0, field.name)
                 
     def get_table(self):
-        if not self.metadata:
-            raise MissingMetadata("Description  for %s cannot be guessed")
+        try:
+            return self.table
+        except AttributeError:
+            if not self.metadata:
+                raise MissingMetadata("Description  for %s cannot be guessed")
         
         ## first time we meet this table  -> inspect w/ autoload
         return Table(self.table_name, self.metadata, autoload=True)
@@ -119,10 +131,17 @@ class TableDescr(object):
     def __repr__(self):
         return "table: %s - format: %s" % (self.table_name, self.format)
 
-def get_description(table_name, metadata=None, attr='attrs'):
+def get_description(table, metadata=None, attr='attrs'):
+    if isinstance(table, Table):
+        table_name = table.name
+    else:
+        table_name = table
+        
     try:
         return getattr(tables[table_name], attr)
     except MissingMetadata, e:
+        if isinstance(table, Table):
+            return getattr(TableDescr(table), attr)
         return getattr(TableDescr(table_name, metadata=metadata), attr)
     
                       
@@ -134,9 +153,12 @@ if __name__ == '__main__':
     from sqlkit.db import proxy
 
     db = proxy.DbProxy(engine="sqlite://///misc/src/hg/py/sqlkit4/doc/db/movies.sqlite")
+    movie = Table('movie', metadata=db.metadata, autoload=True)
+
     #t = TableDescr('movie', '%(dirctor_id)s - (%(nation)s)', metadata=db.metadata)
 
     tables['movie'].attrs
+    print get_description(movie, attr='format')
     print tables.movie
-#     print get_description('movie', metadata=db.metadata)
-#     print get_description('movie', metadata=db.metadata, attr='format')    
+    print get_description('movie', metadata=db.metadata)
+    print get_description('movie', metadata=db.metadata, attr='format')    

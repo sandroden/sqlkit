@@ -177,9 +177,9 @@ class FilterPanel(object):
         Fill the model of the treeview that holds the data
         """
 
-        table = self.master.fields.get_primary_table()
-        format_string = get_description(table, metadata=self.master.metadata, attr='format')
-        description = tables[table].description
+        table = self.master.fields.get_primary_table(name=False)
+        format_string = get_description(table, attr='format')
+        description = tables[table.name].description
 
         self.model.clear()
         iter = {}
@@ -502,3 +502,5 @@ def get_filter_widget(field_name, panel, master):
     else:
         return FilterStringWidget(*args)
         
+
+
