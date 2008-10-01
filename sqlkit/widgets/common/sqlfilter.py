@@ -97,6 +97,7 @@ class FilterPanel(object):
             self.search_filter_widgets += [ widget]
             self.search_filter_field_names  += [search_path]
 
+        self.w['N.0'].set_current_page(0)
         if show:
             self.w['Window'].show_all()
         self.w['Window'].present()
@@ -135,6 +136,7 @@ class FilterPanel(object):
             if length:
                 self.fill_model()
                 self.w['N.0'].set_current_page(1)
+                self.master.record_display(0)
             
     def set_reload(self, mapper=None, join=None, tables=None):
         """A different method to filter & select is provided
