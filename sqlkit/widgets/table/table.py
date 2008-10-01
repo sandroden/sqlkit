@@ -14,7 +14,6 @@ mapper. column.set_cell_data_func on each column will set the value from there.
 
 
 import sys
-sys.path.append ('../../../')
 #from sqlalchemy import *
 #import layout
 from datetime import datetime
@@ -322,6 +321,24 @@ class SqlTable(sqlwidget.SqlWidget):
             #tvcolumn.set_fixed_width(self.width)
             
 
+    def set_field_list(self, field_list):
+        """
+        Set field of visible columns. Accepts both a list or a string (space or comma separated)
+        """
+        if isinstance(field_list, (str, unicode)):
+            field_list = re.split('[ ,]+', field_list)
+        orig_field_list = self.field_list
+        for field_name in field_list:
+            if field_name in self.fields:
+                ## is already known, just make it visible
+                self.tvcolumns[field_name].set_property('visible', True)
+            else:
+                raise NotImplementedError("Column %s is not kown in self.fields" % field_name)
+        for field_name in orig_field_list:
+            if field_name not in field_list:
+                self.tvcolumns[field_name].set_property('visible', False)
+        self.field_list = field_list
+        
 #### callbacks treeview
     def selection_changed_cb(self, treeselection):
         """
