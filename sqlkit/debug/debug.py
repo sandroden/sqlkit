@@ -489,8 +489,8 @@ class ShowLogs(object):
         iter = {}
         self.indent = {}
         ## method, args, caller, line
-        cols = ['meth','class', 'args', 'caller', 'line',
-                'ret code', 'class', 'time', 'all_args']
+        cols = ['meth','class', 'time', 'caller', 'line',
+                'ret code', 'class', 'args', 'all_args']
         self.easytv = layout.misc.EasyTreeView(
             cols, sort=False, show=show, but='tb=gtk-close tb=gtk-open')
         self.time = time.time()
@@ -511,6 +511,7 @@ class ShowLogs(object):
         self.model.connect('row-inserted', self.get_there)
         self.conf()
         self.easytv.tv.connect('button-press-event', self.button_press_cb)
+        self.easytv.tv.set_reorderable(True)
         try:
             self.add_tooltips()
         except:
@@ -735,11 +736,11 @@ class ShowLogs(object):
                          1, Class,
                          0, meth_str,
 #                         2, txt,
-                         2, ", ".join(args),
+                         7, ", ".join(args),
                          3, caller,
                          4, line,
                          6, class_obj,
-                         7, "%.3f - %.4f" % (now - self.time, now - self.last_time),
+                         2, "%.3f - %.4f" % (now - self.time, now - self.last_time),
                          8, args,
                          )
         self.last_time = now
@@ -787,10 +788,10 @@ class ShowLogs(object):
         self.model.set(  iter,
                          0, "(%s)" % meth_str,
                          1, Class,
-                         2, txt,
+                         7, txt,
                          3, caller,
                          4, line,
-                         7, "%.3f - %.4f" % (now - self.time, now - self.last_time)
+                         2, "%.3f - %.4f" % (now - self.time, now - self.last_time)
             )
         self.last_time = now
 
@@ -822,8 +823,8 @@ try:
             return text
 
         def get_tooltip(self, view, column, path):
-            meth, args, ret, caller, line = self.model.get(
-                self.model.get_iter(path), 0, 2, 5, 3, 4)
+            meth, args, ret, caller, line, time = self.model.get(
+                self.model.get_iter(path), 0, 7, 5, 3, 4, 2)
             ret  = re.sub('[<>]','', str(ret))
             args = re.sub('[<>]','', str(args))
             
@@ -833,8 +834,8 @@ try:
                 pass
             caller = re.sub('[<>]','', str(caller))
 
-            txt = """<i>%s</i>(<tt>%s</tt>)\n<b>%s</b>\n<i>%s:%s</i>""" % (
-                meth, args, ret, caller, line
+            txt = """<i>%s</i>(<tt>%s</tt>)\n<b>%s</b>\n<i>%s:%s</i>\n%s""" % (
+                meth, args, ret, caller, line, time
         )
             return txt
 except:
