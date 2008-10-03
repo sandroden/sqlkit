@@ -11,6 +11,8 @@ Main features of sqlkit:
  - very easy way to draw a layout for mask views
  - sqledit: python script to edit db
  - completely effortless editing of :ref:`relationships`
+ - very easy way to set :ref:`defaults`
+ - possibility to display :ref:`totals` in numeric fields
 
 Views
 ======
@@ -48,7 +50,7 @@ Each label of both views can be clicked to get a filter panel:
 Completion
 ============
 
-ref:``completion`` is triggered by F1 key, Contrl-Enter or Shift-Enter.  If the
+ref:`completion` is triggered by F1 key, Contrl-Enter or Shift-Enter.  If the
 field is a foreign key it will pop up a list of foreign values otherwise it
 will show values currently used (just for varchar fields). 
 
@@ -93,3 +95,9 @@ Relationships
 :one2many:  same as many2many
 
 Many more detail in :ref:`relationships`
+
+Totals
+======
+
+It's possible to display totals and subtotals in a table view. More in 
+:ref:`totals`

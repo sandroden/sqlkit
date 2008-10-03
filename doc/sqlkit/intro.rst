@@ -105,7 +105,7 @@ SqlMask
 Completion
 ===========
 
-   ::ref::``completion`` works well for entries in the mapper and for
+   :ref:`completion` works well for entries in the mapper and for
    entries that point to a foreign table/fkey.
    
    The ListStore used for the completion is only filled on demand (right

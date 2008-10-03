@@ -47,7 +47,7 @@ To get a mask that:
 You just have to start te SqlMask like this::
 
   lay = """first_name last_name
-         movies      - - -
+         o2m=movies      - - -
          """
   SqlMask(mapper=Director.mapper, metadata=__metadata__, 
           session=elixir.session,layout=lay)
@@ -94,39 +94,32 @@ does the heavy job. Definition is as simple as::
 
 
     lay = """year title
-             genres - - -
+             m2m=genres - - -
              """
     tm = sqlkit.SqlMask(mapper=Movie.mapper, metadata=__metadata__, 
                         session=elixir.session,layout=lay)
     lay = """
          name 
-         movies -
+         m2m=movies -
     """
     tm2 = sqlkit.SqlMask(mapper=Genre.mapper, metadata=__metadata__, 
                          session=elixir.session,layout=lay)
       
 
 and will pop up a couple of windows as the following, showing the same data
-from the two different main tables: movies with theis genres and genres with
+from the two different main tables: movies with their genres and genres with
 they're movies.
 
 .. image:: ../img/m2m.png
 
-readability
-------------
+adding & completion
+-------------------
 
-Just for readability, if you prefere you can write explicitly the widget you
-want to use, that in any case will be m2m or o2m::
+When using :ref:`completion` in a m2m table, adding from completion behaves
+differently that adding from m2o:
 
-  
-    lay = """year title
-             o2m=genres - - -
-             """
-
-    lay = """
-         name 
-         m2m=movies -
-    """
+  1. it requires the field to be already present
+  2. it complain if it cannot get one single element with that value 
 
 Many2One or ForeigKey
 ======================

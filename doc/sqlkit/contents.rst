@@ -4,3 +4,5 @@
    intro
    relationship
    completion
+   defaults
+   totals
