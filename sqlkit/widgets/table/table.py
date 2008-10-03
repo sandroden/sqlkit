@@ -611,7 +611,7 @@ class SqlTable(sqlwidget.SqlWidget):
     
     def text_edited_cb(self, cell, path, new_text, field_name):
 
-        """called by connect 'edited' on cell_renderer """
+        """calback on signal 'edited' on cell_renderer """
 
         dbg.write(path, new_text, field_name)
         ## NOTE: liststore.clear will trigger text_edited_cb!!!
@@ -621,7 +621,18 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.edited_row_model_path is None:
             return True
 
-        self.vfields[field_name].set_value(new_text, initial=False)
+        if self.relationship_mode == 'm2m':
+            # in m2m we don't want to edit this field but just to add/remove objects
+            # I'm not sure if this should change
+            try:
+                self.set_current(filter_by={field_name :new_text}, substitute=True)
+            except (exc.NoResultFound, exc.MultipleResultsFound), e:
+                ## if there's no match, try completion
+                show = self.vfields[field_name].widget.completion.show_possible_completion
+                show(self.editable, field_name, 'start')
+                return True
+        else:
+            self.vfields[field_name].set_value(new_text, initial=False)
         return True
     
 #### cell_data_func
@@ -645,12 +656,14 @@ class SqlTable(sqlwidget.SqlWidget):
         value = getattr(obj, field_name)
         cell.set_property(prop_name, value)        
 #        cell.set_property('cell-background', None)        
-        cell.set_property('foreground', None)        
+#        cell.set_property('foreground', None)        
         if isinstance(obj, totals.TotalObj):
 #            cell.set_property('cell-background', obj.get_bgcolor(field_name))
             cell.set_property('foreground', obj.get_fgcolor(field_name))
             if value is not None:
                 cell.set_property('markup', "<b><i>%s</i></b>" % (value))
+        else:
+            cell.set_property('foreground-set', False)
         
     def cell_dates_cb(self, column, cell, model, iter, (prop_name, field_name)):
         """function set by set_cell_data_func
@@ -990,23 +1003,38 @@ class SqlTable(sqlwidget.SqlWidget):
         else:
             return self.liststore[path][0]
 
-    def set_current(self, pk=None, substitute=False):
+    def set_current(self, pk=None, substitute=False, filter_by=None):
         """
         retrieve object with primary key pk and set it as current object
         ie: in the row currently selected
         This is mainly used in completion callback for m2m relationship_mode
         """
         
+        ## I really need not to flush, since in this moment there is a new object in the
+        ## row that started completion that is not ready for flushing
+        ## more: it may be due for substitution!!
+        
         row = self.get_selected_row()
+        obj = self.get_record_no_flush(pk=pk, filter_by=filter_by)
         if substitute:
             expired_obj = self.liststore[row][0]
             self.session.expunge(expired_obj)
             self.records.remove(expired_obj)
             
-        obj = self.session.query(self.mapper).get(pk)
         self.liststore[row][0] = obj
         self.records += [obj]
 
+    def get_record_no_flush(self, pk=None, filter_by=None):
+        """
+        Get the record in a way so that no flushing is performed
+        """
+        query = self.session.query(self.mapper).autoflush(False)
+        if pk:
+            obj = query.get(pk)
+        elif filter_by:
+            obj = query.filter_by(**filter_by).one()
+        return obj
+        
     def set_rows(self, n):
         """
         set treeview visible rows to n
