@@ -381,8 +381,12 @@ class CollectionWidget(Widget):
             relationship_path = self.field_name,  # FIXME: not good for longer relationships
             
             )
-#       self.initial_value = []
-        self.table.relationship_mode = "m2m"
+        direction = self.field.db_spec['property'].direction.name
+        if direction  == 'MANYTOMANY':
+            self.table.relationship_mode = "m2m"
+        elif direction == 'ONETOMANY':
+            self.table.relationship_mode = "o2m"
+
         self.master.related.add_element(self.field_name, self.table)
 
         #self.gtkwidget.set_property('sensitive', True) 
