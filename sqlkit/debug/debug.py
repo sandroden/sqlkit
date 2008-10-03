@@ -468,6 +468,7 @@ class LogTheMethods(type):
                 if '_H_%s'%attr not in meths: # prevent infinite loop
                     classdict['_H_%s'%attr] = item    # rebind the method
                     classdict[attr] = logmethod(attr) # replace  by wrapper
+                    classdict[attr].__doc__ = item.__doc__ # replace  by wrapper
 
         ret = type.__new__(cls, classname, bases, classdict)
 
