@@ -5,11 +5,8 @@ import sqlkit
 from sqlalchemy import text, select, Table
 from sqlalchemy.sql import and_, or_, not_
 from sqlkit.db.utils import tables, get_description
+from sqlkit.exc import *
 
-
-class LookupValueNotReturningOneValue(Exception): pass
-class MissingDescriptorField(Exception): pass
-class UnhandledMultipleForeignkeys(Exception): pass
 
 ####### Completion
 # EntryCompletion widgets are added on the fly triggered by F1, C-F1 or menu items
@@ -534,3 +531,7 @@ def compose_binary_expression(table, **kwargs):
         sql += [table.columns[names[0]].op(operator)(value)]
             
     return and_(*sql)
+
+
+
+

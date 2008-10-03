@@ -18,6 +18,7 @@ import sys
 #import layout
 from datetime import datetime
 from sqlkit.widgets.common import sqlwidget, CommitError, ValidationError
+from sqlkit import exc
 import sqlalchemy
 import dbg
 import decimal
@@ -1043,6 +1044,8 @@ class SqlTable(sqlwidget.SqlWidget):
             if self.editable:
                 return self.editable.get_text()
         return getattr(self.get_current_obj(), field_name)
+
+
 
 
 

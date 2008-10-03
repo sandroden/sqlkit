@@ -19,12 +19,7 @@ from sqlkit.db import sqldata, minspect
 from sqlkit.widgets.common import completion
 from sqlalchemy.orm import attributes
 from layout.utils import Container
-
-class NoSyncError(Exception): pass
-class SyncNotAvailable(Exception): pass
-class MissingEngine(Exception): pass
-class ValidationError(Exception): pass
-class CommitError(ValidationError): pass
+from sqlkit.exc import *
 
 NUMBERS = (int, float, decimal.Decimal)
 
@@ -595,7 +590,6 @@ class SqlWidget(object):
         """return the value from the widget
         """
         
-        from sqlkit.widgets.mask.mask import FieldNotInLayout
         if field_name not in self.vfields:
             dbg.write("%s Non in vfields %s" % (field_name, self.vfields.keys()))
             raise FieldNotInLayout("field_name: %s" % (field_name))
@@ -613,8 +607,6 @@ class SqlWidget(object):
         ## I want to avoid the dialog: do you want to save?
         ## session.dirty would (correctly) say a commit is needed
 
-        
-        from  sqlkit.widgets.mask.mask import FieldNotInLayout
         
         for field_name in self.field_list:      
             try:
@@ -1243,6 +1235,8 @@ class Actions(object):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+
 
 
 

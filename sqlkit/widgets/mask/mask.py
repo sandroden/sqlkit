@@ -12,11 +12,7 @@ from sqlkit.widgets.common import completion, sqlwidget
 import decimal
 import sqlkit
 import dbg
-
-class FieldNotInLayout(Exception): pass
-class FieldValueNotSet(Exception): pass
-class CancelledAction(Exception): pass
-
+from sqlkit import exc
 #NOT_NULL_COLOR = gtk.gdk.color_parse('yellow')
 FK_COLOR = gtk.gdk.color_parse('navyblue')
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
@@ -116,7 +112,7 @@ class SqlMask (sqlwidget.SqlWidget):
         """
         #dbg.write("%s: %s" % (field_name, field_value))
         if field_name not in self.vfields:
-            raise FieldNotInLayout("field_name: %s" % (field_name))
+            raise exc.FieldNotInLayout("field_name: %s" % (field_name))
 
         self.vfields[field_name].set_value(field_value, initial=initial)
         
@@ -125,7 +121,7 @@ class SqlMask (sqlwidget.SqlWidget):
         """clear the value
         """
         if field_name not in self.vfields:
-            raise FieldNotInLayout("field_name: %s" % (field_name))
+            raise exc.FieldNotInLayout("field_name: %s" % (field_name))
 
         self.vfields[field_name].set_default()
         
@@ -136,7 +132,7 @@ class SqlMask (sqlwidget.SqlWidget):
 
         if field_name not in self.vfields:
             dbg.write("%s Non in vfields %s" % (field_name, self.vfields.keys()))
-            raise FieldNotInLayout("field_name: %s" % (field_name))
+            raise exc.FieldNotInLayout("field_name: %s" % (field_name))
 
         field = self.vfields[field_name]
         
@@ -191,7 +187,7 @@ class SqlMask (sqlwidget.SqlWidget):
         
         if ask:
             if not self.save_unsaved():
-                raise CancelledAction
+                raise exc.CancelledAction
         else:
             self.commit()
             self.last_new_obj = None
@@ -211,7 +207,7 @@ class SqlMask (sqlwidget.SqlWidget):
             tbl = self.tables
         for key in self.fields.get_pkeys(tbl):
             if key in self.vfields and self.is_editable(key):
-                raise NotImplemented
+                raise NotImplementedError
             
         ## missing handling of Primary Key:
         ## should I delete the old one? should I look for editable attribute of the
@@ -334,7 +330,7 @@ class SqlMask (sqlwidget.SqlWidget):
     def record_save_cb(self,  accell_group, window, ord, flags):
         try:
             self.record_save(None)
-        except CancelledAction:
+        except ext.CancelledAction:
             pass
 
     def unsaved_changes_exist(self):
@@ -557,6 +553,8 @@ class Combo(SqlMask):
     def parse_fields(self, fields):
         self.table_field_list = fields
         return SqlMask.parse_fields(self, None)
+
+
 
 
 
