@@ -172,7 +172,6 @@ class SqlMask (sqlwidget.SqlWidget):
                 self.current = None
                 self.last_new_obj = None
             return
-
         obj = self.record_mask2obj(self.current)
 
         self.actions.on_save(obj, mode=self.current_mode)
@@ -191,10 +190,10 @@ class SqlMask (sqlwidget.SqlWidget):
         else:
             self.commit()
             self.last_new_obj = None
-            
+        
         self.record_display(reread=True)
         self.current_mode = 'UPDATE'
-        self.record_save_sync()
+        #self.record_save_sync()
         
     def record_save_new(self, wdg, constraint={}):
         """create a new record by cloning the present
@@ -326,11 +325,12 @@ class SqlMask (sqlwidget.SqlWidget):
             gtk.ACCEL_LOCKED, self.record_save_cb)
     def clear_cb(self, accell_group, window, ord, flags):
         self.record_new()
-        
-    def record_save_cb(self,  accell_group, window, ord, flags):
+
+    def record_save_cb(self,  *args):
+        """accell_group, window, ord, flags or ev..."""
         try:
             self.record_save(None)
-        except ext.CancelledAction:
+        except sqlwidget.CancelledAction:
             pass
 
     def unsaved_changes_exist(self):
