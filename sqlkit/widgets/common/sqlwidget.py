@@ -361,7 +361,7 @@ class SqlWidget(object):
         actions = {
             ## std toolbutton
             'tb=gtk-save-as'       : self.record_save_new,
-            'tb=gtk-save'       : self.record_save,
+            'tb=gtk-save'       : self.record_save_cb,
             'tb=gtk-new'        : self.record_new,
             'tb=gtk-delete'     : self.record_delete,
             'tb=gtk-refresh'    : self.reload_cb,
@@ -371,7 +371,7 @@ class SqlWidget(object):
 
             ## in case the programmers has set them
             'b=gtk-save-as'       : self.record_save_new,
-            'b=gtk-save'       : self.record_save,
+            'b=gtk-save'       : self.record_save_cb,
             'b=gtk-new'        : self.record_new,
             'b=gtk-delete'     : self.record_delete,
             'b=gtk-refresh'    : self.reload_cb,
@@ -399,11 +399,13 @@ class SqlWidget(object):
         """invokes the validator before DELETing a record"""
         pass
     
-    def record_save(self, ev):
+    def record_save_cb(self, ev):
         """Save the record and invokes the validator before UPDATE/INSERT a record
-        NOTE: the way it detact if changes have been made is different between Mask & Table
         """
-        pass
+        try:
+            self.record_save()
+        except sqlwidget.CancelledAction:
+            pass
     
     def record_save_new(self, ev):
         """Save the record as a new record, ie letting pk not be set 
