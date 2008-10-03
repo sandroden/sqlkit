@@ -4,6 +4,7 @@ import dbg
 import sqlkit
 from sqlalchemy import text, select, Table
 from sqlalchemy.sql import and_, or_, not_
+from sqlkit.db.proxy import table2mapper
 from sqlkit.db.utils import tables, get_description
 from sqlkit.exc import *
 
@@ -67,6 +68,7 @@ class SimpleCompletion(object):
         self.table = self.master.mapper.local_table
         self.column = self.master.fields[field_name]['col']
         self.format = get_description(self.table, attr='format')
+        self.description = tables[self.table.name].description
 
     def prepare_completion(self):
         """
@@ -175,17 +177,29 @@ class SimpleCompletion(object):
         else:
             fkvalue = None
         
-        if self.master.is_primary(field_name) and self.master.relationship_mode == "m2m":
+#        if self.master.is_primary(field_name) and self.master.relationship_mode == "m2m":
+        if self.master.relationship_mode == "m2m":
             ## when the Table is used to render a m2m field
             ## we don't want to "create" a new match, just pick an old one
             ## and use that one
-            self.master.set_current(pk=value, substitute=True)
+            if self.master.is_primary(field_name):
+                self.master.set_current(pk=value, substitute=True)
+            else:
+                kw = {field_name: value}
+                try:
+                    self.master.set_current(filter_by=kw, substitute=True)
+                except NoResultFound, e:
+                    msg = "No record for this specification: (%s=%s). Retry" % (field_name, value)
+                except MultipleResultsFound, e:
+                    print e
+                    msg = "Choice is not unique: (%s=%s). Retry" % (field_name, value)
+                    return False
         else:
             ## normal case
             self.master.set_value(field_name, value, fkvalue=fkvalue, initial=False)
 
         return True
-
+        
 ### Sql SELECT
     def select_values(self, field_name, mode):
         """execute the SELECT DISTINCT and return values
@@ -359,6 +373,38 @@ class SimpleCompletion(object):
         self.show_possible_completion(wdg, field_name=data, mode='regexp')
         return True
         
+    def key_entry_Return(self, wdg, event, data):
+        #
+        return self.check_existance(wdg)
+
+    def check_existance(self, entry):
+        """
+        don't accept false fkey...
+        """
+        text = entry.get_text()
+        if not text:
+            return False
+
+        if self.master.is_fkey(self.field_name) or self.master.relationship_mode == 'm2m':
+            ## check if the text entered was in fact a complete and legal fkey
+            ## or unique field (for m2m)
+            try:
+                self.get_obj_no_flush(text)
+
+            except (NoResultFound, MultipleResultsFound), e:
+                self.show_possible_completion(entry, field_name=self.field_name, mode='regexp')
+                return True
+
+        return False
+
+    def get_obj_no_flush(self, value):
+        """
+        check if the object exists and .one(), but don't trigger .flush()
+        """
+        filter_cnd = {str(self.field_name) : value}
+        query = self.master.session.query(table2mapper(self.table)).autoflush(False)
+        return query.filter_by( **filter_cnd ).one()
+        
     def show_field_info(self, wdg, field_name):
         """Pop a dialog to give info on the selected field"""
 #         dialog = gtk.Dialog("info on %s" % field_name,
@@ -385,6 +431,7 @@ class FkeyCompletion(SimpleCompletion):
     def __init__(self, *args, **kw):
         SimpleCompletion.__init__(self, *args, **kw)
         self.table, self.column = get_foreign_info(self.master, self.field_name, names=False)
+        self.description = get_description(self.table, attr='description')
 
     def prepare_liststore(self):
         return gtk.ListStore(str, str, str, object)
@@ -393,10 +440,9 @@ class FkeyCompletion(SimpleCompletion):
 
         field_list = tables[self.table.name].attrs
         field_list = [self.table.columns[name] for name in field_list]
-        description = tables[self.table.name].description
         
-        where = self.table.columns[description].op(oper)(value)
-        sql = select(field_list, where).order_by(description).distinct()
+        where = self.table.columns[self.description].op(oper)(value)
+        sql = select(field_list, where).order_by(self.description).distinct()
 
         return sql
     
@@ -468,6 +514,15 @@ class FkeyCompletion(SimpleCompletion):
             ret[i] = getattr(R, i)
         return ret
             
+    def get_obj_no_flush(self, value):
+        """
+        check if the object exists and .one(), but don't trigger .flush()
+        """
+        
+        filter_cnd = {str(self.description) : value}
+        query = self.master.session.query(table2mapper(self.table)).autoflush(False)
+        return query.filter_by( **filter_cnd ).one()
+        
     def compose_binary_expression(self, **kwargs):
         return compose_binary_expression(self.table, **kwargs)
 
