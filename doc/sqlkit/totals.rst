@@ -1,0 +1,19 @@
+.. _totals:
+
+========
+ Totals
+========
+
+Numeric columns of a Table have the option to show totals and
+subtotals. Subtotals are determined by brake fields/functions. This may be
+done interactively from the column menu or from code. The following example
+is very stupid but... you get the feeling!::
+
+    t2 = SqlTable(table='movie', dbproxy=db, order_by='director_id')
+    t2.totals.add_brake('director_id')
+    t2.totals.add_total('year')
+
+
+.. image:: ../img/totals.png
+    
+  
