@@ -12,6 +12,15 @@ class CellWidget(object):
                             master.get_field_type(field_name))
 
         self.master.widgets[field_name] = self
+        
+    def fget(self):
+        # CellWidget has an editable only if we're editing...
+        if self.field_name == self.master.currently_edited_field_name:
+            return self.master.editable
+        else:
+            raise NotImplementedError
+    
+    entry = property(fget)
 
     def add_completion(self, is_fkey, pytype):
         """completion is set just for fkey and string fields"""
