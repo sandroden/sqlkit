@@ -151,18 +151,10 @@ class SimpleCompletion(object):
         Create an event that will cause completion to pop
         """
         entry.grab_focus()
-
-        event =   gtk.gdk.Event(gtk.gdk.KEY_PRESS)
-
-        ## write something
-        event.keyval = gtk.keysyms.period  #ord(".")
-        event.window = entry.window
-        entry.emit('key-press-event',event)
-
-        ## and delete it...
-        event.keyval = gtk.keysyms.BackSpace
-        event.hardware_keycode = 22
-        entry.emit('key-press-event',event)
+        text = entry.get_text()
+        entry.insert_text('.')
+        entry.set_text(text)
+        return
 
 ### Call back
     def match_selected_cb(self, wdg, model, iter, field_name):
@@ -531,6 +523,8 @@ def compose_binary_expression(table, **kwargs):
         sql += [table.columns[names[0]].op(operator)(value)]
             
     return and_(*sql)
+
+
 
 
 
