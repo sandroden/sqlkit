@@ -35,13 +35,13 @@ from dry import optionparse
 class MissingNickDefinition(Exception): pass
 
 class choice(object):
-    def __init__(self, engine=None):
+    def __init__(self, engine=None, title=None):
         lay = """ {O tb=gtk-quit tb=gtk-refresh }
                    {- b=filter_tables e=filter}
                    TVS=tree"""
         self.tables = {}
 #        self.engine = engine
-        self.l = layout.Layout(lay, opts='-')
+        self.l = layout.Layout(lay, title=title, opts='-')
         self.l.pack(
             ## fill is just to avoid default that is expand
             ('T.0',             'y-options', 'fill'),
@@ -270,7 +270,8 @@ try:
                  single = True
              open_sqlwidget(t, single)
      else:
-         C = choice(engine=session.bind)    
+         title = session.bind.url.database
+         C = choice(engine=session.bind, title=title)    
 
 except OperationalError, e:
     if opts.debug:
