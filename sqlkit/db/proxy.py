@@ -70,38 +70,10 @@ class DbProxy(object):
         tables = [self.get_table(tbl) for tbl  in tables]
 
         if len(tables) == 1:
-            return self.table2mapper(tables[0])
+            return table2mapper(tables[0])
         else:
             return self.join_tables(tables)
 
-    def get_default_class(self, table):
-        """
-        Create on the fly a proper class. 'table' is a sqlalchemy.Table object
-        """
-        name = "%s_class" % (table)
-        format = utils.get_description(table.name, metadata=table.metadata, attr='format')
-        def __str__(self):
-            try:
-                return format % vars(self)
-            except KeyError:
-                ## empt classe miss attributs...
-                return "< %s: %s >" % (table.name.title(), hex(id(self)))
-
-        def __repr__(self):
-            return "< %s: %s >" % (table.name.title(), str(self))
-
-        if isinstance(table, str ):
-            table = self.get_table(name)
-            
-        X = type(name, (object,), {'__repr__' : __repr__, '__str__' : __str__})
-        return X
-    
-    def table2mapper(self, table):
-
-        X = self.get_default_class(table)
-        m = mapper(X, table)
-        return m
-        
     def join_tables(self, tables, master=None,  mode='outer'):
         """ join two or more tables in a mapper sqlalchemy.sql.Join
         mode: inner | outer
@@ -169,3 +141,35 @@ class DbProxy(object):
         else:
             m=minspect.InspectMapper(mapper, noup=noup, mode=mode)
         return m
+
+def table2mapper(table):
+    """
+    return a mapper for a class created on the fly. table is a sqlalchemy.Table obj
+    """
+
+    X = get_default_class(table)
+    m = mapper(X, table)
+    return m
+
+def get_default_class(table):
+    """
+    Create on the fly a proper class. 'table' is a sqlalchemy.Table object
+    """
+    name = "%s_class" % (table.name)
+    format = utils.get_description(table.name, metadata=table.metadata, attr='format')
+    def __str__(self):
+        try:
+            return format % vars(self)
+        except KeyError:
+            ## empt classe miss attributs...
+            return "< %s: %s >" % (table.name.title(), hex(id(self)))
+
+    def __repr__(self):
+        return "< %s: %s >" % (table.name.title(), str(self))
+
+    if isinstance(table, str ):
+        table = self.get_table(name)
+
+    X = type(name, (object,), {'__repr__' : __repr__, '__str__' : __str__})
+    return X
+
