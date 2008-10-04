@@ -90,7 +90,7 @@ class SqlMask (sqlwidget.SqlWidget):
                 dbg.write("VALUE (%s): %s" % (field_name, value))
                 self.set_value(field_name, value)
                 #self.get_value(field_name) ????
-            except FieldNotInLayout, e:
+            except exc.FieldNotInLayout, e:
                 pass
 
         #self.sync()
