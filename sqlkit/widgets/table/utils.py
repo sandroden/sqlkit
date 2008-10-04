@@ -1,3 +1,5 @@
+import dbg
+
 def set_height_request(treeview, rows=None):
     """Show "rows" rows in the treeview,
     or a reasonable number if "rows" is not set.
@@ -5,7 +7,7 @@ def set_height_request(treeview, rows=None):
     """
 
     if not rows:
-        rows = len(self.liststore)
+        rows = len(treeview.get_model())
         if rows == 0:
             rows = 10
         if rows > 30:
@@ -15,7 +17,7 @@ def set_height_request(treeview, rows=None):
     column      = treeview.get_column(0)
     cell_height = column.cell_get_size()[4]
 
-    spacing = self.treeview.style_get_property('vertical-separator')
+    spacing = treeview.style_get_property('vertical-separator')
 
     needed_height = cell_height * rows + (spacing) * (rows-1)
     dbg.write('needed', needed_height, 'spacing', spacing)
@@ -29,6 +31,7 @@ def set_height_request(treeview, rows=None):
     missing_height  = needed_height - visible_rect.height
     new_width       = toplevel.get_allocation().width
     new_height      = toplevel.get_allocation().height + missing_height
+#   print "toplevel:", toplevel, "old:", toplevel.get_allocation().height, "new:", new_height
     toplevel.resize(new_width, new_height)
         
 
