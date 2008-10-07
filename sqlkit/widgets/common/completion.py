@@ -40,7 +40,7 @@ OP = {
 class SimpleCompletion(object):
     __metaclass__ = dbg.LogTheMethods
     autostart = False
-    autostart_last_length = 100
+    autostart_last_length = 0
     
     VALUE_COL = 0
     DESCRIPTION_COL = 0
@@ -352,9 +352,11 @@ class SimpleCompletion(object):
         """
         
         if self.autostart:
-            length = len(self.master.get_value(self.field_name, shown=True))
-            dbg.write('length: %s  - autostart_last_length: %s' % (length, self.autostart_last_length))
-            if length + 1 < self.autostart_last_length:
+            text = self.master.get_value(self.field_name, shown=True)
+            length = len(text)
+
+            if (not self.autostart_last_length  and length >= self.autostart) \
+                   or (length + 1 < self.autostart_last_length):
                 autostart = self.autostart
                 self.autostart = False
                 self.show_possible_completion(self.widget.entry, self.field_name, 'regexp')
@@ -419,9 +421,10 @@ class SimpleCompletion(object):
         menu.popup(None, None, None, ev.button, ev.time)
         
         return True
-    def keypress_event_cb(self, wdg, event, data=None):
+    def keypress_event_cb(self, wdg, event, data=None, when='before'):
         """trigger various callback to keypress
         Set in miniwidgets or in text_editing_started_cb
+        A callback connected with connect_after should set when to after
         """
         if isinstance(wdg, gtk.TreeView):
             pre = 'tree'
@@ -444,14 +447,16 @@ class SimpleCompletion(object):
 
         ksym = '_'.join(mods + [ksym])
         #dbg.write('ksym', ksym, 'mods', mods)
-        self.autostart_completion()
+        if when == 'release':
+            self.autostart_completion()
 #        print ksym
         if ksym in dir(self):
             return getattr(self, ksym)(wdg, event, data)
-    
+        return False
+
     def key_entry_F1(self, wdg, event, data):
         self.show_possible_completion(wdg, field_name=data, mode='regexp')
-        return True
+        return False
     
     def key_entry_shift_Return(self, wdg, event, data):
         self.show_possible_completion(wdg, field_name=data, mode='start')

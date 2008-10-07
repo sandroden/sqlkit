@@ -66,6 +66,8 @@ class VarcharWidget(Widget):
             'button-press-event', self.completion.pop_menu,  self.field_name, 3)
         self.gtkwidget.connect(
             'key-press-event', self.completion.keypress_event_cb,  self.field_name)
+        self.gtkwidget.connect(
+            'key-release-event', self.completion.keypress_event_cb,  self.field_name, 'release')
 
             
 
@@ -316,6 +318,7 @@ class ForeignKeyWidget(Widget):
 
         ## entry connect
         self.entry.connect('key-press-event', self.on_key_press)
+        self.entry.connect('key-release-event', self.on_key_press, 'release')
 #        self.entry.connect('changed', self.on_entry_changed)
         
 
@@ -324,8 +327,9 @@ class ForeignKeyWidget(Widget):
             self.entry, field_name=self.field_name, mode='regexp')
         return True
 
-    def on_key_press(self, widget, event, ):
-        return self.completion.keypress_event_cb(self.entry, event, self.field_name)
+    def on_key_press(self, widget, event, when='before'):
+        print "BEFORE", when
+        return self.completion.keypress_event_cb(self.entry, event, self.field_name, when)
 
     def on_entry_changed(self, editable):
         ## Don't trust this value, shown value and self.value are not coherent
