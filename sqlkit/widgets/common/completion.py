@@ -332,7 +332,7 @@ class SimpleCompletion(object):
         
         return True
     def keypress_event_cb(self, wdg, event, data=None):
-        """impleents various callback to keypress
+        """trigger various callback to keypress
         Set in miniwidgets or in text_editing_started_cb
         """
         if isinstance(wdg, gtk.TreeView):
@@ -357,7 +357,7 @@ class SimpleCompletion(object):
         ksym = '_'.join(mods + [ksym])
         #dbg.write('ksym', ksym, 'mods', mods)
         self.autostart_completion()
-
+        print ksym
         if ksym in dir(self):
             return getattr(self, ksym)(wdg, event, data)
     
@@ -376,6 +376,13 @@ class SimpleCompletion(object):
     def key_entry_Return(self, wdg, event, data):
         #
         return self.check_existance(wdg)
+
+    def key_entry_Tab(self, wdg, event, data):
+        # waiting for a complete handling of validation
+        return False
+        check = self.check_existance(wdg)
+        print check
+        return check
 
     def check_existance(self, entry):
         """
@@ -584,3 +591,4 @@ def compose_binary_expression(table, **kwargs):
 
 
 
+ 
