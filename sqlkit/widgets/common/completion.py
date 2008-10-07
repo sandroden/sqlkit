@@ -1,3 +1,20 @@
+"""
+autocompletion
+---------------
+
+my_sql__widget.completions.my_field.autostart = n
+(Where n hold how many chars after automatig start of completion)
+
+group_by
+--------
+
+my_sql_widget.completions.my_field.group_by = 'field_name'
+'field_name' will be added to the request and used to group completion possibilities 
+
+"""
+
+
+
 import re
 import gtk
 import dbg
@@ -25,7 +42,12 @@ class SimpleCompletion(object):
     autostart = False
     autostart_last_length = 100
     
-    MATCH_COL = 0
+    VALUE_COL = 0
+    DESCRIPTION_COL = 0
+    MARKUP_COL = 0
+    OBJ_COL = 1
+    MATCH_COL = 2
+        
     def __init__(self, master, widget, field_name):
 
         """completion is the way we can find possible completions of text in
@@ -34,14 +56,14 @@ class SimpleCompletion(object):
         values, in case we don't have an fk, completion will suggest values
         already present in the db.
 
-        A completion must be 'requested' (is only issued on demand). Normal
-        bindings are F1 Control_Enter or right-click and will add a
-        gtk.EntryCompletion on the fly to the widget that triggered the
-        request, attach a listore, fill the liststore with values
+        A completion must be 'requested' (is only issued on demand), unless
+        autocompletion is set to n (chars inputted after which it starts). Normal
+        bindings are F1 Shift_Enter, Control_Enter or right-click and will 
+        fill the gtk.EntryCompletion associated to the entry with values
         accordingly.
 
         Bindings are set in SqlText inside text_editing_started_cb
-        while in SqlMask inside miniwidets (actually only VarcharWidget and FKeyWidget)
+        while in SqlMask inside miniwidgets (actually only VarcharWidget and FKeyWidget)
 
         widget.connect('button-press-event',self.completion.keypress_event_cb,  self.field_name)
 
@@ -54,7 +76,7 @@ class SimpleCompletion(object):
         self.master.values in case of an id, completion will substitute it
              with a description field, for the user benefit. The real value
              of the field will be hold there.
-        self.master.mfields (mask wdgets): the mapping field_name -> widget
+        self.master.vfields (mask wdgets): the mapping field_name -> widget
         
         """
 
@@ -69,7 +91,22 @@ class SimpleCompletion(object):
         self.column = self.master.fields[field_name]['col']
         self.format = get_description(self.table, attr='format')
         self.description = tables[self.table.name].description
+        self.attrs = tables[self.table.name].attrs
+        self._group_by = None
 
+    def set_group_by(self, field_name):
+        """if group_by is not already in table.attrs, add it runtime
+        """
+        if not field_name in self.attrs:
+            self.attrs += [field_name]
+        self._group_by = field_name
+        
+    def get_group_by(self):
+
+        return self._group_by
+
+    group_by = property (get_group_by, set_group_by)
+    
     def prepare_completion(self):
         """
         Prepare an EntryCompletion suitable for... sqlcompletion
@@ -83,28 +120,26 @@ class SimpleCompletion(object):
         renderer = gtk.CellRendererText()
         completion.pack_start(renderer)
 
-        completion.add_attribute(renderer, 'text', self.MATCH_COL)
-
+        completion.add_attribute(renderer, 'markup', self.MARKUP_COL)
 
         ## we match against the description field
         ## from the reference docs:
         # The match function is used by the entry completion to determine
         # if a row of the associated tree model should be in the completion list
-        completion.set_match_func(self.match_func, self.MATCH_COL)
-        self.liststore = self.prepare_liststore()
-        completion.set_model(self.liststore)
+        completion.set_match_func(self.match_func)
+        self.model = self.prepare_model()
+        completion.set_model(self.model)
         
         return completion
 
-    def prepare_liststore(self):
-        return gtk.ListStore(str)
+    def prepare_model(self):
+        return gtk.ListStore(str, object, bool)
     
     def add_completion(self, entry):
         """ add a completionEntry to an Entry
         """
-
         entry.set_completion(self.completion)
-    
+        
 ### Filling & popping the completion
     def show_possible_completion(self, widget, field_name, mode):
         """fill in a ListStore to use with completion, fetch data from db
@@ -115,7 +150,7 @@ class SimpleCompletion(object):
         """
         self.mode = mode
         self.master.sb("search: %s" % mode)
-        self.liststore.clear()
+        self.model.clear()
 
         result = self.select_values(field_name, mode)
         for obj in result:
@@ -123,39 +158,92 @@ class SimpleCompletion(object):
 
         self.make_completion_to_pop(widget)
 
-    def match_func(self, completion, key, iter, column):
+    def match_func(self, completion, key, iter):
         """When editing, this function limits the visible entry of the model
         """
-        model = completion.get_model()
-        text = model.get_value(iter, column)
-        if not text:
-            text = ''
-        # start
-        if self.mode == 'start':
-            if re.search("^%s" %(key), text, re.IGNORECASE):
-                return True
-            else:
-                return False
-        # regexp
-        if re.search(key, text, re.IGNORECASE):
-            return True
+        ## I want to have also group_by field in the completion, but only when
+        ## thare's a match to be shown under that group
+        ## so I nee to passs twice, this is done just once each completion
+        ## popup
+        text = self.model.get_value(iter, self.DESCRIPTION_COL)
+        prev = getattr(self, '_prev_match_value', None)
+        
+        if key != prev:
+            self._prev_match_value = key
+            self.model_set_match_col(key)
 
-        return False
+        return self.model.get_value(iter, self.MATCH_COL)
+
+    def model_set_match_col(self, key):
+
+        miter_dict = {}
+
+        for row in self.model:
+
+            value = self.model.get_value(row.iter, self.VALUE_COL)
+            text  = self.model.get_value(row.iter, self.DESCRIPTION_COL)
+            obj   = self.model.get_value(row.iter, self.OBJ_COL)
+
+            if text is None:
+                ## it's not clear to me why there's a pass here with incomplete model
+                ## all is working but based but not steady in my opinion
+                return
+
+            if value is None:
+                ## it's a group_by field
+                self.model.set_value(row.iter, self.MATCH_COL, False)
+                miter_dict[text] = [row.iter, False]
+
+            # start
+            elif self.mode == 'start':
+                if re.search("^%s" %(key), text, re.IGNORECASE):
+                    self.model.set_value(row.iter, self.MATCH_COL, True)
+                    if self._group_by:
+                        miter_dict[obj[self._group_by]][1] = True
+                else:
+                    self.model.set_value(row.iter, self.MATCH_COL, False)
+
+            # regexp
+            else:
+                if re.search(key, text, re.IGNORECASE):
+                    self.model.set_value(row.iter, self.MATCH_COL, True)
+                    if self._group_by:
+                        miter_dict[obj[self._group_by]][1] = True
+                else:
+                    self.model.set_value(row.iter, self.MATCH_COL, False)
+
+        for iter, val in miter_dict.values():
+            if val:
+                self.model.set_value(iter, self.MATCH_COL, True)
 
     def append_to_model(self, obj):
         """
         How each selected record gets to the model
         """
-        self.liststore.append([getattr(obj, self.field_name)])
+        m_iter = self.model.append(None)
+        self.model.set(m_iter,
+                       self.VALUE_COL, getattr(obj, self.field_name),
+                       self.MATCH_COL, True)
 
     def make_completion_to_pop(self, entry):
         """
         Create an event that will cause completion to pop
         """
         entry.grab_focus()
-        text = entry.get_text()
-        entry.insert_text('.')
-        entry.set_text(text)
+        #entry.select_region(0,0)
+        entry.set_position(100)
+
+        event =   gtk.gdk.Event(gtk.gdk.KEY_PRESS)
+        ## write something
+        event.keyval = gtk.keysyms.period  #ord(".")
+        event.window = entry.window
+        entry.emit('key-press-event',event)
+
+        ## and delete it...
+        event.keyval = gtk.keysyms.BackSpace
+        event.hardware_keycode = 22
+
+        entry.emit('key-press-event',event)        
         return
 
 ### Call back
@@ -170,10 +258,10 @@ class SimpleCompletion(object):
         # 3:  the row return by the SELECT when building the completion
         #         if more fields are present more columns get written
 
-        value = model.get(iter,0)[0]
+        value = model.get(iter, self.VALUE_COL)[0]
 
         if self.master.is_fkey(field_name):
-            fkvalue = model.get(iter,1)[0]
+            fkvalue = model.get(iter, self.DESCRIPTION_COL)[0]
         else:
             fkvalue = None
         
@@ -221,7 +309,7 @@ class SimpleCompletion(object):
 
         where = self.column.op(oper)(value)
         sql = select([self.column], where).order_by(self.column).distinct()
-
+        print sql, value
         return sql
     
     def get_displayed_value(self, ):
@@ -357,7 +445,7 @@ class SimpleCompletion(object):
         ksym = '_'.join(mods + [ksym])
         #dbg.write('ksym', ksym, 'mods', mods)
         self.autostart_completion()
-        print ksym
+#        print ksym
         if ksym in dir(self):
             return getattr(self, ksym)(wdg, event, data)
     
@@ -433,23 +521,35 @@ class SimpleCompletion(object):
 
 
 class FkeyCompletion(SimpleCompletion):
-    MATCH_COL = 2
-
+    VALUE_COL = 0
+    DESCRIPTION_COL = 1
+    MARKUP_COL = 2
+    OBJ_COL = 3
+    MATCH_COL = 4
+    
+        
     def __init__(self, *args, **kw):
         SimpleCompletion.__init__(self, *args, **kw)
         self.table, self.column = get_foreign_info(self.master, self.field_name, names=False)
         self.description = get_description(self.table, attr='description')
+        self.attrs = get_description(self.table, attr='attrs')
 
-    def prepare_liststore(self):
-        return gtk.ListStore(str, str, str, object)
-    
+    def prepare_model(self):
+        ## last col is for markup
+        return gtk.ListStore(str, str, str, object, bool)
+            
     def compose_select_statement(self, oper, value):
 
-        field_list = tables[self.table.name].attrs
+#        field_list = tables[self.table.name].attrs
+        field_list = self.attrs
         field_list = [self.table.columns[name] for name in field_list]
-        
+
+        order_by = [self.description]
+        if self.group_by:
+            order_by = [self._group_by] + order_by
+            
         where = self.table.columns[self.description].op(oper)(value)
-        sql = select(field_list, where).order_by(self.description).distinct()
+        sql = select(field_list, where).order_by(*order_by).distinct()
 
         return sql
     
@@ -507,8 +607,41 @@ class FkeyCompletion(SimpleCompletion):
         fk_table, fk_key = get_foreign_info(self.master, self.field_name)
         format_string    = tables[fk_table].format
         description      = format_string % self.instance2dict(obj)
-        self.liststore.append([ fvalue, description, description, obj_dict ])
+        m_iter = self.get_iter(obj)
+        self.model.set(m_iter,
+                       self.VALUE_COL,       fvalue,
+                       self.DESCRIPTION_COL, description,
+                       self.MARKUP_COL,      "   %s" % description,
+                       self.OBJ_COL,         obj_dict,
+                       self.MATCH_COL,       True,
+                       )
+        
+    def get_iter(self, obj):
+        # based on self.__prev_group_by_value
+        #          self.__prev_group_by_iter
 
+        if not self._group_by:
+            return self.model.append(None)
+        else:
+            prev = getattr(self, '_prev_group_by_value', None)
+            new_value = getattr(obj, self._group_by)
+
+            self._prev_group_by_value = new_value
+            if new_value is not None and  new_value == prev:
+                return self.model.append(self._prev_group_by_iter)
+
+            else:
+                m_iter = self.model.append(None)
+                self._prev_group_by_iter = None
+                self.model.set(m_iter,
+                               self.DESCRIPTION_COL, new_value,
+                               self.MARKUP_COL,      "<b><i>%s</i></b>" % new_value,
+                               self.MATCH_COL,       True
+                               )
+                m_iter = self.model.append(None)
+            return m_iter
+                    
+            
     def instance2list(self, R):
         ## NOTE: a NULL from the db gets casted to ''
         ret = [getattr(R, i) or '' for i in R.keys()]
