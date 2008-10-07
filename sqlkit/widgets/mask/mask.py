@@ -236,7 +236,7 @@ class SqlMask (sqlwidget.SqlWidget):
             for field_name in self.field_list:      
                 try:
                     value = self.get_value(field_name)
-                except FieldNotInLayout:
+                except exc.FieldNotInLayout:
                     continue
 
                 #print "setattr(obj, %s, %s)" % (field_name, self.get_value(field_name))
@@ -258,7 +258,7 @@ class SqlMask (sqlwidget.SqlWidget):
         for field_name in self.field_list:
             try:
                 self.clear_value(field_name)
-            except FieldNotInLayout, e:
+            except exc.FieldNotInLayout, e:
                 pass
 
         ## sync
