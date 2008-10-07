@@ -544,14 +544,25 @@ class FkeyCompletion(SimpleCompletion):
         field_list = self.attrs
         field_list = [self.table.columns[name] for name in field_list]
 
+        from_obj = None
         order_by = [self.description]
         if self.group_by:
-            order_by = [self._group_by] + order_by
+            order_by, from_obj, field_list = self.group_by_from_obj(field_list, order_by)
             
         where = self.table.columns[self.description].op(oper)(value)
-        sql = select(field_list, where).order_by(*order_by).distinct()
+        sql = select(field_list, where, from_obj=from_obj)
 
-        return sql
+        return sql.order_by(*order_by).distinct()
+
+    def group_by_from_obj(self, field_list, order_by):
+        """
+        Add order_by field to select query
+        In case order_by field is a fkey, follow it and modify the from_obj
+        """
+        order_by = [self._group_by] + order_by
+        from_obj = None
+
+        return order_by, from_obj, field_list
     
 ### What to show
     def lookup_value(self, field_name, field_value):
@@ -725,3 +736,5 @@ def compose_binary_expression(table, **kwargs):
 
 
  
+
+
