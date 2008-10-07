@@ -27,6 +27,7 @@ import re
 import gobject
 import gtk
 import sqlkit
+from utils import set_height_request
 from  cell_renderers import CellRendererDate, CellRendererDatetime
 import totals
 #sys.path.append('../gdl')
@@ -1039,7 +1040,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         set treeview visible rows to n
         """
-        self.set_height_request(self.treeview, n)
+        set_height_request(self.treeview, n)
         
 
     def get_first_editable_col(self):
