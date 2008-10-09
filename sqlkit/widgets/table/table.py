@@ -37,6 +37,40 @@ if sys.hexversion < 0x20401f0:
     print "needed python version >= ", hex(0x20401f0)
     sys.exit(-1)
     
+def set_all_nonfilling(wid, level):
+    if not level:
+        return
+    try:
+        if wid.seen:
+            return
+    except:
+        pass
+    print "browsed to", wid
+    parent = wid.get_parent()
+    if hasattr(parent, 'child_set_property'):
+        try:
+            parent.child_set_property(wid, 'expand', False)
+            parent.child_set_property(wid, 'fill', False)
+            print "set"
+        except:
+            pass
+        try:
+            import gtk
+            parent.child_set_property(wid, 'y-options', None)
+        except:
+            pass
+    next_level = []
+    next_level.append(wid.get_parent())
+    try:
+        for child in wid.get_children():
+            next_level.append(child)
+    except:
+        pass
+
+    wid.seen = True
+    for other in next_level:
+        set_all_nonfilling(other, level-1)
+
 
 class SqlTable(sqlwidget.SqlWidget):
     """implementation with a listore with a single column that holds the
@@ -93,6 +127,10 @@ class SqlTable(sqlwidget.SqlWidget):
             self.lay_obj.prop('TV=tree', 'width-request', self.geom[0])
             self.lay_obj.prop('TV=tree', 'height-request', self.geom[1])
 
+        self.rows_start_number = 17 # FIXME: catch real number
+        if self.rows_start_number:
+            self.treeview.connect_after('realize', self.set_rows, self.rows_start_number)
+
 #         if self.rows:
 #             self.set_height_request()
 
@@ -113,6 +151,43 @@ class SqlTable(sqlwidget.SqlWidget):
                 
 
         return (self.lay_obj, self.w)
+
+    def print_debug(self):
+        set_all_nonfilling(self.treeview, 8)
+        wid = self.treeview
+        print "starting with", wid
+        number = 1 
+        while wid:
+            newwid = wid.get_parent()
+            number += 1
+            print "number", number, ":", newwid
+            try:
+                print newwid.get_property('xscale'), newwid.get_property('yscale'), "alignment"
+                print "changing"
+                newwid.set_property('yscale',1)
+            except:
+                pass
+            try:
+                newwid.child_set_property(wid, 'y-options', gtk.FILL|gtk.EXPAND)
+            except:
+                pass
+            try:
+                print newwid.get_allocation().width, newwid.get_allocation().height
+            except:
+                pass
+            try:
+                print newwid.get_property('n-rows'), newwid.get_property('n-columns')
+                print newwid.child_get_property(wid, 'left-attach'), newwid.child_get_property(wid, 'top-attach'), newwid.child_get_property(wid, 'right-attach'), newwid.child_get_property(wid, 'bottom-attach')
+                print newwid.get_children()
+            except:
+                pass
+            try:
+                newwid.child_set_property(wid, 'expand', True)
+                newwid.child_set_property(wid, 'fill', True)
+            except:
+                pass
+            wid = newwid
+
     
     def popup_col_menu(self, ev, field_name):
 
@@ -1036,11 +1111,16 @@ class SqlTable(sqlwidget.SqlWidget):
             obj = query.filter_by(**filter_by).one()
         return obj
         
-    def set_rows(self, n):
+    def set_rows(self, treeview, rows):
         """
-        set treeview visible rows to n
+        set number of treeview visible rows to "rows"
         """
-        set_height_request(self.treeview, n)
+        print "setting rows:", rows
+        set_height_request(treeview, rows)
+        import gobject
+        self.print_debug()
+#        gobject.timeout_add_seconds(1, self.print_debug)
+#        self.print_debug()
         
 
     def get_first_editable_col(self):
