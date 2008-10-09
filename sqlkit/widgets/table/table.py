@@ -127,9 +127,9 @@ class SqlTable(sqlwidget.SqlWidget):
             self.lay_obj.prop('TV=tree', 'width-request', self.geom[0])
             self.lay_obj.prop('TV=tree', 'height-request', self.geom[1])
 
-        self.rows_start_number = 17 # FIXME: catch real number
-        if self.rows_start_number:
-            self.treeview.connect_after('realize', self.set_rows, self.rows_start_number)
+#        self.rows_start_number = 17 # FIXME: catch real number
+ #       if self.rows_start_number:
+  #          self.treeview.connect_after('realize', self.set_rows, self.rows_start_number)
 
 #         if self.rows:
 #             self.set_height_request()
