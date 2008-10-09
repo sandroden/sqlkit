@@ -8,12 +8,14 @@ __metadata__ = db.metadata
 class Director(elixir.Entity):
     last_name = elixir.Field(elixir.String(60))
     first_name = elixir.Field(elixir.String(60))
+    nation = elixir.Field(elixir.String(6))
+    
     movies = elixir.OneToMany('Movie', inverse='director')
     elixir.using_options(tablename='director')
     elixir.using_options(metadata=__metadata__)
 
     def __repr__(self):
-        return u'<Director: %s>' %self.last_name
+        return u'<Director: %s (%s)>' % (self.last_name, self.nation)
 
 class Movie(elixir.Entity):
     title = elixir.Field(elixir.String(60))

@@ -30,17 +30,20 @@ def_movie = defaults.Defaults('movie', metadata=db.metadata)
 #def_movie.fk( 'director_id', 'last_name', 'Olmi')
 
 if 'm' in sys.argv:
-    t2 = SqlMask(table='movie', dbproxy=db, single=True,)
+    t2 = SqlMask(table='director', dbproxy=db, single=True,)
     
 else:
-    t2 = SqlTable(table='movie', dbproxy=db, single=True, dev=True)
-    t2.reload()
+    t2 = SqlTable(table='director', dbproxy=db, single=True, dev=False,
+                  order_by='last_name',
+                  rows=6,
+                  #field_list='director_id,title'
+                  )
+#    t2.reload()
     
-    t2.totals.add_brake('director_id')
 #    t2.totals.add_total('year')
 #t2.mapper.local_table.metadata.bind.echo = True
 
-t2.completions.director_id.autostart=1
+#t2.completions.director_id.autostart=1
 try:
     gtk.main()
 except KeyboardInterrupt:

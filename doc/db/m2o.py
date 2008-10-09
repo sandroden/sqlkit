@@ -51,7 +51,7 @@ lay = """first_name last_name
          o2m=movies      - - -
          """
 tm = sqlkit.SqlMask(mapper=Director.mapper, metadata=__metadata__, session=elixir.session,layout=lay)
-t = tm.mfields['movies'].widget.table
+t = tm.vfields['movies'].widget.table
 
 
 gtk.main()
