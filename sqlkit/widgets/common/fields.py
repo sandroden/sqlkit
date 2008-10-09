@@ -20,7 +20,7 @@ import gtk
 from pprint import pprint 
 from sqlkit.db import defaults
 
-class ValidationError(Exception): pass
+from sqlkit.exc import ValidationError, NotHandledField
 
 class FieldChooser(object):
 
@@ -62,7 +62,7 @@ class FieldChooser(object):
         COL_SPEC = db_spec['col_spec']
         DB_TYPE = db_spec['type']
 
-        if COL_SPEC == 'INTEGER' or DB_TYPE == int:
+        if COL_SPEC == 'INTEGER' or DB_TYPE in (int, float):
             return IntegerField(*args)
 
         if (COL_SPEC and COL_SPEC.startswith('VARCHAR'))  or DB_TYPE == str:
@@ -90,7 +90,8 @@ class FieldChooser(object):
         if COL_SPEC == 'TIMESTAMP WITH TIME ZONE':
             return DateTimeTZField(*args)
 
-        raise NotHandledField("Field %s is not handled in any way")
+        raise NotHandledField("Field %s is not handled in any way: COLD_SPEC: %s" %
+                              (field_name, COL_SPEC))
 
 class Field(object):
     Widget = None

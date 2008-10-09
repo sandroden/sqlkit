@@ -2,6 +2,7 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 class FieldNotInLayout(Exception): pass
 class FieldValueNotSet(Exception): pass
+class NotHandledField(Exception): pass
 
 class NoSyncError(Exception): pass
 class SyncNotAvailable(Exception): pass
