@@ -327,8 +327,7 @@ class ForeignKeyWidget(Widget):
             self.entry, field_name=self.field_name, mode='regexp')
         return True
 
-    def on_key_press(self, widget, event, when='before'):
-        print "BEFORE", when
+    def on_key_press(self, widget, event, when='press'):
         return self.completion.keypress_event_cb(self.entry, event, self.field_name, when)
 
     def on_entry_changed(self, editable):
