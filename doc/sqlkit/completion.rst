@@ -87,3 +87,14 @@ object TableDescr::
 
 metadata is necessary so that TableDescr knows where to go and autoload
 Table to introspect it, for internal purpouses.
+
+group_by
+========
+
+Theres also en easy possibility to add grouping of completion via a
+foreign_key attribute. It's enought to set the group_by attribute of
+completion_group_by::
+
+  t.completions.director_id.group_by = 'nation'
+
+.. image:: ../img/completion_group_by.png
