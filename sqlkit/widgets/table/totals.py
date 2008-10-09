@@ -16,20 +16,16 @@ class TotalObj(object):
         else:
             self._color = self._total_color
 
-    def get_bgcolor(self, field_name):
-        """return color for column field_name
-        Normally none unless one of the totals columns
+    def set_value_and_colors(self, cell, value, field_name):
         """
-        return getattr(self, field_name) and self._color
-
-    def get_fgcolor(self, field_name):
-        """return color for column field_name
-        Normally none unless one of the totals columns
+        set the color cell and possibly background
         """
-        if getattr(self, field_name) is None:
-            return None
-        else:
-            return self._fg_color
+        if value is not None:
+            cell.set_property('markup', "<b><i>%s</i></b>" % (value))
+        
+        # set color only if we have a value
+        if getattr(self, field_name):
+            cell.set_property('foreground', self._fg_color)
         
 
 class Totals(object):
@@ -40,6 +36,8 @@ class Totals(object):
     If total_by is a callable, it's evaluated to detect if a partial total
     must be inserted
     """
+    total_class = TotalObj
+
     def __init__(self, table):
         self.table = table
         self.totals = {}
@@ -74,7 +72,6 @@ class Totals(object):
                 return getattr(obj, field_name)
             self.brake_func = subtotal_diff
         else:
-            print "FUNC", func, type(func)
             raise NotImplementedError
         self.compute()
 

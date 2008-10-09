@@ -719,13 +719,11 @@ class SqlTable(sqlwidget.SqlWidget):
         cell.set_property(prop_name, value)        
 #        cell.set_property('cell-background', None)        
 #        cell.set_property('foreground', None)        
-        if isinstance(obj, totals.TotalObj):
-#            cell.set_property('cell-background', obj.get_bgcolor(field_name))
-            cell.set_property('foreground', obj.get_fgcolor(field_name))
-            if value is not None:
-                cell.set_property('markup', "<b><i>%s</i></b>" % (value))
+        if isinstance(obj, self.totals.total_class):
+            obj.set_value_and_colors(cell, value, field_name)
         else:
             cell.set_property('foreground-set', False)
+            cell.set_property('cell-background-set', False)
         
     def cell_dates_cb(self, column, cell, model, iter, (prop_name, field_name)):
         """function set by set_cell_data_func
