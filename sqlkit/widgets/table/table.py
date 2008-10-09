@@ -45,13 +45,12 @@ def set_all_nonfilling(wid, level):
             return
     except:
         pass
-    print "browsed to", wid
+#    print "browsed to", wid
     parent = wid.get_parent()
     if hasattr(parent, 'child_set_property'):
         try:
             parent.child_set_property(wid, 'expand', False)
             parent.child_set_property(wid, 'fill', False)
-            print "set"
         except:
             pass
         try:
@@ -70,6 +69,25 @@ def set_all_nonfilling(wid, level):
     wid.seen = True
     for other in next_level:
         set_all_nonfilling(other, level-1)
+
+def set_this_filling(wid):
+    while wid:
+        newwid = wid.get_parent()
+        try:
+            newwid.set_property('yscale',1)
+        except:
+            pass
+        try:
+            newwid.child_set_property(wid, 'y-options', gtk.FILL|gtk.EXPAND)
+        except:
+            pass
+        try:
+            newwid.child_set_property(wid, 'expand', True)
+            newwid.child_set_property(wid, 'fill', True)
+        except:
+            pass
+        wid = newwid
+    
 
 
 class SqlTable(sqlwidget.SqlWidget):
@@ -128,8 +146,8 @@ class SqlTable(sqlwidget.SqlWidget):
             self.lay_obj.prop('TV=tree', 'height-request', self.geom[1])
 
 #        self.rows_start_number = 17 # FIXME: catch real number
- #       if self.rows_start_number:
-  #          self.treeview.connect_after('realize', self.set_rows, self.rows_start_number)
+#        if self.rows_start_number:
+#            self.treeview.connect_after('realize', self.set_rows, self.rows_start_number)
 
 #         if self.rows:
 #             self.set_height_request()
@@ -152,41 +170,6 @@ class SqlTable(sqlwidget.SqlWidget):
 
         return (self.lay_obj, self.w)
 
-    def print_debug(self):
-        set_all_nonfilling(self.treeview, 8)
-        wid = self.treeview
-        print "starting with", wid
-        number = 1 
-        while wid:
-            newwid = wid.get_parent()
-            number += 1
-            print "number", number, ":", newwid
-            try:
-                print newwid.get_property('xscale'), newwid.get_property('yscale'), "alignment"
-                print "changing"
-                newwid.set_property('yscale',1)
-            except:
-                pass
-            try:
-                newwid.child_set_property(wid, 'y-options', gtk.FILL|gtk.EXPAND)
-            except:
-                pass
-            try:
-                print newwid.get_allocation().width, newwid.get_allocation().height
-            except:
-                pass
-            try:
-                print newwid.get_property('n-rows'), newwid.get_property('n-columns')
-                print newwid.child_get_property(wid, 'left-attach'), newwid.child_get_property(wid, 'top-attach'), newwid.child_get_property(wid, 'right-attach'), newwid.child_get_property(wid, 'bottom-attach')
-                print newwid.get_children()
-            except:
-                pass
-            try:
-                newwid.child_set_property(wid, 'expand', True)
-                newwid.child_set_property(wid, 'fill', True)
-            except:
-                pass
-            wid = newwid
 
     
     def popup_col_menu(self, ev, field_name):
@@ -1118,9 +1101,35 @@ class SqlTable(sqlwidget.SqlWidget):
         print "setting rows:", rows
         set_height_request(treeview, rows)
         import gobject
+        set_all_nonfilling(self.treeview, 8)
+        set_this_filling(self.treeview)
         self.print_debug()
-#        gobject.timeout_add_seconds(1, self.print_debug)
-#        self.print_debug()
+
+    def print_debug(self):
+        wid = self.treeview
+        print "starting with", wid
+        number = 1 
+        while wid:
+            newwid = wid.get_parent()
+            number += 1
+            print "number", number, ":", newwid
+            try:
+                print newwid.get_property('xscale'), newwid.get_property('yscale'), "alignment"
+                print "changing"
+            except:
+                pass
+            try:
+                print newwid.get_allocation().width, newwid.get_allocation().height
+            except:
+                pass
+            try:
+                print newwid.get_property('n-rows'), newwid.get_property('n-columns')
+                print newwid.child_get_property(wid, 'left-attach'), newwid.child_get_property(wid, 'top-attach'), newwid.child_get_property(wid, 'right-attach'), newwid.child_get_property(wid, 'bottom-attach')
+                print newwid.get_children()
+            except:
+                pass
+            wid = newwid
+
         
 
     def get_first_editable_col(self):
