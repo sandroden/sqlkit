@@ -38,7 +38,7 @@ if sys.hexversion < 0x20401f0:
     sys.exit(-1)
     
 def set_all_nonfilling(wid, level):
-    if not level:
+    if not level or not wid:
         return
     try:
         if wid.seen:
@@ -46,27 +46,31 @@ def set_all_nonfilling(wid, level):
     except:
         pass
 #    print "browsed to", wid
-    parent = wid.get_parent()
-    if hasattr(parent, 'child_set_property'):
-        try:
-            parent.child_set_property(wid, 'expand', False)
-            parent.child_set_property(wid, 'fill', False)
-        except:
-            pass
-        try:
-            import gtk
-            parent.child_set_property(wid, 'y-options', None)
-        except:
-            pass
     next_level = []
-    next_level.append(wid.get_parent())
+    try:
+        parent = wid.get_parent()
+        if hasattr(parent, 'child_set_property'):
+            try:
+                parent.child_set_property(wid, 'expand', False)
+                parent.child_set_property(wid, 'fill', False)
+            except:
+                pass
+            try:
+                import gtk
+                parent.child_set_property(wid, 'y-options', None)
+            except:
+                pass
+        next_level.append(wid.get_parent())
+    except:
+        pass
     try:
         for child in wid.get_children():
             next_level.append(child)
     except:
         pass
-
     wid.seen = True
+     
+
     for other in next_level:
         set_all_nonfilling(other, level-1)
 
@@ -145,9 +149,8 @@ class SqlTable(sqlwidget.SqlWidget):
             self.lay_obj.prop('TV=tree', 'width-request', self.geom[0])
             self.lay_obj.prop('TV=tree', 'height-request', self.geom[1])
 
-#        self.rows_start_number = 17 # FIXME: catch real number
-#        if self.rows_start_number:
-#            self.treeview.connect_after('realize', self.set_rows, self.rows_start_number)
+        if self.rows:
+            self.treeview.connect_after('realize', self.set_rows, self.rows)
 
 #         if self.rows:
 #             self.set_height_request()
