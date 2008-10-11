@@ -399,11 +399,80 @@ class show_widgets(object):
         return
     
     def show_widget_packing(self, menu, widget):
-        dialog, l = self.l.message(type='warning' , text="Not Implemented Yet")
-        self.response = dialog.run()
-        dialog.destroy()
-        return dialog
-    
+        parent = widget.get_parent()
+        # This was the first version:
+#       if not gobject.type_is_a(parent, gtk.Container):
+        # I now think it's OK to assume that every "parent" widget is Container:
+        if not parent:
+            dialog, l = self.l.message(type='warning',
+                                       text="Only widgets inside a gtkContainer have packing properties.")
+            self.response = dialog.run()
+            dialog.destroy()
+            return dialog
+
+        props = parent.list_child_properties()
+        cols = ['name','value','owner_type', 'value_type','nick' ]
+        a = TreeInfoLayout(cols)
+        cell = a.tvc[1].get_cell_renderers()[0]
+        cell.set_property('editable', True)
+        cell.connect('edited', self.edited_cb_packing, (parent, widget, a.model, 1))
+
+        a.w['Window'].set_title("%s - %s" % (
+            widget.name or '',
+            re.search("'(.*)'",str(widget.__class__)).group(1)
+            )
+                                )
+        m = a.model
+
+        for prop in props:
+            iter = m.append(None)
+            m.set(iter,
+                  0, prop.name,
+                  4, prop.nick,
+                  2, re.search(' ([a-zA-Z]+)', str(prop.owner_type)).group(1), 
+                  3, re.search(' ([a-zA-Z]+)', str(prop.value_type)).group(1),
+                 )
+            try:
+                default = prop.default_value
+            except:
+                default = ''
+            val = parent.child_get_property(widget, prop.name)
+            try:
+                ## in the eventuality of write only properties
+                val = parent.get_child_property(prop.name)
+            except:
+                None
+            if val != default and default != '':
+                val = "%s (%s)" % (val, default)
+                
+            if prop.name not in 'user-data':
+                m.set(iter,
+                      1, val,
+                      )
+
+
+    def edited_cb_packing(self, cell, path, new_text, user_data):
+        parent, widget, model, column = user_data
+        prop   = model[path][0]
+        gtype  = model[path][3]
+
+        py_type = {
+            # Just allows the user to pick wanted flags in the namespace
+            'GtkAttachOptions' : int,
+            'gint'     : int,
+            'guint'     : int,
+            'gchararray' : str,
+            'gfloat'   : float,
+            }
+        try:
+            parent.child_set_property(widget, prop, py_type[gtype](new_text))
+        except:
+            pass
+            
+        # Whatever happened, just show (nicely) the actual value:
+        model[path][column] = str(parent.child_get_property(widget, prop))
+        return
+
     def show_widget_connect(self):
         pass
     
