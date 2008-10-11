@@ -70,8 +70,13 @@ class wshow(object):
     def get_class_img(self, obj):
         c = str(obj.__class__)
         pat = '(?:gtk|dateedit).([A-Z][A-Za-z]+)'
-        name = re.search(pat,c).group(1).lower()
-        pix_name = "/usr/share/gazpacho/resources/base/%s.png" % (name)
+        re_result = re.search(pat,c)
+        if re_result:
+            name = re_result.group(1)
+        else:
+            # If it isn't a gtk or dateedit object, take all the class name
+            name = c
+        pix_name = "/usr/share/gazpacho/resources/base/%s.png" % (name.lower())
         if not os.path.exists(pix_name):
             return
         pixbuf = gtk.gdk.pixbuf_new_from_file(pix_name)
