@@ -1,7 +1,7 @@
 .. _completion:
 
 ============
- Completion
+Completion
 ============
 
 Complietion is the way you can avoid writing too much if the system already

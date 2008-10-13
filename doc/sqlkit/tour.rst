@@ -5,14 +5,24 @@ Sqlkit feature's tour
 Main features of sqlkit:
 
  - editor of databases in 2 modes: table & mask
- - based on sqlalchemy: can cope with many different databases
- - very powerfull filtering capabilities
+ - based on sqlalchemy_: can cope with many different databases
+ - very powerfull filtering capabilities:
+
+   * each field can be used to filter visible records
+   * date filtering possible also on relative basis (good for saved
+     queries)
+
  - completion both on local same field and foreign key fields
  - very easy way to draw a layout for mask views
  - sqledit: python script to edit db
  - completely effortless editing of :ref:`relationships`
  - very easy way to set :ref:`defaults`
  - possibility to display :ref:`totals` in numeric fields
+ - :ref:`constraints`: any possible sql constraint can be attached to a Mask 
+   or a Table. It can be expressed a s a normal sqlalchemy query or with
+   django-like syntax
+
+.. _sqlalchemy: http://www.sqlalchemy.org
 
 Views
 ======
@@ -101,3 +111,18 @@ Totals
 
 It's possible to display totals and subtotals in a table view. More in 
 :ref:`totals`
+
+Constraints
+============
+
+A contraint can be as simple as::
+
+  t = SqlTable(table='movie', dbproxy=db)
+  t.add_constraints(actors__country='ITA', genres__name='drama',
+    year__gte=1950, year__lte=1970)
+
+And browsing of movies will be constrained into dramas with at least one
+italian actor, produced between 1950 and 1970. The double underscore '__'
+will allow spanning from one table to a related (provided a relation was
+established at sqlalchemy level) and from attribute name to operator to e
+used.  

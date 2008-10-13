@@ -1,6 +1,5 @@
 .. _sqlkit:
 
-=======
 sqlkit
 =======
 
@@ -23,7 +22,7 @@ just clicking on the label of the fields.
 
 
 sqlkit pre-conditions
-======================
+---------------------
 
 1. I suppose that you use PrimaryKeys and ForeignKeys throughout the db.
    If you don't use ForeignKeys sqlkit will just work w/o any special
@@ -59,11 +58,11 @@ sqlkit pre-conditions
    used as descriptor.
 
    It is possible to overwrite this behaviour using
-   ``sqlkit.db.utils``. More info in the :ref:`descriptions`
+   ``sqlkit.db.utils``. More info in the :ref:`description`
 
 
 sqlkit supported backend structure
-==================================
+----------------------------------
 
 1. sqlkit is built on sqlalchemy that allows editing db with many
    different engines. I use it with postgres, mysql and sqlite. 
@@ -74,7 +73,7 @@ sqlkit supported backend structure
    future, in that case a join will be done using cascade_mappers).
 
 SqlMask
-=========
+-------
 
    SqlMask is the main editing tool along with SqlTable.
    It creates a mapper on the fly if not provided and will use
@@ -103,7 +102,7 @@ SqlMask
 
 
 Completion
-===========
+----------
 
    :ref:`completion` works well for entries in the mapper and for
    entries that point to a foreign table/fkey.

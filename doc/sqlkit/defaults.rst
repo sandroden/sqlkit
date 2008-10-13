@@ -1,7 +1,7 @@
 .. _defaults:
 
 ==========
- Defaults
+Defaults
 ==========
 
 Defaults are a handy way to avoid typing too much. Defaults are handled by
