@@ -62,8 +62,11 @@ class FieldChooser(object):
         COL_SPEC = db_spec['col_spec']
         DB_TYPE = db_spec['type']
 
-        if COL_SPEC == 'INTEGER' or DB_TYPE in (int, float):
+        if COL_SPEC == 'INTEGER' or DB_TYPE is int:
             return IntegerField(*args)
+
+        if COL_SPEC == 'FLOAT' or DB_TYPE is float:
+            return FloatField(*args)
 
         if (COL_SPEC and COL_SPEC.startswith('VARCHAR'))  or DB_TYPE == str:
             if isinstance(gtk_widget, gtk.Entry):
@@ -137,8 +140,8 @@ class Field(object):
     def has_changed(self, verbose=False):
         """return True if field has changed after last set
         """
-        dbg.write("has_changed - %r: or: %r ==> %r" % (
-            self.field_name, self.initial_value, self.get_value()))
+#         dbg.write("has_changed - %r: or: %r ==> %r" % (
+#             self.field_name, self.initial_value, self.get_value()))
 
         return not self.get_value() == self.initial_value
     
