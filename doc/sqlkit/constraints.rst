@@ -4,6 +4,10 @@
 Constraints
 ============
 
+Constraints are a mean to limit browsing of data to a limited set. It's a
+different concept from filtering, as this enforces a limitation while
+filtering allows the user to change the values at will.
+
 A contraint can be as simple as::
 
   t = SqlTable(table='movie', dbproxy=db)
@@ -12,9 +16,15 @@ A contraint can be as simple as::
 
 And browsing of movies will be constrained into dramas with at least one
 italian actor, produced between 1950 and 1970. The double underscore '__'
-will allow spanning from one table to a related (provided a relation was
+will allow spanning from one table to a related one (provided a relation was
 established at sqlalchemy level) and from attribute name to operator to be
 used.  
+
+query
+=======
+
+limitation acts on ``self.query`` directly. Self query can be modified in
+any way accepted by ``sqlalchemy`` syntax 
 
 operators
 ---------
@@ -67,6 +77,12 @@ Django2sqlalchemy returns a tuple: (clause_list, join_path):
 	   query.join(path).reset_joinpoint()
 
 
+API
+----
+
+.. automodule:: sqlkit.db.sql
+
+.. autofunction:: django2sqlalchemy
 
 
      

@@ -9,9 +9,9 @@ subtotals. Subtotals are determined by brake fields/functions. This may be
 done interactively from the column menu or from code. The following example
 is very stupid but... you get the feeling!::
 
-    t2 = SqlTable(table='movie', dbproxy=db, order_by='director_id')
-    t2.totals.add_brake('director_id')
-    t2.totals.add_total('year')
+    t = SqlTable(table='movie', dbproxy=db, order_by='director_id')
+    t.totals.add_break('director_id')
+    t.totals.add_total('year')
 
 
 .. image:: ../img/totals.png
@@ -26,3 +26,22 @@ can be inherited and modified to set different total behaviour.
 The colors are defined in a class in the same module ``TotalObj``whose
 method ``set_value_and_colors`` can be used to personalize colors and markup
 of the cell.
+
+dates
+------
+
+Since date breaks are probably very common a function make it easy to
+brake on dates.
+
+API
+---
+
+.. module:: sqlkit.widgets.table.totals
+
+.. autoclass:: Totals
+   :members: add_total, add_break, add_date_break, compute
+
+.. autoclass:: TotalObj
+   :members:
+
+   

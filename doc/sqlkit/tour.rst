@@ -31,7 +31,7 @@ Two possible views: table & mask
 
 .. image:: ../img/viste.png
 
-that where requeted by the following instructions::
+that where requested by the following instructions::
 
    layout = """
        nome cognome 
@@ -115,7 +115,7 @@ It's possible to display totals and subtotals in a table view. More in
 Constraints
 ============
 
-A contraint can be as simple as::
+A :ref:`contraint <constraints>` can be as simple as::
 
   t = SqlTable(table='movie', dbproxy=db)
   t.add_constraints(actors__country='ITA', genres__name='drama',
