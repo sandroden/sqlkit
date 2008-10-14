@@ -43,7 +43,10 @@ class SqlMask (sqlwidget.SqlWidget):
         if not self.save_unsaved():
             return
         self.current_idx = 0
-        return sqlwidget.SqlWidget.reload(self, **kw)
+        length = sqlwidget.SqlWidget.reload(self, **kw)
+        if not length:
+            self.record_new()
+        return length
 
     def record_display(self, record=None, incr=0, index=None, reread=False):
         """display an object record in the mask
