@@ -64,10 +64,12 @@ class DbProxy(object):
             return mapper_obj
     
         ## tables may be 'table1, table2, table3'
-        if not isinstance(tables, list):
+        if isinstance(tables, Table):
+            tables = [tables]
+        elif not isinstance(tables, list):
             tables = re.split('[ ,]+', tables)
+            tables = [self.get_table(tbl) for tbl  in tables]
             
-        tables = [self.get_table(tbl) for tbl  in tables]
 
         if len(tables) == 1:
             return table2mapper(tables[0])

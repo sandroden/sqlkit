@@ -707,39 +707,3 @@ def get_foreign_info(master, field_name, names=True):
     return get_foreign_info(foreign_keys, names=names)
 
 
-OPERATORS = {
-    'like' : 'like',
-    'icontains' : '~',
-    'lt'   : '<',
-    'gt'   :  '>',
-    'lte'  : '<=',
-    'gte'  : '>=',
-    'eq'   : '=',
-    'equal': '=',
-    'in'   : 'IN',
-    }
-
-def compose_binary_expression(table, **kwargs):
-    """
-    return a sqlalchemy binary expression from 'django-like' args
-    
-    """
-    sql = []
-    for key, value in kwargs.iteritems():
-        names = key.split('__')
-        if len(names) > 1:
-            operator = OPERATORS[names[-1]]
-        else:
-            operator = '='
-        sql += [table.columns[names[0]].op(operator)(value)]
-            
-    return and_(*sql)
-
-
-
-
-
-
- 
-
-

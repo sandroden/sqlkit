@@ -3,6 +3,7 @@ import inspect
 import layout
 import sqlalchemy.types as sqltypes
 from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy import Table
 
 from layoutgenerator import LayoutGenerator
 import gtk, pango
@@ -151,6 +152,7 @@ class SqlWidget(object):
         self.filter_panel = self._get_filter_panel()
         if show:
             self.show()
+        self.query = self.session.query(self.mapper)
             
     def show(self):
         """create the widget and go on displaying the layout
@@ -202,6 +204,8 @@ class SqlWidget(object):
             return mapper.local_table.metadata
         
     def get_table(self, tables):
+        if isinstance(tables, Table):
+            return tables.name
         if tables:
             return tables.split()[0]  ## FIXME: works for 1 single table
         if self.mapper:
@@ -484,8 +488,8 @@ class SqlWidget(object):
         if constraint:
             self.constraint=constraint
 
-        if sql is None:
-            sql = self.sql
+#         if sql is None:
+#             sql = self.sql
 
         if isinstance(sql, tuple) and len(sql) == 2:
             sql_str, params = sql
@@ -493,13 +497,12 @@ class SqlWidget(object):
             sql_str = sql
             params = None
 
-        if reload_constraint == True:
-            self.sql = (sql_str, params)
+#         if reload_constraint == True:
+#             self.sql = (sql_str, params)
 
         self.session.clear()
         self.last_new_obj = None
-        query = self.session.query(self.mapper)
-        query = query.filter(sql_str)
+        query = self.query.filter(sql_str)
         if params:
             query = query.params(**params)
         if self.order_by:
@@ -518,10 +521,7 @@ class SqlWidget(object):
             self.record_display()
 
         length = len(self.records)
-        if not length:
-            self.record_new()
         return length
-
 
     def set_records(self, records):
         """set 'records' as the list of record to manage
@@ -566,10 +566,20 @@ class SqlWidget(object):
             self.session.add(new_obj)
         return new_obj
 
-    def add_constraints(self, obj):
-        """Add constraints and any needed check  """
-        return obj
-    
+    def add_constraint(self, or_=False, *args, **kwargs):
+        """
+        Add constraints. A constraint may be one or more ColumnElement, ColumnList
+        or django-like syntax. Eg.::
+
+           name_like='uno%'
+           genres__name__regexp='sto'
+           director_id__birth_date__gte='1/1/1970'
+
+        if multiple conditions are passed, they will be ANDed unless 'or_=True'
+        """
+        from sqlkit.db.sql import django2query
+        self.query = django2query(self.mapper, self.query, or_=or_, *args, **kwargs)
+        
     def get_differences(self, obj):
         """show differences between old and new version of an object
         """
