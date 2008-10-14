@@ -30,10 +30,10 @@ def_movie = defaults.Defaults('movie', metadata=db.metadata)
 #def_movie.fk( 'director_id', 'last_name', 'Olmi')
 
 if 'm' in sys.argv:
-    t2 = SqlMask(table='director', dbproxy=db, single=True,)
+    t = SqlMask(table='director', dbproxy=db, single=True,)
     
 else:
-    t2 = SqlTable(table='director', dbproxy=db, single=True, dev=False,
+    t = SqlTable(table='director', dbproxy=db, single=True, dev=False,
                   order_by='last_name',
                   rows=6,
                   #field_list='director_id,title'

@@ -41,10 +41,10 @@ if 'm' in sys.argv:
     
 else:
     t = SqlTable(table='movie', dbproxy=db, single=True, dev=False,
-                  order_by='director_id', )
+                  order_by='director_id', rows=20)
     t.reload()
     
-    t.totals.add_brake('director_id')
+    t.totals.add_break('director_id')
     t.totals.add_total('year')
 
 t.completions.director_id.group_by = 'nation'

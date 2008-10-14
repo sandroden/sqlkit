@@ -33,10 +33,11 @@ lay = """
          director_id - - 
          m2m=genres  - m2m=actors -
          """
-tm = sqlkit.SqlMask(mapper=Movie.mapper, dbproxy=db , session=elixir.session,layout=lay)
-
+t = sqlkit.SqlMask(mapper=Movie.mapper, dbproxy=db , session=elixir.session,layout=lay)
+t.add_constraint(genres__name__like='sto%')
+                 
 #tm.completions.director_id.set_constraint(name__icontains='d')
-tm.reload()
+t.reload()
 
 # tt = sqlkit.SqlTable(mapper=Movie.mapper, session=elixir.session)
 # tt.reload()
