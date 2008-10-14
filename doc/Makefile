@@ -12,7 +12,7 @@ PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d .build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
 .PHONY: help clean html web pickle htmlhelp latex changes linkcheck
-
+all:    html
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html      to make standalone HTML files"
@@ -72,8 +72,7 @@ linkcheck:
 rsync:	html
 	rsync -r --delete --progress --stats .build/html/ www2:docs/sqlkit/
 
-pdf:    
-#latex
+pdf:    latex
 	cd .build/latex; make all-pdf
 	Print -s -o "-b 20" .build/latex/sqlkit.pdf
 	gv --orientation=seascape .build/latex/sqlkit.2.ps
@@ -85,3 +84,6 @@ galeon:
 firefox: 
 	firefox ./.build/html/index.html
 
+chtml:	clean html
+
+	
