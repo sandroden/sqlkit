@@ -21,7 +21,6 @@ from sqlkit.widgets.common import sqlwidget, CommitError, ValidationError
 from sqlkit import exc
 import sqlalchemy
 import dbg
-import decimal
 from  layout import widgets 
 import re
 import gobject
@@ -213,16 +212,28 @@ class SqlTable(sqlwidget.SqlWidget):
         item.connect('activate', self.add_subtotal_cb, field_name )
         menu.append(item)
 
+        if self.is_date(field_name):
+            self.menu_add_date_total_break(menu, field_name)
 
         menu.show_all()
         menu.popup(None, None, None, ev.button, ev.time)
         #menu.popup(None, None, None, 1, 1)
+
+    def menu_add_date_total_break(self, menu, field_name):
+
+        def add_break_date_cb(menu_item, field_name, period):
+            self.totals.add_date_break(field_name, period)
+
+        for period in "day week month quarter year".split():
+            item = gtk.MenuItem(label="subtotals on %s" % period)
+            item.connect('activate', add_break_date_cb, field_name, period)
+            menu.append(item)
         
     def add_total_cb(self, menu_item, field_name):
         self.totals.add_total(field_name)
         
     def add_subtotal_cb(self, menu_item, field_name):
-        self.totals.add_brake(field_name)
+        self.totals.add_break(field_name)
 
     def reload_sort(self, widget, field_name, *args):
         dbg.write(widget, field_name)
@@ -419,7 +430,6 @@ class SqlTable(sqlwidget.SqlWidget):
         # 7. selected existent record -> delete
         # 8. selected existent LAST record -> delete
         
-
         if self.edited_row_model_path is None:
             self.record_initialize_vfields()
             return False
@@ -701,6 +711,8 @@ class SqlTable(sqlwidget.SqlWidget):
     def cell_bool_cb(self, column, cell, model, iter, name):
         """function set by set_cell_data_func for nullable boolean"""
 
+        if not column.get_visible():
+            return
         obj = model.get_value(iter, 0) 
         value = getattr(obj, name)
         cell.set_property('active', value)        
@@ -714,6 +726,9 @@ class SqlTable(sqlwidget.SqlWidget):
         """function set by set_cell_data_func
         gets the attribute from the record and returns it
         """
+
+        if not column.get_visible():
+            return
         obj = model.get_value(iter, 0) 
         value = getattr(obj, field_name)
         cell.set_property(prop_name, value)        
@@ -729,6 +744,8 @@ class SqlTable(sqlwidget.SqlWidget):
         """function set by set_cell_data_func
         gets the attribute from the record and returns it
         """
+        if not column.get_visible():
+            return
         obj = model.get_value(iter, 0) 
         value = getattr(obj, field_name)
         cell.set_property(prop_name, value)        
@@ -1030,6 +1047,10 @@ class SqlTable(sqlwidget.SqlWidget):
     
     def get_selected_row(self):
         """Return the path of the selected row or None
+
+        NOTE: treeselection 'changed' signal arrives when the selection changed has
+              alreadu occurred
+
         """
         selection = self.treeview.get_selection()
         model, rows = selection.get_selected_rows()
@@ -1056,7 +1077,8 @@ class SqlTable(sqlwidget.SqlWidget):
         """returns the corrently selected obj or obj at path. Return None if no selection"""
 
         if not path:
-            path = self.get_selected_row()
+            #path = self.get_selected_row()
+            path = self.edited_row_model_path
 
         if path is None:
             return None
@@ -1099,12 +1121,13 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         set number of treeview visible rows to "rows"
         """
+        return
         print "setting rows:", rows
         set_height_request(treeview, rows)
         import gobject
         set_all_nonfilling(self.treeview, 8)
         set_this_filling(self.treeview)
-        self.print_debug()
+        #self.print_debug()
 
     def print_debug(self):
         wid = self.treeview
