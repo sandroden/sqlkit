@@ -469,6 +469,11 @@ class show_widgets(object):
             'gchararray' : str,
             'gfloat'   : float,
             }
+            
+        # No real edit was made
+        if new_text == model[path][column]:
+            return
+            
         try:
             value = py_type[gtype](new_text)
         except:
