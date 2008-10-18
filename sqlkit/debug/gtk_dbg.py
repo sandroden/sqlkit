@@ -35,12 +35,10 @@ class wshow(object):
             return self.add_to_model(widget, iter=iter, parent=parent)
 
     def add_to_model(self, widget, iter=None, parent=None):
-        #dbg.write('iter: %s, parent: %s' % (iter, parent))
         if iter:
             new = iter
         else:
             new = self.model.append(parent)
-        #dbg.write('self.model.set(new, %s, %s)' % (self.lvl, widget.name))
         try:
             text = "(%s)" % widget.get_text()
         except:
@@ -48,7 +46,6 @@ class wshow(object):
             
         self.model.set(new,
                        0, "%s %s" % (widget.name or '', text),
-                       #0, "%s %s " % (widget.name, text),
                        1, self.get_class_str(widget),
                        2, self.get_class_img(widget),
                        3, widget
@@ -86,15 +83,19 @@ class wshow(object):
 
 
     def scan(self, widget):
+        """
+        descend a widget and get all it's children
+        """
 
         d = {}
 
         children = []
         try:
-            children = widget.get_children()
-            #dbg.write(self.lvl, children)
+            ## I want first higher widget in layout
+            children = reversed(widget.get_children())
         except:
             pass
+        
         for sun in children:
             new = self.printa(sun, parent=self.parent)
             ogg = wshow(sun, lvl=self.lvl+1, mode=self.mode, model=self.model,
@@ -150,19 +151,39 @@ class show_widgets(object):
 
         # menu
         #self.l.menu('m=file', ('Toplevels', lambda f: self.delete()))
-        menu_item = gtk.MenuItem("toplevels")
+        menu_item = gtk.MenuItem("Main Toplevels")
+        menu_item2 = gtk.MenuItem("Minor Windows")
         # dbg.dshow(self.w)
         self.w['M=file'].append(menu_item)
+        self.w['M=file'].append(menu_item2)
 
         sub_menu = gtk.Menu()
+        sub_menu2 = gtk.Menu()
         menu_item.set_submenu(sub_menu)
-        for w in gtk.window_list_toplevels():
-            lbl = w.title
+        menu_item2.set_submenu(sub_menu2)
+
+        subsub = {}
+        for window in gtk.window_list_toplevels():
+            lbl = window.title
             if not lbl:
-                lbl = str(w)
-            m = gtk.MenuItem(lbl)
-            sub_menu.append(m)
-            m.connect('activate', self.add_tab_and_tree, w)
+                class_ = window.child.__class__.__name__
+                if not class_ in subsub:
+                    ## creo il menu 'Label', 'Frame'...
+                    menu = gtk.Menu()
+                    subsub[class_] = menu
+                    ## creo l' item di ingresso nel menu "Minor Windows"
+                    Item = gtk.MenuItem(class_)
+                    sub_menu2.append(Item)
+                    Item.set_submenu(menu)
+                                     
+                lbl = "%s" % (window.child.name)
+                
+                m = gtk.MenuItem(lbl)
+                menu.append(m)
+            else:
+                m = gtk.MenuItem(lbl)
+                sub_menu.append(m)
+            m.connect('activate', self.add_tab_and_tree, window)
         
         self.w['M=file'].show_all()
         return self.l, self.w
