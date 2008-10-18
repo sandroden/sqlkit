@@ -26,7 +26,7 @@ import re
 import gobject
 import gtk
 import sqlkit
-from utils import set_height_request
+from utils import set_height_request, set_all_nonfilling, set_this_filling
 from  cell_renderers import CellRendererDate, CellRendererDatetime
 import totals
 #sys.path.append('../gdl')
@@ -35,62 +35,7 @@ if sys.hexversion < 0x20401f0:
     print "your python version: ", hex(sys.hexversion)
     print "needed python version >= ", hex(0x20401f0)
     sys.exit(-1)
-    
-def set_all_nonfilling(wid, level):
-    if not level or not wid:
-        return
-    try:
-        if wid.seen:
-            return
-    except:
-        pass
-#    print "browsed to", wid
-    next_level = []
-    try:
-        parent = wid.get_parent()
-        if hasattr(parent, 'child_set_property'):
-            try:
-                parent.child_set_property(wid, 'expand', False)
-                parent.child_set_property(wid, 'fill', False)
-            except:
-                pass
-            try:
-                import gtk
-                parent.child_set_property(wid, 'y-options', None)
-            except:
-                pass
-        next_level.append(wid.get_parent())
-    except:
-        pass
-    try:
-        for child in wid.get_children():
-            next_level.append(child)
-    except:
-        pass
-    wid.seen = True
-     
 
-    for other in next_level:
-        set_all_nonfilling(other, level-1)
-
-def set_this_filling(wid):
-    while wid:
-        newwid = wid.get_parent()
-        try:
-            newwid.set_property('yscale',1)
-        except:
-            pass
-        try:
-            newwid.child_set_property(wid, 'y-options', gtk.FILL|gtk.EXPAND)
-        except:
-            pass
-        try:
-            newwid.child_set_property(wid, 'expand', True)
-            newwid.child_set_property(wid, 'fill', True)
-        except:
-            pass
-        wid = newwid
-    
 
 
 class SqlTable(sqlwidget.SqlWidget):
@@ -1121,38 +1066,11 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         set number of treeview visible rows to "rows"
         """
-        return
-        print "setting rows:", rows
+        dbg.write("setting rows:", rows)
         set_height_request(treeview, rows)
-        import gobject
         set_all_nonfilling(self.treeview, 8)
         set_this_filling(self.treeview)
-        #self.print_debug()
 
-    def print_debug(self):
-        wid = self.treeview
-        print "starting with", wid
-        number = 1 
-        while wid:
-            newwid = wid.get_parent()
-            number += 1
-            print "number", number, ":", newwid
-            try:
-                print newwid.get_property('xscale'), newwid.get_property('yscale'), "alignment"
-                print "changing"
-            except:
-                pass
-            try:
-                print newwid.get_allocation().width, newwid.get_allocation().height
-            except:
-                pass
-            try:
-                print newwid.get_property('n-rows'), newwid.get_property('n-columns')
-                print newwid.child_get_property(wid, 'left-attach'), newwid.child_get_property(wid, 'top-attach'), newwid.child_get_property(wid, 'right-attach'), newwid.child_get_property(wid, 'bottom-attach')
-                print newwid.get_children()
-            except:
-                pass
-            wid = newwid
 
         
 
