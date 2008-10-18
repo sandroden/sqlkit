@@ -19,7 +19,7 @@ write() - caller()
 ------------------
      
 from now on, each time you use dbg.write()/dbg.caller() you'll see the text you
-want to log anly if you enabled it with dbg.debug(True)
+want to log only if you enabled it with dbg.debug(True)
 
 If you want the log to happen in a gtk.TreeView window, you can specify:;
 
