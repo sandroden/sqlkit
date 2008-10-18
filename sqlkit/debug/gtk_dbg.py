@@ -462,22 +462,51 @@ class show_widgets(object):
         gtype  = model[path][3]
 
         py_type = {
-            # Just allows the user to pick wanted flags in the namespace
-            'GtkAttachOptions' : int,
+            # Ugly way to require a number smaller than 8.
+            'GtkAttachOptions' : (lambda x : int(x) if int(x) in range(8) else int('')),
             'gint'     : int,
             'guint'     : int,
             'gchararray' : str,
             'gfloat'   : float,
             }
         try:
-            parent.child_set_property(widget, prop, py_type[gtype](new_text))
+            value = py_type[gtype](new_text)
         except:
-            pass
+            # The text can not be interpreted as the given type!
+            value = self.edited_fallback_dialog(gtype, widget, prop, parent.child_get_property(widget, prop))
+
+        # Now the value is valid.
+        parent.child_set_property(widget, prop, value)
             
         # Whatever happened, just show (nicely) the actual value:
         model[path][column] = str(parent.child_get_property(widget, prop))
         return
+        
+    def edited_fallback_dialog(self, gtype, widget, prop_name, current_value):
+        """If the value for a particular property is not valid, this method is
+        called to get an appropriate value. It can be tought how to act with
+        different gtypes by adding "elif" tests.
+        """
+        if gtype == 'GtkAttachOptions':
+            dialog = gtk.Dialog(title=prop_name, flags=gtk.DIALOG_MODAL, buttons =('gtk-close',4))
+            dialog.set_size_request(200,-1)
+            checkbuttons = [gtk.CheckButton('Expand'), gtk.CheckButton('Shrink'), gtk.CheckButton('Fill')]
+            for index in range(3):
+                dialog.vbox.pack_start(checkbuttons[index])
+                single_value = bool(int(current_value) & 2**index)
+                checkbuttons[index].set_active(single_value)
+                checkbuttons[index].show()
+            response = dialog.run()
+            value = 0
+            for index in range(3):
+                if checkbuttons[index].get_active():
+                    value += 2**index
+            dialog.destroy()
+            return value
+        # If we don't know kow to treat the gtype, just stick to current value
+        return current_value
 
+        
     def show_widget_connect(self):
         pass
     
