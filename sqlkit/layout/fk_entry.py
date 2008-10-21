@@ -31,7 +31,15 @@ class FkEdit(gtk.HBox):
         # finally show the button
         self._align_entry.show_all()
         self._align_arrow.show_all()
+        
+        
+        self.connect('realize', self.set_packing)
 
+    def set_packing(self, other):
+        parent = self.get_parent()
+        props = [prop.name for prop in parent.list_child_properties()]
+        if 'y-options' in props:
+            parent.child_set_property(self, 'y-options', 0)
 
     def _on_entry_clicked(self, *args):
         print "entry clicked", args
