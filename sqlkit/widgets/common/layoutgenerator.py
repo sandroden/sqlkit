@@ -209,7 +209,7 @@ class LayoutGenerator (object):
         {B m=file m=modifica m=opzioni m=aiuto}
         {O.tool tb=gtk-save tb=gtk-save-as tb=gtk-delete tb=gtk-new tb=gtk-refresh tb=gtk-quit
         %s}
-        {A { %s}}
+        {A.external { %s}}
         sb=StBar
         """ % (nav_buttons, self.layout)
     

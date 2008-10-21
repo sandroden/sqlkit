@@ -311,6 +311,16 @@ class SqlWidget(object):
 
         self.w = self.lay_obj.show()
 
+        if 'A.external' in self.w:
+            external_align = self.w['A.external']
+            table = external_align.get_parent()
+            table.child_set_property(external_align, 'y-options', gtk.EXPAND | gtk.FILL)
+
+        if 'S=tree' in self.w:
+            internal_align = self.w['S=tree']
+            table = internal_align.get_parent()
+            table.child_set_property(internal_align, 'y-options', gtk.EXPAND | gtk.FILL)
+
         if 'Window' in self.lay_obj.elements:
             self.lay_obj.connect(('Window', 'delete_event', self.delete_event))
 

@@ -384,6 +384,16 @@ class CollectionWidget(Widget):
             relationship_path = self.field_name,  # FIXME: not good for longer relationships
             
             )
+        
+        # We generally want a table to expand if possible        
+        parent = self.gtkwidget.get_parent()
+        if parent:
+            prop_names = [prop.name for prop in parent.list_child_properties()]
+            if 'y-options' in prop_names:
+                parent.child_set_property(self.gtkwidget, 'y-options', gtk.EXPAND | gtk.FILL)
+            if isinstance(parent, gtk.VBox):
+                parent.child_set_property(self.gtkwidget, 'expand', True)
+        
         direction = self.field.db_spec['property'].direction.name
         if direction  == 'MANYTOMANY':
             self.table.relationship_mode = "m2m"

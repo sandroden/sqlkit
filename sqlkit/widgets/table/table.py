@@ -87,7 +87,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.setup_field_validation()
         ## let tree use all the available space... 
         if not self.naked:
-            self.lay_obj.prop('A.0','yscale',1)
+            self.lay_obj.prop('A.external','yscale',1)
 
         if self.geom :
             self.lay_obj.prop('TV=tree', 'width-request', self.geom[0])
@@ -1068,8 +1068,6 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         dbg.write("setting rows:", rows)
         set_height_request(treeview, rows)
-        set_all_nonfilling(self.treeview, 8)
-        set_this_filling(self.treeview)
 
 
         
