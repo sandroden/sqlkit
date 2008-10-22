@@ -82,6 +82,7 @@ import tokenize
 import keyword
 import time
 import inspect
+import gtk
 from  pdb import set_trace
 
 CLASS_INCLUDE = '^.*$'
@@ -509,6 +510,9 @@ class ShowLogs(object):
         self.iter = {}
         self.easytv.w['Window'].set_geometry_hints(
             self.easytv.w['Window'], min_width=500, min_height=500)
+        scr_window = self.easytv.w['S=a']
+        table = scr_window.get_parent()
+        table.child_set_property(scr_window, 'y-options', gtk.EXPAND | gtk.FILL)
         self.model.connect('row-inserted', self.get_there)
         self.conf()
         self.easytv.tv.connect('button-press-event', self.button_press_cb)

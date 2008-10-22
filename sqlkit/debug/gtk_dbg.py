@@ -124,13 +124,17 @@ class show_widgets(object):
         
         lay = """
         {B m=file } {O tb=gtk-quit }
-          {N 
+          {N.external 
            } -
         """
         self.l = layout.Layout(lay, opts="s", title='Widget Tree')
         self.w = self.l.show()
         self.w['Window'].set_size_request(300, 500)
-        self.notebook = self.w['N.0']
+        
+        self.notebook = self.w['N.external']
+        table = self.notebook.get_parent()
+        table.child_set_property(self.notebook, 'y-options', gtk.FILL | gtk.EXPAND)
+
         self.page_number = 1
         
         self.l.connect(('tb=gtk-quit', 'clicked',
@@ -535,8 +539,13 @@ class TreeInfoLayout(object):
         else:
             self.l = self._get_layout()
             self.w = self.l.show()
-            self.tv = self.w['TV=a']
-            self.l.connect(('tb=gtk-quit', 'clicked',
+
+        scr_treeview = self.w['S=a']
+        table = scr_treeview.get_parent()
+        table.child_set_property(scr_treeview, 'y-options', gtk.FILL | gtk.EXPAND)
+
+        self.tv = self.w['TV=a']
+        self.l.connect(('tb=gtk-quit', 'clicked',
                             lambda l: self.w['Window'].destroy()))
 
         if not model:
