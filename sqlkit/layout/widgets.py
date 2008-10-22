@@ -34,7 +34,7 @@ class LWidget(object):
                  'h' : 'height_request'
                  }
     class_properties = {'visible' : True}
-    class_pack_properties  = {}
+    class_pack_properties  = {'y-options' : '0'}
 
     def __init__(self, el_def, pos, container, elements):
         ## update info for this class
@@ -47,10 +47,14 @@ class LWidget(object):
         self.container_flag = container
         self.properties = {}
         self.pack_properties = {}
+        # By default, widgets do not expand vertically. Those who do can be
+        # recognized (and set) by this attribute being True
+        self.v_expand = False
         # used to specify order in properties
         self.ordered_properties = []
         if self.gtkClass:
             self.properties.update(LWidget.class_properties)
+            self.pack_properties.update(LWidget.class_pack_properties)
             
         self.properties.update(self.class_properties)
 
@@ -253,6 +257,11 @@ class LWidget(object):
         return "\n".join(xml)
     
     def _widget_xml(self):
+        # If a children is v_expandable, the parent becomes too.
+        if 'children_list' in self.lw and self.lw['children_list']:
+            if True in [child.v_expand for child in self.lw['children_list']]:
+                self.make_v_expandable()
+    
         xml = ['<widget class="%(gtkClass)s" id="%(el_key)s">' % self.lw]
         inner_xml = []
         # write properties with order before
@@ -303,6 +312,18 @@ class LWidget(object):
         ## offset text to get a prettier xml
         p = re.compile("^", re.MULTILINE)
         return p.sub(' ' * amount, txt)
+
+    def make_v_expandable(self):
+        """Teach a widget it must expand (vertically); it can be because it has
+        a viewing benefit (e.g: a Treeview) or because a child of it has.
+        """
+        if self.v_expand:
+            return
+        self.v_expand = True
+        # FIXME: (how?!) this expands horizontally if parent is a HBox
+        self.pack_properties.update({'expand' : True})
+        self.pack_properties.update({'y-options' : 'expand | fill'})
+
 
 class LContainer(LWidget):
     # the difference with LWidget is it has children
@@ -482,6 +503,8 @@ class TreeView(LWidget):
         'height_request'  : '-1',
         }
 
+    def _class_specific(self):
+        self.make_v_expandable()
 
 class TextView(LWidget):
     gtkClass = 'GtkTextView'
@@ -785,7 +808,7 @@ class Alignment(LContainer):
         'xalign' : 0.5,
         'yalign' : 0,
         'xscale' : 1,
-        'yscale' : 0,
+        'yscale' : 1,
         'top_padding' : 4,
         'bottom_padding' : 4,
         'left_padding' : 8,
