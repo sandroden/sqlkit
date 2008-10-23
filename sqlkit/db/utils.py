@@ -19,6 +19,7 @@ database editing (``sqledit -c url``)
 """
 import re
 from sqlalchemy import Table
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 ########   descriptor
 from layout.utils import Container
@@ -90,15 +91,17 @@ class TableDescr(object):
             table_name = table
             
         self.table_name = table_name
-        self.format = format
+#        self.format = format
         self.metadata = metadata
         
         tables[table_name] = self
 
-        self.description = self.guess_description()
+        self.description, dbformat = self.guess_description()
 
         if format:
             self.set_format(format)
+        elif dbformat:
+            self.set_format(dbformat)
         else:
             self.set_format(self.description)
 
@@ -124,6 +127,7 @@ class TableDescr(object):
         ## self.attrs is use to get the minimum possible info when completing
         if m:
             self.attrs = m
+            self.format = format
         else:
             self.attrs = [format]
             self.format = "%%(%s)s" % format
@@ -156,13 +160,17 @@ class TableDescr(object):
 
         """
         table = self.get_table()
+        description, format = get_description_from_sqlkit(table)
+        if description:
+            #self.set_format(format)
+            return description, format
         descr_exists = False
         for field_name in table.c.keys():
             if re.search("string|text|char", table.c[field_name].type.__class__.__name__, re.I):
                 found_field = field_name
                 break
 
-        return field_name
+        return field_name, format
         
     def __str__(self):
         return "table: %s - description: %s\n    format: %s" % (self.table_name, self.description,
@@ -184,8 +192,24 @@ def get_description(table, metadata=None, attr='attrs'):
             return getattr(TableDescr(table), attr)
         return getattr(TableDescr(table_name, metadata=metadata), attr)
     
-                      
+def get_description_from_sqlkit(table, metadata=None):
+    """
+    get the description to use in completion and __str__ from database
+    table _sqlkit_table
+    """
+    if isinstance(table, Table):
+        metadata = table.metadata
 
+    SQL = """SELECT search_field, format
+             FROM _sqlkit_table WHERE name = '%s'""" % table.name
+    try:
+        res_proxy = metadata.bind.execute(SQL, table=table.name)
+        descr = res_proxy.fetchone()
+        if not descr:
+            descr = None, None
+    except (OperationalError, ProgrammingError), e:  #_sqlkit_table is not defined
+        descr = (None, None)
+    return descr
 
 ###################
 

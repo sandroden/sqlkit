@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 """
 usage: %prog files [options] [[url|nick] table]
@@ -14,7 +14,10 @@ usage: %prog files [options] [[url|nick] table]
    -a, --all-tables: read all table on startup (very slow)
    -f, --field_list=fields: comma (or space) separated field list 
    -o, --order_by=fields: comma separated field list
+   -c, --configure: open SqlMasq on _sqlkit_table or create it
+
 """
+
 import sys, re, datetime
 import os
 import user
@@ -23,7 +26,7 @@ import pdb
 
 #sys.path.insert(0,'/usr/src/sqlalchemy/lib/')
 Dir = os.path.abspath(os.path.dirname(__file__))
-sys.path.insert(0, os.path.join(Dir, '../'))
+
 import dbg
 import layout
 import sqlalchemy as sa
@@ -176,6 +179,40 @@ def read_conf(nick):
     else:
         raise MissingNickDefinition
         
+def sqlkit_model():
+    lay = """
+       name
+       search_field
+       format
+       o2m=attributes -
+
+    """
+    try:
+        from sqlkit.db.sqlkit_model import SqlkitTable, Base
+        Base.metadata.bind = db.metadata.bind
+        if not db.metadata.bind.has_table('_sqlkit_table'):
+            response = dialog_create_continue()
+            if response == gtk.RESPONSE_CANCEL:
+                sys.exit(0)
+            else:    
+                Base.metadata.create_all()
+        t = SqlMask(Class=SqlkitTable, dbproxy=db, single=True, layout=lay)
+    except Exception, e:
+        print e
+        raise
+        
+def dialog_create_continue():
+    dialog = gtk.Dialog("Creating sqlkit tables", None,
+                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                        (gtk.STOCK_OK, gtk.RESPONSE_OK,
+                         gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL))
+    label = gtk.Label("No sqlkit tables are present: I'll proceed creating them")
+    dialog.vbox.add(label)
+    dialog.show_all()
+    response = dialog.run()
+    dialog.destroy()
+    return response
+
 
 def open_sqlwidget(table, single):
     global opts
@@ -269,6 +306,9 @@ try:
              else:
                  single = True
              open_sqlwidget(t, single)
+     elif opts.configure:
+         sqlkit_model()
+         
      else:
          title = session.bind.url.database
          C = choice(engine=session.bind, title=title)    
