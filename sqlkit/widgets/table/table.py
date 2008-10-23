@@ -700,8 +700,11 @@ class SqlTable(sqlwidget.SqlWidget):
     def set_fkey_descr(self, column, cell, model, iter, field_name):
         """cell_data_function used by column that have fkey
         """
+        obj = model.get(iter, 0)[0]
+        if not obj:
+            return
+        fkey_value = getattr(obj, field_name)
 
-        fkey_value = getattr(model.get(iter, 0)[0], field_name)
         path = model.get_path(iter)
         value = self.completions[field_name].lookup_value(field_name, fkey_value)
         cell.set_property('text', value)
@@ -946,7 +949,7 @@ class SqlTable(sqlwidget.SqlWidget):
         it is deduced from selection
         fkey: if True the value is handled as a primary key. Used from completion
         """
-
+        
         obj = self.get_current_obj(path=path)
 
         ## casting of value
@@ -955,7 +958,8 @@ class SqlTable(sqlwidget.SqlWidget):
             value = None
 
         try:
-            value = ptype(value)
+            if value not in (True, False, None):
+                value = ptype(value)
         except TypeError:
             # eg: setting a field to NULL
             # or: a date that is already in the correct type
