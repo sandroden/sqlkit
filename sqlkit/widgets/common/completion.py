@@ -662,7 +662,7 @@ class FkeyCompletion(SimpleCompletion):
             all = self.master.metadata.bind.execute(sql).fetchall()
 
             if len(all) != 1:
-                raise LookupValueNotReturningOneValue("%s returns %s values" % (sql, j))
+                raise LookupValueNotReturningOneValue("%s returns %s values" % (sql, len(all)))
             else:
                 value = format % all[0]
                 try:
