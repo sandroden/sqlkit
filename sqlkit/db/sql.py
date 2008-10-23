@@ -24,12 +24,15 @@ class DjangoParser(object):
     parses a django-like command line to compose a sqlalchemy
     ColumnList/ColumnElement object to be used in squeries
     """
-    def __init__(self, mapper, query, or_=False):
+    def __init__(self, mapper=None, query=None, table=None, or_=False):
         """
         A sqlalchemy.Table object
         """
         self.mapper = mapper
-        self.table = mapper.local_table
+        if table:
+            self.table = table
+        else:
+            self.table = mapper.local_table
         self.query = query
         self.or_ = or_
         self.bind = self.table.metadata.bind
@@ -75,15 +78,15 @@ class DjangoParser(object):
         """
         follow PropertyLoaders chain to get the last referenced column
         """
-
+        if not self.mapper:
+            raise NotImplementedError("Can't cross relationship if you don't provide a mapper")
+        
         prop = self.mapper.get_property(path.pop(0))
         for elem in path:
             prop = prop.mapper.get_property(elem)
-        if isinstance(prop, ColumnProperty):
-            return prop.columns[0]  ### FIXME: why colums is a list?
-        elif isinstance(prop, PropertyLoader):
-            return getattr(prop.mapper.local_table.c, attr)  ### FIXME: why colums is a list?
+        return get_column(prop, attr)
 
+    
     def sql(self):
         if self.or_:
             sql = or_(*self.expressions)
@@ -109,18 +112,50 @@ def django2query(mapper, query, or_=False, **kw):
     return parser.compose()
 
 
-def django2sqlalchemy(mapper, or_=False, **kw):
+def django2sqlalchemy(mapper=None, table=None, or_=False, **kw):
     """
     return a ClauseList and a join path. 
     """
-    parser = DjangoParser(mapper, query=None, or_=or_)
+    if table:
+        parser = DjangoParser(table=table, query=None, or_=or_)
+    else:
+        parser = DjangoParser(mapper=mapper, query=None, or_=or_)
+        
 
     for key,val in kw.iteritems():
         parser.parse( {key:val})
     return parser.sql(), parser.joins
 
+def get_column(prop, attr):
+    """
+    return the column(s?) referenced froma property
+    """
+    if isinstance(prop, ColumnProperty):
+        col = prop.columns[0]
+        if col.foreign_keys:  ## FIXME: Should I consider multiple fkey?
+            return getattr(col.foreign_keys[0].column.table.c, attr)
+        else:
+            return prop.columns[0]  ### FIXME: why colums is a list?
+    elif isinstance(prop, PropertyLoader):
+        return getattr(prop.mapper.local_table.c, attr)  
     
-    
+def path2join(path, mapper):
+    table = mapper.local_table
+    join = table
+    for elem in path:
+        for token in elem:
+            prop = mapper.get_property(token)
+            if isinstance(prop, ColumnProperty):
+                col = prop.columns[0]
+                if col.foreign_keys:  ## FIXME: Should I consider multiple fkey?
+                    table = col.foreign_keys[0].column.table
+            elif isinstance(prop, PropertyLoader):
+                table = prop.remote_side[0].table
+
+            join = join.join(table)
+
+    return join
+
 if __name__ == '__main__':
 
     from sqlalchemy.ext.declarative import declarative_base
@@ -131,8 +166,8 @@ if __name__ == '__main__':
     Base = declarative_base()
     meta = Base.metadata
     meta.bind = create_engine('sqlite://')
-    meta.bind = create_engine('postgres://localhost/c2')
-    meta.bind = create_engine('mysql://localhost/c2')
+#    meta.bind = create_engine('postgres://localhost/c2')
+#    meta.bind = create_engine('mysql://localhost/c2')
     Session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=meta.bind))
     session = Session()
 

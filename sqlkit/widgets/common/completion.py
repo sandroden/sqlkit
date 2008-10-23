@@ -2,17 +2,16 @@
 autocompletion
 ---------------
 
-my_sql__widget.completions.my_field.autostart = n
-(Where n hold how many chars after automatig start of completion)
+``my_sqlwidget.completions.my_field.autostart = n``
+(Where n hold the number of chars entered to trogger automatic start of completion)
 
 group_by
 --------
 
-my_sql_widget.completions.my_field.group_by = 'field_name'
-'field_name' will be added to the request and used to group completion possibilities 
+``my_sqlwidget.completions.my_field.group_by = field_name``
+``field_name`` will be added to the request and used to group completion possibilities 
 
 """
-
 
 
 import re
@@ -24,7 +23,8 @@ from sqlalchemy.sql import and_, or_, not_
 from sqlkit.db.proxy import table2mapper
 from sqlkit.db.utils import tables, get_description
 from sqlkit.exc import *
-
+from sqlkit.db.sql import django2sqlalchemy, path2join
+from copy import copy
 
 ####### Completion
 # EntryCompletion widgets are added on the fly triggered by F1, C-F1 or menu items
@@ -93,7 +93,10 @@ class SimpleCompletion(object):
         self.description = tables[self.table.name].description
         self.attrs = tables[self.table.name].attrs
         self._group_by = None
-
+        self._filter = None
+        self.mapper = self.master.mapper # used to track path relationship
+        self.from_obj = None
+        
     def set_group_by(self, field_name):
         """if group_by is not already in table.attrs, add it runtime
         """
@@ -308,9 +311,10 @@ class SimpleCompletion(object):
     def compose_select_statement(self, oper, value):
 
         where = self.column.op(oper)(value)
-        sql = select([self.column], where).order_by(self.column).distinct()
-        print sql, value
-        return sql
+        where = self.add_filters(where)
+        sql = select([self.column], where, from_obj=self.from_obj)
+
+        return sql.order_by(self.column).distinct()
     
     def get_displayed_value(self, ):
 
@@ -343,6 +347,32 @@ class SimpleCompletion(object):
                     value = '%' + value + '%'
         return value
     
+    def add_filters(self, where):
+        """
+        Add filters set with ``.filter``
+        """
+        if not self._filter:
+            return where
+
+        ## substitute values 
+        kw = copy(self._filter)
+        ignore = []
+        for key, val in kw.iteritems():
+            value =  self.parse_value(val)
+            if value:
+                kw[key] = value
+            else:
+                ## no value there in this moment
+                ignore += [ key ]
+        for key in ignore:
+            del kw[key]
+        if kw:
+            clause_list, path = django2sqlalchemy(mapper=self.mapper, **kw)
+            return where & clause_list
+        else:
+            return where
+        
+
 ### Misc
     def autostart_completion(self):
         """
@@ -474,7 +504,7 @@ class SimpleCompletion(object):
         # waiting for a complete handling of validation
         return False
         check = self.check_existance(wdg)
-        print check
+        #print check
         return check
 
     def check_existance(self, entry):
@@ -523,7 +553,61 @@ class SimpleCompletion(object):
         if response == gtk.RESPONSE_OK:
             dialog.destroy()
     
+    def filter(self, **kwargs):
+        """
+        Add filters to the completion. Filters must be expressed in django-like syntax
+        value can be in the form ``$field_name`` (see below)::
 
+          t.completions.field1.filter(cod='$field2')
+
+        would request
+
+           1. to retrieve the value of field2 via t.get_value(field2)
+           2. to add .filter(field2 = value) to the query that retrieves the possible
+              completions
+
+        Filter conditions are relative to the database "main" table: i.e. the table
+        refereneced in the mapper of the table as 'local_table'.
+
+        t.get_value() is relative to the SqlWidget in which completions is requested.
+        This is relevant when related tables are present in the mask. Field value of the main mask
+        can be referred to as ``$main.field_name``
+
+
+          1. each token starting with ``$`` as in ``$title`` is stripped
+             from the ``$`` and the remaining part is used as field_name and
+             t.get_value(field_name) is used instead
+
+          2. if the field_name part starts with ``main`` (as in ``$main.title``)
+             t.get_value(field_name) is not issued in the active SqlWidget but in
+             the SqlWidget pointed to by ``relationship_leader``
+
+             This in general is the main SqlMask holding possibly different m2m
+             tables. This make possible for  line in an m2m table to complete
+             only values related to the referring header.
+             
+        """
+
+        self._filter = kwargs
+        clause_list, path = django2sqlalchemy(mapper=self.mapper, **kwargs)
+        ## let's build a suitable from_obj from this path:
+        self.from_obj = path2join(path, self.mapper)
+        
+    def parse_value(self, value):
+        """
+        return value after 2 substitutions as described in .filter()
+
+        """
+        if value.startswith('$'):
+            value = value.replace('$','')
+            
+            if value.startswith('main.'):
+                value = value.replace('main.','')
+                value = self.master.relationship_leader.get_value(value)
+            else:
+                value = self.master.get_value(value)
+        return value
+        
 
 class FkeyCompletion(SimpleCompletion):
     VALUE_COL = 0
@@ -538,6 +622,7 @@ class FkeyCompletion(SimpleCompletion):
         self.table, self.column = get_foreign_info(self.master, self.field_name, names=False)
         self.description = get_description(self.table, attr='description')
         self.attrs = get_description(self.table, attr='attrs')
+        self.from_obj = None
 
     def prepare_model(self):
         ## last col is for markup
@@ -549,25 +634,16 @@ class FkeyCompletion(SimpleCompletion):
         field_list = self.attrs
         field_list = [self.table.columns[name] for name in field_list]
 
-        from_obj = None
         order_by = [self.description]
         if self.group_by:
-            order_by, from_obj, field_list = self.group_by_from_obj(field_list, order_by)
+            order_by = [self._group_by] + order_by
             
         where = self.table.columns[self.description].op(oper)(value)
-        sql = select(field_list, where, from_obj=from_obj)
+        where = self.add_filters(where)
+        sql = select(field_list, where, from_obj=self.from_obj)
 
         return sql.order_by(*order_by).distinct()
 
-    def group_by_from_obj(self, field_list, order_by):
-        """
-        Add order_by field to select query
-        In case order_by field is a fkey, follow it and modify the from_obj
-        """
-        order_by = [self._group_by] + order_by
-        from_obj = None
-
-        return order_by, from_obj, field_list
     
 ### What to show
     def lookup_value(self, field_name, field_value):
