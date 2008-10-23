@@ -1,6 +1,21 @@
 """
-Utility to handle easy __str__ and __repr__ for tables
+Utilities
+=========
 
+Descr
+-----
+This module provide a bare simple Class to help creating 
+__str__ and __repr__ for tables, using _sqlkit_table.format field
+
+
+tables
+------
+
+tables dictionary is a place where sqlkit looks for search_field and
+format for tables (see: ref:`sqlkit_model`).
+
+You can set values directly using TableDescr class or implicitely via
+database editing (``sqledit -c url``)
 """
 import re
 from sqlalchemy import Table
@@ -10,6 +25,27 @@ from layout.utils import Container
 
 class MissingMetadata(Exception): pass
 
+class Descr(object):
+    """
+    Simple class that provide default __init__ and __str__ to be
+    mixed when building classes with declarative layer
+
+    __str__ will use 'format' description from database _sqlkit_fields
+    """
+    def __init__(self, **kw):
+        for key, val in kw.iteritems():
+            setattr(self, key, val)
+    
+    def __str__(self):
+        from sqlkit.db.utils import tables
+        
+        if not self.__tablename__ in tables:
+            format = get_description(self.__table__, attr='format')
+
+        return tables[self.__tablename__].format % vars(self)
+
+    __repr__ = __str__
+    
 class Tables(Container):
     def __getitem__(self, key):
         try:
@@ -25,22 +61,26 @@ class Tables(Container):
 tables = Tables()
 
 class TableDescr(object):
+    """
+    Format may be eather a normal python format string
+    (eg.: "%(title)s - %(year)s")
+    in which case each prenthesized token must be a field_name
+    or a simple string that again must be a field_name
+    'table' may be a string or a sqlalchemy.Table object
+
+    Metadata is not necessary to pick primary key or when autoloading is
+    required unless a Table object is given
+
+    Format string passed via TableDescr take precedence over format string
+    present in the database (dbformat).
+
+    self.format is always a proper format string
+    self.attrs comprises pkey so that can be used for completion
+    self.search: this is the field that will be searched for in a foreign
+    key context
+    """
     pattern = '%\((\w+)\)'
     def __init__(self, table, format=None, pk=None, metadata=None):
-        """
-        Format may be eather a normal python format string (eg.: "%(title)s - %(year)s")
-        in which case each prenthesized token must be a field_name
-        or a simple string that again must be a field_name
-        'table' may be a string or a sqlalchemy.Table object
-
-        Metadata is not necessary to pick primary key or when autoloadin is required
-        unless a Table object is given
-
-
-        self.format is always a proper format string
-        self.attrs comprises pkey so that can be used for completion
-        self.search: this is the field that will be searched for in a foreign key context
-        """
         global tables
 
         if isinstance(table , Table):
@@ -162,3 +202,5 @@ if __name__ == '__main__':
     print tables.movie
     print get_description('movie', metadata=db.metadata)
     print get_description('movie', metadata=db.metadata, attr='format')    
+
+
