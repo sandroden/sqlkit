@@ -3,13 +3,12 @@ import re
 from sqlalchemy import Table, MetaData, sql
 from sqlalchemy.orm import sessionmaker, mapper
 from sqlkit.db import minspect, utils
-
 #import dbg.gtk_dbg
 
 class DbProxy(object):
     """
-    A proxy do the database... it's meant to easy the way we pass information
-    to the sqkwidget in the simpler situation:
+    A proxy to the database... it's meant to easy the way we pass information
+    to the sqlwidget in the simpler situation:
 
     * if no metadata is passed, MetaData() will create it
     * if engine is passed it will be put in metadata as 'bind' attribute
@@ -23,13 +22,13 @@ class DbProxy(object):
       SqlTable(table="ticket_project", dbproxy=self.dbproxy)
 
     """
-    def __init__(self, metadata=None, engine=None, Session=None):
+    def __init__(self, metadata=None, engine=None, bind=None, Session=None):
         if metadata:
             self.metadata = metadata
         else:
             self.metadata = MetaData()
-            if engine:
-                self.metadata.bind = engine
+        if engine or bind:
+            self.metadata.bind = engine or bind
 
         if not Session:
             self.Session = sessionmaker(bind=self.metadata.bind,
