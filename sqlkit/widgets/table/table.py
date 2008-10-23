@@ -937,7 +937,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.liststore.clear()
         for i in self.records:
             self.liststore.append([i])
-
+        self.totals.compute()
 
     def set_value(self, field_name, value, path=None, fkvalue=None, initial=False):
         """called from within edited signal and completion.
@@ -1104,6 +1104,8 @@ class SqlTable(sqlwidget.SqlWidget):
             if self.editable:
                 return self.editable.get_text()
         return getattr(self.get_current_obj(), field_name)
+
+
 
 
 
