@@ -152,13 +152,15 @@ class SqlTable(sqlwidget.SqlWidget):
             item.connect('activate', self.add_total_cb, field_name )
             menu.append(item)
 
+        menu.append(gtk.SeparatorMenuItem())
         ## subtotals
-        item = gtk.MenuItem(label="subtotal on %s" % (field_name))
-        item.connect('activate', self.add_subtotal_cb, field_name )
-        menu.append(item)
-
         if self.is_date(field_name):
             self.menu_add_date_total_break(menu, field_name)
+        else:
+            item = gtk.MenuItem(label="subtotal on %s" % (field_name))
+            item.connect('activate', self.add_subtotal_cb, field_name )
+            menu.append(item)
+
 
         menu.show_all()
         menu.popup(None, None, None, ev.button, ev.time)
@@ -1102,6 +1104,8 @@ class SqlTable(sqlwidget.SqlWidget):
             if self.editable:
                 return self.editable.get_text()
         return getattr(self.get_current_obj(), field_name)
+
+
 
 
 
