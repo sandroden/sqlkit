@@ -7,13 +7,13 @@ The way to use this is
 
   1. in you library::
 
-     import dbg
-     dbg.write('text message', 'text2')
+      import dbg
+      dbg.write('text message', 'text2')
 
   2. in you application::
 
-     import dbg
-     dbg.debug(True)
+      import dbg
+      dbg.debug(True)
 
 write() - caller()
 ------------------
@@ -52,11 +52,11 @@ with
 IMPORTANT: since the logging occurs with metaclasses you need to import dbg and
            set debugging *before* importing the class you want to trace::
 
-    import dbg
-    dbg.debug(True, gtk=True)
-    dbg.trace_class('SqlTable2')  # optional
-    dbg.trace_function(exclude='cell_default_cb|cell_bool_cb')  # optional
-    import sqlkit
+            import dbg
+            dbg.debug(True, gtk=True)
+            dbg.trace_class('SqlTable2')  # optional
+            dbg.trace_function(exclude='cell_default_cb|cell_bool_cb')  # optional
+            import sqlkit
 
 TraceIt
 -------
