@@ -4,7 +4,7 @@ from sqlalchemy import Table, MetaData, sql
 from sqlalchemy.orm import sessionmaker, mapper
 from sqlkit.db import minspect, utils
 
-import dbg.gtk_dbg
+#import dbg.gtk_dbg
 
 class DbProxy(object):
     """

@@ -11,7 +11,7 @@ import decimal
 from sqlalchemy import exceptions
 from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper
 #from sqlalchemy import *
-import dbg.gtk_dbg
+import dbg
 
 import sqlkit
 import sqlfilter
