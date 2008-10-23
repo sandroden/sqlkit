@@ -1,3 +1,37 @@
+"""
+Django syntax utilities
+=======================
+
+This module provides some functions to allow use of django syntax in filters.
+You can look an introduction on lookup filters on `django's site`_
+The aim is not at all compatibility with django (that has nothing to do with this
+framework) but a way to:
+
+  * make it easy to add filters and constraints
+  * make it easy to store queries (that need to store filters and constraints)
+
+These function are used in sqlfilter and in completion beside add_constrint method
+of sqlwidget. 
+
+All of these functions act on a mapper becouse it has info on PropertyLoaders. In completion,
+the mapper is used to follow the join_path even if the query (a ``sqlalchemy.select``),
+will not be issued on a ``session.query`` object
+
+.. _`django's site`: http://docs.djangoproject.com/en/dev/topics/db/queries/#field-lookups-intro
+
+supported lookup
+----------------
+
+  :like/ilike: use like operator, ilike if available
+  :regexp/iregexp: now ~/~* for postgres and REGEX for mysql like again for the rest
+  :lt/gt:  less than / grater than (<, >)
+  :lte/gte:  less than equal/ grater than equal(<=, >=)
+  :eq/neq:  equal / not equal ( = , !=)
+  :in:  IN (argument must be a list)
+  :null: IS NULL / IS NOT NULL (depending if arg is True/False)
+
+"""
+
 from sqlalchemy.sql.expression import ColumnElement, ClauseList 
 from sqlalchemy.sql import and_, or_
 from sqlalchemy.orm import ColumnProperty, PropertyLoader
@@ -6,7 +40,6 @@ from copy import deepcopy
 OPERATORS = {
     'like'  : 'like',
     'ilike' : 'ilike',
-    'icontains' : '~*',
     'iregexp' : '~*',
     'regexp' : '~',
     'lt'   : '<',
@@ -17,25 +50,21 @@ OPERATORS = {
     'neq'   : '!=',
     'equal': '=',
     'in'   : 'IN',
+    'null' : 'IS NULL',
     }
 
 class DjangoParser(object):
     """
-    parses a django-like command line to compose a sqlalchemy
-    ColumnList/ColumnElement object to be used in squeries
+    parses a django-like argument to compose a sqlalchemy
+    ColumnList/ColumnElement object to be used in queries
     """
-    def __init__(self, mapper=None, query=None, table=None, or_=False):
+    def __init__(self, mapper=None, query=None, or_=False):
         """
         A sqlalchemy.Table object
         """
         self.mapper = mapper
-        if table:
-            self.table = table
-        else:
-            self.table = mapper.local_table
         self.query = query
         self.or_ = or_
-        self.bind = self.table.metadata.bind
         self.expressions = []
         self.joins = []
 
@@ -44,48 +73,21 @@ class DjangoParser(object):
         must be a single condition
         parse a django-like condition
         """
-        name = kw.keys()[0]
-        value = kw[name]
-        tokens = name.split('__')
+        join_path, op, col, op_str, value = django2components(self.mapper, kw)
 
-        if len(tokens) == 1:  # field_name='abc'
-            op = 'eq'
-            attr = tokens[0]
-            col = getattr(self.table.columns, attr)
-            value = kw[attr]
-            
-        else:  # data_gte=today() -- address__city__country__in=['Italy','France']
-            if tokens[-1] in OPERATORS:
-                op = tokens.pop()
-            else:
-                op = 'eq'
-            attr = tokens.pop()
-            if tokens: # may be consumed by now...
-                self.joins += [deepcopy(tokens)]
-                col = self.get_foreign_column(path=tokens, attr=attr)
-            else:
-                col = self.table.columns[attr]
+        self.joins += [join_path]
 
-        OP = OPERATORS[op]
-        if op == 'icontains':
+        if op_str == 'icontains':
             sql = col.match(value)
+        elif op_str == 'null':
+            sql = col == value  ## True | False
+        elif op_str == 'ilike': # SA manages difference where there is no ILIKE operator
+            sql = col.ilike(value)
         else:
-            sql = col.op(OP)(value)
-            
+            sql = col.op(op)(value)
+
         self.expressions += [sql]
             
-    def get_foreign_column(self, path=None, attr=None):
-        """
-        follow PropertyLoaders chain to get the last referenced column
-        """
-        if not self.mapper:
-            raise NotImplementedError("Can't cross relationship if you don't provide a mapper")
-        
-        prop = self.mapper.get_property(path.pop(0))
-        for elem in path:
-            prop = prop.mapper.get_property(elem)
-        return get_column(prop, attr)
-
     
     def sql(self):
         if self.or_:
@@ -99,6 +101,62 @@ class DjangoParser(object):
             self.query = self.query.join(path).reset_joinpoint()
         return self.query.filter(self.sql() )
 
+#######  Functions  ############
+    
+def django2components(mapper, kw):
+    """
+    Split a single argument/value into a tuple of 5 components:
+
+      :path:    what should be used in a join to reach the column of the expression
+      :str_op:  string version of the operator (eg: lte)
+      :col:     sqlalchemy column on which the expression will operate 
+      :op:      simbolic version of the operator (eg: <=)
+      :value:   value of the argument
+      
+    return: path, str_op, col, op, value
+    """
+    table = mapper.local_table
+    name = kw.keys()[0]
+    value = kw[name]
+    tokens = name.split('__')
+    joins = []
+    
+    if len(tokens) == 1:  # field_name='abc'
+        op_str = 'eq'
+        attr = tokens[0]
+        col = getattr(table.columns, attr)
+        value = kw[attr]
+
+    else:  # data_gte=today() -- address__city__country__in=['Italy','France']
+        if tokens[-1] in OPERATORS:
+            op_str = tokens.pop()
+        else:
+            op_str = 'eq'
+        attr = tokens.pop()
+        if tokens: # may be consumed by now...
+            joins = deepcopy(tokens)
+            col = get_foreign_column(mapper, path=tokens, attr=attr)
+        else:
+            col = table.columns[attr]
+
+    op = OPERATORS[op_str]
+    if op_str in ('regexp', 'iregexp'):
+        op, value = get_regexp_op(mapper.local_table.metadata.bind.name, op_str, value)
+    return joins, op, col, op_str, value
+
+def get_foreign_column(mapper, path=None, attr=None):
+    """
+    follow PropertyLoaders chain to get the last referenced column
+    """
+    if not mapper:
+        raise NotImplementedError("Can't cross relationship if you don't provide a mapper")
+
+    prop = mapper.get_property(path.pop(0))
+    for elem in path:
+        prop = prop.mapper.get_property(elem)
+    return get_column(prop, attr)
+
+
 def django2query(mapper, query, or_=False, **kw):
     """
     return a new query with new constraints expressed in  'django-style'
@@ -107,8 +165,8 @@ def django2query(mapper, query, or_=False, **kw):
     parser = DjangoParser(mapper, query, or_=or_)
 
     for key,val in kw.iteritems():
-        
         parser.parse( {key:val})
+
     return parser.compose()
 
 
@@ -128,7 +186,7 @@ def django2sqlalchemy(mapper=None, table=None, or_=False, **kw):
 
 def get_column(prop, attr):
     """
-    return the column(s?) referenced froma property
+    return the column(s?) referenced from a property
     """
     if isinstance(prop, ColumnProperty):
         col = prop.columns[0]
@@ -156,6 +214,22 @@ def path2join(path, mapper):
 
     return join
 
+def get_regexp_op(bind_name, op_str, value):
+    """
+    return the best approximation to regexp operator
+    in sqlite fall back to (I)LIKE
+    """
+    if bind_name == 'postgres':
+        if op_str == 'regexp':
+            return '~', value
+        else:
+            return '~*', value
+    elif bind_name == 'mysql':
+        return 'REGEXP', value
+    else:
+        return 'like', '%' + value + '%'
+    
+    
 if __name__ == '__main__':
 
     from sqlalchemy.ext.declarative import declarative_base

@@ -381,7 +381,7 @@ class CollectionWidget(Widget):
             hide = self.field.db_spec['remote_attr'],
             dev = self.master.dev,
             relationship_leader = self.master,
-            relationship_path = self.field_name,  # FIXME: not good for longer relationships
+            relationship_path = self.master.relationship_path + [self.field_name],
             
             )
         

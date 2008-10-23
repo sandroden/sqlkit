@@ -23,7 +23,7 @@ from sqlalchemy.sql import and_, or_, not_
 from sqlkit.db.proxy import table2mapper
 from sqlkit.db.utils import tables, get_description
 from sqlkit.exc import *
-from sqlkit.db.sql import django2sqlalchemy, path2join
+from sqlkit.db.django_syntax import django2sqlalchemy, path2join
 from copy import copy
 
 ####### Completion

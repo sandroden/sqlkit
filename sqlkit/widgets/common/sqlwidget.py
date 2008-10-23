@@ -337,8 +337,16 @@ class SqlWidget(object):
         return (self.lay_obj, self.w)
     
     def _get_relationship_path(self, path):
+        """
+        relationship_path is the path needed to get from the main sqlwiget to here:
+        if movie has an attributes 'genres' that is set as a relation to it, the 'path'
+        of the SqlTable of the genres will be: ['genres'].
+
+        It's used in filter widgets
+        """
+
         if not path:
-            return None
+            return []
         
         if isinstance(path, (tuple, list)):
             return path
@@ -847,11 +855,15 @@ class SqlWidget(object):
                 title= self.fields.get_primary_table()
         return title
     
-    def add_filter(self, event=None, visible=True):
+    def add_filter_cb(self, event=None, visible=True):
         """Pop a Filter Panel, called from menu item"""
 
         self.filter_panel.w['Window'].present()
-    
+
+    def add_filter(self, **kw):
+        __doc__ =  self.filter_panel.__doc__
+        self.filter_panel.add_filter(**kw)
+        
     def show_mapper_info(self, *args):
         dbg.gtk_dbg.ShowMapperInfo(self.fields)
         
@@ -870,7 +882,7 @@ class SqlWidget(object):
         if 'm=file' in self.w:
             self.lay_obj.menu(
                 'm=file',
-                ('filter panel',  'activate', self.add_filter),
+                ('filter panel',  'activate', self.add_filter_cb),
                 ('-', None),
                 ('gtk-clear', 'activate',  self.record_new),
                 ('gtk-save-as', 'activate',  self.record_save_new),

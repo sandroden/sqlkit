@@ -9,6 +9,7 @@ from sqlalchemy.sql import select
 import sqlkit as sk
 from sqlkit.db.utils import tables, get_description
 from datetime import *
+from sqlkit.db.django_syntax import django2components
 
 class SqlDataFixNeeded(Exception): pass
 
@@ -30,7 +31,7 @@ class FilterPanel(object):
         """
         self.master = master
         self.get_layout(visible=visible)
-        self.row =0  # counter for position of fields
+        self.row = 0  # counter for position of fields
         self.default_reload = True
         
         self.search_filter_widgets = []         ## list of FIlterWidgets instances
@@ -85,15 +86,57 @@ class FilterPanel(object):
             self.easytv.tv.connect('button_press_event', self.on_selection_changed)
             self.easytv.tvc['id'].set_property('visible', False)
 
-    def add(self, wdg, ev, field_name, master, after=None, show=True):
-        """add a field to the filter panel + operator and string entry
+    def add_filter(self, active=True, **kwargs):
+        """
+        add a filter using django-like syntax
+
+        """
+        for key, val in kwargs.iteritems():
+            path, op, col, op_str, value = django2components(self.master.mapper, {key: val})
+            master = self.get_related_master(self.master, path)
+            filter_widget = self.add(None, None, col.name, master, force=True)
+            filter_widget.check_button.set_active(active)
+            if value and not value is True:
+                filter_widget.field_widget.set_text(value)
+            self.set_operator(filter_widget, op, value)
+
+    def set_operator(self, filter_widget, op, value):
+        """
+        Set the active operator entry in ComboBox for operator choice
+        """
+        model = filter_widget.operator.get_model()
+        operator_list = [model.get_value(row.iter,0) for row in model]
+        if op == 'IS NULL' and value is False:
+            op = 'IS NOT NULL'
+        try:
+            index = operator_list.index(op.upper())
+            filter_widget.operator.set_active(index)
+        except ValueError, e:
+            print e
+            pass
+
+    def get_related_master(self, master, path=None):
+        """
+        Return the SqlWidget that manages the data at 'path'.
+        E.g.: if the mapper is the one for movie, and the 'path'  is 'genres'
+        as in the doc example, ``get_master``  would return the SqlTable that
+        manages the collection of records returned by the relation 'genres'
+        """
+
+        for elem in path:
+            master = master.related[elem]
+        return master
+
+
+    def add(self, wdg, ev, field_name, master, after=None, show=True, force=False, value=None):
+        """add a FilterWidget to the filter panel + operator and string entry
         after: entry will be positioned after widget 'after'
         """
         ## FIXME: after and show?
         search_path = "%s__%s" % (master.relationship_path, field_name)
-        if not search_path in self.search_filter_field_names:
-            widget = get_filter_widget(field_name, self, master)
-            widget.add(field_name)
+        if not search_path in self.search_filter_field_names or force:
+            widget = get_filter_widget(field_name, self, master, value)
+            widget.build_layout(field_name)
             self.search_filter_widgets += [ widget]
             self.search_filter_field_names  += [search_path]
 
@@ -103,6 +146,7 @@ class FilterPanel(object):
         if show:
             self.w['Window'].show_all()
         self.w['Window'].present()
+        return widget
 
     def hide(self, wid, ev=None):
         """hide FilterPanel."""
@@ -195,14 +239,16 @@ class FilterPanel(object):
                 iterR = self.model.append(None)
                 self.model.set(iterR,
                                0, i,
-                               1, format_string % vars(obj),
+#                               1, format_string % vars(obj),
+                               1, str(obj),
                                )
                 iter[attr_value] = iterR
             else:
                 iterR = self.model.append(iter[attr_value])
                 self.model.set(iterR,
                                0, i,
-                               1, format_string % vars(obj),
+#                               1, format_string % vars(obj),
+                               1, str(obj),
                                )
             i += 1
 
@@ -275,6 +321,7 @@ class FilterWidget(object):
     STD_OPERATORS = [ '>=','<=', '=', '!=', '>', '<', ] + NULL_OPERATORS
 
     def __init__(self, field_name, panel, master):
+
         self.panel = panel
         self.master = master
         self.field_name = field_name
@@ -290,9 +337,9 @@ class FilterWidget(object):
         """
         return self.STD_OPERATORS
 
-    def add(self, field_name, after=None, show=True):
-        """add a field to the filter panel + operator and string entry
-        after: entry will be positioned after widget 'after'
+    def build_layout(self, field_name, after=None, show=True, force=False, ):
+        """
+        build the gtk interface of this widget
         """
 
         ## I'd like *not* to .present the widget for any successive field added
@@ -310,8 +357,7 @@ class FilterWidget(object):
         
         self.field_name_event_box.add(self.field_label)
         self.field_label.set_property('xalign', 0)
-        self.field_name_event_box.connect('button-press-event', self.pop_menu,
-                                     'show=True')
+        self.field_name_event_box.connect('button-press-event', self.pop_menu, 1)
         #field_name_event_box.window.set_cursor(self.w['label-cursor'])
 
         ## combo for operator
@@ -326,6 +372,15 @@ class FilterWidget(object):
 
         self.field_widget = gtk.Entry()
         self.field_widget.connect('activate', self.panel.reload_cb)
+
+        self.menu = gtk.Menu()
+        ## add another filter
+        item = gtk.MenuItem(label="Add a new filter on this %s" % self.field_name)
+        item.connect('activate', self.add_filter_cb)
+        self.menu.append(item)
+        self.menu.show_all()
+            
+        
 
         Tbl = self.panel.w['T.fld']
         r = self.panel.row
@@ -376,10 +431,13 @@ class FilterWidget(object):
             
         return query.filter(self.col.op(op_value)(value))
 
+    def add_filter_cb(self, menuitem, ):
+        self.panel.add(None, None, self.field_name, self.master, force=True)
+        
     def pop_menu(self, wdg, ev, num_button):
         #dbg.write(wdg, ev, num_button)
         if ev.button == num_button:
-            self.w['M=opts'].popup(None, None, None, ev.button, ev.time )
+            self.menu.popup(None, None, None, ev.button, ev.time )
         
     
 
@@ -472,7 +530,7 @@ class FilterFKeyWidget(FilterWidget):
         return query.filter(self.col.in_(ids))
 
 
-def get_filter_widget(field_name, panel, master):
+def get_filter_widget(field_name, panel, master, value=None):
     """
     return an instance of a proper FilterWidget according to type
     """
