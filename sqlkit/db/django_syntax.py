@@ -30,12 +30,22 @@ supported lookup
   :in:  IN (argument must be a list)
   :null: IS NULL / IS NOT NULL (depending if arg is True/False)
 
+conjunctions
+------------
+
+``django2sqlakchemy`` and ``django2query`` connect all argumnets with AND operator
+by default. It's possible to use ``OR`` operator adding ``OR=True``  argument.
+
+
+
 """
 
 from sqlalchemy.sql.expression import ColumnElement, ClauseList 
 from sqlalchemy.sql import and_, or_
 from sqlalchemy.orm import ColumnProperty, PropertyLoader
+from sqlalchemy.types import Date, DateTime
 from copy import deepcopy
+from dry.dateutils import string2dates
 
 OPERATORS = {
     'like'  : 'like',
@@ -58,13 +68,13 @@ class DjangoParser(object):
     parses a django-like argument to compose a sqlalchemy
     ColumnList/ColumnElement object to be used in queries
     """
-    def __init__(self, mapper=None, query=None, or_=False):
+    def __init__(self, mapper=None, query=None, OR=False):
         """
         A sqlalchemy.Table object
         """
         self.mapper = mapper
         self.query = query
-        self.or_ = or_
+        self.OR = OR
         self.expressions = []
         self.joins = []
 
@@ -83,14 +93,22 @@ class DjangoParser(object):
             sql = col == value  ## True | False
         elif op_str == 'ilike': # SA manages difference where there is no ILIKE operator
             sql = col.ilike(value)
+        elif self.is_date(col):
+            start, stop = string2dates(value)
+            sql = col.op(op)(start)
         else:
             sql = col.op(op)(value)
 
         self.expressions += [sql]
             
-    
+    def is_date(self, col):
+
+        if isinstance(col.type, (Date, DateTime)):
+            return True
+        return False
+        
     def sql(self):
-        if self.or_:
+        if self.OR:
             sql = or_(*self.expressions)
         else:
             sql = and_(*self.expressions)
@@ -157,12 +175,12 @@ def get_foreign_column(mapper, path=None, attr=None):
     return get_column(prop, attr)
 
 
-def django2query(mapper, query, or_=False, **kw):
+def django2query(mapper, query, OR=False, **kw):
     """
     return a new query with new constraints expressed in  'django-style'
     
     """
-    parser = DjangoParser(mapper, query, or_=or_)
+    parser = DjangoParser(mapper, query, OR=OR)
 
     for key,val in kw.iteritems():
         parser.parse( {key:val})
@@ -170,14 +188,14 @@ def django2query(mapper, query, or_=False, **kw):
     return parser.compose()
 
 
-def django2sqlalchemy(mapper=None, table=None, or_=False, **kw):
+def django2sqlalchemy(mapper=None, table=None, OR=False, **kw):
     """
     return a ClauseList and a join path. 
     """
     if table:
-        parser = DjangoParser(table=table, query=None, or_=or_)
+        parser = DjangoParser(table=table, query=None, OR=OR)
     else:
-        parser = DjangoParser(mapper=mapper, query=None, or_=or_)
+        parser = DjangoParser(mapper=mapper, query=None, OR=OR)
         
 
     for key,val in kw.iteritems():
@@ -286,7 +304,7 @@ if __name__ == '__main__':
 
 #     test(name='ed')
 #     test(name='ed', addresses__email__icontains='google')
-#     test(name='ed', addresses__provider__provider__icontains='google', or_=True)
-    test(name='ed', addresses__provider__country__country__icontains='ita', or_=True)
+#     test(name='ed', addresses__provider__provider__icontains='google', OR=True)
+    test(name='ed', addresses__provider__country__country__icontains='ita', OR=True)
     test2(name='ed', addresses__email='@me',
-          addresses__provider__country__country__icontains='ita', or_=True)
+          addresses__provider__country__country__icontains='ita', OR=True)

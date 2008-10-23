@@ -584,7 +584,7 @@ class SqlWidget(object):
             self.session.add(new_obj)
         return new_obj
 
-    def add_constraint(self, or_=False, *args, **kwargs):
+    def add_constraint(self, OR=False, *args, **kwargs):
         """
         Add constraints. A constraint may be one or more ColumnElement, ColumnList
         or django-like syntax. Eg.::
@@ -595,8 +595,8 @@ class SqlWidget(object):
 
         if multiple conditions are passed, they will be ANDed unless 'or_=True'
         """
-        from sqlkit.db.sql import django2query
-        self.query = django2query(self.mapper, self.query, or_=or_, *args, **kwargs)
+        from sqlkit.db.django_syntax import django2query
+        self.query = django2query(self.mapper, self.query, OR=OR, *args, **kwargs)
         
     def get_differences(self, obj):
         """show differences between old and new version of an object
@@ -861,7 +861,6 @@ class SqlWidget(object):
         self.filter_panel.w['Window'].present()
 
     def add_filter(self, **kw):
-        __doc__ =  self.filter_panel.__doc__
         self.filter_panel.add_filter(**kw)
         
     def show_mapper_info(self, *args):
