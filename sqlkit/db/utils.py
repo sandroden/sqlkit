@@ -43,10 +43,23 @@ class Descr(object):
         if not self.__tablename__ in tables:
             format = get_description(self.__table__, attr='format')
 
-        return tables[self.__tablename__].format % vars(self)
+        return tables[self.__tablename__].format % DictLike(self)
+
+    def __getitem__(self, key):
+        return getattr(self, key) or ''
 
     __repr__ = __str__
     
+class DictLike(object):
+    """
+    simple way to enable %(field_name)s lookup in classes
+    used to allow correct use of 'format'
+    """
+    def __init__(self, obj):
+        self.obj = obj
+    def __getitem__(self, key):
+        return getattr(self.obj, key) or ''
+
 class Tables(Container):
     def __getitem__(self, key):
         try:
