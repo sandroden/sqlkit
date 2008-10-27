@@ -1025,7 +1025,9 @@ class SqlTable(sqlwidget.SqlWidget):
             pass  # no selection...
         
     def get_current_obj(self, path=None):
-        """returns the corrently selected obj or obj at path. Return None if no selection"""
+        """returns the corrently edited (not just selected!!) obj or obj at path.
+        Return None if no selection
+        """
 
         if not path:
             #path = self.get_selected_row()
@@ -1034,8 +1036,22 @@ class SqlTable(sqlwidget.SqlWidget):
         if path is None:
             return None
         else:
-            return self.liststore[path][0]
+            obj = self.liststore[path][0]
+            return obj
 
+    def get_selected_obj(self, path=None):
+        """returns the corrently selected obj or obj at path. Return None if no selection"""
+
+        if not path:
+            path = self.get_selected_row()
+
+        if path is None:
+            return None
+        else:
+            obj = self.liststore[path][0]
+            return obj
+
+    current = property(get_selected_obj)
     def set_current(self, pk=None, substitute=False, filter_by=None):
         """
         retrieve object with primary key pk and set it as current object
@@ -1108,6 +1124,8 @@ class SqlTable(sqlwidget.SqlWidget):
             if self.editable:
                 return self.editable.get_text()
         return getattr(self.get_current_obj(), field_name)
+
+
 
 
 
