@@ -5,7 +5,7 @@ import gtk
 
 class TotalObj(object):
     """
-    A simple class that represent the object holding the totals and a way to represent it
+    A simple class that represents the object holding the totals and a way to represent it
 
     personalization
 
@@ -57,15 +57,15 @@ class Totals(object):
         self.break_func = None
         self.prev = None
 
-    def add_total(self, field_name):
+    def add_total(self, *field_names):
         """
         Add a total object each time subtotal changes
         """
-
-        if not self.table.get_field_type(field_name) in sqlwidget.NUMBERS:
-            raise NotImplementedError("%s is not a number" % field_name)
-        self.totals[field_name] = 0
-        self.subtotals[field_name] = 0
+        for field_name in field_names:
+            if not self.table.get_field_type(field_name) in sqlwidget.NUMBERS:
+                raise NotImplementedError("%s is not a number" % field_name)
+            self.totals[field_name] = 0
+            self.subtotals[field_name] = 0
         self.compute()
             
     def del_total(self, field_name):
