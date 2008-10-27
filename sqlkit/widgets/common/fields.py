@@ -19,6 +19,7 @@ from datetime import datetime, time, date
 import gtk
 from pprint import pprint 
 from sqlkit.db import defaults
+from decimal import Decimal
 
 from sqlkit.exc import ValidationError, NotHandledField
 
@@ -65,7 +66,7 @@ class FieldChooser(object):
         if COL_SPEC == 'INTEGER' or DB_TYPE is int:
             return IntegerField(*args)
 
-        if COL_SPEC == 'FLOAT' or DB_TYPE is float:
+        if COL_SPEC == 'FLOAT' or DB_TYPE in (float, Decimal):
             return FloatField(*args)
 
         if (COL_SPEC and COL_SPEC.startswith('VARCHAR'))  or DB_TYPE == str:
