@@ -13,6 +13,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper
 #from sqlalchemy import *
 import dbg
 
+import gobject
 import sqlkit
 import sqlfilter
 #from sqlkit.widgets.common import sqlfilter2 as sqlfilter
@@ -25,12 +26,19 @@ from sqlkit.exc import *
 NUMBERS = (int, float, decimal.Decimal)
 
 
-class SqlWidget(object):
+class SqlWidget(gobject.GObject):
+    __gsignals__ = {
+        'record_selected' : (gobject.SIGNAL_RUN_LAST,
+                           gobject.TYPE_BOOLEAN,
+                           (),
+                           )
+        }
+
     fields   = None  # fields to use (InspectMapper)
 #    tables = None    # Table objects referenced as foreign keys
     values = None    # real value for foreign key
                      # (when lookup is displeyed instead)
-#    __metaclass__ = dbg.LogTheMethods
+    __metaclass__ = dbg.LogTheMethods
 #    __metaclass__ = misc.autoreload.MetaAutoReloader
     records = None
     last_new_obj = None
@@ -100,6 +108,7 @@ class SqlWidget(object):
                   'genres', 'director nationality', ['director','nationality']
         relationship_leader: the main sqlmask (sqltable) that "owns" the filter_panel
         """
+        gobject.GObject.__init__(self)
         self.related = Container()
         self.vfields = Container()
         self.widgets = Container()
@@ -1203,6 +1212,8 @@ class Actions(object):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+
 
 
 

@@ -14,8 +14,6 @@ mapper. column.set_cell_data_func on each column will set the value from there.
 
 
 import sys
-#from sqlalchemy import *
-#import layout
 from datetime import datetime
 from sqlkit.widgets.common import sqlwidget, CommitError, ValidationError
 from sqlkit import exc
@@ -29,7 +27,6 @@ import sqlkit
 from utils import set_height_request, set_all_nonfilling, set_this_filling
 from  cell_renderers import CellRendererDate, CellRendererDatetime
 import totals
-#sys.path.append('../gdl')
 
 if sys.hexversion < 0x20401f0:
     print "your python version: ", hex(sys.hexversion)
@@ -48,8 +45,6 @@ class SqlTable(sqlwidget.SqlWidget):
     mapper = None
     editable = None
 #    commit_allowed = dbg.TraceIt(True, name='commit_allowed', mode='rw')
-#    trace_regexp = 'commit_allowed'
-    __metaclass__ = dbg.LogTheMethods
          
     def __init__(self, *args, **kwargs):
         self.treeview = None
@@ -379,6 +374,7 @@ class SqlTable(sqlwidget.SqlWidget):
         
         if self.edited_row_model_path is None:
             self.record_initialize_vfields()
+            self.emit('record_selected')
             return False
         
         ## commit_allowed is a flag that prevents .commit() if a new object
@@ -387,7 +383,8 @@ class SqlTable(sqlwidget.SqlWidget):
             self.record_save()
             self.record_initialize_vfields()
             self.edited_row_model_path = None
-            
+
+        self.emit('record_selected')
         return False
     
     def record_initialize_vfields(self):
@@ -770,6 +767,7 @@ class SqlTable(sqlwidget.SqlWidget):
             for record in self.records:
                 self.liststore.append([record])
 
+#        self.emit('record_selected', )
         self.sb("Total N. of records: %s" % (len(self.liststore)))
         
     def record_has_changed(self):
@@ -1124,6 +1122,8 @@ class SqlTable(sqlwidget.SqlWidget):
             if self.editable:
                 return self.editable.get_text()
         return getattr(self.get_current_obj(), field_name)
+
+
 
 
 
