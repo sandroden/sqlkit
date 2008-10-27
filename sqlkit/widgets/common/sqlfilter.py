@@ -61,6 +61,7 @@ class FilterPanel(object):
         self.l = layout.Layout(lay, title='Filter Panel', opts="s")
         self.l.prop('Window', 'visible', visible)
         self.l.prop('O.a', 'show_arrow', 'FALSE')
+        self.l.prop('A=.fld', 'yscale', '0')
         self.l.elements['H.a'].pack_properties['y-options'] = ''
         self.l.prop('O.a', 'toolbar_style', 'gtk.TOOLBAR_ICONS')
         self.w = self.l.show(x=self.hide)
@@ -83,7 +84,6 @@ class FilterPanel(object):
             self.selection = self.easytv.tv.get_selection()
             self.selection.connect('changed',self.on_selection_changed)
             self.model = self.easytv.tv.get_model()
-            self.easytv.tv.connect('button_press_event', self.on_selection_changed)
             self.easytv.tvc['id'].set_property('visible', False)
 
     def add_filter(self, active=True, **kwargs):
@@ -146,7 +146,10 @@ class FilterPanel(object):
         if show:
             self.w['Window'].show_all()
         self.w['Window'].present()
-        return widget
+        try:
+            return widget
+        except:
+            return None
 
     def hide(self, wid, ev=None):
         """hide FilterPanel."""
