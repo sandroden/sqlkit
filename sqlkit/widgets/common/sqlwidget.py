@@ -104,7 +104,6 @@ class SqlWidget(object):
         self.vfields = Container()
         self.widgets = Container()
         self.completions = Container()
-        self.block = False   # used whensync-ing widgets
         self.icons = icons
 #        self.filter = filter
         self.xml = xml
@@ -115,7 +114,6 @@ class SqlWidget(object):
         self.addto = addto
         self.actions = self.get_actions(actions)
         self.constraint=constraint
-        self.sync_dict = {}
         self.dbproxy = dbproxy
 #        self.engine = self.get_engine(engine, mapper)
         self.session = self.get_session(session)
@@ -455,10 +453,8 @@ class SqlWidget(object):
     def record_validate(self, obj, mode, constraint={} ):
         """any validation should live here
 
-        constraint: this is a dictionary of values that are enforced. When two
-        sqlwidgets are synced is the way the 'master' adds the foreign key
-        constraint.
-
+        constraint: this is a dictionary of values that are enforced.
+        
         Constraints are applied *after* path2dict handling and before
         actions.on_update / actions.on_insert
 
@@ -650,71 +646,10 @@ class SqlWidget(object):
         return False
 
 
-####### Sync
-    def sync_add(self, sqlWidget, cnd=None):
-        if not isinstance(self, sqlkit.SqlMask):
-            raise SyncNotAvailable("Sync only available for SqlMask")
-
-        # sqlWidget : (DIR, cnd_str, field_names )
-        if not cnd:
-            DIR, cnd_str, fields_dict = minspect.get_join_cnd_for_sync(
-                self.mapper.local_table, sqlWidget.mapper.local_table)
-        else:
-            DIR, cnd_str, fields_dict = cnd
-            
-        self.sync_dict[sqlWidget] = (DIR, cnd_str, fields_dict )
-        ## a synced widget should not be edited if we don't have a record to sync...
-        if len(self.records) == 0:
-            sqlWidget.sync_block()
-
-        dbg.write(DIR, direct=False)
-#        sqlWidget.reload_constraint(cnd_str)
-#         if sqlWidget.get_pk() != field_names:
-#             raise NoSyncError("non campi suff per match %s != %s" % (sqlWidget.get_pk(), field_names))
-    def sync(self):
-        """emit a reload to other SqlWidgets so that they keep in sync"""
-        ## easy/simple (almost useless) case: we have a Many2One relation. A field
-        ## of primarytable has a fk to another table
-        #dbg.write(self.nick)
-        for w, value in self.sync_dict.iteritems():
-            #dbg.write(w, value)
-            #DIR, sql, field_names, fkeys = value
-            DIR, sql, fields_dict = value
-            val = {}
-            val_constr = {}
-
-            ## constraints
-            for name, referenced_name in fields_dict.iteritems():
-                #name, referenced_name = fkey
-                #dbg.write(name, self.get_value(referenced_name, data=True))
-                val_constr[referenced_name] = self.get_value(name, data=True)
-
-            ## bind_params
-            for field_name in fields_dict.keys():
-                val[field_name] = self.get_value(field_name, data=True)
-
-            #dbg.write(sql, val)
-#            w.reload(  sql =  (and_(*[sql]),val)   )
-            w.clear()
-            w.reload(  sql =  (sql,val) , constraint=val_constr,
-                       reload_constraint=True  )
-            w.sync_unblock()
-            
     def get_pk(self):
         """return the pkeys of the primarytable"""
         return self.fields.pkeys[self.fields.get_primary_table()]
     
-    def sync_block(self):
-        """When a master is syncing this widget, we must block interaction until
-        the master has inserted an id and set a constraint"""
-        self.block = True
-    
-    def sync_unblock(self):
-        """When a master is syncing this widget, we must block interaction until
-        the master has inserted an id and set a constraint"""
-        self.block = False
-    
-
 ####### Validation
     def digits_check_input_cb(self, widget, event):
         """prevents the possibility of inputting wrong chars"""
@@ -1268,6 +1203,8 @@ class Actions(object):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+
 
 
 

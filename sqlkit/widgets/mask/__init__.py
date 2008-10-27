@@ -1,4 +1,3 @@
-__all__ = [ 'SqlMask', 'Combo' ]
+__all__ = [ 'SqlMask']
 from mask import SqlMask
-from mask import Combo
 

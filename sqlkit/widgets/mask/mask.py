@@ -96,7 +96,6 @@ class SqlMask (sqlwidget.SqlWidget):
             except exc.FieldNotInLayout, e:
                 pass
 
-        #self.sync()
         self.actions.on_record_display(new=obj)
         #sqlwidget.SqlWidget.record_display(self, new=data_in)
         
@@ -196,7 +195,6 @@ class SqlMask (sqlwidget.SqlWidget):
         
         self.record_display(reread=True)
         self.current_mode = 'UPDATE'
-        #self.record_save_sync()
         
     def record_save_new(self, wdg, constraint={}):
         """create a new record by cloning the present
@@ -264,11 +262,6 @@ class SqlMask (sqlwidget.SqlWidget):
             except exc.FieldNotInLayout, e:
                 pass
 
-        ## sync
-        for z in self.sync_dict:
-            z.clear()
-            z.sync_block()
-            
     clear = clear_mask
     
     def record_new(self, widget=None, clear=True):
@@ -343,35 +336,6 @@ class SqlMask (sqlwidget.SqlWidget):
         self.record_mask2obj(self.current)
         return sqlwidget.SqlWidget.unsaved_changes_exist(self)
         
-####### Sync
-    def record_back_sync(self, incr=1):
-        for z in self.sync_dict:
-            if isinstance(z, sqlkit.SqlMask):
-                return z.record_back('')
-        return False
-    
-    def record_forward_sync(self, incr=1):
-        for z in self.sync_dict:
-            if isinstance(z, sqlkit.SqlMask):
-                return z.record_forward('')
-        return False
-            
-    def record_save_sync(self):
-        for w, value in self.sync_dict.iteritems():
-            w.sync_unblock()
-            dbg.write(w, value)
-            DIR, sql, fields_dict = value
-            val = {}
-            ### FIXME: sqldata
-            rdict = self.sqlData.get()
-            dbg.write('rdict=',rdict)
-            
-            for name, referenced_name in fields_dict.iteritems():
-                val[referenced_name] = rdict[name]
-
-            w.record_save('', constraint=val)
-#         for z in self.sync_dict:
-#             z.record_save('')
 
 ####### Layout, Reflection & Analisys
     def _analize_widgets_in_layout(self):
@@ -511,66 +475,5 @@ class SqlMask (sqlwidget.SqlWidget):
         pass
     
     
-class Combo(SqlMask):
-    """
-    This is meant to edit a normal situation of header/rows (eg. invoices)
-    table must be a list of two tables that will be synced automatically.
-
-    The layout should be explicitally provided.
-    """
-    def _get_layout(self, lay, naked):
-        lay, w = SqlMask._get_layout(self, lay, naked)
-        if self.icons:
-            icons = self.icons
-        else:
-            icons = 'b=gtk-delete b=gtk-new b=gtk-refresh'
-            
-        self.SqlTable = sqlkit.SqlTable(tables=self.tables[1],
-                                        naked=True,
-                                        layout=None,
-                                        engine=self.engine,
-                                        addto=self.w['A=table'],
-                                        mode=self.mode,
-                                        limit=0,
-                                        nick="%s.%s" % (self.nick, self.tables[1]),
-                                        actions=self.actions,
-                                        field_list=self.table_field_list,
-                                        icons=icons
-                                        
-                                        )
-        self.sync_add(self.SqlTable)
-        self.SqlTable.SqlMask = self
-        # self.lay_obj.prop('TV=tree', 'height-request', 150)        
-
-        if self.sql:
-            self.reload(self.sql)
-        else:
-            pass
-            self.clear_mask()
-            
-        return (lay, w)
-    
-    def get_mapper(self, mapper, tables):
-        return self.dbproxy.get_mapper(mapper, tables[0])
-
-    def parse_fields(self, fields):
-        self.table_field_list = fields
-        return SqlMask.parse_fields(self, None)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
