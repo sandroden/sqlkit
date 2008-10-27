@@ -33,7 +33,7 @@ supported lookup
 conjunctions
 ------------
 
-``django2sqlakchemy`` and ``django2query`` connect all argumnets with AND operator
+``django2sqlakchemy`` and ``django2query`` connect all arguments with AND operator
 by default. It's possible to use ``OR`` operator adding ``OR=True``  argument.
 
 
@@ -95,7 +95,10 @@ class DjangoParser(object):
             sql = col.ilike(value)
         elif self.is_date(col):
             start, stop = string2dates(value)
-            sql = col.op(op)(start)
+            if stop:
+                sql = col.op('>=')(start)  &  col.op('<=')(stop)
+            else:
+                sql = col.op(op)(start)
         else:
             sql = col.op(op)(value)
 
