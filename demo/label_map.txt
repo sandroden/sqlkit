@@ -1,1 +1,0 @@
-city_id	Nome citta	Metti il nome della tua citta
