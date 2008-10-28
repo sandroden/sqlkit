@@ -748,6 +748,8 @@ class VPaned(LContainer):
     class_pack_properties = {
         'resize' : False,
         }
+    def _class_specific(self):
+        self.make_v_expandable()
 
 class HPaned(VPaned):
     gtkClass = 'GtkHPaned'
