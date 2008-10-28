@@ -1,0 +1,44 @@
+# $pkg
+.PHONY: install clean
+PKG=$(shell echo $(shell pwd)| sed 's/.*\///')
+DEB=$(shell cat debian/files |cut -f 1 -d " ")
+
+deb:
+	dpkg-buildpackage -rfakeroot -us -uc -b | tee log
+	echo pkg=$(PKG)  deb=$(DEB)
+	hg status
+
+content:  
+	dpkg -c ../$(DEB)
+
+lcheck: 
+	find -newer ../$(DEB)
+
+ver:
+	head -n1 debian/changelog
+	echo dch -v
+
+upload: etch sarge
+
+etch:
+	upload-deb etch/main $(DEB) 
+
+sarge:
+	upload-deb sarge/main $(DEB) 
+
+dpkg:
+	su root "dpkg -i ../$(DEB)"
+
+check:  lcheck
+	find -newer uploaded
+
+install:
+	find -name \*~ -exec rm {} \;
+	find -name \#\*  -exec rm {} \;
+	find -name .\#\* -exec rm {} \;
+	rm -Rf $(DESTDIR)
+#	mkdir -p $(DESTDIR)/usr
+#	cp -a usr/* $(DESTDIR)/usr
+
+clean:
+	echo

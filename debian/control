@@ -1,0 +1,32 @@
+Source: python-sqlkit
+Section: python
+Priority: extra
+Maintainer: Sandro Dentella <sandro@e-den.it>
+Build-Depends: cdbs, debhelper (>= 5)
+Standards-Version: 3.7.2
+
+Package: python-sqlkit
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, python, python-dateutil
+Description: GUI library to edit data of databases
+ Main features of sqlkit:
+ .
+ - editor of databases in 2 modes: table & mask
+ - based on sqlalchemy: can cope with many different databases
+ - very powerfull filtering capabilities:
+ .
+   * each field can be used to filter visible records
+   * date filtering possible also on relative basis (good for saved
+     queries)
+ .
+ - completion both on local same field and foreign key fields
+ - very easy way to draw a layout for mask views
+ - sqledit: python script to edit db
+ - completely effortless editing of relationships
+ - very easy way to set defaults
+ - possibility to display total in numeric fields
+ - constraints: any possible sql constraint can be attached to a Mask 
+   or a Table. It can be expressed a s a normal sqlalchemy query or with
+   django-like syntax
+
+

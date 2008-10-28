@@ -8,3 +8,10 @@ sqlalchemy
 html
 prove
 test
+Makefile
+debian/python-sqlkit
+build
+log
+python-build-stamp-2.5
+sqlkit.egg-info/
+debian/files
