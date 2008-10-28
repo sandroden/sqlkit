@@ -2,7 +2,7 @@
 
 import sys
 import gtk
-import dbg
+from sqlkit import debug as  dbg
 dbg.debug(True, gtk=True)
 dbg.trace_class(ok='SqlTable|SqlWidget|SqlMask|Completion')
 but = 'set_fkey_descr|(lookup|get)_value|[el]ne_cb|match_func' + \

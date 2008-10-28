@@ -1,6 +1,6 @@
 import sys, re, datetime, os
 import inspect 
-import layout
+from sqlkit import layout
 import sqlalchemy.types as sqltypes
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy import Table
@@ -11,16 +11,16 @@ import decimal
 from sqlalchemy import exceptions
 from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper
 #from sqlalchemy import *
-import dbg
+from sqlkit import debug as  dbg
 
 import gobject
 import sqlkit
 import sqlfilter
 #from sqlkit.widgets.common import sqlfilter2 as sqlfilter
-from sqlkit.db import sqldata, minspect
+from sqlkit.db import minspect
 from sqlkit.widgets.common import completion
 from sqlalchemy.orm import attributes
-from layout.utils import Container
+from sqlkit.layout.utils import Container
 from sqlkit.exc import *
 
 NUMBERS = (int, float, decimal.Decimal)

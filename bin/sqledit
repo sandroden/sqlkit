@@ -27,8 +27,8 @@ import pdb
 #sys.path.insert(0,'/usr/src/sqlalchemy/lib/')
 Dir = os.path.abspath(os.path.dirname(__file__))
 
-import dbg
-import layout
+from sqlkit import debug as dbg
+from sqlkit import layout
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exceptions import OperationalError
@@ -258,7 +258,7 @@ if opts.gtk_debug:
 import sqlkit
 from sqlkit import SqlTable, SqlMask
 from sqlkit.db import proxy
-import layout.misc
+from sqlkit.layout import misc
 
 if args:
     if re.search('://', args[0]):

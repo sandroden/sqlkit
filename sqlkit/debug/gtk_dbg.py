@@ -1,7 +1,7 @@
 import gtk
 import gobject, pango
-import layout
-import dbg
+from sqlkit.layout import layout
+import debug as dbg
 import re, os
 import inspect
 import tokenize

@@ -1,6 +1,5 @@
 import sys, re, datetime
-import layout
-import layout.dateedit as dateedit
+from sqlkit import layout
 
 import gtk, pango
 from sqlalchemy import *
@@ -11,7 +10,7 @@ from sqlkit.validation import validator
 from sqlkit.widgets.common import completion, sqlwidget
 import decimal
 import sqlkit
-import dbg
+from sqlkit import debug as dbg
 from sqlkit import exc
 #NOT_NULL_COLOR = gtk.gdk.color_parse('yellow')
 FK_COLOR = gtk.gdk.color_parse('navyblue')

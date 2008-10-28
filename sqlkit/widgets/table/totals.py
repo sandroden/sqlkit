@@ -1,6 +1,6 @@
 from sqlkit.widgets.common import sqlwidget
 from datetime import date, datetime
-import dbg
+from sqlkit import debug as dbg
 import gtk
 
 class TotalObj(object):

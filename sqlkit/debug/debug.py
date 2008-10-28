@@ -1,25 +1,23 @@
 """
 This module provides easy way to debug with print commands. This may not be
-the best way to debug, many times pdb will be much more powerfull. Nevertheless
-I found mysel in need of these functions...
+the best way to debug, many times ``pdb`` will be much more
+powerfull. Nevertheless I found mysel in need of these functions...
 
 The way to use this is
 
   1. in you library::
 
-      import dbg
       dbg.write('text message', 'text2')
 
   2. in you application::
 
-      import dbg
       dbg.debug(True)
 
 write() - caller()
 ------------------
      
-from now on, each time you use dbg.write()/dbg.caller() you'll see the text you
-want to log only if you enabled it with dbg.debug(True)
+from now on, each time you use dbg.write()/dbg.show_caller() you'll see the
+text you want to log only if you enabled it with dbg.debug(True)
 
 If you want the log to happen in a gtk.TreeView window, you can specify:;
 
@@ -77,13 +75,16 @@ who changed the value of that variable, in the form::
 
 import sys, re
 import new
-import layout, pango, inspect
+from sqlkit.layout import layout, misc
+import pango
+import inspect
 import tokenize
 import keyword
 import time
 import inspect
 import gtk
 from  pdb import set_trace
+import gobject
 
 CLASS_INCLUDE = '^.*$'
 CLASS_EXCLUDE = '^$'
@@ -439,7 +440,7 @@ def logmethod(methodname):
     return _method
 
 
-class LogTheMethods(type):
+class LogTheMethods(gobject.GObjectMeta):
     def __new__(cls, classname, bases, classdict):
 
         if re.search(CLASS_INCLUDE, classname):
@@ -484,8 +485,6 @@ class ShowLogs(object):
         DBGLogger = self
 
     def get_layout(self, show):
-        import layout
-        import layout.misc
         global iter
         self.last_indent = 0
         iter = {}
@@ -493,7 +492,7 @@ class ShowLogs(object):
         ## method, args, caller, line
         cols = ['meth','class', 'time', 'caller', 'line',
                 'ret code', 'class', 'args', 'all_args']
-        self.easytv = layout.misc.EasyTreeView(
+        self.easytv = misc.EasyTreeView(
             cols, sort=False, show=show, but='tb=gtk-close tb=gtk-open')
         self.time = time.time()
         self.last_time = time.time()
@@ -590,7 +589,7 @@ class ShowLogs(object):
         last_erow, last_ecol = 0, 0
         was_newline = False # multiline statement detection
         old_str = None
-        for x in tokenize.generate_tokens(layout.misc.InputStream(data).readline):
+        for x in tokenize.generate_tokens(misc.InputStream(data).readline):
             # x has 5-tuples
             tok_type, tok_str = x[0], x[1]
             srow, scol = x[2]

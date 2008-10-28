@@ -30,7 +30,7 @@ import widgets
 import gtk, gobject
 import gtk.glade
 import os, os.path, tempfile
-import dbg
+#from sqlkit import debug as dbg  # uncommenting brakes importing....
 
 class UnbalancedLayoutCurlyBaces(Exception): pass
 class ConnectBeforeShowNotImplemented(Exception): pass
@@ -94,7 +94,6 @@ class Layout(object):
         self.cells = {}         # each element is an LWidget or LContainer
         
         self.lay = lay
-        self.dbg = dbg
         self.parent_container = parent_container
         self.container_id = container_id
         self._parse_opts(opts)
@@ -102,7 +101,6 @@ class Layout(object):
         row = 0
         col = -1
         elements_list = self._parse_layout(lay.strip('\n '))
-        #dbg.debug("Layout.__init__: %s" % (elements_list) )
         for el in elements_list:
             ### 'a capo'  both w/ newline *and* @
             if el in ('\n','@'):
@@ -134,7 +132,6 @@ class Layout(object):
                                  container_id=container_id)
                     self.cells[(row,col)] = new.container()
                     new.container().position((row,col))
-                    #dbg.debug("CONT: %s, %s: %s" % (row, col, self.cells[(row,col)]))
                 else:
                     self.cells[(row,col)] = self._create_lwidget(
                         el, (row, col), container=self.container_flag,
@@ -256,7 +253,6 @@ class Layout(object):
         ## i extract the type. Default type is 'le'
         #print "Ora creo " + el
         key = re.split("^(?:(.*)=)?(.*)",el)[1] or 'le'
-        #dbg.debug("CREO LWid: %s %s %s %s" % (key, el, pos, container))
         
         return self._W[key](el, pos, container, elements=elements)
 
@@ -455,7 +451,6 @@ class Layout(object):
                 ## if int, that's just a counter 
                 if not isinstance(val, int):
                     self.widgets[key] = glade.get_widget(key)
-                    #dbg.debug(key, self.widgets[key])
             if x:
                 if 'Window' in self.widgets:
                     W = self.widgets['Window']
@@ -485,7 +480,6 @@ class Layout(object):
             for key, val in self.elements.iteritems():
                 ## if int, that's just a counter 
                 if not isinstance(val, int):
-                    #dbg.write(val, dir(val))
                     self.widgets[key] = val.gtkWdg
 
             if x:
@@ -558,7 +552,6 @@ class Layout(object):
         items = {}
         for d in args:
             d = list(d)
-            #dbg.write(d)
             el_def = el_def.replace('m=','M=')
             menu = self.widgets[el_def]
             #print "menu: ", el_def, menu, self.widgets
@@ -585,7 +578,6 @@ class Layout(object):
                 else:
                     items[key] = gtk.MenuItem(key)
 
-                #dbg.write(key, *d[1:])
                 items[key].connect(*d[1:])
             menu.append(items[key])
             menu.show_all()
@@ -619,11 +611,9 @@ class Layout(object):
         for d in args:
             self.disconnect(d[0], signal=d[1])
 
-        #dbg.dshow(self.widgets, filter='^b=')
         self.connect(*args)
         
     def disconnect(self, el_def, signal=None, id=None, handler=None):
-        #dbg.dshow(self.connect_dict)
         if id:
             self.widgets[el_def].disconnect(id)
             del self.connect_dict[el_def][id]
@@ -724,7 +714,6 @@ class Layout(object):
         new_children = []
         index = 0
         for child in children:
-            dbg.write('QUI', child)
             key = keys[index]
             new_children += [child , labels_dict[key]]
             index = index + 1
@@ -861,7 +850,6 @@ def map_labels(filename=None, buf=None, sep='\t'):
         
 def get_labels():
     global info
-    dbg.dshow(info)
 
 def get_label(name):
     try:

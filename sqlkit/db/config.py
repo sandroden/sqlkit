@@ -1,5 +1,5 @@
 import os
-import dbg
+from sqlkit import debug as dbg
 from ConfigParser import ConfigParser
 
 class MissingConfigFileError(Exception): pass

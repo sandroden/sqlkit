@@ -18,8 +18,8 @@ from datetime import datetime
 from sqlkit.widgets.common import sqlwidget, CommitError, ValidationError
 from sqlkit import exc
 import sqlalchemy
-import dbg
-from  layout import widgets 
+from sqlkit import debug as dbg
+from sqlkit.layout import widgets 
 import re
 import gobject
 import gtk
@@ -205,8 +205,8 @@ class SqlTable(sqlwidget.SqlWidget):
     def setup_treeview_columns(self):
         """Setup the presentation of columns.
         Some assumptions are made:
-        - bool render to toggles
-        - other render to editable text cells
+        - bool render as toggles
+        - other render as editable text cells
         """
 
         #create and append columns
@@ -1122,6 +1122,8 @@ class SqlTable(sqlwidget.SqlWidget):
             if self.editable:
                 return self.editable.get_text()
         return getattr(self.get_current_obj(), field_name)
+
+
 
 
 

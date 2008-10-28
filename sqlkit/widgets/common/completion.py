@@ -16,7 +16,7 @@ group_by
 
 import re
 import gtk
-import dbg
+from sqlkit import debug as dbg
 import sqlkit
 from sqlalchemy import text, select, Table
 from sqlalchemy.sql import and_, or_, not_

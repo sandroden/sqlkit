@@ -2,7 +2,7 @@
 
 import sys
 
-import dbg
+from sqlkit import debug as  dbg
 #dbg.debug(True)
 dbg.debug(True, gtk=True)
 dbg.trace_class(ok='SqlTable|SqlWidget|SqlMask|Completion')

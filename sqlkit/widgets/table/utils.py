@@ -1,4 +1,6 @@
-import dbg, gobject, gtk
+from sqlkit import debug as dbg
+import gobject
+import gtk
 
 def set_height_request(treeview, rows=None):
     """Show "rows" rows in the treeview,

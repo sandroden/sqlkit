@@ -1,6 +1,7 @@
 from sqlalchemy import *
 import sqlalchemy 
-import sys, dbg
+import sys
+from sqlkit import debug as dbg
 import datetime
 import decimal
 import re

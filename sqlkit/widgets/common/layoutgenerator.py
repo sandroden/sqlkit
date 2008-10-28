@@ -1,6 +1,6 @@
 import sys, re
 import datetime
-import dbg
+from sqlkit import debug as dbg
 import decimal
 import sqlkit as sk
 

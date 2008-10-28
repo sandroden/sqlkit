@@ -21,8 +21,7 @@ import re
 #import datetime
 import os
 import gtk, gobject
-import dbg
-#from logger import LogTheMethods
+#from sqlkit.debug import debug as  dbg
 
 info = {}
 class LWidget(object):
@@ -1127,4 +1126,6 @@ def custom_widget(glade, function_name, widget_name,
         fk = fk_entry.FkEdit()
         fk.show()
         return fk
+
+
 

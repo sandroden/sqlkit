@@ -12,7 +12,7 @@ widgets only interpret gtk, while fields teat with real values and do validation
 
 from sqlkit.widgets.common import localtimezone
 import gtk
-import dbg
+from sqlkit import debug as  dbg
 from datetime import timedelta
 from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion
 

@@ -1,13 +1,12 @@
-import gtk
-from layout import layout
-import layout.misc
-import completion
-import dbg
 import re
+import gtk
+import completion
+from sqlkit.layout import layout, misc
+from sqlkit import debug as dbg
+from sqlkit.db.utils import tables, get_description
 import sqlalchemy
 from sqlalchemy.sql import select
-import sqlkit as sk
-from sqlkit.db.utils import tables, get_description
+import sqlkit 
 from datetime import *
 from sqlkit.db.django_syntax import django2components
 
@@ -43,7 +42,7 @@ class FilterPanel(object):
         
     def get_layout(self, visible=True):
         """create the filter panel widget"""
-        if isinstance(self.master, sk.SqlMask):
+        if isinstance(self.master, sqlkit.SqlMask):
             lay = """
             {H.a {B m=opts } {O.a tb=gtk-refresh ts=limit tb=gtk-close } }
             {N %filter
@@ -79,7 +78,7 @@ class FilterPanel(object):
         self.w['label-cursor'] = gtk.gdk.Cursor(gtk.gdk.HAND1)
         #self.l.xml('/tmp/f.glade')
         if 'TV=out' in self.w: 
-            self.easytv = layout.misc.EasyTreeView(
+            self.easytv = misc.EasyTreeView(
                 ['id', 'output'], tv=self.w['TV=out'], )
             self.selection = self.easytv.tv.get_selection()
             self.selection.connect('changed',self.on_selection_changed)
@@ -221,7 +220,7 @@ class FilterPanel(object):
             mapper = sqlalchemy.mapper(Join, join)
 
         self.mapper = mapper
-        self.map_fields = sk.minspect.InspectMapper(mapper)
+        self.map_fields = sqlkit.minspect.InspectMapper(mapper)
 
     def fill_model(self):
         """Fill the treeview with a clickable list 
