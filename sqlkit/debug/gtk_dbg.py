@@ -486,9 +486,15 @@ class show_widgets(object):
         prop   = model[path][0]
         gtype  = model[path][3]
 
+        def enforce_int(x):
+            if int(x) in range(8):
+                return int(xx)
+            else:
+                return ''
+            
         py_type = {
             # Ugly way to require a number smaller than 8.
-            'GtkAttachOptions' : (lambda x : int(x) if int(x) in range(8) else int('')),
+            'GtkAttachOptions' : enforce_int,
             'gint'     : int,
             'guint'     : int,
             'gchararray' : str,
