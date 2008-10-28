@@ -697,6 +697,8 @@ class SqlTable(sqlwidget.SqlWidget):
     def set_fkey_descr(self, column, cell, model, iter, field_name):
         """cell_data_function used by column that have fkey
         """
+        if not column.get_visible():
+            return
         obj = model.get(iter, 0)[0]
         if not obj:
             return
