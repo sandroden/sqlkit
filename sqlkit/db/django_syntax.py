@@ -45,7 +45,7 @@ from sqlalchemy.sql import and_, or_
 from sqlalchemy.orm import ColumnProperty, PropertyLoader
 from sqlalchemy.types import Date, DateTime
 from copy import deepcopy
-from dry.dateutils import string2dates
+from sqlkit.misc.datetools import string2dates
 
 OPERATORS = {
     'like'  : 'like',

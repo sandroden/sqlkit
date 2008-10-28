@@ -9,6 +9,7 @@ from sqlalchemy.sql import select
 import sqlkit 
 from datetime import *
 from sqlkit.db.django_syntax import django2components
+from sqlkit.misc.datetools import string2dates
 
 class SqlDataFixNeeded(Exception): pass
 
@@ -470,7 +471,6 @@ class FilterDateWidget(FilterWidget):
 
         """
 
-        from dry.dateutils import string2dates
         start, stop = string2dates(value)
 
         # If 'stop' is not None it means I have a period (eg.: 'y > M')

@@ -33,7 +33,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exceptions import OperationalError
 import gtk
-from dry import optionparse
+from sqlkit.misc import optionparse
 
 class MissingNickDefinition(Exception): pass
 
