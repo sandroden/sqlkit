@@ -9,11 +9,12 @@ but = 'set_fkey_descr|(lookup|get)_value|[el]ne_cb|match_func' + \
        '|cell_default_cb|cell_bool_cb|lookup_value|is_fkey|instance2'
 dbg.trace_function(exclude=but)
 
-from elixir_model import Director, Movie, Actor, Genre
-#from elixir_model_autoload import Director, Movie, Actor, Genre
+#from elixir_model import Director, Movie, Actor, Genre
+#from db_model import Director, Movie, Actor, Genre
+from db_model_autoload import Director, Movie, Actor, Genre
 
 import sqlkit
-import elixir
+#import elixir
 from sqlkit.db import proxy
 from sqlkit import completion
 from sqlkit.db.utils import TableDescr
@@ -33,11 +34,12 @@ lay = """
          director_id - - 
          m2m=genres  - m2m=actors -
          """
-t = sqlkit.SqlMask(mapper=Movie.mapper, dbproxy=db , session=elixir.session,layout=lay)
+t = sqlkit.SqlMask(Class=Movie, dbproxy=db , layout=lay)
 t.add_constraint(genres__name__like='sto%')
                  
 #tm.completions.director_id.set_constraint(name__icontains='d')
 t.reload()
+t.mapper.local_table.metadata.bind.echo = True
 
 # tt = sqlkit.SqlTable(mapper=Movie.mapper, session=elixir.session)
 # tt.reload()

@@ -1,0 +1,64 @@
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Table, Column, String, Date, Integer, Float, \
+     Boolean, Numeric, ForeignKey, Unicode
+from sqlalchemy.orm import relation
+
+from sqlkit.db.utils import Descr
+from sqlkit.db import proxy
+
+Base = declarative_base()
+db = proxy.DbProxy(engine="sqlite:///movies.sqlite", metadata=Base.metadata)
+
+
+movie_casting = Table('movie_casting' , Base.metadata,
+                      Column('movie_id', Integer, ForeignKey('movie.id')),
+                      Column('actor_id', Integer, ForeignKey('actor.id')),
+                      )
+
+movie_genre = Table('movie_genre' , Base.metadata,
+                      Column('movie_id', Integer, ForeignKey('movie.id')),
+                      Column('genre_name', Integer, ForeignKey('genre.name')),
+                      )
+
+class Director(Base):
+    __tablename__ = 'director'
+    id             = Column(Integer, primary_key=True)
+    last_name   = Column(String(60))
+    first_name  = Column(String(60))
+    nation      = Column(String(6))
+    
+    def __repr__(self):
+        return u'<Director: %s (%s)>' % (self.last_name, self.nation)
+
+class Movie(Base):
+    __tablename__  = 'movie'
+    id             = Column(Integer, primary_key=True)
+    title          = Column(String(60))
+    description    = Column(String(512))
+    year           = Column(Integer())
+    date_release   = Column(Date())
+    director_id    = Column(Integer, ForeignKey('director.id'))
+    director       = relation('Director', backref='movies')
+    actors         = relation('Actor', backref='movies', secondary=movie_casting)
+    genres         = relation('Genre', backref='movies', secondary=movie_genre)
+
+
+    def __repr__(self):
+        return u'<Movie: %s>' % self.title
+
+
+class Genre(Base):
+    __tablename__ = 'genre'
+    name     = Column(Unicode(15), primary_key=True)
+    
+    def __repr__(self):
+        return u'<Genre "%s">' % self.name
+
+class Actor(Base):
+    __tablename__ = 'actor'
+    id             = Column(Integer, primary_key=True)
+    name     = Column(String(60))
+
+    def __repr__(self):
+        return u'<Actor "%s">' % self.name
+
