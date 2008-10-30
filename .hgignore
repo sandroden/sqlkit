@@ -15,3 +15,4 @@ log
 python-build-stamp-2.5
 sqlkit.egg-info/
 debian/files
+doc/.build
