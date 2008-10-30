@@ -58,7 +58,7 @@ django2sqlalchemy
 You can get a sqlalchemy ``ClauseList`` object starting from a django-like
 expression using django2sqlalchemy function::
 
-  from sqlkit.db.sql import django2sqlalchemy
+  from sqlkit.db.django_syntax import django2sqlalchemy
   clause_list, join_paths = django2sqlalchemy(mapper, *args)
 
 where ``args`` can be or_=boolean or any django-like query.
@@ -80,7 +80,7 @@ Django2sqlalchemy returns a tuple: (clause_list, join_path):
 API
 ----
 
-.. automodule:: sqlkit.db.sql
+.. automodule:: sqlkit.db.django_syntax
 
 .. autofunction:: django2sqlalchemy
 
