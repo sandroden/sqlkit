@@ -334,7 +334,7 @@ class Layout(object):
         if '-' in self.opts:
             new_ret = []
             for el in ret:
-                if re.match('([a-zA-Z]+)=|[%-^\n@{]', el):
+                if re.match('([a-zA-Z0-9]+)=|[%-^\n@{]', el):
                     new_ret += [el]
                 else:
                     pattern = re.compile(r"""
