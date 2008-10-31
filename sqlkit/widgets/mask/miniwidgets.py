@@ -367,15 +367,18 @@ class CollectionWidget(Widget):
         table = self.field.db_spec['table']
 
         from sqlkit import SqlTable
+        loader_spec = self.master.laygen.loaders[self.field_name]
 
         self.table = SqlTable(
             table=table.name,
             geom = (-1, 160),
+            rows = loader_spec.get('rows', None),
             mapper = self.field.db_spec['mapper'],
             session=self.master.session,
             metadata=self.master.metadata,
             dbproxy=self.master.dbproxy,
             naked=True,
+            field_list = loader_spec.get('field_list', None),
             addto=self.gtkwidget,
             icons='b=gtk-new b=gtk-delete b=gtk-save',
             hide = self.field.db_spec['remote_attr'],
@@ -399,6 +402,9 @@ class CollectionWidget(Widget):
             self.table.relationship_mode = "m2m"
         elif direction == 'ONETOMANY':
             self.table.relationship_mode = "o2m"
+
+#         if self.field_name in self.master.laygen.loaders:
+#             self.table.set_field_list(self.master.laygen.loaders[self.field_name])
 
         self.master.related.add_element(self.field_name, self.table)
 

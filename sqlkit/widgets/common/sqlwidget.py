@@ -157,14 +157,13 @@ class SqlWidget(gobject.GObject):
         self.relationship_leader = relationship_leader
         self.records = []
         self.filter_panel = self._get_filter_panel()
-        if show:
-            self.show()
+        self.show(show)
         self.query = self.session.query(self.mapper)
             
-    def show(self):
+    def show(self, show):
         """create the widget and go on displaying the layout
         """
-        self.lay_obj, self.w  = self._get_layout(self.lay, self.naked)
+        self.lay_obj, self.w  = self._get_layout(self.lay, self.naked,)
 #         if self.sql or isinstance(self, sqlkit.table.SqlTable):
 #             self.reload(self.sql, limit=self.limit)
             
@@ -173,7 +172,8 @@ class SqlWidget(gobject.GObject):
         lcontainer_name = self.lay_obj.container().el_def
         el_def = re.sub(':.*','', lcontainer_name)
         #dbg.write('lcontainer_name: ', el_def)
-        self.w[el_def].show()
+        if show:
+            self.w[el_def].show()
         
     def hide_fields(self):
         if isinstance(self.hide, str):
@@ -306,10 +306,11 @@ class SqlWidget(gobject.GObject):
             self.values = lay.values
             return (lay.lay_obj, lay.w)
         
-        lay = LayoutGenerator(self, naked=naked, lay=lay).layout
+        self.laygen = LayoutGenerator(self, naked=naked, lay=lay)
+        lay = self.laygen.layout
         self.layout = lay
         self.lay_obj = layout.Layout(self.layout, addto=self.addto,
-                                     title=self.title, opts='T-')
+                                     title=self.title, opts='T-',)
         #if self.xml:
         #    self.lay_obj.xml('/tmp/m_%s.glade' % self.nick)
 
@@ -855,7 +856,8 @@ class SqlWidget(gobject.GObject):
         """
         True if field_name is a loader for a related table
         """
-
+        if field_name not in self.fields:
+            return 
         from  sqlalchemy.orm import properties
         prop = self.fields[field_name]['property']
         if isinstance(prop, properties.PropertyLoader):

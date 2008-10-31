@@ -361,8 +361,8 @@ class SqlMask (sqlwidget.SqlWidget):
         field_chooser = FieldChooser(self, self.w)
 
         for field_name in self.field_list:
-            ## MM is a workarond to bypass the fact that if I use 'A'
-            ## I'll ind *many* alignement for InterField
+            ## m2m is a workarond to bypass the fact that if I use 'A'
+            ## I'll find *many* alignement for InterField
             for mod in ('e','d','r','c', 'TX', 'Ce', 'm2m', 'm2o', 'o2m', 'o2o', 'fk'):
                 try:
                     key = "%s=%s" % (mod, field_name)

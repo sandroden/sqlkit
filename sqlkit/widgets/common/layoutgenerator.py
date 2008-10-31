@@ -1,3 +1,36 @@
+"""
+================
+Layoutgenerator
+================
+
+LayoutGenerator
+================
+
+build up the layout definition suitable for layout.Layout
+
+Building layout from scratch
+----------------------------
+
+In case no layout is passed, a simple layout is built consisting of all
+fields vertically packed based on fields in field_list
+
+
+Passing a  layout
+-------------------
+
+In case a layout is passed as argument, the content is parsed to add the
+labels and to set the type of widget used to represent the data (using
+the mapping in map_types) unless a type is passed in the layout
+
+
+Reference to other tables
+---------------------------
+
+A name of a field can also be of the form: table.field_name, in which case
+the table is reflected to get the type of the column, to adjust for the
+proper widget representation
+
+"""
 import sys, re
 import datetime
 from sqlkit import debug as dbg
@@ -8,31 +41,6 @@ from sqlalchemy import *
 
 
 class LayoutGenerator (object):
-    """build up the layout definition suitable for layout.Layout
-
-    Buiding layout from scratch
-    ----------------------------
-
-    In case no layout is passed, a simple layout is built consisting of all
-    fields vertically packed based on field in field_list
-    
-
-    Passing a  layout
-    -------------------
-
-    In case a layout is passed as argument, the content is parsed to add the
-    labels and to set the type of widget used to represent the data (using
-    the mapping in map_types) unless a type is passed in the layout
-
-    
-    Reference to other tables
-    ---------------------------
-
-    A name of a field can also be of the form: table.field_name, in which case
-    the table is reflected to get the type of the column, to adjust for the
-    proper widget representation
-    
-    """
     map_types = {
         datetime.datetime     : 'd',
         datetime.date         : 'd',
@@ -47,12 +55,14 @@ class LayoutGenerator (object):
     def __init__ (self, master, naked=False, lay=None):
         """fields: an InspectMapper object
         """
+        self.loaders = {}
         self.master = master
         self.fields = master.fields
         #self.used_field_dict = {}
         if isinstance(master, sk.SqlMask):
             if not lay:
                 lay = "\n".join(self.master.field_list)
+            self._look_for_loaders(lay)
             self.layout = self._parse_and_complete(lay)
 
         else:
@@ -60,6 +70,8 @@ class LayoutGenerator (object):
 
         if not naked:
             self._add_default_buttons()
+
+        
         #print self.layout
         #dbg.write(self.layout)
 
@@ -84,7 +96,7 @@ class LayoutGenerator (object):
         (?P<field>[a-z_0-9A-Z\.]+)  # the field + a possible table (table.field)
         (?![-=])               # the row above is only matched if not followed
                                # by - o = (b=gtk-save-as *must not* match)
-        (?P<spec>:[-<>.\d]*)?
+        (?P<spec>:[-<>.,a-zA-Z\d]*)?
         (?P<end>\b)
         """, re.VERBOSE | re.MULTILINE)
 
@@ -103,13 +115,15 @@ class LayoutGenerator (object):
                 return field_name
 
         widget = self.get_widget(field_name)
-
         spec = m.group('spec') or ''
+        
+        if self.master.is_loader(field_name):
+            self.loaders[field_name] = spec
 
         if not spec:
             spec = self.create_spec(field_name)
 
-        return " L=%s %s=%s%s" % (field_name, widget, field_name, spec)
+        return "L=%s %s=%s%s" % (field_name, widget, field_name, spec)
     
     def get_widget(self, field_name):
         """choose appropriate widget to represent this field
@@ -135,14 +149,15 @@ class LayoutGenerator (object):
         """create a spec string that decides how long en entry must be
            reflects fom db
            """
-        length = self.fields[field_name]['type']
+        length = self.fields[field_name]['length']
         col_spec = self.fields[field_name]['col_spec'] or ''
 
             
         if self.master.is_fkey(field_name) or self.master.is_loader(field_name):
-            ### FIXME: I should set the length of the foreign key?
+            ### FIXME: should I set the length of the foreign key?
             return ''
-        pytype = self.fields[field_name]['length']
+            
+        pytype = self.fields[field_name]['type']
         if col_spec == 'INTEGER' or pytype == int:
             return ":8"
         elif col_spec.startswith('FLOAT') or pytype == float:
@@ -221,3 +236,40 @@ class LayoutGenerator (object):
             lay = "%s\n{A.icons {H %s}}" % (lay, self.master.icons)
             
         return lay
+
+    def _look_for_loaders(self, lay):
+        """
+        Look for names that represent loaders, if any parse it for:
+
+          * rows          (eg: m2m=actors:5)
+          * field_list    (eg: m2m=actors:5:first_name,last_name)
+
+        set it in self.loaders['movies'] = {'rows': 5, 'field_list': 'first_name,last_name'}
+        """
+
+        pat = re.compile("""
+          ((?P<mod>m2m|m2o|o2m|o2o)=)?        # the modifier, but not the = sign
+          (?P<loader>[a-zA-Z0-9_\.]+)         # the possible loader:
+                                              # genre  genre.movies
+          (:(?P<spec>\d*))?                   # number of rows for the table
+          (:(?P<field_list>[\w,]+))?             # number of rows for the table
+          $
+        """, re.VERBOSE | re.MULTILINE)
+
+        for token in lay.split():
+            m = pat.match(token)
+            if m:
+                loader     = m.group('loader')  # to be verified
+                mod        = m.group('mod')
+                spec       = m.group('spec')
+                field_list = m.group('field_list')
+
+                if not self.master.is_loader(loader):
+                    continue
+                self.loaders[loader] = {}
+                if spec:
+                    self.loaders[loader]['rows'] = int(spec)
+                if field_list:
+                    self.loaders[loader]['field_list'] = field_list
+
+                    

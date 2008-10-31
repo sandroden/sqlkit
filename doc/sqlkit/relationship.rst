@@ -53,7 +53,7 @@ You just have to start te SqlMask like this::
           session=elixir.session,layout=lay)
 
 
-Ad you will get a mask that looks like this:
+And you will get a mask that looks like this:
 
 .. image:: ../img/director_movies.png
 
@@ -121,6 +121,7 @@ differently that adding from m2o:
   1. it requires the field to be already present
   2. it complain if it cannot get one single element with that value 
 
+
 Many2One or ForeigKey
 ======================
 
@@ -129,6 +130,19 @@ holds a ForeignKey, we just need to follow it to know the value. This again
 happens with no effort at all. In this case it's also possible to use this
 field in a filter selection. 
 
+Options 
+==========
+
+You can set the field_list directly from the layout as well as the number of 
+rows::
+
+
+   m2m=actors:5:first_name,last_name
+
+will set a 5 rows table, and a field list of ``first_name``, ``last_name``.
+The real dimension of the table depends also on the expand attributes of the
+containers. you may need to set them to ``gtk.EXPAND|gtk.FILL`` by hand. 
+There's an example that demonstrates it.
 
 Behind the scenes
 ===================

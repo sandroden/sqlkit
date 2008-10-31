@@ -201,15 +201,15 @@ class LWidget(object):
     def rowspan(self):
         if self.lw['container'] in ('T'):
             self.pack_properties['bottom_attach'] += 1
-        else:
-            dbg.warning("Span available only for Table qui: %s" % \
-                      self.lw['container'])
+#         else:
+#             dbg.warning("Span available only for Table qui: %s" % \
+#                       self.lw['container'])
 
     def colspan(self):
         if self.lw['container'] in ('T'):
             self.pack_properties['right_attach'] += 1
-        else:
-            dbg.write("Span available only for Table qui: %s" % self.lw['container'])
+#         else:
+#             dbg.write("Span available only for Table qui: %s" % self.lw['container'])
 
 
     def _class_specific(self):
@@ -230,7 +230,8 @@ class LWidget(object):
             try:
                 self.gtkWdg.set_property(p, val)
             except:
-                dbg.write("Fail prop %s for %s" % (p, self.gtkClass))
+                pass
+                #dbg.write("Fail prop %s for %s" % (p, self.gtkClass))
 
         return self.gtkWdg
                           
@@ -537,7 +538,7 @@ class Label(LWidget):
         if self.align:
             #dbg.debug("SELF ALIGN for ", self.lw['el_key'])
             if self.align in '<':
-                dbg.debug("""properties['xalign'] = 0""")
+                #dbg.debug("""properties['xalign'] = 0""")
                 self.properties['xalign'] = 0
             else:
                 self.properties['xalign'] = 1
@@ -691,10 +692,11 @@ class Table(LContainer):
     gtkClass = 'GtkTable'
     class_pack_properties = {
         'homogeneous' : False,
-        'y_options' : 'shrink|fill',
+#        'expand'       : True,
+        'y_options' : 'shrink',
+#        'y_options' : 'expand|fill',
         'x_options' : 'shrink',
         }
-    
     #def _class_specific(self):
         #self.pack_properties.update({"y_options": ""})
 
@@ -971,7 +973,7 @@ class ScrolledDrawingArea(ScrolledWindow):
         ScrolledWindow.__init__(self, el_def, pos, container=container, elements=elements)
         ## prepare the names...
         wdg = "da=%s:%s.%s" % (self.val, self.h or '', self.w or '')
-        dbg.write('wdg', wdg)
+        #dbg.write('wdg', wdg)
         ## and create the children
         new = DrawingArea(wdg,(0,0),    'S', elements=elements)
         self.lw['children_list'] = [ new  ]
@@ -1016,8 +1018,8 @@ class MenuItem(LContainer):
         # specify that we want write label before use_underline
         self.ordered_properties = ["label", "use_underline"]
         
-        for f in self.lw['children_list']:
-            dbg.debug("%s %s" % (self, self.lw['children_list']))
+#         for f in self.lw['children_list']:
+#             dbg.debug("%s %s" % (self, self.lw['children_list']))
 
 class MenuToolButton(MenuItem):
     gtkClass = 'GtkMenuToolButton'
