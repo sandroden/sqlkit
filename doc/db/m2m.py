@@ -14,12 +14,9 @@ dbg.trace_function(exclude=but)
 from db_model_autoload import Director, Movie, Actor, Genre
 
 import sqlkit
-#import elixir
 from sqlkit.db import proxy
 from sqlkit import completion
 from sqlkit.db.utils import TableDescr
-
-#elixir.metadata.bind.echo = True
 
 db = proxy.DbProxy(engine="sqlite:///movies.sqlite")
 TableDescr('director', format="%(first_name)s %(last_name)s",
@@ -31,26 +28,15 @@ TableDescr('movie', format="%(title)s (%(year)s)",
 
 lay = """
          title       year:5< 
-         director_id - - 
-         m2m=genres  - m2m=actors -
+         director_id - - -
+         {T.a m2m=genres:5   m2m=actors:5:first_name,last_name } - - -
          """
 t = sqlkit.SqlMask(Class=Movie, dbproxy=db , layout=lay)
-t.add_constraint(genres__name__like='sto%')
+#t.add_constraint(genres__name__like='sto%')
+Tbl = t.w['T.a']
+Tbl.get_parent().child_set_property(Tbl, 'y-options', gtk.EXPAND|gtk.FILL)
                  
-#tm.completions.director_id.set_constraint(name__icontains='d')
 t.reload()
 t.mapper.local_table.metadata.bind.echo = True
-
-# tt = sqlkit.SqlTable(mapper=Movie.mapper, session=elixir.session)
-# tt.reload()
-
-
-
-# lay = """
-#      name 
-#      m2m=movies -
-# """
-# tm2 = sqlkit.SqlMask(mapper=Genre.mapper, metadata=__metadata__, session=elixir.session,layout=lay)
-# t = tm.mfields['genres'].widget.table
 
 gtk.main()

@@ -38,6 +38,11 @@ class Actor(Base):
     __table__ = Table('actor', Base.metadata, autoload=True)
 
     def __repr__(self):
-        return u'<Actor "%s">' % self.name
+        return u'<Actor "%s">' % self.last_name
+
+class Nation(Base):
+    __table__ = Table('nation', Base.metadata, autoload=True)
+#     cod        = Column(String(4), primary_key=True)
+#     nation     = Column(String(20))
 
 

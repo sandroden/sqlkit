@@ -57,8 +57,14 @@ class Genre(Base):
 class Actor(Base):
     __tablename__ = 'actor'
     id             = Column(Integer, primary_key=True)
-    name     = Column(String(60))
+    first_name     = Column(String(60))
+    last_name      = Column(String(60))
 
     def __repr__(self):
         return u'<Actor "%s">' % self.name
 
+class Nation(Base):
+    __tablename__ = 'nation'
+    cod        = Column(String(4), primary_key=True)
+    nation     = Column(String(20))
+    
