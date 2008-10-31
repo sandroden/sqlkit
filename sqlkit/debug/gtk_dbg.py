@@ -45,10 +45,11 @@ class wshow(object):
             text = ''
             
         self.model.set(new,
-                       0, "%s %s" % (widget.name or '', text),
+                       0, "%s %s" % ((widget.name or '').strip(), text),
                        1, self.get_class_str(widget),
                        2, self.get_class_img(widget),
-                       3, widget
+                       3, widget,
+                       4, widget.get_property('visible'),
                        ) 
         return new
             
@@ -189,31 +190,44 @@ class show_widgets(object):
         return self.l, self.w
 
     def create_model(self, tv):
-        model = gtk.TreeStore(str, str, gtk.gdk.Pixbuf, gobject.TYPE_OBJECT)
+        model = gtk.TreeStore(str, str, gtk.gdk.Pixbuf, gobject.TYPE_OBJECT, bool)
         tv.set_enable_search(True)
         tv.set_search_column(0)
         tv.set_model(model)
 
+#        tvc0 = gtk.TreeViewColumn('Show')
         tvc1 = gtk.TreeViewColumn('Name')
         tvc2 = gtk.TreeViewColumn('Class')
+        cell_bool = gtk.CellRendererToggle()
+        cell_bool.set_property('activatable', True)
+        cell_bool.connect('toggled', self.toggle_visibility, model)
         cell_text1 = gtk.CellRendererText()
         cell_text2 = gtk.CellRendererText()
         cell_pix1  = gtk.CellRendererPixbuf()
 
         tvc1.pack_start(cell_pix1, False)
-        tvc1.pack_start(cell_text1, True)
-        tvc2.pack_start(cell_text2, True)
+        tvc1.pack_start(cell_text1, False)
+        tvc1.pack_start(cell_bool, False)
+        tvc2.pack_start(cell_text2, False)
 
+        tvc1.set_attributes(cell_bool, active=4)
         tvc1.set_attributes(cell_pix1, pixbuf=2)
         tvc1.set_attributes(cell_text1, text=0)
         tvc2.set_attributes(cell_text2, text=1)
 
         tv.connect('button-press-event', self.button_press_cb)
 
+#        tv.append_column(tvc0)
         tv.append_column(tvc1)
         tv.append_column(tvc2)
         return model
 
+    def toggle_visibility(self, cell, path, model):
+        widget = model[path][3]
+        show = model[path][4]
+        widget.set_property('visible', not show)
+        model[path][4] = not show
+        
     def add_tab_and_tree(self, menu_item, toplevel):
         #dbg.write(toplevel)
         lbl = toplevel.title
@@ -424,6 +438,8 @@ class show_widgets(object):
             'gchararray' : str,
             'gfloat'   : float,
             }
+        if new_text == "False":
+            new_text = False
         widget.set_property(prop, py_type[gtype](new_text))
         
         return
