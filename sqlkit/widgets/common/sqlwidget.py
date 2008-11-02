@@ -163,17 +163,17 @@ class SqlWidget(gobject.GObject):
     def show(self, show):
         """create the widget and go on displaying the layout
         """
-        self.lay_obj, self.w  = self._get_layout(self.lay, self.naked,)
+        self.lay_obj, self.widgets  = self._get_layout(self.lay, self.naked,)
 #         if self.sql or isinstance(self, sqlkit.table.SqlTable):
 #             self.reload(self.sql, limit=self.limit)
             
         ## only render when dimentions are complete
-        #self.w['Window'].show()
+        #self.widgets['Window'].show()
         lcontainer_name = self.lay_obj.container().el_def
         el_def = re.sub(':.*','', lcontainer_name)
         #dbg.write('lcontainer_name: ', el_def)
         if show:
-            self.w[el_def].show()
+            self.widgets[el_def].show()
         
     def hide_fields(self):
         if isinstance(self.hide, str):
@@ -294,7 +294,7 @@ class SqlWidget(gobject.GObject):
         """
 
         if isinstance(lay, sqlkit.SqlMask):
-            self.w = lay.w
+            self.widgets = lay.widgets
             self.filter_panel = lay.filter_panel
             ## NOTE: here I say that I can reach w/ get_value also the
             ##       values of the secondary mask. Of course you need to be
@@ -304,7 +304,7 @@ class SqlWidget(gobject.GObject):
             self._add_click_for_filter()
             self._add_color_to_labels()
             self.values = lay.values
-            return (lay.lay_obj, lay.w)
+            return (lay.lay_obj, lay.widgets)
         
         self.laygen = LayoutGenerator(self, naked=naked, lay=lay)
         lay = self.laygen.layout
@@ -317,15 +317,15 @@ class SqlWidget(gobject.GObject):
         if 'Window' in self.lay_obj.elements:
             self.lay_obj.prop('Window', 'visible', False)
 
-        self.w = self.lay_obj.show()
+        self.widgets = self.lay_obj.show()
 
-        if 'A.external' in self.w:
-            external_align = self.w['A.external']
+        if 'A.external' in self.widgets:
+            external_align = self.widgets['A.external']
             table = external_align.get_parent()
             table.child_set_property(external_align, 'y-options', gtk.EXPAND | gtk.FILL)
 
-        if 'S=tree' in self.w:
-            internal_align = self.w['S=tree']
+        if 'S=tree' in self.widgets:
+            internal_align = self.widgets['S=tree']
             table = internal_align.get_parent()
             table.child_set_property(internal_align, 'y-options', gtk.EXPAND | gtk.FILL)
 
@@ -342,7 +342,7 @@ class SqlWidget(gobject.GObject):
         self._add_actions_to_buttons()
         self._fill_menubar_menu()
         self.add_accelerators()
-        return (self.lay_obj, self.w)
+        return (self.lay_obj, self.widgets)
     
     def _get_relationship_path(self, path):
         """
@@ -383,7 +383,7 @@ class SqlWidget(gobject.GObject):
                                        gtk.gdk.CONTROL_MASK, 
                                        gtk.ACCEL_LOCKED, 
                                        self.gquit)
-        self.w['Window'].add_accel_group(self.accel_group)
+        self.widgets['Window'].add_accel_group(self.accel_group)
             
         
     def _add_actions_to_buttons(self):
@@ -410,17 +410,17 @@ class SqlWidget(gobject.GObject):
             'b=gtk-go-back'    : self.record_back,
             }
         for widget_name, handler in actions.iteritems():
-            if widget_name in self.w:
+            if widget_name in self.widgets:
                 #print "_add_actions_to_button: %s %s %s" % (
                 #    widget_name, 'clicked', handler)
-                #self.w[widget_name].connect('clicked', handler)
+                #self.widgets[widget_name].connect('clicked', handler)
                 self.lay_obj.connect((widget_name, 'clicked', handler))
-                self.lay_obj.tooltips.set_tip(self.w[widget_name], "mmh")
+                self.lay_obj.tooltips.set_tip(self.widgets[widget_name], "mmh")
                 self.lay_obj.tip(widget_name, "mi chiamo %s" % widget_name)
 
         ## style for toolbar if any
-        if 'O.tool' in self.w:
-            self.w['O.tool'].set_show_arrow(False)
+        if 'O.tool' in self.widgets:
+            self.widgets['O.tool'].set_show_arrow(False)
             self.lay_obj.prop('O.tool', 'toolbar_style','GTK_TOOLBAR_ICONS')
     
 
@@ -712,7 +712,7 @@ class SqlWidget(gobject.GObject):
         if not self.save_unsaved():
             return
 
-        self.w['Window'].destroy()
+        self.widgets['Window'].destroy()
         self.filter_panel.destroy()
         if self.single:
             self.gquit()
@@ -819,11 +819,11 @@ class SqlWidget(gobject.GObject):
         
     def show_widgets(self, *args):
         import dbg.gtk_dbg
-        dbg.gtk_dbg.show_widgets(self.w['Window'])
+        dbg.gtk_dbg.show_widgets(self.widgets['Window'])
     
     def _fill_menubar_menu(self):
         """here all menus are filled for filtering,  sorting, ro, query..."""
-        if 'm=file' in self.w:
+        if 'm=file' in self.widgets:
             self.lay_obj.menu(
                 'm=file',
                 ('filter panel',  'activate', self.add_filter_cb),
@@ -971,7 +971,7 @@ class SqlWidget(gobject.GObject):
         trailing suffix .sxw and that name is used as entry for the menu
         """
         
-        Menu = self.w['M=file']
+        Menu = self.widgets['M=file']
         Item = gtk.ImageMenuItem('gtk-print')
         Menu.insert(Item, 2)
         SubMenu = gtk.Menu()

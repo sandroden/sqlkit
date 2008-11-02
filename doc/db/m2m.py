@@ -33,7 +33,7 @@ lay = """
          """
 t = sqlkit.SqlMask(Class=Movie, dbproxy=db , layout=lay)
 #t.add_constraint(genres__name__like='sto%')
-Tbl = t.w['T.a']
+Tbl = t.widgets['T.a']
 Tbl.get_parent().child_set_property(Tbl, 'y-options', gtk.EXPAND|gtk.FILL)
                  
 t.reload()

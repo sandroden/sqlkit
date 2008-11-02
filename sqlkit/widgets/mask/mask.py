@@ -354,11 +354,11 @@ class SqlMask (sqlwidget.SqlWidget):
         if not self.vfields:
             self.vfields = {}
         ## by now I only use entry, date, radio, checbuttom, comboBox to represent data
-        #dbg.dshow(self.w, 'e=')
+        #dbg.dshow(self.widgets, 'e=')
 #         if self.nick == 'art':
-#             print self.w.keys()
+#             print self.widgets.keys()
 
-        field_chooser = FieldChooser(self, self.w)
+        field_chooser = FieldChooser(self, self.widgets)
 
         for field_name in self.field_list:
             ## m2m is a workarond to bypass the fact that if I use 'A'
@@ -366,7 +366,7 @@ class SqlMask (sqlwidget.SqlWidget):
             for mod in ('e','d','r','c', 'TX', 'Ce', 'm2m', 'm2o', 'o2m', 'o2o', 'fk'):
                 try:
                     key = "%s=%s" % (mod, field_name)
-                    widget = self.w[key]
+                    widget = self.widgets[key]
                     field = field_chooser.get_field(field_name, self.fields[field_name], key)
 
                     self.vfields[field_name] = field
@@ -380,8 +380,8 @@ class SqlMask (sqlwidget.SqlWidget):
         self.labels = {}
         for field_name in self.fields.keys():
             lbl_name_wdg = "l=%s" % field_name
-            if lbl_name_wdg in self.w:
-                self.labels[field_name] = self.w[lbl_name_wdg]
+            if lbl_name_wdg in self.widgets:
+                self.labels[field_name] = self.widgets[lbl_name_wdg]
                 #dbg.write("%s -> %s"% (field_name, self.labels[field_name]))
             else:
                 #dbg.write("Missing event_box for %s" % (field_name))

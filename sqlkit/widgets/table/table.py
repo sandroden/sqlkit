@@ -60,7 +60,7 @@ class SqlTable(sqlwidget.SqlWidget):
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
         self.liststore = gtk.ListStore(object)
         ## layout
-        self.treeview = self.w["TV=tree"]
+        self.treeview = self.widgets["TV=tree"]
         self.treeview.set_enable_search(False)
         self.treeview.show_all()
         #dbg.write(type(self.treeview))
@@ -102,27 +102,27 @@ class SqlTable(sqlwidget.SqlWidget):
                 )
             ## just icons, no text
             for b in self.icons.split(" "):
-                self.w[b].set_label = None
-                self.w[b].get_image().set_property('icon-size', 1)
-                alignment = self.w[b].get_children()[0]
+                self.widgets[b].set_label = None
+                self.widgets[b].get_image().set_property('icon-size', 1)
+                alignment = self.widgets[b].get_children()[0]
                 hbox = alignment.get_children()[0]
                 image, label = hbox.get_children()
                 label.set_text('')
                 
 
-        return (self.lay_obj, self.w)
+        return (self.lay_obj, self.widgets)
 
 
     
     def popup_col_menu(self, ev, field_name):
 
         try:
-            self.w['M=popup'].destroy()
+            self.widgets['M=popup'].destroy()
         except:
             pass
 
         
-        menu = self.w['M=popup'] = gtk.Menu()
+        menu = self.widgets['M=popup'] = gtk.Menu()
 
         ## add to filter
         item = gtk.MenuItem(label="add %s to filter" % field_name.replace('_', ' '))
