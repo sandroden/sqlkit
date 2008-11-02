@@ -82,8 +82,15 @@ in this way::
 Filtering
 -----------
 
-It is now possible to filter on a fields present in related tables, eg.:
+It is now possible to filter on a field present in related tables, eg.:
 filtering all films that have a certain genre.
+
+.. note::
+
+   the filter is not *aliased*, (see `sqlalchemy docs`_) so that applying
+   filters to the same table will result sometimes in a counterintuitive
+   situation (that is anyhow correct if you understand it)
+
 
 
 Many2many relationship
@@ -153,5 +160,4 @@ that name and realizes that it's a PropertyLoader. That means that such an
 entry point has been put there by a ``relation``. 
 
 
-  
-
+.. _`sqlalchemy docs`: http://www.sqlalchemy.org/docs/05/documentation.html#datamapping_joins_aliases
