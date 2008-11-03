@@ -46,9 +46,11 @@ import datetime
 from sqlkit import debug as dbg
 import decimal
 import sqlkit as sk
-
+from sqlkit.layout.widgets import register, register_alias, Alignment
 from sqlalchemy import *
 
+for mod in ('m2m', 'm2o', 'o2m', 'o2o'):
+    register_alias(Alignment, mod)
 
 class LayoutGenerator (object):
     map_types = {

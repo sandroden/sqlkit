@@ -1044,7 +1044,7 @@ class ColorSelection(LWidget):
     
 class ColorButton(LWidget):
     gtkClass = 'GtkColorButton'
-    
+
 
 _W = {
     'l'   : Label,
@@ -1096,10 +1096,6 @@ _W = {
     'Fix' : Fixed,
     'F' : FrameWithLabel,
     'A' : Alignment,
-    'm2m' : Alignment,  # used in sqlkit m2m, m2o layout definition
-    'm2o' : Alignment,
-    'o2m' : Alignment,
-    'o2o' : Alignment,
     'Lay' : Layout,
     'LS' : ScrolledLayout,
     
@@ -1133,3 +1129,18 @@ def custom_widget(glade, function_name, widget_name,
 
 
 
+
+def register(Class, mod):
+    """
+    register a class to be used within widgets
+    'mod' is the string used in layout
+    """
+    pass
+
+def register_alias(Class, alias):
+    """
+    register an alias for Class
+    """
+    global _W
+    _W[alias] = Class
+    
