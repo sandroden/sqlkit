@@ -439,21 +439,11 @@ class Entry(LWidget):
     transpose = {
         'w' : 'width_chars',
         }
-    def _class_specific(self):
+#     def _class_specific(self):
 
-        if self.w:
-            self.properties['max-length'] = self.w
+#         if self.w:
+#             self.properties['max-length'] = self.w
 
-#         if self.align:
-#             ## !!! really I don't have 'elements' here, but the entry has already
-#             ##     been registered...
-#             align = Alignment(el_def.replace('e=','A='), pos, container,
-#                               children_list=self, elements=None)
-#             if self.align in '<':
-#                 align.properties['xalign'] = 0
-#             else:
-#                 align.properties['xalign'] = 1
-#             self = align
             
 class DateEdit(LWidget):
     gtkClass = 'Custom'
@@ -871,42 +861,6 @@ class ComboLE(LContainer):
     def _class_specific(self):
         self.pack_properties.update({"y_options": ""})
 
-class Tollerance(LContainer):
-    gtkClass = 'GtkFixed'
-
-    def __init__(self,  el_def, pos, container, children_list=[], elements={}):
-        el_def = el_def.replace('Toll=','Fix=')
-        super(LContainer, self).__init__(el_def, pos, container, elements)
-        ## prepare the names...
-        #lbl = "L=%s" % (self.val)
-        wdg1 = "e=%s" % (self.el_def.replace('Fix=',''))
-        wdg2 = "e=%s_toll_op" % (self.el_def.replace('Fix=',''))
-        wdg3 = "e=%s_toll" %    (self.el_def.replace('Fix=',''))
-        
-
-        ## and create the children
-        w1 = Entry(wdg1, (0,0),    container='Fix', elements=elements)
-        w2 = Entry(wdg2, (0,0),    container='Fix', elements=elements)
-        w3 = Entry(wdg3, (0,0),    container='Fix', elements=elements)
-        self.lw['children_list'] = [ w1, w2, w3  ]
-        w1.pack_properties['x'] = 0
-        w1.pack_properties['y'] = 0
-        w1.properties['width_request'] = 60
-
-        w2.pack_properties['x'] = 70
-        w2.pack_properties['y'] = 0
-        w2.properties['width_request'] = 40
-
-        w3.pack_properties['x'] = 120
-        w3.pack_properties['y'] = 0
-        w3.properties['width_request'] = 60
-
-    def _class_specific(self):
-        self.pack_properties.update({
-            'expand' : True,
-            'fill' : True,
-            })
-        
 class ScrolledTreeView(LContainer):
     gtkClass = 'GtkScrolledWindow'
 
@@ -1048,9 +1002,9 @@ _W = {
     'nl'  : NotebookLabel,
     'fl'  : FrameLabel,
     'e'   : Entry,
-    'ae'   : AlignmentEntry,
+    'ae'  : AlignmentEntry,
     'd'   : DateEdit,
-    'da'   : DrawingArea,
+    'da'  : DrawingArea,
     'i'   : Image,
     'b'   : Button,
     'r'   : RadioButton,
@@ -1060,7 +1014,6 @@ _W = {
     'c'   : CheckButton,
     's'   : SpinButton,
     'ts'  : ToolSpinButton,
-    'Toll'   : Tollerance,
     'C'   : ComboBox,
     'Ce'  : ComboBoxEntry,
     'TV'  : TreeView,

@@ -80,6 +80,8 @@ class VarcharWidget(Widget):
         ## don't change from None to '' 
         return value
 
+    def set_max_length(self, length):
+        self.gtkwidget.set_max_length(length)
         
 class IntegerWidget(VarcharWidget):
 

@@ -28,13 +28,6 @@ from utils import set_height_request, set_all_nonfilling, set_this_filling
 from  cell_renderers import CellRendererDate, CellRendererDatetime
 import totals
 
-if sys.hexversion < 0x20401f0:
-    print "your python version: ", hex(sys.hexversion)
-    print "needed python version >= ", hex(0x20401f0)
-    sys.exit(-1)
-
-
-
 class SqlTable(sqlwidget.SqlWidget):
     """implementation with a listore with a single column that holds the
     sqlalchemy obj
@@ -601,26 +594,18 @@ class SqlTable(sqlwidget.SqlWidget):
         self.actions.set_entry_connect(self.editable, field_name)
         field_props = self.fields[field_name]
 
-        if hasattr(self.widgets[field_name], 'completion'):
-            completion = self.widgets[field_name].completion
-            completion .add_completion(editable)
-
+        if hasattr(self.field_widgets[field_name], 'completion'):
+            completion = self.field_widgets[field_name].completion
+            completion.add_completion(editable)
+            
             ## COMPLETION
             editable.connect('button-press-event',completion.pop_menu, field_name, 3)
             editable.connect('key-press-event', completion.keypress_event_cb, field_name)
-
+            
         ## MAX LENGTH
-        if self.fields[field_name]['type'] is str:
-            length = self.fields[field_name]['length']
-            if length:
-                editable.set_max_length(length)
-
-#             editable.connect('key-release-event',
-#                              self.keyrelease_event_cb, field_name)
-
+        self.field_widgets[field_name].field.set_max_length()
                 
         self.edited_row_model_path = path
-        dbg.write("self.edited_row_model_path = %s" % (self.edited_row_model_path))
         self.commit_inhibited = False
         return True
     

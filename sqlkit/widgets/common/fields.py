@@ -70,7 +70,7 @@ class FieldChooser(object):
             return FloatField(*args)
 
         if (COL_SPEC and COL_SPEC.startswith('VARCHAR'))  or DB_TYPE == str:
-            if isinstance(gtk_widget, gtk.Entry):
+            if isinstance(gtk_widget, gtk.Entry) or not gtk_widget:
                 return VarcharField(*args)
 
         if isinstance(gtk_widget, gtk.TextView) or DB_TYPE == str:
@@ -121,7 +121,8 @@ class Field(object):
         else:
             ### used in SqlTable
             self.widget = CellWidget(self)
-        self.master.widgets[field_name] = self.widget
+        self.master.field_widgets[field_name] = self.widget
+        self.set_max_length()
 
     def set_value(self, value, initial=True):
         value = self.clean_initial_value(value)
@@ -168,13 +169,18 @@ class Field(object):
     def validate(self):
         pass
 
+    def set_max_length(self, editable=None):
+        """
+        Set max length of the entry used, based on the info from the database
+        """
+        pass
         
     def __repr__(self):
         return "<%s - %s >" % (self.__class__.__name__, self.field_name)
 
 class VarcharField(Field):
     Widget = VarcharWidget
-
+    
     def clean_initial_value(self, value):
         if value == None:
             value = ''
@@ -185,6 +191,10 @@ class VarcharField(Field):
         if value == '' and self.initial_value is None:
             return None
         return value
+
+    def set_max_length(self):
+        if self.db_spec['length']:
+            self.widget.set_max_length(self.db_spec['length'])
 
 class IntegerField(Field):
     Widget = IntegerWidget

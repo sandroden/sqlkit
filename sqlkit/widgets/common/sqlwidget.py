@@ -111,7 +111,7 @@ class SqlWidget(gobject.GObject):
         gobject.GObject.__init__(self)
         self.related = Container()
         self.vfields = Container()
-        self.widgets = Container()
+        self.field_widgets = Container()
         self.completions = Container()
         self.icons = icons
 #        self.filter = filter
@@ -812,7 +812,7 @@ class SqlWidget(gobject.GObject):
         dbg.gtk_dbg.ShowMapperInfo(self.fields)
         
     def show_widget_info(self, *args):
-        dbg.gtk_dbg.show_widgets()
+        dbg.gtk_dbg.show_widgets(self.widgets['Window'])
         
     def show_class_info(self, *args):
         dbg.gtk_dbg.ShowClassInfo(self) 

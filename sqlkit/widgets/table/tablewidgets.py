@@ -11,7 +11,7 @@ class CellWidget(object):
         self.add_completion(master.is_fkey(field_name),
                             master.get_field_type(field_name))
 
-        self.master.widgets[field_name] = self
+        self.master.field_widgets[field_name] = self
         
     def fget(self):
         # CellWidget has an editable only if we're editing...
@@ -41,5 +41,10 @@ class CellWidget(object):
     def get_value(self, shown=False):
         return self.master.get_value(self.field_name)
 
-    
+    def set_max_length(self, length):
+        try:
+            self.entry.set_max_length(length)
+        except:
+            pass
+            
 
