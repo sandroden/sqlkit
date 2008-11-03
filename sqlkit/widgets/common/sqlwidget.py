@@ -334,11 +334,11 @@ class SqlWidget(gobject.GObject):
 
 
         if isinstance(self, sqlkit.SqlMask):
-            self._analize_widgets_in_layout()
             self._add_click_for_filter()
             self._add_color_to_labels()
 
 
+        self.setup_field_validation()
         self._add_actions_to_buttons()
         self._fill_menubar_menu()
         self.add_accelerators()

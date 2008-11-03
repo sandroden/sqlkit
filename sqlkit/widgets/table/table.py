@@ -79,7 +79,6 @@ class SqlTable(sqlwidget.SqlWidget):
         self.treeview.connect('key-press-event', self.keypress_event_cb)
 
         self.setup_treeview_columns()
-        self.setup_field_validation()
         ## let tree use all the available space... 
         if not self.naked:
             self.lay_obj.prop('A.external','yscale',1)

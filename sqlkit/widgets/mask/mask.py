@@ -337,7 +337,7 @@ class SqlMask (sqlwidget.SqlWidget):
         
 
 ####### Layout, Reflection & Analisys
-    def _analize_widgets_in_layout(self):
+    def setup_field_validation(self):
         """fill variables from layout
 
         vfields
@@ -347,16 +347,11 @@ class SqlMask (sqlwidget.SqlWidget):
            :value: is a field from sqlkit.widget.mask.fields
 
         """
-        ## FIXME: does not work when renaming: euro.user_id -> euro_user_id
-
         ## vfields can be passed as argument of the class. In that case widgets
         ## used to represent the data are provided by another SqlMask
         if not self.vfields:
             self.vfields = {}
         ## by now I only use entry, date, radio, checbuttom, comboBox to represent data
-        #dbg.dshow(self.widgets, 'e=')
-#         if self.nick == 'art':
-#             print self.widgets.keys()
 
         field_chooser = FieldChooser(self, self.widgets)
 
@@ -376,17 +371,29 @@ class SqlMask (sqlwidget.SqlWidget):
             
             # (gtkClass , gtkWidget)
 
-        ## all EventBox 
-        self.labels = {}
-        for field_name in self.fields.keys():
-            lbl_name_wdg = "l=%s" % field_name
-            if lbl_name_wdg in self.widgets:
-                self.labels[field_name] = self.widgets[lbl_name_wdg]
-                #dbg.write("%s -> %s"% (field_name, self.labels[field_name]))
-            else:
-                #dbg.write("Missing event_box for %s" % (field_name))
-                pass
-    
+
+    def setup_field_validation(self):
+        """fill variables from layout
+
+        vfields: validation fields
+        --------------------------
+        is a dict: 
+           :key:   is the field_name
+           :value: is a field from sqlkit.widget.mask.fields
+
+        """
+        ## vfields can be passed as argument of the class. In that case widgets
+        ## used to represent the data are provided by another SqlMask
+        if not self.vfields:
+            self.vfields = {}
+
+        field_chooser = FieldChooser(self, self.widgets)
+        for field_name, widget_key in self.laygen.fields_in_layout.iteritems():
+            widget = self.widgets[widget_key]
+            field = field_chooser.get_field(field_name, self.fields[field_name], widget_key)
+            
+            self.vfields[field_name] = field
+            
     def toggle_with_null_cb(self, button):
         """a toggle function that loops through inconsinstent state also
         """
@@ -446,6 +453,17 @@ class SqlMask (sqlwidget.SqlWidget):
         adding tooltips and click for filter_panel
         """
 
+        ## all EventBox 
+        self.labels = {}
+        for field_name in self.fields.keys():
+            lbl_name_wdg = "l=%s" % field_name
+            if lbl_name_wdg in self.widgets:
+                self.labels[field_name] = self.widgets[lbl_name_wdg]
+                #dbg.write("%s -> %s"% (field_name, self.labels[field_name]))
+            else:
+                #dbg.write("Missing event_box for %s" % (field_name))
+                pass
+    
         ## add click that pops filter_panel
         for field_name, label in self.labels.iteritems():
             #print "label", label, 'field_name', field_name
