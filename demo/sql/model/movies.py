@@ -61,7 +61,7 @@ class Actor(Base):
     last_name      = Column(String(60))
 
     def __repr__(self):
-        return u'<Actor "%s">' % self.name
+        return u'<Actor %s %s>' % (self.first_name, self.last_name)
 
 class Nation(Base):
     __tablename__ = 'nation'
