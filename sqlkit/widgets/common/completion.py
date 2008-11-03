@@ -144,7 +144,7 @@ class SimpleCompletion(object):
         entry.set_completion(self.completion)
         
 ### Filling & popping the completion
-    def show_possible_completion(self, widget, field_name, mode):
+    def show_possible_completion(self, widget, mode):
         """fill in a ListStore to use with completion, fetch data from db
         mode determines the match of the already typed text:
         start: only matching data starting with typed text
@@ -155,7 +155,7 @@ class SimpleCompletion(object):
         self.master.sb("search: %s" % mode)
         self.model.clear()
 
-        result = self.select_values(field_name, mode)
+        result = self.select_values(self.field_name, mode)
         for obj in result:
             self.append_to_model(obj)
 
@@ -389,7 +389,7 @@ class SimpleCompletion(object):
                    or (length + 1 < self.autostart_last_length):
                 autostart = self.autostart
                 self.autostart = False
-                self.show_possible_completion(self.widget.entry, self.field_name, 'regexp')
+                self.show_possible_completion(self.widget.entry, 'regexp')
                 self.autostart = autostart
         return True
     
@@ -418,14 +418,14 @@ class SimpleCompletion(object):
         
         ## possible values regexp
         item = gtk.MenuItem(label="possible values: regexp  - F1")
-        item.connect('activate', self.show_possible_completion, field_name, 'regexp')
+        item.connect('activate', self.show_possible_completion, 'regexp')
         label = "Mostra tutti i valori attualmente nel db che 'matchino'"
         self.master.lay_obj.tooltips.set_tip(item,label)
         menu.append(item)
 
         ## possible values starting
         item = gtk.MenuItem(label="possible values, starting - Ctrl-F1")
-        item.connect('activate', self.show_possible_completion, field_name, 'start')
+        item.connect('activate', self.show_possible_completion, 'start')
         label = "Mostra tutti i valori attualmente nel db, che cominciano con..."
         self.master.lay_obj.tooltips.set_tip(item,label)
         menu.append(item)
@@ -485,15 +485,15 @@ class SimpleCompletion(object):
         return False
 
     def key_entry_F1(self, wdg, event, data):
-        self.show_possible_completion(wdg, field_name=data, mode='regexp')
+        self.show_possible_completion(wdg, mode='regexp')
         return False
     
     def key_entry_shift_Return(self, wdg, event, data):
-        self.show_possible_completion(wdg, field_name=data, mode='start')
+        self.show_possible_completion(wdg, mode='start')
         return True
         
     def key_entry_ctrl_Return(self, wdg, event, data):
-        self.show_possible_completion(wdg, field_name=data, mode='regexp')
+        self.show_possible_completion(wdg, mode='regexp')
         return True
         
     def key_entry_Return(self, wdg, event, data):
@@ -522,7 +522,7 @@ class SimpleCompletion(object):
                 self.get_obj_no_flush(text)
 
             except (NoResultFound, MultipleResultsFound), e:
-                self.show_possible_completion(entry, field_name=self.field_name, mode='regexp')
+                self.show_possible_completion(entry, mode='regexp')
                 return True
 
         return False

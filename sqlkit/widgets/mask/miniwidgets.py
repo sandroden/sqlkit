@@ -254,8 +254,8 @@ class ForeignKeyComboboxWidget(Widget):
     def on_popup(self, widget, params):
         """the popup should be empty. We force the completion instead
         """
-        self.completion.show_possible_completion(
-            self.gtkwidget, field_name=self.field_name, mode='regexp')
+        self.completion.show_possible_completion(self.gtkwidget, mode='regexp')
+            
         return True
 
     def clean_real_value(self, *args):
@@ -326,7 +326,7 @@ class ForeignKeyWidget(Widget):
 
     def on_button_clicked(self, widget):
         self.completion.show_possible_completion(
-            self.entry, field_name=self.field_name, mode='regexp')
+            self.entry, mode='regexp')
         return True
 
     def on_key_press(self, widget, event, when='press'):
