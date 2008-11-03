@@ -1,0 +1,20 @@
+"""completion/dinamic filter 
+
+A filter on completions may also be based on value of onother field in the
+moment the competion is invoked.
+
+Here the contrainst is on nation. The completion of director is constrained by a possible value entered in nation.
+"""
+
+lay = """
+   first_name
+   last_name
+   nation
+"""
+
+t = SqlMask(Class=model.Director, dbproxy=db, layout=lay)
+
+t.completions.last_name.filter(nation='$nation')
+t.set_value('nation', 'ITA')
+
+t2 = SqlMask(Class=model.Director, dbproxy=db, layout=lay)
