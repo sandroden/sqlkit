@@ -22,13 +22,23 @@ In case a layout is passed as argument, the content is parsed to add the
 labels and to set the type of widget used to represent the data (using
 the mapping in map_types) unless a type is passed in the layout
 
+attributes
+----------
 
-Reference to other tables
----------------------------
+``fields_in_layout`` is a dict that maps field_names to widget specification
+ie: the key to  be used in widgets dictionary
 
-A name of a field can also be of the form: table.field_name, in which case
-the table is reflected to get the type of the column, to adjust for the
-proper widget representation
+  * {'first_name': 'e=first_name', 'date': 'd=date', 'year': 'e=year'}
+
+*without any specification*
+
+
+.. Reference to other tables
+.. ---------------------------
+.. 
+.. A name of a field can also be of the form: table.field_name, in which case
+.. the table is reflected to get the type of the column, to adjust for the
+.. proper widget representation
 
 """
 import sys, re
@@ -57,6 +67,7 @@ class LayoutGenerator (object):
         """
         self.loaders = {}
         self.master = master
+        self.fields_in_layout = {}  # {'first_name': 'e=first_name', 'date': 'd=date'}
         self.fields = master.fields
         #self.used_field_dict = {}
         if isinstance(master, sk.SqlMask):
@@ -107,12 +118,12 @@ class LayoutGenerator (object):
         """
         field_name = m.group('field')
         
-        ## this is for reference of fields defined in other tables: tbl.field
-        if field_name not in self.fields:
-            ## any field that is not explicitly here is mapped into 'str'
-            field_name, t, col_spec = self.register(field_name)
-            if t is None:  # this is not a db field
-                return field_name
+#         ## this is for reference of fields defined in other tables: tbl.field
+#         if field_name not in self.fields:
+#             ## any field that is not explicitly here is mapped into 'str'
+#             field_name, t, col_spec = self.register(field_name)
+#             if t is None:  # this is not a db field
+#                 return field_name
 
         widget = self.get_widget(field_name)
         spec = m.group('spec') or ''
@@ -123,8 +134,20 @@ class LayoutGenerator (object):
         if not spec:
             spec = self.create_spec(field_name)
 
+        self.fields_in_layout[field_name] = "%s=%s" % (self.get_edit_string(widget), field_name)
+                             
         return "L=%s %s=%s%s" % (field_name, widget, field_name, spec)
-    
+
+    def get_edit_string(self, mod):
+        """
+        return the real modifier that handle editing
+        """
+        if mod in ('ae'):
+            return 'e'
+        else:
+            return mod
+        
+        
     def get_widget(self, field_name):
         """choose appropriate widget to represent this field
         """
@@ -271,5 +294,6 @@ class LayoutGenerator (object):
                     self.loaders[loader]['rows'] = int(spec)
                 if field_list:
                     self.loaders[loader]['field_list'] = field_list
+                self.fields_in_layout[loader] = "%s=%s" % (mod, loader)
 
                     

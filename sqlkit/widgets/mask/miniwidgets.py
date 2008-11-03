@@ -85,7 +85,7 @@ class IntegerWidget(VarcharWidget):
 
     def __init__(self, *args):
         Widget.__init__(self, *args)
-        self.gtkwidget.set_alignment(1), self.gtkwidget
+        self.gtkwidget.set_alignment(1)
         self.gtkwidget.connect('key-press-event', self.master.digits_check_input_cb  )
                 
     def set_value(self, value):
