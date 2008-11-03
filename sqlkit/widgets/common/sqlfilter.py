@@ -112,7 +112,7 @@ class FilterPanel(object):
             index = operator_list.index(op.upper())
             filter_widget.operator.set_active(index)
         except ValueError, e:
-            print e
+            print "operator '%s' not available in this context" % op.upper()
             pass
 
     def get_related_master(self, master, path=None):
@@ -161,8 +161,9 @@ class FilterPanel(object):
         self.w['Window'].destroy()
     
 ##### reload & TreeView
-    def reload_cb(self, widget):
+    def reload(self):
         """issue a reload operation on master. Call back of reload button"""
+
         length = 0
         if 'TV=out' in self.w:
             display = False
@@ -186,7 +187,12 @@ class FilterPanel(object):
                 self.fill_model()
                 self.w['N.0'].set_current_page(1)
                 self.master.record_display(0)
-            
+
+    def reload_cb(self, widget):
+        """callback from reload button
+        """
+        self.reload()
+
     def set_reload(self, mapper=None, join=None, tables=None):
         """A different method to filter & select is provided
         the scenario is that you have many synced sqlwidgets, you want to provide the
