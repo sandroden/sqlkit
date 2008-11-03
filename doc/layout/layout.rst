@@ -233,12 +233,12 @@ A partial list of elements:
 
 
 
+custom  widgets
+---------------
 
-
-
-
-
-
+Occasionally you will find yourself in nee for a custom identifier. You can
+create one and register it. Have a loook at the code in layoutgenerator
+module.
 
 
 Calling Layout
@@ -362,18 +362,11 @@ flags:
        e=name.id1/string
 
 
-
-
-
 stock names
 --------------
 
 if the name of an element starts with 'gtk-', use-stock = True is set for
 that element.
-
-
-
-
 
 Notebook
 --------

@@ -46,11 +46,26 @@ import datetime
 from sqlkit import debug as dbg
 import decimal
 import sqlkit as sk
-from sqlkit.layout.widgets import register, register_alias, Alignment
+from sqlkit.layout import widgets
 from sqlalchemy import *
 
 for mod in ('m2m', 'm2o', 'o2m', 'o2o'):
-    register_alias(Alignment, mod)
+    widgets.register_alias(widgets.Alignment, mod)
+
+class FkEdit(widgets.LWidget):
+    gtkClass = 'Custom'
+    class_properties = {
+        'creation_function' : 'fk_edit',
+        }
+            
+class MyWidget(widgets.CustomWidget):
+    def fk_edit(self):
+        from sqlkit.layout import fk_entry
+        fk = fk_entry.FkEdit()
+        fk.show()
+        return fk
+    
+widgets.register(FkEdit, 'fk', MyWidget)
 
 class LayoutGenerator (object):
     map_types = {

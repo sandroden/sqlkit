@@ -50,7 +50,7 @@ class Layout(object):
 
     notebook_tabs = []
     _W = widgets._W
-    cont_regexp = _W['cont_regexp']
+    container_regexp = _W['container_regexp']
     shown = False
 
     def __init__(self,
@@ -371,11 +371,11 @@ class Layout(object):
 
 #     def _parse_flags(self, cont_flag=None):
 #         # now is just which container to build, missing "-=|"
-#         #cont_regexp = '[THVBbNP]'
+#         #container_regexp = '[THVBbNP]'
 #         if not  cont_flag:
 #             self.container_flag = 'T'    # default container is GtkTable 'T'
 #         else:
-#             s = re.search('(?P<cont>%s)' % self.cont_regexp, cont_flag)
+#             s = re.search('(?P<cont>%s)' % self.container_regexp, cont_flag)
 #             if s:
 #                 self.container_flag = s.group('cont')
 #             else:
@@ -383,11 +383,11 @@ class Layout(object):
             
     def _parse_opts(self, opts=None):
         # now is just which container to build, missing "-=|"
-        #cont_regexp = '[THVBbNP]'
+        #container_regexp = '[THVBbNP]'
         # X (gtkExpander) is treated as a modifier rather than a real container
         # X can be added to a normal container flag. If we don't hide it from
-        # cont_regexp, it would hide the other container
-        s = re.search('(?P<cont>%s)' % self.cont_regexp.replace('X',''), opts)
+        # container_regexp, it would hide the other container
+        s = re.search('(?P<cont>%s)' % self.container_regexp.replace('X',''), opts)
         if s:
             self.container_flag = s.group('cont')
         else:

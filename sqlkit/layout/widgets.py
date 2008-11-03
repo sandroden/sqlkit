@@ -22,6 +22,7 @@ import re
 import os
 import gtk, gobject
 #from sqlkit.debug import debug as  dbg
+class IdentifierAlreadyPresent: pass
 
 info = {}
 class LWidget(object):
@@ -471,12 +472,6 @@ class DateEdit(LWidget):
         'upper-hour' : 23,
         'show-time' : None,
         'use-24h-format' : False
-        }
-            
-class FkEdit(LWidget):
-    gtkClass = 'Custom'
-    class_properties = {
-        'creation_function' : 'fk_edit',
         }
             
 class Calendar(LWidget):
@@ -1068,7 +1063,6 @@ _W = {
     'Toll'   : Tollerance,
     'C'   : ComboBox,
     'Ce'  : ComboBoxEntry,
-    'fk'  : FkEdit,
     'TV'  : TreeView,
     'TX'  : TextView,
     'daS' : ScrolledDrawingArea,
@@ -1107,40 +1101,56 @@ _W = {
     'tm': MenuToolButton,
     'O': Toolbar,
     'Z': HandleBox,
-    'cont_regexp' : '[EXTHVNPSvhpOBmMFfAZ]',
+    'container_regexp' : '[EXTHVNPSvhpOBmMFfAZ]',
     }
 
 
-def custom_widget(glade, function_name, widget_name,
-                  str1=None, str2=None, int1=None , int2=None):
+class CustomWidget(object):
 
-    if function_name == 'lay_dateedit':
+    def lay_dateedit(self):
         import dateedit
         d = dateedit.DateEdit()
         d.set_property('show-time', False)
         d.show()
         return d
 
-    if function_name == 'fk_edit':
-        import fk_entry
-        fk = fk_entry.FkEdit()
-        fk.show()
-        return fk
+class MyCustomWidget(CustomWidget):
+    pass
+    
+def custom_widget(glade, function_name, widget_name,
+                  str1=None, str2=None, int1=None , int2=None):
+    cw = MyCustomWidget()
+    return getattr(cw, function_name)()
 
 
 
-
-def register(Class, mod):
+def register(Class, mod, custom=None, force=False):
     """
     register a class to be used within widgets
     'mod' is the string used in layout
+    'custom' may be a class whose method must correspond to the function
+             used by glade to create the widget. Look in layoutgenerator
+             how to use it
     """
-    pass
+    global MyCustomWidget
+    global _W
+    exec "global " +  Class.__name__
+    exec "%s = Class" % (Class.__name__)
+    if mod in _W and not force:
+        msg = "Alias %s is already present. Use force=True to force it" % mod
+        raise IdentifiedAlreadyPresent(msg)
+    _W[mod] = Class        
+    
+    if custom:
+        MyCustomWidget = custom
 
-def register_alias(Class, alias):
+def register_alias(Class, alias, force=False):
     """
     register an alias for Class
     """
     global _W
+    if alias in _W and not force:
+        msg = "Alias %s is already present. Use force=True to force it" % alias
+        raise IdentifiedAlreadyPresent(msg)
     _W[alias] = Class
     
