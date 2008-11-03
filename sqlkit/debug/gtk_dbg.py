@@ -108,16 +108,18 @@ class wshow(object):
 class show_widgets(object):
     """ pops a TreeView to show widget hierarchy"""
 
-    def __init__(self, widget=None, lay=True):
+    def __init__(self, widget=None, lay=True, window=None):
         """show tree hierarchy of widgets and allows for manipulating it
            create a toplevel window or uses tv if tv= parameter is provided
-           Lay = Fase prevents creating a widget. Used when other programs provide
+           Lay = False prevents creating a widget. Used when other programs provide
            the widget.
         """
         self.l, self.w = self._get_layout(lay)
 
         if widget:
             self.add_tab_and_tree('', widget)
+        if window:
+            self.add_tab_and_tree(None, window)
 
     def _get_layout(self, lay):
 
@@ -373,18 +375,17 @@ class show_widgets(object):
                   2, re.search(' ([a-zA-Z]+)', str(i.owner_type)).group(1), 
                   3, re.search(' ([a-zA-Z]+)', str(i.value_type)).group(1),
                  )
-            try:
-                default = i.default_value
-            except:
-                default = ''
-            #dbg.write('widget.get_property(i.name)', i.name)
+            default = getattr(i, 'default_value', '')
             try:
                 ## eg: pattern is write only, so no get_property()...
                 val = widget.get_property(i.name)
             except:
-                None
-            if val != default and default != '':
-                val = "%s (%s)" % (val, default)
+                pass
+            try:
+                if val != default and default != '':
+                    val = "%s (%s)" % (val, default)
+            except:  # default may have unideco decode errors...
+                pass
                 
             if i.name not in 'user-data':
                 m.set(iter,
