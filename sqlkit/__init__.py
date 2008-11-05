@@ -16,4 +16,5 @@ from db import minspect, config
 from widgets.mask import SqlMask
 from widgets.common.sqlwidget import SqlWidget
 from widgets.table import  SqlTable
+from db.proxy import DbProxy
 

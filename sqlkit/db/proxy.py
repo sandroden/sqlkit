@@ -22,7 +22,8 @@ class DbProxy(object):
       SqlTable(table="ticket_project", dbproxy=self.dbproxy)
 
     """
-    def __init__(self, metadata=None, engine=None, bind=None, Session=None):
+    def __init__(self, metadata=None, engine=None, bind=None,
+                 Session=None, autocommit=False):
         if metadata:
             self.metadata = metadata
         else:
