@@ -131,8 +131,10 @@ class Demo(object):
 
     def selection_changed_cb(self, selection):
         model, iter = selection.get_selected()
+        if not iter:  # get_selected returns None when you click on the arrow 
+            return False
         if model.iter_has_child(iter):
-            return
+            return True
 
         if not iter:
             return False
