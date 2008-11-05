@@ -36,11 +36,12 @@ class InspectMapper(dict):
     props  = None  # dict of properties 
     pkeys  = None  # dict table:[pkey1,...]
 
-    def __init__(self, mapper, noup=None, mode='rw'):
-        """noup: list of fields that will get a rw=False field
-           mode: rw|ro if mode=ro no update/insert/delete will be possible
+    def __init__(self, mapper, noup=None, ro=False):
+        """
+        noup: list of fields that will get a rw=False field
+        ro:   bool. if True no update/insert/delete will be possible
            """
-        self.mode = mode
+        self.ro = ro
         self.pytype = getattr(self, "get_%s_types" %
                               mapper.local_table.bind.name)()
         self.pytype.update(self.get_sa_types())
@@ -331,7 +332,7 @@ class InspectMapper(dict):
         return noup
         
     def set_noup(self, field_name, table_name, col):
-        if self.mode == 'ro':
+        if self.ro:
             return False
         
         edit = True

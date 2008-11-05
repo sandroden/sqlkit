@@ -131,17 +131,17 @@ class DbProxy(object):
     
         return j
          
-    def inspect_mapper(self, mapper, noup=None, mode=None):
+    def inspect_mapper(self, mapper, noup=None, ro=False):
         """Return an instance of minspect.InspectMapper
         """
         # A mapper created using .join or .outerjoin from one table
     
         if isinstance(mapper.local_table, sql.Join):
-            m=minspect.InspectJoinMapper(mapper, noup=noup, mode=mode)
+            m=minspect.InspectJoinMapper(mapper, noup=noup, ro=ro)
         # A mapper of a single table or a mapper creater with 'properties' option
         # that results in a Lazy/Eager load  one
         else:
-            m=minspect.InspectMapper(mapper, noup=noup, mode=mode)
+            m=minspect.InspectMapper(mapper, noup=noup, ro=ro)
         return m
 
 def table2mapper(table):

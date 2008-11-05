@@ -57,7 +57,7 @@ class SqlWidget(gobject.GObject):
                   tables=None,
                   Class=None,
                   join=None,
-                  mode='rw',
+                  ro=False,
                   noup=[],
                   sql=None,
                   constraint={},
@@ -85,7 +85,7 @@ class SqlWidget(gobject.GObject):
         actions: a validator to be used to validate fields and records
         naked:  in case the mask should *not* be added interactive buttons
                 needed if the layout already contains all the required buttons
-        mode:   ro|rw. When in read-only no save/delete is alllowed
+        ro:     Boolean. When in read-only no save/delete is alllowed
         noup:   list of field-name that cannot be updated, may be a comma
                 separated str
         show:   True|False
@@ -134,7 +134,7 @@ class SqlWidget(gobject.GObject):
             tables = table
         self.tables = self.get_table(tables)
         self.nick= self.get_nick(nick)
-        self.mode = mode
+        self.ro = ro
         self.noup = noup
         self.rows = rows
         self.hide = hide
@@ -282,7 +282,7 @@ class SqlWidget(gobject.GObject):
         db via the mapper (inspecting it)
         """
         if self.dbproxy:
-            return self.dbproxy.inspect_mapper(self.mapper, noup=self.noup, mode=self.mode)
+            return self.dbproxy.inspect_mapper(self.mapper, noup=self.noup, ro=self.ro)
         else:
             from sqlkit.db import minspect
             return minspect.InspectMapper(self.mapper, noup=self.noup, mode=self.mode)
@@ -443,7 +443,8 @@ class SqlWidget(gobject.GObject):
         raise NotImplementedError
 
     def commit(self):
-
+        if self.ro:
+            return
         try:
             self.session.commit()
         except exceptions.SQLError, e:

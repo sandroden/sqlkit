@@ -842,7 +842,9 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         Delete a row and corresponding record
         """
-
+        if self.ro:
+            return True
+        
         if interactive:
             response = self.dialog(type='ok-cancel', text="Delete this record?")
             if response == gtk.RESPONSE_CANCEL:
@@ -942,7 +944,8 @@ class SqlTable(sqlwidget.SqlWidget):
             value = None
 
         try:
-            if value not in (True, False, None):
+            #if value not in (True, False, None):
+            if not isinstance(value, ptype):
                 value = ptype(value)
         except TypeError:
             # eg: setting a field to NULL
