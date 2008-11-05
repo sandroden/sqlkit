@@ -1,9 +1,9 @@
 # -*- mode: python -*-
 
 >>> import sys
->>> sys.path.append('../../doc/db')
+>>> sys.path.insert(0, '../../demo/sql/model')
 
->>> from  db_model import Movie, Director, db
+>>> from movies import Movie, Director, db
 >>> from sqlkit import SqlMask
 
 >>> lay = "title"
