@@ -5,9 +5,11 @@ from sqlalchemy.orm import relation
 
 from sqlkit.db.utils import Descr
 from sqlkit.db import proxy
+import os
 
 Base = declarative_base()
-db = proxy.DbProxy(engine="sqlite:///movies.sqlite", metadata=Base.metadata)
+engine = "sqlite:///%s/movies.sqlite" % os.path.abspath(os.path.dirname(__file__))
+db = proxy.DbProxy(engine=engine, metadata=Base.metadata)
 
 
 movie_casting = Table('movie_casting' , Base.metadata,
