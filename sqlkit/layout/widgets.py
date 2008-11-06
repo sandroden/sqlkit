@@ -493,6 +493,9 @@ class TreeView(LWidget):
 
 class TextView(LWidget):
     gtkClass = 'GtkTextView'
+    def _class_specific(self):
+        self.make_v_expandable()
+
 
 class Statusbar(LWidget):
     gtkClass = 'GtkStatusbar'
