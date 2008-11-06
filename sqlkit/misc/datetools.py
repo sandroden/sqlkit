@@ -1,4 +1,7 @@
 """
+Simple relative date algebra
+=============================
+
 a function that implements simple relative date algebra so that we can use it
 in bookmarks and queries.
 
@@ -38,13 +41,16 @@ as already stated::
 means a 3 months period, starting from beginnig of last month to end of next
 month
 
+Not implemented yet
+-------------------
 @ is a compact way to set a period::
 
   @m == m > M
   @m-1  == m-1 > M-1
 
 
-Other examples:
+Other examples
+--------------
 
   :m-1: beginnning of last month
   :M+1: end of next month
@@ -114,13 +120,14 @@ def string2date(string):
     return computed
     
 
-def transform(token, start=TODAY, last_period=None):
+def transform(token, start=None, last_period=None):
     """transform token into a date
     Token is the very simple information: m +1m 2d
     if last_period is not none, the period can be missing and 'last_period'
     is used.   This allows to write: m-1 meaning 'beginning of last month'
     """
-
+    if not start:
+        start = TODAY
     #print "token", token, start, last_period
 
     m = re.match(DATE_PATTERN, token)
