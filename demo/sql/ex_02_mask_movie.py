@@ -12,3 +12,11 @@ lay = """
 t = SqlMask(table='director', dbproxy=db, layout=lay)
 t.reload()
 
+lay2 = """
+    title
+    date_release
+    L=description TXS=description
+    director_id
+    """
+t2 = SqlMask(table='movie', dbproxy=db, layout=lay2)
+t2.reload()
