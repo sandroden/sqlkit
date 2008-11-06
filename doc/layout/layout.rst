@@ -1,8 +1,8 @@
 .. _layout:
 
-==========
- Purpouse
-==========
+=====================================
+A GUI description language - purpouse
+=====================================
  
 .. sidebar:: Note
 

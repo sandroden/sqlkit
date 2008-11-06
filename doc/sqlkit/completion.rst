@@ -4,16 +4,26 @@
 Completion
 ============
 
-Complietion is the way you can avoid writing too much if the system already
-has your data. It comes in two *flavours*:
+Completion is the way you can avoid writing too much if the system already
+has your data. it means you write some text that will be used as filter in a
+select statements of all possible values.
+
+This operation has 3 main actors: 
+
+  1. the search field
+  2. the operator used when searching
+  3. the representaion of the result
+
+It comes in two *flavours*:
 
   1. completions on the same column (eg.: data that you have already written
      in other records). This is only available for char/text fields.
 
      No check is made in this field, the text can be further edited
 
-  2. completion on foreign key. A check is made, no way to input a text that
-     is not matched on the remote field (see :ref:`description` below)
+  2. completion on foreign key. A check is made: there's no way to input a
+     text that is not matched on the remote field (see :ref:`description`
+     below). 
 
 The match of the completion have two *modes*:
 
@@ -29,6 +39,47 @@ triggered on demand. Normal binding are:
   :shift   Return: triggers 'start' mode completion
   :control Return: triggers 'regexp' mode completion. This is also triggered 
                    pressing the down arrow of a foreign key
+
+
+.. _description:
+
+foreign key description & search field
+======================================
+
+A foreign key is substituted by a more descriptive text
+
+When completing a foreign key the completion puts in the EntryCompletion a
+description of the foreign reference that can be customized via normal
+python format strings. 
+
+sqlkit.db.utils
+----------------
+You would use module sqlkit.db.utils and create an object TableDescr::
+
+  from sqlkit.db.utils import TableDescr
+  utils.TableDescr('movie', format='%(title)s - %(year)s', metadata=db.metadata)
+
+metadata is necessary so that TableDescr knows where to go and autoload
+Table to introspect it if you don't provide the search_field (see below)
+
+_sqlkit_table
+--------------
+It's possible to write in the database the format string to be used in the
+table. A table called ``_sqlkit_table`` is searched for. 
+
+:search_field:
+  The value of this field is used for the search. If no such field was
+  defined, the first char field of the tale is used, if it exists.
+
+:format: 
+   the value of this field is used to represent the record
+
+format and __str__
+-------------------
+
+When SqlWidget creates a class on the fly it looks for the 'format' field to
+add a __str__ method to the class, so that this representaion is used
+whenever suitable (eg.: when a filter action is performed in a Mask)
 
 behaviour on completion
 ========================
@@ -69,24 +120,6 @@ Since completion uses the already written chars to filter possible solution,
 if you further delete such chars you are not seeing all the real possible
 solutions but only the already retrieved ones. You can request a new
 completion... 
-
-.. _description:
-
-foreign key description
-========================
-
-A foreign key is normally substitued by a more descriptive text.
-
-When completing a foreign key the completion puts in the EntryCompletion a
-description of the foreign reference that can be customized via normal
-python format strings. You would use module sqlkit.db.utils and create an
-object TableDescr::
-
-  from sqlkit.db.utils import TableDescr
-  utils.TableDescr('movie', format='%(title)s - %(year)s', metadata=db.metadata)
-
-metadata is necessary so that TableDescr knows where to go and autoload
-Table to introspect it, for internal purpouses.
 
 group_by
 ========

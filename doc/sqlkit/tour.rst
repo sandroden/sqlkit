@@ -4,17 +4,17 @@ Sqlkit feature's tour
 
 Main features of sqlkit:
 
- - editor of databases in 2 modes: table & mask
+ - editor of databases in 2 modes: :ref:`table` & :ref:`mask`
  - based on sqlalchemy_: can cope with many different databases
- - very powerfull filtering capabilities:
+ - very powerfull :ref:`filtering <filters>` capabilities:
 
    * each field can be used to filter visible records
    * date filtering possible also on relative basis (good for saved
      queries)
 
- - completion both on local same field and foreign key fields
+ - :ref:`completion` both on normal fields and foreign key fields
  - very easy way to draw a layout for mask views
- - sqledit: python script to edit db
+ - :ref:`sqledit`: python script to edit db
  - completely effortless editing of :ref:`relationships`
  - very easy way to set :ref:`defaults`
  - possibility to display :ref:`totals` in numeric fields
@@ -60,7 +60,7 @@ Each label of both views can be clicked to get a filter panel:
 Completion
 ============
 
-ref:`completion` is triggered by F1 key, Contrl-Enter or Shift-Enter.  If the
+:ref:`completion` is triggered by F1 key, Contrl-Enter or Shift-Enter.  If the
 field is a foreign key it will pop up a list of foreign values otherwise it
 will show values currently used (just for varchar fields). 
 

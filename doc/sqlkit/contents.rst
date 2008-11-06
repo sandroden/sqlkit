@@ -7,10 +7,15 @@ SQLKit
 
    tour
    intro
-   relationship
+   sqlwidget
+   mask
+   table
+   filters
    completion
+   constraints
    defaults
    totals
-   constraints
+   relationship
+   sqledit
 
 

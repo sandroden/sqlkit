@@ -1,2 +1,83 @@
-Mask
-========
+.. _mask:
+
+=========
+ SqlMask
+=========
+
+SqlMask is the widget that presents one record at a time and buttons to
+browse data, save/delete records. 
+
+Introspection of the table is used to decide which widgets will be used to
+edit the data. The following rules are applied:
+
+  :varchar: gtk.Entry
+     
+  :numbers: gtk.Entry with right alignment
+
+  :bool: gtk.CheckBox
+
+  :text: gtk.Text
+  
+  :FKey: fk_edit (a custom ComboBoxEntry)
+
+  :date/datetime: dateedit (entry + arrow for calendar + time)
+
+  :default: gtk.Entry
+
+All fields will have a label that is sensitive to mouse clicks. A mouse
+click pops up a :ref:`filter <filters>` widget.
+
+layout
+=======
+
+The most powerfull part of SqlMask is the ability to define the layout via
+simple text description. In the examples you'll see how easy it is to create
+fancy layout that have all nice gtk Widgets like expanders, notebook, panes
+and it makes it incredibly easy to nest SqlTables into SqlMask to build
+complex layout that represent also :ref:`relationships`.
+
+If no layout is provided a flat one will be generated on the fly.
+
+.. image:: ../img/layout-simple.png
+   :align: right
+
+The key is that a textual layout is parsed to see if the token are
+recognized as fields of the table that the mask is editing, in which case
+instrospection is done to understand which widget should be used to edit the
+data (according to rules above) and a label is added::
+
+   title
+   date_release
+   L=description TXS=description
+   director_id
+
+will show a mask with an entry, a date a text and a fkey. Title and
+director_id will be already instrumented with completion: director_id will
+try to complete choosing the values of directors from the director table,
+title will suggest completion based on title present in the table (and in
+this case may not be very usefull). Description would render is am entry as
+it's a varchar, we wanted to "cast" it to text so we had to explicitly add
+also a tocken for the label. L is the identifield for a sensitive label (a
+gtk.Label insidea gtk.Event) and TX is the identifier or a scolled text.
+
+The description language you can use is petty rich (and dinamic, so you can
+add your custom made widgets): you'd better have  a look at the demo of
+sqlkit.layout that you find in sqlkit.demo.layout
+
+When parsing the textual layout, any token that is not recognized as a
+field is passed as is to ``sqlkit.layout.Layout`` 
+
+
+gtk refinements
+---------------
+
+Occasionally you may need to refine your layout, change packing, visibility,
+attribute an so on. You can reach the gtk widgets via the ``widgets``
+attribute of the SqlWidget. In example 26 we use::
+
+  Tbl = t.widgets['T.a']
+  Tbl.get_parent().child_set_property(Tbl, 'y-options', gtk.EXPAND|gtk.FILL)
+
+that changes pack properties to a gtk.Table whose name is ``T.a``
+
+
