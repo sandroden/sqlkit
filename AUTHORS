@@ -1,0 +1,14 @@
+
+Sqlkit has been written by sandro dentella <sandro@e-den.it>
+
+
+In the late '90 I developed as my first jon in GUI tksql a similar library in
+tcl/tk that I still need to use. 
+
+Sqlkit is meant as a replacement, better under all possible points of view:
+better language, nicer grafical toolkit, based on a serious ORM.
+
+
+The first version of SqlTable was started by Michele Comitini 
+The module optionparse was written by Michele Simionato 
+The module dateedit was written by Fabian Sturm
