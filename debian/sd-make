@@ -1,7 +1,10 @@
+# -*- mode: makefile -*-
 # $pkg
 .PHONY: install clean
-PKG=$(shell echo $(shell pwd)| sed 's/.*\///')
 DEB=$(shell cat debian/files |cut -f 1 -d " ")
+VER=$(shell head -n1 debian/files|cut -f 2 -d _)
+PKG=$(shell echo $(shell pwd)| sed 's/.*\///')
+WWW=www2:docs/sqlkit/sqlkit/download
 
 deb:
 	dpkg-buildpackage -rfakeroot -us -uc -b | tee log
@@ -23,6 +26,12 @@ upload: etch sarge
 etch:
 	upload-deb etch/main $(DEB) 
 
+lenny:
+	upload-deb lenny/main $(DEB) 
+
+sk:
+	upload-deb lenny/sqlkit $(DEB) 
+
 sarge:
 	upload-deb sarge/main $(DEB) 
 
@@ -36,9 +45,20 @@ install:
 	find -name \*~ -exec rm {} \;
 	find -name \#\*  -exec rm {} \;
 	find -name .\#\* -exec rm {} \;
-	rm -Rf $(DESTDIR)
-#	mkdir -p $(DESTDIR)/usr
+#	rm -Rf $(DESTDIR)
+	mkdir -p $(DESTDIR)/usr/share/doc/python-sqlkit
+	cp -a demo $(DESTDIR)/usr/share/doc/python-sqlkit
 #	cp -a usr/* $(DESTDIR)/usr
+	find $(DESTDIR) -name .backups -exec rm -Rf {} \;
 
 clean:
 	echo
+
+tgz:
+	hg archive -t tgz ../sqlkit-$(VER).tar.gz
+
+rsync:
+	rsync --progress ../sqlkit-$(VER).tar.gz $(WWW)
+	rsync --progress ../$(DEB) $(WWW)
+
+rel:	deb tgz lenny sk rsync

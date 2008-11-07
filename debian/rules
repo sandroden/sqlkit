@@ -2,9 +2,16 @@
 
 include /usr/share/cdbs/1/rules/debhelper.mk
 DEB_PYTHON_SYSTEM = pysupport
+DEB_COMPRESS_EXCLUDE := .py .sqlite
 include /usr/share/cdbs/1/class/python-distutils.mk
 
 #HGDIR=usr/share/python-support/python-sqlkit/sqlkit
 
-# binary-install/python-sqlkit::
-# 	make DESTDIR=$(CURDIR)/debian/python-sqlkit
+binary-install/python-sqlkit::
+	make DESTDIR=$(CURDIR)/debian/python-sqlkit install
+
+## this is not working...
+binary-arch/python-sqlkit::
+	dh_compress -X demo_tour.py
+	dh_fixperms -X demo.py
+

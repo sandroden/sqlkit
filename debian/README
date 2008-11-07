@@ -1,6 +1,14 @@
 The Debian Package python-sqlkit
 ----------------------------
 
-Comments regarding the Package
+Read http://docs.argolinux.org/sqlkit
+
+to see the demo:
+
+cd /usr/share/doc/python-sqlkit/demo/sql
+./demo.py
+
+
+
 
  -- Sandro Dentella <sandro@e-den.it>  Tue, 28 Oct 2008 09:55:36 +0100
