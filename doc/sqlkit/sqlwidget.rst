@@ -158,3 +158,14 @@ Attributes
   
 
 
+Signals
+=======
+
+At the moment just one signal is defined. More will come up soon as I decide
+which are the needed ones...
+
+:record_selected:
+   A record has been displayed in Mask or slected in Table.
+   The callback will just receive the widget as argument.
+
+

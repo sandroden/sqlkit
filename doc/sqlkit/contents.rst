@@ -3,7 +3,7 @@ SQLKit
 =======
 
 .. toctree::
-
+   :maxdepth: 2
 
    tour
    intro
@@ -17,5 +17,5 @@ SQLKit
    totals
    relationship
    sqledit
-
+   download
 
