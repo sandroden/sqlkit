@@ -1,4 +1,3 @@
-# Copyright (C) 2005-2006, Michele Comitini <mcm@glisco.it>
 # Copyright (C) 2005-2006-2007-2008, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify

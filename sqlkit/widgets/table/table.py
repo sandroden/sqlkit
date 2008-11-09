@@ -24,7 +24,6 @@ mapper. column.set_cell_data_func on each column will set the value from there.
 
 import sys
 from datetime import datetime
-from sqlkit.widgets.common import sqlwidget, CommitError, ValidationError
 from sqlkit import exc
 import sqlalchemy
 from sqlkit import debug as dbg
@@ -37,7 +36,7 @@ from utils import set_height_request, set_all_nonfilling, set_this_filling
 from  cell_renderers import CellRendererDate, CellRendererDatetime
 import totals
 
-class SqlTable(sqlwidget.SqlWidget):
+class SqlTable(sqlkit.SqlWidget):
     """implementation with a listore with a single column that holds the
     sqlalchemy obj
     """
