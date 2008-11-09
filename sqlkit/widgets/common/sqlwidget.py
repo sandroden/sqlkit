@@ -14,7 +14,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, re, datetime, os
+import sys
+import re
+import datetime
+import os
 import inspect 
 from sqlkit import layout
 import sqlalchemy.types as sqltypes
@@ -884,6 +887,15 @@ class SqlWidget(gobject.GObject):
         return False
 
 
+    def is_string(self, field_name):
+        """
+        Return true if this field is  date
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.String))
+        return False
+
     def is_date(self, field_name):
         """
         Return true if this field is  date
@@ -891,16 +903,74 @@ class SqlWidget(gobject.GObject):
         db_type = self.fields[field_name]['db_type']
         if db_type:
             return issubclass(db_type, (sqltypes.Date))
-        else:
-            return False
+        return False
+
+    def is_datetime(self, field_name):
+        """
+        Return true if this field is  datetime
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.DateTime))
+        return False
+
+    def is_time(self, field_name):
+        """
+        Return true if this field is time
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.Time))
+        return False
+
+    def is_interval(self, field_name):
+        """
+        Return true if this field is time
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            if issubclass(db_type, (sqltypes.Interval)):
+                return True
+            elif self.fields[field_name]['type'] is datetime.timedelta:
+                return True
+        return False
+
+    def is_integer(self, field_name):
+        """
+        Return true if this field is integer
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.Integer))
+        return False
+
+    def is_float(self, field_name):
+        """
+        Return true if this field is float
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.Float))
+        return False
+
+    def is_numeric(self, field_name):
+        """
+        Return true if this field is numeric
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.Numeric))
+        return False
+
+
 
     def is_boolean(self, field_name):
         """
         Return true if this field is  date
         """
-        py_type = self.fields[field_name]['type']
-        if py_type:
-            return issubclass(py_type, bool)
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, sqltypes.Boolean)
         else:
             return False
 
@@ -918,7 +988,7 @@ class SqlWidget(gobject.GObject):
 
     def is_number(self, field_name):
         """
-        Return true if this field is  date
+        Return true if this field is a number 
         """
         py_type = self.fields[field_name]['type']
         if py_type:
@@ -926,17 +996,21 @@ class SqlWidget(gobject.GObject):
         else:
             return False
 
-    def is_datetime(self, field_name):
+    def is_text(self, field_name):
         """
-        Return true if this field is  date
+        Return true if this field is Text or was forced gtk.Text
         """
+        try:
+            if self.laygen.fields_in_layout[field_name].startswith('TX'):
+                return True
+        except:
+            pass
         db_type = self.fields[field_name]['db_type']
         if db_type:
-            return issubclass(db_type, (sqltypes.DateTime))
-        else:
-            return False
-                
-        
+            return issubclass(db_type, (sqltypes.Text))
+        return False
+
+
     def get_field_type(self, field_name):
         return self.fields[field_name]['type']
 
