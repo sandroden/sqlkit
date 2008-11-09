@@ -125,6 +125,14 @@ class FloatWidget(IntegerWidget):
             return None
         return float(text)
 
+class DecimalWidget(IntegerWidget):
+
+    def get_value(self, shown=False):
+        text = self.gtkwidget.get_text( )
+        if text == '':
+            return None
+        return Decimal(text)
+
 class DateWidget(Widget):
 
     def __init__(self, *args):

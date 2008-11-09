@@ -66,8 +66,11 @@ class FieldChooser(object):
         if COL_SPEC == 'INTEGER' or DB_TYPE is int:
             return IntegerField(*args)
 
-        if COL_SPEC == 'FLOAT' or DB_TYPE in (float, Decimal):
+        if (COL_SPEC and COL_SPEC.startswith('FLOAT')) or DB_TYPE == float:
             return FloatField(*args)
+
+        if (COL_SPEC and COL_SPEC.startswith('FLOAT')) or DB_TYPE == Decimal:
+            return DecimalField(*args)
 
         if (COL_SPEC and COL_SPEC.startswith('VARCHAR'))  or DB_TYPE == str:
             if isinstance(gtk_widget, gtk.Entry) or not gtk_widget:
@@ -85,7 +88,10 @@ class FieldChooser(object):
         if COL_SPEC == 'DATE'  or DB_TYPE == date:
             return DateField(*args)
 
-        if COL_SPEC == 'TIME' :
+        if COL_SPEC == 'TIME WITHOUT TIME ZONE'  or DB_TYPE == time:
+            return TimeField(*args)
+
+        if COL_SPEC == 'TIME':
             return TimeField(*args)
 
         if COL_SPEC == 'INTERVAL' or DB_TYPE == timedelta:
@@ -148,8 +154,8 @@ class Field(object):
     def has_changed(self, verbose=False):
         """return True if field has changed after last set
         """
-#         dbg.write("has_changed - %r: or: %r ==> %r" % (
-#             self.field_name, self.initial_value, self.get_value()))
+        dbg.write("has_changed - %r: or: %r ==> %r" % (
+            self.field_name, self.initial_value, self.get_value()))
 
         return not self.get_value() == self.initial_value
     
@@ -218,7 +224,7 @@ class IntegerField(Field):
             return value
 
 class FloatField(IntegerField):
-    Windget = FloatWidget
+    Widget = FloatWidget
 
     def get_value(self, shown=False):
         value = self.widget.get_value()
@@ -226,6 +232,16 @@ class FloatField(IntegerField):
             return None
         else:
             return float(self.widget.get_value())
+
+class DecimalField(IntegerField):
+    Widget = DecimalWidget
+
+    def get_value(self, shown=False):
+        value = self.widget.get_value()
+        if value == None:
+            return None
+        else:
+            return Decimal(self.widget.get_value())
 
 class TextField(Field):
     Widget = TextWidget
@@ -293,8 +309,8 @@ class CollectionField(Field):
     """
     Widget = CollectionWidget
 
-    def __init__(self, field_name, db_spec, def_str, master, gtkwidget):
-        Field.__init__(self, field_name, db_spec, def_str, master, gtkwidget)
+    def __init__(self, *args, **kw):
+        Field.__init__(self, *args, **kw)
         self.initial_value = []
         
     def clean_initial_value(self, value):
