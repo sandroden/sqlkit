@@ -30,7 +30,7 @@ class TableBrowser(object):
             )
         self.w = self.l.show()
         self.tv = self.w['TV=tree']
-        cols = ['table', 'def', 'pkey', 'fkey']
+        cols = ['table', 'def', 'pkey', 'fkey', 'nullable']
         self.stv = layout.misc.EasyTreeView(cols, tv=self.tv)
         self.model = self.tv.get_model()
         #self.configure_treeview(self.tv)
@@ -65,6 +65,8 @@ class TableBrowser(object):
             pass
         iter = self.model.get_iter(
             wdg.get_path_at_pos(int(ev.x),int(ev.y))[0])
+        if self.model.iter_parent(iter):
+            return
         table = self.model.get_value(iter,0)
         
         #table = self.model.get_value(self.model.get_iter(path), 0)
@@ -82,10 +84,11 @@ class TableBrowser(object):
         item.connect('activate', self.activate_cb, ('table', table ))
         menu.append(item)
 
-        ## add to filter
-        item = gtk.MenuItem(label="table reflection" )
-        item.connect('activate', self.get_table_info_in_model, (table, iter ))
-        menu.append(item)
+        if not self.model.iter_children(iter):
+            ## add to filter
+            item = gtk.MenuItem(label="table reflection" )
+            item.connect('activate', self.get_table_info_in_model, (table, iter ))
+            menu.append(item)
 
         menu.show_all()
         menu.popup(None, None, None, ev.button, ev.time)
@@ -150,5 +153,6 @@ class TableBrowser(object):
                 self.model.set(col, 2, 'X' )
             if c.foreign_keys:
                 self.model.set(col, 3, repr(c.foreign_keys) )
-                
+            if not c.nullable:
+                self.model.set(col, 4, "NOT NULL")
 
