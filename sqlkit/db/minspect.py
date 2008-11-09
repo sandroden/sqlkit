@@ -8,6 +8,22 @@ import re
 from  sqlalchemy.orm import properties
 import sqlalchemy.orm.properties 
 
+SA_TYPE_MAP =  {
+    sqlalchemy.types.String : str,
+    sqlalchemy.types.Unicode : str,
+    sqlalchemy.types.Integer  : int,
+    sqlalchemy.types.Float  : float,
+    sqlalchemy.types.DateTime  : datetime.datetime,
+    sqlalchemy.types.Date  : datetime.date,
+    sqlalchemy.types.Interval  : datetime.timedelta,
+    sqlalchemy.types.Time  : datetime.time,
+    sqlalchemy.types.Numeric : decimal.Decimal,
+    sqlalchemy.types.Text  : str, 
+    sqlalchemy.types.UnicodeText  : str, 
+    sqlalchemy.types.Boolean  : bool, 
+    sqlalchemy.types.Binary : str, # ????
+    }
+
 PROPERTIES = properties
 class MissingPrimaryKeyError(Exception): pass
 def is_serial (c):
@@ -41,10 +57,17 @@ class InspectMapper(dict):
         noup: list of fields that will get a rw=False field
         ro:   bool. if True no update/insert/delete will be possible
            """
+        global SA_TYPE_MAP
         self.ro = ro
-        self.pytype = getattr(self, "get_%s_types" %
-                              mapper.local_table.bind.name)()
-        self.pytype.update(self.get_sa_types())
+        try:
+            # these type so no have a correspondence a base in a SA Type
+            SA_TYPE_MAP.update({
+                sqlalchemy.databases.postgres.PGInet  : str, 
+                sqlalchemy.databases.postgres.PGInterval  : datetime.timedelta,
+                })
+        except Exception, e:
+            pass
+
         self.fields = []
         self.primarytable = self.get_primary_table
         self.noup = self.parse_noup(noup)
@@ -54,93 +77,19 @@ class InspectMapper(dict):
         self.table_mappers = {}  # mappers to tables
         self.n = 0
         self.loop_on_props()
-    
-    def get_sa_types(self):
-        ## used by sa when no reflection is used? to be verified
-        return {
-            sqlalchemy.types.String : str,
-            sqlalchemy.types.Unicode : str,
-            sqlalchemy.types.Integer  : int,
-            sqlalchemy.types.Float  : float,
-            sqlalchemy.types.DateTime  : datetime.datetime,
-            sqlalchemy.types.Date  : datetime.date,
-            sqlalchemy.types.Interval  : datetime.timedelta,
-            sqlalchemy.types.Time  : datetime.time,
-            sqlalchemy.types.Numeric : decimal.Decimal,
-#            sqlalchemy.types.Char  : str, 
-#            sqlalchemy.types.Inet  : str, 
-            sqlalchemy.types.Text  : str, 
-            sqlalchemy.types.UnicodeText  : str, 
-            sqlalchemy.types.Boolean  : bool, 
-            sqlalchemy.types.Binary : str, # ????
-            }
-                              
-        
-    def get_postgres_types(self):
-        ## used by postgresql
-        return {
-            sqlalchemy.databases.postgres.PGString : str,
-            sqlalchemy.databases.postgres.PGInteger  : int,
-            sqlalchemy.databases.postgres.PGBigInteger : int,
-            sqlalchemy.databases.postgres.PGSmallInteger  : int,
-            sqlalchemy.databases.postgres.PGFloat  : float,
-            sqlalchemy.databases.postgres.PGDateTime  : datetime.datetime,
-            sqlalchemy.databases.postgres.PGDate  : datetime.date,
-            sqlalchemy.databases.postgres.PGInterval  : datetime.timedelta, 
-            sqlalchemy.databases.postgres.PGTime  : datetime.time, 
 
-            sqlalchemy.databases.postgres.PGNumeric : decimal.Decimal,
-            sqlalchemy.databases.postgres.PGChar  : str, 
-            sqlalchemy.databases.postgres.PGInet  : str, 
-            sqlalchemy.databases.postgres.PGText  : str, 
-            sqlalchemy.databases.postgres.PGString  :  str, 
-            sqlalchemy.databases.postgres.PGBoolean  : bool, 
-            sqlalchemy.databases.postgres.PGBinary : str,
-            }
                               
+    def get_py_type(self, Type):
         
-    def get_sqlite_types(self):
-        ## used by sqlite
-        return {
-            sqlalchemy.databases.sqlite.SLString : str,
-            sqlalchemy.databases.sqlite.SLInteger  : int,
-            sqlalchemy.databases.sqlite.SLSmallInteger  : int,
-            #                sqlalchemy.databases.sqlite.SLDouble  : float,
-            sqlalchemy.databases.sqlite.SLDateTime  : datetime.datetime,
-            sqlalchemy.databases.sqlite.SLDate  : datetime.date,
-            sqlalchemy.databases.sqlite.SLNumeric : decimal.Decimal,
-            #                sqlalchemy.databases.sqlite.SLNumeric : float,
-            sqlalchemy.databases.sqlite.SLChar  : str, 
-            sqlalchemy.databases.sqlite.SLText  : str, 
-            sqlalchemy.databases.sqlite.SLTime  : datetime.time, 
-            sqlalchemy.databases.sqlite.SLString  :  str, 
-            sqlalchemy.databases.sqlite.SLBoolean  : bool, 
-            sqlalchemy.databases.sqlite.SLBinary : str,
-            }
-                               
-    def get_mysql_types(self):
-        return {
-            sqlalchemy.databases.mysql.MSString : str,
-            sqlalchemy.databases.mysql.MSInteger  : int,
-            sqlalchemy.databases.mysql.MSFloat  : float,
-            sqlalchemy.databases.mysql.MSSmallInteger: int, 
-            sqlalchemy.databases.mysql.MSBigInteger: int, 
-            sqlalchemy.databases.mysql.MSDouble  : float,
-            sqlalchemy.databases.mysql.MSDateTime  : datetime.datetime,
-            sqlalchemy.databases.mysql.MSDate  : datetime.date,
-            sqlalchemy.databases.mysql.MSTime  : datetime.time,
-            sqlalchemy.databases.mysql.MSNumeric : decimal.Decimal,
-            sqlalchemy.databases.mysql.MSDecimal : decimal.Decimal,
-            #                sqlalchemy.databases.mysql.MSNumeric : float,
-            sqlalchemy.databases.mysql.MSChar  : str, 
-            sqlalchemy.databases.mysql.MSText  : str, 
-            sqlalchemy.databases.mysql.MSLongText  : str, 
-            sqlalchemy.databases.mysql.MSMediumText  : str, 
-            sqlalchemy.databases.mysql.MSString  :  str, 
-            sqlalchemy.databases.mysql.MSBoolean  : bool, 
-            sqlalchemy.databases.mysql.MSBinary : str,
-            }
-                              
+        try:
+            return SA_TYPE_MAP[Type.__base__]
+        except KeyError:
+            return SA_TYPE_MAP[Type]
+        except:
+            raise
+
+        
+        
     def loop_on_props(self):
         """Add field gathering info from the mapper 
         At the mome we only use properties that are 
@@ -171,7 +120,7 @@ class InspectMapper(dict):
             'table'       :  mapper.local_table ,
             'col'         :  mapper.c[field_name] ,
             'db_type'     :  type(mapper.c[field_name].type), 
-            'type'        :  self.pytype[type(mapper.c[field_name].type)],
+            'type'        :  self.get_py_type(type(mapper.c[field_name].type)),
             'col_spec'    :  col_spec,
             'is_serial'   :  is_serial(mapper.c[field_name]),
             'property'    :  property,
