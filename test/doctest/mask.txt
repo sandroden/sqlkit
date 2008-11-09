@@ -14,6 +14,13 @@
 >>> sm.laygen.fields_in_layout
 {'title': 'e=title'}
 
+>>> lay = "TXS=description"
+>>> sm = SqlMask(Class=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm.lay_obj.lay
+'TXS=description'
+>>> sm.laygen.fields_in_layout
+{'description': 'TX=description'}
+
 >>> lay = "date_release"
 >>> sm = SqlMask(Class=Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
