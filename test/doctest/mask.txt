@@ -2,8 +2,9 @@
 
 >>> import sys
 >>> sys.path.insert(0, '../../demo/sql/model')
+>>> sys.path.insert(0, '../../')
 
->>> from movies import Movie, Director, db
+>>> from movies import Movie, Director, AllTypes, db
 >>> from sqlkit import SqlMask
 
 >>> lay = "title"
@@ -26,6 +27,13 @@ L=date_release d=date_release
 L=year ae=year:8
 >>> sm.laygen.fields_in_layout
 {'year': 'e=year'}
+
+>>> lay = "time"
+>>> sm = SqlMask(Class=AllTypes, dbproxy=db, layout=lay, naked=True, show=False)
+>>> print sm.lay_obj.lay.strip()
+L=time ae=time:5
+>>> sm.laygen.fields_in_layout
+{'time': 'e=time'}
 
 >>> lay = "director_id"
 >>> sm = SqlMask(Class=Movie, dbproxy=db, layout=lay, naked=True, show=False)

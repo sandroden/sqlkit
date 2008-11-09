@@ -5,17 +5,20 @@ import sys
 import doctest
 
 import sys
-if sys.argv:
-    files = sys.argv
 
 os.environ['LANG'] = 'C'
 
 files = (
     'mask.txt',
     'dates.txt',
+    'fields.txt',
     )
 
+if sys.argv[1:]:
+    files = sys.argv[1:]
+
 for filename in files:
+    print filename
     doctest.testfile(filename)
 
     
