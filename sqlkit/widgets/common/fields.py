@@ -15,7 +15,7 @@ fields classes to handle all details:
 
 from sqlkit.widgets.mask.miniwidgets import *
 from sqlkit.widgets.table.tablewidgets import CellWidget
-from datetime import datetime, time, date
+from datetime import datetime, time, date, timedelta
 import gtk
 from pprint import pprint 
 from sqlkit.db import defaults
@@ -42,7 +42,7 @@ class FieldChooser(object):
         self.master = master
         self.w = w or {}
 
-    def get_field(self, field_name, db_spec, def_str=None):
+    def get_field(self, field_name, db_spec, def_str=None, test=False):
         """return a field
 
         field_name:  the name of the field in the db
@@ -53,7 +53,7 @@ class FieldChooser(object):
 
         gtk_widget = self.w.get(def_str, None)
     
-        args = (field_name, db_spec, def_str, self.master, gtk_widget)
+        args = (field_name, db_spec, def_str, self.master, gtk_widget, test)
         if db_spec['fkey']:
             return ForeignKeyField(*args)
 
@@ -88,18 +88,21 @@ class FieldChooser(object):
         if COL_SPEC == 'TIME' :
             return TimeField(*args)
 
+        if COL_SPEC == 'INTERVAL' or DB_TYPE == timedelta:
+            return IntervalField(*args)
+
         if COL_SPEC == 'TIMESTAMP WITHOUT TIME ZONE'  or DB_TYPE == datetime:
             return DateTimeField(*args)
 
         if COL_SPEC == 'TIMESTAMP WITH TIME ZONE':
             return DateTimeTZField(*args)
 
-        raise NotHandledField("Field %s is not handled in any way: COLD_SPEC: %s" %
+        raise NotHandledField("Field %s is not handled in any way: COL_SPEC: %s" %
                               (field_name, COL_SPEC))
 
 class Field(object):
     Widget = None
-    def __init__(self, field_name, db_spec, def_str, master, gtkwidget):
+    def __init__(self, field_name, db_spec, def_str, master, gtkwidget, test=False):
         """
         field_name:  the name of the field in the db
         db_spec:     the dict as worked out by InspectMapper
@@ -115,6 +118,9 @@ class Field(object):
         self.master = master
         self.initial_value = None
  
+        if test:  # in test I don't want conplaints on already prensent widgets
+            return
+        
         if gtkwidget:
             ## used in SqlMask
             self.widget = self.Widget(gtkwidget, self)
@@ -214,7 +220,7 @@ class IntegerField(Field):
 class FloatField(IntegerField):
     Windget = FloatWidget
 
-    def get_value(self, show=False):
+    def get_value(self, shown=False):
         value = self.widget.get_value()
         if value == None:
             return None
@@ -234,6 +240,9 @@ class DateField(Field):
 
 class TimeField(Field):
     Widget = TimeWidget
+
+class IntervalField(Field):
+    Widget = IntervalWidget
 
 class DateTimeField(Field):
     Widget = DateTimeWidget
@@ -303,3 +312,5 @@ class CollectionField(Field):
 
 
     
+
+

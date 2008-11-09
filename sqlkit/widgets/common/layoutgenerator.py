@@ -46,6 +46,14 @@ ie: the key to  be used in widgets dictionary
 
 *without any specification*
 
+BUGS
+----
+
+At the moment there is redoundancy: here we decide the gtk widget but fields decide
+the validation field that on turn set the widget, that on turn pretends a gtkwidget,
+this make very diffiocult to add a way to plug in a different rendere for a field.
+
+
 
 .. Reference to other tables
 .. ---------------------------
@@ -72,6 +80,12 @@ class FkEdit(widgets.LWidget):
         'creation_function' : 'fk_edit',
         }
             
+class IntervalEdit(widgets.LWidget):
+    gtkClass = 'Custom'
+    class_properties = {
+        'creation_function' : 'interval_edit',
+        }
+            
 class MyWidget(widgets.CustomWidget):
     def fk_edit(self):
         from sqlkit.layout import fk_entry
@@ -79,13 +93,21 @@ class MyWidget(widgets.CustomWidget):
         fk.show()
         return fk
     
+    def interval_edit(self):
+        from sqlkit.layout import interval_entry
+        ie = interval_entry.IntervalEdit()
+        ie.show()
+        return ie
+    
 widgets.register(FkEdit, 'fk', MyWidget)
+widgets.register(IntervalEdit, 'delta', MyWidget)
 
 class LayoutGenerator (object):
     map_types = {
         datetime.datetime     : 'd',
         datetime.date         : 'd',
-        datetime.time         : 'd',
+        datetime.time         : 'ae', 
+        datetime.timedelta    : 'delta', 
         bool                  : 'c',
         int                   : 'ae',
         float                 : 'ae',
@@ -328,3 +350,5 @@ class LayoutGenerator (object):
                 self.fields_in_layout[loader] = "%s=%s" % (mod, loader)
 
                     
+
+

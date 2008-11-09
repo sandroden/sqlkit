@@ -28,8 +28,10 @@ widgets only interpret gtk, while fields teat with real values and do validation
 from sqlkit.widgets.common import localtimezone
 import gtk
 from sqlkit import debug as  dbg
-from datetime import timedelta
+from datetime import timedelta, time
 from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion
+import re
+from decimal import Decimal
 
 NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
 
@@ -138,8 +140,35 @@ class DateWidget(Widget):
 
 class TimeWidget(Widget):
 
-    def __init__(self, *args):
-        raise NotImplemented('Time Widget is not yet implemented')
+    def set_value(self, value):
+        if not value:
+            value = ''
+        elif isinstance(value, time):
+            value = value.strftime("%H:%M")
+        self.gtkwidget.set_text(value)
+
+    def get_value(self, shown=False):
+        value = self.gtkwidget.get_text() 
+        if not value:
+            return None
+        return time(*[int(i) for i in re.split('[.:]', value)])
+
+
+class IntervalWidget(Widget):
+
+    def set_value(self, value):
+        if value and not isinstance(value, timedelta):
+            msg = "value for %s must be a timedelta (now: %s)" % (self.field_name, value)
+            raise AttributeError(msg)
+        self.gtkwidget.set_property('interval', value)
+
+    def get_value(self, shown=False):
+        ## if all values are 0 and initial value is None, return None
+        
+        value = self.gtkwidget.get_property('interval') 
+        if value == timedelta(0) and self.field.initial_value == None:
+            return None
+        return value
 
 class DateTimeWidget(Widget):
 
@@ -432,3 +461,5 @@ class CollectionWidget(Widget):
 
     def get_value(self, shown=False):
         return self.table.records 
+
+
