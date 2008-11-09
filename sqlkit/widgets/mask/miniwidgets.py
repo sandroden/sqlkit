@@ -1,4 +1,4 @@
-# Copyright (C) 2005-2006-2007-2008, Sandro Dentella <sandro@e-den.it>
+# Copyright (C) 2008, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -162,6 +162,37 @@ class TimeWidget(Widget):
         return time(*[int(i) for i in re.split('[.:]', value)])
 
 
+class TimeTZWidget(Widget):
+
+    def set_value(self, value):
+        if value:
+            self.TZ = value.tzinfo
+            self.microsecond = value.microsecond
+        else:
+            self.TZ = None
+            self.microsecond = 0
+
+        if not value:
+            value = ''
+        elif isinstance(value, time):
+
+            value = value.strftime("%H:%M")
+        self.gtkwidget.set_text(value)
+
+    def get_value(self, shown=False):
+        value = self.gtkwidget.get_text() 
+        if not self.TZ:
+            ## Local will return a tzinfo with the timezone of the system
+            ## it will be added to bypass the limitaition od dateedit
+            self.TZ = localtimezone.Local
+            self.microsecond = 0
+
+        if not value:
+            return None
+        value = time(*[int(i) for i in re.split('[.:]', value)]) 
+        return value.replace(tzinfo=self.TZ, microsecond=self.microsecond)
+
+
 class IntervalWidget(Widget):
 
     def set_value(self, value):
@@ -222,7 +253,7 @@ class DateTimeTZWidget(DateTimeWidget):
             self.TZ = localtimezone.Local
             self.microsecond = 0
 
-        if time:
+        if value:
             return value.replace(tzinfo=self.TZ, microsecond=self.microsecond)
         return None
 

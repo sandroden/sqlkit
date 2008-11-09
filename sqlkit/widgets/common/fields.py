@@ -276,6 +276,9 @@ class DateField(Field):
 class TimeField(Field):
     Widget = TimeWidget
 
+class TimeTZField(Field):
+    Widget = TimeTZWidget
+
 class IntervalField(Field):
     Widget = IntervalWidget
 

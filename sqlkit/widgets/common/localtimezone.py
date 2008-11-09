@@ -1,5 +1,6 @@
 import time as _time
 import datetime
+ZERO = datetime.timedelta(0)
 STDOFFSET = datetime.timedelta(seconds = -_time.timezone)
 if _time.daylight:
     DSTOFFSET = datetime.timedelta(seconds = -_time.altzone)
