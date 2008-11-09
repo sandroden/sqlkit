@@ -5,9 +5,11 @@ from sqlalchemy.orm import relation
 
 from sqlkit.db.utils import Descr
 from sqlkit.db import proxy
+import os
 
 Base = declarative_base()
-db = proxy.DbProxy(engine="sqlite:///movies.sqlite", metadata=Base.metadata)
+engine = "sqlite:///%s/movies.sqlite" % os.path.abspath(os.path.dirname(__file__))
+db = proxy.DbProxy(engine=engine, metadata=Base.metadata)
 
 movie_casting = Table('movie_casting' , Base.metadata, autoload=True)
 movie_genre   = Table('movie_genre' , Base.metadata, autoload=True )
@@ -46,3 +48,5 @@ class Nation(Base):
 #     nation     = Column(String(20))
 
 
+class AllTypes(Base):
+    __table = Table('all_types', Base.metadata, autoload=True)

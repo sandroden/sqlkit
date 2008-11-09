@@ -43,6 +43,7 @@ class DemoSql(Demo):
         execfile(file_name, GLOB)
         self.last_lo = GLOB['t'].lay_obj
         self.last_w  = GLOB['t'].widgets
+        self.t = GLOB['t']
 
         #self.xml.set_text(GLOB['l'].xml())
         self.create_widget_tree(toplevel=GLOB['t'].widgets['Window'])
@@ -51,7 +52,7 @@ class DemoSql(Demo):
         self.w['Window'].set_title("Esempio: %s" % (file_name))
 
 
-DemoSql(xml=False)
+d = DemoSql(xml=False)
 
 
 

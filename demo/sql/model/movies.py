@@ -1,6 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Table, Column, String, Date, Integer, Float, \
-     Boolean, Numeric, ForeignKey, Unicode
+from sqlalchemy import Table, Column, ForeignKey
+from sqlalchemy.types import *
 from sqlalchemy.orm import relation
 
 from sqlkit.db.utils import Descr
@@ -69,4 +69,25 @@ class Nation(Base):
     __tablename__ = 'nation'
     cod        = Column(String(4), primary_key=True)
     nation     = Column(String(20))
+    
+
+class AllTypes(Base):
+    __tablename__ = 'all_types'
+    id             = Column(Integer(), primary_key=True)
+    varchar10      = Column(String(10))
+    varchar200     = Column(String(200))
+    text           = Column(Text())
+    uni            = Column(Unicode(10))
+    uni_text       = Column(UnicodeText())
+    date           = Column(Date())
+    datetime       = Column(DateTime())
+    interval       = Column(Interval())
+    time           = Column(Time())
+    integer        = Column(Integer())
+    float          = Column(Float())
+    numeric        = Column(Numeric(8,2))
+    bool           = Column(Boolean, nullable=False)
+    bool_null      = Column(Boolean, nullable=True)
+#    pickle         = Column(PickleType())
+    
     
