@@ -82,7 +82,7 @@ class AllTypes(Base):
     date           = Column(Date())
     datetime       = Column(DateTime())
     interval       = Column(Interval())
-    time           = Column(Time())
+    time           = Column(Time(timezone=False))
     integer        = Column(Integer())
     float          = Column(Float())
     numeric        = Column(Numeric(8,2))
