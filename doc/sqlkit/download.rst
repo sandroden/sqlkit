@@ -25,11 +25,13 @@ The code is available under an hg repository::
 You can download sqlkit package from here_ in tar or deb format.
 You can also add the source::
 
-  deb http://apt.argolinux.org/ main sqlkit
+  deb http://apt.argolinux.org/ lenny sqlkit
 
 and install it via::
 
   apt-get install python-sqlkit
+
+Even if the source state ``lenny`` can safely be used for ubuntu and etch.
 
 .. note:: Note
     
