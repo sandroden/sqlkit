@@ -26,6 +26,14 @@ class IntervalEdit(gtk.Alignment):
         self.hours = gtk.Entry()
         self.minutes = gtk.Entry()
         self.seconds = gtk.Entry()
+        try:
+            ## only from gtk 2.12
+            self.days.set_tooltip_text('Days')
+            self.hours.set_tooltip_text('Hours')
+            self.minutes.set_tooltip_text('Minutes')
+            self.seconds.set_tooltip_text('Seconds')
+        except:
+            pass
         
         self._align = gtk.Alignment(0,0,0,0)
 
