@@ -75,7 +75,8 @@ who changed the value of that variable, in the form::
 
 import sys, re
 import new
-from sqlkit.layout import layout, misc
+# I had to hide this import inside functions otherwise import of sqlkit broke.
+#from sqlkit.layout import misc  
 import pango
 import inspect
 import tokenize
@@ -485,6 +486,7 @@ class ShowLogs(object):
         DBGLogger = self
 
     def get_layout(self, show):
+        from sqlkit.layout import misc
         global iter
         self.last_indent = 0
         iter = {}
@@ -543,7 +545,7 @@ class ShowLogs(object):
 
     def info_method(self, obj, meth):
         """show info on method 'obj' using text widget"""
-
+        from sqlkit.layout import layout
         try:
             attr = getattr(obj, meth)
             inspect.getsourcelinesattr(attr)[1]
@@ -583,6 +585,8 @@ class ShowLogs(object):
         tips.add_view(self.easytv.tv)
 
     def insert_source(self, data, buf):
+        from sqlkit.layout import misc
+
         buf.delete(*buf.get_bounds())
         iter = buf.get_iter_at_offset(0)
         #print buf.get_tag_table()

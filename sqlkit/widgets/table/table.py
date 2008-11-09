@@ -35,6 +35,7 @@ import sqlkit
 from utils import set_height_request, set_all_nonfilling, set_this_filling
 from  cell_renderers import CellRendererDate, CellRendererDatetime
 import totals
+from sqlkit.widgets.common import sqlwidget
 
 class SqlTable(sqlkit.SqlWidget):
     """implementation with a listore with a single column that holds the
@@ -56,10 +57,10 @@ class SqlTable(sqlkit.SqlWidget):
         self.deleting_row = False
         self.tvcolumns = None
         self.totals = totals.Totals(self)
-        sqlwidget.SqlWidget.__init__(self, *args, **kwargs)
+        sqlkit.SqlWidget.__init__(self, *args, **kwargs)
         
     def _get_layout(self, lay, naked):
-        sqlwidget.SqlWidget._get_layout(self, lay, naked)
+        sqlkit.SqlWidget._get_layout(self, lay, naked)
         self.liststore = gtk.ListStore(object)
         ## layout
         self.treeview = self.widgets["TV=tree"]
@@ -515,7 +516,7 @@ class SqlTable(sqlkit.SqlWidget):
         if row + 1 == len(self.liststore):
             try:
                 self.record_new(treeview)
-            except CommitError, e:
+            except exc.CommitError, e:
                 return False
 
         return False
@@ -819,7 +820,7 @@ class SqlTable(sqlkit.SqlWidget):
         #rdict.update(self.constraint)
         try:
             self.record_validate(obj, mode, constraint)
-        except ValidationError, e:
+        except exc.ValidationError, e:
             self.handle_validate_error(e)
             
         self.commit()
@@ -914,7 +915,7 @@ class SqlTable(sqlkit.SqlWidget):
 
         try:
             self.record_save(discard_unchanged=True)
-        except ValidationError:
+        except exc.ValidationError:
             return
         
 #        self.session.clear()

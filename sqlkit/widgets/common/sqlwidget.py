@@ -39,7 +39,7 @@ from sqlkit.db import minspect
 from sqlkit.widgets.common import completion
 from sqlalchemy.orm import attributes
 from sqlkit.layout.utils import Container
-from sqlkit.exc import *
+from sqlkit import exc
 
 NUMBERS = (int, float, decimal.Decimal)
 
@@ -452,7 +452,7 @@ class SqlWidget(gobject.GObject):
         """
         try:
             self.record_save()
-        except sqlwidget.CancelledAction:
+        except exc.CancelledAction:
             pass
     
     def record_save_new(self, ev):
@@ -649,7 +649,7 @@ class SqlWidget(gobject.GObject):
         
         if field_name not in self.vfields:
             dbg.write("%s Non in vfields %s" % (field_name, self.vfields.keys()))
-            raise FieldNotInLayout("field_name: %s" % (field_name))
+            raise exc.FieldNotInLayout("field_name: %s" % (field_name))
 
         field = self.vfields[field_name]
         
@@ -668,7 +668,7 @@ class SqlWidget(gobject.GObject):
         for field_name in self.field_list:      
             try:
                 changed = self.has_changed(field_name)
-            except FieldNotInLayout:
+            except exc.FieldNotInLayout:
                 continue
 
             if changed:

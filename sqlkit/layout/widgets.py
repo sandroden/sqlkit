@@ -21,7 +21,7 @@ import re
 #import datetime
 import os
 import gtk, gobject
-#from sqlkit.debug import debug as  dbg
+from sqlkit.debug import debug as  dbg
 class IdentifierAlreadyPresent: pass
 
 info = {}

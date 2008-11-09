@@ -74,7 +74,7 @@ class SqlMask (sqlwidget.SqlWidget):
         if not reread:
             try:
                 self.record_save(None, ask=True)
-            except CancelledAction:
+            except exc.CancelledAction:
                 return
 
         if index is not None:
@@ -339,7 +339,7 @@ class SqlMask (sqlwidget.SqlWidget):
         """accell_group, window, ord, flags or ev..."""
         try:
             self.record_save(None)
-        except sqlwidget.CancelledAction:
+        except exc.CancelledAction:
             pass
 
     def unsaved_changes_exist(self):
