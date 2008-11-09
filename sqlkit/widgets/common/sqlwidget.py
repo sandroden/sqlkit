@@ -54,7 +54,7 @@ class SqlWidget(gobject.GObject):
 #    tables = None    # Table objects referenced as foreign keys
     values = None    # real value for foreign key
                      # (when lookup is displeyed instead)
-    __metaclass__ = dbg.LogTheMethods
+#    __metaclass__ = dbg.LogTheMethods
 #    __metaclass__ = misc.autoreload.MetaAutoReloader
     records = None
     last_new_obj = None
@@ -88,7 +88,7 @@ class SqlWidget(gobject.GObject):
                   ## more
                   single=False,
                   nick=None,
-                  actions=None,
+#                  actions=None,
                   dev=False,
                   xml=False,
                   relationship_mode = 'SINGLE',
@@ -98,7 +98,7 @@ class SqlWidget(gobject.GObject):
         """create an interface and allow to save/store data from a database
 
         layout:    a layout describing the desired layout (see layout package)
-        actions: a validator to be used to validate fields and records
+#        actions: a validator to be used to validate fields and records
         naked:  in case the mask should *not* be added interactive buttons
                 needed if the layout already contains all the required buttons
         ro:     Boolean. When in read-only no save/delete is alllowed
@@ -137,7 +137,7 @@ class SqlWidget(gobject.GObject):
         self.reloading = dbg.TraceIt(False, name='reloading')
         self.geom = geom
         self.addto = addto
-        self.actions = self.get_actions(actions)
+#        self.actions = self.get_actions(actions)
         self.constraint=constraint
         self.dbproxy = dbproxy
 #        self.engine = self.get_engine(engine, mapper)
@@ -493,12 +493,14 @@ class SqlWidget(gobject.GObject):
             self.constraint=constraint
 
         if mode == 'INSERT':
-            self.actions.on_insert(new=obj)
+            pass
+            #self.actions.on_insert(new=obj)
             #dbg.write("INSERTING record", rdict)
             #self.sqlData.add(rdict)
 
         elif mode == 'UPDATE':
-            self.actions.on_update(new=obj)
+            pass
+            #self.actions.on_update(new=obj)
             #self.sqlData.set(rdict, index=int(self.model_path))
             #self.sqlData.current = self.path2sqldata_index(self.model_path)
             #self.sqlData.set(rdict)
@@ -687,8 +689,8 @@ class SqlWidget(gobject.GObject):
         if not re.match (ONLYDIGITS, key):
             #dbg.write("key: %s" % key)
             return True
-    def record_display(self, record=None, incr=0):
-        self.actions.on_record_display()
+#     def record_display(self, record=None, incr=0):
+#         self.actions.on_record_display()
         
 
 ####### Dialog
@@ -1109,7 +1111,7 @@ class SqlWidget(gobject.GObject):
         
         page = opop.Sxw(file=template)
         #page.verbose = True
-        ret = self.actions.on_print(page)
+        #ret = self.actions.on_print(page)
         if ret is not True :
             self.message(type='warn', text="Missing data")
             return
@@ -1144,99 +1146,7 @@ class SqlWidget(gobject.GObject):
         return '<%s: %s>' % (self.__class__.__name__, self.tables)
 
 ####### More
-class Actions(object):
-    def __init__(self, master=None):
-        self.master = master
-    
-    def on_save(self, new, mode=None):
-        """actions to be taken when a record is saved. Mode is 'INSERT|UPDATE' 
-        """
-        pass
-    
-    def on_update(self, new):
-        pass
-    
-    def on_delete(self, new):
-        pass
-    
-    def on_insert(self, new):
-        """invoked after any constraint is applied"""
-        pass
-    
-    def on_record_display(self, new=None):
-        """only defined for SqlMask"""
-        pass
-    
-    def on_print(self, page):
-        """should prepare all variables needed by pyopenoffice"""
-
-        lookup_flds = []
-        for v in self.master.fields.keys():
-            if self.master.fields[v]['fkey'] and v.endswith('_id'):
-                lookup_flds.append(v)
-
-        ## SqlMask
-        if isinstance(self.master, sqlkit.SqlMask):
-            ## FIXME: sqlData no longer exists...
-            obj = self.master.records[self.current_idx]
-            if doj == None:
-                return None
-
-            for key in lookup_flds:
-                try:
-                    pass
-                    ## FIXME data is now an object
-                    #data[key] = self.master.completion.lookup_value(
-                    #        key, data[key])
-                except Exception, e:
-                    print e
-                    pass
-
-
-            page.add(data)
-            return True
-
-        else:
-            ## SqlTable
-            ## FIXME: sqlData no longer exists...
-            for diz in self.master.sqlData.all_as_dicts():
-                for key in lookup_flds:
-                    try:
-                        diz[key] = self.master.completion.lookup_value(
-                            key, diz[key])
-                    except Exception, e:
-                        print e
-                        pass
-                    
-                page.add(diz)
-            return True
-    
-    def on_record_clear(self, new, old):
-        pass
-    
-    def on_reload(self, new, old):
-        pass
-    def on_completion(self, new, field_name):
-        """Adds a constraint to the completion. Must return a tuple:
-        ('SQL STATEMET', params). params must be a dict
-        """
-        return ('',{})
-
-    def set_entry_connect(self, entry, field_name):
-        """set connect for self.editable that is the
-        gtk.Entry in editable cell in SqlTable
-        """
-        pass
-
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
-
-
-
-
-
-
-
-
 

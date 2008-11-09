@@ -42,6 +42,7 @@ class SqlTable(sqlwidget.SqlWidget):
     sqlalchemy obj
     """
 
+    __metaclass__ = dbg.LogTheMethods
     edited_row_model_path = None
     currently_edited_field_name = None
     mapper = None
@@ -425,7 +426,6 @@ class SqlTable(sqlwidget.SqlWidget):
             pre = 'entry'
 
         ksym = gtk.gdk.keyval_name(event.keyval)
-
         mods = ['key_' + pre]
         for prefix, mask in [('ctrl', gtk.gdk.CONTROL_MASK),
                              ('shift', gtk.gdk.SHIFT_MASK),
@@ -440,11 +440,11 @@ class SqlTable(sqlwidget.SqlWidget):
         ksym = '_'.join(mods + [ksym])
         
         ## precedence to actions
-        if ksym in dir(self.actions):
-            ret = getattr(self.actions, ksym)(wdg, event, data)
-            dbg.write("RET: ", ret)
-            if ret is True:
-                return ret
+#         if ksym in dir(self.actions):
+#             ret = getattr(self.actions, ksym)(wdg, event, data)
+#             dbg.write("RET: ", ret)
+#             if ret is True:
+#                 return ret
         if ksym in dir(self):
             return getattr(self, ksym)(wdg, event, data)
         else:
@@ -481,6 +481,7 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
     
     def key_tree_ctrl_n(self, treeview, event, data):
+
         self.record_new(treeview)
         return False
         
@@ -600,7 +601,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.currently_edited_field_name = field_name
         field_type = self.fields[field_name]['type']
         self.editable = editable
-        self.actions.set_entry_connect(self.editable, field_name)
+        #self.actions.set_entry_connect(self.editable, field_name)
         field_props = self.fields[field_name]
 
         if hasattr(self.field_widgets[field_name], 'completion'):
@@ -962,6 +963,7 @@ class SqlTable(sqlwidget.SqlWidget):
             if value is None or type(value) == ptype:
                 pass
             else:
+                print "problems while handling field: %s value: %s" % (field_name, value)
                 raise
         except ValueError:
             ## cast may fail becouse you wrote text in a context in which

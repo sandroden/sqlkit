@@ -311,8 +311,8 @@ class SimpleCompletion(object):
         """execute the SELECT DISTINCT and return values
         """
 
-        sql, constraint_params = self.master.actions.on_completion(
-            self.master.get_current_obj(), field_name)
+#         sql, constraint_params = self.master.actions.on_completion(
+#             self.master.get_current_obj(), field_name)
 
         oper = self.get_match_operator()
         filtering_value = self.get_displayed_value()

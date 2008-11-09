@@ -110,7 +110,7 @@ class SqlMask (sqlwidget.SqlWidget):
             except exc.FieldNotInLayout, e:
                 pass
 
-        self.actions.on_record_display(new=obj)
+        #self.actions.on_record_display(new=obj)
         #sqlwidget.SqlWidget.record_display(self, new=data_in)
         
         ## return True if a record has beeen displayed. In case we 2 Mask in sync
@@ -151,7 +151,6 @@ class SqlMask (sqlwidget.SqlWidget):
             raise exc.FieldNotInLayout("field_name: %s" % (field_name))
 
         field = self.vfields[field_name]
-        
         return field.get_value(shown=shown)
 
     def record_delete(self, widget=None, interactive=True):
@@ -190,7 +189,7 @@ class SqlMask (sqlwidget.SqlWidget):
             return
         obj = self.record_mask2obj(self.current)
 
-        self.actions.on_save(obj, mode=self.current_mode)
+        #self.actions.on_save(obj, mode=self.current_mode)
     
 
         ##  FIXME: constraints
@@ -352,39 +351,39 @@ class SqlMask (sqlwidget.SqlWidget):
         
 
 ####### Layout, Reflection & Analisys
-    def setup_field_validation(self):
-        """fill variables from layout
+#     def setup_field_validation(self):
+#         """fill variables from layout
 
-        vfields
-        --------
-        is a dict: 
-           :key:   is the field_name
-           :value: is a field from sqlkit.widget.mask.fields
+#         vfields
+#         --------
+#         is a dict: 
+#            :key:   is the field_name
+#            :value: is a field from sqlkit.widget.mask.fields
 
-        """
-        ## vfields can be passed as argument of the class. In that case widgets
-        ## used to represent the data are provided by another SqlMask
-        if not self.vfields:
-            self.vfields = {}
-        ## by now I only use entry, date, radio, checbuttom, comboBox to represent data
+#         """
+#         ## vfields can be passed as argument of the class. In that case widgets
+#         ## used to represent the data are provided by another SqlMask
+#         if not self.vfields:
+#             self.vfields = {}
+#         ## by now I only use entry, date, radio, checbuttom, comboBox to represent data
 
-        field_chooser = FieldChooser(self, self.widgets)
+#         field_chooser = FieldChooser(self, self.widgets)
 
-        for field_name in self.field_list:
-            ## m2m is a workarond to bypass the fact that if I use 'A'
-            ## I'll find *many* alignement for InterField
-            for mod in ('e','d','r','c', 'TX', 'Ce', 'm2m', 'm2o', 'o2m', 'o2o', 'fk'):
-                try:
-                    key = "%s=%s" % (mod, field_name)
-                    widget = self.widgets[key]
-                    field = field_chooser.get_field(field_name, self.fields[field_name], key)
+#         for field_name in self.field_list:
+#             ## m2m is a workarond to bypass the fact that if I use 'A'
+#             ## I'll find *many* alignement for InterField
+#             for mod in ('e','d','r','c', 'TX', 'Ce', 'm2m', 'm2o', 'o2m', 'o2o', 'fk'):
+#                 try:
+#                     key = "%s=%s" % (mod, field_name)
+#                     widget = self.widgets[key]
+#                     field = field_chooser.get_field(field_name, self.fields[field_name], key)
 
-                    self.vfields[field_name] = field
+#                     self.vfields[field_name] = field
                     
-                except KeyError, e:
-                    pass
+#                 except KeyError, e:
+#                     pass
             
-            # (gtkClass , gtkWidget)
+#             # (gtkClass , gtkWidget)
 
 
     def setup_field_validation(self):
@@ -399,10 +398,12 @@ class SqlMask (sqlwidget.SqlWidget):
         """
         ## vfields can be passed as argument of the class. In that case widgets
         ## used to represent the data are provided by another SqlMask
+        from  pprint import pprint
         if not self.vfields:
             self.vfields = {}
 
         field_chooser = FieldChooser(self, self.widgets)
+
         for field_name, widget_key in self.laygen.fields_in_layout.iteritems():
             widget = self.widgets[widget_key]
             field = field_chooser.get_field(field_name, self.fields[field_name], widget_key)

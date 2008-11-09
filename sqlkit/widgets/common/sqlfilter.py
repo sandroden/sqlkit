@@ -314,7 +314,7 @@ class FilterPanel(object):
             ## when set_reload is used
             ## sqlData is local to panel filter in this situation!
             raise SqlDataFixNeeded()
-            self.master.actions.on_filter_reload(self.sqlData.get(index=int(idx)))
+#            self.master.actions.on_filter_reload(self.sqlData.get(index=int(idx)))
     
 ##### SQL
     def get_limit(self):
