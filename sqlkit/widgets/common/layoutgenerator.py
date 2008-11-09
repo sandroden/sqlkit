@@ -217,7 +217,7 @@ class LayoutGenerator (object):
         ftype = self.master.get_field_type(field_name)
         widget = self.map_types[ftype]
         
-        if self.fields[field_name]['col_spec'] == 'TEXT':
+        if self.master.is_text(field_name):
             widget = 'TXS'
         return widget
 
@@ -227,18 +227,21 @@ class LayoutGenerator (object):
            """
         length = self.fields[field_name]['length']
         col_spec = self.fields[field_name]['col_spec'] or ''
-
+        db_type  = self.fields[field_name]['db_type'] 
             
         if self.master.is_fkey(field_name) or self.master.is_loader(field_name):
             ### FIXME: should I set the length of the foreign key?
             return ''
-            
+        
         pytype = self.fields[field_name]['type']
-        if col_spec == 'INTEGER' or pytype == int:
+
+        if self.master.is_integer(field_name):
             return ":8"
-        elif col_spec.startswith('FLOAT') or pytype == float:
+        elif self.master.is_float(field_name):
             return ":8"
-        elif col_spec == 'TEXT':
+        elif self.master.is_numeric(field_name):
+            return ":10"
+        elif self.master.is_text(field_name):
             dim = ":250.100"
         
         else:
@@ -350,5 +353,7 @@ class LayoutGenerator (object):
                 self.fields_in_layout[loader] = "%s=%s" % (mod, loader)
 
                     
+
+
 
 

@@ -1,3 +1,18 @@
+# Copyright (C) 2008, Sandro Dentella <sandro@e-den.it>
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 fields classes to handle all details:
 
@@ -60,48 +75,52 @@ class FieldChooser(object):
         if self.master.is_loader(field_name):
             return CollectionField(*args)
         
-        COL_SPEC = db_spec['col_spec']
+        COL_SPEC = db_spec['col_spec'] or ''
         DB_TYPE = db_spec['type']
 
-        if COL_SPEC == 'INTEGER' or DB_TYPE is int:
+        if self.master.is_integer(field_name):
             return IntegerField(*args)
 
-        if (COL_SPEC and COL_SPEC.startswith('FLOAT')) or DB_TYPE == float:
+        if self.master.is_float(field_name):
             return FloatField(*args)
 
-        if (COL_SPEC and COL_SPEC.startswith('FLOAT')) or DB_TYPE == Decimal:
+        if self.master.is_numeric(field_name):
             return DecimalField(*args)
 
-        if (COL_SPEC and COL_SPEC.startswith('VARCHAR'))  or DB_TYPE == str:
-            if isinstance(gtk_widget, gtk.Entry) or not gtk_widget:
-                return VarcharField(*args)
+        if self.master.is_integer(field_name):
+            return IntegerField(*args)
 
-        if isinstance(gtk_widget, gtk.TextView) or DB_TYPE == str:
-            return TextField(*args)
-        
-        if COL_SPEC == 'BOOLEAN'  or DB_TYPE == bool:
-            if db_spec['nullable']:
+        if self.master.is_date(field_name):
+            return DateField(*args)
+
+        if self.master.is_boolean(field_name):
+            if self.master.is_nullable(field_name):
                 return BooleanNullField(*args)
             else:
                 return BooleanField(*args)
-
-        if COL_SPEC == 'DATE'  or DB_TYPE == date:
-            return DateField(*args)
-
-        if COL_SPEC == 'TIME WITHOUT TIME ZONE'  or DB_TYPE == time:
-            return TimeField(*args)
-
-        if COL_SPEC == 'TIME':
-            return TimeField(*args)
-
-        if COL_SPEC == 'INTERVAL' or DB_TYPE == timedelta:
+            
+        if self.master.is_interval(field_name):
             return IntervalField(*args)
 
-        if COL_SPEC == 'TIMESTAMP WITHOUT TIME ZONE'  or DB_TYPE == datetime:
-            return DateTimeField(*args)
+        if self.master.is_time(field_name):
+            if re.search('WITH TIME ZONE', COL_SPEC):
+                # FIXME
+                return TimeField(*args)
+            else:
+                return TimeField(*args)
 
-        if COL_SPEC == 'TIMESTAMP WITH TIME ZONE':
-            return DateTimeTZField(*args)
+        if self.master.is_datetime(field_name):
+            if re.search('WITH TIME ZONE', COL_SPEC):
+                return DateTimeTZField(*args)
+            else:
+                return DateTimeField(*args)
+
+        if self.master.is_text(field_name):
+            return TextField(*args)
+        
+        if self.master.is_string(field_name):
+                return VarcharField(*args)
+
 
         raise NotHandledField("Field %s is not handled in any way: COL_SPEC: %s" %
                               (field_name, COL_SPEC))
@@ -328,5 +347,7 @@ class CollectionField(Field):
 
 
     
+
+
 
 
