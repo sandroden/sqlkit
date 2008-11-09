@@ -112,6 +112,7 @@ class LayoutGenerator (object):
         int                   : 'ae',
         float                 : 'ae',
         str                   : 'ae',
+        unicode               : 'ae',
         decimal.Decimal       : 'ae',
         }
     
@@ -126,19 +127,15 @@ class LayoutGenerator (object):
         if isinstance(master, sk.SqlMask):
             if not lay:
                 lay = "\n".join(self.master.field_list)
-            self._look_for_loaders(lay)
+            self._look_for_explicit(lay)
             self.layout = self._parse_and_complete(lay)
-
+            
         else:
             self.layout = self.create_for_table()
 
         if not naked:
             self._add_default_buttons()
-
-        
-        #print self.layout
-        #dbg.write(self.layout)
-
+            
     def _parse_and_complete(self, lay):
         """parse the layout and substitute all field_name with:
 
@@ -197,6 +194,8 @@ class LayoutGenerator (object):
         """
         if mod in ('ae'):
             return 'e'
+        if mod in ('TXS'):
+            return 'TX'
         else:
             return mod
         
@@ -243,7 +242,6 @@ class LayoutGenerator (object):
             return ":10"
         elif self.master.is_text(field_name):
             dim = ":250.100"
-        
         else:
             if not length:
                 m = re.search('VARCHAR.(\d+).', col_spec)
@@ -316,7 +314,7 @@ class LayoutGenerator (object):
             
         return lay
 
-    def _look_for_loaders(self, lay):
+    def _look_for_explicit(self, lay):
         """
         Look for names that represent loaders, if any parse it for:
 
@@ -327,8 +325,8 @@ class LayoutGenerator (object):
         """
 
         pat = re.compile("""
-          ((?P<mod>m2m|m2o|o2m|o2o)=)?        # the modifier, but not the = sign
-          (?P<loader>[a-zA-Z0-9_\.]+)         # the possible loader:
+          (?P<mod>[a-zA-Z0-9]+)=        # the modifier, but not the = sign
+          (?P<field_name>[a-zA-Z0-9_\.]+)         # the possible loader:
                                               # genre  genre.movies
           (:(?P<spec>\d*))?                   # number of rows for the table
           (:(?P<field_list>[\w,]+))?             # number of rows for the table
@@ -338,22 +336,21 @@ class LayoutGenerator (object):
         for token in lay.split():
             m = pat.match(token)
             if m:
-                loader     = m.group('loader')  # to be verified
+                field_name     = m.group('field_name')  # to be verified
                 mod        = m.group('mod')
                 spec       = m.group('spec')
                 field_list = m.group('field_list')
 
-                if not self.master.is_loader(loader):
-                    continue
-                self.loaders[loader] = {}
-                if spec:
-                    self.loaders[loader]['rows'] = int(spec)
-                if field_list:
-                    self.loaders[loader]['field_list'] = field_list
-                self.fields_in_layout[loader] = "%s=%s" % (mod, loader)
+                if self.master.is_loader(field_name):
+                    self.loaders[field_name] = {}
+                    if spec:
+                        self.loaders[field_name]['rows'] = int(spec)
+                    if field_list:
+                        self.loaders[field_name]['field_list'] = field_list
+                    
+                self.fields_in_layout[field_name] = "%s=%s" % (
+                    self.get_edit_string(mod), field_name)
 
                     
-
-
 
 
