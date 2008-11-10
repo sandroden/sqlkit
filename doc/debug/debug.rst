@@ -59,7 +59,7 @@ If you want the log to happen in a gtk.TreeView window, you can specify:;
 Logging methods
 ---------------
 
-Following the recipe 198078 in the ASP Python CookBook (see in the code)
+Following recipe 198078 in the ASP Python CookBook (see in the code)
 this module provides also a metaclass to trace the use of methods of a
 particular class. It will be instantiated as::
 

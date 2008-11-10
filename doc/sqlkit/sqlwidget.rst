@@ -168,3 +168,4 @@ which are the needed ones...
    A record has been displayed in Mask or selected in Table.
    The callback will just receive the widget as argument.
 
+

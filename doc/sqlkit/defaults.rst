@@ -1,3 +1,5 @@
+.. _defaults:
+
 ==========
 Defaults
 ==========
@@ -32,5 +34,4 @@ now & today
 
 attributes ``now`` and ``today`` will be substituted appropriately when
 creating the field
-
 

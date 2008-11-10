@@ -49,7 +49,7 @@ install:
 	mkdir -p $(DESTDIR)/usr/share/doc/python-sqlkit
 	cp -a demo $(DESTDIR)/usr/share/doc/python-sqlkit
 #	cp -a usr/* $(DESTDIR)/usr
-	find $(DESTDIR) -name .backups -exec rm -Rf {} \;
+#	find $(DESTDIR) -name .backups -exec rm -Rf {} \;
 
 clean:
 	echo
@@ -58,7 +58,7 @@ tgz:
 	hg archive -t tgz ../sqlkit-$(VER).tar.gz
 
 rsync:
-	rsync --progress ../sqlkit-$(VER).tar.gz $(WWW)
-	rsync --progress ../$(DEB) $(WWW)
+	rsync --progress ../sqlkit-$(VER).tar.gz $(WWW)/
+	rsync --progress ../$(DEB) $(WWW)/
 
 rel:	deb tgz lenny sk rsync
