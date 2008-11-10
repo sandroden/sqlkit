@@ -63,6 +63,7 @@ from copy import deepcopy
 from sqlkit.misc.datetools import string2dates
 
 OPERATORS = {
+    'icontains'  : 'icontains',
     'like'  : 'like',
     'ilike' : 'ilike',
     'iregexp' : '~*',
@@ -103,7 +104,14 @@ class DjangoParser(object):
         self.joins += [join_path]
 
         if op_str == 'icontains':
-            sql = col.match(value)
+            eng_name = self.mapper.local_table.metadata.bind.name
+            if eng_name  == 'sqlite':
+                sql = col.ilike("%%%s%%" % value.strip('%'))
+            elif eng_name == 'postgres':
+                sql = col.op('~*')(value)
+            elif eng_name == 'mysql':
+                sql = col.op('REGEXP')(value)
+                
         elif op_str == 'null':
             sql = col == value  ## True | False
         elif op_str == 'ilike': # SA manages difference where there is no ILIKE operator

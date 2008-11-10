@@ -128,6 +128,8 @@ class FilterPanel(object):
             filter_widget.operator.set_active(index)
         except ValueError, e:
             print "operator '%s' not available in this context" % op.upper()
+            print "used: %s -- list: %s" % (op, operator_list)
+            raise
             pass
 
     def get_related_master(self, master, path=None):
@@ -444,16 +446,19 @@ class FilterWidget(object):
 
         """
         
-        if self.bind_name == "sqlite" and op_value == "MATCH":
-            op_value = 'LIKE'
+        if self.bind_name == "sqlite" and op_value == "ICONTAINS":
+            op_value = 'ILIKE'
             value = '%' + value + '%'
 
         query = query.reset_joinpoint()
 
         if self.master.relationship_path:
             query = query.join(self.master.relationship_path)
-            
-        return query.filter(self.col.op(op_value)(value))
+
+        if op_value == "ILIKE":
+            return query.filter(self.col.ilike(value))
+        else:
+            return query.filter(self.col.op(op_value)(value))
 
     def add_filter_cb(self, menuitem, ):
         self.panel.add(None, None, self.field_name, self.master, force=True)
@@ -469,7 +474,7 @@ class FilterStringWidget(FilterWidget):
 
     def get_suitable_operators(self ):
         if self.bind_name in 'sqlite':
-            return ['MATCH'] + self.STR_STD_OPERATORS + self.STD_OPERATORS
+            return ['ICONTAINS'] + self.STR_STD_OPERATORS + self.STD_OPERATORS
         
         elif self.bind_name in 'mysql':
             return [ 'REGEXP' ] + self.STD_OPERATORS
