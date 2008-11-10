@@ -10,16 +10,16 @@ very simple. It's as easy as adding a field in the layout of the SqlMask.
 One2Many in a SqlMak
 =====================
 
-This is a very powerfull feature of ``sqlkit`` that is built on top of
+This is a very powerful feature of ``sqlkit`` that is built on top of
 ``sqlalchemy``'s mechanism of properties and session and on the ability of
-``layout`` to let you define in a simbolic way a widget.
+``layout`` to let you define in a symbolic way a widget.
 
 In the following example we will use a ``Mask`` to represent Directors 
 and a ``Table`` to represent films, connected to the first by a OneToMany
 relationship.
 
 Suppose you already define a couple of tables in sqlalchemy, we will do it
-using elixir_ that slightly simplyfies the syntax::
+using elixir_ that slightly simplifies the syntax::
 
   class Director(elixir.Entity):
       last_name = elixir.Field(elixir.String(60))
@@ -41,10 +41,10 @@ using elixir_ that slightly simplyfies the syntax::
   
 To get a mask that:
  
- 1. lets you see director and films toghether
- 2. lets you edit them adding adn deleting at will
+ 1. lets you see director and films together
+ 2. lets you edit them adding and deleting at will
 
-You just have to start te SqlMask like this::
+You just have to start the SqlMask like this::
 
   lay = """first_name last_name
          o2m=movies      - - -
@@ -129,7 +129,7 @@ differently that adding from m2o:
   2. it complain if it cannot get one single element with that value 
 
 
-Many2One or ForeigKey
+Many2One or ForeignKey
 ======================
 
 Many2One is a simpler case. The table we start from **has** a field that
@@ -155,7 +155,7 @@ Behind the scenes
 ===================
 
 The way sqlkit understands that ``movies`` is an entry point for a
-relationship is that it analizes the ``mapper``, looks for a property with
+relationship is that it analyzes the ``mapper``, looks for a property with
 that name and realizes that it's a PropertyLoader. That means that such an
 entry point has been put there by a ``relation``. 
 

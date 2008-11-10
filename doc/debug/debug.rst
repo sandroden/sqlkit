@@ -5,7 +5,7 @@ debug module
 
    from sqlkit import dbg
 
-purpouse
+purpose
 =========
 
 .. image:: ../img/gtk_debug.png
@@ -13,14 +13,14 @@ purpouse
 
 
 This module provides easy way to debug with print commands. This is not in
-generale my preferred way of debugging (``pdb`` within ipython being my
-preferred solution). Nevertheless I found mysel in need of these functions.
+general my preferred way of debugging (``pdb`` within ipython being my
+preferred solution). Nevertheless I found myself in need of these functions.
 
 Printing of messages can be easily switched on or off.
 
 Printing can diverted to a gtk widget. 
 
-Methods of Classes can be traked in the way reported in the image, where
+Methods of Classes can be tracked in the way reported in the image, where
 blue rows correspond to ``dbg.write``  commands and all the rest is 
 tracking of methods calls. 
 
@@ -59,7 +59,7 @@ If you want the log to happen in a gtk.TreeView window, you can specify:;
 Logging methods
 ---------------
 
-Following recepe 198078 in the ASP Python CookBook (see in the code)
+Following the recipe 198078 in the ASP Python CookBook (see in the code)
 this module provides also a metaclass to trace the use of methods of a
 particular class. It will be instantiated as::
 
@@ -90,7 +90,7 @@ set debugging *before* importing the class you want to trace::
 TraceIt
 -------
 
-in case you need to understand who is changeing the value of a variable, you
+in case you need to understand who is changing the value of a variable, you
 can use TraceIt as::
 
     commit_allowed = dbg.TraceIt(True, name='commit_allowed', mode='rw')

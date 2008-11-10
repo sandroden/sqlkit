@@ -6,9 +6,9 @@ Sqlkit
 
 Sqlkit is a tool to edit __data__ in the easiest possible way, to be used
 building applications that use databases. It is not an editor for tables
-schemas: no way to add columns or add foreig key relationships is provided.
+schemas: no way to add columns or add foreign key relationships is provided.
 
-A tipical usage can be::
+A typical usage can be::
 
 
   from sqlkit import SqlTable, SqlMask, DbProxy
@@ -30,7 +30,7 @@ I assume that...
 
 2. You are using one single metadata. This is a limit but it's my normal
    environment. There's not really anything that cannot be changed easily
-   about this, simply I didn't have need fo this, nor working cases.  (While
+   about this, simply I didn't have need for this, nor working cases.  (While
    I was plenty of ideas on other features...)
 
 3. ForeignKey are simple... Again this is more due to the fact that I use it
@@ -57,3 +57,4 @@ sqlkit supported backend structure
 2. SqlMask/SqlTable must be fed a table or a mapper.
 
 .. _`different engines`: http://www.sqlalchemy.org/docs/05/intro.html#overview_sqlalchemy_dbms
+

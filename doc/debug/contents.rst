@@ -1,5 +1,5 @@
 =============
-Degug helpers
+Debug helpers
 =============
 
 .. toctree::

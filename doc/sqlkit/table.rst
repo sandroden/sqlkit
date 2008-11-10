@@ -40,7 +40,7 @@ Cell renderers
 
 Dates
 -----
-Dates are represented with a CellRenderer that popup up the caledar. I'm not
+Dates are represented with a CellRenderer that popup up the calendar. I'm not
 at all satisfied with this. Any hint is appreciated
 
 Boolean

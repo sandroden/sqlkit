@@ -60,12 +60,12 @@ Each label of both views can be clicked to get a filter panel:
 Completion
 ============
 
-:ref:`completion` is triggered by F1 key, Contrl-Enter or Shift-Enter.  If the
+:ref:`completion` is triggered by F1 key, Ctrl-Enter or Shift-Enter.  If the
 field is a foreign key it will pop up a list of foreign values otherwise it
 will show values currently used (just for varchar fields). 
 
 The search for completion is done using the (possibly) already written
-letters as filter: Control will match them at the beginning ot the field,
+letters as filter: Control will match them at the beginning of the field,
 Shift (and F1) will match them in any part. The search is made using
 ``LIKE`` operators or ``regexp`` according to whatever is available in the
 db engine in use.
@@ -126,3 +126,4 @@ italian actor, produced between 1950 and 1970. The double underscore '__'
 will allow spanning from one table to a related (provided a relation was
 established at sqlalchemy level) and from attribute name to operator to e
 used.  
+

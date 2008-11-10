@@ -23,7 +23,7 @@ display a better representation of the referenced record.
 dbproxy
 -------
 
-Since a tipical scenario is to have to provide a session different in each
+Since a typical scenario is to have to provide a session different in each
 SqlWidget and a metadata, an object is provided -``dbproxy``- that can be
 initialized from the engine specification::
 
@@ -132,14 +132,14 @@ Attributes
 
 :query:
    the sqlalchemy query object (``session.query(mapper)``) with all
-   constrints applied. Can be manipulated as necessary as long as it stay a
+   constraints applied. Can be manipulated as necessary as long as it stay a
    query object.
 
 :lay_obj: 
    the sqlkit.layout.Layout object used to create the layout
 
 :current:
-   the object represented by a mask or a posssible selected record in a
+   the object represented by a mask or a possible selected record in a
    table or None. 
 
 :field_list:
@@ -165,7 +165,6 @@ At the moment just one signal is defined. More will come up soon as I decide
 which are the needed ones...
 
 :record_selected:
-   A record has been displayed in Mask or slected in Table.
+   A record has been displayed in Mask or selected in Table.
    The callback will just receive the widget as argument.
-
 

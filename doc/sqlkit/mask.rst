@@ -30,7 +30,7 @@ click pops up a :ref:`filter <filters>` widget.
 layout
 =======
 
-The most powerfull part of SqlMask is the ability to define the layout via
+The most powerful part of SqlMask is the ability to define the layout via
 simple text description. In the examples you'll see how easy it is to create
 fancy layout that have all nice gtk Widgets like expanders, notebook, panes
 and it makes it incredibly easy to nest SqlTables into SqlMask to build
@@ -43,7 +43,7 @@ If no layout is provided a flat one will be generated on the fly.
 
 The key is that a textual layout is parsed to see if the token are
 recognized as fields of the table that the mask is editing, in which case
-instrospection is done to understand which widget should be used to edit the
+introspection is done to understand which widget should be used to edit the
 data (according to rules above) and a label is added::
 
    title
@@ -55,12 +55,12 @@ will show a mask with an entry, a date a text and a fkey. Title and
 director_id will be already instrumented with completion: director_id will
 try to complete choosing the values of directors from the director table,
 title will suggest completion based on title present in the table (and in
-this case may not be very usefull). Description would render is am entry as
+this case may not be very useful). Description would render is am entry as
 it's a varchar, we wanted to "cast" it to text so we had to explicitly add
-also a tocken for the label. L is the identifield for a sensitive label (a
-gtk.Label insidea gtk.Event) and TX is the identifier or a scolled text.
+also a token for the label. L is the identifield for a sensitive label (a
+gtk.Label inside a gtk.Event) and TX is the identifier or a scolled text.
 
-The description language you can use is petty rich (and dinamic, so you can
+The description language you can use is petty rich (and dynamic, so you can
 add your custom made widgets): you'd better have  a look at the demo of
 sqlkit.layout that you find in sqlkit.demo.layout
 

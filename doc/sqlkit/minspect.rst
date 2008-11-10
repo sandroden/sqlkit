@@ -10,20 +10,20 @@ InspectMapper methods
        returns all the keys (field_names) present in the mapper
 
    :tables: 
-       return the table names present in the mapper. If mode='mapper'
+       returns the table names present in the mapper. If mode='mapper'
        it will return the mapper of each table
 
    :table_fields(table_name):  
-       return all the fields in 'table_name' 
+       returns all the fields in 'table_name' 
 
    :get_mapper(table_name): 
-       return the mapper for 'table_name'
+       returns the mapper for 'table_name'
 
    :get_class(table_name): 
-       return the class for 'table_name'
+       returns the class for 'table_name'
 
    :get_pkeys(table_name): 
-       return a list for all pkeys of table_name
+       returns a list for all pkeys of table_name
 
 InspectMapper attributes
 -------------------------

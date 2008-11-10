@@ -1,7 +1,7 @@
 .. _layout:
 
 =====================================
-A GUI description language - purpouse
+A GUI description language - purpose
 =====================================
  
 .. sidebar:: Note
@@ -20,8 +20,8 @@ You cannot do *any* possible thing you would do with gtk, but methods are
 provided to refine the layout and it isn't difficult to add GtkObjects or
 features.
 
-The purpouse is to easy things with simple setup, not to cover any possible
-graphical layout. The main purpouse is to be used in desiging layout of
+The purpose is to easy things with simple setup, not to cover any possible
+graphical layout. The main purpose is to be used in designing layout of
 record editor (:ref:`sqlkit`) for db, but it can be used with any other
 program as well.
 
@@ -65,28 +65,28 @@ A layout is a sequence of tokens and display modifiers.
      key   txt    id          var        width1   width2  align
   
   
-  no element is needed apart the 'string', the key defauls to 'el' (Entry +
+  no element is needed apart the 'string', the key defaults to 'el' (Entry +
   Label), the variable defaults to the string, wid1 and wid2 (described
   below) use GtkWidget defaults. 
   
   The string part may end with .[a-z0-9] just to be able to refer in a
   unique way to single elements that are apparently equal (see :ref:`names`)
 
-  an indication of the desider alignement may be given using one of ('-',
+  an indication of the desidered alignment may be given using one of ('-',
   '<', '>'). this take effect oly if the element is position in a
-  gtk.Alignement (eg. 'ae' element ie: entry with width). in that case:
+  gtk.Alignment (eg. 'ae' element ie: entry with width). in that case:
 
-    :>: right alignement   (xalign = 1)
-    :<: left alignement    (xalign = 0)
-    :-: xscale of the alignement is set to 1 i.e. the child of the
-        alignement (the entry in the example will grow when more space
+    :>: right alignment   (xalign = 1)
+    :<: left alignment    (xalign = 0)
+    :-: xscale of the alignment is set to 1 i.e. the child of the
+        alignment (the entry in the example will grow when more space
 	is given to the widget)
 	
 .. sidebar:: Automatisms with sqlkit
 
    Note that when used from within sqlkit layout definition any text
-   field is rendered with entry within an alignement (``ae`` element) and an
-   alignement of '-' is added to any text field longer than 20 chars.
+   field is rendered with entry within an alignment (``ae`` element) and an
+   alignment of '-' is added to any text field longer than 20 chars.
 
     
 :spare token:
@@ -112,7 +112,7 @@ A layout is a sequence of tokens and display modifiers.
     
     :[XTHVbNPSvhpOBmMFA](.id):
     
-       (possibly) followed (w/out sapaces) by some opts as in 
+       (possibly) followed (w/out spaces) by some opts as in 
        {V r=man/sex r=woman}, this will create a nester layout with 2
        radiobutton packed into a GtkVBox. For an explanation of the (.id)
        part see below (container naming)
@@ -159,9 +159,9 @@ A layout is a sequence of tokens and display modifiers.
        properties of the silently created expander using key F.id
      :>: 
        will encapsulate the result into an Expander that allows to
-       collapse all its content via a clik on a little arrow. You can set
+       collapse all its content via a click on a little arrow. You can set
        properties of the silently created expander using key X.id. A double
-       '>>' resuts in an expanded expander. The id is used as label for the
+       '>>' results in an expanded expander. The id is used as label for the
        expander. so that '>>.clients', will be expanded in an oped expander
        with a label "clients"
   
@@ -229,7 +229,7 @@ A partial list of elements:
     :sb: Statusbar,
     :le: ComboLE,
 
-    more simbols are in the source...
+    more symbols are in the source...
 
 
 
@@ -237,7 +237,7 @@ custom  widgets
 ---------------
 
 Occasionally you will find yourself in nee for a custom identifier. You can
-create one and register it. Have a loook at the code in layoutgenerator
+create one and register it. Have a look at the code in layoutgenerator
 module.
 
 
@@ -254,7 +254,7 @@ Calling Layout
 :level: 
   nested level (used only by layout itself)
 :parent_container:
-  a flag among the container flags that says wich is the container: determines
+  a flag among the container flags that says which is the container: determines
   the packing info for the result. Default is W (Window) as a toplevel
   window. In this case info for a toplevel window is built.
 :opts:
@@ -263,13 +263,13 @@ Calling Layout
 
   Mainly this is a way to force the use of a container for the outer call of
   layout. Default is to put all widgets in a GtkTable but any container can be
-  choosen from the container flags.
+  chosen from the container flags.
   
   A special component of 'opts', is 's' that asks to add a StatusBar. The
   method 'sb' is provided to talk with that Statusbar whose key name is sb=StBar.
   
 :addto:
-  follows the name of a container that will receive the resoulting
+  follows the name of a container that will receive the resulting
   layout. Must be a container that accept 'add' method.
 
 
@@ -287,7 +287,7 @@ methods use gtk directly, not glade.
 
 
    :xml(file=None): 
-             will produce the xml needed for glade, may be writte to file
+             will produce the xml needed for glade, may be write to file
 
    :show(action=function_name): will directly call glade to display the
              GUI, returns a dict of Gtk objects whose keys are the element
@@ -344,7 +344,7 @@ element names
 For each element of the layout we need to build a key for xml, so that we
 know how to refer to the gtk object in the program. Layout will build the
 name starting from what was written in the element description, if that
-results in being already used it buids a unique name adding a number, but that 
+results in being already used it builds a unique name adding a number, but that 
 may result in difficulty to interact with it from inside the program.
 
 If that's an issue try being clear when creating the layout. Use ids, the
@@ -375,7 +375,7 @@ Notebook
 A notebook need some labels to identify the tabs. These are other child of
 the GtkNotebook container interspersed with the content of the
 container. You can set them with the notebook method, or you can use a
-simbol in the describing string using % trailer:: 
+symbol in the describing string using % trailer:: 
 
   
   {N.0  { %first_tab_RIGHT
@@ -396,7 +396,7 @@ space.
 
 
 
-Authomatic name mechanism
+Automatic name mechanism
 ----------------------------
 
 
@@ -421,7 +421,7 @@ you want to modify its properties.
 
 Their name will be the container flag [THVbNPSvhpOBmMFA] possibly followed
 by a dot . and an identifier. The identifier will be a progressive counter,
-strarting from 0 but may be imposed appending .id to the flags of the
+starting from 0 but may be imposed appending .id to the flags of the
 container, as in::
 
   {V.my_id first_name last_name }
@@ -440,10 +440,10 @@ This functions fills in a dictionary widgets.info whose structure is:
 when a widget is created w/ name 'name' the label will be set to 'label' and
 a tooltip will be set to 'tip'. This can help a lot in many situations. Db
 field name will be mapped to user friendly labels, translation will be as
-esasy as pointing to a different file. 
+easy as pointing to a different file. 
 
 The function can point to a filename or can read a string. You can write
-directly the info dictionary if you prefare...
+directly the info dictionary if you prefer...
 
 
 
@@ -454,7 +454,7 @@ Layout class implementation
 Each layout live in a container (may be a toplevel Window) and creates a
 container to house its children. This can cause a little bit of
 confusion so I call parent_container the container in which a widget live and
-container the Gtk container (Table, HBox, VBox...) where I house layout chidren.
+container the Gtk container (Table, HBox, VBox...) where I house layout children.
 
 You can think at your layout as divided in blocks, each one named 'cell' in
 the code. A cell is or the definition of a gtkObj or a nested layout.
@@ -473,7 +473,7 @@ When the object is instantiated, Layout
      - nested layouts (starts w/ '{')
      ...
 
-For each tocken that describes a single element, creates the corresponding
+For each token that describes a single element, creates the corresponding
 lwidget object, for each nested layout creates another instance of Layout.
 
 LWidgets and LContainer
@@ -496,6 +496,6 @@ another container (the outer one for Layout).
 Producing xml
 -------------
 
-Layout produces xml just asking to the topleve (an LContainer object) to
+Layout produces xml just asking to the toplevel (an LContainer object) to
 produce xml.  LContainer xml, produces xml for itself and for its children,
 if some of them is a container the process iterates.

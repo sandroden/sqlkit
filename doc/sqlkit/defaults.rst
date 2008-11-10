@@ -1,5 +1,3 @@
-.. _defaults:
-
 ==========
 Defaults
 ==========
@@ -32,6 +30,7 @@ reference and find the correct value
 now & today
 =============
 
-attributes ``now`` and ``today`` will be substituted appropriatey when
+attributes ``now`` and ``today`` will be substituted appropriately when
 creating the field
+
 

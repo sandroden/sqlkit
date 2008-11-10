@@ -12,7 +12,7 @@ This operation has 3 main actors:
 
   1. the search field
   2. the operator used when searching
-  3. the representaion of the result
+  3. the representation of the result
 
 It comes in two *flavours*:
 
@@ -98,7 +98,7 @@ completion object ``autostart`` value::
   t = SqlMask(table='movie', dbproxy=db)
   t.completions.director_id.autostart = 2
 
-Completion will be recalculated any time the written string is shorter that
+Completion will be recalculated every time the written string is shorter that
 the last text that triggered the completion.
 
 Take care not to use a little value for ``autostart`` on large tables.
@@ -124,10 +124,11 @@ completion...
 group_by
 ========
 
-Theres also en easy possibility to add grouping of completion via a
-foreign_key attribute. It's enought to set the group_by attribute of
+There is also en easy possibility to add grouping of completion via a
+foreign_key attribute. It's enough to set the group_by attribute of
 completion_group_by::
 
   t.completions.director_id.group_by = 'nation'
 
 .. image:: ../img/completion_group_by.png
+

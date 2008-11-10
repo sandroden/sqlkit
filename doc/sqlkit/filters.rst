@@ -7,7 +7,7 @@
 .. image:: ../img/filter-panel.png
    :align: left
 
-Filtering is a very powerfull feature of sqlkit. Any single field in a
+Filtering is a very powerful feature of sqlkit. Any single field in a
 SqlWidget may become a filter criteria and many filters on a field are
 accepted. A filter panel handle the filters that may also belong to related
 table: in that case a join will be built when selecting (read the note on on
@@ -38,4 +38,5 @@ the last month and so on), that's the only way to allow saving query that
 will behave the same all the time.
 
 .. automodule:: sqlkit.misc.datetools
+
 
