@@ -7,7 +7,6 @@ Here the contrainst is on nation. The completion of director is constrained by a
 """
 
 lay = """
-   first_name
    last_name
    nation
 """

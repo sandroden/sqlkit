@@ -2,7 +2,7 @@
 
 To add a relation is as easy as adding the relation name to the layout
 note that in this case the table name is not sufficient, we need to know
-the mapping so we pass a Class attribute that is realy a class build with
+the mapping so we pass a Class attribute that is really a class build with
 declarative layer
 """
 

@@ -4,8 +4,10 @@ A stupid example to show the total on an integer
 """
 
 t = SqlTable(table='movie',
-         dbproxy=db,
-         order_by='director_id',
+             dbproxy=db,
+             order_by='director_id',
+             rows=30,
+             geom=(800,600)
          )
 
 t.totals.add_total('year')

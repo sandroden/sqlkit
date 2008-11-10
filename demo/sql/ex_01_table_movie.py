@@ -1,6 +1,7 @@
 """base/movie table
 
 base editing mode: table view
+passing the tablename triggers the reflection of the table fom the database
 """
 
 t = SqlTable(table='director', dbproxy=db, order_by='last_name', rows=6, )

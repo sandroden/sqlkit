@@ -16,7 +16,7 @@ lay = """
 """
 
 t = SqlMask(Class=model.Director, dbproxy=db, layout=lay)
-t.add_filter(movies__title__iregexp='il')
-t.add_filter(first_name__iregexp='a')
+t.add_filter(movies__title__icontains='il')
+t.add_filter(first_name__icontains='a')
 t.reload()
 
