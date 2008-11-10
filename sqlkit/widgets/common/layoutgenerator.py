@@ -168,6 +168,9 @@ class LayoutGenerator (object):
         """
         field_name = m.group('field')
         
+        if field_name not in self.master.field_list:
+            return field_name
+
 #         ## this is for reference of fields defined in other tables: tbl.field
 #         if field_name not in self.fields:
 #             ## any field that is not explicitly here is mapped into 'str'
@@ -340,6 +343,9 @@ class LayoutGenerator (object):
                 mod        = m.group('mod')
                 spec       = m.group('spec')
                 field_list = m.group('field_list')
+
+                if field_name not in self.master.field_list:
+                    return
 
                 if self.master.is_loader(field_name):
                     self.loaders[field_name] = {}

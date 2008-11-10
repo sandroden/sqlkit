@@ -38,7 +38,7 @@ L=year ae=year:8
 >>> lay = "time"
 >>> sm = SqlMask(Class=AllTypes, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
-L=time ae=time:5
+L=time ae=time
 >>> sm.laygen.fields_in_layout
 {'time': 'e=time'}
 
