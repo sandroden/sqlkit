@@ -59,6 +59,7 @@ class InspectMapper(dict):
            """
         global SA_TYPE_MAP
         self.ro = ro
+        
         try:
             # these type so no have a correspondence a base in a SA Type
             SA_TYPE_MAP.update({
@@ -67,6 +68,14 @@ class InspectMapper(dict):
                 })
         except Exception, e:
             pass
+        try:
+            # these type so no have a correspondence a base in a SA Type
+            SA_TYPE_MAP.update({
+                sqlalchemy.databases.sqlite.SLDate  : datetime.date, 
+                })
+        except Exception, e:
+            pass
+            
 
         self.fields = []
         self.primarytable = self.get_primary_table
