@@ -10,7 +10,10 @@ the following:
 
   - localization 
   - validation
+  - saveing queries
   - good field render for CellRenderer (notably TEXT fields and DateTime)
+  - good system to warn people of all orphans when deleting
+  - integrate a permission system
 
 moreover I'd like to investigate what kind of integration I can add for
 using PyGtkMVC_

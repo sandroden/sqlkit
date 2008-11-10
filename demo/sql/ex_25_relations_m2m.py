@@ -4,6 +4,11 @@ To add a relation is as easy as adding the relation name to the layout
 note that in this case the table name is not sufficient, we need to know
 the mapping so we pass a Class attribute that is really a class build with
 declarative layer
+
+In this case you cannot add actors from the interface, but you can select them
+and add them to the cast of the film (as wella s genres)
+
+
 """
 
 lay = """
