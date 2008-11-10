@@ -38,9 +38,10 @@ class IntervalEdit(gtk.Alignment):
         self._align = gtk.Alignment(0,0,0,0)
 
         self.add(self.hbox)
-        for name in ('days', 'hours', 'minutes', 'seconds'):
+        for name in ('days', 'hours',): # 'minutes', 'seconds'):
             widget = getattr(self, name)
-            widget.set_property('width_chars', 3)
+            widget.set_property('width_chars', 8)
+            widget.set_alignment(1)
             self.hbox.add(widget)
 
         self.show_all()
@@ -55,7 +56,7 @@ class IntervalEdit(gtk.Alignment):
 
     def split_interval(self, interval):
         if interval is None:
-            return [''] * 4
+            return [0] * 4
         days = interval.days
         hours, spare = divmod(interval.seconds, 3600)
         minutes, seconds = divmod(spare, 60)
@@ -65,18 +66,18 @@ class IntervalEdit(gtk.Alignment):
         if property.name == 'interval':
             days, hours, minutes, seconds = self.split_interval(value)
             self.days.set_text(str(days) or '')
-            self.hours.set_text(str(hours))
-            self.minutes.set_text(str(minutes))
-            self.seconds.set_text(str(seconds))
+            self.hours.set_text("%.2d:%.2d:%.2d" % (hours, minutes, seconds))
+            #self.minutes.set_text(str(minutes))
+            #self.seconds.set_text(str(seconds))
             
     def do_get_property(self, property):
         if property.name == 'interval':
             
             days = self.days.get_text() or 0
             hours = self.hours.get_text() or 0
-            minutes = self.minutes.get_text() or 0 
-            seconds = self.seconds.get_text() or 0
-            
+            #minutes = self.minutes.get_text() or 0 
+            #seconds = self.seconds.get_text() or 0
+            hours, minutes, seconds = hours.split(':')
             value = timedelta(days=int(days), hours=int(hours),
                                       minutes=int(minutes), seconds=int(seconds))
             return value
