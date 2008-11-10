@@ -477,7 +477,7 @@ class SqlTable(sqlkit.SqlWidget):
             if titer is None:
                 titer = tmodel.get_iter_first()
             path = tmodel.get_path(titer)
-            gobject.idle_add(self.treeview.set_cursor, path, columns[1], True)
+            gobject.idle_add(self.treeview.set_cursor, path, columns[0], True)
         return False
     
     def key_tree_ctrl_n(self, treeview, event, data):
@@ -639,7 +639,7 @@ class SqlTable(sqlkit.SqlWidget):
             except (exc.NoResultFound, exc.MultipleResultsFound), e:
                 ## if there's no match, try completion
                 show = self.vfields[field_name].widget.completion.show_possible_completion
-                show(self.editable, field_name, 'start')
+                show(self.editable, 'start')
                 return True
         else:
             self.vfields[field_name].set_value(new_text, initial=False)
@@ -697,10 +697,10 @@ class SqlTable(sqlkit.SqlWidget):
         if not obj:
             return
         fkey_value = getattr(obj, field_name)
-
-        path = model.get_path(iter)
-        value = self.completions[field_name].lookup_value(field_name, fkey_value)
-        cell.set_property('text', value)
+        if fkey_value:
+            path = model.get_path(iter)
+            value = self.completions[field_name].lookup_value(field_name, fkey_value)
+            cell.set_property('text', value)
 
     def date_changed_cb(self, event, path, date, col):
 	self.edited_row_model_path = path
@@ -955,7 +955,7 @@ class SqlTable(sqlkit.SqlWidget):
 
         try:
             #if value not in (True, False, None):
-            if not isinstance(value, ptype):
+            if value is not None and not isinstance(value, ptype):
                 value = ptype(value)
         except TypeError:
             # eg: setting a field to NULL
@@ -1122,25 +1122,4 @@ class SqlTable(sqlkit.SqlWidget):
             if self.editable:
                 return self.editable.get_text()
         return getattr(self.get_current_obj(), field_name)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
