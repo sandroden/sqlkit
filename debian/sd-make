@@ -4,7 +4,9 @@
 DEB=$(shell cat debian/files |cut -f 1 -d " ")
 VER=$(shell head -n1 debian/files|cut -f 2 -d _)
 PKG=$(shell echo $(shell pwd)| sed 's/.*\///')
-WWW=www2:docs/sqlkit/sqlkit/download
+DIR=/home/www/sandro/apt/download.argolinux.org/sqlkit
+WWW=apt@www2:$(DIR)
+TGZ=sqlkit-$(VER).tar.gz
 
 deb:
 	dpkg-buildpackage -rfakeroot -us -uc -b | tee log
@@ -58,7 +60,8 @@ tgz:
 	hg archive -t tgz ../sqlkit-$(VER).tar.gz
 
 rsync:
-	rsync --progress ../sqlkit-$(VER).tar.gz $(WWW)/
+	rsync --progress ../$(TGZ) $(WWW)/
 	rsync --progress ../$(DEB) $(WWW)/
+	ssh apt@www2 'cd $(DIR) && rm -f sqlkit-latest.tar.gz && ln -s $(TGZ) sqlkit-latest.tar.gz'
 
 rel:	deb tgz lenny sk rsync
