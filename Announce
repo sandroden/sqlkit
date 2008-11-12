@@ -1,0 +1,53 @@
+                      ANNOUNCE: sqlkit 0.8.3 
+
+                        November, 10  2008
+
+
+I'm happy to announce release 0.8.3 of sqlkit package for python -  the first
+public release.
+
+  http://docs.argolinux.org/sqlkit
+
+Sqlkit PyGtk package that provides Mask and Table widgets to edit database
+data. It's meant as a base for database desktop application.
+
+The package has 2 very rich demo suites for sql widgets (the main one in
+sqlkit/demo/sql/demo.py) and for layout creation
+  
+Main features of sqlkit:
+------------------------
+
+  * editor of databases in 2 modes: table & mask
+  * based on sqlalchemy: can cope with many different databases
+  * very powerfull filtering capabilities:
+        - each field can be used to filter records
+	- filter may span relationship
+        - date filtering possible also on relative basis (good for saved 
+          queries)
+  * completion on all text field and foreign keys
+  * very easy way to draw a layout for mask views
+  * completely effortless editing of relationships
+  * very easy way to set defaults
+  * possibility to display totals of numeric fields
+  * constraints: any possible sql constraint can be attached to a Mask or a 
+    Table. It can be expressed a s a normal sqlalchemy query or with 
+    django-like syntax
+  * sqledit: python script to edit db
+  
+
+Sqlkit is based on:
+-------------------
+  * python (>= 2.4)	
+  * PyGtk	
+  * Sqlalchemy (>= 0.5)
+  * glade
+  * dateutils
+
+
+Dowload & more:
+---------------
+
+  * http://docs.argolinux.org/sqlkit/sqlkit/download.html
+  * hg clone http://hg.argolinux.org/py/sqlkit
+  * google group: http://groups.google.it/group/sqlkit/
+  * License: GNU GPL
