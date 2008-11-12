@@ -64,7 +64,7 @@ class SqlWidget(gobject.GObject):
                   ## geometry
                   layout = None,
                   naked=False,
-                  geom=(-1,300),
+                  geom=(-1,-1),
                   rows=10,
                   addto=None,
                   title=None,
