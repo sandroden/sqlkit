@@ -19,7 +19,8 @@ and a ``Table`` to represent films, connected to the first by a OneToMany
 relationship.
 
 Suppose you already define a couple of tables in sqlalchemy, we will do it
-using elixir_ that slightly simplifies the syntax::
+using elixir_ that slightly simplifies the syntax, in the package the demo
+uses declarative layer instead::
 
   class Director(elixir.Entity):
       last_name = elixir.Field(elixir.String(60))

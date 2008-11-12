@@ -1,6 +1,6 @@
-=========================
- Download & requirements
-=========================
+=======================================
+ Download & requirements & googlegroup
+=======================================
 
 
 requirements
@@ -41,14 +41,12 @@ Even if the source state ``lenny`` can safely be used for ubuntu and etch.
        easy_install sqlalchemy
 
 
+mailing list
+============
 
+You can join our mailing list_
 
-
-
-
-
-
-
-.. _here: http://docs.argolinux.org/sqlkit/sqlkit/download
+.. _list: http://groups.google.com/group/sqlkit
+.. _here: http://sqlkit.argolinux.org/download/
 
   
