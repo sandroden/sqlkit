@@ -627,6 +627,7 @@ class ShowMapperInfo(object):
         self.tv.expand_all()
 
     def fill_model(self):
+        from sqlkit.db.minspect import get_foreign_info
         iter = {}
         for table_name in self.info.tables():
             iter[table_name] = self.model.append(None)
@@ -646,9 +647,8 @@ class ShowMapperInfo(object):
                                    )
                 if I['fkey']:
                     self.model.set(sun,
-                          3, "%s.%s" % (I['fkey'][0], I['fkey'][1]),
+                          3, "%s.%s" % (get_foreign_info(I['fkey']))
                                    )
-                    
                 if not I['nullable']:
                     self.model.set(sun,
                           4, 'NOT NULL',
