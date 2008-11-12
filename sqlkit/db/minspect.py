@@ -12,6 +12,7 @@ SA_TYPE_MAP =  {
     sqlalchemy.types.String : str,
     sqlalchemy.types.Unicode : str,
     sqlalchemy.types.Integer  : int,
+    sqlalchemy.types.SmallInteger  : int,
     sqlalchemy.types.Float  : float,
     sqlalchemy.types.DateTime  : datetime.datetime,
     sqlalchemy.types.Date  : datetime.date,
@@ -68,14 +69,6 @@ class InspectMapper(dict):
                 })
         except Exception, e:
             pass
-        try:
-            # these type so no have a correspondence a base in a SA Type
-            SA_TYPE_MAP.update({
-                sqlalchemy.databases.sqlite.SLDate  : datetime.date, 
-                })
-        except Exception, e:
-            pass
-            
 
         self.fields = []
         self.primarytable = self.get_primary_table
@@ -88,15 +81,14 @@ class InspectMapper(dict):
         self.loop_on_props()
 
                               
-    def get_py_type(self, Type):
-        
-        try:
-            return SA_TYPE_MAP[Type.__base__]
-        except KeyError:
-            return SA_TYPE_MAP[Type]
-        except:
-            raise
+    def get_py_type(self, Type,):
+        for typ in (Type,) + Type.__bases__:
+            try:
+                return SA_TYPE_MAP[typ]
+            except KeyError:
+                continue
 
+        raise NotImplementedError("Couldn't resolve SA type for %s" % Type)
         
         
     def loop_on_props(self):
@@ -129,7 +121,7 @@ class InspectMapper(dict):
             'table'       :  mapper.local_table ,
             'col'         :  mapper.c[field_name] ,
             'db_type'     :  type(mapper.c[field_name].type), 
-            'type'        :  self.get_py_type(type(mapper.c[field_name].type)),
+            'type'        :  self.get_py_type(type(mapper.c[field_name].type), ),
             'col_spec'    :  col_spec,
             'is_serial'   :  is_serial(mapper.c[field_name]),
             'property'    :  property,

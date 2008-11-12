@@ -12,6 +12,7 @@ files = (
     'mask.txt',
     'dates.txt',
     'fields.txt',
+    'mapper_inspect.txt',
     )
 
 if sys.argv[1:]:
