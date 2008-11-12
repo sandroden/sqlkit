@@ -349,6 +349,10 @@ class SqlWidget(gobject.GObject):
 
         if 'Window' in self.lay_obj.elements:
             self.lay_obj.connect(('Window', 'delete_event', self.delete_event))
+            if self.geom:
+                self.lay_obj.prop('Window', 'width-request', self.geom[0])
+                self.lay_obj.prop('Window', 'height-request', self.geom[1])
+
 
 
         if isinstance(self, sqlkit.SqlMask):
@@ -470,7 +474,7 @@ class SqlWidget(gobject.GObject):
             dbg.write("Exception: %s" % e.orig) 
             #self.message(str(e.orig))
             self.session.rollback()
-            raise CommitError
+            raise exc.CommitError
             
     def SQLErrorHandler(self, e):
         self.message(type='error',

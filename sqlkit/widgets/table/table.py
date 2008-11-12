@@ -86,9 +86,9 @@ class SqlTable(sqlkit.SqlWidget):
         if not self.naked:
             self.lay_obj.prop('A.external','yscale',1)
 
-        if self.geom :
-            self.lay_obj.prop('TV=tree', 'width-request', self.geom[0])
-            self.lay_obj.prop('TV=tree', 'height-request', self.geom[1])
+#         if self.geom :
+#             self.lay_obj.prop('TV=tree', 'width-request', self.geom[0])
+#             self.lay_obj.prop('TV=tree', 'height-request', self.geom[1])
 
         if self.rows:
             self.treeview.connect_after('realize', self.set_rows, self.rows)
