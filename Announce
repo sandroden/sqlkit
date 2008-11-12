@@ -6,10 +6,17 @@
 I'm happy to announce release 0.8.3 of sqlkit package for python -  the first
 public release.
 
-  http://docs.argolinux.org/sqlkit
+  http://sqlkit.argolinux.org/
 
-Sqlkit PyGtk package that provides Mask and Table widgets to edit database
-data. It's meant as a base for database desktop application.
+The package
+-----------
+SQLkit PyGtk package provides Mask and Table widgets to edit database
+data. It's meant as a base for database desktop applications.
+
+The application
+---------------
+It also provides 'sqledit' a PyGTK application based on sqlkit that can be
+used from command line to browse and edit data.
 
 The package has 2 very rich demo suites for sql widgets (the main one in
 sqlkit/demo/sql/demo.py) and for layout creation
@@ -29,7 +36,7 @@ Main features of sqlkit:
   * completely effortless editing of relationships
   * very easy way to set defaults
   * possibility to display totals of numeric fields
-  * constraints: any possible sql constraint can be attached to a Mask or a 
+  * any possible sql constraint can be attached to a Mask or a 
     Table. It can be expressed a s a normal sqlalchemy query or with 
     django-like syntax
   * sqledit: python script to edit db
