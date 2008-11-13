@@ -583,6 +583,7 @@ class TreeInfoLayout(object):
         else:
             self.l = self._get_layout()
             self.w = self.l.show()
+            self.w['Window'].resize(500, 500)
 
         scr_treeview = self.w['S=a']
         table = scr_treeview.get_parent()
