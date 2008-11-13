@@ -16,7 +16,7 @@ from sqlkit.db import proxy, defaults, utils
 import gtk
 
 
-db = proxy.DbProxy(engine="sqlite:///movies.sqlite")
+db = proxy.DbProxy(engine="sqlite:///../../demo/sql/model/movies.sqlite")
 session = db.get_session()
 utils.TableDescr('director', format='%(first_name).1s. %(last_name)s',
                  metadata=db.metadata)
