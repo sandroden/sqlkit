@@ -298,10 +298,11 @@ class Demo(object):
 
 
     def create_widget_tree(self, new=False, toplevel=None):
+        from sqlkit.debug import gtk_dbg
         global show_widgets
         global model
         if new:
-            show_widgets = dbg.gtk_dbg.show_widgets(lay=False)
+            show_widgets = gtk_dbg.show_widgets(lay=False)
             model = show_widgets.create_model(self.tv_tree)
 
         show_widgets.fill_model(toplevel, model)
