@@ -407,7 +407,7 @@ class Layout(object):
 
         end = "\n</glade-interface>"
 
-        # not needed of nested layout
+        # not needed if nested layout
         if self.level > 0:
             start = end = ''
 
@@ -418,7 +418,7 @@ class Layout(object):
         #  write it to file?
         if filename:
             f = open(filename,'w')
-            f.write(txt)
+            f.write("%s\n%s\n%s" % (start, txt, end))
             f.close()
         else:
             return "%s\n%s\n%s" % (start, txt, end)
