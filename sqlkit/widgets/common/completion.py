@@ -619,7 +619,7 @@ class SimpleCompletion(object):
         return value after 2 substitutions as described in .filter()
 
         """
-        if value.startswith('$'):
+        if isinstance(value, str) and  value.startswith('$'):
             value = value.replace('$','')
             
             if value.startswith('main.'):
@@ -696,6 +696,8 @@ class FkeyCompletion(SimpleCompletion):
 
             self.lookup_values[field_name][field_value] = value
         return value
+
+
 
 
 
