@@ -78,15 +78,7 @@ class VarcharWidget(Widget):
         self.completion = SimpleCompletion(self.master, self, self.field_name)
         self.completion.add_completion(self.gtkwidget)
         self.master.completions[self.field_name] = self.completion
-
-        self.gtkwidget.connect(
-            'button-press-event', self.completion.pop_menu,  self.field_name, 3)
-        self.gtkwidget.connect(
-            'key-press-event', self.completion.keypress_event_cb,  self.field_name)
-        self.gtkwidget.connect(
-            'key-release-event', self.completion.keypress_event_cb,  self.field_name, 'release')
-
-            
+        self.completion.add_callbacks(self.gtkwidget)
 
     def set_value(self, value):
         # Entry
@@ -402,10 +394,7 @@ class ForeignKeyWidget(Widget):
         self.button.connect('clicked', self.on_button_clicked)
 
         ## entry connect
-        self.entry.connect('key-press-event', self.on_key_press)
-        self.entry.connect('key-release-event', self.on_key_press, 'release')
-#        self.entry.connect('changed', self.on_entry_changed)
-        
+        self.completion.add_callbacks(self.entry)
 
     def on_button_clicked(self, widget):
         self.completion.show_possible_completion(
@@ -500,6 +489,8 @@ class CollectionWidget(Widget):
 
     def get_value(self, shown=False):
         return self.table.records 
+
+
 
 
 

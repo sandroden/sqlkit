@@ -157,6 +157,12 @@ class SimpleCompletion(object):
         """ add a completionEntry to an Entry
         """
         entry.set_completion(self.completion)
+
+    def add_callbacks(self, entry):
+        entry.connect('button-press-event', self.pop_menu,  self.field_name, 3)
+        entry.connect('key-press-event', self.keypress_event_cb,  self.field_name)
+        entry.connect('key-release-event', self.keypress_event_cb,  self.field_name, 'release')
+
         
 ### Filling & popping the completion
     def show_possible_completion(self, widget, mode):
@@ -690,6 +696,8 @@ class FkeyCompletion(SimpleCompletion):
 
             self.lookup_values[field_name][field_value] = value
         return value
+
+
 
 
 

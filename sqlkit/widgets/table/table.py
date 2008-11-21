@@ -607,10 +607,7 @@ class SqlTable(sqlkit.SqlWidget):
         if hasattr(self.field_widgets[field_name], 'completion'):
             completion = self.field_widgets[field_name].completion
             completion.add_completion(editable)
-            
-            ## COMPLETION
-            editable.connect('button-press-event',completion.pop_menu, field_name, 3)
-            editable.connect('key-press-event', completion.keypress_event_cb, field_name)
+            completion.add_callbacks(editable)
             
         ## MAX LENGTH
         self.field_widgets[field_name].field.set_max_length()
@@ -1088,6 +1085,8 @@ class SqlTable(sqlkit.SqlWidget):
         """
         dbg.write("setting rows:", rows)
         set_height_request(treeview, rows)
+
+
 
 
         
