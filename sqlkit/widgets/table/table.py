@@ -36,6 +36,7 @@ from utils import set_height_request, set_all_nonfilling, set_this_filling
 from  cell_renderers import CellRendererDate, CellRendererDatetime
 import totals
 from sqlkit.widgets.common import sqlwidget
+import gtk
 
 class SqlTable(sqlkit.SqlWidget):
     """implementation with a listore with a single column that holds the
@@ -1125,6 +1126,37 @@ class SqlTable(sqlkit.SqlWidget):
         if second_choice:
             return second_choice[0]
            
+### misc
+    def set_opts(self, icons=True, scroll='xy', expand=True, width=None):
+        """
+        Modify default appearance of some features:
+        
+        - noicons: hide the icons
+        - scroll:  (x, y, None)
+        - expand: should the parent of this table expand?
+        - width: set the maximum width of the widget
+        """
+        if not icons:
+            self.widgets['A.icons'].hide()
+        if not scroll:
+            self.widgets['S=tree'].set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+        else:
+            if 'x' not in scroll:
+                xpolicy = gtk.POLICY_NEVER
+            else:
+                xpolicy = gtk.POLICY_AUTOMATIC
+            if 'y' not in scroll:
+                ypolicy = gtk.POLICY_NEVER
+            else:
+                ypolicy = gtk.POLICY_AUTOMATIC
+                
+            self.widgets['S=tree'].set_policy(xpolicy, ypolicy)
+
+        if width:
+            self.treeview.set_property('width_request', width)
+            
+
+
 #### completion
 
     def get_value(self, field_name, shown=True):
@@ -1139,4 +1171,6 @@ class SqlTable(sqlkit.SqlWidget):
             if self.editable:
                 return self.editable.get_text()
         return getattr(self.get_current_obj(), field_name)
+
+
 
