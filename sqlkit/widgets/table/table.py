@@ -837,7 +837,12 @@ class SqlTable(sqlkit.SqlWidget):
         except exc.ValidationError, e:
             self.handle_validate_error(e)
             
-        self.commit()
+        ## in m2m case we don't want to commit now. We would trigger a commit of the
+        ## record represented in the SqlMask that may not yet be validated
+
+        if not self.relationship_mode == 'm2m':
+            self.commit()
+
         self.totals.compute()
         self.last_new_obj = None
         
@@ -1076,6 +1081,7 @@ class SqlTable(sqlkit.SqlWidget):
         ## more: it may be due for substitution!!
         
         row = self.get_selected_row()
+        
         obj = self.get_record_no_flush(pk=pk, filter_by=filter_by)
         if substitute:
             expired_obj = self.liststore[row][0]
