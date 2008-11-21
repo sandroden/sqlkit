@@ -8,7 +8,7 @@ import re
 
 class TableBrowser(object):
     def __init__(self, dbproxy, title=None, opts=None, x=None):
-        lay = """ {O tb=gtk-quit tb=gtk-refresh }
+        lay = """ {O tb=gtk-quit  }
                    {- b=filter_tables e=filter}
                    TVS=tree"""
         self.tables = {}
@@ -38,7 +38,7 @@ class TableBrowser(object):
         self.tv.connect('button-press-event', self.popup_col_menu)
         self.l.connect(
             ('tb=gtk-quit', 'clicked', self.on_quit),
-            ('tb=gtk-refresh', 'clicked', self.reload),
+#            ('tb=gtk-refresh', 'clicked', self.reload),
             ('b=filter_tables', 'clicked', self.fill_model),
             ('e=filter', 'activate', self.fill_model),
             )
@@ -54,9 +54,9 @@ class TableBrowser(object):
             
     def reload(self, *args):
         dbg.write('reloading sqlkit')
-        print reload(sqlkit)
+        #print reload(sqlkit)
         #reload(sqlkit.sqlwidget)
-        print reload(sqlkit.table.table)
+        #print reload(sqlkit.table.table)
         #reload(sqlkit.mask.mask)
         
     def popup_col_menu(self, wdg, ev ):

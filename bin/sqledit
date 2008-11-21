@@ -128,7 +128,7 @@ if opts.gtk_debug:
     lgm = dbg.ShowLogs(show=True)
 
 import sqlkit
-from sqlkit import SqlTable, SqlMask
+from sqlkit.widgets import SqlTable, SqlMask
 from sqlkit.db import proxy
 from sqlkit.layout import misc
 
