@@ -246,7 +246,8 @@ class SimpleCompletion(object):
         """
         m_iter = self.model.append(None)
         self.model.set(m_iter,
-                       self.VALUE_COL, getattr(obj, self.field_name),
+#                       self.VALUE_COL, getattr(obj, self.field_name),
+                       self.VALUE_COL, self.format % obj,
                        self.MATCH_COL, True)
 
     def make_completion_to_pop(self, entry):
@@ -696,6 +697,8 @@ class FkeyCompletion(SimpleCompletion):
 
             self.lookup_values[field_name][field_value] = value
         return value
+
+
 
 
 
