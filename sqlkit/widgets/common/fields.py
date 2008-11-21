@@ -34,9 +34,10 @@ from datetime import datetime, time, date, timedelta
 import gtk
 from pprint import pprint 
 from sqlkit.db import defaults
+from sqlalchemy.schema import ColumnDefault
 from decimal import Decimal
 
-from sqlkit.exc import ValidationError, NotHandledField
+from sqlkit.exc import ValidationError, NotHandledField, NotHandledDefault
 
 class FieldChooser(object):
 
@@ -189,10 +190,20 @@ class Field(object):
                 value = self.db_spec['default']
             except KeyError:
                 pass
+            if isinstance(value, ColumnDefault):
+                if not callable(value.arg):
+                    return value.arg
+                else:
+                    ## FIXME: I'm not able to handle thisn now.
+                    raise NotHandledDefault
+
         return value
         
     def set_default(self):
-        self.set_value(self.get_default())
+        try:
+            self.set_value(self.get_default())
+        except NotHandledDefault:
+            pass
         
     def clean_initial_value(self, value):
         return value
