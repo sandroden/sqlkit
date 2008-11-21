@@ -1,3 +1,10 @@
+python-sqlkit (0.8.3.2) hardy; urgency=low
+
+  * minspect: now works correcly with all fields (mixin as well)
+  * demo: fix
+
+ -- Sandro Dentella <sandro@e-den.it>  Wed, 12 Nov 2008 14:50:37 +0100
+
 python-sqlkit (0.8.3.1) hardy; urgency=low
 
   * ix SLDate / SLDateTime
