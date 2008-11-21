@@ -46,7 +46,7 @@ class DbProxy(object):
             self.metadata.bind = engine or bind
 
         if not Session:
-            self.Session = sessionmaker(bind=self.metadata.bind,
+            self.Session = sessionmaker(bind=self.metadata.bind, autoflush=False,
                                         autocommit=False)
         else:
             self.Session = Session
