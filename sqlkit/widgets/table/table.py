@@ -643,19 +643,23 @@ class SqlTable(sqlkit.SqlWidget):
         return True
     
 #### cell_data_func
-    def cell_bool_cb(self, column, cell, model, iter, name):
+    def cell_bool_cb(self, column, cell, model, iter, field_name):
         """function set by set_cell_data_func for nullable boolean"""
 
         if not column.get_visible():
             return
         obj = model.get_value(iter, 0) 
-        value = getattr(obj, name)
+        value = getattr(obj, field_name)
         cell.set_property('active', value)        
-
-        if value is None:
-            cell.set_property('inconsistent', True)
-        else:    
-            cell.set_property('inconsistent', False)
+        if isinstance(obj, self.totals.total_class):
+            #obj.set_value_and_colors(cell, value, field_name)
+            cell.set_property('visible', False)        
+        else:
+            cell.set_property('visible', True)        
+            if value is None:
+                cell.set_property('inconsistent', True)
+            else:    
+                cell.set_property('inconsistent', False)
     
     def cell_default_cb(self, column, cell, model, iter, (prop_name, field_name)):
         """function set by set_cell_data_func
@@ -682,8 +686,12 @@ class SqlTable(sqlkit.SqlWidget):
         if not column.get_visible():
             return
         obj = model.get_value(iter, 0) 
-        value = getattr(obj, field_name)
-        cell.set_property(prop_name, value)        
+        if isinstance(obj, self.totals.total_class):
+            cell.set_property('visible', False)        
+        else:
+            cell.set_property('visible', True)        
+            value = getattr(obj, field_name)
+            cell.set_property(prop_name, value)        
         
     def set_fkey_descr(self, column, cell, model, iter, field_name):
         """cell_data_function used by column that have fkey
@@ -693,11 +701,19 @@ class SqlTable(sqlkit.SqlWidget):
         obj = model.get(iter, 0)[0]
         if not obj:
             return
-        fkey_value = getattr(obj, field_name)
-        if fkey_value:
-            path = model.get_path(iter)
-            value = self.completions[field_name].lookup_value(field_name, fkey_value)
-            cell.set_property('text', value)
+        if isinstance(obj, self.totals.total_class):
+            cell.set_property('text', '')
+        else:
+            fkey_value = getattr(obj, field_name)
+
+            if fkey_value:
+                path = model.get_path(iter)
+                value = self.completions[field_name].lookup_value(field_name, fkey_value)
+                cell.set_property('text', value)
+            else:
+                cell.set_property('text', '')
+
+
 
     def date_changed_cb(self, event, path, date, col):
 	self.edited_row_model_path = path
@@ -1085,6 +1101,8 @@ class SqlTable(sqlkit.SqlWidget):
         """
         dbg.write("setting rows:", rows)
         set_height_request(treeview, rows)
+
+
 
 
 
