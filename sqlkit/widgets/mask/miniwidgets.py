@@ -456,7 +456,7 @@ class CollectionWidget(Widget):
 
         self.table = SqlTable(
             table=table.name,
-            geom = (-1, 160),
+            geom = (-1, -1),
             rows = loader_spec.get('rows', None),
             mapper = self.field.db_spec['mapper'],
             session=self.master.session,
@@ -500,5 +500,7 @@ class CollectionWidget(Widget):
 
     def get_value(self, shown=False):
         return self.table.records 
+
+
 
 

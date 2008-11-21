@@ -484,7 +484,7 @@ class TreeView(LWidget):
         'h' : 'height_request',
         }
     class_properties = {
-        'width_request'  : '300',
+        'width_request'  : '-1',
         'height_request'  : '-1',
         }
 
