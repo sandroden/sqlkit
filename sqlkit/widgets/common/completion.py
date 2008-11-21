@@ -107,6 +107,8 @@ class SimpleCompletion(object):
         self.format = get_description(self.table, attr='format')
         self.description = tables[self.table.name].description
         self.attrs = tables[self.table.name].attrs
+        self.columns = [self.master.fields[field_name]['col'] for field_name in self.attrs]
+        self.attrs = tables[self.table.name].attrs
         self._group_by = None
         self._filter = None
         self.mapper = self.master.mapper # used to track path relationship
@@ -187,7 +189,7 @@ class SimpleCompletion(object):
         """
         ## I want to have also group_by field in the completion, but only when
         ## thare's a match to be shown under that group
-        ## so I nee to passs twice, this is done just once each completion
+        ## so I need to passs twice, this is done just once each completion
         ## popup
         text = self.model.get_value(iter, self.DESCRIPTION_COL)
         prev = getattr(self, '_prev_match_value', None)
@@ -290,26 +292,7 @@ class SimpleCompletion(object):
         else:
             fkvalue = None
         
-#        if self.master.is_primary(field_name) and self.master.relationship_mode == "m2m":
-        if self.master.relationship_mode == "m2m":
-            ## when the Table is used to render a m2m field
-            ## we don't want to "create" a new match, just pick an old one
-            ## and use that one
-            if self.master.is_primary(field_name):
-                self.master.set_current(pk=value, substitute=True)
-            else:
-                kw = {field_name: value}
-                try:
-                    self.master.set_current(filter_by=kw, substitute=True)
-                except NoResultFound, e:
-                    msg = "No record for this specification: (%s=%s). Retry" % (field_name, value)
-                except MultipleResultsFound, e:
-                    print e
-                    msg = "Choice is not unique: (%s=%s). Retry" % (field_name, value)
-                    return False
-        else:
-            ## normal case
-            self.master.set_value(field_name, value, fkvalue=fkvalue, initial=False)
+        self.master.set_value(field_name, value, fkvalue=fkvalue, initial=False)
 
         return True
         
@@ -317,9 +300,6 @@ class SimpleCompletion(object):
     def select_values(self, field_name, mode):
         """execute the SELECT DISTINCT and return values
         """
-
-#         sql, constraint_params = self.master.actions.on_completion(
-#             self.master.get_current_obj(), field_name)
 
         oper = self.get_match_operator()
         filtering_value = self.get_displayed_value()
@@ -334,7 +314,7 @@ class SimpleCompletion(object):
 
         where = self.column.op(oper)(value)
         where = self.add_filters(where)
-        sql = select([self.column], where, from_obj=self.from_obj)
+        sql = select(self.columns, where, from_obj=self.from_obj)
 
         return sql.order_by(self.column).distinct()
     
@@ -402,7 +382,6 @@ class SimpleCompletion(object):
         1. when more that self.autostart chars have been written
         2. if text in entry has fewer chars than chars that triggered it
         """
-        
         if self.autostart:
             text = self.master.get_value(self.field_name, shown=True)
             length = len(text)
@@ -499,6 +478,7 @@ class SimpleCompletion(object):
 
         ksym = '_'.join(mods + [ksym])
         #dbg.write('ksym', ksym, 'mods', mods)
+        
         if when == 'release':
             self.autostart_completion()
 #        print ksym
@@ -644,6 +624,8 @@ class FkeyCompletion(SimpleCompletion):
         self.table, self.column = get_foreign_info(self.master, self.field_name, names=False)
         self.description = get_description(self.table, attr='description')
         self.attrs = get_description(self.table, attr='attrs')
+        self.columns = [self.table.columns[name] for name in self.attrs]
+        self.format    = get_description(self.table, attr='format')
         self.from_obj = None
 
     def prepare_model(self):
@@ -662,7 +644,7 @@ class FkeyCompletion(SimpleCompletion):
             
         where = self.table.columns[self.description].op(oper)(value)
         where = self.add_filters(where)
-        sql = select(field_list, where, from_obj=self.from_obj)
+        sql = select(self.columns, where, from_obj=self.from_obj)
 
         return sql.order_by(*order_by).distinct()
 
@@ -706,6 +688,8 @@ class FkeyCompletion(SimpleCompletion):
 
 
 
+
+
     def append_to_model(self, obj):
         """add to a model that has 4 cols:
              0: the value to be used as foreign key
@@ -724,10 +708,11 @@ class FkeyCompletion(SimpleCompletion):
         except IndexError, e:
             fdescr = obj_list[0]  # a fk that is a key, not an id and is the only one
         
-        fk_table, fk_key = get_foreign_info(self.master, self.field_name)
-        format_string    = tables[fk_table].format
-        description      = format_string % self.instance2dict(obj)
+#        fk_table, fk_key = get_foreign_info(self.master, self.field_name)
+#        format_string    = tables[fk_table].format
+        description      = self.format % self.instance2dict(obj)
         m_iter = self.get_iter(obj)
+        ## FIXME: what if the pkey is composed?
         self.model.set(m_iter,
                        self.VALUE_COL,       fvalue,
                        self.DESCRIPTION_COL, description,
@@ -785,6 +770,56 @@ class FkeyCompletion(SimpleCompletion):
         
     def compose_binary_expression(self, **kwargs):
         return compose_binary_expression(self.table, **kwargs)
+
+
+class M2mCompletion(FkeyCompletion):
+    VALUE_COL = 0
+    DESCRIPTION_COL = 1
+    MARKUP_COL = 2
+    OBJ_COL = 3
+    MATCH_COL = 4
+    
+        
+    def __init__(self, *args, **kw):
+        SimpleCompletion.__init__(self, *args, **kw)
+        self.description = get_description(self.table, attr='description')
+        self.attrs = get_description(self.table, attr='attrs')
+        self.from_obj = None
+
+        
+    def match_selected_cb(self, wdg, model, iter, field_name):
+        """after selecting an entry store the value in self.values and set
+        the entry with the correct value.
+        """
+
+        value = model.get(iter, self.VALUE_COL)[0]
+
+        if self.master.is_fkey(field_name):
+            fkvalue = model.get(iter, self.DESCRIPTION_COL)[0]
+        else:
+            fkvalue = None
+        ## when the Table is used to render a m2m field
+        ## we don't want to "create" a new match, just pick an old one
+        ## and use that one
+            
+        try:
+            self.master.set_current(pk=value, substitute=True)
+        except:
+            pass
+#             kw = {field_name: value}
+#             try:
+#                 print "CERCO, cerco: ", kw
+#                 self.master.set_current(filter_by=kw, substitute=True)
+#                 print "..."
+#             except NoResultFound, e:
+#                 print e
+#                 msg = "No record for this specification: (%s=%s). Retry" % (field_name, value)
+#             except MultipleResultsFound, e:
+#                 print e
+#                 msg = "Choice is not unique: (%s=%s). Retry" % (field_name, value)
+#                 return False
+        return True
+        
 
 ### Functions
 def debug_liststore(listore):

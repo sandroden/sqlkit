@@ -1,4 +1,4 @@
-from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion
+from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion, M2mCompletion
 
 class CellWidget(object):
 
@@ -25,7 +25,9 @@ class CellWidget(object):
     def add_completion(self, is_fkey, pytype):
         """completion is set just for fkey and string fields"""
 
-        if is_fkey:
+        if self.master.relationship_mode == 'm2m':
+            Completion = M2mCompletion
+        elif is_fkey:
             Completion = FkeyCompletion
         elif pytype in (str, unicode):
             Completion = SimpleCompletion

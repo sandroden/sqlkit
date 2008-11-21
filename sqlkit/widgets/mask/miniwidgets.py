@@ -443,6 +443,12 @@ class CollectionWidget(Widget):
         from sqlkit import SqlTable
         loader_spec = self.master.laygen.loaders[self.field_name]
 
+        direction = self.field.db_spec['property'].direction.name
+        if direction  == 'MANYTOMANY':
+            direction = "m2m"
+        elif direction == 'ONETOMANY':
+            direction = "o2m"
+
         self.table = SqlTable(
             table=table.name,
             geom = (-1, -1),
@@ -458,6 +464,7 @@ class CollectionWidget(Widget):
             hide = self.field.db_spec['remote_attr'],
             dev = self.master.dev,
             relationship_leader = self.master,
+            relationship_mode = direction,
             relationship_path = self.master.relationship_path + [self.field_name],
             
             )
@@ -471,11 +478,6 @@ class CollectionWidget(Widget):
             if isinstance(parent, gtk.VBox):
                 parent.child_set_property(self.gtkwidget, 'expand', True)
         
-        direction = self.field.db_spec['property'].direction.name
-        if direction  == 'MANYTOMANY':
-            self.table.relationship_mode = "m2m"
-        elif direction == 'ONETOMANY':
-            self.table.relationship_mode = "o2m"
 
 #         if self.field_name in self.master.laygen.loaders:
 #             self.table.set_field_list(self.master.laygen.loaders[self.field_name])
