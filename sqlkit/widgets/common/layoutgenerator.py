@@ -332,7 +332,7 @@ class LayoutGenerator (object):
           (?P<field_name>[a-zA-Z0-9_\.]+)         # the possible loader:
                                               # genre  genre.movies
           (:(?P<spec>\d*))?                   # number of rows for the table
-          (:(?P<field_list>[\w,]+))?             # number of rows for the table
+          (:(?P<field_list>[\w,]*))?             # number of rows for the table
           $
         """, re.VERBOSE | re.MULTILINE)
 
