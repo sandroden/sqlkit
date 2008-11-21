@@ -5,7 +5,7 @@
 >>> sys.path.insert(0, '../../')
 
 >>> from movies import Movie, Director, AllTypes, db
->>> from sqlkit import SqlMask
+>>> from sqlkit.widgets import SqlMask
 
 >>> lay = "title"
 >>> sm = SqlMask(Class=Movie, dbproxy=db, layout=lay, naked=True, show=False)

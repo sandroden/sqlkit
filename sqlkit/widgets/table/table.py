@@ -38,7 +38,7 @@ import totals
 from sqlkit.widgets.common import sqlwidget
 import gtk
 
-class SqlTable(sqlkit.SqlWidget):
+class SqlTable(sqlwidget.SqlWidget):
     """implementation with a listore with a single column that holds the
     sqlalchemy obj
     """
@@ -58,10 +58,10 @@ class SqlTable(sqlkit.SqlWidget):
         self.deleting_row = False
         self.tvcolumns = None
         self.totals = totals.Totals(self)
-        sqlkit.SqlWidget.__init__(self, *args, **kwargs)
+        sqlwidget.SqlWidget.__init__(self, *args, **kwargs)
         
     def _get_layout(self, lay, naked):
-        sqlkit.SqlWidget._get_layout(self, lay, naked)
+        sqlwidget.SqlWidget._get_layout(self, lay, naked)
         self.liststore = gtk.ListStore(object)
         ## layout
         self.treeview = self.widgets["TV=tree"]

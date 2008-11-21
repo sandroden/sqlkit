@@ -38,7 +38,7 @@ from sqlalchemy import Table
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
 ########   descriptor
-from sqlkit.layout.utils import Container
+from sqlkit.misc.utils import Container
 
 class MissingMetadata(Exception): pass
 

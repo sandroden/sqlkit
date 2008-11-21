@@ -21,7 +21,7 @@ import re
 #import datetime
 import os
 import gtk, gobject
-from sqlkit.debug import debug as  dbg
+from sqlkit import debug as  dbg
 class IdentifierAlreadyPresent: pass
 
 info = {}
@@ -1107,6 +1107,6 @@ def register_alias(Class, alias, force=False):
     global _W
     if alias in _W and not force:
         msg = "Alias %s is already present. Use force=True to force it" % alias
-        raise IdentifiedAlreadyPresent(msg)
+        raise IdentifierAlreadyPresent(msg)
     _W[alias] = Class
     

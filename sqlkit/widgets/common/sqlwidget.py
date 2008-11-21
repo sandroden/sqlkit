@@ -32,13 +32,12 @@ from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper
 from sqlkit import debug as  dbg
 
 import gobject
-import sqlkit
 import sqlfilter
 #from sqlkit.widgets.common import sqlfilter2 as sqlfilter
 from sqlkit.db import minspect
 from sqlkit.widgets.common import completion
 from sqlalchemy.orm import attributes
-from sqlkit.layout.utils import Container
+from sqlkit.misc.utils import Container
 from sqlkit import exc
 
 NUMBERS = (int, float, decimal.Decimal)

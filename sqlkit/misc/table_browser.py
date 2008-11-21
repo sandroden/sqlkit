@@ -1,5 +1,6 @@
 from sqlkit import debug as dbg
-from sqlkit import layout, SqlTable, SqlMask
+from sqlkit.widgets import SqlTable, SqlMask
+from sqlkit import layout
 import sqlkit
 import sqlalchemy as sa
 import gtk

@@ -30,7 +30,7 @@ import widgets
 import gtk, gobject
 import gtk.glade
 import os, os.path, tempfile
-from sqlkit.debug import debug as dbg  # uncommenting brakes importing....
+from sqlkit import debug as dbg  # uncommenting brakes importing....
 
 class UnbalancedLayoutCurlyBaces(Exception): pass
 class ConnectBeforeShowNotImplemented(Exception): pass

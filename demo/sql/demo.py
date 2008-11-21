@@ -14,7 +14,7 @@ sys.path.append(ppdir)
 
 from demo_tour import Demo
 import sqlkit
-from sqlkit import SqlMask, SqlTable
+from sqlkit.widgets import SqlMask, SqlTable
 from sqlkit.db import proxy, defaults, utils
 import model
 

@@ -11,7 +11,7 @@ but = 'set_fkey_descr|(lookup|set|get)_value|[el]ne_cb|match_func' + \
 dbg.trace_function(exclude=but)
 
 import sqlkit
-from sqlkit import SqlTable, SqlMask
+from sqlkit.widgets import SqlTable, SqlMask
 from sqlkit.db import proxy, defaults, utils
 import gtk
 

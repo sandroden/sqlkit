@@ -440,7 +440,7 @@ class CollectionWidget(Widget):
         Widget.__init__(self, *args)
         table = self.field.db_spec['table']
 
-        from sqlkit import SqlTable
+        from sqlkit.widgets import SqlTable
         loader_spec = self.master.laygen.loaders[self.field_name]
 
         direction = self.field.db_spec['property'].direction.name

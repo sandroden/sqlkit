@@ -21,7 +21,7 @@ from sqlkit import debug as dbg
 from sqlkit.db.utils import tables, get_description
 import sqlalchemy
 from sqlalchemy.sql import select
-import sqlkit 
+from sqlkit.db import minspect
 from datetime import *
 from sqlkit.db.django_syntax import django2components
 from sqlkit.misc.datetools import string2dates
@@ -58,7 +58,7 @@ class FilterPanel(object):
         
     def get_layout(self, visible=True):
         """create the filter panel widget"""
-        if isinstance(self.master, sqlkit.SqlMask):
+        if self.master.is_mask():
             lay = """
             {H.a {B m=opts } {O.a tb=gtk-refresh ts=limit tb=gtk-close } }
             {N %filter
@@ -244,7 +244,7 @@ class FilterPanel(object):
             mapper = sqlalchemy.mapper(Join, join)
 
         self.mapper = mapper
-        self.map_fields = sqlkit.minspect.InspectMapper(mapper)
+        self.map_fields = minspect.InspectMapper(mapper)
 
     def fill_model(self):
         """Fill the treeview with a clickable list 
@@ -521,10 +521,8 @@ class FilterFKeyWidget(FilterWidget):
 
         FilterWidget.__init__(self, field_name, panel, master)
 
-        from sqlkit.db.minspect import get_foreign_info
-
         foreign_keys = self.master.fields[self.field_name]['fkey']
-        self.ftable, self.fcol = get_foreign_info(foreign_keys, names=False)
+        self.ftable, self.fcol = minspect.get_foreign_info(foreign_keys, names=False)
 
     def get_suitable_operators(self):
 

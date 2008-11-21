@@ -124,7 +124,7 @@ class LayoutGenerator (object):
         self.fields_in_layout = {}  # {'first_name': 'e=first_name', 'date': 'd=date'}
         self.fields = master.fields
         #self.used_field_dict = {}
-        if isinstance(master, sk.SqlMask):
+        if self.master.is_mask():
             if not lay:
                 lay = "\n".join(self.master.field_list)
             self._look_for_explicit(lay)
@@ -295,7 +295,7 @@ class LayoutGenerator (object):
         # a 'naked' mask is a mask w/o buttons. Maybe buttons are define by the
         # programmer inside the layout, maybe are not desired
 
-        if isinstance(self.master, sk.SqlMask):
+        if self.master.is_mask():
             nav_buttons="tb=gtk-go-back tb=gtk-go-forward"
         else:
             nav_buttons=""

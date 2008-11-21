@@ -5,7 +5,7 @@
 >>> sys.path.insert(0, '../../')
 
 >>> from movies import Movie, Director, db
->>> from sqlkit import SqlMask
+>>> from sqlkit.widgets import SqlMask
 >>> from sqlkit.widgets.common.fields import FieldChooser
 
 >>> lay = "title year director_id m2m=genres date_release"
