@@ -218,6 +218,9 @@ def func_date_same_year(obj, field_name):
 
 def func_date_same_quarter(obj, field_name):
     date = getattr(obj, field_name)
-    return date.year, divmod(date.month -1, 3)[0]
+    if date:
+        return date.year, divmod(date.month -1, 3)[0]
+    else:
+        return None
 
 
