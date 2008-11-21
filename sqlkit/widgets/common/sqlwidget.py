@@ -797,14 +797,14 @@ class SqlWidget(gobject.GObject):
         # skip_check is passed to Mask.unsaved_changes_exists
         if self.session.dirty:
             for dirty in self.session.dirty:
-                if self.session.is_modified(dirty):
+                if self.session.is_modified(dirty, passive=True):
                     return True
         if self.session.deleted:
             return True
 
         if self.session.new:
             for obj in self.session.new:
-                if self.session.is_modified(obj):
+                if self.session.is_modified(obj, passive=True):
                     return True
 
         return False
