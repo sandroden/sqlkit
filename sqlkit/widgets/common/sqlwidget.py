@@ -742,15 +742,16 @@ class SqlWidget(gobject.GObject):
         if self.single:
             self.gquit()
 
-    def save_unsaved(self, refresh=True):
+    def save_unsaved(self, refresh=True, skip_check=False):
         """check if it needs saving. In case ask for confirmation and proceed.
         This triggers both session changes *AND* changes to the current mask that
         may not be in the session.
-        
+
+        skip_check: we already know it needs saving. Passed to unsaved_changes_exists
         Return False if cancel is pressed
         """
 
-        if self.unsaved_changes_exist():
+        if self.unsaved_changes_exist(skip_check=skip_check):
             msg = ["Save unsaved data?"]
             if self.session.dirty:
                 dbg.write("unsaved", self.session.dirty)
@@ -789,22 +790,23 @@ class SqlWidget(gobject.GObject):
      
         return True
 
-    def unsaved_changes_exist(self):
-        """check if session needs committing by looking dirty, deleted and new"""
-        
+    def unsaved_changes_exist(self, skip_check=False):
+        """
+        check if session needs committing by looking dirty, deleted and new
+        """
+        # skip_check is passed to Mask.unsaved_changes_exists
         if self.session.dirty:
             for dirty in self.session.dirty:
                 if self.session.is_modified(dirty):
                     return True
         if self.session.deleted:
-            dbg.write("DIRTY: %s, DELETED: %s" % (self.session.dirty, self.session.deleted))
             return True
 
         if self.session.new:
-            dbg.write("NEW: ", self.session.new)
             for obj in self.session.new:
                 if self.session.is_modified(obj):
                     return True
+
         return False
     
     def gquit(self, *args):

@@ -850,11 +850,11 @@ class SqlTable(sqlkit.SqlWidget):
         #self.edited_row_model_path = None
         #self.record_display(index=idx)
 
-    def unsaved_changes_exist(self):
+    def unsaved_changes_exist(self, skip_check=False):
         """collect possible changes and test if save is needed
         """
 
-        if not self.record_has_changed():
+        if not skip_check and not self.record_has_changed():
             if self.last_new_obj:
                 self.session.expunge(self.last_new_obj)
                 del self.last_new_obj
