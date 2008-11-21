@@ -88,6 +88,15 @@ m2m=genres:2
 >>> sm.laygen.fields_in_layout
 {'genres': 'm2m=genres'}
 
+>>> lay = "m2m=genres:2:"
+>>> sm = SqlMask(Class=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> print sm.lay_obj.lay.strip()
+m2m=genres:2:
+>>> sm.laygen.loaders
+{'genres': {'rows': 2}}
+>>> sm.laygen.fields_in_layout
+{'genres': 'm2m=genres'}
+
 # >>> lay = "m2m=genres.film:20"
 # >>> sm = SqlMask(Class=Movie, dbproxy=db, layout=lay, naked=True, show=False)
 # >>> print sm.lay_obj.lay.strip()

@@ -443,7 +443,7 @@ def logmethod(methodname):
 
 class LogTheMethods(gobject.GObjectMeta):
     def __new__(cls, classname, bases, classdict):
-
+        global DBG
         if re.search(CLASS_INCLUDE, classname):
             if not re.search(CLASS_EXCLUDE, classname):
                 pass
@@ -495,7 +495,7 @@ class ShowLogs(object):
         cols = ['meth','class', 'time', 'caller', 'line',
                 'ret code', 'class', 'args', 'all_args']
         self.easytv = misc.EasyTreeView(
-            cols, sort=False, show=show, but='tb=gtk-close tb=gtk-open')
+            cols, sort=False, show=show, but='tb=gtk-close tb=gtk-open', title="GTK debug")
         self.time = time.time()
         self.last_time = time.time()
         self.model = self.easytv.model

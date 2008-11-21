@@ -3,11 +3,11 @@ import layout
 
 class EasyTreeView(object):
     def __init__(self, cols, tv=None, model=None, sort=True,
-                 resize=True, show=True, but=''):
+                 resize=True, show=True, but='', title='EasyTreeView'):
         if tv:
             self.tv = tv
         else:
-            self.l = self._get_layout(but)
+            self.l = self._get_layout(but, title=title)
             self.l.prop('Window', 'visible', show)
             self.w = self.l.show()
             self.tv = self.w['TV=a']
@@ -50,13 +50,13 @@ class EasyTreeView(object):
     def show(self):
         self.w['Window'].show_all()
 
-    def _get_layout(self, but):
+    def _get_layout(self, but, title=None):
         lay = """
           {O tb=gtk-quit  tb=gtk-clear %s}
           TVS=a
         """ % (but)
         #dbg.write()
-        return layout.Layout(lay, opts="s")
+        return layout.Layout(lay, opts="s", title=title)
 
 
 class InputStream(object):
