@@ -244,7 +244,7 @@ class SqlWidget(gobject.GObject):
             ###
             ### If a layout was defined, we add propertyLoader only for SqlMask
             ###
-            if isinstance(self, sqlkit.SqlMask) and layout:
+            if self.is_mask() and layout:
                 get_the_keys = self.fields.all_keys
             else:
                 get_the_keys = self.fields.keys
@@ -311,7 +311,7 @@ class SqlWidget(gobject.GObject):
         add controls and so on
         """
 
-        if isinstance(lay, sqlkit.SqlMask):
+        if self.is_mask(lay):
             self.widgets = lay.widgets
             self.filter_panel = lay.filter_panel
             ## NOTE: here I say that I can reach w/ get_value also the
@@ -355,7 +355,7 @@ class SqlWidget(gobject.GObject):
 
 
 
-        if isinstance(self, sqlkit.SqlMask):
+        if self.is_mask():
             self._add_click_for_filter()
             self._add_color_to_labels()
 
@@ -562,7 +562,7 @@ class SqlWidget(gobject.GObject):
         if self.limit:
             query = query.limit(self.limit)
                 
-        if isinstance(self, sqlkit.SqlMask):
+        if self.is_mask():
             self.current = None
             self.clear(check=False)
         self.records = query.all()
@@ -1054,6 +1054,13 @@ class SqlWidget(gobject.GObject):
         for attr in self.field_list:
             print attr, getattr(obj, attr)
             
+    def is_mask(self, obj=False):
+        ## bad way to prevent chicken and eggs import problems 
+        from sqlkit.widgets import SqlMask
+        if obj == False: ## obj may be an empty str: ''
+            obj = self
+        return isinstance(obj, SqlMask)
+    
 ####### printing
     def printing(self):
         """this will pop entries in the print setup to allow for printing
