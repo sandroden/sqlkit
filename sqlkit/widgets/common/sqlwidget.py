@@ -399,7 +399,7 @@ class SqlWidget(gobject.GObject):
         self.accel_group.connect_group(ord('h'), 
                                        gtk.gdk.CONTROL_MASK, 
                                        gtk.ACCEL_LOCKED, 
-                                       self.show_widgets)
+                                       self.show_widget_info)
         self.accel_group.connect_group(ord('q'), 
                                        gtk.gdk.CONTROL_MASK, 
                                        gtk.ACCEL_LOCKED, 
@@ -835,18 +835,17 @@ class SqlWidget(gobject.GObject):
         self.filter_panel.add_filter(**kw)
         
     def show_mapper_info(self, *args):
-        dbg.gtk_dbg.ShowMapperInfo(self.fields)
+        from sqlkit.debug import gtk_dbg
+        gtk_dbg.ShowMapperInfo(self.fields)
         
     def show_widget_info(self, *args):
-        dbg.gtk_dbg.show_widgets(self.widgets['Window'])
+        from sqlkit.debug import gtk_dbg
+        gtk_dbg.show_widgets(self.widgets['Window'])
         
     def show_class_info(self, *args):
-        dbg.gtk_dbg.ShowClassInfo(self) 
+        from sqlkit.debug import gtk_dbg
+        gtk_dbg.ShowClassInfo(self) 
         
-    def show_widgets(self, *args):
-        import dbg.gtk_dbg
-        dbg.gtk_dbg.show_widgets(self.widgets['Window'])
-    
     def _fill_menubar_menu(self):
         """here all menus are filled for filtering,  sorting, ro, query..."""
         if 'm=file' in self.widgets:

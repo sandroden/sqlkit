@@ -345,7 +345,7 @@ class LayoutGenerator (object):
                 field_list = m.group('field_list')
 
                 if field_name not in self.master.field_list:
-                    return
+                    continue
 
                 if self.master.is_loader(field_name):
                     self.loaders[field_name] = {}
