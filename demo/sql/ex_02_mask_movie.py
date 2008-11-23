@@ -9,7 +9,8 @@ lay = """
    nation
 """
 
-t = SqlMask(table='director', dbproxy=db, layout=lay, geom=(800,600))
+t = SqlMask(table='director', dbproxy=db, layout=lay)
+t.resize(700, 500)
 t.reload()
 
 lay2 = """

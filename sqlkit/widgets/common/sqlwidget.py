@@ -721,6 +721,12 @@ class SqlWidget(gobject.GObject):
     
 
 ####### Misc
+    def resize(self, width, height):
+        """
+        Resize the parent window
+        """
+        self.widgets['Window'].resize(width, height)
+        
     def set_fkey_value(self, field_name, value):
         """needed for completion, to set real value when
         description is shown instead
