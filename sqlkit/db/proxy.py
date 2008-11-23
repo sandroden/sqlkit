@@ -35,9 +35,11 @@ class DbProxy(object):
 
       SqlTable(table="ticket_project", dbproxy=self.dbproxy)
 
+    session defaults are: sutoflush=False, autocommit=False
+
     """
     def __init__(self, metadata=None, engine=None, bind=None,
-                 Session=None, autocommit=False):
+                 Session=None, autocommit=False, autoflush=False):
         if metadata:
             self.metadata = metadata
         else:
@@ -46,8 +48,9 @@ class DbProxy(object):
             self.metadata.bind = engine or bind
 
         if not Session:
-            self.Session = sessionmaker(bind=self.metadata.bind, autoflush=False,
-                                        autocommit=False)
+            self.Session = sessionmaker(bind=self.metadata.bind,
+                                        autoflush=autoflush,
+                                        autocommit=autocommit)
         else:
             self.Session = Session
             
