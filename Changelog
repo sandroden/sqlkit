@@ -1,8 +1,29 @@
-sqlkit ...
+sqlkit 0.8.3.3 - 22.11.08
+
+	* import statement - complete restructure: 
+	   1. now SqlMask and SqlTable are imported from sqlkit.widgets.
+	   2. dbg now works for gtk debug as well (was broken after
+   	      unifyinng debug , layout and sqlkit package)
+	* DbProxy.get_session returns a session with autoflush=False
+	* unsaved_changes_exist: now uses
+	   session.is_modified(passive=True) to prevent flushing if the
+	   session has autoflush=True. Needs sqlalchemy after 5312
+	* m2m: now m2m uses a separate completion so that fields can not be
+	   edited but onnly picked up.
+	   Now adding a record does not save, to prevent flushing a
+	   (possibly) not yet completed field in master SqlMask
+	* completion: uses self.format field to show the possible
+	   completions, that can be set in _sqlkit_table or via sqlkit.db.utils
+	* table: added method set_opts
+	* defaults: improved (but far from optimal) handling of defaults:
+	   not callable default set in sqlalchemy are used.
+	* fixes: many minor fixes
 	
-  * fixed sqlite reflection for SLDate & SLDateTime
+sqlkit 0.8.3.2 - 12.11.08
+	
+	* fixed sqlite reflection for SLDate & SLDateTime
 
 sqlkit 0.8.3 - 10.11.08
 
-  * Initial Release.
+	* Initial Release.
 

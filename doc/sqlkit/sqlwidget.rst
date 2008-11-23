@@ -5,6 +5,13 @@
 This is the base class for :ref:`mask` and :ref:`table` that implements the
 common interface.
 
+
+.. note:: import
+
+   in the first releases, ``import`` was done directly from sqlkit, but that
+   was suboptimal in many ways, so I moved it to ``sqlkit.widgets``. 
+
+
 main options
 ================
 
@@ -27,7 +34,7 @@ Since a typical scenario is to have to provide a session different in each
 SqlWidget and a metadata, an object is provided -``dbproxy``- that can be
 initialized from the engine specification::
 
-  from sqlkit import SqlMask, SqlTable, dbproxy
+  from sqlkit.widgets import SqlMask, SqlTable, dbproxy
   db = proxy.DbProxy(engine="sqlite:///model/movies.sqlite")
   SqlTable(table="movies", dbproxy=db)
 
@@ -44,6 +51,9 @@ below you can see some alternatives that would work as well::
   # the metadata is found from the mapper.local_table.metadata
 
   SqlTable(Class=Movies, session=sess)
+
+Session are created with  ``autoflush=False``, but can be changed when
+building ``DbProxy``
 
 
 layout options
@@ -114,6 +124,9 @@ completeness:
   :reload:
       reload the data from the database taking all filter/constraints into
       consideration 
+
+  :resize:
+      a resize on the window
 
 Attributes
 ===========

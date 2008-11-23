@@ -123,11 +123,15 @@ they're movies.
 adding & completion
 -------------------
 
-When using :ref:`completion` in a m2m table, adding from completion behaves
-differently that adding from m2o:
 
-  1. it requires the field to be already present
-  2. it complain if it cannot get one single element with that value 
+.. note:: important
+
+  When using :ref:`completion` in a m2m table, adding from completion behaves
+  differently that adding from m2o in that it requires the field to be
+  already present and does not allow to edit it
+
+
+..   2. it complains if it cannot get one single element with that value 
 
 
 Many2One or ForeignKey

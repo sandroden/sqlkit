@@ -35,3 +35,9 @@ now & today
 attributes ``now`` and ``today`` will be substituted appropriately when
 creating the field
 
+
+SA defaults & server defaults
+=============================
+
+At the moment Sqlalchemy defaults are handled only in case of a fixed value
+(not a callable) and defaults defined in the server as well.

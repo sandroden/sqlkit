@@ -24,6 +24,13 @@ Attributes
 .. image:: ../img/menu.png
    :align: right
 
+Methods
+=======
+
+:set_opts:
+   allows to disable icons in a m2m relationship (icons=False), eliminate
+   scrollbars (scroll=x|y|xy|None)
+
 Column headers
 ==============
 
