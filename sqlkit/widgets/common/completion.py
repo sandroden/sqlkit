@@ -109,7 +109,7 @@ class SimpleCompletion(object):
         self.attrs = tables[self.table.name].attrs
 #        self.columns = [self.master.fields[field_name]['col'] for field_name in self.attrs]
         self.columns = [self.master.fields[self.field_name]['col']]
-        self.attrs = tables[self.table.name].attrs
+#        self.attrs = tables[self.table.name].attrs
         self._group_by = None
         self._filter = None
         self.mapper = self.master.mapper # used to track path relationship
@@ -614,7 +614,7 @@ class SimpleCompletion(object):
         
 
     def __str__(self):
-        return "<SimpleCompletion %s>" % self.field_name
+        return "<SimpleCompletion: %s>" % self.field_name
         
 class FkeyCompletion(SimpleCompletion):
     VALUE_COL = 0
@@ -653,6 +653,7 @@ class FkeyCompletion(SimpleCompletion):
         return sql.order_by(*order_by).distinct()
 
     
+
 ### What to show
     def lookup_value(self, field_name, field_value):
         """retrieve the value in a lookup table in case of foreign_key
@@ -683,16 +684,6 @@ class FkeyCompletion(SimpleCompletion):
 
             self.lookup_values[field_name][field_value] = value
         return value
-
-
-
-
-
-
-
-
-
-
 
     def append_to_model(self, obj):
         """add to a model that has 4 cols:
@@ -761,12 +752,12 @@ class FkeyCompletion(SimpleCompletion):
         query = self.master.session.query(table2mapper(self.table)).autoflush(False)
         return query.filter_by( **filter_cnd ).one()
         
-    def compose_binary_expression(self, **kwargs):
-        return compose_binary_expression(self.table, **kwargs)
+#     def compose_binary_expression(self, **kwargs):
+#         return compose_binary_expression(self.table, **kwargs)
 
 
     def __str__(self):
-        return "<FkeyCompletion> %s>" % self.field_name
+        return "<FkeyCompletion: %s>" % self.field_name
         
 class M2mCompletion(FkeyCompletion):
     VALUE_COL = 0
