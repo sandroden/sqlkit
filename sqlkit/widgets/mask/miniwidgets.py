@@ -461,7 +461,7 @@ class CollectionWidget(Widget):
             field_list = loader_spec.get('field_list', None),
             addto=self.gtkwidget,
             icons='b=gtk-new b=gtk-delete b=gtk-save',
-            hide = self.field.db_spec['remote_attr'],
+            ignore_fields = self.field.db_spec['remote_attr'],
             dev = self.master.dev,
             relationship_leader = self.master,
             relationship_mode = direction,

@@ -85,7 +85,8 @@ class SqlWidget(gobject.GObject):
 #                  filter=True,
                   session=None,
                   metadata = None,
-                  hide = None,
+                  ignore_fields = None,
+                  hide_fields = None,
                   ## more
                   single=False,
                   nick=None,
@@ -155,10 +156,11 @@ class SqlWidget(gobject.GObject):
         self.ro = ro
         self.noup = noup
         self.rows = rows
-        self.hide = hide
+        self.hidden_field = hide_fields
         self.fields = self.get_fields()
         self.field_list = self.parse_fields(field_list, layout)
-        if hide:
+        self.ignored_fields = self._set_ignored_fields(ignore_fields)
+        if hide_fields:
             self.hide_fields()
         self.title = self._get_title(title)
 #        self.tables = {}
@@ -194,13 +196,28 @@ class SqlWidget(gobject.GObject):
         if show:
             self.widgets[el_def].show()
         
-    def hide_fields(self):
-        if isinstance(self.hide, str):
-            self.hide = re.split('[ ,]+', self.hide)
-        for field_name in self.hide:
+    def _set_ignored_fields(self, ignored_list):
+        """
+        Ignored fields will not even be in self.field_list
+        """
+
+        if isinstance(ignored_list, str):
+            ignored_list = re.split('[ ,]+', ignored_list)
+
+        if not ignored_list:
+            return None
+        
+        for field_name in ignored_list:
             if field_name in self.field_list:
                 self.field_list.remove(field_name)
-            
+
+        return ignored_list
+        
+    def hide_fields(self, *args):
+        """
+        """
+        self.dialog(type="ok", text="Hiding field is only supportd for Tables")
+        
     def get_session(self, session):
         if session:
             return session

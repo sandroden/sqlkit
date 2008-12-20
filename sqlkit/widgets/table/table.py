@@ -118,77 +118,6 @@ class SqlTable(sqlwidget.SqlWidget):
 
 
     
-    def popup_col_menu(self, ev, field_name):
-
-        try:
-            self.widgets['M=popup'].destroy()
-        except:
-            pass
-
-        
-        menu = self.widgets['M=popup'] = gtk.Menu()
-
-        ## add to filter
-        item = gtk.MenuItem(label="add %s to filter" % field_name.replace('_', ' '))
-#        item.connect('activate', self.filter_panel.add, ev, field_name )
-        item.connect('activate', self.filter_panel.add, ev, field_name, self )
-        menu.append(item)
-
-        ## sort
-        if not self.relationship_leader:
-            item = gtk.ImageMenuItem('gtk-sort-ascending')
-            item.connect('activate', self.reload_sort_cb, field_name, 'ASC' )
-            menu.append(item)
-
-            item = gtk.ImageMenuItem('gtk-sort-descending')
-            item.connect('activate', self.reload_sort_cb, field_name, 'DESC' )
-            menu.append(item)
-
-        ## hide
-        item = gtk.MenuItem(label="hide")
-        item.connect('activate', self.hide_column, field_name )
-        menu.append(item)
-
-        ## totals
-        if self.get_field_type(field_name) in sqlwidget.NUMBERS and not self.is_fkey(field_name):
-            item = gtk.MenuItem(label="create total")
-            item.connect('activate', self.add_total_cb, field_name )
-            menu.append(item)
-
-        menu.append(gtk.SeparatorMenuItem())
-        ## subtotals
-        if self.is_date(field_name):
-            self.menu_add_date_total_break(menu, field_name)
-        else:
-            item = gtk.MenuItem(label="subtotal on %s" % (field_name))
-            item.connect('activate', self.add_subtotal_cb, field_name )
-            menu.append(item)
-
-        menu.show_all()
-        menu.popup(None, None, None, ev.button, ev.time)
-        #menu.popup(None, None, None, 1, 1)
-
-    def menu_add_date_total_break(self, menu, field_name):
-
-        def add_break_date_cb(menu_item, field_name, period):
-            self.totals.add_date_break(field_name, period)
-
-        for period in "day week month quarter year".split():
-            item = gtk.MenuItem(label="subtotals on %s" % period)
-            item.connect('activate', add_break_date_cb, field_name, period)
-            menu.append(item)
-        
-    def add_total_cb(self, menu_item, field_name):
-        self.totals.add_total(field_name)
-        
-    def add_subtotal_cb(self, menu_item, field_name):
-        self.totals.add_break(field_name)
-
-    def reload_sort_cb(self, widget, field_name, direction):
-        
-        self.order_by = ("%s %s" % (field_name, direction))
-        self.reload_cb(None)
-        
     def reload_cb(self, *args):
         """this is the real callback: C-r and toolbutton 
         """
@@ -344,23 +273,109 @@ class SqlTable(sqlwidget.SqlWidget):
             #tvcolumn.set_fixed_width(self.width)
             
 
-    def set_field_list(self, field_list):
+#### column menu
+    def popup_col_menu(self, ev, field_name):
+
+        try:
+            self.widgets['M=popup'].destroy()
+        except:
+            pass
+
+        
+        menu = self.widgets['M=popup'] = gtk.Menu()
+
+        ## add to filter
+        item = gtk.MenuItem(label="add %s to filter" % field_name.replace('_', ' '))
+#        item.connect('activate', self.filter_panel.add, ev, field_name )
+        item.connect('activate', self.filter_panel.add, ev, field_name, self )
+        menu.append(item)
+
+        ## sort
+        if not self.relationship_leader:
+            item = gtk.ImageMenuItem('gtk-sort-ascending')
+            item.connect('activate', self.reload_sort_cb, field_name, 'ASC' )
+            menu.append(item)
+
+            item = gtk.ImageMenuItem('gtk-sort-descending')
+            item.connect('activate', self.reload_sort_cb, field_name, 'DESC' )
+            menu.append(item)
+
+        ## hide
+        item = gtk.MenuItem(label="hide")
+        item.connect('activate', self.hide_fields_cb, field_name )
+        menu.append(item)
+
+        ## totals
+        if self.get_field_type(field_name) in sqlwidget.NUMBERS and not self.is_fkey(field_name):
+            item = gtk.MenuItem(label="create total")
+            item.connect('activate', self.add_total_cb, field_name )
+            menu.append(item)
+
+        menu.append(gtk.SeparatorMenuItem())
+        ## subtotals
+        if self.is_date(field_name):
+            self.menu_add_date_total_break(menu, field_name)
+        else:
+            item = gtk.MenuItem(label="subtotal on %s" % (field_name))
+            item.connect('activate', self.add_subtotal_cb, field_name )
+            menu.append(item)
+
+        menu.show_all()
+        menu.popup(None, None, None, ev.button, ev.time)
+        #menu.popup(None, None, None, 1, 1)
+
+    def fill_menu_hide_fields(self):
         """
-        Set field of visible columns. Accepts both a list or a string (space or comma separated)
+        Add menu for showing/hiding field columns
         """
-        if isinstance(field_list, (str, unicode)):
-            field_list = re.split('[ ,]+', field_list)
-        orig_field_list = self.field_list
-        for field_name in field_list:
-            if field_name in self.fields:
-                ## is already known, just make it visible
-                self.tvcolumns[field_name].set_property('visible', True)
-            else:
-                raise NotImplementedError("Column %s is not kown in self.fields" % field_name)
-        for field_name in orig_field_list:
-            if field_name not in field_list:
-                self.tvcolumns[field_name].set_property('visible', False)
-        self.field_list = field_list
+        if not 'M=modify' in self.widgets:
+            return
+        menu = self.widgets['M=modify']
+
+        item_show = gtk.MenuItem(label="Show field")
+        item_hide = gtk.MenuItem(label="Hide field")
+        menu.append(item_show)
+        menu.append(item_hide)
+        
+        self.menu_show = gtk.Menu()
+        self.menu_hide = gtk.Menu()
+
+        item_show.set_submenu(self.menu_show)
+        item_hide.set_submenu(self.menu_hide)
+
+        for field_name in self.field_list:
+            m = gtk.MenuItem(field_name)
+            m.connect('activate', self.hide_fields_cb, field_name)
+            self.menu_hide.append(m)
+            
+        item_hide.set_submenu(self.menu_hide)
+        menu.show_all()
+
+        
+
+    def hide_fields_cb(self, menuItem, field_name):
+        self.hide_fields(field_name)
+        
+    def menu_add_date_total_break(self, menu, field_name):
+
+        def add_break_date_cb(menu_item, field_name, period):
+            self.totals.add_date_break(field_name, period)
+
+        for period in "day week month quarter year".split():
+            item = gtk.MenuItem(label="subtotals on %s" % period)
+            item.connect('activate', add_break_date_cb, field_name, period)
+            menu.append(item)
+        
+    def add_total_cb(self, menu_item, field_name):
+        self.totals.add_total(field_name)
+        
+    def add_subtotal_cb(self, menu_item, field_name):
+        self.totals.add_break(field_name)
+
+    def reload_sort_cb(self, widget, field_name, direction):
+        
+        self.order_by = ("%s %s" % (field_name, direction))
+        self.reload_cb(None)
         
 #### callbacks treeview
     def selection_changed_cb(self, treeselection):
@@ -415,47 +430,9 @@ class SqlTable(sqlwidget.SqlWidget):
         
         return True
     
-    def hide_column(self, menuItem, field_name,):
-        """
-        Hide a column and add the entry in the menu to make it show up again
-        """
-        self.tvcolumns[field_name].set_property('visible', False)
-        item = gtk.MenuItem(field_name)
-        item.connect('activate', self.show_column, field_name)
-        self.menu_show.append(item)
-        item.show()
-
     def show_column(self, menuItem, field_name,):
         self.tvcolumns[field_name].set_property('visible', True)
 
-    def fill_menu_hide_fields(self):
-        """
-        Add menu for showing/hiding field columns
-        """
-        if not 'M=modify' in self.widgets:
-            return
-        menu = self.widgets['M=modify']
-
-        item_show = gtk.MenuItem(label="Show field")
-        item_hide = gtk.MenuItem(label="Hide field")
-        menu.append(item_show)
-        menu.append(item_hide)
-        
-        self.menu_show = gtk.Menu()
-        self.menu_hide = gtk.Menu()
-
-        item_show.set_submenu(self.menu_show)
-        item_hide.set_submenu(self.menu_hide)
-
-        for field_name in self.field_list:
-            m = gtk.MenuItem(field_name)
-            m.connect('activate', self.hide_column, field_name)
-            self.menu_hide.append(m)
-            
-        item_hide.set_submenu(self.menu_hide)
-        menu.show_all()
-
-        
 #### event handling & accelerators
     def keyrelease_event_cb(self, wdg, event, data=None):
         return self.length_control(wdg, data)
@@ -1225,6 +1202,42 @@ class SqlTable(sqlwidget.SqlWidget):
             f.close()
         dialog.destroy()
         return 
+
+    def hide_fields(self, *field_name_list):
+        """
+        Hide a column and add the entry in the menu to make it show up again
+        """
+        if len(field_name_list) == 1:
+            field_name_list = re.split("[ ,]+", field_name_list[0])
+
+        for field_name in field_name_list:
+            self.tvcolumns[field_name].set_property('visible', False)
+            item = gtk.MenuItem(field_name)
+            item.connect('activate', self.show_column, field_name)
+            try:
+                self.menu_show.append(item)
+            except AttributeError: #Naked Tables don't have self.menu_show
+                pass
+            item.show()
+
+    def set_field_list(self, field_list):
+        """
+        Set field of visible columns. Accepts both a list or a string (space or comma separated)
+        """
+        if isinstance(field_list, (str, unicode)):
+            field_list = re.split('[ ,]+', field_list)
+        orig_field_list = self.field_list
+        for field_name in field_list:
+            if field_name in self.fields:
+                ## is already known, just make it visible
+                self.tvcolumns[field_name].set_property('visible', True)
+            else:
+                raise NotImplementedError("Column %s is not kown in self.fields" % field_name)
+        for field_name in orig_field_list:
+            if field_name not in field_list:
+                self.tvcolumns[field_name].set_property('visible', False)
+        self.field_list = field_list
+        
 
 #### completion
 
