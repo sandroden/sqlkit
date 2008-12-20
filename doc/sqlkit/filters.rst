@@ -27,6 +27,10 @@ the Filter Panel's Output page:
 Each record is shown with it's __str__ representation that can be set in the
 ways described in :ref:`description`.
 
+In this Output Page it's possible to set a field and have records grouped by
+that field::
+
+  t.filter_panel.tree = 'field_name'
 
 
 Date filters

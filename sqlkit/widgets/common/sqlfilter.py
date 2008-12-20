@@ -52,6 +52,7 @@ class FilterPanel(object):
         self.search_filter_widgets = []         ## list of FIlterWidgets instances
         self.search_filter_field_names = []     ## field_names used
         self.bind_name = self.master.metadata.bind.name
+        self.tree = False
         
     def __del__(self):
         self.destroy()
@@ -107,7 +108,7 @@ class FilterPanel(object):
 
         """
         for key, val in kwargs.iteritems():
-            path, op, col, op_str, value = django2components(self.master.mapper, {key: val})
+            path, op, op_str, value, col = django2components(self.master.mapper, {key: val})
             master = self.get_related_master(self.master, path)
             filter_widget = self.add(None, None, col.name, master, force=True)
             filter_widget.check_button.set_active(active)
@@ -261,8 +262,9 @@ class FilterPanel(object):
         i = 0
         for obj in self.master.records:
             attr_value = getattr(obj, description)
-            if attr_value not in iter:
-                iterR = self.model.append(None)
+            if self.tree and self.tree not in iter:
+                attr_value = getattr(obj, self.tree)
+                iterR = self.model.append(iter[attr_value])
                 self.model.set(iterR,
                                0, i,
 #                               1, format_string % vars(obj),
@@ -270,7 +272,7 @@ class FilterPanel(object):
                                )
                 iter[attr_value] = iterR
             else:
-                iterR = self.model.append(iter[attr_value])
+                iterR = self.model.append(None)
                 self.model.set(iterR,
                                0, i,
 #                               1, format_string % vars(obj),
