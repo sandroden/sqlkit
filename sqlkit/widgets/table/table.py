@@ -1166,6 +1166,27 @@ class SqlTable(sqlwidget.SqlWidget):
             
 
 
+    def export(self, menuItem):
+        """
+        export visible data in csv format
+        """
+        txt = []
+        for row in self.liststore:
+            line = [str(getattr(row[0], f, '') or '') for f in self.field_list
+                    if self.tvcolumns[f].get_property('visible')]
+            txt += ["\t".join(line)]
+
+        txt = "\n".join(txt)
+        dialog = gtk.FileSelection(title="Export in csv file")
+        ret = dialog.run()
+        if ret == gtk.RESPONSE_OK:
+            filename = dialog.get_filename()
+            f= open(filename, 'w')
+            f.write(txt)
+            f.close()
+        dialog.destroy()
+        return 
+
 #### completion
 
     def get_value(self, field_name, shown=True):
@@ -1180,6 +1201,8 @@ class SqlTable(sqlwidget.SqlWidget):
             if self.editable:
                 return self.editable.get_text()
         return getattr(self.get_current_obj(), field_name)
+
+
 
 
 

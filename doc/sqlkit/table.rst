@@ -60,3 +60,10 @@ Text
 ----
 
 I don't have a satisfactory CellRender for long text. Any hint is appreciated.
+
+
+Export
+=======
+
+A very minimal export function allow to export visible data in a csv (comma
+separated value) format. Follow File -> Export.

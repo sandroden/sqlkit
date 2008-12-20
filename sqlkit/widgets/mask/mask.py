@@ -489,6 +489,10 @@ class SqlMask (sqlwidget.SqlWidget):
         return self.vfields[field_name].widget.gtkwidget
 
 
+####### Misc
+    def export(self, menuItem):
+        self.dialog(type="ok", text="Export feature available only for Tables")
+
 ####### Validation
     def focus_out__widget(self, widget, event, field_name):
         self.last_visited_field = field_name

@@ -700,6 +700,11 @@ class SqlWidget(gobject.GObject):
 
 ####### Dialog
     def dialog(self, type='ok-cancel', text='', title=''):
+        """
+        pop a dialog modal and transient, type can be:
+        ok, ok-cancel, yes-no, yes-no-cancel, ok-apply-cancel
+        text uses markup
+        """
         dialog, l = self.lay_obj.dialog(lay="l=a", title=title,
                                         type=type, show=False)
         l.prop(('l=a', 'use_markup', True))
@@ -865,11 +870,16 @@ class SqlWidget(gobject.GObject):
                 ('inspect widgets', 'activate', self.show_widget_info),
                 ('inspect class', 'activate', self.show_class_info),
                 ('-', None),
+                ('Export', 'activate', self.export),
+                
                 ('gtk-quit', 'activate', self.delete_event)
                 )
             self.printing()
     def clear_cb(self, *args):
         self.clear()
+
+    def export(self, menuItem):
+        self.dialog(type='ok', text="Sorry, export is implemented only for table view")
 
     def is_fkey(self, field_name):
         """
@@ -1239,4 +1249,6 @@ class SqlWidget(gobject.GObject):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+
 
