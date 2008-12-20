@@ -124,8 +124,10 @@ adding & completion
 -------------------
 
 
-.. note:: important
+.. note:: 
 
+  .. versionadded:: 0.8.4
+     
   When using :ref:`completion` in a m2m table, adding from completion behaves
   differently that adding from m2o in that it requires the field to be
   already present and does not allow to edit it

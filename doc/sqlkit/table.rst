@@ -33,7 +33,7 @@ Methods
 
 :set_editable:
    only meaningful for table that represent an m2m relationship: turns the
-   table from non eidtable to editable, read the explanation in
+   table from non editable to editable, read the explanation in
    :ref:`relationship`
 
 :hide_field:

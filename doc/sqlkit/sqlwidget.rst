@@ -57,7 +57,7 @@ can be changed when building ``DbProxy``.
 
 
 session & expire_on_commit
-=========================
+==========================
 
 The reason to have ``expire_on_commit=False`` is that if you don't set it, after every
 commit, you have to reload all objects and the interface turns very slow,

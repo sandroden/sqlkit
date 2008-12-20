@@ -1,3 +1,34 @@
+sqlkit 0.8.4 - 20.12.08
+
+	* totals: fix in date when date is missing
+	* completion: many fixes
+	              group_by beahaviour now works correctly
+	              .filter works also for fkey fields
+	* postgres: fixed PGChar handling
+	* sqledit: implemented 'copy' feature in .sqleditdb
+	* table: added sort DESC entry in each column
+                 added export in .csv format of a table
+	         added entry to hide/show columns
+		 set_field_list: now columns are rearranged to reflect
+              	 list order
+	* speed: many fixes to speed up browsing of data when working with
+	         a remote db:
+                   + session: 'expire_on_commit=False' as default of dbProxy
+	           + table: fixed caching of values
+	* debug: fixed a situation in which printing debug caused an error
+	         added a function that prints metadata.create_all() statement
+	* django_syntax: cleanup and creation of tests
+	* filter_panel: added 'tree' attribute that determines if records
+  	         in output page must be rendered as tree
+	* icons: fixex bug that prevented to show some icons in Windows
+	* mask: added set_records (as table has)
+	* demo: more demo examples
+	        added button to pop debug
+	* join: introduced join between table (tables="table1 table2" not
+    	        yet documented)
+	* m2m: introduced 'set_editable' attribute (feature still in progress)
+	
+	
 sqlkit 0.8.3.3 - 22.11.08
 
 	* import statement - complete restructure: 
