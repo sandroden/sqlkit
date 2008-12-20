@@ -207,14 +207,23 @@ def func_date_same_day(obj, field_name):
 def func_date_same_week(obj, field_name):
     date = getattr(obj, field_name)
     #print date, date.year, getattr(obj, field_name).strftime('%U')
-    return date.year, getattr(obj, field_name).strftime('%U')
+    if date:
+        return date.year, getattr(obj, field_name).strftime('%U')
+    else:
+        return None
 
 def func_date_same_month(obj, field_name):
     date = getattr(obj, field_name)
-    return date.month, date.year
+    if date:
+        return date.month, date.year
+    else:
+        return None
 
 def func_date_same_year(obj, field_name):
-    return getattr(obj, field_name).year
+    if date:
+        return getattr(obj, field_name).year
+    else:
+        return None
 
 def func_date_same_quarter(obj, field_name):
     date = getattr(obj, field_name)
