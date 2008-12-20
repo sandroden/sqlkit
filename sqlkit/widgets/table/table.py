@@ -135,8 +135,12 @@ class SqlTable(sqlwidget.SqlWidget):
 
         ## sort
         if not self.relationship_leader:
-            item = gtk.MenuItem(label="sort")
-            item.connect('activate', self.reload_sort, field_name )
+            item = gtk.ImageMenuItem('gtk-sort-ascending')
+            item.connect('activate', self.reload_sort_cb, field_name, 'ASC' )
+            menu.append(item)
+
+            item = gtk.ImageMenuItem('gtk-sort-descending')
+            item.connect('activate', self.reload_sort_cb, field_name, 'DESC' )
             menu.append(item)
 
         ## hide
@@ -159,7 +163,6 @@ class SqlTable(sqlwidget.SqlWidget):
             item.connect('activate', self.add_subtotal_cb, field_name )
             menu.append(item)
 
-
         menu.show_all()
         menu.popup(None, None, None, ev.button, ev.time)
         #menu.popup(None, None, None, 1, 1)
@@ -180,9 +183,9 @@ class SqlTable(sqlwidget.SqlWidget):
     def add_subtotal_cb(self, menu_item, field_name):
         self.totals.add_break(field_name)
 
-    def reload_sort(self, widget, field_name, *args):
-        dbg.write(widget, field_name)
-        self.order_by = field_name
+    def reload_sort_cb(self, widget, field_name, direction):
+        
+        self.order_by = ("%s %s" % (field_name, direction))
         self.reload_cb(None)
         
     def reload_cb(self, *args):
@@ -1177,6 +1180,8 @@ class SqlTable(sqlwidget.SqlWidget):
             if self.editable:
                 return self.editable.get_text()
         return getattr(self.get_current_obj(), field_name)
+
+
 
 
 

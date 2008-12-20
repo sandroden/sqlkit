@@ -92,7 +92,7 @@ mode/sql options
    order by column to be used when selecting 
 
 :limit=200:
-   limit attribute to be used selectin
+   limit attribute to be used selecting
 
 :field_list=None:
    a field_list to be shown. This can also be set via "set_fields". Operate
@@ -112,8 +112,8 @@ Methods
 These methods are better explained elsewhere. I recap them here just for
 completeness:
 
-  :set_fields:
-      equivalent to passing field_list
+..   :set_fields:
+..       equivalent to passing field_list
 
   :add_constraint:
       see :ref:`constraints`
@@ -158,6 +158,8 @@ Attributes
 :field_list:
    a list of the field names the GUI is handling. It comprises PropertyLoaders
 
+:order_by:
+   a string that will be passed as is to query i.e. to SQL. (eg: ``last_name DESC, first_name``)
 
 
 .. _sqlalchemy: http://www.sqlalchemy.org
@@ -180,5 +182,7 @@ which are the needed ones...
 :record_selected:
    A record has been displayed in Mask or selected in Table.
    The callback will just receive the widget as argument.
+
+
 
 
