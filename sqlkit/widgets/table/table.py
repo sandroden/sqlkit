@@ -626,8 +626,9 @@ class SqlTable(sqlwidget.SqlWidget):
 
         if hasattr(self.field_widgets[field_name], 'completion'):
             completion = self.field_widgets[field_name].completion
-            completion.add_completion(editable)
-            completion.add_callbacks(editable)
+            if completion:
+                completion.add_completion(editable)
+                completion.add_callbacks(editable)
             
         ## MAX LENGTH
         self.field_widgets[field_name].field.set_max_length()
@@ -648,7 +649,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.edited_row_model_path is None:
             return True
 
-        if self.relationship_mode == 'm2m':
+        if self.relationship_mode == 'm2m' and not self.m2m_editable:
             # in m2m we don't want to edit this field but just to add/remove objects
             # I'm not sure if this should change
             try:
@@ -983,8 +984,15 @@ class SqlTable(sqlwidget.SqlWidget):
         it is deduced from selection
         fkey: if True the value is handled as a primary key. Used from completion
         """
-        
+
+        ## note: current cannot be used. We don't want the currently selected obj
+        ##       but the one that is to be saved. This operation can be triggered
+        ##       by a change in selection in which case self.current already points
+        ##       to the new selection
         obj = self.get_current_obj(path=path)
+        
+        if not obj:
+            return True
 
         ## casting of value
         ptype = self.get_field_type(field_name)
@@ -1061,7 +1069,10 @@ class SqlTable(sqlwidget.SqlWidget):
             pass  # no selection...
         
     def get_current_obj(self, path=None):
-        """returns the corrently edited (not just selected!!) obj or obj at path.
+        """
+        Returns the corrently edited (not just selected!!) obj or obj at path.
+        Selection can already be elsewehre (as in on_selection_change)
+        Read comment in set_value
         Return None if no selection
         """
 
@@ -1262,3 +1273,12 @@ class SqlTable(sqlwidget.SqlWidget):
 
 
 
+    def set_editable(self, editable=True):
+        """
+        Turn this table into a normal editable table
+        table are not normally editable table if have relationship_mode = m2m
+        """
+        self.m2m_editable = editable
+        for field in self.vfields:
+            field.widget.add_completion(editable=editable)
+        

@@ -31,6 +31,14 @@ Methods
    allows to disable icons in a m2m relationship (icons=False), eliminate
    scrollbars (scroll=x|y|xy|None)
 
+:set_editable:
+   only meaningful for table that represent an m2m relationship: turns the
+   table from non eidtable to editable, read the explanation in
+   :ref:`relationship`
+
+:hide_field:
+   hides columns, adding a row in the menu to make it show up again at will 
+   
 Column headers
 ==============
 

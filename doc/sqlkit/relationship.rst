@@ -130,6 +130,13 @@ adding & completion
   differently that adding from m2o in that it requires the field to be
   already present and does not allow to edit it
 
+  This behaviour can be changed setting it's 'm2m_editable' property to
+  True (new in 0.8.4)::
+
+     t.related.genres.set_editable(True)
+
+  
+
 
 ..   2. it complains if it cannot get one single element with that value 
 

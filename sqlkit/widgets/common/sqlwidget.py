@@ -392,6 +392,7 @@ class SqlWidget(gobject.GObject):
         It's used in filter widgets
         """
 
+        self.m2m_editable = False
         if not path:
             return []
         

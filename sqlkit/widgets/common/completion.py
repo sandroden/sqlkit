@@ -612,6 +612,9 @@ class SimpleCompletion(object):
         return value
         
 
+    def __str__(self):
+        return "<SimpleCompletion %s>" % self.field_name
+        
 class FkeyCompletion(SimpleCompletion):
     VALUE_COL = 0
     DESCRIPTION_COL = 1
@@ -762,6 +765,9 @@ class FkeyCompletion(SimpleCompletion):
         return compose_binary_expression(self.table, **kwargs)
 
 
+    def __str__(self):
+        return "<FkeyCompletion> %s>" % self.field_name
+        
 class M2mCompletion(FkeyCompletion):
     VALUE_COL = 0
     DESCRIPTION_COL = 1
@@ -810,6 +816,9 @@ class M2mCompletion(FkeyCompletion):
 #                 msg = "Choice is not unique: (%s=%s). Retry" % (field_name, value)
 #                 return False
         return True
+        
+    def __str__(self):
+        return "<M2mCompletion: %s>" % self.field_name
         
 
 ### Functions

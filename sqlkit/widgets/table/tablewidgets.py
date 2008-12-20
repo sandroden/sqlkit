@@ -8,8 +8,7 @@ class CellWidget(object):
         self.field_name = field_name = field.field_name
         
 
-        self.add_completion(master.is_fkey(field_name),
-                            master.get_field_type(field_name))
+        self.add_completion()
 
         self.master.field_widgets[field_name] = self
         
@@ -22,16 +21,20 @@ class CellWidget(object):
     
     entry = property(fget)
 
-    def add_completion(self, is_fkey, pytype):
+    def add_completion(self, editable=False):
         """completion is set just for fkey and string fields"""
 
-        if self.master.relationship_mode == 'm2m':
+        
+        if self.master.relationship_mode == 'm2m' and editable == False:
             Completion = M2mCompletion
-        elif is_fkey:
+            
+        elif self.master.is_fkey(self.field_name):
             Completion = FkeyCompletion
-        elif pytype in (str, unicode):
+
+        elif self.master.get_field_type(self.field_name) in (str, unicode):
             Completion = SimpleCompletion
         else:
+            self.completion = None
             return
         
         self.completion = Completion(self.master, self, self.field_name)
@@ -49,4 +52,5 @@ class CellWidget(object):
         except:
             pass
             
-
+    def __str__(self):
+        return "<CellWidget: %s>" % self.field_name 

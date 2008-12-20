@@ -155,10 +155,13 @@ Attributes
 ===========
 
 :related: 
-   a container for all related sqlwidgets
+   a container for all related sqlwidgets (i.e.: SqlWidgets that have a
+   relation with this sqlwidget defined by sqlalchemy and that are 
+   dispayed in the widget)
 
 :completions:
-   a container of all completion objects
+   a container of all completion objects. Needed to change the behaviour of
+   some completion (see :ref:`completion`)
 
 .. :vfields:
 ..    a container for all validation fields. A validation fields is an objects
