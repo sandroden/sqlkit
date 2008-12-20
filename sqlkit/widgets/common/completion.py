@@ -36,7 +36,7 @@ import sqlkit
 from sqlalchemy import text, select, Table
 from sqlalchemy.sql import and_, or_, not_
 from sqlkit.db.proxy import table2mapper
-from sqlkit.db.utils import tables, get_description
+from sqlkit.db.utils import tables, get_description, DictLike
 from sqlkit.exc import *
 from sqlkit.db.django_syntax import django2sqlalchemy, path2join
 from copy import copy
@@ -102,12 +102,13 @@ class SimpleCompletion(object):
         self.widget = widget
         self.field_name = field_name
         self.completion = self.prepare_completion()
-        self.table = self.master.mapper.local_table
         self.column = self.master.fields[field_name]['col']
+        self.table = self.column.table
         self.format = get_description(self.table, attr='format')
         self.description = tables[self.table.name].description
         self.attrs = tables[self.table.name].attrs
-        self.columns = [self.master.fields[field_name]['col'] for field_name in self.attrs]
+#        self.columns = [self.master.fields[field_name]['col'] for field_name in self.attrs]
+        self.columns = [self.master.fields[self.field_name]['col']]
         self.attrs = tables[self.table.name].attrs
         self._group_by = None
         self._filter = None
@@ -248,8 +249,8 @@ class SimpleCompletion(object):
         """
         m_iter = self.model.append(None)
         self.model.set(m_iter,
-#                       self.VALUE_COL, getattr(obj, self.field_name),
-                       self.VALUE_COL, self.format % obj,
+                       self.VALUE_COL, getattr(obj, self.field_name),
+#                       self.VALUE_COL, self.format % DictLike(obj),
                        self.MATCH_COL, True)
 
     def make_completion_to_pop(self, entry):
@@ -700,8 +701,7 @@ class FkeyCompletion(SimpleCompletion):
 
         """
 
-        obj_list = self.instance2list(obj)
-        obj_dict = self.instance2dict(obj)
+        obj_list = [getattr(obj, i) or '' for i in obj.keys()]
         fvalue = obj_list[0]
         try:
             fdescr = obj_list[1] or ''
@@ -710,14 +710,16 @@ class FkeyCompletion(SimpleCompletion):
         
 #        fk_table, fk_key = get_foreign_info(self.master, self.field_name)
 #        format_string    = tables[fk_table].format
-        description      = self.format % self.instance2dict(obj)
+#        description      = self.format % self.instance2dict(obj)
+        Obj = DictLike(obj)
+        description = self.format % Obj
         m_iter = self.get_iter(obj)
         ## FIXME: what if the pkey is composed?
         self.model.set(m_iter,
                        self.VALUE_COL,       fvalue,
                        self.DESCRIPTION_COL, description,
                        self.MARKUP_COL,      "   %s" % description,
-                       self.OBJ_COL,         obj_dict,
+                       self.OBJ_COL,         Obj,
                        self.MATCH_COL,       True,
                        )
         
@@ -747,18 +749,6 @@ class FkeyCompletion(SimpleCompletion):
             return m_iter
                     
             
-    def instance2list(self, R):
-        ## NOTE: a NULL from the db gets casted to ''
-        ret = [getattr(R, i) or '' for i in R.keys()]
-        return ret
-            
-    def instance2dict(self, R):
-        ret = [getattr(R, i) for i in R.keys()]
-        ret = {}
-        for i in R.keys():
-            ret[i] = getattr(R, i)
-        return ret
-            
     def get_obj_no_flush(self, value):
         """
         check if the object exists and .one(), but don't trigger .flush()
@@ -784,6 +774,7 @@ class M2mCompletion(FkeyCompletion):
         SimpleCompletion.__init__(self, *args, **kw)
         self.description = get_description(self.table, attr='description')
         self.attrs = get_description(self.table, attr='attrs')
+        self.columns = [self.master.fields[field_name]['col'] for field_name in self.attrs]
         self.from_obj = None
 
         
