@@ -1,4 +1,5 @@
 import datetime
+import sqlalchemy
 
 tables = {}
 
@@ -67,6 +68,9 @@ def get_default(table_name, field_name):
     Return the default value for a field_name
     if the value is a callable... call it
     """
+    if isinstance(table_name, sqlalchemy.Table):
+        table_name = table_name.name
+        
     try:
         value = tables[table_name][field_name]
         if callable(value):
