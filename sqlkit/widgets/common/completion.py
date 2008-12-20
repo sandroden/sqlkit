@@ -716,11 +716,10 @@ class FkeyCompletion(SimpleCompletion):
         self.model.set(m_iter,
                        self.VALUE_COL,       fvalue,
                        self.DESCRIPTION_COL, description,
-                       self.MARKUP_COL,      "   %s" % description,
+                       self.MARKUP_COL,      "   %s" % self.markup_clean(description),
                        self.OBJ_COL,         Obj,
                        self.MATCH_COL,       True,
                        )
-        
     def get_iter(self, obj):
         # based on self.__prev_group_by_value
         #          self.__prev_group_by_iter
@@ -740,12 +739,17 @@ class FkeyCompletion(SimpleCompletion):
                 self._prev_group_by_iter = None
                 self.model.set(m_iter,
                                self.DESCRIPTION_COL, new_value,
-                               self.MARKUP_COL,      "<b><i>%s</i></b>" % new_value,
+                               self.MARKUP_COL,      "<b><i>%s</i></b>" % self.markup_clean(new_value),
                                self.MATCH_COL,       True
                                )
                 m_iter = self.model.append(None)
             return m_iter
                     
+    def markup_clean(self, text):
+        text = re.sub('\&', '&amp;', text)
+        text = re.sub('<', '&lt;', text)
+        text = re.sub('>', '&gt;', text)
+        return text
             
     def get_obj_no_flush(self, value):
         """
