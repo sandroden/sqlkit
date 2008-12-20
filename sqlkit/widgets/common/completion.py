@@ -661,10 +661,10 @@ class FkeyCompletion(SimpleCompletion):
             return ''
         try:
             return self.lookup_values[field_name][field_value]
-        except:
+        except Exception, e:
             descr_fields =  get_description(self.table)
             format =        tables[self.table.name].format
-            fields = [self.table.columns[field_name] for field_name in descr_fields]
+            fields = [self.table.columns[f_name] for f_name in descr_fields]
 
             sql = select(fields, self.column == field_value)
             all = self.master.metadata.bind.execute(sql).fetchall()
@@ -844,5 +844,7 @@ def get_foreign_info(master, field_name, names=True):
 
     foreign_keys = master.fields[field_name]['fkey']
     return get_foreign_info(foreign_keys, names=names)
+
+
 
 
