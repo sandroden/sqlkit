@@ -118,6 +118,14 @@ class SqlMask (sqlwidget.SqlWidget):
         ## the first has been terminated
         #dbg.write("%s DATA DISPLAYed " % self.nick)
         return True
+
+    def set_records(self, records, index=0):
+        """
+        set records to browse, and display number idx
+        """
+        self.clear_mask()
+        self.records = records
+        self.record_display(index=index)
         
     def set_value(self, field_name, field_value, fkvalue=None, initial=True):
         """this is the method that knows how to handle different type of data

@@ -151,6 +151,9 @@ completeness:
   :resize:
       a resize on the window
 
+  :set_records:
+      set a record list to represent
+
 Attributes
 ===========
 
