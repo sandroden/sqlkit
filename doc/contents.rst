@@ -5,6 +5,11 @@
 Welcome to sqlkit's documentation!
 ==================================
 
+.. sidebar:: Release
+
+   This documentation is relative to the **last mercurial release**.
+   Documentation for your release is in :file:`doc` directory
+
 Contents:
 
 .. toctree::
