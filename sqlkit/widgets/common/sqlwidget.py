@@ -38,7 +38,7 @@ from sqlkit.db import minspect
 from sqlkit.widgets.common import completion
 from sqlalchemy.orm import attributes
 from sqlkit.misc.utils import Container
-from sqlkit import exc
+import sqlkit
 
 NUMBERS = (int, float, decimal.Decimal)
 
@@ -457,7 +457,7 @@ class SqlWidget(gobject.GObject):
         """
         try:
             self.record_save()
-        except exc.CancelledAction:
+        except sqlkit.exc.CancelledAction:
             pass
     
     def record_save_new(self, ev):
@@ -475,7 +475,7 @@ class SqlWidget(gobject.GObject):
             dbg.write("Exception: %s" % e.orig) 
             #self.message(str(e.orig))
             self.session.rollback()
-            raise exc.CommitError
+            raise sqlkit.exc.CommitError
             
     def SQLErrorHandler(self, e):
         self.message(type='error',
@@ -654,7 +654,7 @@ class SqlWidget(gobject.GObject):
         
         if field_name not in self.vfields:
             dbg.write("%s Non in vfields %s" % (field_name, self.vfields.keys()))
-            raise exc.FieldNotInLayout("field_name: %s" % (field_name))
+            raise sqlkit.exc.FieldNotInLayout("field_name: %s" % (field_name))
 
         field = self.vfields[field_name]
         
@@ -673,7 +673,7 @@ class SqlWidget(gobject.GObject):
         for field_name in self.field_list:      
             try:
                 changed = self.has_changed(field_name)
-            except exc.FieldNotInLayout:
+            except sqlkit.exc.FieldNotInLayout:
                 continue
 
             if changed:
@@ -1281,6 +1281,8 @@ class SqlWidget(gobject.GObject):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+
 
 
 
