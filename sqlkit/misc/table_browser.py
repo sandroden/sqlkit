@@ -106,12 +106,12 @@ class TableBrowser(object):
         if mode == 'mask':
             try:
                 SqlMask(**options)
-            except sqlkit.completion.MissingDescriptorField:
+            except sqlkit.exc.MissingDescriptorField:
                 pass
         else:
             try:
                 SqlTable(**options)
-            except sqlkit.completion.MissingDescriptorField:
+            except sqlkit.exc.MissingDescriptorField:
                 pass
             
     def skip_table(self, table):
