@@ -65,6 +65,7 @@ class InspectMapper(dict):
             # these type so no have a correspondence a base in a SA Type
             SA_TYPE_MAP.update({
                 sqlalchemy.databases.postgres.PGInet  : str, 
+                sqlalchemy.databases.postgres.PGChar  : str, 
                 sqlalchemy.databases.postgres.PGInterval  : datetime.timedelta,
                 })
         except Exception, e:
@@ -566,3 +567,5 @@ def get_foreign_info(ForeignKey, names=True):
         else:
             return (fkcol.column.table, fkcol.column)
     
+
+
