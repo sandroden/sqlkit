@@ -83,6 +83,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.treeview.connect('key-press-event', self.keypress_event_cb)
 
         self.setup_treeview_columns()
+        self.fill_menu_hide_fields()
         ## let tree use all the available space... 
         if not self.naked:
             self.lay_obj.prop('A.external','yscale',1)
@@ -415,8 +416,46 @@ class SqlTable(sqlwidget.SqlWidget):
         return True
     
     def hide_column(self, menuItem, field_name,):
+        """
+        Hide a column and add the entry in the menu to make it show up again
+        """
         self.tvcolumns[field_name].set_property('visible', False)
+        item = gtk.MenuItem(field_name)
+        item.connect('activate', self.show_column, field_name)
+        self.menu_show.append(item)
+        item.show()
 
+    def show_column(self, menuItem, field_name,):
+        self.tvcolumns[field_name].set_property('visible', True)
+
+    def fill_menu_hide_fields(self):
+        """
+        Add menu for showing/hiding field columns
+        """
+        if not 'M=modify' in self.widgets:
+            return
+        menu = self.widgets['M=modify']
+
+        item_show = gtk.MenuItem(label="Show field")
+        item_hide = gtk.MenuItem(label="Hide field")
+        menu.append(item_show)
+        menu.append(item_hide)
+        
+        self.menu_show = gtk.Menu()
+        self.menu_hide = gtk.Menu()
+
+        item_show.set_submenu(self.menu_show)
+        item_hide.set_submenu(self.menu_hide)
+
+        for field_name in self.field_list:
+            m = gtk.MenuItem(field_name)
+            m.connect('activate', self.hide_column, field_name)
+            self.menu_hide.append(m)
+            
+        item_hide.set_submenu(self.menu_hide)
+        menu.show_all()
+
+        
 #### event handling & accelerators
     def keyrelease_event_cb(self, wdg, event, data=None):
         return self.length_control(wdg, data)
@@ -1201,6 +1240,8 @@ class SqlTable(sqlwidget.SqlWidget):
             if self.editable:
                 return self.editable.get_text()
         return getattr(self.get_current_obj(), field_name)
+
+
 
 
 

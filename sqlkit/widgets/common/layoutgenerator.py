@@ -301,7 +301,7 @@ class LayoutGenerator (object):
             nav_buttons=""
             
         self.layout = """
-        {B m=file m=modifica m=opzioni m=aiuto}
+        {B m=file m=modify m=option m=help}
         {O.tool tb=gtk-save tb=gtk-save-as tb=gtk-delete tb=gtk-new tb=gtk-refresh tb=gtk-quit
         %s}
         {A.external { %s}}
