@@ -14,7 +14,7 @@ sys.path.append(ppdir)
 
 from demo_tour import Demo
 
-Demo()
+d = Demo()
 
 gtk.main()
 

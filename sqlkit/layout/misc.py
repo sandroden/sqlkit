@@ -50,6 +50,9 @@ class EasyTreeView(object):
     def show(self):
         self.w['Window'].show_all()
 
+    def hide(self):
+        self.w['Window'].hide()
+
     def _get_layout(self, but, title=None):
         lay = """
           {O tb=gtk-quit  tb=gtk-clear %s}

@@ -934,12 +934,17 @@ class ScrolledDrawingArea(ScrolledWindow):
 class MenuBar(LContainer):
     gtkClass = 'GtkMenuBar'
     class_pack_properties = {
-        'y_options' : 'fill'
+        'y_options' : 'fill',
+        'x_options' : 'fill',
         }
     def _class_specific(self):
         if self.container_flag == "T":
             #self.pack_properties.update({'y_options': ''})
-            self.pack_properties.update({'y_options': 'fill'})
+            self.pack_properties.update(
+                {'y_options': 'fill',
+                'x_options' : 'fill',
+                 }
+                )
 
 class Menu(LContainer):
     gtkClass = 'GtkMenu'

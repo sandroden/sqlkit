@@ -12,6 +12,14 @@ ppdir = os.path.dirname(pdir)
 sys.path.append(pdir)    
 sys.path.append(ppdir)    
 
+from sqlkit import debug as dbg
+dbg.debug(True)
+dbg.debug(True, gtk=True)
+dbg.trace_class(ok='SqlTable|SqlWidget|SqlMask|Completion')
+but = 'set_fkey_descr|(lookup|get)_value|[el]ne_cb|match_func' + \
+    '|cell_.*_cb|lookup_value|is_fkey|instance2'
+dbg.trace_function(exclude=but)
+
 from demo_tour import Demo
 import sqlkit
 from sqlkit.widgets import SqlMask, SqlTable
@@ -52,7 +60,7 @@ class DemoSql(Demo):
         self.w['Window'].set_title("Esempio: %s" % (file_name))
 
 
-d = DemoSql(xml=False)
+d = DemoSql(xml=False, debug=True)
 
 if len(sys.argv) > 1:
     d.load_module_by_idx(sys.argv[1])

@@ -480,3 +480,8 @@ def get_gtk_logger(show=True):
     import gtk_dbg
 
     return gtk_dbg.ShowLogs(show=show)
+
+def get_logger():
+    global DBGLogger
+    return DBGLogger
+

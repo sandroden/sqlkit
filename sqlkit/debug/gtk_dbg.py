@@ -1188,6 +1188,9 @@ class ShowLogs(object):
     def show(self):
         self.easytv.show()
 
+    def hide(self):
+        self.easytv.hide()
+
     def conf(self, but='^$', only='.*'):
         self.but = re.compile(but)
         self.only = re.compile(only)

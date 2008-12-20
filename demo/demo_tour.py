@@ -39,10 +39,10 @@ class InputStream(object):
 
 
 class Demo(object):
-    def __init__(self, pattern=".+.py$", xml=True):
+    def __init__(self, pattern=".+.py$", xml=True, debug=False):
 
         lay = """
-           {B m=_File   } # {O t=quit}
+           { {B m=_File  } {O tb=gtk-execute } }
            {v 
                {h TVS=a:120.300 {N TXS=txt:250. TVS=tree TVS=el TVS=pack TXS=xml} }
                TXS=note
@@ -74,7 +74,11 @@ class Demo(object):
 
         self.tv = self.w['TV=a']
         ex = self.configure_treeview(self.tv, demos, self.src, self.note)
-
+        if not debug:
+            self.w['tb=gtk-execute'].hide()
+        else:
+            self.w['tb=gtk-execute'].connect('clicked', self.execute_clicked_cb)
+            self.execute_clicked_cb(None)
 
         self.l.menu('m=_File',
             ('inspect widgets' , 'activate', self.pop_inspect, ),
@@ -128,6 +132,18 @@ class Demo(object):
         treeview.show_all()
         return model
 
+    def execute_clicked_cb(self, widget):
+        """
+        toggle visibility of the window that shows debug
+        """
+        try:
+            logger = dbg.get_logger()
+            if logger.easytv.w['Window'].get_property('visible'):
+                logger.hide()
+            else:
+                logger.show()
+        except:
+            pass
 
     def selection_changed_cb(self, selection):
         model, iter = selection.get_selected()
