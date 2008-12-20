@@ -39,15 +39,35 @@ from sqlkit.misc import optionparse, table_browser
 class MissingNickDefinition(Exception): pass
 
 def read_conf(nick):
+    from copy import deepcopy
+
+    global opts
+    global lopts
+
     dbconf='.sqleditdb'
     dbconf = os.path.join(os.getenv('HOME'), dbconf)
+    lopts = deepcopy(opts)
+
+    def loop_on_opts(c, opts, nick=nick):
+        """
+        implements "copy" option in .sqleditdb
+        """
+
+        for key, val in c.items(nick):
+            if key == 'copy':
+                loop_on_opts(c, opts, nick=val)
+        
+        for key, val in c.items(nick):
+            if key == 'copy':
+                continue
+            if getattr(lopts, key, None) is None:
+                setattr(opts, key, val)
+        
+
     if os.path.exists(dbconf):
         c = ConfigParser()
         c.read(dbconf)
-        for tup in c.items(nick):
-            key, val = tup
-            if getattr(opts, key, None) is None:
-                setattr(opts, key, val)
+        loop_on_opts(c, opts, nick)
     else:
         raise MissingNickDefinition
         

@@ -32,3 +32,27 @@ It has many options::
   """
 
 
+.sqleditdb
+============
+
+You can write configurations in a file in your home calle ``.sqleditdb`` and
+start sqledit on that configuration using a nickname::
+
+   [invitati]
+   URL = postgres://sandro:xxx@ny_host/2giugno
+   table = partecipazioni_invitato
+   dev = True
+   field_list = nome, cognome, and all other fields
+   order_by = cognome, nome
+
+   [brasile]
+   copy = invitati
+   field_list = nome, cognome, email, ludo
+
+  
+Valid opion are URL and any other option for sqledit. The special option
+``copy`` force sqledit to read the other definition first and then
+overwrite.
+In this case 'brasile' shares all optioons with '2giugno'  but overwrites
+field_list.
+
