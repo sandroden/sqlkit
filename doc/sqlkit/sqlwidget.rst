@@ -78,6 +78,10 @@ layout options
 :addto=None:
    if set must be a container to which the sqlwidget will be added
 
+:about_dialog:
+   Pass a dialog to invoke when info is called. A gtk.AboutDialog info will be
+   created by default if no about_dialog is passed
+   
 mode/sql options
 =================
 
@@ -182,6 +186,8 @@ which are the needed ones...
 :record_selected:
    A record has been displayed in Mask or selected in Table.
    The callback will just receive the widget as argument.
+
+
 
 
 

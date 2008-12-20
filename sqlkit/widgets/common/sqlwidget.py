@@ -89,6 +89,7 @@ class SqlWidget(gobject.GObject):
                   ## more
                   single=False,
                   nick=None,
+                  about_dialog = None,
 #                  actions=None,
                   dev=False,
                   xml=False,
@@ -173,6 +174,7 @@ class SqlWidget(gobject.GObject):
         self.relationship_path = self._get_relationship_path(relationship_path)
         self.relationship_leader = relationship_leader
         self.records = []
+        self.about_dialog = about_dialog or self.create_about_dialog()
         self.filter_panel = self._get_filter_panel()
         self.show(show)
         self.query = self.session.query(self.mapper)
@@ -724,6 +726,32 @@ class SqlWidget(gobject.GObject):
         dialog.destroy()
         return dialog
     
+    def about_dialog_cb(self, menuItem):
+        """
+        The about dialog
+        """
+        self.about_dialog.run()
+        self.about_dialog.destroy()
+        
+    def create_about_dialog(self):
+        """
+        Create a default AboutDialog
+        """
+        def func(dialog, link, user_data):
+            import webbrowser
+            webbrowser.open(link)
+            
+        about_dialog = gtk.AboutDialog()
+        gtk.about_dialog_set_url_hook(func, None)
+        about_dialog.set_authors(["Sandro Dentella <sandro@e-den.it>"])
+        about_dialog.set_license("GPL v.3")
+        about_dialog.set_version(sqlkit.__version__)
+        about_dialog.set_name("sqlkit")
+        about_dialog.set_website("http://sqlkit.argolinux.org")
+        about_dialog.set_website_label("http://sqlkit.argolinux.org")
+        return about_dialog
+        #dialog.show()
+        
 
 ####### Misc
     def resize(self, width, height):
@@ -873,6 +901,10 @@ class SqlWidget(gobject.GObject):
                 ('Export', 'activate', self.export),
                 
                 ('gtk-quit', 'activate', self.delete_event)
+                )
+            self.lay_obj.menu(
+                'm=help',
+                ('gtk-about', 'activate', self.about_dialog_cb),
                 )
             self.printing()
     def clear_cb(self, *args):
@@ -1249,6 +1281,8 @@ class SqlWidget(gobject.GObject):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+
 
 
 
