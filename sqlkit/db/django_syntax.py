@@ -57,6 +57,7 @@ by default. It's possible to use ``OR`` operator adding ``OR=True``  argument.
 
 from sqlalchemy.sql.expression import ColumnElement, ClauseList 
 from sqlalchemy.sql import and_, or_
+from sqlalchemy import Table
 from sqlalchemy.orm import ColumnProperty, PropertyLoader
 from sqlalchemy.types import Date, DateTime
 from copy import deepcopy
@@ -84,11 +85,17 @@ class DjangoParser(object):
     parses a django-like argument to compose a sqlalchemy
     ColumnList/ColumnElement object to be used in queries
     """
-    def __init__(self, mapper=None, query=None, OR=False):
+    def __init__(self, mapper_or_table=None, query=None, OR=False):
         """
         A sqlalchemy.Table object
         """
-        self.mapper = mapper
+        if isinstance(mapper_or_table, Table):
+            self.mapper = None
+            self.table = mapper_or_table
+        else:
+            self.mapper = mapper_or_table
+            self.table = self.mapper.local_table
+
         self.query = query
         self.OR = OR
         self.expressions = []
@@ -99,12 +106,15 @@ class DjangoParser(object):
         must be a single condition
         parse a django-like condition
         """
-        join_path, op, op_str, value, col = django2components(self.mapper, kw)
-
+        if self.mapper:
+            join_path, op, op_str, value, col = django2components(self.mapper, kw=kw)
+        else:
+            join_path, op, op_str, value, col = django2components(self.table, kw=kw)
+            
         self.joins += [join_path]
 
         if op_str == 'icontains':
-            eng_name = self.mapper.local_table.metadata.bind.name
+            eng_name = self.table.metadata.bind.name
             if eng_name  == 'sqlite':
                 sql = col.ilike("%%%s%%" % value.strip('%'))
             elif eng_name == 'postgres':
@@ -147,7 +157,7 @@ class DjangoParser(object):
 
 #######  Functions  ############
     
-def django2components(mapper, kw):
+def django2components(mapper_or_table, kw=None):
     """
     Split a single argument/value into a tuple of 5 components:
 
@@ -159,7 +169,13 @@ def django2components(mapper, kw):
       
     return: path, str_op, col, op, value
     """
-    table = mapper.local_table
+    if isinstance(mapper_or_table, Table):
+        mapper = None
+        table = mapper_or_table
+    else:
+        mapper = mapper_or_table
+        table = mapper.local_table
+        
     name = kw.keys()[0]
     value = kw[name]
     tokens = name.split('__')
@@ -185,7 +201,7 @@ def django2components(mapper, kw):
 
     op = OPERATORS[op_str]
     if op_str in ('regexp', 'iregexp'):
-        op, value = get_regexp_op(mapper.local_table.metadata.bind.name, op_str, value)
+        op, value = get_regexp_op(able.metadata.bind.name, op_str, value)
     return joins, op, op_str, value, col
 
 def get_foreign_column(mapper, path=None, attr=None):
@@ -219,10 +235,9 @@ def django2sqlalchemy(mapper=None, table=None, OR=False, **kw):
     return a ClauseList and a join path. 
     """
     if table:
-        parser = DjangoParser(table=table, query=None, OR=OR)
+        parser = DjangoParser(table, query=None, OR=OR)
     else:
-        parser = DjangoParser(mapper=mapper, query=None, OR=OR)
-        
+        parser = DjangoParser(mapper, query=None, OR=OR)
 
     for key,val in kw.iteritems():
         parser.parse( {key:val})

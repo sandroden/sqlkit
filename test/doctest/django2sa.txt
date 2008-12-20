@@ -1,6 +1,6 @@
 # -*- mode: python -*-
 
->>> from address_model import User, Address, session
+>>> from address_model import User, Address, Provider, Country, session
 >>> from sqlkit.db import django_syntax as djs
 >>> from sqlalchemy import and_, or_
 >>>
@@ -51,19 +51,35 @@ True
 
 >>> q = djs.django2query(User.__mapper__, query, first_name='ed',
 ...                      addresses__email='me@google.com')
->>> compare(q, query.filter(and_(Address.email == 'me@google.com', User.first_name == 'ed')).join(Address))
+>>> compare(q, query.filter(and_(User.first_name.op('=')('ed'),
+...                              Address.email.op('=')('me@google.com'))).join(Address))
 True
 
+>>> q = djs.django2query(User.__mapper__,  query, first_name='ed',
+...                      addresses__provider__provider__icontains='google', OR=True)
+>>> compare(q, query.filter(or_(User.first_name.op('=')('ed'),
+...                              Provider.provider.ilike('%google.com%'))).join(['addresses','provider']))
+True
 
+>>> q = djs.django2query(User.__mapper__,  query, first_name='ed',
+...                      addresses__provider__country__country__icontains='ITA')
+>>> compare(q, query.filter(and_(User.first_name.op('=')('ed'),
+...           Country.country.ilike('%ITA%'))).join(['addresses','provider','country']))
+True
 
-#>>> test(name='ed', addresses__provider__provider__icontains='google', OR=True)
+## django2sqlalchemy w/ mapper
+>>> clause_list, path = djs.django2sqlalchemy(User.__mapper__, first_name='ed')
+>>> compare(clause_list, and_(User.first_name == 'ed'))
+True
 
-#>>> test(name='ed', addresses__provider__country__country__icontains='ita', OR=True)
+## django2sqlalchemy w/ table
+>>> clause_list, path = djs.django2sqlalchemy(User.__table__, first_name='ed')
+>>> compare(clause_list, and_(User.first_name == 'ed'))
+True
 
-#>>> test2(name='ed', addresses__email='@me',
-#...     addresses__provider__country__country__icontains='ita', OR=True)
+## dont't ask the moon: a table does not know anything about relationships
+>>> clause_list, path = djs.django2sqlalchemy(User.__table__, first_name__addresses__provider='google')
+Traceback (most recent call last):
+    ...
+NotImplementedError: Can't cross relationship if you don't provide a mapper
 
-
-# SELECT user.id AS user_id, user.first_name AS user_name 
-# FROM user JOIN address ON user.id = address.user_id 
-# WHERE lower(address.email) LIKE lower(?) AND (user.name = ?)

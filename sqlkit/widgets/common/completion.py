@@ -366,7 +366,7 @@ class SimpleCompletion(object):
         kw = copy(self._filter)
         ignore = []
         for key, val in kw.iteritems():
-            value =  self.parse_value(val)
+            value =  self.parse_value(val)   # get a possible dynamic filter
             if value:
                 kw[key] = value
             else:
@@ -375,11 +375,18 @@ class SimpleCompletion(object):
         for key in ignore:
             del kw[key]
         if kw:
-            clause_list, path = django2sqlalchemy(mapper=self.mapper, **kw)
-            return where & clause_list
+            return where & self.get_filtered_clause_list(**kw)
         else:
             return where
+
+    def get_filtered_clause_list(self, **kw):
+        """
+        apply filter rules to this particular completion request,
+        use mapper to follow possible further relations
+        """
         
+        clause_list, path = django2sqlalchemy(mapper=self.mapper, **kw)
+        return clause_list
 
 ### Misc
     def autostart_completion(self):
@@ -596,7 +603,7 @@ class SimpleCompletion(object):
              
         """
 
-        self._filter = kwargs
+        self._filter = kwargs  # used runtime by self.add_filters
         clause_list, path = django2sqlalchemy(mapper=self.mapper, **kwargs)
         ## let's build a suitable from_obj from this path:
         self.from_obj = path2join(path, self.mapper)
@@ -751,6 +758,15 @@ class FkeyCompletion(SimpleCompletion):
         text = re.sub('>', '&gt;', text)
         return text
             
+    def filter(self, **kwargs):
+        """
+        see doctring in SimpleCompletion
+        """
+        self._filter = kwargs
+        #clause_list, path = django2sqlalchemy(table=self.table, **kwargs)
+        ## let's build a suitable from_obj from this path:
+        #self.from_obj = path2join(path, self.mapper)
+        
     def get_obj_no_flush(self, value):
         """
         check if the object exists and .one(), but don't trigger .flush()
@@ -763,6 +779,17 @@ class FkeyCompletion(SimpleCompletion):
 #     def compose_binary_expression(self, **kwargs):
 #         return compose_binary_expression(self.table, **kwargs)
 
+
+    def get_filtered_clause_list(self, **kw):
+        """
+        apply filter rules to this particular completion request.
+        Note: mapper is not available in the general situation, so we
+        use table to build the clause. That means we cannot follow any
+        further relationship.
+        """
+        
+        clause_list, path = django2sqlalchemy(table=self.table, **kw)
+        return clause_list
 
     def __str__(self):
         return "<FkeyCompletion: %s>" % self.field_name

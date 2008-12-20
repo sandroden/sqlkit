@@ -30,7 +30,7 @@ The match of the completion have two *modes*:
   :start: partially written text is used as a filter and completion must
     match from the start of the field. It uses LIKE operator
 
-  :regexp: the match is done via regular expression id db supports it or via
+  :regexp: the match is done via regular expression if db supports it or via
     LIKE operator adding ``%`` on both sides
 
 Since completion implies a search that may return *many* records, it's only
@@ -46,7 +46,8 @@ triggered on demand. Normal binding are:
 foreign key description & search field
 ======================================
 
-A foreign key is substituted by a more descriptive text
+A foreign key is substituted by a more descriptive text. Let's see how to
+personalize it.
 
 When completing a foreign key the completion puts in the EntryCompletion a
 description of the foreign reference that can be customized via normal
@@ -78,14 +79,14 @@ format and __str__
 -------------------
 
 When SqlWidget creates a class on the fly it looks for the 'format' field to
-add a __str__ method to the class, so that this representaion is used
+add a __str__ method to the class, so that this representation is used
 whenever suitable (eg.: when a filter action is performed in a Mask)
 
 behaviour on completion
 ========================
 
 When the completion is in a SqlTable that represents an m2m relationship (as
-``actors`` would be for ``movies``), the completions does not simply add the
+``actors`` would be for ``movies``), the completion does not simply add the
 single field but substitutes the whole record.
 
 
@@ -113,13 +114,12 @@ is used as base for completion. The difference from triggering a normal
 completion is that if a valid value is found, no further completion is done.
 
 
-caveats
-=======
+.. warning::
 
-Since completion uses the already written chars to filter possible solution,
-if you further delete such chars you are not seeing all the real possible
-solutions but only the already retrieved ones. You can request a new
-completion... 
+  Since completion uses the already written chars to filter possible solution,
+  if you further delete such chars you are not seeing all the real possible
+  solutions but only the already retrieved ones. You can request a new
+  completion... 
 
 group_by
 ========
@@ -132,3 +132,50 @@ completion_group_by::
 
 .. image:: ../img/completion_group_by.png
 
+.. _`filter_completion`:
+
+filtering completion
+=====================
+
+you can programmatically decide to filter what a completion returns in a
+very easy way using :ref:`django like syntax <constraints>` (the same used
+to set constraints)::
+
+  t.completions.title.filter(title__icontains='love')
+
+If ``t`` represents the SqlMask or SqlTable of a movie, this line will
+instruct the completion to only show title that contains the world "love". 
+
+Filters on a field that is a foreign key will be relative to the related
+table::
+
+  t.completions.director_id.filter(nationality='ITA')
+
+will build a constraint on the **director** table filtering only italian
+directors. 
+
+.. note:: 
+
+  filters on foreign keys are limited in the fact that they are built on a
+  table (as opposed to built on a mapper) so that they know nothing on the
+  relationship between tables and cannot span other relationships
+
+dynamic filters
+----------------
+
+It's also possible to set a "dinamic filter" i.e. a filter depending on the
+value already entered in another field::
+
+  t.completions.last_name.filter(nation='$nation')
+
+In this case the value of $nation will be set using ``t.get_value('nation')``
+In case you have a related table you can go back to the main table::
+
+  t.related.movie.completions.title.filter(director_id='$main.director_id)
+
+
+
+
+
+
+  

@@ -20,6 +20,11 @@ will allow spanning from one table to a related one (provided a relation was
 established at sqlalchemy level) and from attribute name to operator to be
 used.  
 
+.. note::
+
+  the same syntax can be used to add filters on :ref:`completion <filter_completion>`
+
+
 query
 =======
 

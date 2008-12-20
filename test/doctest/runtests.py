@@ -13,6 +13,7 @@ files = (
     'dates.txt',
     'fields.txt',
     'mapper_inspect.txt',
+    'django2sa.txt',
     )
 
 if sys.argv[1:]:
