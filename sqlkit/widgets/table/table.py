@@ -108,6 +108,8 @@ class SqlTable(sqlwidget.SqlWidget):
             for b in self.icons.split(" "):
                 self.widgets[b].set_label = None
                 self.widgets[b].get_image().set_property('icon-size', 1)
+                ## in windows I can't see it...
+                self.widgets[b].get_image().show()
                 alignment = self.widgets[b].get_children()[0]
                 hbox = alignment.get_children()[0]
                 image, label = hbox.get_children()
@@ -121,12 +123,10 @@ class SqlTable(sqlwidget.SqlWidget):
     def reload_cb(self, *args):
         """this is the real callback: C-r and toolbutton 
         """
-
         if hasattr(self, 'filter_panel'):
             self.filter_panel.reload_cb(None)
         else:
             self.reload()
-        
     
     def setup_field_validation(self):
         from sqlkit.widgets.common.fields import FieldChooser
