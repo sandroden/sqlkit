@@ -120,6 +120,7 @@ class SimpleCompletion(object):
         """
         if not field_name in self.attrs:
             self.attrs += [field_name]
+            self.columns = [self.table.columns[name] for name in self.attrs]
         self._group_by = field_name
         
     def get_group_by(self):
@@ -639,8 +640,7 @@ class FkeyCompletion(SimpleCompletion):
     def compose_select_statement(self, oper, value):
 
 #        field_list = tables[self.table.name].attrs
-        field_list = self.attrs
-        field_list = [self.table.columns[name] for name in field_list]
+#        field_list = [self.table.columns[name] for name in  self.attrs]
 
         order_by = [self.description]
         if self.group_by:
@@ -844,6 +844,8 @@ def get_foreign_info(master, field_name, names=True):
 
     foreign_keys = master.fields[field_name]['fkey']
     return get_foreign_info(foreign_keys, names=names)
+
+
 
 
 
