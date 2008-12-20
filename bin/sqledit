@@ -28,6 +28,7 @@ import pdb
 Dir = os.path.abspath(os.path.dirname(__file__))
 
 from sqlkit import debug as dbg
+import sqlkit
 from sqlkit import layout
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
@@ -120,13 +121,13 @@ def open_sqlwidget(table, single):
     if opts.mask:
         try:
             SqlMask(**options)
-        except sqlkit.completion.MissingDescriptorField:
+        except sqlkit.exc.MissingDescriptorField:
             pass
 
     else:
         try:
             SqlTable(**options)
-        except sqlkit.completion.MissingDescriptorField:
+        except sqlkit.exc.MissingDescriptorField:
             pass
             
 
