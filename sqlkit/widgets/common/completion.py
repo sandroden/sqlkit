@@ -203,6 +203,10 @@ class SimpleCompletion(object):
         return self.model.get_value(iter, self.MATCH_COL)
 
     def model_set_match_col(self, key):
+        """
+        set MATCH_COL to be returned by match_func in a 2 pass process:
+        
+        """
 
         miter_dict = {}
 
@@ -214,35 +218,35 @@ class SimpleCompletion(object):
 
             if text is None:
                 ## it's not clear to me why there's a pass here with incomplete model
-                ## all is working but based but not steady in my opinion
-                return
+                ## all is working but ...
+                continue
 
             if value is None:
                 ## it's a group_by field
                 self.model.set_value(row.iter, self.MATCH_COL, False)
+                # store it's iter but set to false for the moment (will not match)
                 miter_dict[text] = [row.iter, False]
 
-            # start
-            elif self.mode == 'start':
-                if re.search("^%s" %(key), text, re.IGNORECASE):
-                    self.model.set_value(row.iter, self.MATCH_COL, True)
-                    if self._group_by:
-                        miter_dict[obj[self._group_by]][1] = True
-                else:
-                    self.model.set_value(row.iter, self.MATCH_COL, False)
-
-            # regexp
             else:
-                if re.search(key, text, re.IGNORECASE):
-                    self.model.set_value(row.iter, self.MATCH_COL, True)
-                    if self._group_by:
+                match = False
+                ## start mode
+                if self.mode == 'start' and re.search("^%s" %(key), text, re.IGNORECASE):
+                    match = True
+                elif re.search(key, text, re.IGNORECASE):  # regexp mode
+                    match = True
+                    
+                if match and self._group_by:
+                    ## switch ON the display of group by label in completion
+                    try:
                         miter_dict[obj[self._group_by]][1] = True
-                else:
-                    self.model.set_value(row.iter, self.MATCH_COL, False)
+                    except IndexError, e:
+                        print "Probable missing value for %s" % text
+
+                self.model.set_value(row.iter, self.MATCH_COL, match)
+
 
         for iter, val in miter_dict.values():
-            if val:
-                self.model.set_value(iter, self.MATCH_COL, True)
+            self.model.set_value(iter, self.MATCH_COL, val)
 
     def append_to_model(self, obj):
         """
