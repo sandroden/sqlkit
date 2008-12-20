@@ -140,10 +140,10 @@ class Demo(object):
             return False
 
         name = model.get_value(iter, MODULE_COLUMN)
-        self.load_module(name, self.src, self.note)
+        self.load_module(name)
         self.l.sb("file: %s.py" % name)
 
-    def load_module(self, name, asrc, anote):
+    def load_module(self, name, asrc=None, anote=None):
         # set last_layout_object
         file_name = name + ".py"
         doc, body = self.readexample(file_name)
@@ -164,6 +164,20 @@ class Demo(object):
         GLOB['w']['Window'].set_title(file_name)
         self.w['Window'].set_title("Esempio: %s" % (file_name))
 
+    def load_module_by_idx(self, idx):
+        """
+        Used to open directly an example::
+
+          demo.py 03
+          
+        """
+        files = os.listdir(".")
+        for f in files:
+            if re.match("ex_%s_" % idx, f):
+                print "loading ", f
+                self.load_module(f.replace('.py',''))
+                return
+            
     def prepare_treestore_for_elements(self, elements):
         tv = self.w['TV=el']
         ts = self.ts_el

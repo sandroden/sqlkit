@@ -21,7 +21,7 @@ import model
 db = proxy.DbProxy(engine="sqlite:///model/movies.sqlite")
 
 class DemoSql(Demo):
-    def load_module(self, name, asrc, anote):
+    def load_module(self, name):
         # set last_layout_object
         file_name = name + ".py"
         doc, body = self.readexample(file_name)
@@ -54,6 +54,8 @@ class DemoSql(Demo):
 
 d = DemoSql(xml=False)
 
+if len(sys.argv) > 1:
+    d.load_module_by_idx(sys.argv[1])
 
 
 gtk.main()
