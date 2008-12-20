@@ -426,7 +426,7 @@ def logmethod(methodname):
         except Exception, e:
             DBGLogger.add(Class=class_str, meth=str(e.__class__), indent=indent,
                                  caller=methodname, line=caller(mode='lineno'),
-                                 args=e, class_obj=caller(mode='Class'))
+                                 args=[e], class_obj=caller(mode='Class'))
             indent -= 1
             raise
 

@@ -1249,7 +1249,7 @@ class ShowLogs(object):
                          1, Class,
                          0, meth_str,
 #                         2, txt,
-                         7, ", ".join(args),
+                         7, ", ".join([str(f) for f in args]),
                          3, caller,
                          4, line,
                          6, class_obj,
