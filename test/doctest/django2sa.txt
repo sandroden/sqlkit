@@ -1,0 +1,69 @@
+# -*- mode: python -*-
+
+>>> from address_model import User, Address, session
+>>> from sqlkit.db import django_syntax as djs
+>>> from sqlalchemy import and_, or_
+>>>
+>>> query = session.query(User)
+>>> def compare(q1, q2):
+...    res = str(q1) == str(q2)
+...    if not res:
+...        print "%s\n\n%s" % (q1, q2)
+...    else:
+...        return res
+
+>>> def test2(*args, **kw):
+...     sql, join = djs.django2sqlalchemy(User.__mapper__,  **kw)
+...     print sql, join
+
+#### components: path, str_op, col, op, value
+>>> djs.django2components(User.__mapper__, {'first_name' : 'ed'})
+([], '=', 'eq', 'ed', Column('first_name', String(length=50, convert_unicode=False, assert_unicode=None), table=<user>))
+
+>>> djs.django2components(User.__mapper__, {'first_name__icontains' : 'ed'})
+([], 'icontains', 'icontains', 'ed', Column('first_name', String(length=50, convert_unicode=False, assert_unicode=None), table=<user>))
+
+>>> djs.django2components(User.__mapper__, {'addresses__email__icontains' : 'e-den.it'})
+(['addresses'], 'icontains', 'icontains', 'e-den.it', Column('email', String(length=50, convert_unicode=False, assert_unicode=None), table=<address>))
+
+>>> djs.django2components(User.__mapper__, {'addresses__email__in' : ['abc', 'def']})
+(['addresses'], 'IN', 'in', ['abc', 'def'], Column('email', String(length=50, convert_unicode=False, assert_unicode=None), table=<address>))
+
+>>> djs.django2components(User.__mapper__, {'addresses__date_created__gte' : 'm'})
+(['addresses'], '>=', 'gte', 'm', Column('date_created', Date(), table=<address>))
+
+>>> djs.django2components(User.__mapper__, {'addresses__provider__provider' : 'e-den.it'})
+(['addresses', 'provider'], '=', 'eq', 'e-den.it', Column('provider', String(length=50, convert_unicode=False, assert_unicode=None), table=<provider>))
+
+>>> djs.django2components(User.__mapper__, {'addresses__provider__provider__icontains' : 'e-den.it'})
+(['addresses', 'provider'], 'icontains', 'icontains', 'e-den.it', Column('provider', String(length=50, convert_unicode=False, assert_unicode=None), table=<provider>))
+
+>>> djs.django2components(User.__mapper__, {'addresses__provider__country__country' : 'IT'})
+(['addresses', 'provider', 'country'], '=', 'eq', 'IT', Column('country', String(length=50, convert_unicode=False, assert_unicode=None), table=<country>))
+
+## shift one step ahead in the mapper chain
+>>> djs.django2components(Address.__mapper__, {'date_created__gte' : 'm'})
+([], '>=', 'gte', 'm', Column('date_created', Date(), table=<address>))
+
+>>> q = djs.django2query(User.__mapper__, query, first_name='ed')
+>>> compare(q, query.filter(User.first_name == 'ed'))
+True
+
+>>> q = djs.django2query(User.__mapper__, query, first_name='ed',
+...                      addresses__email='me@google.com')
+>>> compare(q, query.filter(and_(Address.email == 'me@google.com', User.first_name == 'ed')).join(Address))
+True
+
+
+
+#>>> test(name='ed', addresses__provider__provider__icontains='google', OR=True)
+
+#>>> test(name='ed', addresses__provider__country__country__icontains='ita', OR=True)
+
+#>>> test2(name='ed', addresses__email='@me',
+#...     addresses__provider__country__country__icontains='ita', OR=True)
+
+
+# SELECT user.id AS user_id, user.first_name AS user_name 
+# FROM user JOIN address ON user.id = address.user_id 
+# WHERE lower(address.email) LIKE lower(?) AND (user.name = ?)

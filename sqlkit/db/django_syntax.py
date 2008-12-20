@@ -99,7 +99,7 @@ class DjangoParser(object):
         must be a single condition
         parse a django-like condition
         """
-        join_path, op, col, op_str, value = django2components(self.mapper, kw)
+        join_path, op, op_str, value, col = django2components(self.mapper, kw)
 
         self.joins += [join_path]
 
@@ -186,7 +186,7 @@ def django2components(mapper, kw):
     op = OPERATORS[op_str]
     if op_str in ('regexp', 'iregexp'):
         op, value = get_regexp_op(mapper.local_table.metadata.bind.name, op_str, value)
-    return joins, op, col, op_str, value
+    return joins, op, op_str, value, col
 
 def get_foreign_column(mapper, path=None, attr=None):
     """
@@ -273,64 +273,4 @@ def get_regexp_op(bind_name, op_str, value):
     else:
         return 'like', '%' + value + '%'
     
-    
-if __name__ == '__main__':
 
-    from sqlalchemy.ext.declarative import declarative_base
-    from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, create_engine, engine
-    from sqlalchemy.orm import relation, scoped_session, sessionmaker
-
-    
-    Base = declarative_base()
-    meta = Base.metadata
-    meta.bind = create_engine('sqlite://')
-#    meta.bind = create_engine('postgres://localhost/c2')
-#    meta.bind = create_engine('mysql://localhost/c2')
-    Session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=meta.bind))
-    session = Session()
-
-    class User(Base):
-        __tablename__ = 'user'
-
-        id = Column('id', Integer, primary_key=True)
-        name = Column('name', String(50))
-        addresses = relation("Address", backref="user")
-
-    class Address(Base):
-        __tablename__ = 'address'
-
-        id = Column('id', Integer, primary_key=True)
-        email = Column('email', String(50))
-        user_id = Column('user_id', Integer, ForeignKey('user.id'))
-        provider_id = Column('provider_id', Integer, ForeignKey('provider.id'))
-        
-    class Provider(Base):
-        __tablename__ = 'provider'
-
-        id = Column('id', Integer, primary_key=True)
-        provider = Column('provider', String(50))
-        country_id = Column('country_id', Integer, ForeignKey('country.id'))
-        addresses = relation("Address", backref="provider")
-        
-    class Country(Base):
-        __tablename__ = 'country'
-
-        id = Column('id', Integer, primary_key=True)
-        provider = Column('country', String(50))
-        addresses = relation("Provider", backref="country")
-        
-
-    query = session.query(User)
-    def test(*args, **kw):
-        print django2query(User.__mapper__, query, **kw)
-
-    def test2(*args, **kw):
-        sql, join = django2sqlalchemy(User.__mapper__,  **kw)
-        print sql, join
-
-#     test(name='ed')
-#     test(name='ed', addresses__email__icontains='google')
-#     test(name='ed', addresses__provider__provider__icontains='google', OR=True)
-    test(name='ed', addresses__provider__country__country__icontains='ita', OR=True)
-    test2(name='ed', addresses__email='@me',
-          addresses__provider__country__country__icontains='ita', OR=True)
