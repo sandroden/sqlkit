@@ -42,7 +42,6 @@ import sqlkit
 
 NUMBERS = (int, float, decimal.Decimal)
 
-
 class SqlWidget(gobject.GObject):
     __gsignals__ = {
         'record_selected' : (gobject.SIGNAL_RUN_LAST,
@@ -233,7 +232,7 @@ class SqlWidget(gobject.GObject):
         else:
             mapper = self.dbproxy.get_mapper(mapper, tables)
             
-        self.tables = [mapper.local_table.name]  ## FIXME: what when we have a join?
+        #self.tables = [mapper.local_table.name]  ## FIXME: what when we have a join?
         return mapper
 
     def get_metadata(self, metadata, mapper):
@@ -252,7 +251,11 @@ class SqlWidget(gobject.GObject):
         if tables:
             return tables.split()[0]  ## FIXME: works for 1 single table
         if self.mapper:
-            return self.mapper.local_table.name
+            try:
+                return self.mapper.local_table.name
+            except Exception, e:
+                print e
+                return None
 
     def parse_fields(self, field_list, layout):
         if not field_list:
@@ -317,11 +320,7 @@ class SqlWidget(gobject.GObject):
         """Fields is a dictionary with info on the fields derived from the
         db via the mapper (inspecting it)
         """
-        if self.dbproxy:
-            return self.dbproxy.inspect_mapper(self.mapper, noup=self.noup, ro=self.ro)
-        else:
-            from sqlkit.db import minspect
-            return minspect.InspectMapper(self.mapper, noup=self.noup, mode=self.mode)
+        return minspect.InspectMapper(self.mapper, noup=self.noup, ro=self.ro)
         
     def _get_layout(self, lay, naked):
         """lay may be a definition string or another SqlMask in case the layout has
@@ -698,10 +697,17 @@ class SqlWidget(gobject.GObject):
 
         return False
 
-
     def get_pk(self):
-        """return the pkeys of the primarytable"""
+        """
+        return the pkeys of the primarytable
+        """
         return self.fields.pkeys[self.fields.get_primary_table()]
+
+    def get_value(self, field_name):
+        """
+        to be overwritten by Mask & Table
+        """
+        return NotImplementedError
     
 ####### Validation
     def digits_check_input_cb(self, widget, event):

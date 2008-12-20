@@ -184,7 +184,8 @@ class Field(object):
         return the default value for this object
         """
 
-        value = defaults.get_default(self.master.tables, self.field_name)
+        value = defaults.get_default(self.db_spec['col'].table.name, self.field_name)
+        #value = defaults.get_default(self.master.tables, self.field_name)
         if not value:
             try:
                 value = self.db_spec['default']
@@ -194,7 +195,7 @@ class Field(object):
                 if not callable(value.arg):
                     return value.arg
                 else:
-                    ## FIXME: I'm not able to handle thisn now.
+                    ## FIXME: I'm not able to handle this now.
                     raise NotHandledDefault
 
         return value
@@ -346,6 +347,10 @@ class CollectionField(Field):
         Field.__init__(self, *args, **kw)
         self.initial_value = []
         
+    def get_default(self):
+        ## FIXME: is this always correct?
+        return None
+
     def clean_initial_value(self, value):
         from copy import copy
         
