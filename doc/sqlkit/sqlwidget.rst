@@ -52,8 +52,20 @@ below you can see some alternatives that would work as well::
 
   SqlTable(Class=Movies, session=sess)
 
-Session are created with  ``autoflush=False``, but can be changed when
-building ``DbProxy``
+Session are created with  ``autoflush=False``, ``expire_on_commit=False`` but
+can be changed when building ``DbProxy``. 
+
+
+session & expire_on_commit
+=========================
+
+The reason to have ``expire_on_commit=False`` is that if you don't set it, after every
+commit, you have to reload all objects and the interface turns very slow,
+expecially when working with a remote database.
+
+``expire_on_commit`` is a very recent addition to sqlalchemy session (around sa
+rel. 5.03rc) so I try it and fallback to default that would turn to be
+slower. Previous 0.5 rel called it ``autoflush``
 
 
 layout options
@@ -165,6 +177,8 @@ Attributes
 :order_by:
    a string that will be passed as is to query i.e. to SQL. (eg: ``last_name DESC, first_name``)
 
+:session:
+   the sqlalchemy session used for querying
 
 .. _sqlalchemy: http://www.sqlalchemy.org
 
@@ -186,6 +200,10 @@ which are the needed ones...
 :record_selected:
    A record has been displayed in Mask or selected in Table.
    The callback will just receive the widget as argument.
+
+
+
+
 
 
 

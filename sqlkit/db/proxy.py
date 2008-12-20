@@ -39,6 +39,7 @@ class DbProxy(object):
 
     """
     def __init__(self, metadata=None, engine=None, bind=None,
+                 expire_on_commit=False,
                  Session=None, autocommit=False, autoflush=False):
         if metadata:
             self.metadata = metadata
@@ -48,11 +49,19 @@ class DbProxy(object):
             self.metadata.bind = engine or bind
 
         if not Session:
-            self.Session = sessionmaker(bind=self.metadata.bind,
-                                        autoflush=autoflush,
-                                        autocommit=autocommit)
+            try:
+                self.Session = sessionmaker(bind=self.metadata.bind,
+                                            expire_on_commit=expire_on_commit,
+                                            autoflush=autoflush,
+                                            autocommit=autocommit)
+                self.Session() # test if expire_on_commit is accepted
+            except:
+                self.Session = sessionmaker(bind=self.metadata.bind,
+                                            autoflush=autoflush,
+                                            autocommit=autocommit)
         else:
             self.Session = Session
+        self.engine = self.metadata.bind
             
     def get_session(self):
         return self.Session()
@@ -75,15 +84,21 @@ class DbProxy(object):
            a single table_name
            a single sqlalchemy.Table
            a string of table_names
+           when given as strings, table names will be joined automatically
+           if a || sign is between 2 tables, outer join will be used, if nothing
+           or | is used .join will be used.
         """
     
+        from sqlalchemy.sql import Join
+
         if mapper_obj:
             return mapper_obj
     
         ## tables may be 'table1, table2, table3'
-        if isinstance(tables, Table):
+        if isinstance(tables, (Table, Join)):
             tables = [tables]
         elif not isinstance(tables, list):
+            tables = re.sub("(\|\|?)", r" \1 ", tables)
             tables = re.split('[ ,]+', tables)
             tables = [self.get_table(tbl) for tbl  in tables]
             
@@ -93,30 +108,33 @@ class DbProxy(object):
         else:
             return self.join_tables(tables)
 
-    def join_tables(self, tables, master=None,  mode='outer'):
-        """ join two or more tables in a mapper sqlalchemy.sql.Join
-        mode: inner | outer
+    def join_tables(self, tables, master=None):
         """
-        class JoinAuto(object): pass
+        join two or more tables in a mapper sqlalchemy.sql.Join
+
+        tables can be string or sqlalchemy.Table object
+        to force outer join || can be used, default is simple join (|)
+        """
+        class JoinAuto(object):
+            pass
+
         j = None
         t1 = tables[0]
+        mode = 'join'
+
         for t in tables[1:]:
+            if t == '|':
+                mode == 'join'
+                continue
+            elif t == '||':
+                mode = 'outerjoin'
+                continue
+            
             if j:
                 t1 = j
-            j = join2tables(t1, t, mode=mode)
-            #dbg.write("j    ",j)
-            ## j may be a tuple: join, Table1, Table2
-            if isinstance(j, list):
-                J = j[0]
-            else:
-                J = j
-            #dbg.write("j dopo    ", j)
-        if mode == 'outer':
-    #        m = mapper(JoinAuto, J, primary_key=j[1].primary_key )
-            m = mapper(JoinAuto, J)
-        else:
-            m = mapper(JoinAuto, J)
-        #dbg.write(m)
+            j = self.join2tables(t1, t, mode=mode)
+
+        m = mapper(JoinAuto, j)
         return m
 
     def join2tables(self, t1, t2, mode='outerjoin'):
@@ -125,7 +143,7 @@ class DbProxy(object):
         ## 
         if isinstance(t1, str):
             T1_ret = True
-            T1 = Table(t1, engine, autoload=True)
+            T1 = Table(t1, self.metadata, autoload=True)
         else:
             T1_ret = False
             T1 = t1
@@ -136,30 +154,37 @@ class DbProxy(object):
         else:
             T2_ret = False
             T2 = t2
-    
-        join_cnd = minspect.get_join_cnd([ T1, T2 ] )
-        #dbg.write("join condition (%s -%s): %s" % (T1, T2, join_cnd))
-        if mode in ('innerjoin', 'inner'):
-            dbg.write('join... non outer')
-            j = T1.join(T2, and_(*join_cnd))
+
+        if mode == 'outer':
+            return T1.outerjoin(T2)
         else:
-            dbg.write('outerjoin', T1, T2, join_cnd)
-            j = T1.outerjoin(T2, *join_cnd)
+            return T1.join(T2)
+            
+#         join_cnd = minspect.get_join_cnd([ T1, T2 ] )
+#         #dbg.write("join condition (%s -%s): %s" % (T1, T2, join_cnd))
+#         if mode in ('innerjoin', 'inner'):
+#             dbg.write('join... non outer')
+#             j = T1.join(T2, and_(*join_cnd))
+#         else:
+#             dbg.write('outerjoin', T1, T2, join_cnd)
+#             j = T1.outerjoin(T2, *join_cnd)
     
-        return j
+#         return j
          
-    def inspect_mapper(self, mapper, noup=None, ro=False):
-        """Return an instance of minspect.InspectMapper
-        """
-        # A mapper created using .join or .outerjoin from one table
-    
-        if isinstance(mapper.local_table, sql.Join):
-            m=minspect.InspectJoinMapper(mapper, noup=noup, ro=ro)
-        # A mapper of a single table or a mapper creater with 'properties' option
-        # that results in a Lazy/Eager load  one
-        else:
-            m=minspect.InspectMapper(mapper, noup=noup, ro=ro)
-        return m
+#     def inspect_mapper(self, mapper, noup=None, ro=False):
+#         """Return an instance of minspect.InspectMapper
+#         """
+
+#         m=minspect.InspectMapper(mapper, noup=noup, ro=ro)        
+#         # A mapper created using .join or .outerjoin from one table
+        
+#         if isinstance(mapper.local_table, sql.Join):
+#             m=minspect.InspectJoinMapper(mapper, noup=noup, ro=ro)
+#         # A mapper of a single table or a mapper creater with 'properties' option
+#         # that results in a Lazy/Eager load  one
+#         else:
+#             m=minspect.InspectMapper(mapper, noup=noup, ro=ro)
+#         return m
 
 def table2mapper(table):
     """
