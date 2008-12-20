@@ -1235,9 +1235,11 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         Set field of visible columns. Accepts both a list or a string (space or comma separated)
         """
+        from copy import copy
+
         if isinstance(field_list, (str, unicode)):
             field_list = re.split('[ ,]+', field_list)
-        orig_field_list = self.field_list
+        orig_field_list = copy(self.field_list)
         for field_name in field_list:
             if field_name in self.fields:
                 ## is already known, just make it visible
@@ -1247,6 +1249,12 @@ class SqlTable(sqlwidget.SqlWidget):
         for field_name in orig_field_list:
             if field_name not in field_list:
                 self.tvcolumns[field_name].set_property('visible', False)
+            
+        prev = None
+        for field_name in field_list:
+            self.treeview.move_column_after(self.tvcolumns[field_name], prev)
+            prev = self.tvcolumns[field_name]
+            
         self.field_list = field_list
         
 
@@ -1282,3 +1290,5 @@ class SqlTable(sqlwidget.SqlWidget):
         for field in self.vfields:
             field.widget.add_completion(editable=editable)
         
+
+
