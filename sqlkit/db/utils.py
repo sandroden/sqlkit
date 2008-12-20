@@ -52,10 +52,15 @@ class Descr(object):
     def __init__(self, **kw):
         for key, val in kw.iteritems():
             setattr(self, key, val)
+        if not hasattr(self, '__tablename__'):
+            self.__tablename__ = self.__table__.name
     
     def __str__(self):
         from sqlkit.db.utils import tables
-        
+
+        if not hasattr(self, '__tablename__'):
+            self.__tablename__ = self.__table__.name
+    
         if not self.__tablename__ in tables:
             format = get_description(self.__table__, attr='format')
 
