@@ -63,5 +63,6 @@ rsync:
 	rsync --progress ../$(TGZ) $(WWW)/
 	rsync --progress ../$(DEB) $(WWW)/
 	ssh apt@www2 'cd $(DIR) && rm -f sqlkit-latest.tar.gz && ln -s $(TGZ) sqlkit-latest.tar.gz'
+	rsync Changelog $(WWW)/
 
 rel:	deb tgz lenny sk rsync

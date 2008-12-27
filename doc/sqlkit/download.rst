@@ -15,6 +15,12 @@ Sqlkit depends on:
   * dateutils 
   * the correct driver for your database of choice
 
+changelog
+===========
+
+this is the Changelog_
+
+.. _Changelog: http://sqlkit.argolinux.org/download/Changelog
 
 download
 ========
