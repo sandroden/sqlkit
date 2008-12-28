@@ -964,7 +964,7 @@ class SqlWidget(gobject.GObject):
 
     def is_string(self, field_name):
         """
-        Return true if this field is  date
+        Return true if this field is a String type
         """
         db_type = self.fields[field_name]['db_type']
         if db_type:
