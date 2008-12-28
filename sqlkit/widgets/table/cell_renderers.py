@@ -1,6 +1,7 @@
 from datetime import datetime
 import gtk, gobject, pango
 from sqlkit import debug as  dbg
+XSCALE = 1
 
 class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
     """An editable that allows to edit dates via a calnda popup
@@ -173,7 +174,7 @@ class CellRendererDate(gtk.GenericCellRenderer):
             y_offset = int(round(y_offset, 0))
 
 
-        width  = width  + (xpad * 2)
+        width  = width * XSCALE + (xpad * 2)
         height = height + (ypad * 2)
 
 

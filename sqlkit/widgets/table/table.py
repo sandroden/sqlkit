@@ -117,7 +117,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 label.set_text('')
                 
 
-        set_optimal_width(self.treeview, self)
+#        set_optimal_width(self.treeview, self)
 
         return (self.lay_obj, self.widgets)
 
