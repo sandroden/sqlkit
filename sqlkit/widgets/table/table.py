@@ -37,6 +37,7 @@ from  cell_renderers import CellRendererDate, CellRendererDatetime
 import totals
 from sqlkit.widgets.common import sqlwidget
 import gtk
+import pango
 
 class SqlTable(sqlwidget.SqlWidget):
     """implementation with a listore with a single column that holds the
@@ -147,132 +148,242 @@ class SqlTable(sqlwidget.SqlWidget):
 
         #create and append columns
         self.tvcolumns = {}
-        for i,field_name in enumerate(self.field_list):
+        for i, field_name in enumerate(self.field_list):
             j = i+1
             if field_name in widgets.info:
                 v_txt = widgets.info[field_name][0]
             else:
                 v_txt = field_name
-            #dbg.write("i=%s - j=%s v=%s" % (i, j, v))
+
             tvcolumn = gtk.TreeViewColumn(v_txt.replace('_',' '))
-            ptype = self.fields[field_name]['type']
-
-            #boolean -> checkbox
-            if ptype == bool:
-                cell = gtk.CellRendererToggle()
-                tvcolumn.pack_start(cell, True)
-                #tvcolumn.add_attribute(cell, 'active', j )
-                cell.set_property('activatable', True)
-                cell.connect('editing-started', self.generic_editing_started_cb, field_name )
-
-                if self.is_nullable(field_name):
-                    cell.connect('toggled', self.toggled_null_signal_cb,
-                                 (self.liststore, field_name))
-                else:
-                    cell.connect('toggled', self.toggled_signal_cb,
-                                 (self.liststore, field_name))
-                tvcolumn.set_cell_data_func(cell, self.cell_bool_cb, field_name)
-                
-            ## Dates
-            elif self.is_date(field_name):
-                #dbg.write('%s is a date' % field_name)
-                cell = CellRendererDate()
-                cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-                cell.set_property('sensitive', False)
-                tvcolumn.pack_start(cell, True)
-                #tvcolumn.add_attribute(cell, 'date', j )
-                cell.connect('editing-started', self.generic_editing_started_cb, field_name )
-                cell.connect('date-changed', self.date_changed_cb, field_name )
-                tvcolumn.set_cell_data_func(cell, self.cell_dates_cb, ('date', field_name) )
-                                            
-
-            ## Datetime
-            elif self.is_datetime(field_name):
-                #dbg.write('%s is a date' % field_name)
-                cell = CellRendererDatetime()
-                cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-                cell.set_property('sensitive', False)
-                tvcolumn.pack_start(cell, True)
-                #tvcolumn.add_attribute(cell, 'datetime', j )
-                cell.connect('editing-started', self.generic_editing_started_cb, field_name )
-                cell.connect('datetime-changed', self.date_changed_cb, field_name )
-                tvcolumn.set_cell_data_func(cell, self.cell_dates_cb,('datetime', field_name) )
-                                            
-
-            elif self.is_fkey(field_name) :
-                # use set_fkey_descr function to put text in the cell
-                # if this is a foreign key
-                cell = gtk.CellRendererText()
-                cell.set_property('editable', True)
-                #cell.set_property('editable-set', True)
-                #cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-                cell.connect('edited', self.text_edited_cb, field_name)
-                cell.connect('editing-started', self.text_editing_started_cb, field_name)
-                tvcolumn.pack_start(cell, True)
-                #tvcolumn.add_attribute(cell, 'text', j)
-                tvcolumn.set_cell_data_func(cell, self.set_fkey_descr, field_name)
-            else:
-                cell = gtk.CellRendererText()
-                cell.set_property('editable', True)
-                cell.set_property('editable-set', True)
-                cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-                cell.connect('edited', self.text_edited_cb, field_name)
-                cell.connect('editing-started', self.text_editing_started_cb, field_name)
-                tvcolumn.pack_start(cell, True)
-                #tvcolumn.add_attribute(cell, 'text', j )
-                tvcolumn.set_cell_data_func(cell, self.cell_default_cb, ('text', field_name) )
-
-            self.tvcolumns[field_name] = tvcolumn
-            event_box = gtk.EventBox()
-            label = gtk.Label()
-            label.set_markup(field_name)
-            event_box.add(label)
-            event_box.show_all()
-            tvcolumn.set_widget(event_box)
-            tvcolumn.set_reorderable(True)
-
-            #tvcolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
             tvcolumn.set_resizable(True)
-            tvcolumn.set_expand(True)
-            if not self.is_nullable(field_name) and not self.fields[field_name]['default']:
-                label.set_markup('<b><i>%s</i></b>' % field_name)
-                
+            tvcolumn.set_expand(False)
+            tvcolumn.set_reorderable(True)
+            tvcolumn.set_clickable(True)
+#            tvcolumn.set_property('sort-indicator', True)
+            tvcolumn.connect('clicked', self.clicked_cb, field_name)
+            
+            self.tvcolumns[field_name] = tvcolumn
+
+            if self.is_boolean(field_name):  ## boolean
+                cell = self.setup_boolean_column(field_name, tvcolumn)
+
+            elif self.is_date(field_name):   ## Dates
+                cell = self.setup_date_column(field_name, tvcolumn)
+
+            elif self.is_datetime(field_name):  ## Datetime
+                cell = self.setup_datetime_column(field_name, tvcolumn)
+
+            elif self.is_number(field_name):  ## Number
+                cell = self.setup_number_column(field_name, tvcolumn)
+
+            elif self.is_string(field_name):  ## Varchar
+                cell = self.setup_string_column(field_name, tvcolumn)
+
+            elif self.is_fkey(field_name) :   ## FKey
+                cell = self.setup_fkey_column(field_name, tvcolumn)
+            else:
+                cell = self.setup_generic_column(field_name, tvcolumn)
+
+            self.add_clickable_label(field_name, tvcolumn)
+
             if not self.is_editable(field_name):
-                #dbg.write('%s not editable' % field_name)
                 try:
                     cell.set_property('editable', False)
                 except:
                     cell.set_property('sensitive', False)
 
-            ## left alignment for NUMBERS
-            if self.fields[field_name]['type'] in sqlwidget.NUMBERS and \
-                   not self.is_fkey(field_name) :
-                cell.set_property('xalign', 1.0)
-
-            if self.is_fkey(field_name):
-                cell.set_property('foreground', 'navyblue')
-
-            ## positioning for string
-            if self.fields[field_name]['type'] == str :
-                specs = self.fields[field_name]['col_spec']
-                if specs:
-                    length = re.search('(\d*)', specs).group(1)
-                    try:
-                        #dbg.write('lung',length)
-                        ## if field has less then 3 chars, position it in the middle
-                        if int(length) <= 3:
-                            dbg.write(field_name, 'in centro', length, int(length))
-                            cell.set_property('xalign', 0.5)
-                    except:
-                        pass
-    
             self.treeview.append_column(tvcolumn)
-            self.treeview.columns_autosize()
-            tvcolumn.set_clickable(True)
-            tvcolumn.connect('clicked', self.clicked_cb, field_name)
             #tvcolumn.set_fixed_width(self.width)
-            
 
+        self.treeview.columns_autosize()
+#        self.fix_expandable_columns()
+
+    def setup_boolean_column(self, field_name, tvcolumn):
+        """
+        A boolen that steps throught undefined if field is nullable
+        """
+        cell = gtk.CellRendererToggle()
+        tvcolumn.pack_start(cell, True)
+        #tvcolumn.add_attribute(cell, 'active', j )
+        cell.set_property('activatable', True)
+        cell.connect('editing-started', self.generic_editing_started_cb, field_name )
+
+        if self.is_nullable(field_name):
+            cell.connect('toggled', self.toggled_null_signal_cb,
+                         (self.liststore, field_name))
+        else:
+            cell.connect('toggled', self.toggled_signal_cb,
+                         (self.liststore, field_name))
+        tvcolumn.set_cell_data_func(cell, self.cell_bool_cb, field_name)
+        return  cell
+        
+    def setup_date_column(self, field_name, tvcolumn):
+        """
+        A date calendar that pops a gtk.Calendar to edit
+        """
+
+        cell = CellRendererDate()
+        cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+        cell.set_property('sensitive', False)
+        cell.set_property('xpad', 4)
+        tvcolumn.pack_start(cell, True)
+        #tvcolumn.add_attribute(cell, 'date', j )
+        cell.connect('editing-started', self.generic_editing_started_cb, field_name )
+        cell.connect('date-changed', self.date_changed_cb, field_name )
+        tvcolumn.set_cell_data_func(cell, self.cell_dates_cb, ('date', field_name) )
+        return  cell
+
+    def setup_datetime_column(self, field_name, tvcolumn):
+        """
+        A datetime cell' renderer
+        """
+
+        #dbg.write('%s is a date' % field_name)
+        cell = CellRendererDatetime()
+        cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+        cell.set_property('sensitive', False)
+        cell.set_property('xpad', 4)
+        tvcolumn.pack_start(cell, True)
+        #tvcolumn.add_attribute(cell, 'datetime', j )
+        cell.connect('editing-started', self.generic_editing_started_cb, field_name )
+        cell.connect('datetime-changed', self.date_changed_cb, field_name )
+        tvcolumn.set_cell_data_func(cell, self.cell_dates_cb,('datetime', field_name) )
+        return  cell
+
+    def setup_fkey_column(self, field_name, tvcolumn):
+        """
+        A renderer that shows the value instead of the id
+        """
+        # use set_fkey_descr function to put text in the cell
+        # if this is a foreign key
+        cell = gtk.CellRendererText()
+        cell.set_property('editable', True)
+        #cell.set_property('editable-set', True)
+        #cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+        cell.connect('edited', self.text_edited_cb, field_name)
+        cell.connect('editing-started', self.text_editing_started_cb, field_name)
+        tvcolumn.pack_start(cell, True)
+        #tvcolumn.add_attribute(cell, 'text', j)
+        tvcolumn.set_cell_data_func(cell, self.set_fkey_descr, field_name)
+
+        cell.set_property('foreground', 'navyblue')
+
+        return  cell
+
+    def setup_number_column(self, field_name, tvcolumn):
+        """
+        A renderer similat to varchar but with different expand options
+        and with right justification
+        """
+        cell = gtk.CellRendererText()
+        cell.set_property('editable', True)
+        cell.set_property('editable-set', True)
+        cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+        cell.connect('edited', self.text_edited_cb, field_name)
+        cell.connect('editing-started', self.text_editing_started_cb, field_name)
+        tvcolumn.pack_start(cell, True)
+        #tvcolumn.add_attribute(cell, 'text', j )
+        tvcolumn.set_cell_data_func(cell, self.cell_default_cb, ('text', field_name) )
+        tvcolumn.set_expand(self.is_expandable(field_name))
+
+        ## left alignment for NUMBERS
+        cell.set_property('xalign', 1.0)
+        return  cell
+
+    def setup_string_column(self, field_name, tvcolumn):
+        """
+        A renderer that expands only large fields and that centers text if it's little
+        """
+
+        cell = gtk.CellRendererText()
+        cell.set_property('editable', True)
+        cell.set_property('editable-set', True)
+        cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+        cell.connect('edited', self.text_edited_cb, field_name)
+        cell.connect('editing-started', self.text_editing_started_cb, field_name)
+        cell.set_property('ellipsize', pango.ELLIPSIZE_END)
+        tvcolumn.pack_start(cell, True)
+        #tvcolumn.add_attribute(cell, 'text', j )
+        tvcolumn.set_cell_data_func(cell, self.cell_default_cb, ('text', field_name) )
+        tvcolumn.set_expand(self.is_expandable(field_name))
+
+        specs = self.fields[field_name]['col_spec']
+        if specs:
+            length = re.search('(\d*)', specs).group(1)
+            try:
+                #dbg.write('lung',length)
+                ## if field has less then 3 chars, position it in the middle
+                if int(length) <= 3:
+                    dbg.write(field_name, 'in centro', length, int(length))
+                    cell.set_property('xalign', 0.5)
+            except:
+                pass
+        
+        return  cell
+
+    def setup_generic_column(self, field_name, tvcolumn):
+        """
+        Similar to string but no special treatment
+        """
+
+        cell = gtk.CellRendererText()
+        cell.set_property('editable', True)
+        cell.set_property('editable-set', True)
+        cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+        cell.connect('edited', self.text_edited_cb, field_name)
+        cell.connect('editing-started', self.text_editing_started_cb, field_name)
+        tvcolumn.pack_start(cell, True)
+        #tvcolumn.add_attribute(cell, 'text', j )
+        tvcolumn.set_cell_data_func(cell, self.cell_default_cb, ('text', field_name) )
+        tvcolumn.set_expand(self.is_expandable(field_name))
+        return  cell
+
+    def add_clickable_label(self, field_name, tvcolumn):
+        """
+        Add a clickable label to the column via EventBox
+        """
+
+        event_box = gtk.EventBox()
+        label = gtk.Label()
+        label.set_markup(field_name)
+        event_box.add(label)
+        event_box.show_all()
+        tvcolumn.set_widget(event_box)
+
+        ## bold italic
+        if not self.is_nullable(field_name) and not self.fields[field_name]['default']:
+            label.set_markup('<b><i>%s</i></b>' % field_name)
+                
+        
+    def is_expandable(self, field_name):
+        """
+        make expandable only Strings with n_chars > 20 or Text
+        """
+
+        if self.is_text(field_name):
+            return True
+        if self.is_string(field_name):
+            if self.fields[field_name]['length'] > 20:
+                return True
+        return False
+
+    def fix_expandable_columns(self):
+        """
+        If no column is expandable, make all columns expandable:
+        it's very ugly to see just the last one expand
+        """
+
+        fix_it = True
+        for key, col in self.tvcolumns.iteritems():
+            if col.get_property('expand'):
+                fix_it = False
+
+        if fix_it:
+            for key, col in self.tvcolumns.iteritems():
+                col.set_property('expand', True)
+            
+            
 #### column menu
     def popup_col_menu(self, ev, field_name):
 
@@ -976,6 +1087,7 @@ class SqlTable(sqlwidget.SqlWidget):
         for i in self.records:
             self.liststore.append([i])
         self.totals.compute()
+        self.treeview.columns_autosize()
 
     def set_value(self, field_name, value, path=None, fkvalue=None, initial=False):
         """called from within edited signal and completion.
