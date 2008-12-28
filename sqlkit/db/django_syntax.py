@@ -201,7 +201,7 @@ def django2components(mapper_or_table, kw=None):
 
     op = OPERATORS[op_str]
     if op_str in ('regexp', 'iregexp'):
-        op, value = get_regexp_op(able.metadata.bind.name, op_str, value)
+        op, value = get_regexp_op(table.metadata.bind.name, op_str, value)
     return joins, op, op_str, value, col
 
 def get_foreign_column(mapper, path=None, attr=None):
