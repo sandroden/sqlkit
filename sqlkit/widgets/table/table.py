@@ -32,7 +32,7 @@ import re
 import gobject
 import gtk
 import sqlkit
-from utils import set_height_request, set_all_nonfilling, set_this_filling
+from utils import set_height_request, set_optimal_width
 from  cell_renderers import CellRendererDate, CellRendererDatetime
 import totals
 from sqlkit.widgets.common import sqlwidget
@@ -116,6 +116,8 @@ class SqlTable(sqlwidget.SqlWidget):
                 image, label = hbox.get_children()
                 label.set_text('')
                 
+
+        set_optimal_width(self.treeview, self)
 
         return (self.lay_obj, self.widgets)
 
@@ -1250,13 +1252,6 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         dbg.write("setting rows:", rows)
         set_height_request(treeview, rows)
-
-
-
-
-
-
-        
 
     def get_first_editable_col(self):
         """
