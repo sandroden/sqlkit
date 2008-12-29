@@ -101,7 +101,12 @@ class IntegerWidget(VarcharWidget):
                 
     def set_value(self, value):
         # Entry
-        self.gtkwidget.set_text( str(value or '') )
+        if value is None:
+            txt_value = ''
+        else:
+            txt_value = str(value)
+            
+        self.gtkwidget.set_text(txt_value)
         
     def get_value(self, shown=False):
         text = self.gtkwidget.get_text( )
