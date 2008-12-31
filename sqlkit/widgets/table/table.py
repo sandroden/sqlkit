@@ -165,7 +165,10 @@ class SqlTable(sqlwidget.SqlWidget):
             
             self.tvcolumns[field_name] = tvcolumn
 
-            if self.is_boolean(field_name):  ## boolean
+            if self.is_fkey(field_name) :   ## FKey
+                cell = self.setup_fkey_column(field_name, tvcolumn)
+
+            elif self.is_boolean(field_name):  ## boolean
                 cell = self.setup_boolean_column(field_name, tvcolumn)
 
             elif self.is_date(field_name):   ## Dates
@@ -180,8 +183,6 @@ class SqlTable(sqlwidget.SqlWidget):
             elif self.is_string(field_name):  ## Varchar
                 cell = self.setup_string_column(field_name, tvcolumn)
 
-            elif self.is_fkey(field_name) :   ## FKey
-                cell = self.setup_fkey_column(field_name, tvcolumn)
             else:
                 cell = self.setup_generic_column(field_name, tvcolumn)
 

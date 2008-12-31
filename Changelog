@@ -1,3 +1,10 @@
+
+	* table: complete rewrite of the column setup function
+	* mask: - added handling of comments
+	        - fixed integer/float miniwiget (0 was rendered as  '')
+	* layout: added check and hints on errors for Panes widgets
+	* django_syntax: fix in typo
+
 sqlkit 0.8.4 - 20.12.08
 
 	* totals: fix in date when date is missing
