@@ -73,7 +73,7 @@ class Layout(object):
         container_id: ???
         addto: the outermost container will be added to the widget 'addto'
         title: title of the window
-        geom: a tuple indicating te desired width and height for the window
+        geom: a tuple indicating the desired width and height for the window
         
         """
         #print 'layout init: %s level: %s' % (id(elements), level)
@@ -398,6 +398,7 @@ class Layout(object):
             
     def _set_dim(self,row,col):
         self.rows, self.cols = max(self.rows, row), max(self.cols, col)
+        
     def xml(self, filename=None, tmpfile=None, logfile=None):
         """Produces the xml for glade to create the GUI, possibly writes it to file"""
 
@@ -436,8 +437,10 @@ class Layout(object):
     
     def  dbg_xml(self):
         return self.lcontainer.dbg_xml()
+    
     def dim(self):
         return "DIM %s,%s" % (self.rows+1, self.cols+1)
+
     def show(self,action=None, x=None):
         gtk.glade.set_custom_handler(widgets.custom_widget)
         if self.shown:
@@ -470,6 +473,7 @@ class Layout(object):
             self.shown = True
             #wshow(self.widgets)
             return self.widgets
+        
     def gshow(self,action=None, x=None):
         if self.shown:
             self.widgets['Window'].show()
@@ -501,6 +505,7 @@ class Layout(object):
                 
             self.shown = True
             return self.widgets
+
     def fshow(self,action=None, x=None, filename=None):
         if not filename:
             tmpdir = tempfile.mkdtemp() 
@@ -532,6 +537,7 @@ class Layout(object):
         os.unlink(filename)
         os.rmdir(tmpdir)
         return self.widgets
+    
     def tip(self, el_def, text):
         if self.shown:
             if isinstance(self.widgets[el_def], gtk.ToolItem):
@@ -541,8 +547,6 @@ class Layout(object):
         else:
             self.elements[el_def].properties['tooltip'] = text
 
-
-            
     def menu(self, el_def, *args):
         """the dictionary must be a list of tuples (key, signal, handler)
         A separator can be as simple as '-' both in key and handler
@@ -581,6 +585,7 @@ class Layout(object):
                 items[key].connect(*d[1:])
             menu.append(items[key])
             menu.show_all()
+            
     def connect(self,  *args):
         """the dictionary must be a list of tuples
         (key, signal, handler, arg1, arg2...)"""
@@ -594,6 +599,7 @@ class Layout(object):
         else:
             for d in args:
                 self.connect_with_id(d)
+                
     def connect_with_id(self, args):
         el_def = args[0]
         id = self.widgets[el_def].connect(*args[1:])
@@ -628,6 +634,7 @@ class Layout(object):
             
     def get_connect(self, el_def):
         pass
+
     def _dbg_widgets(self):
         for key, val in self.widgets.iteritems():
             print "%-15.15s ==> %s" % (key, val)
@@ -639,6 +646,7 @@ class Layout(object):
         sb=self.widgets['sb=StBar']
         idx = sb.get_context_id(txt)
         sb.push(idx,txt)
+
     def notebook(self, el_key, notebook_labels=None, tab_pos='top'):
         """Adds notebook entry for notebooks,
 

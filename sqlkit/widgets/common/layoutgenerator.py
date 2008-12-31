@@ -119,6 +119,8 @@ class LayoutGenerator (object):
     def __init__ (self, master, naked=False, lay=None):
         """fields: an InspectMapper object
         """
+        if lay:
+            lay = re.sub('#.*\n','', lay)
         self.loaders = {}
         self.master = master
         self.fields_in_layout = {}  # {'first_name': 'e=first_name', 'date': 'd=date'}

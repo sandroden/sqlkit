@@ -326,6 +326,10 @@ class LWidget(object):
         self.pack_properties.update({'y-options' : 'expand | fill'})
 
 
+    def __str__(self):
+        return "<%s: %s >" % (self.__class__.__name__, self.el_def)
+    def __repr__(self):
+        return "<%s: %s >" % (self.__class__.__name__, self.el_def)
 class LContainer(LWidget):
     # the difference with LWidget is it has children
     # and the el_def is not written in the layout but created on the fly
@@ -738,6 +742,15 @@ class VPaned(LContainer):
     class_pack_properties = {
         'resize' : False,
         }
+    def __init__(self, el_def, pos, container, children_list=None,
+                 elements=None):
+        msg = "%s cannot have more that 2 children (now: %s)" % (self.gtkClass, children_list)
+        assert len(children_list) <= 2, msg
+        LWidget.__init__(self, el_def, pos, container, elements=elements)
+
+        ## the children
+        self.lw['children_list'] = children_list
+    
     def _class_specific(self):
         self.make_v_expandable()
 
