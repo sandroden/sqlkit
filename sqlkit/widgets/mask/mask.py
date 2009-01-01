@@ -38,15 +38,15 @@ class SqlMask (sqlwidget.SqlWidget):
     __metaclass__ = dbg.LogTheMethods
 #    vfields = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
     labels   = None  # correspondance Label <-> EventBox
-#    map_record_n = 0  # number of the displayed record within mapper
     row_count = 0    # number of records in the mapper
-    #current = dbg.TraceIt(None, name='current', mode='rw')
+    current_idx = 0
     current = None
-    current_idx = dbg.TraceIt(0, name='current_idx', mode='rw')
     current_mode = None
+
     def __init__(self, *args, **kw):
         """Prepare for a new record
         """
+        #current_idx = dbg.TraceIt(0, name='current_idx', mode='rw')
 
         sqlwidget.SqlWidget.__init__(self, *args, **kw)
         self.record_new()
@@ -125,8 +125,12 @@ class SqlMask (sqlwidget.SqlWidget):
         """
         self.clear_mask()
         self.records = records
-        self.record_display(index=index)
-        
+        # it's handy to set set_records([table.current])
+        # that may also be empty
+        if records and not records == [None]: 
+            self.record_display(index=index)
+        self.record_refresh()
+
     def set_value(self, field_name, field_value, fkvalue=None, initial=True):
         """this is the method that knows how to handle different type of data
         if field_name is a FKey ending with _id, it retrieves the description,
@@ -512,5 +516,9 @@ class SqlMask (sqlwidget.SqlWidget):
         pass
     
     
+
+
+
+
 
 

@@ -2,9 +2,14 @@
 	* table: complete rewrite of the column setup function
 	* mask: - added handling of comments
 	        - fixed integer/float miniwiget (0 was rendered as  '')
+	        - text now uses gtk.WRAP_WORD
+	        - fixed current_idx was a class attribute not an instance attr
 	* layout: added check and hints on errors for Panes widgets
 	* django_syntax: fix in typo
-
+	* filters: fixed handlung of boolena & NULL check in related tables
+	* signals: - record_selected -> record-selected to follow gtk standard
+	           - added records-displayed
+	
 sqlkit 0.8.4 - 20.12.08
 
 	* totals: fix in date when date is missing

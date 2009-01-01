@@ -210,9 +210,13 @@ Signals
 At the moment just one signal is defined. More will come up soon as I decide
 which are the needed ones...
 
-:record_selected:
+:record-selected:
    A record has been displayed in Mask or selected in Table.
    The callback will just receive the widget as argument.
+
+:recods-displayed:
+   Records have been displayed. this may be after .reload() or .set_records([])
+
 
 
 

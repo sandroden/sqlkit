@@ -432,15 +432,33 @@ class FilterWidget(object):
             return query
         
         op_value = self.operator.get_active_text()
-                
+
+        query = query.reset_joinpoint()
+
+        if self.master.relationship_path:
+            query = query.join(self.master.relationship_path)
+
         if op_value in ('IS NULL', 'IS NOT NULL', 'IS TRUE', 'IS FALSE'):
-            query = query.filter("%s %s" % (self.field_name, op_value))
-            #ret += [ "%s %s" % (self.field_name, op_value) ]
+            # NULL
+            if op_value == 'IS NULL':
+                return query.filter(self.col == None)
+            elif op_value == 'IS NOT NULL':
+                return query.filter(self.col != None)
+
+            # True/False
+            if op_value == 'IS TRUE':
+                return query.filter(self.col == True)
+            elif op_value == 'IS FALSE':
+                return query.filter(self.col == False)
+
         else:
             value = self.field_widget.get_text()
-            if value:
-                query = self._compose_field_whereclause(query, value, op_value)
-        return query
+            if self.bind_name == "sqlite" and op_value in ('ICONTAINS', 'MATCH'):
+                op_value = 'ILIKE'
+                value = '%' + value + '%'
+
+            query = self._compose_field_whereclause(query, value, op_value)
+            return query
         
 
     def _compose_field_whereclause(self, query, value, op_value):
@@ -448,17 +466,9 @@ class FilterWidget(object):
 
         """
         
-        if self.bind_name == "sqlite" and op_value == "ICONTAINS":
-            op_value = 'ILIKE'
-            value = '%' + value + '%'
-
-        query = query.reset_joinpoint()
-
-        if self.master.relationship_path:
-            query = query.join(self.master.relationship_path)
-
         if op_value == "ILIKE":
             return query.filter(self.col.ilike(value))
+
         else:
             return query.filter(self.col.op(op_value)(value))
 
@@ -543,13 +553,13 @@ class FilterFKeyWidget(FilterWidget):
         In case field is a fkey, and the destination lookup field is not in
         the mapper, it composes a subselect
         """
-        if self.bind_name == "sqlite" and op_value == "MATCH":
-            op_value = 'LIKE'
-            value = '%' + value + '%'
-
         fdescr = get_description(self.ftable, attr='description')
 
-        ids = select([self.fcol], self.ftable.columns[fdescr].op(op_value)(value))
+        if op_value == "ILIKE":
+            ids = select([self.fcol], self.ftable.columns[fdescr].ilike(value))
+        else:
+            ids = select([self.fcol], self.ftable.columns[fdescr].op(op_value)(value))
+
         query = query.reset_joinpoint()
 
         if self.master.relationship_path:

@@ -510,7 +510,7 @@ class SqlTable(sqlwidget.SqlWidget):
         
         if self.edited_row_model_path is None:
             self.record_initialize_vfields()
-            self.emit('record_selected')
+            self.emit('record-selected')
             return False
         
         ## commit_allowed is a flag that prevents .commit() if a new object
@@ -520,7 +520,7 @@ class SqlTable(sqlwidget.SqlWidget):
             self.record_initialize_vfields()
             self.edited_row_model_path = None
 
-        self.emit('record_selected')
+        self.emit('record-selected')
         return False
     
     def record_initialize_vfields(self):
@@ -895,7 +895,7 @@ class SqlTable(sqlwidget.SqlWidget):
         for field_name in self.field_list:
             self.vfields[field_name].set_default()
 
-        self.records += [self.last_new_obj]  ## adding to records is vital to get fk correctly in
+        self.records += [self.last_new_obj]  ## adding to records is vital to get fk correctly, in
                                              ## case this table is a M2M of M2O
 
         self.commit_inhibited = False
@@ -911,7 +911,7 @@ class SqlTable(sqlwidget.SqlWidget):
             for record in self.records:
                 self.liststore.append([record])
 
-#        self.emit('record_selected', )
+#        self.emit('record-selected', )
         self.sb("Total N. of records: %s" % (len(self.liststore)))
         
     def record_has_changed(self):
@@ -1081,8 +1081,8 @@ class SqlTable(sqlwidget.SqlWidget):
         return ret
                                          
     def record_refresh(self):
-        """when self.refresh is called other programs have selected the records
-        
+        """
+        when self.refresh is called other programs have selected the records
         """
         self.edited_row_model_path = None  # must be set *before* clear()
                                 # to inhibit selection_changed_cp
@@ -1091,6 +1091,7 @@ class SqlTable(sqlwidget.SqlWidget):
             self.liststore.append([i])
         self.totals.compute()
         self.treeview.columns_autosize()
+        sqlwidget.SqlWidget.record_refresh(self)
 
     def set_value(self, field_name, value, path=None, fkvalue=None, initial=False):
         """called from within edited signal and completion.
@@ -1398,5 +1399,7 @@ class SqlTable(sqlwidget.SqlWidget):
         for field in self.vfields:
             field.widget.add_completion(editable=editable)
         
+
+
 
 

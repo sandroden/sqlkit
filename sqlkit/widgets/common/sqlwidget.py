@@ -44,10 +44,14 @@ NUMBERS = (int, float, decimal.Decimal)
 
 class SqlWidget(gobject.GObject):
     __gsignals__ = {
-        'record_selected' : (gobject.SIGNAL_RUN_LAST,
+        'record-selected' : (gobject.SIGNAL_RUN_LAST,
                            gobject.TYPE_BOOLEAN,
                            (),
-                           )
+                           ),
+        'records-displayed' : (gobject.SIGNAL_RUN_LAST,
+                           gobject.TYPE_BOOLEAN,
+                           (),
+                           ),
         }
 
     fields   = None  # fields to use (InspectMapper)
@@ -600,7 +604,9 @@ class SqlWidget(gobject.GObject):
     def record_refresh(self):
         """to be overloaded: 
         """
+        self.emit('records-displayed')
         pass
+
     def reload_one(self,field, value):
         """compact way to view a single record or records with a single property"""
 
@@ -1305,6 +1311,8 @@ class SqlWidget(gobject.GObject):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+
 
 
 
