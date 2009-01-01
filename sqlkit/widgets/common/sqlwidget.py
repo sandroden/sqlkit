@@ -44,7 +44,7 @@ NUMBERS = (int, float, decimal.Decimal)
 
 class SqlWidget(gobject.GObject):
     __gsignals__ = {
-        'record_selected' : (gobject.SIGNAL_RUN_LAST,
+        'record-selected' : (gobject.SIGNAL_RUN_LAST,
                            gobject.TYPE_BOOLEAN,
                            (),
                            )
@@ -1305,6 +1305,8 @@ class SqlWidget(gobject.GObject):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+
 
 
 

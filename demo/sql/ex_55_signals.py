@@ -1,6 +1,6 @@
-"""signals/record_selected
+"""signals/record-selected
 
-'record_selected' is define both fr SqlTable and SqlMask
+'record-selected' is define both fr SqlTable and SqlMask
 
 """
 
@@ -12,7 +12,7 @@ def show_movies(widget):
     if widget.current:
         t2.set_records(widget.current.movies)
     
-t.connect('record_selected', show_movies)
+t.connect('record-selected', show_movies)
           
 t.reload()
 
