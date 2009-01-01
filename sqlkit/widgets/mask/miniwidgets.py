@@ -257,6 +257,10 @@ class DateTimeTZWidget(DateTimeWidget):
 
 class TextWidget(Widget):
 
+    def __init__(self, *args):
+        Widget.__init__(self, *args)
+        self.gtkwidget.set_property('wrap-mode', gtk.WRAP_WORD)
+
     def set_value(self, value):
         buff = self.gtkwidget.get_buffer()
         buff.set_text( value)
