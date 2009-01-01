@@ -125,8 +125,12 @@ class SqlMask (sqlwidget.SqlWidget):
         """
         self.clear_mask()
         self.records = records
-        self.record_display(index=index)
-        
+        # it's handy to set set_records([table.current])
+        # that may also be empty
+        if records and not records == [None]: 
+            self.record_display(index=index)
+        self.record_refresh()
+
     def set_value(self, field_name, field_value, fkvalue=None, initial=True):
         """this is the method that knows how to handle different type of data
         if field_name is a FKey ending with _id, it retrieves the description,
@@ -512,6 +516,8 @@ class SqlMask (sqlwidget.SqlWidget):
         pass
     
     
+
+
 
 
 

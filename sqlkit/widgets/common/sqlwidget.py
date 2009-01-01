@@ -47,7 +47,11 @@ class SqlWidget(gobject.GObject):
         'record-selected' : (gobject.SIGNAL_RUN_LAST,
                            gobject.TYPE_BOOLEAN,
                            (),
-                           )
+                           ),
+        'records-displayed' : (gobject.SIGNAL_RUN_LAST,
+                           gobject.TYPE_BOOLEAN,
+                           (),
+                           ),
         }
 
     fields   = None  # fields to use (InspectMapper)
@@ -600,7 +604,9 @@ class SqlWidget(gobject.GObject):
     def record_refresh(self):
         """to be overloaded: 
         """
+        self.emit('records-displayed')
         pass
+
     def reload_one(self,field, value):
         """compact way to view a single record or records with a single property"""
 

@@ -1079,8 +1079,8 @@ class SqlTable(sqlwidget.SqlWidget):
         return ret
                                          
     def record_refresh(self):
-        """when self.refresh is called other programs have selected the records
-        
+        """
+        when self.refresh is called other programs have selected the records
         """
         self.edited_row_model_path = None  # must be set *before* clear()
                                 # to inhibit selection_changed_cp
@@ -1089,6 +1089,7 @@ class SqlTable(sqlwidget.SqlWidget):
             self.liststore.append([i])
         self.totals.compute()
         self.treeview.columns_autosize()
+        sqlwidget.SqlWidget.record_refresh(self)
 
     def set_value(self, field_name, value, path=None, fkvalue=None, initial=False):
         """called from within edited signal and completion.
