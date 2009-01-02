@@ -16,7 +16,7 @@ lay = """
 
 lt = Layout(lay, opts='T', title="Table")
 lt.prop('e=short_lbl','xalign',1)
-lt.xml("/tmp/g.glade")
+#lt.xml("/tmp/g.glade")
 #lt.prop('e=short_lbl2','max-length',2)
 w = lt.show()
 #print w.keys()

@@ -629,7 +629,7 @@ class SpinButton(LContainer):
         "update_policy" : 'GTK_UPDATE_ALWAYS',
         "snap_to_ticks" : False,
         "wrap"          : False,
-        "adjustment"    : '0 0 1000 1 10 10',
+        "adjustment"    : '0 0 1000 1 10 0',
         }
 
 class ToolSpinButton(LContainer):

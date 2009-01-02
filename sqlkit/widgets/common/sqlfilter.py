@@ -83,7 +83,7 @@ class FilterPanel(object):
         self.w = self.l.show(x=self.hide)
 #        self.w['s=limit'].set_value(self.master.limit)
         adj = self.w['s=limit'].get_adjustment()
-        adj.set_all(self.master.limit, 0, 10000, 10, 100, 100)
+        adj.set_all(self.master.limit, 0, 10000, 10, 100, 0)
         self.l.menu('m=opts',
                     ('-', ),
                     ('gtk-close', 'activate', self.hide),
