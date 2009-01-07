@@ -33,7 +33,7 @@ import gobject
 import gtk
 import sqlkit
 from utils import set_height_request, set_optimal_width
-from  cell_renderers import CellRendererDate, CellRendererDatetime
+from  cell_renderers import CellRendererDate, CellRendererDatetime, CellRendererVarchar
 import totals
 from sqlkit.widgets.common import sqlwidget
 import gtk
@@ -299,7 +299,8 @@ class SqlTable(sqlwidget.SqlWidget):
         A renderer that expands only large fields and that centers text if it's little
         """
 
-        cell = gtk.CellRendererText()
+        lenght = self.fields[field_name]['length']
+        cell = CellRendererVarchar(lenght)
         cell.set_property('editable', True)
         cell.set_property('editable-set', True)
         cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)

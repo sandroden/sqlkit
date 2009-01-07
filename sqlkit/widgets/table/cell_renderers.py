@@ -296,3 +296,83 @@ class CellRendererDatetime(CellRendererDate):
     
 
 
+class CellRendererVarchar(gtk.GenericCellRenderer):
+    __gproperties__ = {}
+    for prop in gobject.list_properties(gtk.CellRendererText):
+         if not prop in gobject.list_properties(gtk.GenericCellRenderer):
+             dbg.write("processing", prop)
+             # See http://www.sicem.biz/personal/lgs/docs/gobject-python/gobject-tutorial.html
+             fields = []
+             fields.append(prop.value_type)
+             fields.append(prop.nick)
+             fields.append(prop.blurb)
+             if hasattr(prop, 'minimum'):
+                 fields.append(prop.minimum)
+                 fields.append(prop.maximum)
+             if hasattr(prop, 'default_value') and prop.name not in ['user-data', 'cell-background-gdk', 'attributes', 'font-desc', 'background-gdk', 'foreground-gdk']:
+                 dbg.write(prop, "has default_value", prop.default_value)  
+                 fields.append(prop.default_value)
+             # FIXME: not all properties are readwrite!
+             fields.append(gobject.PARAM_READWRITE)
+             __gproperties__[prop.name] = tuple(fields)
+
+    # FIXME: do the same on signals
+    __gsignals__ = {
+         'edited': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,
+                    (gobject.TYPE_STRING, gobject.TYPE_STRING))
+    }
+
+
+    def __init__(self, lenght):
+        self.__gobject_init__()
+
+        wrapped = gtk.CellRendererText()
+        wrapped.set_property('editable', True)
+        self.wrapped = wrapped
+        self.wrapped.connect('edited', self.on_edited_signal)
+        self.set_property("mode", wrapped.get_property("mode"))
+        self.lenght = lenght
+    
+    def on_get_size(self, widget, cell_area):
+        # We start from the standard dimension...
+        size = list(self.wrapped.get_size(widget, cell_area))
+        context = widget.get_pango_context()
+        description = context.get_font_description()
+        metrics = context.get_metrics(description)
+        pango_width = metrics.get_approximate_char_width()*self.lenght
+
+        # Pango uses its own internal measure unit. "pango.PIXELS" converts it.
+        width = pango.PIXELS(pango_width)
+        
+        # ... then modify the width. FIXME: consider xpad.
+        size[2] = width
+        dbg.write("lenght", self.lenght)
+        return tuple(size)
+        
+    def do_get_property(self, property):
+        return self.wrapped.get_property(property.name)
+
+    def do_set_property(self, property, value):
+        self.wrapped.set_property(property.name, value)
+        return
+        
+    def on_render(self, window, widget, background_area, cell_area, expose_area, flags):
+        return self.wrapped.render(window, widget, background_area, cell_area, expose_area, flags)
+    
+    def on_activate(self, event, widget, path, background_area, cell_area, flags):
+        return self.wrapped.activate(event, widget, path, background_area, cell_area, flags)
+    
+    def on_start_editing(self, event, widget, path, background_area, cell_area, flags):
+        editable = self.wrapped.start_editing(event, widget, path, background_area, cell_area, flags)
+        return editable
+        
+    def on_edited_signal(self, *args):
+        # Forward signal from wrapped to extern
+        self.emit("edited", *args[1:])
+        
+    def get_data(self, *args):
+        return self.wrapped.get_data(*args)
+
+gobject.type_register(CellRendererVarchar)
+
+
