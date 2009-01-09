@@ -132,7 +132,7 @@ def set_optimal_width(treeview, max_pixels=None):
         
         for renderer in cell_renderers:
             if hasattr(renderer, 'fixed_width') and renderer.fixed_width:
-                renderers_widths.append(renderer.get_size(treeview, None)[2])                
+                renderers_widths.append(renderer.get_size(treeview, None)[2])
             elif hasattr(column, 'cells_data_func'):
             # We'll have to check with all values that populate the column.
                 renderer_func = None
@@ -142,7 +142,8 @@ def set_optimal_width(treeview, max_pixels=None):
                         renderer_func_data = cell_func[2:]
                         break
                 if renderer_func:
-                    max_width = 0
+                    # This will be the minimum (for non populated columns).
+                    max_width = 30
                     for row_index in range(rows_number):
                         iter = model.get_iter(row_index)
                         renderer_func(column, renderer, model, iter, *renderer_func_data)
