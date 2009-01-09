@@ -2,6 +2,7 @@ from sqlkit import debug as dbg
 import gobject
 import gtk
 import pango
+from cell_renderers import CellRendererVarchar
 
 def set_height_request(treeview, rows=None):
     """
@@ -89,25 +90,19 @@ def free_column(column):
     column.set_max_width(2000)
     
 
-def set_optimal_width(treeview, sqltable=None, resize=True, max_pixels=None):
+def set_optimal_width(treeview, max_pixels=None):
     """
-    Set optimal width of the columns and of the whole treeview, meaning that:
-    - if the treeview is already populated, by looking at shown data we
-      calculate optimal size to fit the data
-    - if the treeview is not populated but sqltable is given, by introspection
-      we get a reasonable size.
-    If "resize" is True, the window is resized accordingly (with care taken not
-    to exit screen limit, and anyway not making the treeview larger that
-    max_pixels, if set), otherwise only a redestribution of horizontal space
-    among columns is done.
+    Set optimal width of the treeview, based on width request by cellrenderers.
+
+    This means that the window containing the treeview is resized accordingly
+    (with care taken not to exit screen limit, and anyway not making the
+    treeview larger that max_pixels, if set).
     If called before the treeview is realized (and with "resize" set), this
     function assumes that there is nothing else on the right and on the left of
     the treeview (e.g. the the treeview is in a bare sqltable).
     If called after, it supposes that, if there is something on the left and on
     the right, the treeview and all its parents have horizontal expand property
     set.
-    Notice "resize=False" doesn't make sense if the treeview is still not
-    realized, since it still has no dimension to stick to.
     """    
 
     widths = []
@@ -115,89 +110,119 @@ def set_optimal_width(treeview, sqltable=None, resize=True, max_pixels=None):
 
     columns = treeview.get_columns()
     titles = [column.get_title() for column in columns]
-
     model = treeview.get_model()
     rows_number = len(model)
-
-    if rows_number:
-        # There already is some data shown
-        for column_index in range(len(titles)):
-            for row_index in range(rows_number):
-                item = model.get_value(model.get_iter(row_index), column_index)
-                string = item.__dict__[attribute_name]
-                string_width = get_string_width(treeview.get_pango_context(), string, chars_num=100)
-                dbg.write(string[:chars_num], string_width)
-                max_string_width = max(max_string_width, string_width)
-            widths.append(max_string_width)
-    elif sqltable:
-        # No data shown, but we can get optimal widths by introspection
-        for column_index in range(len(titles)):
-            title = titles[column_index]
-            vfield = title.replace(' ', '_')
-            maxchars = sqltable.vfields[vfield].db_spec['length']
-            if maxchars:
-                context = treeview.get_pango_context()
-                expected_width = get_string_width(context, chars_num=maxchars)
-            else:
-                # We have no information on data... just fix size (FIXME?)
-                expected_width = 100
-            widths.append(expected_width)
-    else:
-        # No data shown, no table informations... nothing to do!
-        return
     
-    total_desired_width = sum(widths)
+    
+    
+    width_known = True
+    
+    for column_index in range(len(titles)):
+        column = columns[column_index]
+        cell_renderers = column.get_cell_renderers()
+        renderers_widths = []
+        # We have 3 possibilities:
+        # 1) the renderer has a fixed width (the member "fixed_width" is set in
+        #    table.py): we just take this as its width
+        # 2) the renderer has a variable size and its criterion for populating
+        #    is set in table.py: then, it also has a member 'cells_data_func',
+        #    which contain informations about the criterion, and we use it to
+        #    populate and ask get_size()
+        # 3) the renderer wasn't set in table.py: we just take a constant size.
+        
+        for renderer in cell_renderers:
+            if hasattr(renderer, 'fixed_width') and renderer.fixed_width:
+                renderers_widths.append(renderer.get_size(treeview, None)[2])                
+            elif hasattr(column, 'cells_data_func'):
+            # We'll have to check with all values that populate the column.
+                renderer_func = None
+                for cell_func in column.cells_data_func:
+                    if cell_func[0] == renderer:
+                        renderer_func = cell_func[1]
+                        renderer_func_data = cell_func[2:]
+                        break
+                if renderer_func:
+                    max_width = 0
+                    for row_index in range(rows_number):
+                        iter = model.get_iter(row_index)
+                        renderer_func(column, renderer, model, iter, *renderer_func_data)
+                        if gobject.type_is_a(renderer, gtk.CellRendererText):
+                            ellipsize = renderer.get_property('ellipsize')
+                            renderer.set_property('ellipsize', False)
+                        width = renderer.get_size(treeview, None)[2]
+                        if gobject.type_is_a(renderer, gtk.CellRendererText):
+                            # Put things back in order.
+                            renderer.set_property('ellipsize', ellipsize)
+                        max_width = max(max_width, width)
+                    renderers_widths.append(max_width)
+                else:
+                    # The renderer was not found!
+                    width_known = False
+                    break
+            else:
+                # Don't know how to populate the renderer!                   
+                width_known = False
+                break
+                
+        top_widget = column.get_property('widget')
+        top_width = top_widget.get_allocation().width
 
+        expected_width = sum(renderers_widths)
+        expected_width += len(cell_renderers)*treeview.style_get_property('horizontal-separator')
+        widths.append(max(expected_width, top_width) + 4)   # FIXME: clarify this 4
+
+    if width_known:
+        total_desired_width = sum(widths)
+    else:
+        total_desired_width = treeview.get_size_request()[0]
+
+    
     toplevel = treeview.get_toplevel()
 
-    current_widths = [column.get_width() for column in columns]
-    columns_current_width = sum(current_widths)
+    current_width = treeview.get_visible_rect().width
 
-    if resize:
-        if toplevel.window:
-            # This means the window has already been realized and we can know
-            # exactly which width of it is not occupied by columns:
-            total_allocation = toplevel.window.get_frame_extents()
-            total_width = total_allocation.width
-            extra_space = total_width - columns_current_width
-            available_width = get_effective_screen_width() - extra_space
-            if max_pixels:
-                available_width = min(max_pixels, available_width)
-        else:
-            # The window is not realized. We assume there is _only_ the treeview
-            available_width = get_effective_screen_width()
-            print "available_width is", available_width
-        if max_pixels:
-            # If set, clip to max_pixels
-            available_width = min(max_pixels, available_width)
+    if toplevel.window:
+        # This means the window has already been realized and we can know
+        # exactly which width of it is not occupied by columns:
+        total_allocation = toplevel.window.get_frame_extents()
+        total_width = total_allocation.width
+        extra_space = total_width - current_width
+        dbg.write("extra space", extra_space)
+        total_desired_width += extra_space
     else:
-        print "resize false"
-        # The available width is just the one currently occupied
-        available_width = columns_current_width
-        
-    print "available_width is", available_width
-    available_percentage = float(available_width)/total_desired_width
-    print "available_percentage is", available_percentage
+        # The window is not realized. We assume there is _only_ the treeview,
+        # plus the border
+        total_desired_width += 10   # FIXME: tune this border
 
-    print "totale:", sum(widths)
-        
+    available_width = get_effective_screen_width()
+
+    if max_pixels:
+        # If set, clip to max_pixels
+        available_width = min(max_pixels, available_width)
+
+    current_height = toplevel.get_size()[1]
+    toplevel.resize(min(total_desired_width, available_width), current_height)
+    treeview.columns_autosize()
+
+
+def zoom_to_fit(treeview, resize=True):
+    """Take a treeview (presumably from a sqlmask) and, for each column rendered
+    by a CellRendererVarchar, reset space request criterion to content only (not
+    database lenght introspection).
+    Then, if "resize" is True, resize window accordingly.
+    """
+    columns = treeview.get_columns()
+    for column in columns:
+        renderers = column.get_cell_renderers()
+        for renderer in renderers:
+            if gobject.type_is_a(renderer, CellRendererVarchar):
+                # Let's fall back to the usual CellRendererText...
+                renderer.fixed_width = False
+        column.set_expand(True)
+        column.set_min_width(0)
+
     if resize:
-        current_height = toplevel.get_size()[1]
-        toplevel.resize(min(total_desired_width, available_width), current_height)
-    
-    if available_percentage < 1 or not resize:
-        # Some clipping is needed, or vice-versa we have too much space and,
-        # since we won't resize, we want to occupy it all
-        for index in range(len(widths)):
-            print widths[index]
-            widths[index] = widths[index]*available_percentage
-        print available_percentage            
-    for index in range(len(titles)):
-        column = columns[index]
-        # Hack. No gtk method to explicitly resize a column exists.
-        column.set_min_width(int(widths[index]))
-        column.set_max_width(int(widths[index]))
-        gobject.timeout_add_seconds(1, free_column, column)
+        set_optimal_width(treeview)
 
 def set_all_nonfilling(wid, level):
     """

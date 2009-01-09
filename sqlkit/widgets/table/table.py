@@ -117,7 +117,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 label.set_text('')
                 
 
-#        set_optimal_width(self.treeview, self)
+        set_optimal_width(self.treeview, self)
 
         return (self.lay_obj, self.widgets)
 
@@ -219,6 +219,8 @@ class SqlTable(sqlwidget.SqlWidget):
             cell.connect('toggled', self.toggled_signal_cb,
                          (self.liststore, field_name))
         tvcolumn.set_cell_data_func(cell, self.cell_bool_cb, field_name)
+        tvcolumn.cells_data_func = [(cell, self.cell_bool_cb, field_name)]
+        cell.fixed_width = True
         return  cell
         
     def setup_date_column(self, field_name, tvcolumn):
@@ -235,6 +237,7 @@ class SqlTable(sqlwidget.SqlWidget):
         cell.connect('editing-started', self.generic_editing_started_cb, field_name )
         cell.connect('date-changed', self.date_changed_cb, field_name )
         tvcolumn.set_cell_data_func(cell, self.cell_dates_cb, ('date', field_name) )
+        tvcolumn.cells_data_func = [(cell, self.cell_dates_cb, ('date', field_name) )]
         return  cell
 
     def setup_datetime_column(self, field_name, tvcolumn):
@@ -252,6 +255,7 @@ class SqlTable(sqlwidget.SqlWidget):
         cell.connect('editing-started', self.generic_editing_started_cb, field_name )
         cell.connect('datetime-changed', self.date_changed_cb, field_name )
         tvcolumn.set_cell_data_func(cell, self.cell_dates_cb,('datetime', field_name) )
+        tvcolumn.cells_data_func = [(cell, self.cell_dates_cb, ('datetime', field_name) )]
         return  cell
 
     def setup_fkey_column(self, field_name, tvcolumn):
@@ -269,6 +273,7 @@ class SqlTable(sqlwidget.SqlWidget):
         tvcolumn.pack_start(cell, True)
         #tvcolumn.add_attribute(cell, 'text', j)
         tvcolumn.set_cell_data_func(cell, self.set_fkey_descr, field_name)
+        tvcolumn.cells_data_func = [(cell, self.set_fkey_descr, field_name)]
 
         cell.set_property('foreground', 'navyblue')
 
@@ -276,7 +281,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
     def setup_number_column(self, field_name, tvcolumn):
         """
-        A renderer similat to varchar but with different expand options
+        A renderer similar to varchar but with different expand options
         and with right justification
         """
         cell = gtk.CellRendererText()
@@ -288,6 +293,7 @@ class SqlTable(sqlwidget.SqlWidget):
         tvcolumn.pack_start(cell, True)
         #tvcolumn.add_attribute(cell, 'text', j )
         tvcolumn.set_cell_data_func(cell, self.cell_default_cb, ('text', field_name) )
+        tvcolumn.cells_data_func = [(cell, self.cell_default_cb, ('text', field_name) )]
         tvcolumn.set_expand(self.is_expandable(field_name))
 
         ## left alignment for NUMBERS
@@ -300,7 +306,11 @@ class SqlTable(sqlwidget.SqlWidget):
         """
 
         lenght = self.fields[field_name]['length']
-        cell = CellRendererVarchar(lenght)
+        if lenght:
+            cell = CellRendererVarchar(lenght)
+            cell.fixed_width = True
+        else:
+            cell = gtk.CellRendererText()
         cell.set_property('editable', True)
         cell.set_property('editable-set', True)
         cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
@@ -310,6 +320,7 @@ class SqlTable(sqlwidget.SqlWidget):
         tvcolumn.pack_start(cell, True)
         #tvcolumn.add_attribute(cell, 'text', j )
         tvcolumn.set_cell_data_func(cell, self.cell_default_cb, ('text', field_name) )
+        tvcolumn.cells_data_func = [(cell, self.cell_default_cb, ('text', field_name) )]
         tvcolumn.set_expand(self.is_expandable(field_name))
 
         specs = self.fields[field_name]['col_spec']
@@ -323,7 +334,6 @@ class SqlTable(sqlwidget.SqlWidget):
                     cell.set_property('xalign', 0.5)
             except:
                 pass
-        
         return  cell
 
     def setup_generic_column(self, field_name, tvcolumn):
@@ -340,6 +350,7 @@ class SqlTable(sqlwidget.SqlWidget):
         tvcolumn.pack_start(cell, True)
         #tvcolumn.add_attribute(cell, 'text', j )
         tvcolumn.set_cell_data_func(cell, self.cell_default_cb, ('text', field_name) )
+        tvcolumn.cells_data_func = [(cell, self.cell_default_cb, ('text', field_name) )]
         tvcolumn.set_expand(self.is_expandable(field_name))
         return  cell
 
