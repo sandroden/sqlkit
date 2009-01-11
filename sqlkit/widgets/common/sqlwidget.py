@@ -467,6 +467,15 @@ class SqlWidget(gobject.GObject):
             self.widgets['O.tool'].set_show_arrow(False)
             self.lay_obj.prop('O.tool', 'toolbar_style','GTK_TOOLBAR_ICONS')
     
+        if 'O.quit' in self.widgets:
+            self.widgets['O.quit'].set_show_arrow(False)
+            self.lay_obj.prop('O.quit', 'toolbar_style','GTK_TOOLBAR_ICONS')
+
+        if 'm=modify' in self.widgets:
+            self.lay_obj.menu('m=modify',
+                              ('gtk-delete', 'activate', self.record_delete),
+                              ('gtk-refresh', 'activate', self.reload_cb),
+                              )
 
 ####### Saving
     def record_delete(self, widget=None):

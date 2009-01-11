@@ -300,12 +300,13 @@ class LayoutGenerator (object):
         if self.master.is_mask():
             nav_buttons="tb=gtk-go-back tb=gtk-go-forward"
         else:
-            nav_buttons=""
+            nav_buttons="tb=gtk-zoom-fit"
+
             
         self.layout = """
         {B m=file m=modify m=option m=help}
-        {O.tool tb=gtk-save tb=gtk-save-as tb=gtk-delete tb=gtk-new tb=gtk-refresh tb=gtk-quit
-        %s}
+        {O.tool tb=gtk-save tb=gtk-save-as tb=gtk-delete tb=gtk-new tb=gtk-refresh 
+        %s } 
         {A.external { %s}}
         sb=StBar
         """ % (nav_buttons, self.layout)

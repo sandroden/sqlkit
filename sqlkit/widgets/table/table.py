@@ -32,7 +32,7 @@ import re
 import gobject
 import gtk
 import sqlkit
-from utils import set_height_request, set_optimal_width
+import utils as tv_utils
 from  cell_renderers import CellRendererDate, CellRendererDatetime, CellRendererVarchar
 import totals
 from sqlkit.widgets.common import sqlwidget
@@ -117,12 +117,30 @@ class SqlTable(sqlwidget.SqlWidget):
                 label.set_text('')
                 
 
-        set_optimal_width(self.treeview, self)
+        self.treeview.hide()
+        self.treeview.show()
+        tv_utils.set_optimal_width(self.treeview, )
 
         return (self.lay_obj, self.widgets)
 
-
     
+    def _add_actions_to_buttons(self):
+        """
+        add zoom to fit
+        """
+        sqlwidget.SqlWidget._add_actions_to_buttons(self)
+        if 'tb=gtk-zoom-fit' in self.widgets:
+            self.widgets['tb=gtk-zoom-fit'].connect('clicked', self.on_zoom_fit)
+
+        if 'm=modify' in self.widgets:
+            self.lay_obj.menu('m=modify',
+                              ('gtk-zoom-fit', 'activate', self.on_zoom_fit, False),
+                              )
+
+
+    def on_zoom_fit(self, widget, *args):
+        tv_utils.zoom_to_fit(self.treeview, resize=True)
+
     def reload_cb(self, *args):
         """this is the real callback: C-r and toolbutton 
         """
@@ -1265,7 +1283,7 @@ class SqlTable(sqlwidget.SqlWidget):
         set number of treeview visible rows to "rows"
         """
         dbg.write("setting rows:", rows)
-        set_height_request(treeview, rows)
+        tv_utils.set_height_request(treeview, rows)
 
     def get_first_editable_col(self):
         """
