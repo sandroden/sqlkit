@@ -295,7 +295,7 @@ class CellRendererDatetime(CellRendererDate):
         return True
 
 
-MAX_CHARS = 60    
+MAX_CHARS = 30    
 
 class CellRendererVarchar(gtk.CellRendererText):
     fixed_width = True

@@ -51,7 +51,7 @@ class Movie(Base):
 
 class Genre(Base):
     __tablename__ = 'genre'
-    name     = Column(Unicode(15, assert_unicode=False), primary_key=True)
+    name     = Column(Unicode(55, assert_unicode=False), primary_key=True)
     
     def __repr__(self):
         return u'<Genre "%s">' % self.name
