@@ -22,6 +22,7 @@ import re
 import os
 import gtk, gobject
 from sqlkit import debug as  dbg
+from sqlkit.layout.greedy_treeview import GreedyTreeView
 class IdentifierAlreadyPresent: pass
 
 info = {}
@@ -482,7 +483,7 @@ class Calendar(LWidget):
     
 
 class TreeView(LWidget):
-    gtkClass = 'GtkTreeView'
+    gtkClass = 'GreedyTreeView'
     transpose = {
         'w' : 'width_request',
         'h' : 'height_request',
@@ -494,7 +495,7 @@ class TreeView(LWidget):
 
     def _class_specific(self):
         self.make_v_expandable()
-
+        
 class TextView(LWidget):
     gtkClass = 'GtkTextView'
     def _class_specific(self):
@@ -1037,7 +1038,7 @@ _W = {
     'ts'  : ToolSpinButton,
     'C'   : ComboBox,
     'Ce'  : ComboBoxEntry,
-    'TV'  : TreeView,
+    'TV'  : GreedyTreeView,
     'TX'  : TextView,
     'daS' : ScrolledDrawingArea,
     'TVS' : ScrolledTreeView,
@@ -1094,6 +1095,7 @@ class MyCustomWidget(CustomWidget):
 def custom_widget(glade, function_name, widget_name,
                   str1=None, str2=None, int1=None , int2=None):
     cw = MyCustomWidget()
+    print "function_name is", function_name
     return getattr(cw, function_name)()
 
 
