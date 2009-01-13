@@ -218,6 +218,8 @@ def zoom_to_fit(treeview, resize=True):
 
     if resize:
         set_optimal_width(treeview)
+        
+    treeview.columns_autosize()
 
 def set_all_nonfilling(wid, level):
     """

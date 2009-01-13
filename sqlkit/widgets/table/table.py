@@ -116,9 +116,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.treeview.hide()
         self.treeview.show()
-        self.treeview.connect_after('realize', tv_utils.set_optimal_width)
-#        tv_utils.set_optimal_width(self.treeview)
-
+        gobject.idle_add(tv_utils.set_optimal_width, self.treeview)
         return (self.lay_obj, self.widgets)
 
     
