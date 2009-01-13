@@ -307,9 +307,10 @@ class CellRendererVarchar(gtk.CellRendererText):
     
     def do_get_size(self, widget, cell_area):
         # We start from the standard dimension...
+        ellipsize = self.get_property('ellipsize')
         self.set_property('ellipsize', False)
         size_tuple = gtk.CellRendererText.do_get_size(self, widget, cell_area)
-        self.set_property('ellipsize', pango.ELLIPSIZE_END)
+        self.set_property('ellipsize', ellipsize)
 
         if not self.fixed_width:
             # We just return the standard text size.

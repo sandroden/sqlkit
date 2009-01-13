@@ -94,10 +94,7 @@ class SqlTable(sqlwidget.SqlWidget):
 #             self.lay_obj.prop('TV=tree', 'height-request', self.geom[1])
 
         if self.rows:
-            self.treeview.connect_after('realize', self.set_rows, self.rows)
-
-#         if self.rows:
-#             self.set_height_request()
+            self.set_rows(self.treeview, self.rows)
 
         if self.icons:
             self.lay_obj.prop(
@@ -119,7 +116,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.treeview.hide()
         self.treeview.show()
-        tv_utils.set_optimal_width(self.treeview, )
+        self.treeview.connect_after('realize', tv_utils.set_optimal_width)
+#        tv_utils.set_optimal_width(self.treeview)
 
         return (self.lay_obj, self.widgets)
 

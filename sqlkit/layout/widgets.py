@@ -1095,7 +1095,6 @@ class MyCustomWidget(CustomWidget):
 def custom_widget(glade, function_name, widget_name,
                   str1=None, str2=None, int1=None , int2=None):
     cw = MyCustomWidget()
-    print "function_name is", function_name
     return getattr(cw, function_name)()
 
 

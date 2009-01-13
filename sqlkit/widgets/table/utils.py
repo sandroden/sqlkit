@@ -4,6 +4,50 @@ import gtk
 import pango
 from cell_renderers import CellRendererVarchar
 
+def unset_real_size(window, event):
+    """Fields 'real width' and 'real height' become obsolete (or at least
+    useless) when a resize actually takes place.
+    """
+
+    window.set_data('real width', None)
+    window.set_data('real height', None)
+    
+    handler = window.get_data('configure handler')
+    if handler:
+        # The callback is now useless; remove it.
+        window.disconnect(handler)
+        window.set_data('configure handler', None)
+    
+def ensure_configure_handler(window):
+    """Ensure that unset_real_size is called.
+    """
+    if not window.get_data('configure handler'):
+        new_handler = window.connect('configure-event', unset_real_size)
+        window.set_data('configure handler', new_handler)
+
+def set_width(window, width):
+    ensure_configure_handler(window)
+
+    window.set_data('real width', width)
+    height = window.get_data('real height')
+    if not height:
+        height = window.get_size()[1]
+        
+    window.resize(width, height)
+    
+def set_height(window, height):
+    ensure_configure_handler(window)
+
+    window.set_data('real height', height)
+    width = window.get_data('real width')
+    if not width:
+        width = window.get_size()[0]
+        
+    window.resize(width, height)
+
+
+
+
 def set_height_request(treeview, rows=None):
     """
     Show "rows" rows in the treeview,
@@ -34,10 +78,9 @@ def set_height_request(treeview, rows=None):
     toplevel        = treeview.get_toplevel()
     visible_rect    = treeview.get_visible_rect()
     missing_height  = needed_height - visible_rect.height
-    new_width       = toplevel.get_allocation().width
     new_height      = toplevel.get_allocation().height + missing_height
 #   print "toplevel:", toplevel, "old:", toplevel.get_allocation().height, "new:", new_height
-    toplevel.resize(new_width, new_height)
+    set_height(toplevel, new_height)
     
 def get_string_exact_width(context, string):
     """
@@ -69,7 +112,7 @@ def get_string_width(context, string=None, chars_num=80):
         width = pango.PIXELS(pango_width)
         return width
         
-def get_effective_screen_width():
+def get_screen_width(effective = True):
     """
     Ugly hack. Couldn't find anything better. And in fact it's not strange,
     since GNOME HIGs apparently don't like this.
@@ -78,21 +121,14 @@ def get_effective_screen_width():
     prop = gtk.gdk.atom_intern('_NET_WORKAREA')
     fields = root.property_get(prop)
     sizes = fields[2]
-    width = sizes[2]
-    return width
+    if effective and sizes:
+        width = sizes[2]
+        return width
+    else:
+        # Notice Windows will fallback here and assume there are no lateral panels.
+        screen = root.get_screen()
+        return screen.get_width()
 
-def free_column(column):
-    """
-    Free a column from restriction on its resizeability.
-    """
-    print "freeing", column
-    column.set_min_width(0)
-    column.set_max_width(2000)
-    
-    
-def unset_size_request(treeview, *args):
-    print "unset!"
-    treeview.set_size_request(-1,-1)
     
 def set_optimal_width(treeview, max_pixels=None):
     """
@@ -109,26 +145,73 @@ def set_optimal_width(treeview, max_pixels=None):
     set.
     """    
 
-    desired_size = treeview.size_request()
-    print "set_size_request!"
-    treeview.set_size_request(*desired_size)
-    gobject.timeout_add(1, unset_size_request, treeview)
+    widget = treeview
     
+    scrolledwindows = []
+    scrolledwindows_policies = []
+    scrolledwindows_hscrollbars = []
+    
+    while widget:
+        # The ScrolledWindows stop propagation of queue_redraws, unless they
+        # have the scrollbars disabled, so here we disable them...
+        if gobject.type_is_a(widget, gtk.ScrolledWindow):
+            scrolledwindows.append(widget)
+            scrolledwindows_policies.append(widget.get_policy())
+            widget.set_policy(gtk.POLICY_NEVER, gtk.POLICY_NEVER)
+            scrolledwindows_hscrollbars.append(widget.get_hscrollbar())
+        widget = widget.get_parent()
+
+    toplevel = treeview.get_toplevel()
+
+    # ... then we can take the size...
+
+    new_width = toplevel.size_request()[0]
+
+    # ... ad the size of bars...
+    bars_width = 0
+    for index in range(len(scrolledwindows)):
+        # (not needed if the policy hides it)
+        if scrolledwindows_policies[index][0] == gtk.POLICY_ALWAYS:
+            bars_width += scrolledwindows_hscrollbars[index].size_request()[0]
+        scrolledwindows[index].set_policy(*scrolledwindows_policies[index])
+#    print "width:", new_width
+
+    # ... and put together the total size.
+
+    new_width += bars_width
+ 
+    available = get_screen_width()
+    
+    if toplevel.window:
+        allocation = toplevel.window.get_frame_extents()
+        border = allocation.width - toplevel.get_size()[0]
+#        print "border", border
+    else:
+        # Guess (Ubuntu's metacity's default theme and settings)
+        border = 10
+
+    extra = new_width + border - available 
+
+    if extra > 0:
+        new_width -= extra
+#        print "extra", extra
+        
+
+    set_width(toplevel, new_width)
     return
-
-
+ 
 def zoom_to_fit(treeview, resize=True):
-    """Take a treeview (presumably from a sqlmask) and, for each column rendered
-    by a CellRendererVarchar, reset space request criterion to content only (not
-    database lenght introspection).
+    """Take a treeview (presumably from a sqlmask) and, for each column asking
+    a fixed size, reset space request criterion to content only (not database
+    lenght introspection).
     Then, if "resize" is True, resize window accordingly.
     """
     columns = treeview.get_columns()
     for column in columns:
         renderers = column.get_cell_renderers()
         for renderer in renderers:
-            if gobject.type_is_a(renderer, CellRendererVarchar):
-                # Let's fall back to the usual CellRendererText...
+            if hasattr(renderer, 'fixed_width') and renderer.fixed_width:
+                # Let's fall back to the usual size method...
                 renderer.fixed_width = False
         column.set_expand(True)
         column.set_min_width(0)

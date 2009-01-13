@@ -10,32 +10,26 @@ class GreedyTreeView(gtk.TreeView):
     __gtype_name__ = 'GreedyTreeView'
    
     def __init__(self, *args):
-        print "init!"
-        print self.get_headers_visible()
         gtk.TreeView.__init__(self, *args)
 
     def do_size_request(self, requisition):
         
         treeview = self
-        print "size request!"
         gtk.TreeView.do_size_request(self, requisition)
-#        size = gtk.TreeView.size_request(self)
-        print "width would be", requisition.width
-        # No! It is 0!
- #       requisition.height = 400
-
-        widths = []
+#        print "width would be", requisition.width
 
 
-        columns = treeview.get_columns()
-        titles = [column.get_title() for column in columns]
+
         model = treeview.get_model()
         try:
             rows_number = len(model)
         except:
             return
         
+        columns = treeview.get_columns()
+        titles = [column.get_title() for column in columns]
         
+        widths = []
         
         width_known = True
         
@@ -97,10 +91,19 @@ class GreedyTreeView(gtk.TreeView):
             expected_width += len(cell_renderers)*treeview.style_get_property('horizontal-separator')
             widths.append(max(expected_width, top_width) + 4)   # FIXME: clarify this 4
     
+#            print "column", column.get_title()
+ #           print "renderers", cell_renderers
+  #          if hasattr(cell_renderers[0], 'lenght'):
+   #             print "lenght", cell_renderers[0].lenght
+    #        print "widths", renderers_widths
+#        print "widths", widths
+        
         if width_known:
             total_desired_width = sum(widths)
         else:
             total_desired_width = treeview.size_request()[0]
 
-        requisition.width = total_desired_width
-        print "instead, it is", requisition.width
+        # If we happened to mismatch because of missing introspection, let's
+        # trust in gtk... 
+        requisition.width = max(total_desired_width, requisition.width)
+#        print "instead, it could be", total_desired_width, "... it is", requisition.width
