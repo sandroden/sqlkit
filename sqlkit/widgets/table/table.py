@@ -522,7 +522,11 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
     
     def record_initialize_vfields(self):
+        return 
         obj = self.get_current_obj()
+
+        obj = self.get_selected_obj()
+        print "initialize", obj, obj and obj.descr
         if obj:
             for field_name in self.field_list:
                 value = getattr(obj, field_name)
@@ -1092,11 +1096,13 @@ class SqlTable(sqlwidget.SqlWidget):
         sqlwidget.SqlWidget.record_refresh(self)
 
     def set_value(self, field_name, value, path=None, fkvalue=None, initial=False):
-        """called from within edited signal and completion.
+        """
+        called from within edited signal and completion.
         Validation should live here?
         If path, is not passed (as when used from completion)
         it is deduced from selection
-        fkey: if True the value is handled as a primary key. Used from completion
+        fkey: if True the value is handled as a primary key.
+        Used from completion and from vfields/tablewidget
         """
 
         ## note: current cannot be used. We don't want the currently selected obj
@@ -1253,13 +1259,6 @@ class SqlTable(sqlwidget.SqlWidget):
         dbg.write("setting rows:", rows)
         set_height_request(treeview, rows)
 
-
-
-
-
-
-        
-
     def get_first_editable_col(self):
         """
         return the first visible col to position the cursor on
@@ -1387,14 +1386,6 @@ class SqlTable(sqlwidget.SqlWidget):
                 return self.editable.get_text()
         return getattr(self.get_current_obj(), field_name)
 
-
-
-
-
-
-
-
-
     def set_editable(self, editable=True):
         """
         Turn this table into a normal editable table
@@ -1404,7 +1395,3 @@ class SqlTable(sqlwidget.SqlWidget):
         for field in self.vfields:
             field.widget.add_completion(editable=editable)
         
-
-
-
-
