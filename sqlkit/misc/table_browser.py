@@ -76,18 +76,18 @@ class TableBrowser(object):
         menu = self.w['M=popup'] = gtk.Menu()
 
         ## add to filter
-        item = gtk.MenuItem(label="mask" )
+        item = gtk.MenuItem(label=_("Mask") )
         item.connect('activate', self.activate_cb, ('mask', table ))
         menu.append(item)
 
         ## add to filter
-        item = gtk.MenuItem(label="table" )
+        item = gtk.MenuItem(label=_("Table") )
         item.connect('activate', self.activate_cb, ('table', table ))
         menu.append(item)
 
         if not self.model.iter_children(iter):
             ## add to filter
-            item = gtk.MenuItem(label="table reflection" )
+            item = gtk.MenuItem(label=_("Table reflection") )
             item.connect('activate', self.get_table_info_in_model, (table, iter ))
             menu.append(item)
 
@@ -95,7 +95,7 @@ class TableBrowser(object):
         menu.popup(None, None, None, ev.button, ev.time)
 
     def activate_cb(self, wdg, data):
-        #dbg.write()
+
         mode, table = data
         options ={'table' : table,
                'dev' : self.opts.dev,
@@ -110,7 +110,7 @@ class TableBrowser(object):
                 pass
         else:
             try:
-                SqlTable(**options)
+                self.tbl = SqlTable(**options)
             except sqlkit.exc.MissingDescriptorField:
                 pass
             

@@ -80,6 +80,7 @@ def sqlkit_model():
        o2m=attributes -
 
     """
+    global tbl
     try:
         from sqlkit.db.sqlkit_model import SqlkitTable, Base
         Base.metadata.bind = db.metadata.bind
@@ -89,7 +90,7 @@ def sqlkit_model():
                 sys.exit(0)
             else:    
                 Base.metadata.create_all()
-        t = SqlMask(Class=SqlkitTable, dbproxy=db, single=True, layout=lay)
+        tbl = SqlMask(Class=SqlkitTable, dbproxy=db, single=True, layout=lay)
     except Exception, e:
         print e
         raise
