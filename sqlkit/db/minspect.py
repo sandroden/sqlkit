@@ -7,6 +7,7 @@ import decimal
 import re
 from  sqlalchemy.orm import properties
 import sqlalchemy.orm.properties 
+from sqlkit.misc.utils import Container
 
 SA_TYPE_MAP =  {
     sqlalchemy.types.String : str,
@@ -35,7 +36,7 @@ def is_serial (c):
         return False
 
 
-class InspectMapper(dict):
+class InspectMapper(Container):
     """inspect a mapper and gather all info on fields normally used.
     Adds attributes for each field_name pointing to a dictionary with:
     
@@ -116,7 +117,7 @@ class InspectMapper(dict):
             col_spec = mapper.c[field_name].type.get_col_spec()
         except NotImplementedError,e:
             col_spec = None
-        d = {
+        d = Container({
 #            'table_name'  :  mapper.local_table.name ,
             'table_name'  :  col.table.name ,
             'name'        :  str(field_name),
@@ -134,7 +135,7 @@ class InspectMapper(dict):
             'mapper'      :  mapper,
             'edit'        :  self.set_noup(field_name, col.name, col)
 #            'direction'   :  mapper.props[field_name].direction
-            }
+            })
         try:
             d['length'] = mapper.c[field_name].type.length
         except:

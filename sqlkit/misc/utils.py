@@ -2,9 +2,15 @@ class Container(object):
     """
     a container for other object that allows iteration and dict-like access
     """
-    def __init__(self):
+    def __init__(self, cdict=None):
+        """
+        cdict may be a dictionary that will be used to initialize the Container
+        """
         self._attrs = []
         self._n = 0
+        if cdict:
+            for key, value in cdict.iteritems():
+                self.add_element(key, value)
 
     def add_element(self, key, value):
         setattr(self, key, value)
