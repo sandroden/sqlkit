@@ -25,27 +25,33 @@ def ensure_configure_handler(window):
         new_handler = window.connect('configure-event', unset_real_size)
         window.set_data('configure handler', new_handler)
 
+def get_width(window):
+    width = window.get_data('real width')
+    if not width:
+        width = window.get_size()[0]
+    return width
+
+def get_height(window):
+    height = window.get_data('real height')
+    if not height:
+        height = window.get_size()[1]
+    return height
+
 def set_width(window, width):
     ensure_configure_handler(window)
 
     window.set_data('real width', width)
-    height = window.get_data('real height')
-    if not height:
-        height = window.get_size()[1]
-        
+
+    height = get_height(window)        
     window.resize(width, height)
     
 def set_height(window, height):
     ensure_configure_handler(window)
 
     window.set_data('real height', height)
-    width = window.get_data('real width')
-    if not width:
-        width = window.get_size()[0]
-        
+
+    width = get_width(window)        
     window.resize(width, height)
-
-
 
 
 def set_height_request(treeview, rows=None):
@@ -167,7 +173,7 @@ def set_optimal_width(treeview, max_pixels=None):
 
     new_width = toplevel.size_request()[0]
 
-    # ... ad the size of bars...
+    # ... add the size of bars...
     bars_width = 0
     for index in range(len(scrolledwindows)):
         # (not needed if the policy hides it)
@@ -184,7 +190,7 @@ def set_optimal_width(treeview, max_pixels=None):
     
     if toplevel.window:
         allocation = toplevel.window.get_frame_extents()
-        border = allocation.width - toplevel.get_size()[0]
+        border = allocation.width - get_width(toplevel)
 #        print "border", border
     else:
         # Guess (Ubuntu's metacity's default theme and settings)
