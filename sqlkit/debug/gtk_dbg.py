@@ -94,7 +94,9 @@ class wshow(object):
         children = []
         try:
             ## I want first higher widget in layout
-            children = reversed(widget.get_children())
+            children = widget.get_children()
+            if isinstance(widget, gtk.Table):
+                children = reversed(widget.get_children())
         except:
             pass
         
