@@ -26,8 +26,8 @@ import sys
 from datetime import datetime
 from sqlkit import exc
 import sqlalchemy
-from sqlkit import debug as dbg
-from sqlkit.layout import widgets 
+from sqlkit import debug as dbg, _
+from sqlkit.layout import widgets, get_label
 import re
 import gobject
 import gtk
@@ -347,17 +347,17 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         Add a clickable label to the column via EventBox
         """
-
+        label_text = _(get_label(field_name, layout=self.lay_obj))
         event_box = gtk.EventBox()
         label = gtk.Label()
-        label.set_markup(field_name)
+        label.set_markup(label_text)
         event_box.add(label)
         event_box.show_all()
         tvcolumn.set_widget(event_box)
 
         ## bold italic
         if not self.is_nullable(field_name) and not self.fields[field_name]['default']:
-            label.set_markup('<b><i>%s</i></b>' % field_name)
+            label.set_markup('<b><i>%s</i></b>' % label_text)
                 
         
     def is_expandable(self, field_name):
@@ -400,7 +400,10 @@ class SqlTable(sqlwidget.SqlWidget):
         menu = self.widgets['M=popup'] = gtk.Menu()
 
         ## add to filter
-        item = gtk.MenuItem(label="add %s to filter" % field_name.replace('_', ' '))
+        ## TIP: menu entry to add a filter in the filter panel
+        field_name_localized = get_label(field_name, layout=self.lay_obj).replace('_', '__')
+        label_str = _("Add a filter on %s") % field_name_localized
+        item = gtk.MenuItem(label=label_str)
 #        item.connect('activate', self.filter_panel.add, ev, field_name )
         item.connect('activate', self.filter_panel.add, ev, field_name, self )
         menu.append(item)
@@ -416,13 +419,15 @@ class SqlTable(sqlwidget.SqlWidget):
             menu.append(item)
 
         ## hide
-        item = gtk.MenuItem(label="hide")
+        # TIP: column menu opt
+        item = gtk.MenuItem(label=_("Hide this column"))
         item.connect('activate', self.hide_fields_cb, field_name )
         menu.append(item)
 
         ## totals
         if self.get_field_type(field_name) in sqlwidget.NUMBERS and not self.is_fkey(field_name):
-            item = gtk.MenuItem(label="create total")
+            # TIP: column menu opt
+            item = gtk.MenuItem(label=_("Create total"))
             item.connect('activate', self.add_total_cb, field_name )
             menu.append(item)
 
@@ -431,7 +436,8 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.is_date(field_name):
             self.menu_add_date_total_break(menu, field_name)
         else:
-            item = gtk.MenuItem(label="subtotal on %s" % (field_name))
+            # TIP: column menu total
+            item = gtk.MenuItem(label=_("Subtotal on %s") % (field_name_localized))
             item.connect('activate', self.add_subtotal_cb, field_name )
             menu.append(item)
 
@@ -446,9 +452,9 @@ class SqlTable(sqlwidget.SqlWidget):
         if not 'M=modify' in self.widgets:
             return
         menu = self.widgets['M=modify']
-
-        item_show = gtk.MenuItem(label="Show field")
-        item_hide = gtk.MenuItem(label="Hide field")
+        # TIP: modify menu entry
+        item_show = gtk.MenuItem(label=_("Show field"))
+        item_hide = gtk.MenuItem(label=_("Hide field"))
         menu.append(item_show)
         menu.append(item_hide)
         
@@ -459,7 +465,8 @@ class SqlTable(sqlwidget.SqlWidget):
         item_hide.set_submenu(self.menu_hide)
 
         for field_name in self.field_list:
-            m = gtk.MenuItem(field_name)
+            field_name_localized = get_label(field_name, layout=self.lay_obj).replace('_', '__')
+            m = gtk.MenuItem(field_name_localized)
             m.connect('activate', self.hide_fields_cb, field_name)
             self.menu_hide.append(m)
             
@@ -476,8 +483,11 @@ class SqlTable(sqlwidget.SqlWidget):
         def add_break_date_cb(menu_item, field_name, period):
             self.totals.add_date_break(field_name, period)
 
-        for period in "day week month quarter year".split():
-            item = gtk.MenuItem(label="subtotals on %s" % period)
+        periods = [('day',_('day')), ('week',_('week')), ('month',_('month')),
+                   ('quarter',_('quarter')), ('year',_('year'))]
+
+        for period, trad in periods:
+            item = gtk.MenuItem(label=_("Subtotals on %s") % period)
             item.connect('activate', add_break_date_cb, field_name, period)
             menu.append(item)
         
@@ -695,7 +705,8 @@ class SqlTable(sqlwidget.SqlWidget):
         if length:
             if lstr > length :
                 wdg.set_text(re.sub('.$', '', text))
-                self.sb("input exceeded '%s' length (%s)" % (field_name,length))
+                # TIP: check in input field length %s %s -> field_name length
+                self.sb(_("Input exceeded max %s length (%s)") % (field_name,length))
                 return True
         return False
 
@@ -891,7 +902,7 @@ class SqlTable(sqlwidget.SqlWidget):
         ## beyond the lower row)
         if not self.record_has_changed():
             if self.last_new_obj:
-                self.sb("Already at new record")
+                self.sb(_("Already at new record"))
                 return
         self.record_save()
         self.treeview.get_toplevel().set_focus(None)
@@ -933,8 +944,8 @@ class SqlTable(sqlwidget.SqlWidget):
             for record in self.records:
                 self.liststore.append([record])
 
-#        self.emit('record-selected', )
-        self.sb("Total N. of records: %s" % (len(self.liststore)))
+        # TIP: status bar message
+        self.sb(_("Total N. of records: %s") % (len(self.liststore)))
         
     def record_has_changed(self):
         if self.edited_row_model_path is None:
@@ -1031,7 +1042,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return True
         
         if interactive:
-            response = self.dialog(type='ok-cancel', text="Delete this record?")
+            response = self.dialog(type='ok-cancel', text=_("Delete this record?"))
             if response == gtk.RESPONSE_CANCEL:
                 return
 
@@ -1080,7 +1091,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.deleting_row = False
         self.totals.compute()
         
-        self.sb("total N. of records: %s" % len(self.liststore))
+        self.sb(_("Total N. of records: %s") % len(self.liststore))
         return True
     
     def clear(self, *args, **kwargs):
@@ -1242,9 +1253,9 @@ class SqlTable(sqlwidget.SqlWidget):
         path = self.get_selected_row()
         try:
             if self.liststore[path][0] is None:
-                self.sb('INSERT mode')
+                self.sb(_('INSERT mode'))
             else:
-                self.sb('UPDATE mode')
+                self.sb(_('UPDATE mode'))
         except:
             pass  # no selection...
         
@@ -1377,7 +1388,7 @@ class SqlTable(sqlwidget.SqlWidget):
             txt += ["\t".join(line)]
 
         txt = "\n".join(txt)
-        dialog = gtk.FileSelection(title="Export in csv file")
+        dialog = gtk.FileSelection(title=_("Export in csv file"))
         ret = dialog.run()
         if ret == gtk.RESPONSE_OK:
             filename = dialog.get_filename()
@@ -1396,7 +1407,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
         for field_name in field_name_list:
             self.tvcolumns[field_name].set_property('visible', False)
-            item = gtk.MenuItem(field_name)
+            field_name_localized = get_label(field_name, layout=self.lay_obj).replace('_', '__')
+            item = gtk.MenuItem(field_name_localized)
             item.connect('activate', self.show_column, field_name)
             try:
                 self.menu_show.append(item)
@@ -1455,5 +1467,4 @@ class SqlTable(sqlwidget.SqlWidget):
         for field in self.vfields:
             field.widget.add_completion(editable=editable)
         
-
 

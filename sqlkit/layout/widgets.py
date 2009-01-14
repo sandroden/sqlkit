@@ -23,6 +23,7 @@ import os
 import gtk, gobject
 from sqlkit import debug as  dbg
 class IdentifierAlreadyPresent: pass
+from sqlkit import _
 
 info = {}
 class LWidget(object):
@@ -36,13 +37,15 @@ class LWidget(object):
     class_properties = {'visible' : True}
     class_pack_properties  = {'y-options' : '0'}
 
-    def __init__(self, el_def, pos, container, elements):
+    def __init__(self, el_def, pos, container, elements, layout):
         ## update info for this class
         # print "Lwidget: %s %s" % (el_def,  self.gtkClass)
 #         if self.gtkClass == 'GtkAlignment':
 #             dbg.show_caller(sfilter='elements')
-	
+
         self.el_def = el_def
+        assert layout is not None
+        self.layout = layout
         self.lw = {}
         self.container_flag = container
         self.properties = {}
@@ -141,7 +144,7 @@ class LWidget(object):
                 self.properties['stock_id'] = re.sub('\..+','',self.val)
                 self.properties['label'] = None
             elif re.match('GtkButton', self.gtkClass):
-                self.properties['label'] = re.sub('\..+','',self.val)
+                self.properties['label'] = _(re.sub('\..+','',self.val))
                 #dbg.write(self.properties['label'])
                 self.properties['use-stock'] = True
             else:
@@ -149,42 +152,46 @@ class LWidget(object):
 
 
     def _labels_and_tips_from_info(self):
+        """
+        set possible label and tip 
+        """
+
         if not self.class_flag:
             return
 
-        ## try first a less specific (that w/0 'mod=' part)
-        if False:
-            bd0 = "&lt;b%gt;"
-            bd1 = "&lt;/b%gt;"
-        else:
-            bd0 = ''
-            bd1 = ''
-            
-        name = self.val
-        #dbg.write("##1 name = %s - el_def: %s" % (name, self.el_def))
-        try:
-            self.val = "%s%s%s" % (bd0, info[self.val][0], bd1)
-        except:
-            pass
+        label, tip = self.get_label_and_tip()
         
-        try:
-            self.properties['tooltip'] = info[name][1]
-        except:
-            pass
+        if label:
+            self.val = label
 
-        ## try if there is a more specific entry
+        if tip:
+            self.properties['tooltip'] = tip
+
+    def get_label_and_tip(self):
+        """
+        keys can be mapped to labels in 3 ways:
+
+          1. via a label_map local to the layout (shared with all nested layout)
+          2. via a global info dictionary
+          3. via gettext
+
+        1. is attempted first, failing that 2. is attempted.
+        The resulting string is anyhow passed via gettext.
+        The aim is to allow to use per-table (meaning database table) translation from a
+        name to the relative label. Names can normally be similar between tables.
+        """
+
+        name = self.val
         key = "%s=%s" % (self.class_flag, name)
-        try:
-            self.val = "%s%s%s" % (bd0, info[key][0], bd1)
 
-        except:
-            pass
-    
-        try:
-            self.properties['tooltip'] = info[key][1]
-        except:
-            pass
+        details = self.layout.label_map.get(key, None) or info.get(key, None)
+        if not details:
+            details = self.layout.label_map.get(name, None) or info.get(name, None)
 
+        if details:
+            return details
+        else:
+            return None, None
 
 
     def _set_dimentions(self):
@@ -335,10 +342,8 @@ class LContainer(LWidget):
     # and the el_def is not written in the layout but created on the fly
     # (Layout._create_container_label). We use it as label
 
-    def __init__(self, el_def, pos, container, children_list=None,
-                 elements=None):
-        #super(LContainer, self).__init__(el_def, pos, container, elements)
-        LWidget.__init__(self, el_def, pos, container, elements=elements)
+    def __init__(self, el_def, pos, container, children_list=None, elements=None, layout=None):
+        LWidget.__init__(self, el_def, pos, container, elements=elements, layout=layout)
         ## the children
         self.lw['children_list'] = children_list
         #self.properties['label'] = el_def
@@ -411,17 +416,16 @@ class LContainer(LWidget):
 class AlignmentEntry(LContainer):
     gtkClass = 'GtkAlignment'
 
-    def __init__(self,  el_def, pos, container, children_list=[], elements={}):
-        #dbg.write("EventLabel ", el_def)
+    def __init__(self,  el_def, pos, container, children_list=None, elements={}, layout=None):
         el_def = el_def.replace('ae=','A=')
-        super(LContainer, self).__init__(el_def, pos, container, elements=elements)
+        super(LContainer, self).__init__(el_def, pos, container, elements=elements, layout=layout)
         ## prepare the names...
 
         entry_str   = "e=%s" % (el_def.replace('A=',''))
         #print "ENTRY_STR", entry_str
         ## and create the children
         #print "EventLabel elements: ", elements.keys()
-        wdg = Entry(entry_str,(0,0),    'A', elements=elements)
+        wdg = Entry(entry_str,(0,0),    'A', elements=elements, layout=layout)
         self.lw['children_list'] = [ wdg ]
         if self.align == '-':
             self.properties['xscale'] = 1
@@ -519,7 +523,7 @@ class Label(LWidget):
     def _class_specific(self):
         self.properties.update({
             'xalign' : '1',
-            'label'  : self.val.replace('_',' ')+ ':',
+            'label'  : _(self.val).replace('_',' ') + ':',
             'xpad'   : 10,
             'use-markup' : True,
             })
@@ -541,7 +545,7 @@ class LabelFill(LWidget):
     def _class_specific(self):
         self.properties.update({
             'xalign' : '0',
-            'label'  : self.val,
+            'label'  : _(self.val),
             'xpad'   : 10,
             })
         self.pack_properties.update({
@@ -583,7 +587,7 @@ class Button(LWidget):
     def _class_specific(self):
         self.properties.update({
             'xalign' : '0',
-            'label'  : re.sub('\..+','',self.val)
+            'label'  : _(re.sub('\..+','',self.val))
             })        
         
         self.pack_properties.update({'y_options': ""})
@@ -634,13 +638,13 @@ class SpinButton(LContainer):
 
 class ToolSpinButton(LContainer):
     gtkClass = 'GtkToolItem'
-    def __init__(self, el_def, pos, container, elements):
+    def __init__(self, el_def, pos, container, elements, layout=None):
         el_def = el_def.replace('ts=', 'ti=')
         #super(LContainer, self).__init__(el_def, pos, container=container, elements=elements)
-        super(ToolSpinButton, self).__init__(el_def, pos, container=container, elements=elements)
+        super(ToolSpinButton, self).__init__(el_def, pos, container=container, elements=elements, layout=layout)
         ## if spinbutton in toolbar, we need to encapsulate in a ToolItem
         spin_def = el_def.replace('ti=','s=')
-        spin = SpinButton("%s" % (spin_def), (0,0), 'ti', elements=elements)
+        spin = SpinButton("%s" % (spin_def), (0,0), 'ti', elements=elements, layout=layout)
         self.lw['children_list'] = [ spin  ]
         #self.el_def = "ti=%s" % (self.var)
             
@@ -742,11 +746,11 @@ class VPaned(LContainer):
     class_pack_properties = {
         'resize' : False,
         }
-    def __init__(self, el_def, pos, container, children_list=None,
-                 elements=None):
+    def __init__(self, el_def, pos, container, children_list=None, elements=None, layout=None):
+                 
         msg = "%s cannot have more that 2 children (now: %s)" % (self.gtkClass, children_list)
         assert len(children_list) <= 2, msg
-        LWidget.__init__(self, el_def, pos, container, elements=elements)
+        LWidget.__init__(self, el_def, pos, container, elements=elements, layout=layout)
 
         ## the children
         self.lw['children_list'] = children_list
@@ -797,13 +801,13 @@ class FrameWithLabel(LContainer):
         'shadow_type' : 'GTK_SHADOW_ETCHED_IN',
         }
     
-    def __init__(self,  el_def, pos, container, children_list=[], elements={}):
-        super(LContainer, self).__init__(el_def, pos, container, elements)
+    def __init__(self,  el_def, pos, container, children_list=[], elements={}, layout=None):
+        super(LContainer, self).__init__(el_def, pos, container, elements, layout=layout)
         ## prepare the names...
         al_str = "A=%s" % (self.val.replace('F','') )
         ## and create the children. We pass the child over to Alignment
         alignment = Alignment(al_str,(0,0),    'F' ,
-                              children_list=children_list, elements=elements)
+                              children_list=children_list, elements=elements, layout=layout)
         self.lw['children_list'] = [ alignment ]
         ## correct the parent_container of the child
         alignment.lw['container_flag'] = 'A'
@@ -834,16 +838,16 @@ class EventBox(LContainer):
 class EventLabel(LContainer):
     gtkClass = 'GtkEventBox'
 
-    def __init__(self,  el_def, pos, container, children_list=[], elements={}):
+    def __init__(self,  el_def, pos, container, children_list=[], elements={}, layout=None):
         #dbg.write("EventLabel ", el_def)
         el_def = el_def.replace('L=','E=')
-        super(LContainer, self).__init__(el_def, pos, container, elements=elements)
+        super(LContainer, self).__init__(el_def, pos, container, elements=elements, layout=layout)
         ## prepare the names...
 
         lbl_str   = "l=%s:.%s" % (el_def.replace('E=',''), self.w or '')
         ## and create the children
         #print "EventLabel elements: ", elements.keys()
-        label = Label(lbl_str,(0,0),    'E', elements=elements)
+        label = Label(lbl_str,(0,0),    'E', elements=elements, layout=layout)
         self.lw['children_list'] = [ label ]
         
     def _class_specific(self):
@@ -856,15 +860,15 @@ class ComboLE(LContainer):
     # it'a HBox/VBox with a label and an entry
     gtkClass = 'GtkVBox'
 
-    def __init__(self,  el_def, pos, container, children_list=[], elements=None):
-        super(ComboLE, self).__init__(el_def, pos, container, elements=elements)
+    def __init__(self,  el_def, pos, container, children_list=[], elements=None, layout=None):
+        super(ComboLE, self).__init__(el_def, pos, container, elements=elements, layout=layout)
         ## prepare the names...
         lbl_str   = "E=%s:%s%s" % (self.val, self.w or '', self.align or '')
         entry_str = "e=%s:%s%s" % (self.var, self.h or '', self.align or '')
         #dbg.debug(entry_str, lbl_str, self.w, self.h)
         ## and create the children
         label = EventLabel(lbl_str,(0,0),    'V', elements=elements)
-        entry = Entry(entry_str,(0,1),  'V', elements=elements)
+        entry = Entry(entry_str,(0,1),  'V', elements=elements, layout=layout)
         self.lw['children_list'] = [ label, entry ]
         ### w and h are there only to propagate to label & entry
         self.w = None
@@ -880,14 +884,14 @@ class ComboLE(LContainer):
 class ScrolledTreeView(LContainer):
     gtkClass = 'GtkScrolledWindow'
 
-    def __init__(self,  el_def, pos, container, children_list=[], elements={}):
+    def __init__(self,  el_def, pos, container, children_list=[], elements={}, layout=None):
         el_def = el_def.replace('TVS=','S=')
-        super(LContainer, self).__init__(el_def, pos, container, elements)
+        super(LContainer, self).__init__(el_def, pos, container, elements, layout=layout)
         ## prepare the names...
         tree = "TV=%s:%s.%s" % (self.val, self.h or '', self.w or '')
 
         ## and create the children
-        new = TreeView(tree,(0,0),    'S', elements)
+        new = TreeView(tree,(0,0),    'S', elements, layout=layout)
         self.lw['children_list'] = [ new  ]
     def _class_specific(self):
         self.pack_properties.update({
@@ -899,9 +903,9 @@ class ScrolledTreeView(LContainer):
 class ScrolledLayout(ScrolledWindow):
     gtkClass = 'GtkScrolledWindow'
 
-    def __init__(self,  el_def, pos, container, children_list=[], elements={}):
+    def __init__(self,  el_def, pos, container, children_list=[], elements={}, layout=None):
         el_def = el_def.replace('LS=', 'S=')
-        super(LContainer, self).__init__(el_def, pos, container=container, elements=elements)
+        super(LContainer, self).__init__(el_def, pos, container=container, elements=elements, layout=layout)
         ## prepare the names...
         tree = "Lay=%s:%s.%s" % (self.val, self.h or '', self.w or '')
 
@@ -918,24 +922,24 @@ class ScrolledLayout(ScrolledWindow):
 class ScrolledTextView(ScrolledWindow):
     gtkClass = 'GtkScrolledWindow'
 
-    def __init__(self,  el_def, pos, container, children_list=[], elements={}):
+    def __init__(self,  el_def, pos, container, children_list=[], elements={}, layout=None):
         el_def = el_def.replace('TXS=','S=')
         #super(LContainer, self).__init__(el_def, pos, container, elements)
-        ScrolledWindow.__init__(self, el_def, pos, container=container, elements=elements)
+        ScrolledWindow.__init__(self, el_def, pos, container=container, elements=elements, layout=layout)
         ## prepare the names...
         tree = "TX=%s:%s.%s" % (el_def.replace('S=',''), self.h or '', self.w or '')
 
         ## and create the children
-        new = TextView(tree,(0,0),    'S', elements=elements)
+        new = TextView(tree,(0,0),    'S', elements=elements, layout=layout)
         self.lw['children_list'] = [ new  ]
         
 class ScrolledDrawingArea(ScrolledWindow):
     gtkClass = 'GtkScrolledWindow'
 
-    def __init__(self,  el_def, pos, container, children_list=[], elements={}):
+    def __init__(self,  el_def, pos, container, children_list=[], elements={}, layout=None):
         el_def = el_def.replace('daS=','S=')
         #super(LContainer, self).__init__(el_def, pos, container, elements)
-        ScrolledWindow.__init__(self, el_def, pos, container=container, elements=elements)
+        ScrolledWindow.__init__(self, el_def, pos, container=container, elements=elements, layout=layout)
         ## prepare the names...
         wdg = "da=%s:%s.%s" % (self.val, self.h or '', self.w or '')
         #dbg.write('wdg', wdg)
@@ -970,19 +974,19 @@ class MenuItem(LContainer):
     gtkClass = 'GtkMenuItem'
     parent = 'm'
 
-    def __init__(self,  el_def, pos, container, children_list=[], elements={}):
-        super(MenuItem, self).__init__(el_def, pos, container, [], elements)
+    def __init__(self,  el_def, pos, container, children_list=[], elements={}, layout=None):
+        super(MenuItem, self).__init__(el_def, pos, container, [], elements, layout=layout)
         #print "MENU: " + el_def
         ## prepare the names...
         menu = "M=%s" % (self.val)
 
         ## and create the children
-        new = Menu(menu,(0,0), self.parent, children_list=[], elements=elements)
+        new = Menu(menu,(0,0), self.parent, children_list=[], elements=elements, layout=layout)
         #print "new menu ", new, menu, self.parent
         self.lw['children_list'] = [ new  ]
 
     def _class_specific(self):
-        self.properties['label'] = self.val
+        self.properties['label'] = _(self.val)
         self.properties['use_underline'] = True
         
         # specify that we want write label before use_underline

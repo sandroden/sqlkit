@@ -26,7 +26,8 @@ from sqlkit.widgets.common import completion, sqlwidget
 import decimal
 import sqlkit
 from sqlkit import debug as dbg
-from sqlkit import exc
+from sqlkit import exc, _
+
 #NOT_NULL_COLOR = gtk.gdk.color_parse('yellow')
 FK_COLOR = gtk.gdk.color_parse('navyblue')
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
@@ -69,7 +70,8 @@ class SqlMask (sqlwidget.SqlWidget):
         incr: incr=incr 
         """
         if not self.records:
-            self.sb('No records to browse')
+            ## TIP: message in the statis bar
+            self.sb(_('No records present'))
             return
         if not reread:
             try:
@@ -89,13 +91,13 @@ class SqlMask (sqlwidget.SqlWidget):
             self.clear_mask(check=False)
             self.current_idx = display_idx
             self.current = obj
-            msg_info = "record %s/%s" % (display_idx +1, len(self.records))
+            msg_info = "%s/%s" % (display_idx +1, len(self.records))
         except (IndexError, AssertionError), e:
-            msg_info = "record %s/%s" % (self.current_idx +1, len(self.records))
+            msg_info = "%s/%s" % (self.current_idx +1, len(self.records))
             if incr >= 0:
-                self.sb('Already last ' + msg_info)
+                self.sb(_('Already last record') + msg_info)
             else:
-                self.sb('Already first ' + msg_info)
+                self.sb(_('Already first record') + msg_info)
             return None
 
 
@@ -169,7 +171,7 @@ class SqlMask (sqlwidget.SqlWidget):
         """invokes the validator before DELETing a record"""
             
         if interactive:
-            response = self.dialog(type='ok-cancel', text="Delete this record?")
+            response = self.dialog(type='ok-cancel', text=_("Delete this record?"))
             if response == gtk.RESPONSE_CANCEL:
                 return
 
@@ -286,7 +288,7 @@ class SqlMask (sqlwidget.SqlWidget):
         """
         if self.current and  not self.record_has_changed():
             if self.last_new_obj:
-                self.sb("Already at new record")
+                self.sb(_("Already at new record"))
                 return
         
         if clear:
@@ -296,7 +298,7 @@ class SqlMask (sqlwidget.SqlWidget):
         self.last_new_obj = self.current
         self.records += [self.current]
         self.current_idx = len(self.records) -1
-        self.sb("New record %s" % (self.current_idx +1))
+        self.sb(_("New record %s") % (self.current_idx +1))
         self.current_mode = 'INSERT'
         
 #     def unsaved_changes_exist(self):
@@ -503,7 +505,7 @@ class SqlMask (sqlwidget.SqlWidget):
 
 ####### Misc
     def export(self, menuItem):
-        self.dialog(type="ok", text="Export feature available only for Tables")
+        self.dialog(type="ok", text=_("Export feature available only for Tables"))
 
 ####### Validation
     def focus_out__widget(self, widget, event, field_name):

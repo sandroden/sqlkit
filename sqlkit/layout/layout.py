@@ -31,6 +31,7 @@ import gtk, gobject
 import gtk.glade
 import os, os.path, tempfile
 from sqlkit import debug as dbg  # uncommenting brakes importing....
+from sqlkit import _
 
 class UnbalancedLayoutCurlyBaces(Exception): pass
 class ConnectBeforeShowNotImplemented(Exception): pass
@@ -64,6 +65,8 @@ class Layout(object):
                  title=None,
                  geom=(-1,-1),
                  position=None,
+                 anchestor=None,
+                 label_map=None,
                  ):
         """create a Layout description to be used to generate GUI
         lay: the variable that hold all the information on the layout
@@ -78,6 +81,11 @@ class Layout(object):
         """
         #print 'layout init: %s level: %s' % (id(elements), level)
 
+        self.anchestor = anchestor or self
+        if label_map:
+            self.label_map = map_labels(buf=label_map, private=True)
+        else:
+            self.label_map = {}
         if elements is None:
             elements = {}
 
@@ -110,8 +118,7 @@ class Layout(object):
             else:
                 ## add it to notebook tabs
                 if el.startswith('%'):
-                    self.notebook_tabs += [re.sub('[%_]',' ',el)]
-                    #self.notebook_tabs.append(re.sub('[%_]',' ',el))
+                    self.notebook_tabs += [re.sub('[%]','',el)]
                     continue
                 ### col span
                 if el in '-':
@@ -129,7 +136,10 @@ class Layout(object):
                     new = Layout(nested, self.level + 1,
                                  self.container_flag, opts=nopts,
                                  elements=elements,
-                                 container_id=container_id)
+                                 container_id=container_id,
+                                 anchestor=self.anchestor,
+                                 label_map=label_map,
+                                 )
                     self.cells[(row,col)] = new.container()
                     new.container().position((row,col))
                 else:
@@ -175,7 +185,7 @@ class Layout(object):
         cont =  self._W[self.container_flag](key, (row, col),
                                              parent_container,
                                              children_list=self.cells_list,
-                                             elements=elements)
+                                             elements=elements, layout=self.anchestor)
 
         # in case | I add the Frame and I put now created 'cont' as child
         # Frame F will create 'A' (alignment) and move cont as its child
@@ -184,7 +194,7 @@ class Layout(object):
             frame = self._W['F'](key, (row, col),
                                  self.parent_container,
                                  children_list=[cont],
-                                 elements=elements)
+                                 elements=elements, layout=self.anchestor)
             cont = frame
 
         # in case X I add the Expander and I put now created 'cont' as child
@@ -193,7 +203,7 @@ class Layout(object):
             expander = self._W['X'](key, (row, col),
                                  self.parent_container,
                                  children_list=[cont],
-                                 elements=elements)
+                                 elements=elements, layout=self.anchestor)
             ## if >> expander will be expanded
             if re.search('>>',self.opts):
                 expander.properties['expanded'] = True
@@ -203,7 +213,7 @@ class Layout(object):
         ## notebook labels, if any
         if re.match("N.", key):
             if self.notebook_tabs:
-                m = re.search('(.*) (TOP|LEFT|RIGHT|BOTTOM)$',
+                m = re.search('(.*)_(TOP|LEFT|RIGHT|BOTTOM)$',
                                    self.notebook_tabs[0])
                 if m:
                     pos_note = m.group(2)
@@ -233,7 +243,7 @@ class Layout(object):
     def _create_window(self, geom=None, title='Top Window',position=None):
         W = widgets.Window('Window:%s.%s' % (geom[0], geom[1]), (0,0),'W',
                            children_list=[self.lcontainer],
-                           elements=self.elements)       
+                           elements=self.elements, layout=self.anchestor)       
         self.lcontainer = W
         if title:
             W.properties['title'] = title
@@ -254,7 +264,7 @@ class Layout(object):
         #print "Ora creo " + el
         key = re.split("^(?:(.*)=)?(.*)",el)[1] or 'le'
         
-        return self._W[key](el, pos, container, elements=elements)
+        return self._W[key](el, pos, container, elements=elements, layout=self.anchestor)
 
     def _is_nested(self,el):
         ### is it a final token or a nested layout?
@@ -661,8 +671,8 @@ class Layout(object):
         for index, label in enumerate(notebook_labels):
             key = keys[index]
             labels_dict[key] = widgets.NotebookLabel(key, (0, 0),
-                                                     'N', self.elements)
-            labels_dict[key].properties['label'] = label
+                                                     'N', self.elements, layout=self.anchestor)
+            labels_dict[key].properties['label'] = _(label)
         children = notebook.lw['children_list'] 
         
         new_children = []
@@ -831,10 +841,22 @@ class Layout(object):
             dialog.show_all()
         return (dialog, dialog.label)
 
-def map_labels(filename=None, buf=None, sep='\t'):
+def map_labels(filename=None, buf=None, sep='\t', private=False):
     """
+    Return a dictionary with keys the element keys or just the names and
+    values a tuple (label, tip)
+
+    If private=False, this will be used in global widget.info
     """
-    global info
+
+    # if it's a dict, it's alreadi passed from here...
+    if isinstance(buf, dict):
+        return buf
+
+    if not filename and not buf:
+        return {}
+    
+    info = {}
     if filename:
         f = open(filename)
         buf = f.read()
@@ -854,20 +876,45 @@ def map_labels(filename=None, buf=None, sep='\t'):
             tip = line[2]
         except:
             tip = name
-        widgets.info[name] = (label, tip)
-        
-def get_labels():
-    global info
+        info[name] = (label, tip)
 
-def get_label(name):
+    if private:
+        return info
+    else:
+        widgets.info.update(info)
+        
+def get_label(name, layout=None):
+    """
+    return the label associated with 'name'
+    if layout is passed, look first if a private layout_map exists
+
+    Slightely different from widget.get_label_and_tip in that we don't
+    look for a specific key (eg.: l=name) since we don't have it
+    """
     try:
-        return widgets.info[name][0]
-    except:
+        if layout:
+            label, tip = layout.label_map.get(name, None) or widgets.info.get(name, None)
+        else:
+            label, tip = widgets.info.get(name, None)
+
+        return label
+
+    except TypeError, e:
         return name
     
-def get_tip(name):
+def get_tip(name, layout=None):
+    """
+    return the help_text associated with 'name'
+    if layout is passed, look first if a private layout_map exists
+    """
     try:
-        return widgets.info[name][1]
-    except:
-        return name
+        if layout:
+            label, tip = self.layout.label_map.get(name, None) or widgets.info.get(name, None)
+        else:
+            label, tip = widgets.info.get(name, None)
 
+        return tip
+
+    except TypeError, e:
+        return None
+    

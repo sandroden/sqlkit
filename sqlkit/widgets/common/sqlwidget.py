@@ -19,6 +19,7 @@ import datetime
 import os
 import inspect 
 from sqlkit import layout
+from sqlkit.layout import map_labels
 import sqlalchemy.types as sqltypes
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy import Table
@@ -39,6 +40,7 @@ from sqlkit.widgets.common import completion
 from sqlalchemy.orm import attributes
 from sqlkit.misc.utils import Container
 import sqlkit
+from sqlkit import _
 
 NUMBERS = (int, float, decimal.Decimal)
 
@@ -101,6 +103,7 @@ class SqlWidget(gobject.GObject):
                   relationship_path = None,
                   relationship_leader = None,
                   format=None,
+                  label_map = None,
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -137,6 +140,7 @@ class SqlWidget(gobject.GObject):
         self.vfields = Container()
         self.field_widgets = Container()
         self.completions = Container()
+        self.label_map = map_labels(buf=label_map, private=True)
         self.icons = icons
 #        self.filter = filter
         self.xml = xml
@@ -222,7 +226,7 @@ class SqlWidget(gobject.GObject):
     def hide_fields(self, *args):
         """
         """
-        self.dialog(type="ok", text="Hiding field is only supportd for Tables")
+        self.dialog(type="ok", text=_("Hiding field is only supported for Tables"))
         
     def get_session(self, session):
         if session:
@@ -334,7 +338,7 @@ class SqlWidget(gobject.GObject):
         just been build by another SqlMask object and we just need to
         add controls and so on
         """
-
+        self.get_table_labels()
         if self.is_mask(lay):
             self.widgets = lay.widgets
             self.filter_panel = lay.filter_panel
@@ -352,7 +356,7 @@ class SqlWidget(gobject.GObject):
         lay = self.laygen.layout
         self.layout = lay
         self.lay_obj = layout.Layout(self.layout, addto=self.addto,
-                                     title=self.title, opts='T-',)
+                                     title=self.title, opts='T-', label_map=self.label_map)
         #if self.xml:
         #    self.lay_obj.xml('/tmp/m_%s.glade' % self.nick)
 
@@ -463,7 +467,7 @@ class SqlWidget(gobject.GObject):
                 #self.widgets[widget_name].connect('clicked', handler)
                 self.lay_obj.connect((widget_name, 'clicked', handler))
                 self.lay_obj.tooltips.set_tip(self.widgets[widget_name], "mmh")
-                self.lay_obj.tip(widget_name, "mi chiamo %s" % widget_name)
+                #self.lay_obj.tip(widget_name, "mi chiamo %s" % widget_name)
 
         ## style for toolbar if any
         if 'O.tool' in self.widgets:
@@ -502,8 +506,9 @@ class SqlWidget(gobject.GObject):
             raise sqlkit.exc.CommitError
             
     def SQLErrorHandler(self, e):
+        # TIP: message in the status bar when a commit error is handled
         self.message(type='error',
-                     text="%s - Dirty objects: %s - New objects: % s" %
+                     text=_("%s - Dirty objects: %s - New objects: % s") %
                      (str(e.orig),len(self.session.dirty),len(self.session.new)))
         self.sb(e.orig)
         dbg.write("Scritto %s su sb" % (e.orig))
@@ -665,8 +670,9 @@ class SqlWidget(gobject.GObject):
             #print "FIELD_LIST", self.field_list
             new = None
             try:
+                field_name_transated = _(get_label(field_name, layout=self.lay_obj))
                 new, unchanged, old =  attributes.get_history(
-                    attributes.instance_state(obj), field_name)
+                    attributes.instance_state(obj), field_name_translated)
                 #print "%s:: new: %s - unchanged: %s - old: %s" % (field_name, new, unchanged, old)
             except:
                 pass
@@ -787,6 +793,14 @@ class SqlWidget(gobject.GObject):
         
 
 ####### Misc
+    def get_table_labels(self):
+        """
+        get labels and tipd from the db is they exists
+        """
+        from sqlkit.db.utils import get_labels_and_tips_from_sqlkit
+        for table in self.tables.split():
+            self.label_map.update( get_labels_and_tips_from_sqlkit(table, metadata=self.metadata))
+            
     def resize(self, width, height):
         """
         Resize the parent window
@@ -823,22 +837,22 @@ class SqlWidget(gobject.GObject):
         """
 
         if self.unsaved_changes_exist(skip_check=skip_check):
-            msg = ["Save unsaved data?"]
+            msg = [_("Save unsaved data?")]
             if self.session.dirty:
-                dbg.write("unsaved", self.session.dirty)
-                msg += ['unsaved: %s' % (len(self.session.dirty))]
+                #dbg.write("unsaved", self.session.dirty)
+                msg += [_('unsaved: %s') % (len(self.session.dirty))]
                 msg += [self.get_differences(o) for o in self.session.dirty]
             if self.session.new:
-                msg += ['new: %s' % (len(self.session.new))]
+                msg += [_('new: %s') % (len(self.session.new))]
 
             response = self.dialog(type='yes-no-cancel', text="\n".join(msg))
                                    
             if response == gtk.RESPONSE_CANCEL:
-                dbg.write("Response CANCEL")
+                #dbg.write("Response CANCEL")
                 return False
 
             if response == gtk.RESPONSE_YES:
-                dbg.write("Response YES")
+                #dbg.write("Response YES")
                 self.session.commit()
                 self.last_new_obj = None
 
@@ -846,7 +860,7 @@ class SqlWidget(gobject.GObject):
             ## we don't need to care about deleted becouse when you delete
             ## the commit is immediate
             if response == gtk.RESPONSE_NO:
-                dbg.write("RESPONSE NO")
+                #dbg.write("RESPONSE NO")
                 if refresh:
                     for obj in self.session.dirty:
                         dbg.write("session.refresh(%s)" % obj)
@@ -923,15 +937,16 @@ class SqlWidget(gobject.GObject):
         if 'm=file' in self.widgets:
             self.lay_obj.menu(
                 'm=file',
-                ('filter panel',  'activate', self.add_filter_cb),
+                # meu entry to pop filter tool
+                (_('Filter panel'),  'activate', self.add_filter_cb),
                 ('-', None),
                 ('gtk-clear', 'activate',  self.record_new),
                 ('gtk-save-as', 'activate',  self.record_save_new),
-                ('inspect tables', 'activate',  self.show_mapper_info),
-                ('inspect widgets', 'activate', self.show_widget_info),
-                ('inspect class', 'activate', self.show_class_info),
+                (_('Inspect tables'), 'activate',  self.show_mapper_info),
+                (_('Inspect widgets'), 'activate', self.show_widget_info),
+                (_('Inspect class'), 'activate', self.show_class_info),
                 ('-', None),
-                ('Export', 'activate', self.export),
+                (_('Export'), 'activate', self.export),
                 
                 ('gtk-quit', 'activate', self.delete_event)
                 )
@@ -944,7 +959,8 @@ class SqlWidget(gobject.GObject):
         self.clear()
 
     def export(self, menuItem):
-        self.dialog(type='ok', text="Sorry, export is implemented only for table view")
+        self.dialog(type='ok',
+                    text=_("Sorry, export is implemented only for table view"))
 
     def is_fkey(self, field_name):
         """
@@ -1304,7 +1320,7 @@ class SqlWidget(gobject.GObject):
         #page.verbose = True
         #ret = self.actions.on_print(page)
         if ret is not True :
-            self.message(type='warn', text="Missing data")
+            self.message(type='warn', text=_("Missing data"))
             return
 
         outfile = page.make(format=format)

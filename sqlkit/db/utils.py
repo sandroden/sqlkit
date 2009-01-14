@@ -245,6 +245,29 @@ def get_description_from_sqlkit(table, metadata=None):
         descr = (None, None)
     return descr
 
+def get_labels_and_tips_from_sqlkit(table, metadata=None):
+    """
+    get the labels and tips to use in label_map from
+    table _sqlkit_field
+    """
+    if isinstance(table, Table):
+        metadata = table.metadata
+        table_name = table.name
+    else:
+        table_name = table
+        
+    SQL = """SELECT table_name, name, description, help_text
+             FROM _sqlkit_field WHERE table_name = '%s'""" % table_name
+    descr = {}
+    try:
+        res_proxy = metadata.bind.execute(SQL, table=table_name)
+        for record in res_proxy.fetchall():
+            descr[record.name] = (record.description, record.help_text)
+    except (OperationalError, ProgrammingError), e:
+        #_sqlkit_field is not defined
+        pass
+    return descr
+
 ###################
 
 if __name__ == '__main__':

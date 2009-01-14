@@ -25,6 +25,7 @@ from sqlkit.db import minspect
 from datetime import *
 from sqlkit.db.django_syntax import django2components
 from sqlkit.misc.datetools import string2dates
+from sqlkit import _
 
 class SqlDataFixNeeded(Exception): pass
 
@@ -74,12 +75,19 @@ class FilterPanel(object):
                {|T.fld }
 
             """
-        self.l = layout.Layout(lay, title='Filter Panel', opts="s")
+        self.l = layout.Layout(lay, title=_('Filter Panel'), opts="s", label_map=self.master.label_map)
         self.l.prop('Window', 'visible', visible)
         self.l.prop('O.a', 'show_arrow', 'FALSE')
         self.l.prop('A=.fld', 'yscale', '0')
         self.l.elements['H.a'].pack_properties['y-options'] = ''
         self.l.prop('O.a', 'toolbar_style', 'gtk.TOOLBAR_ICONS')
+
+        if self.master.is_mask():
+            ## TIP: filter page of the filter panel
+            self.l.tip('filter', _('Add filters for your query'))
+            ## TIP: output page of the filter panel
+            self.l.tip('output', _('Result page for your query'))
+
         self.w = self.l.show(x=self.hide)
 #        self.w['s=limit'].set_value(self.master.limit)
         adj = self.w['s=limit'].get_adjustment()
@@ -357,7 +365,7 @@ class FilterWidget(object):
         self.col = self.db_spec['col']
         self.table = self.db_spec['table']
         self.bind_name = self.master.metadata.bind.name
-
+        self.label_text = _(layout.get_label(field_name, layout=self.panel.l))
 
 ##### handling
     def get_suitable_operators(self):
@@ -377,7 +385,7 @@ class FilterWidget(object):
 
         ## labels
         self.field_name_event_box = gtk.EventBox()
-        self.field_label           = gtk.Label(layout.get_label(field_name))
+        self.field_label           = gtk.Label(self.label_text)
         self.check_button         = gtk.CheckButton()
 
         self.check_button.set_active(True)
@@ -403,7 +411,9 @@ class FilterWidget(object):
 
         self.menu = gtk.Menu()
         ## add another filter
-        item = gtk.MenuItem(label="Add a new filter on this %s" % self.field_name)
+        # TIP: appears in the menu in the filter panel to add a second entry of the same field
+        label_str = _("Add a new filter on this field '%s'") % _(self.label_text).replace('_', '__')
+        item = gtk.MenuItem(label=label_str)
         item.connect('activate', self.add_filter_cb)
         self.menu.append(item)
         self.menu.show_all()
@@ -591,3 +601,4 @@ def get_filter_widget(field_name, panel, master, value=None):
         
 
 
+# _('output')  _('filter')

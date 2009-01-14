@@ -21,6 +21,7 @@ SQLKit
    defaults
    totals
    relationship
+   localization
    sqledit
    download
    missing

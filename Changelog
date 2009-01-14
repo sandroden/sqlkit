@@ -1,5 +1,6 @@
 
 	* localization: added localization for numbers and dates
+	                added localization for messages
 	* table: complete rewrite of the column setup function
 	* mask: - added handling of comments
 	        - fixed integer/float miniwiget (0 was rendered as  '')
@@ -10,6 +11,7 @@
 	* filters: fixed handlung of boolena & NULL check in related tables
 	* signals: - record_selected -> record-selected to follow gtk standard
 	           - added records-displayed
+	* widgets/layout: added label_map support
 	
 sqlkit 0.8.4 - 20.12.08
 

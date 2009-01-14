@@ -94,6 +94,11 @@ layout options
    Pass a dialog to invoke when info is called. A gtk.AboutDialog info will be
    created by default if no about_dialog is passed
    
+:label_map:
+   argument:  label_map dictionary as explained in :ref:`localization`
+   Adds a mapping between field_names and msgid/translation for gettext and
+   tooltips
+
 mode/sql options
 =================
 

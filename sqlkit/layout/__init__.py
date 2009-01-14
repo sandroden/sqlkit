@@ -1,2 +1,1 @@
-
-from layout import Layout, get_label, get_labels
+from layout import Layout, get_label, map_labels
