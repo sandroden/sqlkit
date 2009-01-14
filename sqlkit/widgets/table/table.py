@@ -883,6 +883,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
 
 
+
+
     def date_changed_cb(self, event, path, date, col):
 	self.edited_row_model_path = path
         
@@ -1007,7 +1009,7 @@ class SqlTable(sqlwidget.SqlWidget):
         ## in m2m case we don't want to commit now. We would trigger a commit of the
         ## record represented in the SqlMask that may not yet be validated
 
-        if not self.relationship_mode == 'm2m':
+        if not self.relationship_mode in ('m2m', 'm2o', 'o2m', 'o2o'):
             self.commit()
 
         self.totals.compute()
