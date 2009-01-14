@@ -134,13 +134,12 @@ class SqlMask (sqlwidget.SqlWidget):
         self.record_refresh()
 
     def set_value(self, field_name, field_value, fkvalue=None, initial=True):
-        """this is the method that knows how to handle different type of data
-        if field_name is a FKey ending with _id, it retrieves the description,
-        shows it in the entry but stores the id in self.values[field_name]
-
+        """
+        invoke field.set_value
+        
         fkvalue: compatibility with SqlTable's one
         """
-        #dbg.write("%s: %s" % (field_name, field_value))
+
         if field_name not in self.vfields:
             raise exc.FieldNotInLayout("field_name: %s" % (field_name))
 

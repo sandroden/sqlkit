@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: sqlkit 0.8.5-pre\n"
 "Report-Msgid-Bugs-To: sandro@e-den.it\n"
 "POT-Creation-Date: 2009-01-07 19:38+0100\n"
-"PO-Revision-Date: 2009-01-12 18:37+0200\n"
+"PO-Revision-Date: 2009-01-14 14:47+0200\n"
 "Last-Translator: Sandro Dentella <sandro@e-den.it>\n"
 "Language-Team: <sphinx-dev@googlegroups.com>\n"
 "MIME-Version: 1.0\n"
@@ -17,6 +17,18 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "X-Generator: Virtaal 0.2\n"
 "Generated-By: Babel 0.9.1\n"
+
+#: sqlkit/misc/table_browser.py:79
+msgid "Mask"
+msgstr "Maschera"
+
+#: sqlkit/misc/table_browser.py:84
+msgid "Table"
+msgstr "Tabella"
+
+#: sqlkit/misc/table_browser.py:90
+msgid "Table reflection"
+msgstr "introspezione della tabella"
 
 #. filter page of the filter panel
 #: sqlkit/misc/words.py:7
@@ -48,6 +60,16 @@ msgstr "Aiuto"
 msgid "opts"
 msgstr "Opzioni"
 
+#: sqlkit/widgets/common/fields.py:355
+#, python-format
+msgid "value is not Decimal nor string: %s"
+msgstr "il valore fornito non è né un Decimal né una stringa: %s"
+
+#: sqlkit/widgets/common/fields.py:393
+#, python-format
+msgid "value is not date nor string: %s"
+msgstr "il valore fornito non è né una data né una stringa"
+
 #: sqlkit/widgets/common/sqlfilter.py:78
 msgid "Filter Panel"
 msgstr "Pannello dei filtri"
@@ -76,45 +98,45 @@ msgstr "E' possibile nascondere le colonne solo in modo Tabella"
 msgid "%s - Dirty objects: %s - New objects: % s"
 msgstr "Record non salvati: %s -- Record nuovi: %s"
 
-#: sqlkit/widgets/common/sqlwidget.py:840
+#: sqlkit/widgets/common/sqlwidget.py:842
 msgid "Save unsaved data?"
 msgstr "Salvo i dati non salvati?"
 
-#: sqlkit/widgets/common/sqlwidget.py:843
+#: sqlkit/widgets/common/sqlwidget.py:845
 #, python-format
 msgid "unsaved: %s"
 msgstr "non salvati: %s"
 
-#: sqlkit/widgets/common/sqlwidget.py:846
+#: sqlkit/widgets/common/sqlwidget.py:848
 #, python-format
 msgid "new: %s"
 msgstr "nuovi: %s"
 
-#: sqlkit/widgets/common/sqlwidget.py:941
+#: sqlkit/widgets/common/sqlwidget.py:952
 msgid "Filter panel"
 msgstr "Pannello dei filtri"
 
-#: sqlkit/widgets/common/sqlwidget.py:945
+#: sqlkit/widgets/common/sqlwidget.py:956
 msgid "Inspect tables"
 msgstr "Ispeziona la tabella (debug)"
 
-#: sqlkit/widgets/common/sqlwidget.py:946
+#: sqlkit/widgets/common/sqlwidget.py:957
 msgid "Inspect widgets"
 msgstr "Ispeziona la gerarchia degli oggetti GTK (debug)"
 
-#: sqlkit/widgets/common/sqlwidget.py:947
+#: sqlkit/widgets/common/sqlwidget.py:958
 msgid "Inspect class"
 msgstr "Ispeziona la classe (debug)"
 
-#: sqlkit/widgets/common/sqlwidget.py:949
+#: sqlkit/widgets/common/sqlwidget.py:960
 msgid "Export"
 msgstr "Esporta"
 
-#: sqlkit/widgets/common/sqlwidget.py:963
+#: sqlkit/widgets/common/sqlwidget.py:974
 msgid "Sorry, export is implemented only for table view"
 msgstr "Spiacente: è possibile esportare dati solo in modo Tabella"
 
-#: sqlkit/widgets/common/sqlwidget.py:1323
+#: sqlkit/widgets/common/sqlwidget.py:1334
 msgid "Missing data"
 msgstr "Dati mancanti"
 
@@ -130,20 +152,20 @@ msgstr "Già a un record nuovo"
 msgid "Already first record"
 msgstr "Già al primo record"
 
-#: sqlkit/widgets/mask/mask.py:174 sqlkit/widgets/table/table.py:1047
+#: sqlkit/widgets/mask/mask.py:173 sqlkit/widgets/table/table.py:1099
 msgid "Delete this record?"
 msgstr "Cancello questo record?"
 
-#: sqlkit/widgets/mask/mask.py:291 sqlkit/widgets/table/table.py:907
+#: sqlkit/widgets/mask/mask.py:290 sqlkit/widgets/table/table.py:959
 msgid "Already at new record"
 msgstr "Già record nuovo"
 
-#: sqlkit/widgets/mask/mask.py:301
+#: sqlkit/widgets/mask/mask.py:300
 #, python-format
 msgid "New record %s"
 msgstr "Nuovo record %s"
 
-#: sqlkit/widgets/mask/mask.py:508
+#: sqlkit/widgets/mask/mask.py:507
 msgid "Export feature available only for Tables"
 msgstr "L'esportazione è possibile solo in modo Tabella"
 
@@ -203,29 +225,39 @@ msgid "Subtotals on %s"
 msgstr "Subtotale su %s"
 
 #. check in input field length %s %s -> field_name length
-#: sqlkit/widgets/table/table.py:709
+#: sqlkit/widgets/table/table.py:706
 #, python-format
 msgid "Input exceeded max %s length (%s)"
 msgstr "L'input eccede la lunghezza massima per il campo %s (%s)"
 
 #. status bar message
-#: sqlkit/widgets/table/table.py:950 sqlkit/widgets/table/table.py:1096
+#: sqlkit/widgets/table/table.py:1002 sqlkit/widgets/table/table.py:1148
 #, python-format
 msgid "Total N. of records: %s"
 msgstr "N. totale di record: %s"
 
-#: sqlkit/widgets/table/table.py:1258
+#: sqlkit/widgets/table/table.py:1310
 msgid "INSERT mode"
 msgstr "Modo inserimento"
 
-#: sqlkit/widgets/table/table.py:1260
+#: sqlkit/widgets/table/table.py:1312
 msgid "UPDATE mode"
 msgstr "Modo aggiornamento"
 
-#: sqlkit/widgets/table/table.py:1393
+#: sqlkit/widgets/table/table.py:1445
 msgid "Export in csv file"
 msgstr "Esporta in un file .csv"
+
+#: sqlkit/widgets/table/table.py:1525
+msgid "no current obj: maybe no record has yet been edited"
+msgstr "non esiste un oggetto in uso: forse nessun record è stato modificato"
 
 #: sqlkit/widgets/table/multiline_renderer/unit_layout.py:356
 msgid "F_uzzy"
 msgstr "Fuzzy"
+
+#~ msgid "value is not integer nor string: %s"
+#~ msgstr "il valore fornito non è né intero né stringa"
+
+#~ msgid "value is not float nor string: %s"
+#~ msgstr "il valore fornito non è né un float né una stringa: %s"

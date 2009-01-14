@@ -309,7 +309,7 @@ class SimpleCompletion(object):
 
         oper = self.get_match_operator()
         filtering_value = self.get_displayed_value()
-        self.autostart_last_length = len(filtering_value)
+        self.autostart_last_length = len(filtering_value or '')
 
         sql = self.compose_select_statement(oper, filtering_value)
         self.sql = sql
@@ -327,7 +327,7 @@ class SimpleCompletion(object):
     def get_displayed_value(self, ):
 
         val = self.master.get_value(self.field_name, shown=True)
-        self.autostart_last_length = len(val)
+        self.autostart_last_length = len(val or '')
         return self.add_for_LIKE(val)
 
     def get_match_operator(self):

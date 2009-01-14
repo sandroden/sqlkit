@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2009-01-12 18:36+0100\n"
+"POT-Creation-Date: 2009-01-14 14:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,18 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 0.9.1\n"
+
+#: sqlkit/misc/table_browser.py:79
+msgid "Mask"
+msgstr ""
+
+#: sqlkit/misc/table_browser.py:84
+msgid "Table"
+msgstr ""
+
+#: sqlkit/misc/table_browser.py:90
+msgid "Table reflection"
+msgstr ""
 
 #. filter page of the filter panel
 #: sqlkit/misc/words.py:7
@@ -47,6 +59,16 @@ msgstr ""
 msgid "opts"
 msgstr ""
 
+#: sqlkit/widgets/common/fields.py:355
+#, python-format
+msgid "value is not Decimal nor string: %s"
+msgstr ""
+
+#: sqlkit/widgets/common/fields.py:393
+#, python-format
+msgid "value is not date nor string: %s"
+msgstr ""
+
 #: sqlkit/widgets/common/sqlfilter.py:78
 msgid "Filter Panel"
 msgstr ""
@@ -75,45 +97,45 @@ msgstr ""
 msgid "%s - Dirty objects: %s - New objects: % s"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:840
+#: sqlkit/widgets/common/sqlwidget.py:842
 msgid "Save unsaved data?"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:843
+#: sqlkit/widgets/common/sqlwidget.py:845
 #, python-format
 msgid "unsaved: %s"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:846
+#: sqlkit/widgets/common/sqlwidget.py:848
 #, python-format
 msgid "new: %s"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:941
+#: sqlkit/widgets/common/sqlwidget.py:952
 msgid "Filter panel"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:945
+#: sqlkit/widgets/common/sqlwidget.py:956
 msgid "Inspect tables"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:946
+#: sqlkit/widgets/common/sqlwidget.py:957
 msgid "Inspect widgets"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:947
+#: sqlkit/widgets/common/sqlwidget.py:958
 msgid "Inspect class"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:949
+#: sqlkit/widgets/common/sqlwidget.py:960
 msgid "Export"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:963
+#: sqlkit/widgets/common/sqlwidget.py:974
 msgid "Sorry, export is implemented only for table view"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1323
+#: sqlkit/widgets/common/sqlwidget.py:1334
 msgid "Missing data"
 msgstr ""
 
@@ -129,20 +151,20 @@ msgstr ""
 msgid "Already first record"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:174 sqlkit/widgets/table/table.py:1047
+#: sqlkit/widgets/mask/mask.py:173 sqlkit/widgets/table/table.py:1099
 msgid "Delete this record?"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:291 sqlkit/widgets/table/table.py:907
+#: sqlkit/widgets/mask/mask.py:290 sqlkit/widgets/table/table.py:959
 msgid "Already at new record"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:301
+#: sqlkit/widgets/mask/mask.py:300
 #, python-format
 msgid "New record %s"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:508
+#: sqlkit/widgets/mask/mask.py:507
 msgid "Export feature available only for Tables"
 msgstr ""
 
@@ -202,27 +224,31 @@ msgid "Subtotals on %s"
 msgstr ""
 
 #. check in input field length %s %s -> field_name length
-#: sqlkit/widgets/table/table.py:709
+#: sqlkit/widgets/table/table.py:706
 #, python-format
 msgid "Input exceeded max %s length (%s)"
 msgstr ""
 
 #. status bar message
-#: sqlkit/widgets/table/table.py:950 sqlkit/widgets/table/table.py:1096
+#: sqlkit/widgets/table/table.py:1002 sqlkit/widgets/table/table.py:1148
 #, python-format
 msgid "Total N. of records: %s"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1258
+#: sqlkit/widgets/table/table.py:1310
 msgid "INSERT mode"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1260
+#: sqlkit/widgets/table/table.py:1312
 msgid "UPDATE mode"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1393
+#: sqlkit/widgets/table/table.py:1445
 msgid "Export in csv file"
+msgstr ""
+
+#: sqlkit/widgets/table/table.py:1525
+msgid "no current obj: maybe no record has yet been edited"
 msgstr ""
 
 #: sqlkit/widgets/table/multiline_renderer/unit_layout.py:356

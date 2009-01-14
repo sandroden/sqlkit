@@ -543,8 +543,10 @@ class SqlWidget(gobject.GObject):
         pass
     
     def handle_validation_error(self, error):
-        """to be overloaded"""
-        pass
+        """
+        handle the error raised by a field
+        """
+        self.sb(error.message)
             
 
 ####### Record browsing 
@@ -898,12 +900,19 @@ class SqlWidget(gobject.GObject):
         gtk.main_quit()
                        
     def sb(self, text):
-        """write on the status bar, if present"""
-        try:
-            self.lay_obj.sb(text)
-        except:
-            pass
-    
+        """
+        write on the status bar, if present
+        """
+
+        if self.relationship_leader:
+            self.relationship_leader.sb(text)
+        else:
+            try:
+                self.lay_obj.sb(text)
+            except Exception, e:
+                #print e, vars(e)
+                pass
+
     def _get_title(self, title=None):
         if not title:
             try:
@@ -913,7 +922,9 @@ class SqlWidget(gobject.GObject):
         return title
     
     def add_filter_cb(self, event=None, visible=True):
-        """Pop a Filter Panel, called from menu item"""
+        """
+        Pop a Filter Panel, called from menu item
+        """
 
         self.filter_panel.w['Window'].present()
 

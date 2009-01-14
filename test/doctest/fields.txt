@@ -116,7 +116,7 @@ datetime.time(15, 30)
 >>> print f
 <FloatField - float >
 >>> f.clean_value(1)
-1
+1.0
 >>> f.clean_value('1'), type(f.clean_value('1'))
 (1.0, <type 'float'>)
 

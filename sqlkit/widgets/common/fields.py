@@ -41,6 +41,7 @@ from sqlkit.db import defaults
 from sqlalchemy.schema import ColumnDefault
 from decimal import Decimal
 from sqlkit.misc.babel_support import numbers, dates
+from sqlkit import exc, _
 import babel
 
 from sqlkit.exc import ValidationError, NotHandledField, NotHandledDefault
@@ -227,8 +228,14 @@ class Field(object):
         """
         return value
     
-    def validate(self):
-        pass
+    def validate(self, value, input_is_fkey=False):
+        try:
+            ret = self.clean_value(value) and True
+            return ret
+        
+        except Exception, e:
+            msg = "Field %s could not validate value '%s': error was: %s" 
+            raise exc.ValidationError(_(msg % (field_name, e.message) ))
 
     def set_max_length(self, editable=None):
         """
@@ -269,8 +276,15 @@ class IntegerField(Field):
         if value in (None, ''):
             return None
         else:
-            if isinstance(value, basestring):
-                value = numbers.parse_number(value, locale=self.locale)
+            try:
+                if isinstance(value, basestring):
+                    value = numbers.parse_number(value, locale=self.locale)
+                elif isinstance(value, (int, long)):
+                    pass
+                else:
+                    value = int(value)
+            except Exception, e:
+                raise exc.ValidationError(e.message)
             return value
 
     def set_value(self, value, initial=True):
@@ -296,10 +310,17 @@ class FloatField(IntegerField):
         if value in (None, ''):
             return None
         else:
-            if isinstance(value, basestring):
-                value = numbers.parse_decimal(value, locale=self.locale)
+            try:
+                if isinstance(value, basestring):
+                    value = numbers.parse_decimal(value, locale=self.locale)
+                elif isinstance(value, float):
+                    pass
+                else:
+                    value = float(value)
+            except Exception, e:
+                raise exc.ValidationError(e.message)
             return value
-         
+        
     def format_value(self, value):
         if value is None:
             return ''
@@ -320,15 +341,22 @@ class DecimalField(IntegerField):
         if value in (None, ''):
             return None
         else:
-            if isinstance(value, basestring):
-            ## why there's no parse_Decimal in babel?
-                value = Decimal(
-                    numbers.format_decimal(
-                        numbers.parse_decimal(value, locale=self.locale),
-                        format=self.format_dec, locale='en')
-                    )
+            try:
+                if isinstance(value, basestring):
+                ## why there's no parse_Decimal in babel?
+                    value = Decimal(
+                        numbers.format_decimal(
+                            numbers.parse_decimal(value, locale=self.locale),
+                            format=self.format_dec, locale='en')
+                        )
+                elif isinstance(value, Decimal):
+                    pass
+                else:
+                    raise exc.ValidationError(_("value is not Decimal nor string: %s" % value))
+            except Exception, e:
+                raise exc.ValidationError(e.message)
             return value
-
+        
     def format_value(self, value):
         if value is None:
             return ''
@@ -354,10 +382,19 @@ class DateField(Field):
         #    pass
 
     def clean_value(self, value):
-        if isinstance(value, basestring):
-            value = dates.parse_date(value)
+        if value in (None, ''):
+            return None
+        try:
+            if isinstance(value, basestring):
+                value = dates.parse_date(value)
+            elif isinstance(value, date):
+                pass
+            else:
+                raise exc.ValidationError(_("value is not date nor string: %s" % value))
+        except Exception, e:
+            raise exc.ValidationError(e.message)
         return value
-
+    
     def format_value(self, value):
         return dates.format_date(value, format=self.format, locale=self.locale)
         
@@ -449,6 +486,37 @@ class ForeignKeyField(Field):
     """
     Widget = ForeignKeyWidget
 
+    def clean_value(self, value, input_is_fkey=False):
+        """
+        return a cleaned value (i.e.: the foreign key)
+        if input_is_fkey=False the text is considered an id, else it's considered a 'search' value
+        """
+        if input_is_fkey:
+            return value
+        
+        sql = self.widget.completion.compose_select_statement('=', value)
+        ret = self.master.metadata.bind.execute(sql).fetchone()
+        return ret and ret[0]
+
+    def validate(self, value, input_is_fkey=False):
+        try:
+            return self.clean_value(value, input_is_fkey=input_is_fkey)
+        except Exception, e:
+            msg = "Field %s could not validate value '%s': error was: %s" 
+            raise exc.Validation.error(_(msg % (field_name, e.message) ))
+        
+    def get_value(self, shown=False):
+        value = self.widget.get_value()
+        if value == '' and self.initial_value is None:
+            return None
+        return value
+
+    def set_value(self, value, initial=True):
+        value = self.clean_value(value, input_is_fkey=True)
+        if initial:
+            self.initial_value = value
+        self.widget.set_value(value)
+
 class CollectionField(Field):
     """
     A field that uses a SqlTable to show and edit a collection
@@ -478,10 +546,4 @@ class CollectionField(Field):
         if value is None:
             value = []
         self.widget.set_value(value)
-
-
-    
-
-
-
 
