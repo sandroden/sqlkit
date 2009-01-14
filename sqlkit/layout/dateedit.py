@@ -138,7 +138,7 @@ class DateEdit(gtk.HBox):
         # the date entry
         self.__date_entry = gtk.Entry()
         self.__date_entry.connect('focus-out-event', self.date_entry_focus_out_event)
-        self.__date_entry.set_max_length(12)
+        self.__date_entry.set_max_length(15)
         self.__date_entry.set_width_chars(10)
         self.__align_entry = gtk.Alignment(1,0,1,0)
         #self.pack_start(self.__date_entry, True, True, 0)
@@ -199,8 +199,7 @@ class DateEdit(gtk.HBox):
         self.set_show_time(self.__show_time)
         self.set_time(self.__initial_time)
         self.set_use_24h_format(self.__use_24h_format)
-        
-        
+        self.date_format = '%x'
 
     def popup_grab_on_window(self, window, activate_time):
         if gdk.pointer_grab(window, True, gdk.BUTTON_PRESS_MASK 
@@ -245,15 +244,21 @@ class DateEdit(gtk.HBox):
             self.set_time(None)
             return
         try:
-            new_date = time.strptime(str, '%x')
-            the_time = datetime.datetime(new_date.tm_year,
-                                         new_date.tm_mon,
-                                         new_date.tm_mday,
-                                         self.__current_time.hour,
-                                         self.__current_time.minute,
-                                         self.__current_time.second)
+            new_date = time.strptime(str, self.date_format)
+            if self.__show_time:
+                the_time = datetime.datetime(new_date.tm_year,
+                                             new_date.tm_mon,
+                                             new_date.tm_mday,
+                                             self.__current_time.hour,
+                                             self.__current_time.minute,
+                                             self.__current_time.second)
+            else:
+                the_time = datetime.datetime(new_date.tm_year,
+                                             new_date.tm_mon,
+                                             new_date.tm_mday,
+                                             )
             self.set_time(the_time)
-        except ValueError:
+        except ValueError, e:
             self.set_time(self.__current_time)
  
  
@@ -491,7 +496,7 @@ class DateEdit(gtk.HBox):
         self.__current_time = the_time
 
         # set the time and date string
-        self.__date_entry.set_text(the_time.strftime('%x'))
+        self.__date_entry.set_text(the_time.strftime(self.date_format))
         if self.__use_24h_format == True:
             self.__time_combobox.child.set_text(the_time.strftime('%H:%M'))
         else:

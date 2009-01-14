@@ -100,6 +100,7 @@ class SqlWidget(gobject.GObject):
                   relationship_mode = 'SINGLE',
                   relationship_path = None,
                   relationship_leader = None,
+                  format=None,
                   ):
         """create an interface and allow to save/store data from a database
 
@@ -129,6 +130,7 @@ class SqlWidget(gobject.GObject):
                   when relationship_mode is not SINGLE. May be a list or a string:
                   'genres', 'director nationality', ['director','nationality']
         relationship_leader: the main sqlmask (sqltable) that "owns" the filter_panel
+        format: a format dict as for set_format, settings formatting info for numbers and dates
         """
         gobject.GObject.__init__(self)
         self.related = Container()
@@ -182,6 +184,7 @@ class SqlWidget(gobject.GObject):
         self.about_dialog = about_dialog or self.create_about_dialog()
         self.filter_panel = self._get_filter_panel()
         self.show(show)
+        self.set_format(format)
         self.query = self.session.query(self.mapper)
             
     def show(self, show):
@@ -1137,6 +1140,32 @@ class SqlWidget(gobject.GObject):
             obj = self
         return isinstance(obj, SqlMask)
     
+    def set_format(self, format_dict):
+        """
+        Set format for each column.
+        format_dict: a dictionary whose keys are field_names and values are format
+        according to babels numeric and dates format
+
+        No error is raised if a field_name is not represented so that a format_field can be
+        reused in different contexts.
+
+        The dict may also hold info for related tables/masks
+        """
+        if not format_dict:
+            return
+
+        for field_name, format in format_dict.items():
+            if field_name in self.vfields:
+                if isinstance(format, tuple):
+                    format, locale = format
+                    self.vfields[field_name].locale = locale
+
+                self.vfields[field_name].format = format
+
+        for widget in self.related:
+            widget.set_format(format_dict)
+            
+        
 ####### printing
     def printing(self):
         """this will pop entries in the print setup to allow for printing
@@ -1311,6 +1340,8 @@ class SqlWidget(gobject.GObject):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+
 
 
 

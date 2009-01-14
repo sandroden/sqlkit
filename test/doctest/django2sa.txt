@@ -1,5 +1,9 @@
 # -*- mode: python -*-
 
+>>> import os
+
+>>> os.environ['LANG'] = 'en_US.utf8'
+
 >>> from address_model import User, Address, Provider, Country, session
 >>> from sqlkit.db import django_syntax as djs
 >>> from sqlalchemy import and_, or_

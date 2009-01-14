@@ -66,3 +66,15 @@ rsync:
 	rsync Changelog $(WWW)/
 
 rel:	deb tgz lenny sk rsync
+
+extract:
+	#	 python setup.py extract_messages 
+	pybabel extract -o sqlkit/locale/sqlkit.pot sqlkit -c TIP:
+
+update:
+	python setup.py update_catalog
+	virtaal sqlkit/locale/it/LC_MESSAGES/sqlkit.po
+	python setup.py compile_catalog	
+
+compile:
+	python setup.py compile_catalog

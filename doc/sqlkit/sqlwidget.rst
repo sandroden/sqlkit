@@ -129,6 +129,11 @@ mode/sql options
    if a table is opened in single mode, destroying the table quits the gtk
    main loop.
 
+:format=format_dict:
+   equivalent to using: .set_format(format_dict).  See :ref:`localization`
+   for more info
+
+   
 Methods
 =======
 
@@ -138,21 +143,31 @@ completeness:
 ..   :set_fields:
 ..       equivalent to passing field_list
 
-  :add_constraint:
-      see :ref:`constraints`
+:add_constraint:
+    see :ref:`constraints`
 
-  :add_filter:
-      see :ref:`filters`
+:add_filter:
+    see :ref:`filters`
 
-  :reload:
-      reload the data from the database taking all filter/constraints into
-      consideration 
+:reload:
+    reload the data from the database taking all filter/constraints into
+    consideration 
 
-  :resize:
-      a resize on the window
+:resize:
+    a resize on the window
 
-  :set_records:
-      set a record list to represent
+:set_records:
+    set a record list to represent
+
+:set_format:
+    set_format(format_dict). format_dict is a dictionary whose key is the
+    field_name and the value is the format of the column. Format_dict can
+    have keys that do not correspond to any field in the widget. That
+    makes it possible to reuse a format dict.
+
+    The format dict is passed to related widgets as well.
+
+    See :ref:`localization` for more info
 
 Attributes
 ===========
@@ -193,6 +208,8 @@ Attributes
 :session:
    the sqlalchemy session used for querying
 
+   
+
 .. _sqlalchemy: http://www.sqlalchemy.org
 
 .. API
@@ -216,14 +233,4 @@ which are the needed ones...
 
 :recods-displayed:
    Records have been displayed. this may be after .reload() or .set_records([])
-
-
-
-
-
-
-
-
-
-
 

@@ -1,4 +1,5 @@
 
+	* localization: added localization for numbers and dates
 	* table: complete rewrite of the column setup function
 	* mask: - added handling of comments
 	        - fixed integer/float miniwiget (0 was rendered as  '')

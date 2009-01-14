@@ -1,6 +1,7 @@
 from datetime import datetime
 import gtk, gobject, pango
 from sqlkit import debug as  dbg
+#from multiline_renderer import UnitRenderer
 
 class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
     """An editable that allows to edit dates via a calnda popup
@@ -9,9 +10,10 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
     """
 
     datetime = None
-    def __init__(self, datetime, pos=None, wdg=None, cell_area=None):
+    def __init__(self, datetime, pos=None, wdg=None, cell_area=None, fmt_func=None):
 
         self.datetime = datetime
+        self.fmt_func  = fmt_func
         gtk.TextView.__init__(self)
         #self.set_has_window(False)
         self.cal = gtk.Calendar()
@@ -68,7 +70,9 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
         return False
         
     def cal_event(self, w, e):
-        text = self.get_calendar_date().strftime("%d/%m/%y")
+        text = self.fmt_func(self.get_calendar_date())
+        #text = self.get_calendar_date().strftime("%d/%m/%y")
+        
         tb = self.get_buffer()
         tb.set_text(text)
         return False
@@ -130,10 +134,12 @@ class CellRendererDate(gtk.GenericCellRenderer):
                          (gobject.TYPE_STRING, gobject.TYPE_PYOBJECT)
                           )
         }    
-    def __init__(self, *args, **kwargs):
+    def __init__(self, master=None, field_name=None, *args, **kwargs):
         #dbg.write()
         self.date = None
-
+        self.master = master
+        self.field_name = field_name
+        
         return gtk.CellRenderer.__gobject_init__(self, *args, **kwargs)
     
     def do_pango_layout(self, widget):
@@ -182,9 +188,9 @@ class CellRendererDate(gtk.GenericCellRenderer):
     
     def date_formatter(self, date):
         if date is None:
-            return "--/--/--"
-
-        return date.strftime("%d/%m/%y")
+            return ""
+        return self.master.vfields[self.field_name].format_value(date)
+        #return date.strftime("%d/%m/%y")
     
     
     def do_start_editing(self, event, widget, path, background_area,
@@ -196,7 +202,8 @@ class CellRendererDate(gtk.GenericCellRenderer):
             date = self.date
         #dbg.ddir(cell_area)
         ce = CellEditableCalendar(datetime = date, cell_area=cell_area,
-                                  wdg=widget)
+                                  wdg=widget,
+                                  fmt_func=self.master.vfields[self.field_name].format_value)
 #        ce = CellEditableCalendar(date = date, pos=(event.x, event.y))
         ce.show()
         ce.grab_focus()
@@ -249,10 +256,11 @@ class CellRendererDatetime(CellRendererDate):
                           )
         }    
 
-    def __init__(self, *args, **kwargs):
-        #dbg.write()
+    def __init__(self, master, field_name, *args, **kwargs):
         self.datetime = None
-
+        self.master = master
+        self.field_name = field_name
+        
         return gtk.CellRenderer.__gobject_init__(self, *args, **kwargs)
     
     def do_pango_layout(self, widget):
@@ -262,12 +270,6 @@ class CellRendererDatetime(CellRendererDate):
         return pl
     
     
-    def date_formatter(self, date_time):
-        if date_time is None:
-            return "--/--/-- --:--"
-        ## FIXME: should be read from some settings...
-        return date_time.strftime('%d/%m/%Y %H:%M')
-
     def do_start_editing(self, event, widget, path, background_area,
                          cell_area, flags):
 
@@ -277,7 +279,8 @@ class CellRendererDatetime(CellRendererDate):
             date_time = self.datetime
         #dbg.ddir(cell_area)
         ce = CellEditableCalendar(datetime = date_time, cell_area=cell_area,
-                                  wdg=widget)
+                                  wdg=widget,
+                                  fmt_func=self.master.vfields[self.field_name].format_value)
 
 #        ce = CellEditableCalendar(date = date, pos=(event.x, event.y))
 

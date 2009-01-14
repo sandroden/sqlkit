@@ -224,7 +224,7 @@ class SqlTable(sqlwidget.SqlWidget):
         A date calendar that pops a gtk.Calendar to edit
         """
 
-        cell = CellRendererDate()
+        cell = CellRendererDate(master=self, field_name=field_name)
         cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
         cell.set_property('sensitive', False)
         cell.set_property('xpad', 4)
@@ -240,8 +240,7 @@ class SqlTable(sqlwidget.SqlWidget):
         A datetime cell' renderer
         """
 
-        #dbg.write('%s is a date' % field_name)
-        cell = CellRendererDatetime()
+        cell = CellRendererDatetime(master=self, field_name=field_name)
         cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
         cell.set_property('sensitive', False)
         cell.set_property('xpad', 4)
@@ -285,7 +284,7 @@ class SqlTable(sqlwidget.SqlWidget):
         cell.connect('editing-started', self.text_editing_started_cb, field_name)
         tvcolumn.pack_start(cell, True)
         #tvcolumn.add_attribute(cell, 'text', j )
-        tvcolumn.set_cell_data_func(cell, self.cell_default_cb, ('text', field_name) )
+        tvcolumn.set_cell_data_func(cell, self.cell_number_cb, ('text', field_name) )
         tvcolumn.set_expand(self.is_expandable(field_name))
 
         ## left alignment for NUMBERS
@@ -297,7 +296,11 @@ class SqlTable(sqlwidget.SqlWidget):
         A renderer that expands only large fields and that centers text if it's little
         """
 
-        cell = gtk.CellRendererText()
+        if self.is_text(field_name):
+#            cell = UnitRenderer()
+            cell = gtk.CellRendererText()
+        else:
+            cell = gtk.CellRendererText()
         cell.set_property('editable', True)
         cell.set_property('editable-set', True)
         cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
@@ -507,30 +510,29 @@ class SqlTable(sqlwidget.SqlWidget):
         # 8. selected existent LAST record -> delete
         
         if self.edited_row_model_path is None:
-            self.record_initialize_vfields()
+            #self.record_initialize_vfields()
             self.emit('record-selected')
             return False
         
         ## commit_allowed is a flag that prevents .commit() if a new object
         ## has been created but not yet filled: it wouldn't validate
         if not self.commit_inhibited:
-            self.record_save()
-            self.record_initialize_vfields()
+            self.record_save()                # uses self.edited_row_model_path
+            #self.record_initialize_vfields()  # self.uses get_current_obj
             self.edited_row_model_path = None
 
         self.emit('record-selected')
         return False
     
-    def record_initialize_vfields(self):
-        return 
-        obj = self.get_current_obj()
+#     def record_initialize_vfields(self):
+#         return 
+#         obj = self.get_current_obj()
 
-        obj = self.get_selected_obj()
-        print "initialize", obj, obj and obj.descr
-        if obj:
-            for field_name in self.field_list:
-                value = getattr(obj, field_name)
-                self.vfields[field_name].set_value(value)
+#         obj = self.get_selected_obj()
+#         if obj:
+#             for field_name in self.field_list:
+#                 value = getattr(obj, field_name)
+#                 self.vfields[field_name].set_value(value)
             
     def select_cursor_row_cb(self, treeview, start_editing, user_data):
         return False
@@ -813,6 +815,24 @@ class SqlTable(sqlwidget.SqlWidget):
         if isinstance(obj, self.totals.total_class):
             obj.set_value_and_colors(cell, value, field_name)
         else:
+            cell.set_property('foreground-set', False)
+            cell.set_property('cell-background-set', False)
+        
+    def cell_number_cb(self, column, cell, model, iter, (prop_name, field_name)):
+        """function set by set_cell_data_func
+        gets the attribute from the record and returns it
+        """
+
+        if not column.get_visible():
+            return
+        obj = model.get_value(iter, 0) 
+        value = getattr(obj, field_name)
+        formatted_value = self.vfields[field_name].format_value(value)
+
+        if isinstance(obj, self.totals.total_class):
+            obj.set_value_and_colors(cell, formatted_value, field_name)
+        else:
+            cell.set_property(prop_name, formatted_value)        
             cell.set_property('foreground-set', False)
             cell.set_property('cell-background-set', False)
         
@@ -1115,9 +1135,49 @@ class SqlTable(sqlwidget.SqlWidget):
             return True
 
         ## casting of value
+        value = self.vfields[field_name].clean_value(value)
+        setattr(obj, field_name, value)
+
+        ## text would come up automatically but only after
+        ## loosing the focus...
+        if fkvalue:
+            self.editable.set_text(fkvalue)
+        else:
+            if value and not self.is_fkey(field_name):
+                ## editable, if any, points to the last used editable
+                ## that may not be the one that belogs to field_name...
+                if self.editable and field_name == self.currently_edited_field_name:
+                    self.editable.set_text(str(value))
+            
+        return True
+    
+    def set_value_old(self, field_name, value, path=None, fkvalue=None, initial=False):
+        """
+        called from within edited signal and completion.
+        Validation should live here?
+        If path, is not passed (as when used from completion)
+        it is deduced from selection
+        fkey: if True the value is handled as a primary key.
+        Used from completion and from vfields/tablewidget
+        """
+
+        ## note: current cannot be used. We don't want the currently selected obj
+        ##       but the one that is to be saved. This operation can be triggered
+        ##       by a change in selection in which case self.current already points
+        ##       to the new selection
+        obj = self.get_current_obj(path=path)
+        
+        if not obj:
+            return True
+
+        ## casting of value
         ptype = self.get_field_type(field_name)
-        if value == '' and ptype in sqlwidget.NUMBERS:
-            value = None
+        if  ptype in sqlwidget.NUMBERS:
+            if value == '':
+                value = None
+            else:
+                if not type(value) == ptype:
+                    value = parse_decimal(value)
 
         try:
             #if value not in (True, False, None):
@@ -1383,7 +1443,7 @@ class SqlTable(sqlwidget.SqlWidget):
         
         if field_name == self.currently_edited_field_name:
             if self.editable:
-                return self.editable.get_text()
+                return self.vfields[field_name].clean_value(self.editable.get_text())
         return getattr(self.get_current_obj(), field_name)
 
     def set_editable(self, editable=True):
@@ -1395,3 +1455,5 @@ class SqlTable(sqlwidget.SqlWidget):
         for field in self.vfields:
             field.widget.add_completion(editable=editable)
         
+
+

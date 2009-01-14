@@ -14,6 +14,7 @@ Sqlkit depends on:
   * glade2
   * dateutils 
   * the correct driver for your database of choice
+  * babel (for localization)
 
 changelog
 ===========

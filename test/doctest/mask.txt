@@ -1,5 +1,10 @@
 # -*- mode: python -*-
 
+>>> import os
+
+#>>> os.environ['LANG'] = 'en_US.utf8'
+>>> os.environ['LANG'] = 'en_US.utf8'
+
 >>> import sys
 >>> sys.path.insert(0, '../../demo/sql/model')
 >>> sys.path.insert(0, '../../')

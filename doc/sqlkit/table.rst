@@ -34,7 +34,7 @@ Methods
 :set_editable:
    only meaningful for table that represent an m2m relationship: turns the
    table from non editable to editable, read the explanation in
-   :ref:`relationship`
+   :ref:`relationships`
 
 :hide_field:
    hides columns, adding a row in the menu to make it show up again at will 

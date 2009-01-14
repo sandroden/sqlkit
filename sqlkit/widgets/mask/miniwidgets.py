@@ -110,25 +110,13 @@ class IntegerWidget(VarcharWidget):
         
     def get_value(self, shown=False):
         text = self.gtkwidget.get_text( )
-        if text == '':
-            return None
-        return int(text)
+        return self.field.clean_value(text)
 
 class FloatWidget(IntegerWidget):
-
-    def get_value(self, shown=False):
-        text = self.gtkwidget.get_text( )
-        if text == '':
-            return None
-        return float(text)
+    pass
 
 class DecimalWidget(IntegerWidget):
-
-    def get_value(self, shown=False):
-        text = self.gtkwidget.get_text( )
-        if text == '':
-            return None
-        return Decimal(text)
+    pass
 
 class DateWidget(Widget):
 

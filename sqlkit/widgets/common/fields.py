@@ -26,8 +26,12 @@ fields classes to handle all details:
 
    while a
    
-"""
+   see decimal_ to have an intro to formatting numbers
 
+   .. _decimal http://java.sun.com/docs/books/tutorial/i18n/format/decimalFormat.html
+
+"""
+import re
 from sqlkit.widgets.mask.miniwidgets import *
 from sqlkit.widgets.table.tablewidgets import CellWidget
 from datetime import datetime, time, date, timedelta
@@ -36,6 +40,8 @@ from pprint import pprint
 from sqlkit.db import defaults
 from sqlalchemy.schema import ColumnDefault
 from decimal import Decimal
+from sqlkit.misc.babel_support import numbers, dates
+import babel
 
 from sqlkit.exc import ValidationError, NotHandledField, NotHandledDefault
 
@@ -157,13 +163,14 @@ class Field(object):
         self.set_max_length()
 
     def set_value(self, value, initial=True):
-        value = self.clean_initial_value(value)
+        value = self.clean_value(value)
         if initial:
             self.initial_value = value
         self.widget.set_value(value)
 
-    def get_value(self, shown=None):
-        return self.widget.get_value(shown=shown)
+    def get_value(self, shown=False):
+        value = self.widget.get_value(shown=shown)
+        return self.clean_value(value)
 
     def clear_value(self):
         self.set_value(None)
@@ -174,8 +181,8 @@ class Field(object):
     def has_changed(self, verbose=False):
         """return True if field has changed after last set
         """
-        dbg.write("has_changed - %r: or: %r ==> %r" % (
-            self.field_name, self.initial_value, self.get_value()))
+#         dbg.write("has_changed - %r: or: %r ==> %r" % (
+#             self.field_name, self.initial_value, self.get_value()))
 
         return not self.get_value() == self.initial_value
     
@@ -206,9 +213,20 @@ class Field(object):
         except NotHandledDefault:
             pass
         
-    def clean_initial_value(self, value):
+    def clean_value(self, value):
+        """
+        return a value of the correct type, if needed parse it with
+        locale parsers (numbers, date...)
+        """
         return value
    
+    def format_value(self, value):
+        """
+        return a string representaion of the value according to current locale
+        value is a "cleaned" value
+        """
+        return value
+    
     def validate(self):
         pass
 
@@ -224,7 +242,7 @@ class Field(object):
 class VarcharField(Field):
     Widget = VarcharWidget
     
-    def clean_initial_value(self, value):
+    def clean_value(self, value):
         if value == None:
             value = ''
         return value
@@ -241,72 +259,166 @@ class VarcharField(Field):
 
 class IntegerField(Field):
     Widget = IntegerWidget
-    def get_value(self, shown=False):
-        value = self.widget.get_value()
+    
+    def __init__(self, *args, **kw):
+        Field.__init__(self, *args, **kw)
+        self.format = "#,###"
+        self.locale = babel.default_locale('LC_NUMERIC')
+        
+    def clean_value(self, value):
         if value in (None, ''):
             return None
         else:
-            return int(value)
-
-    def clean_initial_value(self, value):
-        if value == '':
-            return None
-        else:
+            if isinstance(value, basestring):
+                value = numbers.parse_number(value, locale=self.locale)
             return value
 
+    def set_value(self, value, initial=True):
+        value = self.clean_value(value)
+        if initial:
+            self.initial_value = value
+        self.widget.set_value(self.format_value(value))
+
+    def format_value(self, value):
+        if value is None:
+            return ''
+        return numbers.format_decimal(value, format=self.format, locale=self.locale)
+        
 class FloatField(IntegerField):
     Widget = FloatWidget
 
-    def get_value(self, shown=False):
-        value = self.widget.get_value()
-        if value == None:
+    def __init__(self, *args, **kw):
+        Field.__init__(self, *args, **kw)
+        self.format = "#,###.#"
+        self.locale = babel.default_locale('LC_NUMERIC')
+        
+    def clean_value(self, value):
+        if value in (None, ''):
             return None
         else:
-            return float(self.widget.get_value())
-
+            if isinstance(value, basestring):
+                value = numbers.parse_decimal(value, locale=self.locale)
+            return value
+         
+    def format_value(self, value):
+        if value is None:
+            return ''
+        return numbers.format_decimal(value, format=self.format, locale=self.locale)
+        
 class DecimalField(IntegerField):
     Widget = DecimalWidget
 
-    def get_value(self, shown=False):
-        value = self.widget.get_value()
-        if value == None:
+    def __init__(self, *args, **kw):
+        Field.__init__(self, *args, **kw)
+        self.precision = self.db_spec.col.type.precision
+        self.scale = self.db_spec.col.type.scale
+        self.format = "#,###.%s" % ('0' * self.scale)
+        self.format_dec = "#.%s" % ('0' * self.scale)
+        self.locale = babel.default_locale('LC_NUMERIC')
+        
+    def clean_value(self, value):
+        if value in (None, ''):
             return None
         else:
-            return Decimal(self.widget.get_value())
+            if isinstance(value, basestring):
+            ## why there's no parse_Decimal in babel?
+                value = Decimal(
+                    numbers.format_decimal(
+                        numbers.parse_decimal(value, locale=self.locale),
+                        format=self.format_dec, locale='en')
+                    )
+            return value
+
+    def format_value(self, value):
+        if value is None:
+            return ''
+        return numbers.format_decimal(value, format=self.format, locale=self.locale)
 
 class TextField(Field):
     Widget = TextWidget
 
-    def clean_initial_value(self, value):
+    def clean_value(self, value):
         if value is None:
             value = ''
         return value    
         
 class DateField(Field):
     Widget = DateWidget
+    format = None
+        
+    def __init__(self, *args, **kw):
+        Field.__init__(self, *args, **kw)
+        self.format = 'short'
+        self.locale = babel.default_locale('LC_TIME')
+        #if format not in ('short', 'long', 'default', 'medium', 'full'):
+        #    pass
 
-class TimeField(Field):
+    def clean_value(self, value):
+        if isinstance(value, basestring):
+            value = dates.parse_date(value)
+        return value
+
+    def format_value(self, value):
+        return dates.format_date(value, format=self.format, locale=self.locale)
+        
+class TimeField(DateField):
     Widget = TimeWidget
 
-class TimeTZField(Field):
+    def clean_value(self, value):
+        if isinstance(value, basestring):
+            value = dates.parse_time(value)
+        return value
+        
+    def format_value(self, value):
+        return format_time(value, format=self.format, locale=self.locale)
+        
+class TimeTZField(TimeField):
     Widget = TimeTZWidget
 
+    def clean_value(self, value):
+        if isinstance(value, basestring):
+            value = dates.parse_time(value)
+        return value
+        
 class IntervalField(Field):
     Widget = IntervalWidget
 
-class DateTimeField(Field):
+class DateTimeField(DateField):
     Widget = DateTimeWidget
 
-class DateTimeTZField(Field):
+    def clean_value(self, value):
+        if isinstance(value, basestring):
+            tmp_date = re.split('\s+', value)
+            value = dates.parse_date(tmp_date[0], locale=self.locale)
+            if len(tmp_date) >= 1:
+                time_list = [int(i) for i in tmp_date[1].split(':')]
+            else:
+                time_list = []
+                
+            value = datetime.combine(value, time(*time_list))
+
+                
+        return value
+        
+    def format_value(self, value):
+        return dates.format_datetime(value, format=self.format, locale=self.locale)
+        
+class DateTimeTZField(DateTimeField):
     Widget = DateTimeTZWidget
 
+    def clean_value(self, value):
+        if isinstance(value, basestring):
+            value = dates.parse_datetime(value)
+        return value
+        
 class BooleanField(Field):
-    """A simple boolean field that does not allow NULL
+    """
+    A simple boolean field that does not allow NULL
     """
 
     Widget = BooleanWidget
 
-    def clean_initial_value(self, value):
+    def clean_value(self, value):
         if value is None:
             value = False
         if value not in (True, False):
@@ -319,24 +431,27 @@ class BooleanField(Field):
         self.set_value(False)
 
 class BooleanNullField(Field):
-    """A boolean field that allows to set NULL
+    """
+    A boolean field that allows to set NULL
     """
     Widget = BooleanNullWidget
 
-    def clean_initial_value(self, value):
+    def clean_value(self, value):
         if value not in (True, False, None):
             msg = "Null value not admissable for field %s" % self.field_name
             raise ValidationError(msg) 
         return value
     
 class ForeignKeyField(Field):
-    """A field that uses ComboBoxEntry
+    """
+    A field that uses ComboBoxEntry
     The popup should trigger the filling of the model with
     """
     Widget = ForeignKeyWidget
 
 class CollectionField(Field):
-    """A field that uses a SqlTable to show and edit a collection
+    """
+    A field that uses a SqlTable to show and edit a collection
     in read-wite mode
     Used in OneTomany or ManyToMany db fields
 
@@ -351,7 +466,7 @@ class CollectionField(Field):
         ## FIXME: is this always correct?
         return None
 
-    def clean_initial_value(self, value):
+    def clean_value(self, value):
         from copy import copy
         
         if value is None:
@@ -359,7 +474,7 @@ class CollectionField(Field):
         return copy(value)
 
     def set_value(self, value, initial=True):
-        self.initial_value = self.clean_initial_value(value)
+        self.initial_value = self.clean_value(value)
         if value is None:
             value = []
         self.widget.set_value(value)
