@@ -33,7 +33,7 @@ import gobject
 import gtk
 import sqlkit
 from utils import set_height_request, set_all_nonfilling, set_this_filling
-from  cell_renderers import CellRendererDate, CellRendererDatetime
+import cell_renderers 
 import totals
 from sqlkit.widgets.common import sqlwidget
 import gtk
@@ -224,7 +224,7 @@ class SqlTable(sqlwidget.SqlWidget):
         A date calendar that pops a gtk.Calendar to edit
         """
 
-        cell = CellRendererDate(master=self, field_name=field_name)
+        cell = cell_renderers.CellRendererDate(master=self, field_name=field_name)
         cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
         cell.set_property('sensitive', False)
         cell.set_property('xpad', 4)
@@ -240,7 +240,7 @@ class SqlTable(sqlwidget.SqlWidget):
         A datetime cell' renderer
         """
 
-        cell = CellRendererDatetime(master=self, field_name=field_name)
+        cell = cell_renderers.CellRendererDatetime(master=self, field_name=field_name)
         cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
         cell.set_property('sensitive', False)
         cell.set_property('xpad', 4)
@@ -297,8 +297,8 @@ class SqlTable(sqlwidget.SqlWidget):
         """
 
         if self.is_text(field_name):
-#            cell = UnitRenderer()
-            cell = gtk.CellRendererText()
+            cell = cell_renderers.MultilineCellRenderer()
+            #cell = gtk.CellRendererText()
         else:
             cell = gtk.CellRendererText()
         cell.set_property('editable', True)
@@ -755,7 +755,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         if hasattr(self.field_widgets[field_name], 'completion'):
             completion = self.field_widgets[field_name].completion
-            if completion:
+            if completion and not self.is_text(field_name):
                 completion.add_completion(editable)
                 completion.add_callbacks(editable)
             

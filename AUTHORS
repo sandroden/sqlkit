@@ -12,3 +12,5 @@ better language, nicer grafical toolkit, based on a serious ORM.
 The first version of SqlTable was started by Michele Comitini 
 The module optionparse was written by Michele Simionato 
 The module dateedit was written by Fabian Sturm
+the multiline renderer was set to pygtk list by Osmo Salomaa
+

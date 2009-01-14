@@ -2,6 +2,7 @@ from datetime import datetime
 import gtk, gobject, pango
 from sqlkit import debug as  dbg
 #from multiline_renderer import UnitRenderer
+from multiline_cell import MultilineCellRenderer
 
 class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
     """An editable that allows to edit dates via a calnda popup

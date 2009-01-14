@@ -2,6 +2,7 @@
 	* localization: added localization for numbers and dates
 	                added localization for messages
 	* table: complete rewrite of the column setup function
+	         added a multiline cellRenderer
 	* mask: - added handling of comments
 	        - fixed integer/float miniwiget (0 was rendered as  '')
 	        - text now uses gtk.WRAP_WORD
