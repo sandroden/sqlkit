@@ -86,8 +86,8 @@ passed direcly to the layout object or to the sqlwidget (label_map option).
 
 This ``label_map`` is a dictionary whose key is the ``field_name`` and the
 value is a tuple with a description and a help_text to show as tooltip on
-the label. Each of these are to be considered msgid that gettext can still
-translate::
+the label. Each of these are to be considered msgid that gettext will
+further try to translate::
 
    { 'first_name' : ('First Name', 'Write the family name of the director')}
 
@@ -96,6 +96,26 @@ can be easily edit with ``sqledit -c URL``. Each time a sqlwidget is
 instantiated it will try to see if any info for the tables it is editing was
 writtend in the database and add those to what can be passed to the widget
 as "label_map".
+
+label translation for related tables
+++++++++++++++++++++++++++++++++++++
+
+When related tables are used, the name of the columns may need different
+translation in each related table. Suppose you have a project mask with
+related table that point to users, one for 'staff' and another for
+'manager', as in::
+
+  m2m=staff:username m2m=manager:username 
+
+both would show up as 'username', that is pretty misleading. You can then
+add two keys to labl_map::
+
+  'staff.username': ('staff', None)
+  'manager.username': ('manager', None)
+
+that would translate as desired. That can be convenientrly set in the
+_sqlkit_field table, in which case on ly the description column need to be
+filled with 'staff'/'manager'
 
 Tooltips
 ----------

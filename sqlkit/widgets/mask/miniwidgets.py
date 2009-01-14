@@ -463,7 +463,7 @@ class CollectionWidget(Widget):
             relationship_leader = self.master,
             relationship_mode = direction,
             relationship_path = self.master.relationship_path + [self.field_name],
-            
+            label_map = self.prepare_label_map()
             )
         
         # We generally want a table to expand if possible        
@@ -489,7 +489,27 @@ class CollectionWidget(Widget):
     def get_value(self, shown=False):
         return self.table.records 
 
+    def prepare_label_map(self):
+        """
+        Implement the possibility to specify a label key as::
 
+           related_field.field_name
+
+        so that related field can be personalized in different ways.
+        As an example a project can have tho relations to the user table, one is under
+        'staff' attribute and the second via 'manager'. Bothe these point to 'username'
+        that should appear in the mask with staff and manager label.
+        """
+
+        from copy import copy
+        label_map = copy(self.master.label_map)
+
+        for key, value in label_map.items():
+            if key.startswith('%s.' % self.field_name):
+                key = key.replace('%s.' % self.field_name, '')
+                label_map[key] = value
+
+        return label_map
 
 
 

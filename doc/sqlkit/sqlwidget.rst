@@ -229,7 +229,7 @@ Attributes
 Signals
 =======
 
-At the moment just one signal is defined. More will come up soon as I decide
+At the moment just two signals are defined. More will come up soon as I decide
 which are the needed ones...
 
 :record-selected:
