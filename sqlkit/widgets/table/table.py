@@ -94,7 +94,7 @@ class SqlTable(sqlwidget.SqlWidget):
 #             self.lay_obj.prop('TV=tree', 'height-request', self.geom[1])
 
         if self.rows:
-            self.set_rows(self.treeview, self.rows)
+            gobject.idle_add(self.set_rows)
 
         if self.icons:
             self.lay_obj.prop(
@@ -1290,12 +1290,12 @@ class SqlTable(sqlwidget.SqlWidget):
             obj = query.filter_by(**filter_by).one()
         return obj
         
-    def set_rows(self, treeview, rows):
+    def set_rows(self):
         """
         set number of treeview visible rows to "rows"
         """
-        dbg.write("setting rows:", rows)
-        tv_utils.set_height_request(treeview, rows)
+        dbg.write("setting rows:", self.rows)
+        tv_utils.set_height_request(self.treeview, self.rows)
 
     def get_first_editable_col(self):
         """
