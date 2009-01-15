@@ -461,7 +461,7 @@ class CollectionWidget(Widget):
         self.table = SqlTable(
             table=table.name,
             geom = (-1, -1),
-            rows = loader_spec.get('rows', None),
+            rows = loader_spec.get('rows', 5),
             mapper = self.field.db_spec['mapper'],
             session=self.master.session,
             metadata=self.master.metadata,
