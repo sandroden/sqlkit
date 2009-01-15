@@ -214,7 +214,7 @@ class SqlTable(sqlwidget.SqlWidget):
             #tvcolumn.set_fixed_width(self.width)
 
         self.treeview.columns_autosize()
-#        self.fix_expandable_columns()
+        self.fix_expandable_columns()
 
     def setup_boolean_column(self, field_name, tvcolumn):
         """
@@ -298,7 +298,19 @@ class SqlTable(sqlwidget.SqlWidget):
         A renderer similar to varchar but with different expand options
         and with right justification
         """
-        cell = gtk.CellRendererText()
+        if self.col_width and field_name in self.col_width:
+            width = self.col_width.get(field_name, )
+        else:
+            if self.fields[field_name]['type'] == int:
+                width = 8
+            else:
+                width = self.fields[field_name]['col'].type.precision
+
+        if width:
+            cell = CellRendererVarchar(width)
+        else:
+            cell = gtk.CellRendererText()
+
         cell.set_property('editable', True)
         cell.set_property('editable-set', True)
         cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
@@ -319,10 +331,14 @@ class SqlTable(sqlwidget.SqlWidget):
         A renderer that expands only large fields and that centers text if it's little
         """
 
-        lenght = self.fields[field_name]['length']
-        if lenght:
-            cell = CellRendererVarchar(lenght)
-            cell.fixed_width = True
+        if self.col_width and field_name in self.col_width:
+            width = self.col_width.get(field_name, )
+        else:
+            width = self.fields[field_name]['length']
+
+        if width:
+            cell = CellRendererVarchar(width)
+#            cell.fixed_width = True
         else:
             cell = gtk.CellRendererText()
         cell.set_property('editable', True)

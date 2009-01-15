@@ -72,6 +72,7 @@ class SqlWidget(gobject.GObject):
                   title=None,
                   show=True,
                   icons='',
+                  col_width = None,
                   # SQL
                   table=None,
                   tables=None,
@@ -136,6 +137,7 @@ class SqlWidget(gobject.GObject):
         self.field_widgets = Container()
         self.completions = Container()
         self.icons = icons
+        self.col_width = col_width
 #        self.filter = filter
         self.xml = xml
         self.dev = dev
