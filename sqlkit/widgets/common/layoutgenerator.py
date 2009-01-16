@@ -317,7 +317,7 @@ class LayoutGenerator (object):
 
             
         self.layout = """
-        {B m=file m=modify m=option m=help}
+        {B m=file m=modify m=tools m=help}
         {O.tool tb=gtk-save tb=gtk-save-as tb=gtk-delete tb=gtk-new tb=gtk-refresh 
         %s } 
         {A.external { %s}}

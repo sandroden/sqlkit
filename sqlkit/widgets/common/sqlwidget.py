@@ -961,11 +961,9 @@ class SqlWidget(gobject.GObject):
                 # meu entry to pop filter tool
                 (_('Filter panel'),  'activate', self.add_filter_cb),
                 ('-', None),
-                ('gtk-clear', 'activate',  self.record_new),
+                ('gtk-new', 'activate',  self.record_new),
+                ('gtk-save', 'activate',  self.record_save),
                 ('gtk-save-as', 'activate',  self.record_save_new),
-                (_('Inspect tables'), 'activate',  self.show_mapper_info),
-                (_('Inspect widgets'), 'activate', self.show_widget_info),
-                (_('Inspect class'), 'activate', self.show_class_info),
                 ('-', None),
                 (_('Export'), 'activate', self.export),
                 
@@ -974,6 +972,14 @@ class SqlWidget(gobject.GObject):
             self.lay_obj.menu(
                 'm=help',
                 ('gtk-about', 'activate', self.about_dialog_cb),
+                )
+            self.lay_obj.menu(
+                'm=tools',
+
+                (_('Inspect tables'), 'activate',  self.show_mapper_info),
+                (_('Inspect widgets'), 'activate', self.show_widget_info),
+                (_('Inspect class'), 'activate', self.show_class_info),
+
                 )
             self.printing()
     def clear_cb(self, *args):
