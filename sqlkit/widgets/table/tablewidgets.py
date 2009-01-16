@@ -1,4 +1,5 @@
 from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion, M2mCompletion
+from sqlkit import _
 
 class CellWidget(object):
 
@@ -17,7 +18,8 @@ class CellWidget(object):
         if self.field_name == self.master.currently_edited_field_name:
             return self.master.editable
         else:
-            raise NotImplementedError
+            msg = _("No current obj for field '%s' in %s")
+            raise NotImplementedError(msg  % (self.field_name, self.master))
     
     entry = property(fget)
 

@@ -49,7 +49,7 @@ class Widget(object):
 
         gtkwidget.set_property('sensitive', self.field.db_spec['edit']) 
 
-    def set_value(self, value, displayed=False):
+    def set_value(self, value, shown=False):
         """if shown is True, the displayed value is returned also in any
         case. The difference is only for ForeignKey
         The displayed value may be used for completion purpouses

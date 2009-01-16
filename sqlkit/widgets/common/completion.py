@@ -127,8 +127,12 @@ class SimpleCompletion(object):
 
         return self._group_by
 
-    group_by = property (get_group_by, set_group_by)
-    
+    def get_entry(self):
+        return self.widget
+
+    group_by = property(get_group_by, set_group_by)
+    entry    = property(get_entry)
+
     def prepare_completion(self):
         """
         Prepare an EntryCompletion suitable for... sqlcompletion
@@ -169,8 +173,9 @@ class SimpleCompletion(object):
 
         
 ### Filling & popping the completion
-    def show_possible_completion(self, widget, mode):
-        """fill in a ListStore to use with completion, fetch data from db
+    def show_possible_completion(self, widget, mode, pop=True):
+        """
+        fill in a ListStore to use with completion, fetch data from db
         mode determines the match of the already typed text:
         start: only matching data starting with typed text
         regexp: typed text is a regexp (*~ or ILIKE)
@@ -185,7 +190,11 @@ class SimpleCompletion(object):
         for obj in result:
             self.append_to_model(obj)
 
-        self.make_completion_to_pop(widget)
+        if pop:
+            self.make_completion_to_pop(self.get_entry())
+        else: # doctest purpose
+            for row in self.model:
+                print self.model.get_value(row.iter, 1)
 
     def match_func(self, completion, key, iter):
         """When editing, this function limits the visible entry of the model
@@ -423,8 +432,8 @@ class SimpleCompletion(object):
             pass
 
         
-        self.master.w['M=popup'] = gtk.Menu()
-        menu = self.master.w['M=popup']
+        self.master.widgets['M=popup'] = gtk.Menu()
+        menu = self.master.widgets['M=popup']
         ## info on field
         item = gtk.MenuItem(label="info on %s" % field_name.replace('_','__'))
         item.connect('activate', self.show_field_info, field_name)
@@ -637,14 +646,18 @@ class FkeyCompletion(SimpleCompletion):
     MATCH_COL = 4
     
         
-    def __init__(self, *args, **kw):
-        SimpleCompletion.__init__(self, *args, **kw)
+    def __init__(self, master, widget, *args, **kw):
+        SimpleCompletion.__init__(self, master, widget, *args, **kw)
         self.table, self.column = get_foreign_info(self.master, self.field_name, names=False)
         self.description = get_description(self.table, attr='description')
         self.attrs = get_description(self.table, attr='attrs')
         self.columns = [self.table.columns[name] for name in self.attrs]
         self.format    = get_description(self.table, attr='format')
         self.from_obj = None
+        self.widget = widget
+
+    def get_entry(self):
+        return self.widget.entry
 
     def prepare_model(self):
         ## last col is for markup
@@ -860,11 +873,14 @@ def debug_liststore(listore):
 def edit_foreign_key_table(wdg, (master, field_name, mode)):
     """open a SqlMask to edit the table referenced by this ForeignKey"""
     ## FIXME  - works only with dbproxy
+
+    from sqlkit.widgets import SqlMask, SqlTable
+    
     ftable, fkey = get_foreign_info(master, field_name)
     if mode == 'mask':
-        sqlkit.SqlMask(table=ftable, dbproxy=master.dbproxy)
+        SqlMask(table=ftable, dbproxy=master.dbproxy)
     else:
-        sqlkit.SqlTable(table=ftable, dbproxy=master.dbproxy)
+        SqlTable(table=ftable, dbproxy=master.dbproxy)
     
 def get_foreign_info(master, field_name, names=True):
 
@@ -872,6 +888,8 @@ def get_foreign_info(master, field_name, names=True):
 
     foreign_keys = master.fields[field_name]['fkey']
     return get_foreign_info(foreign_keys, names=names)
+
+
 
 
 
