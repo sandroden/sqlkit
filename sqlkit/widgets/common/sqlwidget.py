@@ -380,10 +380,7 @@ class SqlWidget(gobject.GObject):
         if 'Window' in self.lay_obj.elements:
             self.lay_obj.connect(('Window', 'delete_event', self.delete_event))
             if self.geom:
-                self.lay_obj.prop('Window', 'width-request', self.geom[0])
-                self.lay_obj.prop('Window', 'height-request', self.geom[1])
-
-
+                self.resize(*self.geom)
 
         if self.is_mask():
             self._add_click_for_filter()
@@ -818,6 +815,8 @@ class SqlWidget(gobject.GObject):
         """
         Resize the parent window
         """
+        if width < 0 or height < 0:
+            return
         self.widgets['Window'].resize(width, height)
         
     def set_fkey_value(self, field_name, value):
