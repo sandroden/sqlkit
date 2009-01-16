@@ -410,19 +410,26 @@ class ForeignKeyWidget(Widget):
         ## the EntryText has been changed. The value may no longe be  valid
         self.real_value = False
 
-    def set_value(self, value):
-        """We have a real 'value' that is normally an id or a key and a 'display_value'
-        that is the value we want to show
+    def set_value(self, value, shown=False):
         """
-        self.value = value
-        display_value = self.completion.lookup_value(self.field_name, value)
+        We have a real 'value' that is normally an id or a key and a 'display_value'
+        that is the value we want to show
+        shown: the passed value is a value to be shown.
+               a shown value is not cleaned (e.g.: for completion)
+        """
+        if not shown:
+            self.value = value
+            display_value = self.completion.lookup_value(self.field_name, value)
+            self.real_value = True  # we can trust this value, has been set by procedures
+        else:
+            display_value = value
+            
         self.entry.set_text(display_value)
-        self.real_value = True  # we can trust this value, has been set by procedures
         
     
     def get_value(self, shown=False):
         if shown:
-            return self.entry.get_text()
+            return self.entry.get_text() 
         if self.real_value:
             return self.value
         else:

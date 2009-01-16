@@ -133,7 +133,7 @@ class SqlMask (sqlwidget.SqlWidget):
             self.record_display(index=index)
         self.record_refresh()
 
-    def set_value(self, field_name, field_value, fkvalue=None, initial=True):
+    def set_value(self, field_name, field_value, fkvalue=None, initial=True, shown=False):
         """
         invoke field.set_value
         
@@ -143,7 +143,7 @@ class SqlMask (sqlwidget.SqlWidget):
         if field_name not in self.vfields:
             raise exc.FieldNotInLayout("field_name: %s" % (field_name))
 
-        self.vfields[field_name].set_value(field_value, initial=initial)
+        self.vfields[field_name].set_value(field_value, initial=initial, shown=shown)
         
         
     def clear_value(self, field_name):

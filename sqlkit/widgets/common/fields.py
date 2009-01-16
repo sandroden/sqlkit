@@ -26,7 +26,7 @@ fields classes to handle all details:
 
    while a
    
-   see decimal_ to have an intro to formatting numbers
+   see decimal_ to have an intro on formatting numbers
 
    .. _decimal http://java.sun.com/docs/books/tutorial/i18n/format/decimalFormat.html
 
@@ -163,7 +163,7 @@ class Field(object):
         self.master.field_widgets[field_name] = self.widget
         self.set_max_length()
 
-    def set_value(self, value, initial=True):
+    def set_value(self, value, initial=True, shown=False):
         value = self.clean_value(value)
         if initial:
             self.initial_value = value
@@ -287,7 +287,7 @@ class IntegerField(Field):
                 raise exc.ValidationError(e.message)
             return value
 
-    def set_value(self, value, initial=True):
+    def set_value(self, value, initial=True, shown=False):
         value = self.clean_value(value)
         if initial:
             self.initial_value = value
@@ -506,16 +506,18 @@ class ForeignKeyField(Field):
             raise exc.Validation.error(_(msg % (field_name, e.message) ))
         
     def get_value(self, shown=False):
-        value = self.widget.get_value()
-        if value == '' and self.initial_value is None:
+        value = self.widget.get_value(shown=shown)
+        ## a shown value is not to be transformed
+        if not shown and value == '' and self.initial_value is None:
             return None
         return value
 
-    def set_value(self, value, initial=True):
-        value = self.clean_value(value, input_is_fkey=True)
+    def set_value(self, value, initial=True, shown=False):
+        if not shown:
+            value = self.clean_value(value, input_is_fkey=True)
         if initial:
             self.initial_value = value
-        self.widget.set_value(value)
+        self.widget.set_value(value, shown=shown)
 
 class CollectionField(Field):
     """
@@ -541,7 +543,7 @@ class CollectionField(Field):
             value = []
         return copy(value)
 
-    def set_value(self, value, initial=True):
+    def set_value(self, value, initial=True, shown=False):
         self.initial_value = self.clean_value(value)
         if value is None:
             value = []

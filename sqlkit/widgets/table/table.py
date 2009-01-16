@@ -1225,7 +1225,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.treeview.columns_autosize()
         sqlwidget.SqlWidget.record_refresh(self)
 
-    def set_value(self, field_name, value, path=None, fkvalue=None, initial=False):
+    def set_value(self, field_name, value, path=None, fkvalue=None, initial=False, shown=False):
         """
         called from within edited signal and completion.
         Validation should live here?
@@ -1235,14 +1235,14 @@ class SqlTable(sqlwidget.SqlWidget):
         Used from completion and from vfields/tablewidget
         """
 
-        ## note: current cannot be used. We don't want the currently selected obj
+        ## note: self.current cannot be used. We don't want the currently selected obj
         ##       but the one that is to be saved. This operation can be triggered
         ##       by a change in selection in which case self.current already points
         ##       to the new selection
         obj = self.get_current_obj(path=path)
         
         if not obj:
-            return True
+            return 
 
         ## casting of value
         value = self.vfields[field_name].clean_value(value)
@@ -1258,8 +1258,6 @@ class SqlTable(sqlwidget.SqlWidget):
                 ## that may not be the one that belogs to field_name...
                 if self.editable and field_name == self.currently_edited_field_name:
                     self.editable.set_text(str(value))
-            
-        return True
     
     def set_value_old(self, field_name, value, path=None, fkvalue=None, initial=False):
         """

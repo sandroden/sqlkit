@@ -40,8 +40,8 @@ class CellWidget(object):
         self.completion = Completion(self.master, self, self.field_name)
         self.master.completions[self.field_name] = self.completion
         
-    def set_value(self, value):
-        self.master.set_value(self.field_name, value)
+    def set_value(self, value, shown=False):
+        self.master.set_value(self.field_name, value, shown=shown)
 
     def get_value(self, shown=False):
         return self.master.get_value(self.field_name)
