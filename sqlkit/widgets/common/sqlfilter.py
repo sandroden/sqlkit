@@ -29,6 +29,30 @@ from sqlkit import _
 
 class SqlDataFixNeeded(Exception): pass
 
+OP_MSGID = {
+    'regexp' : _('Match as regexp'),
+    'match' : _('Match as LIKE, "%" automatically added'),
+    'ICONTAINS' : _('Match as LIKE case insensitive, "%" automatically added'),
+    '~' : _('Match as regexp'),
+    '~*' : _('Match as regexp, case insensitive'),
+    '!~' : _('Negation of match as regexp'),
+    '!~*' : _('Negation of match case insensitive'),
+    '=' : _('Equal'),
+    '!=' : _('Not equal'),
+    '>' : _('Greater then (after than)'),
+    '>=' : _('Greater or equal'),
+    '<' : _('Less than (before then)'),
+    '<=' : _('Less than or equal'),
+    'LIKE' : _('LIKE: a "%" means any char'),
+    'NOT LIKE' : _('Negation of LIKE'),
+    'TRUE' : _('The boolena is True'),
+    'NOT TRUE' : _('The boolean is False'),
+    'IS NULL' : _('The value is not set'),
+    'IS NOT NULL' : _('The value is set'),
+#    '' : _(''),
+    }
+
+
 class FilterPanel(object):
     """A filter panel has 'entry|operator|string' rows
 
@@ -389,7 +413,7 @@ class FilterWidget(object):
         self.check_button         = gtk.CheckButton()
 
         self.check_button.set_active(True)
-        self.panel.l.tooltips.set_tip(self.check_button, "Check me to use this filter")
+        self.panel.l.tooltips.set_tip(self.check_button, _("Check me to use this filter"))
         
         self.field_name_event_box.add(self.field_label)
         self.field_label.set_property('xalign', 0)
@@ -400,6 +424,7 @@ class FilterWidget(object):
         self.operator = gtk.combo_box_new_text()
         for op in operators:
             self.operator.append_text(op)
+            #self.operator.append_text("%s - %s" % (op, OP_MSGID[op]))
         self.operator.set_active(0)
         #operator.set_property('can_focus', False)
 

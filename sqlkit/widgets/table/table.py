@@ -447,7 +447,7 @@ class SqlTable(sqlwidget.SqlWidget):
         ## add to filter
         ## TIP: menu entry to add a filter in the filter panel
         field_name_localized = get_label(field_name, layout=self.lay_obj).replace('_', '__')
-        label_str = _("Add a filter on %s") % field_name_localized
+        label_str = _("Add a filter on '%s'") % field_name_localized
         item = gtk.MenuItem(label=label_str)
 #        item.connect('activate', self.filter_panel.add, ev, field_name )
         item.connect('activate', self.filter_panel.add, ev, field_name, self )

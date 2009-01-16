@@ -465,7 +465,7 @@ class SqlWidget(gobject.GObject):
                 #    widget_name, 'clicked', handler)
                 #self.widgets[widget_name].connect('clicked', handler)
                 self.lay_obj.connect((widget_name, 'clicked', handler))
-                self.lay_obj.tooltips.set_tip(self.widgets[widget_name], "mmh")
+                #self.lay_obj.tooltips.set_tip(self.widgets[widget_name], "mmh")
                 #self.lay_obj.tip(widget_name, "mi chiamo %s" % widget_name)
 
         ## style for toolbar if any

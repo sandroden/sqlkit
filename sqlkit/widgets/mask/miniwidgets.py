@@ -464,7 +464,7 @@ class CollectionWidget(Widget):
             naked=True,
             field_list = loader_spec.get('field_list', None),
             addto=self.gtkwidget,
-            icons='b=gtk-new b=gtk-delete b=gtk-save',
+            icons='b=gtk-new b=gtk-delete b=gtk-save b=gtk-zoom-fit',
             ignore_fields = self.field.db_spec['remote_attr'],
             dev = self.master.dev,
             relationship_leader = self.master,
