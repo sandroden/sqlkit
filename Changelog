@@ -1,8 +1,16 @@
-
+sqlkit 0.8.5 - 16.1.09	
+	
 	* localization: added localization for numbers and dates
 	                added localization for messages
-	* table: complete rewrite of the column setup function
-	         added a multiline cellRenderer
+	                -- now waiting for translations  ;-)  --
+	* table: - added a smart way to automatically set dimentions of the
+	           table based on info retrieved from the database
+	           (thanks to Pietro Battiston)
+	         - complete rewrite of the column setup function
+	         - added a basic multiline cellRenderer
+	         - grately improved the navigation with Tab that now
+	           correctly triggers validation/completion
+	* fields: many improvements in clean_value/validation
 	* mask: - added handling of comments
 	        - fixed integer/float miniwiget (0 was rendered as  '')
 	        - text now uses gtk.WRAP_WORD
@@ -13,6 +21,7 @@
 	* signals: - record_selected -> record-selected to follow gtk standard
 	           - added records-displayed
 	* widgets/layout: added label_map support
+	* sqlwidget: rationalized menu entries
 	
 sqlkit 0.8.4 - 20.12.08
 

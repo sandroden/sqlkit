@@ -35,7 +35,7 @@ class DbProxy(object):
 
       SqlTable(table="ticket_project", dbproxy=self.dbproxy)
 
-    session defaults are: sutoflush=False, autocommit=False
+    session defaults are: autoflush=False, autocommit=False
 
     """
     def __init__(self, metadata=None, engine=None, bind=None,
