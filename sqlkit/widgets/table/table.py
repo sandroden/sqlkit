@@ -32,8 +32,8 @@ import re
 import gobject
 import gtk
 import sqlkit
-from utils import set_height_request, set_all_nonfilling, set_this_filling
-import cell_renderers 
+import utils as tv_utils
+import cell_renderers
 import totals
 from sqlkit.widgets.common import sqlwidget
 import gtk
@@ -94,10 +94,7 @@ class SqlTable(sqlwidget.SqlWidget):
 #             self.lay_obj.prop('TV=tree', 'height-request', self.geom[1])
 
         if self.rows:
-            self.treeview.connect_after('realize', self.set_rows, self.rows)
-
-#         if self.rows:
-#             self.set_height_request()
+            gobject.idle_add(self.set_rows)
 
         if self.icons:
             self.lay_obj.prop(
@@ -117,10 +114,29 @@ class SqlTable(sqlwidget.SqlWidget):
                 label.set_text('')
                 
 
+        self.treeview.hide()
+        self.treeview.show()
+        gobject.idle_add(tv_utils.set_optimal_width, self.treeview)
         return (self.lay_obj, self.widgets)
 
-
     
+    def _add_actions_to_buttons(self):
+        """
+        add zoom to fit
+        """
+        sqlwidget.SqlWidget._add_actions_to_buttons(self)
+        if 'tb=gtk-zoom-fit' in self.widgets:
+            self.widgets['tb=gtk-zoom-fit'].connect('clicked', self.on_zoom_fit)
+
+        if 'm=modify' in self.widgets:
+            self.lay_obj.menu('m=modify',
+                              ('gtk-zoom-fit', 'activate', self.on_zoom_fit, False),
+                              )
+
+
+    def on_zoom_fit(self, widget, *args):
+        tv_utils.zoom_to_fit(self.treeview, resize=True)
+
     def reload_cb(self, *args):
         """this is the real callback: C-r and toolbutton 
         """
@@ -198,7 +214,7 @@ class SqlTable(sqlwidget.SqlWidget):
             #tvcolumn.set_fixed_width(self.width)
 
         self.treeview.columns_autosize()
-#        self.fix_expandable_columns()
+        self.fix_expandable_columns()
 
     def setup_boolean_column(self, field_name, tvcolumn):
         """
@@ -218,6 +234,8 @@ class SqlTable(sqlwidget.SqlWidget):
             cell.connect('toggled', self.toggled_signal_cb,
                          (self.liststore, field_name))
         tvcolumn.set_cell_data_func(cell, self.cell_bool_cb, field_name)
+        tvcolumn.cells_data_func = [(cell, self.cell_bool_cb, field_name)]
+        cell.fixed_width = True
         return  cell
         
     def setup_date_column(self, field_name, tvcolumn):
@@ -234,6 +252,7 @@ class SqlTable(sqlwidget.SqlWidget):
         cell.connect('editing-started', self.generic_editing_started_cb, field_name )
         cell.connect('date-changed', self.date_changed_cb, field_name )
         tvcolumn.set_cell_data_func(cell, self.cell_dates_cb, ('date', field_name) )
+        tvcolumn.cells_data_func = [(cell, self.cell_dates_cb, ('date', field_name) )]
         return  cell
 
     def setup_datetime_column(self, field_name, tvcolumn):
@@ -250,6 +269,7 @@ class SqlTable(sqlwidget.SqlWidget):
         cell.connect('editing-started', self.generic_editing_started_cb, field_name )
         cell.connect('datetime-changed', self.date_changed_cb, field_name )
         tvcolumn.set_cell_data_func(cell, self.cell_dates_cb,('datetime', field_name) )
+        tvcolumn.cells_data_func = [(cell, self.cell_dates_cb, ('datetime', field_name) )]
         return  cell
 
     def setup_fkey_column(self, field_name, tvcolumn):
@@ -267,6 +287,7 @@ class SqlTable(sqlwidget.SqlWidget):
         tvcolumn.pack_start(cell, True)
         #tvcolumn.add_attribute(cell, 'text', j)
         tvcolumn.set_cell_data_func(cell, self.set_fkey_descr, field_name)
+        tvcolumn.cells_data_func = [(cell, self.set_fkey_descr, field_name)]
 
         cell.set_property('foreground', 'navyblue')
 
@@ -274,10 +295,22 @@ class SqlTable(sqlwidget.SqlWidget):
 
     def setup_number_column(self, field_name, tvcolumn):
         """
-        A renderer similat to varchar but with different expand options
+        A renderer similar to varchar but with different expand options
         and with right justification
         """
-        cell = gtk.CellRendererText()
+        if self.col_width and field_name in self.col_width:
+            width = self.col_width.get(field_name, )
+        else:
+            if self.fields[field_name]['type'] == int:
+                width = 8
+            else:
+                width = self.fields[field_name]['col'].type.precision
+
+        if width:
+            cell = cell_renderers.CellRendererVarchar(width)
+        else:
+            cell = gtk.CellRendererText()
+
         cell.set_property('editable', True)
         cell.set_property('editable-set', True)
         cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
@@ -286,6 +319,7 @@ class SqlTable(sqlwidget.SqlWidget):
         tvcolumn.pack_start(cell, True)
         #tvcolumn.add_attribute(cell, 'text', j )
         tvcolumn.set_cell_data_func(cell, self.cell_number_cb, ('text', field_name) )
+        tvcolumn.cells_data_func = [(cell, self.cell_number_cb, ('text', field_name) )]
         tvcolumn.set_expand(self.is_expandable(field_name))
 
         ## left alignment for NUMBERS
@@ -297,11 +331,20 @@ class SqlTable(sqlwidget.SqlWidget):
         A renderer that expands only large fields and that centers text if it's little
         """
 
+        if self.col_width and field_name in self.col_width:
+            width = self.col_width.get(field_name, )
+        else:
+            width = self.fields[field_name]['length']
+
         if self.is_text(field_name):
             cell = cell_renderers.MultilineCellRenderer()
-            #cell = gtk.CellRendererText()
         else:
-            cell = gtk.CellRendererText()
+            if width:
+                cell = gtk.CellRendererText()
+            else:
+                cell = CellRendererVarchar(width)
+                cell.fixed_width = True
+
         cell.set_property('editable', True)
         cell.set_property('editable-set', True)
         cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
@@ -311,6 +354,7 @@ class SqlTable(sqlwidget.SqlWidget):
         tvcolumn.pack_start(cell, True)
         #tvcolumn.add_attribute(cell, 'text', j )
         tvcolumn.set_cell_data_func(cell, self.cell_default_cb, ('text', field_name) )
+        tvcolumn.cells_data_func = [(cell, self.cell_default_cb, ('text', field_name) )]
         tvcolumn.set_expand(self.is_expandable(field_name))
 
         specs = self.fields[field_name]['col_spec']
@@ -324,7 +368,6 @@ class SqlTable(sqlwidget.SqlWidget):
                     cell.set_property('xalign', 0.5)
             except:
                 pass
-        
         return  cell
 
     def setup_generic_column(self, field_name, tvcolumn):
@@ -341,6 +384,7 @@ class SqlTable(sqlwidget.SqlWidget):
         tvcolumn.pack_start(cell, True)
         #tvcolumn.add_attribute(cell, 'text', j )
         tvcolumn.set_cell_data_func(cell, self.cell_default_cb, ('text', field_name) )
+        tvcolumn.cells_data_func = [(cell, self.cell_default_cb, ('text', field_name) )]
         tvcolumn.set_expand(self.is_expandable(field_name))
         return  cell
 
@@ -1378,12 +1422,12 @@ class SqlTable(sqlwidget.SqlWidget):
             obj = query.filter_by(**filter_by).one()
         return obj
         
-    def set_rows(self, treeview, rows):
+    def set_rows(self):
         """
         set number of treeview visible rows to "rows"
         """
-        dbg.write("setting rows:", rows)
-        set_height_request(treeview, rows)
+        dbg.write("setting rows:", self.rows)
+        tv_utils.set_height_request(self.treeview, self.rows)
 
     def get_first_editable_col(self):
         """

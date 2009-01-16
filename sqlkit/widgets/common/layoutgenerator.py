@@ -86,6 +86,12 @@ class IntervalEdit(widgets.LWidget):
         'creation_function' : 'interval_edit',
         }
             
+class GreedyTreeView(widgets.LWidget):
+    gtkClass = 'Custom'
+    class_properties = {
+        'creation_function' : 'greedy_treeview',
+        }
+
 class MyWidget(widgets.CustomWidget):
     def fk_edit(self):
         from sqlkit.layout import fk_entry
@@ -98,9 +104,16 @@ class MyWidget(widgets.CustomWidget):
         ie = interval_entry.IntervalEdit()
         ie.show()
         return ie
+        
+    def greedy_treeview(self):
+        from sqlkit.layout import greedy_treeview
+        gt = greedy_treeview.GreedyTreeView()
+        gt.show()
+        return gt
     
 widgets.register(FkEdit, 'fk', MyWidget)
 widgets.register(IntervalEdit, 'delta', MyWidget)
+widgets.register(GreedyTreeView, 'TV', MyWidget, force=True)
 
 class LayoutGenerator (object):
     map_types = {
@@ -300,12 +313,13 @@ class LayoutGenerator (object):
         if self.master.is_mask():
             nav_buttons="tb=gtk-go-back tb=gtk-go-forward"
         else:
-            nav_buttons=""
+            nav_buttons="tb=gtk-zoom-fit"
+
             
         self.layout = """
-        {B m=file m=modify m=help}
-        {O.tool tb=gtk-save tb=gtk-save-as tb=gtk-delete tb=gtk-new tb=gtk-refresh tb=gtk-quit
-        %s}
+        {B m=file m=modify m=option m=help}
+        {O.tool tb=gtk-save tb=gtk-save-as tb=gtk-delete tb=gtk-new tb=gtk-refresh 
+        %s } 
         {A.external { %s}}
         sb=StBar
         """ % (nav_buttons, self.layout)

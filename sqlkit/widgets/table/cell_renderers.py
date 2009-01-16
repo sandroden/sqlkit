@@ -1,7 +1,6 @@
 from datetime import datetime
 import gtk, gobject, pango
 from sqlkit import debug as  dbg
-#from multiline_renderer import UnitRenderer
 from multiline_cell import MultilineCellRenderer
 
 class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
@@ -296,6 +295,47 @@ class CellRendererDatetime(CellRendererDate):
         self.stop_editing(True)
         self.emit('datetime-changed', path, widget.datetime)
         return True
+
+
+MAX_CHARS = 30    
+
+class CellRendererVarchar(gtk.CellRendererText):
+    fixed_width = True
+    def __init__(self, lenght):
+        gtk.CellRendererText.__init__(self)
+        self.lenght = lenght
+        self.fixed_width = True
+        dbg.write("new varchar, lenght", lenght)
     
+    def do_get_size(self, widget, cell_area):
+        # We start from the standard dimension...
+        ellipsize = self.get_property('ellipsize')
+        self.set_property('ellipsize', False)
+        size_tuple = gtk.CellRendererText.do_get_size(self, widget, cell_area)
+        self.set_property('ellipsize', ellipsize)
+
+        if not self.fixed_width:
+            # We just return the standard text size.
+            return size_tuple
+            
+        size = list(size_tuple)
+        context = widget.get_pango_context()
+        description = context.get_font_description()
+        metrics = context.get_metrics(description)
+        effective_lenght = min(self.lenght, MAX_CHARS)
+        pango_width = metrics.get_approximate_char_width() * effective_lenght
+
+        # Pango uses its own internal measure unit. "pango.PIXELS" converts it.
+        width = pango.PIXELS(pango_width)
+        
+        # ... then modify the width. FIXME: consider xpad.
+        xpad = self.get_property('xpad')
+        size[2] = width + xpad * 2
+
+        dbg.write("lenght", self.lenght)
+        return tuple(size)
+        
+
+gobject.type_register(CellRendererVarchar)
 
 
