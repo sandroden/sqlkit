@@ -519,7 +519,7 @@ class SqlWidget(gobject.GObject):
     def SQLErrorHandler(self, e):
         # TIP: message in the status bar when a commit error is handled
         self.message(type='error',
-                     text=_("%s - Dirty objects: %s - New objects: % s") %
+                     text=_("%s - Dirty objects: %s - New objects: %s") %
                      (str(e.orig),len(self.session.dirty),len(self.session.new)))
         self.sb(e.orig)
         dbg.write("Scritto %s su sb" % (e.orig))

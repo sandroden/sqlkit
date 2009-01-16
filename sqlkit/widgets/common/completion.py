@@ -18,7 +18,7 @@ autocompletion
 ---------------
 
 ``my_sqlwidget.completions.my_field.autostart = n``
-(Where n hold the number of chars entered to trogger automatic start of completion)
+(Where n holds the number of chars entered to trogger automatic start of completion)
 
 group_by
 --------
@@ -31,7 +31,7 @@ group_by
 
 import re
 import gtk
-from sqlkit import debug as dbg
+from sqlkit import debug as dbg, _
 import sqlkit
 from sqlalchemy import text, select, Table
 from sqlalchemy.sql import and_, or_, not_
@@ -177,7 +177,8 @@ class SimpleCompletion(object):
         all: all values
         """
         self.mode = mode
-        self.master.sb("search: %s" % mode)
+        # TIP: status bar 
+        self.master.sb(_("search mode: %s") % mode)
         self.model.clear()
 
         result = self.select_values(self.field_name, mode)
@@ -426,38 +427,38 @@ class SimpleCompletion(object):
         ## info on field
         item = gtk.MenuItem(label="info on %s" % field_name.replace('_','__'))
         item.connect('activate', self.show_field_info, field_name)
-        label = "Show all info on this field, db type and such"
+        label = _("Show all info on this field, db type & Co.")
         self.master.lay_obj.tooltips.set_tip(item,label)
         menu.append(item)
         
         ## possible values regexp
-        item = gtk.MenuItem(label="possible values: regexp  - F1")
+        # TIP: menu enty in menu on right click on down arro in fkey completion widget
+        item = gtk.MenuItem(label=_("Show possible values: regexp  - Ctrl-Enter"))
         item.connect('activate', self.show_possible_completion, 'regexp')
-        label = "Mostra tutti i valori attualmente nel db che 'matchino'"
+        # TIP: yellow tip to menu entry in down arrow in completion widget
+        label = _("Show all values in the db that match your string")
         self.master.lay_obj.tooltips.set_tip(item,label)
         menu.append(item)
 
         ## possible values starting
-        item = gtk.MenuItem(label="possible values, starting - Ctrl-F1")
+        item = gtk.MenuItem(label=_("Show possible values, starting - Shift-Enter"))
         item.connect('activate', self.show_possible_completion, 'start')
-        label = "Mostra tutti i valori attualmente nel db, che cominciano con..."
+        label = _("Show all values in the database starting with your string")
         self.master.lay_obj.tooltips.set_tip(item,label)
         menu.append(item)
 
         ## edit table referenced as foreign key
         if self.master.is_fkey(field_name):
-            item = gtk.MenuItem(label="Edit fk table")
+            item = gtk.MenuItem(label=_("Edit the referenced table in 'table' mode"))
             item.connect('activate', edit_foreign_key_table, (self.master, field_name, 'table'))
-            label = "Edita come tabella la tabella da cui sono presi i valori permessi per questo \
-            campo"
+            label = _("Edit the table from which admitted values are taken in 'table' mode")
             self.master.lay_obj.tooltips.set_tip(item, label)
             menu.append(item)
 
         if self.master.is_fkey(field_name):
-            item = gtk.MenuItem(label="Edit fk table")
+            item = gtk.MenuItem(label=_("Edit the referenced table in 'mask' mode"))
             item.connect('activate', edit_foreign_key_table, (self.master, field_name, 'mask'))
-            label = "Edita come maschera la tabella da cui sono presi i valori permessi per questo \
-            campo"
+            label = _("Edit the table from which admitted values are taken in 'mask' mode")
             self.master.lay_obj.tooltips.set_tip(item, label)
             menu.append(item)
 
@@ -870,6 +871,8 @@ def get_foreign_info(master, field_name, names=True):
 
     foreign_keys = master.fields[field_name]['fkey']
     return get_foreign_info(foreign_keys, names=names)
+
+
 
 
 
