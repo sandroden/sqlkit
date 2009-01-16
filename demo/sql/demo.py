@@ -9,8 +9,8 @@ import os
 
 pdir = os.path.dirname(os.getcwd())
 ppdir = os.path.dirname(pdir)
-sys.path.append(pdir)    
-sys.path.append(ppdir)    
+sys.path.insert(0,pdir)    
+sys.path.insert(0,ppdir)    
 
 from sqlkit import debug as dbg
 dbg.debug(True)
