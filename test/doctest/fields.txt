@@ -23,10 +23,6 @@
 >>> print field_chooser.get_field(field_name, sm.fields[field_name], key)
 <IntegerField - year >
 
->>> field_name, key = 'director_id', 'director_id'
->>> print field_chooser.get_field(field_name, sm.fields[field_name], key)
-<ForeignKeyField - director_id >
-
 >>> field_name, key = 'director_id', 'fk=director_id'
 >>> print field_chooser.get_field(field_name, sm.fields[field_name], key)
 <ForeignKeyField - director_id >

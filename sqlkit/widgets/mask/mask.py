@@ -356,40 +356,6 @@ class SqlMask (sqlwidget.SqlWidget):
         
 
 ####### Layout, Reflection & Analisys
-#     def setup_field_validation(self):
-#         """fill variables from layout
-
-#         vfields
-#         --------
-#         is a dict: 
-#            :key:   is the field_name
-#            :value: is a field from sqlkit.widget.mask.fields
-
-#         """
-#         ## vfields can be passed as argument of the class. In that case widgets
-#         ## used to represent the data are provided by another SqlMask
-#         if not self.vfields:
-#             self.vfields = {}
-#         ## by now I only use entry, date, radio, checbuttom, comboBox to represent data
-
-#         field_chooser = FieldChooser(self, self.widgets)
-
-#         for field_name in self.field_list:
-#             ## m2m is a workarond to bypass the fact that if I use 'A'
-#             ## I'll find *many* alignement for InterField
-#             for mod in ('e','d','r','c', 'TX', 'Ce', 'm2m', 'm2o', 'o2m', 'o2o', 'fk'):
-#                 try:
-#                     key = "%s=%s" % (mod, field_name)
-#                     widget = self.widgets[key]
-#                     field = field_chooser.get_field(field_name, self.fields[field_name], key)
-
-#                     self.vfields[field_name] = field
-                    
-#                 except KeyError, e:
-#                     pass
-            
-#             # (gtkClass , gtkWidget)
-
 
     def setup_field_validation(self):
         """fill variables from layout

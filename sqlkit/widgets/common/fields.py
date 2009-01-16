@@ -72,12 +72,13 @@ class FieldChooser(object):
         db_spec:     the dict for this field as worked out by InspectMapper
         def_str:     the definition string in the layout that determined
                      the gtk.Widget (eg.: c=married, e=first_name)
+                     as extracted by layoutgen and set in laygen.fields_in_layout dictionary
         """        
 
         gtk_widget = self.w.get(def_str, None)
     
         args = (field_name, db_spec, def_str, self.master, gtk_widget, test)
-        if db_spec['fkey']:
+        if self.master.is_fkey(field_name):
             return ForeignKeyField(*args)
 
         if self.master.is_loader(field_name):
@@ -153,7 +154,6 @@ class Field(object):
  
         if test:  # in test I don't want conplaints on already prensent widgets
             return
-        
         if gtkwidget:
             ## used in SqlMask
             self.widget = self.Widget(gtkwidget, self)
