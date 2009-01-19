@@ -527,7 +527,7 @@ class FilterStringWidget(FilterWidget):
             return [ 'REGEXP' ] + self.STD_OPERATORS
 
         elif self.bind_name in 'postgres':
-            return  ['~*', '~', '!~*', '~*' ] + self.STD_OPERATORS
+            return  ['~*', '~', '!~*', '!~' ] + self.STD_OPERATORS
 
 
 class FilterBooleanWidget(FilterWidget):
