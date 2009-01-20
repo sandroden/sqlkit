@@ -408,7 +408,8 @@ class show_widgets(object):
             a.tv.expand_all()
             model = a.model
             
-        props = gobject.signal_list_names(widget)
+        props = list(gobject.signal_list_names(widget))
+        props.sort()
         iter = model.append(None)
         pat = '(?:<gtk.| )([a-zA-Z]+)'
         model.set(iter,
