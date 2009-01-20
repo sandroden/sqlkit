@@ -436,7 +436,7 @@ class SimpleCompletion(object):
         menu = self.master.widgets['M=popup']
         ## info on field
         item = gtk.MenuItem(label="info on %s" % field_name.replace('_','__'))
-        item.connect('activate', self.show_field_info, field_name)
+        item.connect('activate', self.master.show_field_info, field_name)
         label = _("Show all info on this field, db type & Co.")
         self.master.lay_obj.tooltips.set_tip(item,label)
         menu.append(item)
@@ -561,24 +561,6 @@ class SimpleCompletion(object):
         query = self.master.session.query(table2mapper(self.table)).autoflush(False)
         return query.filter_by( **filter_cnd ).one()
         
-    def show_field_info(self, wdg, field_name):
-        """Pop a dialog to give info on the selected field"""
-#         dialog = gtk.Dialog("info on %s" % field_name,
-#                             None, gtk.DIALOG_MODAL,
-#                             (gtk.STOCK_OK, gtk.RESPONSE_ACCEPT) )
-        info = ["%s: %s" % (f, self.master.fields[field_name][f]) 
-                           for f in self.master.fields[field_name].keys() ]
-#        label = gtk.Label("\n".join(info) )
-
-        dialog = gtk.MessageDialog(None, gtk.DIALOG_MODAL, type=gtk.MESSAGE_INFO,
-                                   buttons=gtk.BUTTONS_OK,
-                                   message_format="\n".join(info))
-        #dialog.action_area.pack_start(label, gtk.TRUE, gtk.TRUE, 0)
-        dialog.show_all()
-        response = dialog.run()
-        if response == gtk.RESPONSE_OK:
-            dialog.destroy()
-    
     def filter(self, **kwargs):
         """
         Add filters to the completion. Filters must be expressed in django-like syntax
@@ -888,6 +870,8 @@ def get_foreign_info(master, field_name, names=True):
 
     foreign_keys = master.fields[field_name]['fkey']
     return get_foreign_info(foreign_keys, names=names)
+
+
 
 
 

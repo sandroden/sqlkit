@@ -485,6 +485,12 @@ class SqlTable(sqlwidget.SqlWidget):
             item = gtk.MenuItem(label=_("Subtotal on %s") % (field_name_localized))
             item.connect('activate', self.add_subtotal_cb, field_name )
             menu.append(item)
+        
+        ## info
+        # TIP: column menu opt
+        item = gtk.ImageMenuItem('gtk-info')
+        item.connect('activate', self.show_field_info, field_name )
+        menu.append(item)
 
         menu.show_all()
         menu.popup(None, None, None, ev.button, ev.time)
@@ -796,10 +802,11 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         prepare the editable, completion and validation
         """
-
         self.currently_edited_field_name = field_name
         self.editable = editable
         self.editable.connect('key-press-event', self.editable_keypress_cb, field_name)
+        #self.editable.connect('editing-done', self.validate_cell, field_name)
+        #self.editable.connect('remove-widget', self.remove_widget_cb, field_name)
         
         if hasattr(self.field_widgets[field_name], 'completion'):
             completion = self.field_widgets[field_name].completion
@@ -822,6 +829,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         dbg.write(path, new_text, field_name)
         ## NOTE: liststore.clear will trigger text_edited_cb!!!
+        return True
         if self.deleting_row:
             return True
 
@@ -974,6 +982,22 @@ class SqlTable(sqlwidget.SqlWidget):
     
         
 
+    def validate_cell(self, widget, field_name):
+        print "editing-done", field_name
+        try:
+            print "TEXT", widget.get_text()
+        except:
+            pass
+        return True
+        
+    def remove_widget_cb(self, widget, field_name):
+        print "remove_widget", field_name
+        try:
+            print "TEXT", widget.get_text()
+        except:
+            pass
+        return True
+        
 #### model handling & sqlwidget override
     def initialize_record_editing(self, path):
         """

@@ -750,16 +750,18 @@ class SqlWidget(gobject.GObject):
         
 
 ####### Dialog
-    def dialog(self, type='ok-cancel', text='', title=''):
+    def dialog(self, type='ok-cancel', text='', title='', layout="l=a"):
         """
         pop a dialog modal and transient, type can be:
         ok, ok-cancel, yes-no, yes-no-cancel, ok-apply-cancel
         text uses markup
         """
-        dialog, l = self.lay_obj.dialog(lay="l=a", title=title,
+        dialog, l = self.lay_obj.dialog(lay=layout, title=title,
                                         type=type, show=False)
-        l.prop(('l=a', 'use_markup', True))
-        l.widgets['l=a'].set_text(text)
+        if layout == 'l=a':
+            l.prop(('l=a', 'use_markup', True))
+            l.widgets['l=a'].set_text(text)
+            
 #         l.widgets['l=a'].set_markup(
 #             '<span size="14000">%s</span>' % text)
         dialog.show_all()
@@ -1209,6 +1211,55 @@ class SqlWidget(gobject.GObject):
             widget.set_format(format_dict)
             
         
+    def show_field_info(self, wdg, field_name):
+        """
+        Pop a dialog to give info on the selected field
+        """
+
+        dialog, lay = self.lay_obj.dialog(lay="TVS=info", type='ok', title="Info on %s" % field_name)
+
+        tv = lay.widgets['TV=info']
+        model = gtk.ListStore(str, str)
+        tv.set_model(model)
+        tv.set_property('width-request', 400)
+        tv.set_property('height-request', 270)
+        
+        cell1 = gtk.CellRendererText()
+        cell2 = gtk.CellRendererText()
+
+        tc1 = gtk.TreeViewColumn(_("Property"), cell1, text=0)
+        tc2 = gtk.TreeViewColumn(_("Value"), cell2, text=1)
+
+        tv.append_column(tc1)
+        tv.append_column(tc2)
+        tv.show_all()
+        
+        for key in ('table_name', 'name', 'db_type', 'col_spec', 'fkey', 'default', 'pkey', 'nullable', 'edit'):
+            model.set(model.append(), 0,  key, 1, self.fields[field_name][key])
+
+        dialog.show_all()
+        response = dialog.run()
+        dialog.destroy()
+        
+
+    def show_field_info_old(self, wdg, field_name):
+        """Pop a dialog to give info on the selected field"""
+#         dialog = gtk.Dialog("info on %s" % field_name,
+#                             None, gtk.DIALOG_MODAL,
+#                             (gtk.STOCK_OK, gtk.RESPONSE_ACCEPT) )
+        info = ["%s: %s" % (f, self.fields[field_name][f]) 
+                           for f in self.fields[field_name].keys() ]
+#        label = gtk.Label("\n".join(info) )
+
+        dialog = gtk.MessageDialog(None, gtk.DIALOG_MODAL, type=gtk.MESSAGE_INFO,
+                                   buttons=gtk.BUTTONS_OK,
+                                   message_format="\n".join(info))
+        #dialog.action_area.pack_start(label, gtk.TRUE, gtk.TRUE, 0)
+        dialog.show_all()
+        response = dialog.run()
+        if response == gtk.RESPONSE_OK:
+            dialog.destroy()
+    
 ####### printing
     def printing(self):
         """this will pop entries in the print setup to allow for printing
@@ -1383,14 +1434,4 @@ class SqlWidget(gobject.GObject):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
-
-
-
-
-
-
-
-
-
-
 
