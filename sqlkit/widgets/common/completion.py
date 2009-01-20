@@ -128,7 +128,7 @@ class SimpleCompletion(object):
         return self._group_by
 
     def get_entry(self):
-        return self.widget
+        return self.widget.gtkwidget
 
     group_by = property(get_group_by, set_group_by)
     entry    = property(get_entry)
