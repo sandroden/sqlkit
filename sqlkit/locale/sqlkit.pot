@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2009-01-16 21:20+0100\n"
+"POT-Creation-Date: 2009-01-21 20:21+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -128,97 +128,101 @@ msgstr ""
 msgid "value is not date nor string: %s"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:33 sqlkit/widgets/common/sqlfilter.py:36
+#: sqlkit/widgets/common/sqlfilter.py:34 sqlkit/widgets/common/sqlfilter.py:37
 msgid "Match as regexp"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:34
+#: sqlkit/widgets/common/sqlfilter.py:35
 msgid "Match as LIKE, \"%\" automatically added"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:35
+#: sqlkit/widgets/common/sqlfilter.py:36
 msgid "Match as LIKE case insensitive, \"%\" automatically added"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:37
+#: sqlkit/widgets/common/sqlfilter.py:38
 msgid "Match as regexp, case insensitive"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:38
+#: sqlkit/widgets/common/sqlfilter.py:39
 msgid "Negation of match as regexp"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:39
+#: sqlkit/widgets/common/sqlfilter.py:40
 msgid "Negation of match case insensitive"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:40
+#: sqlkit/widgets/common/sqlfilter.py:41
 msgid "Equal"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:41
+#: sqlkit/widgets/common/sqlfilter.py:42
 msgid "Not equal"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:42
+#: sqlkit/widgets/common/sqlfilter.py:43
 msgid "Greater then (after than)"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:43
+#: sqlkit/widgets/common/sqlfilter.py:44
 msgid "Greater or equal"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:44
+#: sqlkit/widgets/common/sqlfilter.py:45
 msgid "Less than (before then)"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:45
+#: sqlkit/widgets/common/sqlfilter.py:46
 msgid "Less than or equal"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:46
-msgid "LIKE: a \"%\" means any char"
-msgstr ""
-
 #: sqlkit/widgets/common/sqlfilter.py:47
-msgid "Negation of LIKE"
+msgid "LIKE: a \"%%\" means any char"
 msgstr ""
 
 #: sqlkit/widgets/common/sqlfilter.py:48
-msgid "The boolena is True"
+msgid "Negation of LIKE"
 msgstr ""
 
 #: sqlkit/widgets/common/sqlfilter.py:49
-msgid "The boolean is False"
+msgid "The boolena is True"
 msgstr ""
 
 #: sqlkit/widgets/common/sqlfilter.py:50
-msgid "The value is not set"
+msgid "The boolean is False"
 msgstr ""
 
 #: sqlkit/widgets/common/sqlfilter.py:51
+msgid "The value is not set"
+msgstr ""
+
+#: sqlkit/widgets/common/sqlfilter.py:52
 msgid "The value is set"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:102
+#: sqlkit/widgets/common/sqlfilter.py:103
 msgid "Filter Panel"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:111
+#: sqlkit/widgets/common/sqlfilter.py:112
 msgid "Add filters for your query"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:113
+#: sqlkit/widgets/common/sqlfilter.py:114
 msgid "Result page for your query"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:416
-msgid "Check me to use this filter"
+#: sqlkit/widgets/common/sqlfilter.py:582
+msgid "Use this filter"
+msgstr ""
+
+#: sqlkit/widgets/common/sqlfilter.py:592
+msgid "Click here to select an operator"
 msgstr ""
 
 #. appears in the menu in the filter panel to add a second entry of the same
 #. field
-#: sqlkit/widgets/common/sqlfilter.py:440
+#: sqlkit/widgets/common/sqlfilter.py:645
 #, python-format
 msgid "Add a new filter on this field '%s'"
 msgstr ""
@@ -232,45 +236,53 @@ msgstr ""
 msgid "%s - Dirty objects: %s - New objects: %s"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:852
+#: sqlkit/widgets/common/sqlwidget.py:854
 msgid "Save unsaved data?"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:855
+#: sqlkit/widgets/common/sqlwidget.py:857
 #, python-format
 msgid "unsaved: %s"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:858
+#: sqlkit/widgets/common/sqlwidget.py:860
 #, python-format
 msgid "new: %s"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:962
+#: sqlkit/widgets/common/sqlwidget.py:964
 msgid "Filter panel"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:968
+#: sqlkit/widgets/common/sqlwidget.py:970
 msgid "Export"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:979
+#: sqlkit/widgets/common/sqlwidget.py:981
 msgid "Inspect tables"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:980
+#: sqlkit/widgets/common/sqlwidget.py:982
 msgid "Inspect widgets"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:981
+#: sqlkit/widgets/common/sqlwidget.py:983
 msgid "Inspect class"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:990
+#: sqlkit/widgets/common/sqlwidget.py:992
 msgid "Sorry, export is implemented only for table view"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1350
+#: sqlkit/widgets/common/sqlwidget.py:1230
+msgid "Property"
+msgstr ""
+
+#: sqlkit/widgets/common/sqlwidget.py:1231
+msgid "Value"
+msgstr ""
+
+#: sqlkit/widgets/common/sqlwidget.py:1401
 msgid "Missing data"
 msgstr ""
 
@@ -286,11 +298,11 @@ msgstr ""
 msgid "Already first record"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:173 sqlkit/widgets/table/table.py:1144
+#: sqlkit/widgets/mask/mask.py:173 sqlkit/widgets/table/table.py:1167
 msgid "Delete this record?"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:290 sqlkit/widgets/table/table.py:1004
+#: sqlkit/widgets/mask/mask.py:290 sqlkit/widgets/table/table.py:1027
 msgid "Already at new record"
 msgstr ""
 
@@ -324,65 +336,66 @@ msgstr ""
 msgid "Subtotal on %s"
 msgstr ""
 
+#. column menu opt
 #. modify menu entry
-#: sqlkit/widgets/table/table.py:501
+#: sqlkit/widgets/table/table.py:507
 msgid "Show field"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:502
+#: sqlkit/widgets/table/table.py:508
 msgid "Hide field"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:531
+#: sqlkit/widgets/table/table.py:537
 msgid "day"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:531
+#: sqlkit/widgets/table/table.py:537
 msgid "week"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:531
+#: sqlkit/widgets/table/table.py:537
 msgid "month"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:532
+#: sqlkit/widgets/table/table.py:538
 msgid "quarter"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:532
+#: sqlkit/widgets/table/table.py:538
 msgid "year"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:535
+#: sqlkit/widgets/table/table.py:541
 #, python-format
 msgid "Subtotals on %s"
 msgstr ""
 
 #. check in input field length %s %s -> field_name length
-#: sqlkit/widgets/table/table.py:751
+#: sqlkit/widgets/table/table.py:757
 #, python-format
 msgid "Input exceeded max %s length (%s)"
 msgstr ""
 
 #. status bar message
-#: sqlkit/widgets/table/table.py:1047 sqlkit/widgets/table/table.py:1193
+#: sqlkit/widgets/table/table.py:1070 sqlkit/widgets/table/table.py:1216
 #, python-format
 msgid "Total N. of records: %s"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1353
+#: sqlkit/widgets/table/table.py:1376
 msgid "INSERT mode"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1355
+#: sqlkit/widgets/table/table.py:1378
 msgid "UPDATE mode"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1488
+#: sqlkit/widgets/table/table.py:1511
 msgid "Export in csv file"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1568
+#: sqlkit/widgets/table/table.py:1591
 msgid "no current obj: maybe no record has yet been edited"
 msgstr ""
 

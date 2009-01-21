@@ -26,6 +26,7 @@ from datetime import *
 from sqlkit.db.django_syntax import django2components
 from sqlkit.misc.datetools import string2dates
 from sqlkit import _
+import warnings
 
 class SqlDataFixNeeded(Exception): pass
 
@@ -43,7 +44,7 @@ OP_MSGID = {
     '>=' : _('Greater or equal'),
     '<' : _('Less than (before then)'),
     '<=' : _('Less than or equal'),
-    'LIKE' : _('LIKE: a "%" means any char'),
+    'LIKE' : _('LIKE: a "%%" means any char'),
     'NOT LIKE' : _('Negation of LIKE'),
     'TRUE' : _('The boolena is True'),
     'NOT TRUE' : _('The boolean is False'),
@@ -74,7 +75,7 @@ class FilterPanel(object):
         self.row = 0  # counter for position of fields
         self.default_reload = True
         
-        self.search_filter_widgets = []         ## list of FIlterWidgets instances
+        self.search_filter_widgets = []         ## list of FilterTools instances
         self.search_filter_field_names = []     ## field_names used
         self.bind_name = self.master.metadata.bind.name
         self.tree = False
@@ -143,31 +144,14 @@ class FilterPanel(object):
             path, op, op_str, value, col = django2components(self.master.mapper, {key: val})
             master = self.get_related_master(self.master, path)
             filter_widget = self.add(None, None, col.name, master, force=True)
-            filter_widget.check_button.set_active(active)
+            filter_widget.set_active(active)
             if value and not value is True:
-                filter_widget.field_widget.set_text(value)
-            self.set_operator(filter_widget, op, value)
-
-    def set_operator(self, filter_widget, op, value):
-        """
-        Set the active operator entry in ComboBox for operator choice
-        """
-        model = filter_widget.operator.get_model()
-        operator_list = [model.get_value(row.iter,0) for row in model]
-        if op == 'IS NULL' and value is False:
-            op = 'IS NOT NULL'
-        try:
-            index = operator_list.index(op.upper())
-            filter_widget.operator.set_active(index)
-        except ValueError, e:
-            print "operator '%s' not available in this context" % op.upper()
-            print "used: %s -- list: %s" % (op, operator_list)
-            raise
-            pass
+                filter_widget.set_value(value)
+            filter_widget.set_operator(filter_widget, op, value)
 
     def get_related_master(self, master, path=None):
         """
-        Return the SqlWidget that manages the data at 'path'.
+        Return the SqlTool that manages the data at 'path'.
         E.g.: if the mapper is the one for movie, and the 'path'  is 'genres'
         as in the doc example, ``get_master``  would return the SqlTable that
         manages the collection of records returned by the relation 'genres'
@@ -179,14 +163,14 @@ class FilterPanel(object):
 
 
     def add(self, wdg, ev, field_name, master, after=None, show=True, force=False, value=None):
-        """add a FilterWidget to the filter panel + operator and string entry
+        """
+        add a FilterTool to the filter panel + operator and string entry
         after: entry will be positioned after widget 'after'
         """
         ## FIXME: after and show?
         search_path = "%s__%s" % (master.relationship_path, field_name)
         if not search_path in self.search_filter_field_names or force:
             widget = get_filter_widget(field_name, self, master, value)
-            widget.build_layout(field_name)
             self.search_filter_widgets += [ widget]
             self.search_filter_field_names  += [search_path]
 
@@ -364,8 +348,8 @@ class FilterPanel(object):
         """Adds to the query all filter conditions
         """
         
-        for pwidget in self.search_filter_widgets:
-            query = pwidget.add_filter_condition(query)
+        for tool in self.search_filter_widgets:
+            query = tool.add_filter_condition(query)
 
         return  query
 
@@ -375,7 +359,7 @@ class FilterPanel(object):
             print "DBG: ", c.left, c.operator, c.right
         
 
-class FilterWidget(object):
+class FilterTool(object):
     STR_STD_OPERATORS = [ 'LIKE', 'NOT LIKE' ]
     NULL_OPERATORS = [ 'IS NULL', 'IS NOT NULL' ]
     STD_OPERATORS = [ '>=','<=', '=', '!=', '>', '<', ] + NULL_OPERATORS
@@ -389,84 +373,43 @@ class FilterWidget(object):
         self.col = self.db_spec['col']
         self.table = self.db_spec['table']
         self.bind_name = self.master.metadata.bind.name
-        self.label_text = _(layout.get_label(field_name, layout=self.panel.l))
+        self.widget = FilterWidget(self)
 
 ##### handling
+    def set_value(self, value):
+        self.widget.set_value(value)
+
+    def get_value(self):
+        
+        value = self.widget.get_value() 
+        f = self.master.vfields[self.field_name]
+        return f.clean_value(value)
+
+    def set_active(self, active):
+        self.widget.set_active(active)
+
+    def get_active(self):
+        return self.widget.get_active()
+
+    def set_operator(self, op, value):
+        """
+        Set the active operator entry in ComboBox/OptionMenu for operator choice
+        """
+        self.set_operator(op, value)
+
+    def get_operator(self):
+        return self.widget.get_operator()
+
     def get_suitable_operators(self):
         """return list of operators meaningfull for engine/data type
         """
         return self.STD_OPERATORS
 
-    def build_layout(self, field_name, after=None, show=True, force=False, ):
-        """
-        build the gtk interface of this widget
-        """
-
-        ## I'd like *not* to .present the widget for any successive field added
-        ## but I have not been able to get focus on the window w/o .present()
-        
-        operators = self.get_suitable_operators()
-
-        ## labels
-        self.field_name_event_box = gtk.EventBox()
-        self.field_label           = gtk.Label(self.label_text)
-        self.check_button         = gtk.CheckButton()
-
-        self.check_button.set_active(True)
-        self.panel.l.tooltips.set_tip(self.check_button, _("Check me to use this filter"))
-        
-        self.field_name_event_box.add(self.field_label)
-        self.field_label.set_property('xalign', 0)
-        self.field_name_event_box.connect('button-press-event', self.pop_menu, 1)
-        #field_name_event_box.window.set_cursor(self.w['label-cursor'])
-
-        ## combo for operator
-        self.operator = gtk.combo_box_new_text()
-        for op in operators:
-            self.operator.append_text(op)
-            #self.operator.append_text("%s - %s" % (op, OP_MSGID[op]))
-        self.operator.set_active(0)
-        #operator.set_property('can_focus', False)
-
-        ## get_active_text per riprenderlo...
-        ## entry
-
-        self.field_widget = gtk.Entry()
-        self.field_widget.connect('activate', self.panel.reload_cb)
-
-        self.menu = gtk.Menu()
-        ## add another filter
-        # TIP: appears in the menu in the filter panel to add a second entry of the same field
-        label_str = _("Add a new filter on this field '%s'") % _(self.label_text).replace('_', '__')
-        item = gtk.MenuItem(label=label_str)
-        item.connect('activate', self.add_filter_cb)
-        self.menu.append(item)
-        self.menu.show_all()
-            
-        
-
-        Tbl = self.panel.w['T.fld']
-        r = self.panel.row
-        c = 0
-        widgets = [ self.field_name_event_box, self.operator, self.check_button ]
-        ftype  = self.master.get_field_type(field_name)
-        if not issubclass(ftype, bool):
-            widgets += [self.field_widget]
-            
-        for wdg in widgets:
-            Tbl.attach(wdg, c, c+1, r, r+1, xpadding=4)
-            c += 1
-        self.panel.row += 1
-        Tbl.show_all()
-        self.field_widget.grab_focus()
-        
-
-    
     def add_filter_condition(self, query):
-        if not self.check_button.get_active():
+        if not self.get_active():
             return query
         
-        op_value = self.operator.get_active_text()
+        op_value = self.get_operator()
 
         query = query.reset_joinpoint()
 
@@ -487,12 +430,13 @@ class FilterWidget(object):
                 return query.filter(self.col == False)
 
         else:
-            value = self.field_widget.get_text()
-            if self.bind_name == "sqlite" and op_value in ('ICONTAINS', 'MATCH'):
-                op_value = 'ILIKE'
-                value = '%' + value + '%'
+            value = self.get_value()
+            if value:
+                if self.bind_name == "sqlite" and op_value in ('ICONTAINS', 'MATCH'):
+                    op_value = 'ILIKE'
+                    value = '%' + value + '%'
 
-            query = self._compose_field_whereclause(query, value, op_value)
+                query = self._compose_field_whereclause(query, value, op_value)
             return query
         
 
@@ -507,17 +451,12 @@ class FilterWidget(object):
         else:
             return query.filter(self.col.op(op_value)(value))
 
-    def add_filter_cb(self, menuitem, ):
+    def add_filter_cb(self, menuitem, event, n ):
         self.panel.add(None, None, self.field_name, self.master, force=True)
-        
-    def pop_menu(self, wdg, ev, num_button):
-        #dbg.write(wdg, ev, num_button)
-        if ev.button == num_button:
-            self.menu.popup(None, None, None, ev.button, ev.time )
         
     
 
-class FilterStringWidget(FilterWidget):
+class FilterStringTool(FilterTool):
 
     def get_suitable_operators(self ):
         if self.bind_name in 'sqlite':
@@ -530,16 +469,17 @@ class FilterStringWidget(FilterWidget):
             return  ['~*', '~', '!~*', '!~' ] + self.STD_OPERATORS
 
 
-class FilterBooleanWidget(FilterWidget):
+class FilterBooleanTool(FilterTool):
 
     def get_suitable_operators(self):
         return [ 'IS TRUE', 'IS FALSE' ] + self.NULL_OPERATORS
 
-class FilterDateWidget(FilterWidget):
+class FilterDateTool(FilterTool):
 
 
     def _compose_field_whereclause(self, query, value, op_value):
-        """Implement the mini date algebra to allow for relative dates
+        """
+        Implement the mini date algebra to allow for relative dates
         see dry.dateutils
 
         """
@@ -550,7 +490,7 @@ class FilterDateWidget(FilterWidget):
         # and I use operators to delimit this
         # period ignoring the operator from the widget
                         
-        op_value = self.operator.get_active_text()
+        op_value = self.get_operator()
         if not stop:
             query = query.filter(self.col.op(op_value)(start))
         else:
@@ -558,15 +498,18 @@ class FilterDateWidget(FilterWidget):
             query = query.filter(self.col.op(">=")(start))
             ## stop
             query = query.filter(self.col.op("<=")(stop))
-            #ret += [self.col.op("<=")(stop)]
 
         return  query
 
-class FilterFKeyWidget(FilterWidget):
+    def get_value(self):
+        # no cleaning of value until in _compose_field_whereclause
+        return self.widget.get_value() 
+
+class FilterFKeyTool(FilterTool):
 
     def __init__(self, field_name, panel, master):
 
-        FilterWidget.__init__(self, field_name, panel, master)
+        FilterTool.__init__(self, field_name, panel, master)
 
         foreign_keys = self.master.fields[self.field_name]['fkey']
         self.ftable, self.fcol = minspect.get_foreign_info(foreign_keys, names=False)
@@ -580,8 +523,12 @@ class FilterFKeyWidget(FilterWidget):
             return ['REGEXP' ] + self.STD_OPERATORS
 
         elif self.bind_name in ('sqlite'):
-            return ['MATCH' ] + self.STD_OPERATORS
+            return ['ICONTAINS' ] + self.STD_OPERATORS
 
+    def get_value(self):
+        # no need to clean this value
+        return self.widget.get_value()
+    
     def _compose_field_whereclause(self, query, value, op_value):
         """return a sql whereclause for field
 
@@ -605,25 +552,136 @@ class FilterFKeyWidget(FilterWidget):
 
 def get_filter_widget(field_name, panel, master, value=None):
     """
-    return an instance of a proper FilterWidget according to type
+    return an instance of a proper FilterTool according to type
     """
 
     args = field_name, panel, master
     if master.is_date(field_name) or master.is_datetime(field_name):
-        return FilterDateWidget(*args)
+        return FilterDateTool(*args)
 
     elif master.is_fkey(field_name):
-        return FilterFKeyWidget(*args)
+        return FilterFKeyTool(*args)
 
     elif master.is_boolean(field_name):
-        return FilterBooleanWidget(*args)
+        return FilterBooleanTool(*args)
     
     elif master.is_number(field_name):
-        return FilterWidget(*args)
+        return FilterTool(*args)
     
     else:
-        return FilterStringWidget(*args)
+        return FilterStringTool(*args)
         
 
 
 # _('output')  _('filter')
+
+
+class FilterWidget():
+    def __init__(self, tool):
+
+        ## I'd like *not* to .present the widget for any successive field added
+        ## but I have not been able to get focus on the window w/o .present()
+        self.tool = tool
+        self.label_text = _(layout.get_label(tool.field_name, layout=self.tool.panel.l))
+
+        ## labels
+        self.field_name_event_box = gtk.EventBox()
+        self.field_label           = gtk.Label(self.label_text)
+        # TIP: appears in the menu in the filter panel to add a second entry of the same field
+        label_str = _("Add a new filter on this field '%s'") % _(self.label_text).replace('_', '__')
+        self.field_name_event_box.set_tooltip_text(label_str)
+        self.check_button         = gtk.CheckButton()
+
+        self.check_button.set_active(True)
+        self.tool.panel.l.tooltips.set_tip(self.check_button, _("Use this filter"))
+        
+        self.field_name_event_box.add(self.field_label)
+        self.field_label.set_property('xalign', 0)
+        self.field_name_event_box.connect('button-press-event', self.tool.add_filter_cb, 1)
+
+        ## combo for operator
+        self.operator = self.get_operator_chooser()
+
+        ## get_active_text per riprenderlo...
+        ## entry
+
+        self.field_widget = gtk.Entry()
+        self.field_widget.connect('activate', self.tool.panel.reload_cb)
+
+        Tbl = self.tool.panel.w['T.fld']
+        r = self.tool.panel.row
+        c = 0
+        widgets = [ self.field_name_event_box, self.operator, self.check_button ]
+        ftype  = self.tool.master.get_field_type(self.tool.field_name)
+        if not issubclass(ftype, bool):
+            widgets += [self.field_widget]
+            
+        for wdg in widgets:
+            Tbl.attach(wdg, c, c+1, r, r+1, xpadding=4)
+            c += 1
+        self.tool.panel.row += 1
+        Tbl.show_all()
+        self.field_widget.grab_focus()
+
+    def get_operator_chooser(self):
+        """
+        Build the chooser for the operator.
+        I used deprecated OptionMenu since ComboBox does not give the opportunity to
+        add tooltips
+        """
+
+        operators = self.tool.get_suitable_operators()
+        warnings.simplefilter('ignore', DeprecationWarning)
+        operator = gtk.OptionMenu()
+        operator.set_tooltip_text(_('Click here to select an operator'))
+        warnings.resetwarnings()
+
+        menu = gtk.Menu()
+        operator.set_menu(menu)
+        for op in operators:
+            entry = gtk.MenuItem(op)
+            menu.append(entry)
+            entry.set_data('value', op)
+            entry.set_tooltip_text(OP_MSGID[op])
+        operator.set_history(0)
+
+        return operator
+        
+    def set_active(self, active):
+        self.check_button.set_active(active)
+
+    def get_active(self):
+        return self.check_button.get_active()
+
+    def set_operator(self, op, value):
+        """
+        Set the active operator entry in ComboBox for operator choice
+        """
+        operator_list = self.tool.get_suitable_operators()
+        if op == 'IS NULL' and value is False:
+            op = 'IS NOT NULL'
+        try:
+            index = operator_list.index(op.upper())
+            self.operator.set_history(index)
+        except ValueError, e:
+            print "operator '%s' not available in this context" % op.upper()
+            print "used: %s -- list: %s" % (op, operator_list)
+            raise
+            pass
+
+    def get_operator(self):
+        """
+        return operator set in widget
+        """
+        return self.operator.get_menu().get_active().get_data('value')
+
+    def get_value(self):
+        """
+        return value of filter string if any
+        """
+        return self.field_widget.get_text() 
+    
+    def pop_menu(self, wdg, ev, num_button):
+        if ev.button == num_button:
+            self.menu.popup(None, None, None, ev.button, ev.time )
+        
