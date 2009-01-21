@@ -1221,8 +1221,8 @@ class SqlWidget(gobject.GObject):
         tv = lay.widgets['TV=info']
         model = gtk.ListStore(str, str)
         tv.set_model(model)
-        tv.set_property('width-request', 400)
-        tv.set_property('height-request', 270)
+        tv.set_property('width-request', 210)
+        tv.set_property('height-request', 320)
         
         cell1 = gtk.CellRendererText()
         cell2 = gtk.CellRendererText()
@@ -1234,32 +1234,22 @@ class SqlWidget(gobject.GObject):
         tv.append_column(tc2)
         tv.show_all()
         
-        for key in ('table_name', 'name', 'db_type', 'col_spec', 'fkey', 'default', 'pkey', 'nullable', 'edit'):
-            model.set(model.append(), 0,  key, 1, self.fields[field_name][key])
+        for key in ('table_name', 'name', 'db_type', 'col_spec', 'fkey', 'default',
+                    'pkey', 'nullable', 'edit', 'length'):
+            if key == "db_type":
+                model.set(model.append(), 0,  key, 1, self.fields[field_name][key].__name__)
+            else:
+                model.set(model.append(), 0,  key, 1, self.fields[field_name][key])
+
+        try:
+            model.set(model.append(), 0,  'format', 1, self.vfields[field_name].format)
+        except:
+            pass
 
         dialog.show_all()
         response = dialog.run()
         dialog.destroy()
         
-
-    def show_field_info_old(self, wdg, field_name):
-        """Pop a dialog to give info on the selected field"""
-#         dialog = gtk.Dialog("info on %s" % field_name,
-#                             None, gtk.DIALOG_MODAL,
-#                             (gtk.STOCK_OK, gtk.RESPONSE_ACCEPT) )
-        info = ["%s: %s" % (f, self.fields[field_name][f]) 
-                           for f in self.fields[field_name].keys() ]
-#        label = gtk.Label("\n".join(info) )
-
-        dialog = gtk.MessageDialog(None, gtk.DIALOG_MODAL, type=gtk.MESSAGE_INFO,
-                                   buttons=gtk.BUTTONS_OK,
-                                   message_format="\n".join(info))
-        #dialog.action_area.pack_start(label, gtk.TRUE, gtk.TRUE, 0)
-        dialog.show_all()
-        response = dialog.run()
-        if response == gtk.RESPONSE_OK:
-            dialog.destroy()
-    
 ####### printing
     def printing(self):
         """this will pop entries in the print setup to allow for printing
