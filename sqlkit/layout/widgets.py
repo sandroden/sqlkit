@@ -641,7 +641,7 @@ class ToolSpinButton(LContainer):
     gtkClass = 'GtkToolItem'
     def __init__(self, el_def, pos, container, elements, layout=None):
         el_def = el_def.replace('ts=', 'ti=')
-        #super(LContainer, self).__init__(el_def, pos, container=container, elements=elements)
+        #super(LContainer, self).__init__(el_def, pos, container=container, elements=elements, layout=layout)
         super(ToolSpinButton, self).__init__(el_def, pos, container=container, elements=elements, layout=layout)
         ## if spinbutton in toolbar, we need to encapsulate in a ToolItem
         spin_def = el_def.replace('ti=','s=')
@@ -868,7 +868,7 @@ class ComboLE(LContainer):
         entry_str = "e=%s:%s%s" % (self.var, self.h or '', self.align or '')
         #dbg.debug(entry_str, lbl_str, self.w, self.h)
         ## and create the children
-        label = EventLabel(lbl_str,(0,0),    'V', elements=elements)
+        label = EventLabel(lbl_str,(0,0),    'V', elements=elements, layout=layout)
         entry = Entry(entry_str,(0,1),  'V', elements=elements, layout=layout)
         self.lw['children_list'] = [ label, entry ]
         ### w and h are there only to propagate to label & entry
@@ -911,7 +911,7 @@ class ScrolledLayout(ScrolledWindow):
         tree = "Lay=%s:%s.%s" % (self.val, self.h or '', self.w or '')
 
         ## and create the children
-        new = Layout(tree,(0,0),    'S', elements=elements)
+        new = Layout(tree,(0,0),    'S', elements=elements, layout=layout)
         self.lw['children_list'] = [ new  ]
     def _class_specific(self):
         self.pack_properties.update({
@@ -945,7 +945,7 @@ class ScrolledDrawingArea(ScrolledWindow):
         wdg = "da=%s:%s.%s" % (self.val, self.h or '', self.w or '')
         #dbg.write('wdg', wdg)
         ## and create the children
-        new = DrawingArea(wdg,(0,0),    'S', elements=elements)
+        new = DrawingArea(wdg,(0,0),    'S', elements=elements, layout=layout)
         self.lw['children_list'] = [ new  ]
         
 
