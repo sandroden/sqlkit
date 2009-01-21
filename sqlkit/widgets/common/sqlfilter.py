@@ -480,7 +480,6 @@ class FilterDateTool(FilterTool):
     def _compose_field_whereclause(self, query, value, op_value):
         """
         Implement the mini date algebra to allow for relative dates
-        see dry.dateutils
 
         """
 

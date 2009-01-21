@@ -24,7 +24,7 @@ letters refer to a moment of time or period according to use:
   :Y: end of year
 
 Math signs ``+`` and ``-`` work as you would expect they add and subtract
-period of time. Whe used this way the followin letter refers to a period::
+period of time. Whe used this way the following letter refers to a period::
 
   m+14d
 
@@ -60,6 +60,7 @@ Other examples
 import re
 from dateutil.relativedelta import relativedelta
 from datetime import date, timedelta
+from babel.dates import parse_date
 
 class WrongRelativeDateFormat(Exception): pass
 
@@ -73,17 +74,24 @@ CHARS = re.compile('[-+dimMwWyY>]')
 TODAY = date.today()
 
 def string2dates(string):
-    """string is return as is if no [-+dimMwWyY>] are found otherwise
+    """
+    string is returned as is if no [-+dimMwWyY>] are found otherwise
     math as described in the doctring of the module is applied
 
     Since a string definition can split into two dates, a tuple is return
     anyhow, a tipical way to call it is::
 
-      start, end = string2date('whatever')
+      start, end = string2dates('whatever')
 
     if you are sure one date is in the definition, you can use
     string2date instead 
     """
+    try:
+        # first try a normal parsing via babel
+        return parse_date(string), None
+    except:
+        pass
+    
     m = re.search(CHARS, string)
     if not m:
         return string, None
@@ -101,7 +109,11 @@ def string2date(string):
     in the docstring
 
     """
-
+    try:
+        # first try a normal parsing via babel
+        return parse_date(string)
+    except:
+        pass
     m = re.search(CHARS, string)
     if not m:
         return string
