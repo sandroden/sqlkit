@@ -1,4 +1,4 @@
-from sqlkit import debug as dbg
+from sqlkit import debug as dbg, _
 from sqlkit.widgets import SqlTable, SqlMask
 from sqlkit import layout
 import sqlkit
