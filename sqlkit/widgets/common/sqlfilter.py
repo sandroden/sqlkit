@@ -46,8 +46,8 @@ OP_MSGID = {
     '<=' : _('Less than or equal'),
     'LIKE' : _('LIKE: a "%%" means any char'),
     'NOT LIKE' : _('Negation of LIKE'),
-    'TRUE' : _('The boolena is True'),
-    'NOT TRUE' : _('The boolean is False'),
+    'IS TRUE' : _('The boolean is True'),
+    'IS FALSE' : _('The boolean is False'),
     'IS NULL' : _('The value is not set'),
     'IS NOT NULL' : _('The value is set'),
 #    '' : _(''),
@@ -221,6 +221,10 @@ class FilterPanel(object):
                 self.fill_model()
                 self.w['N.0'].set_current_page(1)
                 self.master.record_display(0)
+            else:
+                self.model.clear()
+
+        self.l.sb(_('Total N. of records: %s' % length))
 
     def reload_cb(self, widget):
         """callback from reload button

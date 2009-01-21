@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: sqlkit 0.8.5-pre\n"
 "Report-Msgid-Bugs-To: sandro@e-den.it\n"
 "POT-Creation-Date: 2009-01-07 19:38+0100\n"
-"PO-Revision-Date: 2009-01-21 20:22+0100\n"
+"PO-Revision-Date: 2009-01-22 00:14+0100\n"
 "Last-Translator: Sandro Dentella <sandro@e-den.it>\n"
 "Language-Team: <sphinx-dev@googlegroups.com>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
@@ -189,7 +189,7 @@ msgid "Negation of LIKE"
 msgstr "Negazione di LIKE"
 
 #: sqlkit/widgets/common/sqlfilter.py:49
-msgid "The boolena is True"
+msgid "The boolean is True"
 msgstr "È vero"
 
 #: sqlkit/widgets/common/sqlfilter.py:50
@@ -216,20 +216,20 @@ msgstr "Aggiungi filtri per la tua ricerca"
 msgid "Result page for your query"
 msgstr "Risultati della ricerca"
 
-#: sqlkit/widgets/common/sqlfilter.py:582
-msgid "Use this filter"
-msgstr "Abilita filtro"
-
-#: sqlkit/widgets/common/sqlfilter.py:592
-msgid "Click here to select an operator"
-msgstr "Clicca per selezionare un operatore"
-
 #. appears in the menu in the filter panel to add a second entry of the same
 #. field
-#: sqlkit/widgets/common/sqlfilter.py:645
+#: sqlkit/widgets/common/sqlfilter.py:590
 #, python-format
 msgid "Add a new filter on this field '%s'"
 msgstr "Aggiungi un filtro per il campo '%s'"
+
+#: sqlkit/widgets/common/sqlfilter.py:595
+msgid "Use this filter"
+msgstr "Abilita filtro"
+
+#: sqlkit/widgets/common/sqlfilter.py:635
+msgid "Click here to select an operator"
+msgstr "Clicca per selezionare un operatore"
 
 #: sqlkit/widgets/common/sqlwidget.py:231
 msgid "Hiding field is only supported for Tables"
@@ -286,7 +286,7 @@ msgstr "Proprietà"
 msgid "Value"
 msgstr "Valore"
 
-#: sqlkit/widgets/common/sqlwidget.py:1401
+#: sqlkit/widgets/common/sqlwidget.py:1391
 msgid "Missing data"
 msgstr "Dati mancanti"
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2009-01-21 20:21+0100\n"
+"POT-Creation-Date: 2009-01-22 00:14+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -185,7 +185,7 @@ msgid "Negation of LIKE"
 msgstr ""
 
 #: sqlkit/widgets/common/sqlfilter.py:49
-msgid "The boolena is True"
+msgid "The boolean is True"
 msgstr ""
 
 #: sqlkit/widgets/common/sqlfilter.py:50
@@ -212,19 +212,19 @@ msgstr ""
 msgid "Result page for your query"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:582
+#. appears in the menu in the filter panel to add a second entry of the same
+#. field
+#: sqlkit/widgets/common/sqlfilter.py:590
+#, python-format
+msgid "Add a new filter on this field '%s'"
+msgstr ""
+
+#: sqlkit/widgets/common/sqlfilter.py:595
 msgid "Use this filter"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:592
+#: sqlkit/widgets/common/sqlfilter.py:635
 msgid "Click here to select an operator"
-msgstr ""
-
-#. appears in the menu in the filter panel to add a second entry of the same
-#. field
-#: sqlkit/widgets/common/sqlfilter.py:645
-#, python-format
-msgid "Add a new filter on this field '%s'"
 msgstr ""
 
 #: sqlkit/widgets/common/sqlwidget.py:231
@@ -282,7 +282,7 @@ msgstr ""
 msgid "Value"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1401
+#: sqlkit/widgets/common/sqlwidget.py:1391
 msgid "Missing data"
 msgstr ""
 
