@@ -829,7 +829,6 @@ class SqlTable(sqlwidget.SqlWidget):
 
         dbg.write(path, new_text, field_name)
         ## NOTE: liststore.clear will trigger text_edited_cb!!!
-        return True
         if self.deleting_row:
             return True
 
