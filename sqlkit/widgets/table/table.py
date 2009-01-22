@@ -128,6 +128,9 @@ class SqlTable(sqlwidget.SqlWidget):
         if 'tb=gtk-zoom-fit' in self.widgets:
             self.widgets['tb=gtk-zoom-fit'].connect('clicked', self.on_zoom_fit)
 
+        if 'b=gtk-zoom-fit' in self.widgets:
+            self.widgets['b=gtk-zoom-fit'].connect('clicked', self.on_zoom_fit)
+
         if 'm=modify' in self.widgets:
             self.lay_obj.menu('m=modify',
                               ('gtk-zoom-fit', 'activate', self.on_zoom_fit, False),
