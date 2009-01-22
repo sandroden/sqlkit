@@ -187,8 +187,10 @@ class FilterPanel(object):
         except:
             return None
 
-    def hide(self, wid, ev=None):
-        """hide FilterPanel."""
+    def hide(self, widget=None, ev=None):
+        """
+        hide FilterPanel
+        """
 
         self.w['Window'].set_property('visible', False)
         return True  # stops further processing...
