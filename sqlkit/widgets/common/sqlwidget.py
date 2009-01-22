@@ -554,7 +554,7 @@ class SqlWidget(gobject.GObject):
         """
         handle the error raised by a field
         """
-        self.sb(error.message)
+        self.sb(error.message, seconds=30)
             
 
 ####### Record browsing 
@@ -911,16 +911,16 @@ class SqlWidget(gobject.GObject):
     def gquit(self, *args):
         gtk.main_quit()
                        
-    def sb(self, text):
+    def sb(self, text, seconds=10):
         """
         write on the status bar, if present
         """
 
         if self.relationship_leader:
-            self.relationship_leader.sb(text)
+            self.relationship_leader.sb(text, seconds=seconds)
         else:
             try:
-                self.lay_obj.sb(text)
+                self.lay_obj.sb(text, seconds=seconds)
             except Exception, e:
                 #print e, vars(e)
                 pass

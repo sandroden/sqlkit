@@ -71,7 +71,7 @@ class SqlMask (sqlwidget.SqlWidget):
         """
         if not self.records:
             ## TIP: message in the statis bar
-            self.sb(_('No records present'))
+            self.sb(_('No records present'), seconds=None)
             return
         if not reread:
             try:

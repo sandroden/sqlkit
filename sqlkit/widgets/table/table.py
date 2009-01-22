@@ -1070,7 +1070,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.liststore.append([record])
 
         # TIP: status bar message
-        self.sb(_("Total N. of records: %s") % (len(self.liststore)))
+        self.sb(_("Total N. of records: %s") % (len(self.liststore)), seconds=None)
         
     def record_has_changed(self):
         if self.edited_row_model_path is None:
@@ -1216,7 +1216,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.deleting_row = False
         self.totals.compute()
         
-        self.sb(_("Total N. of records: %s") % len(self.liststore))
+        self.sb(_("Total N. of records: %s") % len(self.liststore), seconds=None)
         return True
     
     def clear(self, *args, **kwargs):

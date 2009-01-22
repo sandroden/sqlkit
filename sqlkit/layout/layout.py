@@ -650,12 +650,23 @@ class Layout(object):
             print "%-15.15s ==> %s" % (key, val)
 
 
-    def sb(self,txt):
-        """Push info on Status Bar"""
+    def sb(self,txt, seconds=None):
+        """
+        Push info on Status Bar
+        seconds: how many seconds it must stay displayed before being cancelled
+        """
 
-        sb=self.widgets['sb=StBar']
+        sb = self.widgets['sb=StBar']
         idx = sb.get_context_id(txt)
-        sb.push(idx,txt)
+        msg_id = sb.push(idx, txt)
+
+        ## delete the message
+        def del_text(idx, msg_id):
+            sb.remove(idx, msg_id)
+            return False
+
+        if seconds:
+            gobject.timeout_add(seconds * 1000, del_text, idx, msg_id) 
 
     def notebook(self, el_key, notebook_labels=None, tab_pos='top'):
         """Adds notebook entry for notebooks,
