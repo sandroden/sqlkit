@@ -819,7 +819,7 @@ class SqlWidget(gobject.GObject):
         """
         if width < 0 or height < 0:
             return
-        self.widgets['Window'].resize(width, height)
+        gobject.idle_add(self.widgets['Window'].resize, width, height)
         
     def set_fkey_value(self, field_name, value):
         """needed for completion, to set real value when
