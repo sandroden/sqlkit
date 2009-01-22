@@ -8,7 +8,6 @@ Well, this is a pretty large chapter... there are tons of things that are
 missing from this package and that are really needed but I want to focus on
 the following:
 
-  - localization 
   - validation
   - saving queries
   - good field render for CellRenderer (notably TEXT fields and DateTime)

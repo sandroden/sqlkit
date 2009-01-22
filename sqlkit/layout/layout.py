@@ -849,8 +849,12 @@ def map_labels(filename=None, buf=None, sep='\t', private=False):
     If private=False, this will be used in global widget.info
     """
 
-    # if it's a dict, it's alreadi passed from here...
+    # if it's a dict, just check that the value is a tuple
+    # if not consider it a label and set tip to None
     if isinstance(buf, dict):
+        for key, value in buf.iteritems():
+            if isinstance(value, basestring):
+                buf[key] = (value, None)
         return buf
 
     if not filename and not buf:

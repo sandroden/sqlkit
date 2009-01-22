@@ -86,10 +86,12 @@ passed direcly to the layout object or to the sqlwidget (label_map option).
 
 This ``label_map`` is a dictionary whose key is the ``field_name`` and the
 value is a tuple with a description and a help_text to show as tooltip on
-the label. Each of these are to be considered msgid that gettext will
-further try to translate::
+the label. It instead of a tuple a string is found, it's considered a label
+and the tooltip is set to None, Each of these are to be considered msgid
+that gettext will further try to translate::
 
    { 'first_name' : ('First Name', 'Write the family name of the director')}
+
 
 Description and help_text can be stored in the table ``_sqlkit_field`` that
 can be easily edit with ``sqledit -c URL``. Each time a sqlwidget is
