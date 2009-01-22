@@ -44,8 +44,10 @@ OP_MSGID = {
     '>=' : _('Greater or equal'),
     '<' : _('Less than (before then)'),
     '<=' : _('Less than or equal'),
-    'LIKE' : _('LIKE: a "%%" means any char'),
+    'LIKE' : _('LIKE: a "%" means any char - case sensitive'),
     'NOT LIKE' : _('Negation of LIKE'),
+    'ILIKE' : _('As LIKE but case insensitive'),
+    'NOT ILIKE' : _('Negation of ILIKE'),
     'IS TRUE' : _('The boolean is True'),
     'IS FALSE' : _('The boolean is False'),
     'IS NULL' : _('The value is not set'),
@@ -147,7 +149,7 @@ class FilterPanel(object):
             filter_widget.set_active(active)
             if value and not value is True:
                 filter_widget.set_value(value)
-            filter_widget.set_operator(filter_widget, op, value)
+            filter_widget.set_operator(op, value)
 
     def get_related_master(self, master, path=None):
         """
@@ -364,7 +366,7 @@ class FilterPanel(object):
         
 
 class FilterTool(object):
-    STR_STD_OPERATORS = [ 'LIKE', 'NOT LIKE' ]
+    STR_STD_OPERATORS = [ 'LIKE', 'NOT LIKE', 'ILIKE', 'NOT ILIKE']
     NULL_OPERATORS = [ 'IS NULL', 'IS NOT NULL' ]
     STD_OPERATORS = [ '>=','<=', '=', '!=', '>', '<', ] + NULL_OPERATORS
 
@@ -399,7 +401,7 @@ class FilterTool(object):
         """
         Set the active operator entry in ComboBox/OptionMenu for operator choice
         """
-        self.set_operator(op, value)
+        self.widget.set_operator(op, value)
 
     def get_operator(self):
         return self.widget.get_operator()
@@ -463,14 +465,15 @@ class FilterTool(object):
 class FilterStringTool(FilterTool):
 
     def get_suitable_operators(self ):
+        STD_OPERATORS = self.STR_STD_OPERATORS + self.STD_OPERATORS
         if self.bind_name in 'sqlite':
-            return ['ICONTAINS'] + self.STR_STD_OPERATORS + self.STD_OPERATORS
+            return ['ICONTAINS'] + STD_OPERATORS
         
         elif self.bind_name in 'mysql':
-            return [ 'REGEXP' ] + self.STD_OPERATORS
+            return [ 'REGEXP' ] + STD_OPERATORS
 
         elif self.bind_name in 'postgres':
-            return  ['~*', '~', '!~*', '!~' ] + self.STD_OPERATORS
+            return  ['~*', '~', '!~*', '!~' ] + STD_OPERATORS
 
 
 class FilterBooleanTool(FilterTool):
@@ -663,6 +666,13 @@ class FilterWidget():
         operator_list = self.tool.get_suitable_operators()
         if op == 'IS NULL' and value is False:
             op = 'IS NOT NULL'
+
+        if op in '=' and isinstance(self.tool, FilterBooleanTool):
+            if value == True:
+                op = 'IS TRUE'
+            else:
+                op = 'IS FALSE'
+
         try:
             index = operator_list.index(op.upper())
             self.operator.set_history(index)
@@ -683,6 +693,12 @@ class FilterWidget():
         return value of filter string if any
         """
         return self.field_widget.get_text() 
+    
+    def set_value(self, value):
+        """
+        set string for FilterWidget
+        """
+        self.field_widget.set_text(str(value)) 
     
     def pop_menu(self, wdg, ev, num_button):
         if ev.button == num_button:

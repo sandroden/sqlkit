@@ -10,7 +10,7 @@
 Filtering is a very powerful feature of sqlkit. Any single field in a
 SqlWidget may become a filter criteria and many filters on a field are
 accepted. A filter panel handle the filters that may also belong to related
-table: in that case a join will be built when selecting (read the note on on
+table: in that case a join will be built when selecting (read the note on 
 selecting throught joins in :ref:`relationships`)
 
 As you can see in the image a filter panel gives also the opportunity to
@@ -25,7 +25,7 @@ the Filter Panel's Output page:
    :align:  right
 
 Each record is shown with it's __str__ representation that can be set in the
-ways described in :ref:`description`.
+way described in :ref:`description`.
 
 In this Output Page it's possible to set a field and have records grouped by
 that field::
@@ -43,6 +43,19 @@ search defaults to regexp/match that in turn uses different operators in
 each database backend: '~*' for postgresql, REGEXP for mysql and ILIKE for
 the others (well, ILIKE is not present in sqlite but it uses the sqlalchemy
 implementation of ilike) adding leading and trailing '%' symbols.
+
+Adding Filters programmatically
+===============================
+
+Filters can be added programmatically via method ``add_filter`` that uses
+django_like syntax, of interactively. As an example::
+
+  t.add_fiter(numeric_field__gte=5, boolean_field=True)
+  t2.add_filter(date_field__lte='y', string_field__null=False)
+
+more examples can be found in the :ref:`constraints` sections as they share
+the same syntax. Note that a filter can be changed by the user while a
+constraint is invisible to him.
 
 Date filters
 =============

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2009-01-22 00:14+0100\n"
+"POT-Creation-Date: 2009-01-22 09:02+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -177,7 +177,7 @@ msgid "Less than or equal"
 msgstr ""
 
 #: sqlkit/widgets/common/sqlfilter.py:47
-msgid "LIKE: a \"%%\" means any char"
+msgid "LIKE: a \"%\" means any char - case sensitive"
 msgstr ""
 
 #: sqlkit/widgets/common/sqlfilter.py:48
@@ -185,45 +185,60 @@ msgid "Negation of LIKE"
 msgstr ""
 
 #: sqlkit/widgets/common/sqlfilter.py:49
-msgid "The boolean is True"
+msgid "As LIKE but case insensitive"
 msgstr ""
 
 #: sqlkit/widgets/common/sqlfilter.py:50
-msgid "The boolean is False"
+msgid "Negation of ILIKE"
 msgstr ""
 
 #: sqlkit/widgets/common/sqlfilter.py:51
-msgid "The value is not set"
+msgid "The boolean is True"
 msgstr ""
 
 #: sqlkit/widgets/common/sqlfilter.py:52
+msgid "The boolean is False"
+msgstr ""
+
+#: sqlkit/widgets/common/sqlfilter.py:53
+msgid "The value is not set"
+msgstr ""
+
+#: sqlkit/widgets/common/sqlfilter.py:54
 msgid "The value is set"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:103
+#: sqlkit/widgets/common/sqlfilter.py:105
 msgid "Filter Panel"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:112
+#: sqlkit/widgets/common/sqlfilter.py:114
 msgid "Add filters for your query"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:114
+#: sqlkit/widgets/common/sqlfilter.py:116
 msgid "Result page for your query"
+msgstr ""
+
+#. status bar message
+#: sqlkit/widgets/common/sqlfilter.py:229 sqlkit/widgets/table/table.py:1070
+#: sqlkit/widgets/table/table.py:1216
+#, python-format
+msgid "Total N. of records: %s"
 msgstr ""
 
 #. appears in the menu in the filter panel to add a second entry of the same
 #. field
-#: sqlkit/widgets/common/sqlfilter.py:590
+#: sqlkit/widgets/common/sqlfilter.py:597
 #, python-format
 msgid "Add a new filter on this field '%s'"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:595
+#: sqlkit/widgets/common/sqlfilter.py:602
 msgid "Use this filter"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:635
+#: sqlkit/widgets/common/sqlfilter.py:642
 msgid "Click here to select an operator"
 msgstr ""
 
@@ -375,12 +390,6 @@ msgstr ""
 #: sqlkit/widgets/table/table.py:757
 #, python-format
 msgid "Input exceeded max %s length (%s)"
-msgstr ""
-
-#. status bar message
-#: sqlkit/widgets/table/table.py:1070 sqlkit/widgets/table/table.py:1216
-#, python-format
-msgid "Total N. of records: %s"
 msgstr ""
 
 #: sqlkit/widgets/table/table.py:1376

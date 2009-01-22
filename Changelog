@@ -1,3 +1,12 @@
+
+sqlkit 0.8.5.1 - 22.1.09
+	* fix release:
+	   + filter resulted not working
+	   + sqlite demo database was corrupted
+	* added labels for explanation of operators
+	* uses clean_value to validate input from filters, so that float
+ 	   and dates are correctly parsed
+	
 sqlkit 0.8.5 - 16.1.09	
 	
 	* localization: added localization for numbers and dates
