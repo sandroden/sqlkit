@@ -13,7 +13,7 @@ class CellWidget(object):
 
         self.master.field_widgets[field_name] = self
         
-    def fget(self):
+    def get_entry(self):
         # CellWidget has an editable only if we're editing...
         if self.field_name == self.master.currently_edited_field_name:
             return self.master.editable
@@ -21,7 +21,7 @@ class CellWidget(object):
             msg = _("No current obj for field '%s' in %s")
             raise NotImplementedError(msg  % (self.field_name, self.master))
     
-    entry = property(fget)
+    entry = property(get_entry)
 
     def add_completion(self, editable=False):
         """completion is set just for fkey and string fields"""

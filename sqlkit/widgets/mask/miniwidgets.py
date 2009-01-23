@@ -59,6 +59,12 @@ class Widget(object):
     def get_value(self):
         pass
 
+    def get_entry(self):
+        """
+        return the entry on which you want to apply completion for this object
+        """
+        return gtkwidget
+
     def __repr__(self):
         return "< %s - %s >" % (self.__class__.__name__, self.field_name)
 

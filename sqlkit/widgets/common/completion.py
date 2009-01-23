@@ -128,7 +128,7 @@ class SimpleCompletion(object):
         return self._group_by
 
     def get_entry(self):
-        return self.widget.gtkwidget
+        return self.widget.get_entry()
 
     group_by = property(get_group_by, set_group_by)
     entry    = property(get_entry)
@@ -870,6 +870,8 @@ def get_foreign_info(master, field_name, names=True):
 
     foreign_keys = master.fields[field_name]['fkey']
     return get_foreign_info(foreign_keys, names=names)
+
+
 
 
 
