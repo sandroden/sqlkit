@@ -310,6 +310,9 @@ class SimpleCompletion(object):
             fkvalue = None
         
         self.master.set_value(field_name, value, fkvalue=fkvalue, initial=False)
+        if fkvalue:
+            ## just handier to accept it already
+            self.master.editable.emit('activate')
 
         return True
         
@@ -545,6 +548,9 @@ class SimpleCompletion(object):
         if self.master.is_fkey(self.field_name) or self.master.relationship_mode == 'm2m':
             ## check if the text entered was in fact a complete and legal fkey
             ## or unique field (for m2m)
+            if self.master.fkey_is_valid:
+#                self.master.sb(_("Valid value"), seconds=4)
+                return False
             try:
                 clean_value = self.master.vfields[self.field_name].clean_value(text, input_is_fkey=False)
                 self.master.sb(_("Good match"), seconds=4)
