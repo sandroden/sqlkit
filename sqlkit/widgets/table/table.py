@@ -909,8 +909,10 @@ class SqlTable(sqlwidget.SqlWidget):
                 ## don't start a completion if nothing has been written
                 if new_text and hasattr(self.field_widgets[field_name], 'completion'):
                     show = self.vfields[field_name].widget.completion.show_possible_completion
-                    show(self.editable, 'start')                    
-                self.sb(_("%s was not valid for field %s") % (new_text, field_name))
+                    show(self.editable, 'start')
+                    label_text = _(get_label(field_name, layout=self.lay_obj))
+
+                self.sb(_("%s was not valid for field %s") % (new_text, label_text))
                 return True
         ## any change in the text should invalidate the field
         if ksym not in ('Return'):

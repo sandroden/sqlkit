@@ -173,7 +173,7 @@ class SimpleCompletion(object):
 
         
 ### Filling & popping the completion
-    def show_possible_completion(self, widget, mode, pop=True):
+    def show_possible_completion(self, widget, mode, pop=True, sb=True):
         """
         fill in a ListStore to use with completion, fetch data from db
         mode determines the match of the already typed text:
@@ -182,8 +182,9 @@ class SimpleCompletion(object):
         all: all values
         """
         self.mode = mode
-        # TIP: status bar 
-        self.master.sb(_("search mode: %s") % mode)
+        if sb:
+            # TIP: status bar 
+            self.master.sb(_("search mode: %s") % mode)
         self.model.clear()
 
         result = self.select_values(self.field_name, mode)
@@ -545,10 +546,17 @@ class SimpleCompletion(object):
             ## check if the text entered was in fact a complete and legal fkey
             ## or unique field (for m2m)
             try:
-                self.get_obj_no_flush(text)
+                clean_value = self.master.vfields[self.field_name].clean_value(text, input_is_fkey=False)
+                self.master.sb(_("Good match"), seconds=4)
+                self.master.set_value(self.field_name, clean_value, fkvalue=text)
+                if not clean_value:
+                    raise NoResultFound
+
+                return True
 
             except (NoResultFound, MultipleResultsFound), e:
-                self.show_possible_completion(entry, mode='regexp')
+                self.master.sb(_("No exact match, trying regexp completion"), seconds=4)
+                self.show_possible_completion(entry, mode='regexp', sb=False)
                 return True
 
         return False

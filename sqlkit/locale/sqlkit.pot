@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2009-01-22 09:02+0100\n"
+"POT-Creation-Date: 2009-01-23 12:03+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -75,47 +75,55 @@ msgid "start"
 msgstr ""
 
 #. status bar
-#: sqlkit/widgets/common/completion.py:186
+#: sqlkit/widgets/common/completion.py:187
 #, python-format
 msgid "search mode: %s"
 msgstr ""
 
-#: sqlkit/widgets/common/completion.py:440
+#: sqlkit/widgets/common/completion.py:441
 msgid "Show all info on this field, db type & Co."
 msgstr ""
 
 #. menu enty in menu on right click on down arro in fkey completion widget
-#: sqlkit/widgets/common/completion.py:446
+#: sqlkit/widgets/common/completion.py:447
 msgid "Show possible values: regexp  - Ctrl-Enter"
 msgstr ""
 
 #. yellow tip to menu entry in down arrow in completion widget
-#: sqlkit/widgets/common/completion.py:449
+#: sqlkit/widgets/common/completion.py:450
 msgid "Show all values in the db that match your string"
 msgstr ""
 
-#: sqlkit/widgets/common/completion.py:454
+#: sqlkit/widgets/common/completion.py:455
 msgid "Show possible values, starting - Shift-Enter"
 msgstr ""
 
-#: sqlkit/widgets/common/completion.py:456
+#: sqlkit/widgets/common/completion.py:457
 msgid "Show all values in the database starting with your string"
 msgstr ""
 
-#: sqlkit/widgets/common/completion.py:462
+#: sqlkit/widgets/common/completion.py:463
 msgid "Edit the referenced table in 'table' mode"
 msgstr ""
 
-#: sqlkit/widgets/common/completion.py:464
+#: sqlkit/widgets/common/completion.py:465
 msgid "Edit the table from which admitted values are taken in 'table' mode"
 msgstr ""
 
-#: sqlkit/widgets/common/completion.py:469
+#: sqlkit/widgets/common/completion.py:470
 msgid "Edit the referenced table in 'mask' mode"
 msgstr ""
 
-#: sqlkit/widgets/common/completion.py:471
+#: sqlkit/widgets/common/completion.py:472
 msgid "Edit the table from which admitted values are taken in 'mask' mode"
+msgstr ""
+
+#: sqlkit/widgets/common/completion.py:550
+msgid "Good match"
+msgstr ""
+
+#: sqlkit/widgets/common/completion.py:558
+msgid "No exact match, trying regexp completion"
 msgstr ""
 
 #: sqlkit/widgets/common/fields.py:355
@@ -221,24 +229,24 @@ msgid "Result page for your query"
 msgstr ""
 
 #. status bar message
-#: sqlkit/widgets/common/sqlfilter.py:229 sqlkit/widgets/table/table.py:1070
-#: sqlkit/widgets/table/table.py:1216
+#: sqlkit/widgets/common/sqlfilter.py:231 sqlkit/widgets/table/table.py:1103
+#: sqlkit/widgets/table/table.py:1249
 #, python-format
 msgid "Total N. of records: %s"
 msgstr ""
 
 #. appears in the menu in the filter panel to add a second entry of the same
 #. field
-#: sqlkit/widgets/common/sqlfilter.py:597
+#: sqlkit/widgets/common/sqlfilter.py:599
 #, python-format
 msgid "Add a new filter on this field '%s'"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:602
+#: sqlkit/widgets/common/sqlfilter.py:604
 msgid "Use this filter"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:642
+#: sqlkit/widgets/common/sqlfilter.py:644
 msgid "Click here to select an operator"
 msgstr ""
 
@@ -313,11 +321,11 @@ msgstr ""
 msgid "Already first record"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:173 sqlkit/widgets/table/table.py:1167
+#: sqlkit/widgets/mask/mask.py:173 sqlkit/widgets/table/table.py:1200
 msgid "Delete this record?"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:290 sqlkit/widgets/table/table.py:1027
+#: sqlkit/widgets/mask/mask.py:290 sqlkit/widgets/table/table.py:1060
 msgid "Already at new record"
 msgstr ""
 
@@ -330,81 +338,90 @@ msgstr ""
 msgid "Export feature available only for Tables"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:450
+#: sqlkit/widgets/table/table.py:453
 #, python-format
 msgid "Add a filter on '%s'"
 msgstr ""
 
 #. column menu opt
-#: sqlkit/widgets/table/table.py:468
+#: sqlkit/widgets/table/table.py:471
 msgid "Hide this column"
 msgstr ""
 
 #. column menu opt
-#: sqlkit/widgets/table/table.py:475
+#: sqlkit/widgets/table/table.py:478
 msgid "Create total"
 msgstr ""
 
 #. column menu total
-#: sqlkit/widgets/table/table.py:485
+#: sqlkit/widgets/table/table.py:488
 #, python-format
 msgid "Subtotal on %s"
 msgstr ""
 
 #. column menu opt
 #. modify menu entry
-#: sqlkit/widgets/table/table.py:507
+#: sqlkit/widgets/table/table.py:510
 msgid "Show field"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:508
+#: sqlkit/widgets/table/table.py:511
 msgid "Hide field"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:537
+#: sqlkit/widgets/table/table.py:540
 msgid "day"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:537
+#: sqlkit/widgets/table/table.py:540
 msgid "week"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:537
+#: sqlkit/widgets/table/table.py:540
 msgid "month"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:538
+#: sqlkit/widgets/table/table.py:541
 msgid "quarter"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:538
+#: sqlkit/widgets/table/table.py:541
 msgid "year"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:541
+#: sqlkit/widgets/table/table.py:544
 #, python-format
 msgid "Subtotals on %s"
 msgstr ""
 
 #. check in input field length %s %s -> field_name length
-#: sqlkit/widgets/table/table.py:757
+#: sqlkit/widgets/table/table.py:765
 #, python-format
 msgid "Input exceeded max %s length (%s)"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1376
+#: sqlkit/widgets/table/table.py:863
+msgid "No change"
+msgstr ""
+
+#: sqlkit/widgets/table/table.py:913
+#, python-format
+msgid "%s was not valid for field %s"
+msgstr ""
+
+#: sqlkit/widgets/table/table.py:1414
 msgid "INSERT mode"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1378
+#: sqlkit/widgets/table/table.py:1416
 msgid "UPDATE mode"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1511
+#: sqlkit/widgets/table/table.py:1549
 msgid "Export in csv file"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1591
+#: sqlkit/widgets/table/table.py:1629
 msgid "no current obj: maybe no record has yet been edited"
 msgstr ""
 
