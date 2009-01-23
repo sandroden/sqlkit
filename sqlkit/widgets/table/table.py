@@ -23,7 +23,6 @@ mapper. column.set_cell_data_func on each column will set the value from there.
 
 
 import sys
-from datetime import datetime
 from sqlkit import exc
 import sqlalchemy
 from sqlkit import debug as dbg, _
@@ -830,6 +829,8 @@ class SqlTable(sqlwidget.SqlWidget):
         self.editable.connect('key-press-event', self.editable_keypress_cb, field_name)
         #self.editable.connect('editing-done', self.validate_cell, field_name)
         #self.editable.connect('remove-widget', self.remove_widget_cb, field_name)
+        self.fkey_value = editable.get_text()
+        self.fkey_is_valid = True
         
         if hasattr(self.field_widgets[field_name], 'completion'):
             completion = self.field_widgets[field_name].completion
@@ -859,6 +860,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return True
 
         if not self.vfields[field_name].has_changed():
+            self.sb(_("No change"), seconds=1)
             return True
         
         if self.relationship_mode == 'm2m' and not self.m2m_editable:
@@ -872,13 +874,17 @@ class SqlTable(sqlwidget.SqlWidget):
                 show(self.editable, 'start')
                 return True
         else:
-            self.vfields[field_name].set_value(new_text, initial=False)
+            ## 
+            if not self.is_fkey(field_name):
+                self.vfields[field_name].set_value(new_text, initial=False)
             return False
         return True
 
     def editable_keypress_cb(self, widget, event, field_name):
         ksym = gtk.gdk.keyval_name(event.keyval)
         if ksym == 'Tab':
+            widget.stop_emission('key-press-event')
+            #self.treeview.stop_emission('key-press-event')
             new_text = widget.get_text()
             try:
                 if not self.vfields[field_name].has_changed():
@@ -887,9 +893,13 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.handle_validation_error(e)
                 return True
 
-
+            
             if self.is_fkey(field_name):
-                is_valid = self.vfields[field_name].validate(new_text, input_is_fkey=False)
+                ## rewriting original value must be ok
+                if self.fkey_is_valid or new_text == self.fkey_value:
+                    is_valid = True
+                else:
+                    is_valid = self.vfields[field_name].validate(new_text, input_is_fkey=False)
             else:
                 is_valid = self.vfields[field_name].validate(new_text)
 
@@ -900,7 +910,11 @@ class SqlTable(sqlwidget.SqlWidget):
                 if new_text and hasattr(self.field_widgets[field_name], 'completion'):
                     show = self.vfields[field_name].widget.completion.show_possible_completion
                     show(self.editable, 'start')                    
+                self.sb(_("%s was not valid for field %s") % (new_text, field_name))
                 return True
+        ## any change in the text should invalidate the field
+        if ksym not in ('Return'):
+            self.fkey_is_valid = False
         
 #### cell_data_func
     def cell_bool_cb(self, column, cell, model, iter, field_name):
@@ -1287,13 +1301,18 @@ class SqlTable(sqlwidget.SqlWidget):
             return 
 
         ## casting of value
-        value = self.vfields[field_name].clean_value(value)
+        if self.is_fkey(field_name):
+            value = self.vfields[field_name].clean_value(value, input_is_fkey=True)
+        else:
+            value = self.vfields[field_name].clean_value(value)
         setattr(obj, field_name, value)
 
         ## text would come up automatically but only after
         ## loosing the focus...
         if fkvalue:
             self.editable.set_text(fkvalue)
+            self.fkey_is_valid = field_name
+            self.fkey_value = fkvalue
         else:
             if value is not None and not self.is_fkey(field_name):
                 ## editable, if any, points to the last used editable
@@ -1632,6 +1651,8 @@ class SqlTable(sqlwidget.SqlWidget):
         for field in self.vfields:
             field.widget.add_completion(editable=editable)
         
+
+
 
 
 
