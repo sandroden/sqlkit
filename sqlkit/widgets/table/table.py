@@ -175,6 +175,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 v_txt = field_name
 
             tvcolumn = gtk.TreeViewColumn(v_txt.replace('_',' '))
+            tvcolumn.set_data('field_name', field_name)
             tvcolumn.set_resizable(True)
             tvcolumn.set_expand(False)
             tvcolumn.set_reorderable(True)
@@ -666,17 +667,22 @@ class SqlTable(sqlwidget.SqlWidget):
             #cell.emit('edited', path, )
             #self.treeview.set_cursor( path, columns[colnum + 1], True)
             #gobject.idle_add(self.treeview.set_cursor, path, columns[colnum + 1], True)
-            
-            self.__cursor_idle_cb_id = gobject.idle_add(self.treeview.set_cursor, path, columns[colnum + 1], True)
-            self.__cursor_idle_colnum = columns[colnum + 1]
+
+            next_column = columns[colnum + 1]
+            next_field_name = next_column.get_data('field_name')
+            gobject.idle_add(self.treeview.set_cursor, path,
+                             next_column, self.get_direct_edit(next_field_name) )
         else:
             tmodel = self.treeview.get_model()
             titer = tmodel.iter_next(tmodel.get_iter(path))
             if titer is None:
                 titer = tmodel.get_iter_first()
             path = tmodel.get_path(titer)
-            #self.treeview.set_cursor(path, columns[0], True)
-            gobject.idle_add(self.treeview.set_cursor, path, columns[0], True)
+            
+            next_column = columns[0]
+            next_field_name = next_column.get_data('field_name')
+            gobject.idle_add(self.treeview.set_cursor, path, next_columns,
+                             self.get_direct_edit(next_field_name) )
         return False
     
     def key_tree_ctrl_n(self, treeview, event, data):
@@ -761,6 +767,20 @@ class SqlTable(sqlwidget.SqlWidget):
                 return True
         return False
 
+    def get_direct_edit(self, field_name):
+        """
+        return the next column and if browsing must enter in edit mode
+        """
+        from datetime import datetime, date, time, timedelta
+        if not self.is_editable(field_name):
+            return False
+
+        NO_EDIT = (bool, date, datetime, time)
+
+        if not self.fields[field_name]['type'] in NO_EDIT:
+            return True
+        return False
+        
 #### callbacks columns
     def toggled_null_signal_cb(self, cell, path, (model, field_name)):
         """
@@ -970,10 +990,6 @@ class SqlTable(sqlwidget.SqlWidget):
                 cell.set_property('text', value)
             else:
                 cell.set_property('text', '')
-
-
-
-
 
     def date_changed_cb(self, event, path, date, col):
 	self.edited_row_model_path = path
@@ -1616,4 +1632,6 @@ class SqlTable(sqlwidget.SqlWidget):
         for field in self.vfields:
             field.widget.add_completion(editable=editable)
         
+
+
 
