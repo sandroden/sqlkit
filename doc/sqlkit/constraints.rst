@@ -89,3 +89,33 @@ API
 
 .. autofunction:: django2sqlalchemy
 
+
+Native sqlalchemy constraint
+============================
+
+The django syntax is in no way the only possibility. If that is not
+sufficient to express the constraints you need you can just use any filter
+on the query directly::
+
+   tk_tbl = ticket.Ticket.__table__
+   my_id = self.db.get_session().query(ticket.User).filter_by(username=setup.USERNAME).one().id
+
+   t = sk.SqlTable(Class=ticket.Ticket, field_list=field_list, order_by='priority', **self.meta)
+   t.add_filter(status=1)
+   t.query = t.query.filter(or_(tk_tbl.c['assigned_by_id'] == my_id ,
+                                tk_tbl.c['assigned_to_id'] == my_id , ))
+
+
+this example shows how to force a constraint on ticket requiring that the
+ticket be assigned *by* or *to* USERNAME. Any further filter applyed
+interactively will be applied *on top* of this constraint. This is
+equivalent to writing::
+
+   t.add_constraint(assigned_by_id=my_id, assigned_to_id=my_id, OR=True)
+
+At the moment of this writing it's not possible to write::
+
+   t.add_constraint(assigned_by_id__username=USERNAME)
+
+as the foreign key relation is not followed in this context.
+
