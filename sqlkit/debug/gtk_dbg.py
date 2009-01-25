@@ -401,32 +401,26 @@ class show_widgets(object):
               1, widget)
 
     def show_widget_signal(self, menu, widget, model=None ):
-        dbg.write("widget", widget, widget.__class__)
+
         if not model:
             cols = ['name']
             a = TreeInfoLayout(cols)
             a.tv.expand_all()
             model = a.model
             
-        props = list(gobject.signal_list_names(widget))
-        props.sort()
-        iter = model.append(None)
-        pat = '(?:<gtk.| )([a-zA-Z]+)'
-        model.set(iter,
-                  0, re.search(pat, str(widget)).group(1),
-                  )
+        signals = get_widget_signals(widget)
 
-        for i in props:
-            new = model.append(iter)
-            model.set(new, 
-                  0, i
-                  )
-        try:
-            widget =  gobject.type_parent(widget)
-            self.show_widget_signal('', widget, model=model )
-        except RuntimeError:
-            pass
-        
+        prev_class = None
+
+        for cls, signal in signals:
+            if not cls == prev_class:
+                iter = model.append(None)
+                cls_iter = iter
+                model.set(iter,   0, cls )
+                
+            iter = model.append(cls_iter)
+            model.set(iter,   0, signal )
+            prev_class = cls
 
     def edited_cb(self, cell, path, new_text, user_data):
 
@@ -1358,3 +1352,84 @@ except:
     pass
 
 
+
+def get_widget_signals(item, result=None):
+    """
+    get all widget signals of an object and return a list of tuples: (class, signal_name)
+    
+    """
+
+    from inspect import isclass
+    import gobject
+
+    result_list = result or []
+
+    if isclass(item):
+        class_name = item.__class__.__name__
+    else:
+        class_name = type(item).__class__.__name__
+        for base in item.__class__.__bases__[1:]:
+            get_widget_signals(base, result_list)
+            
+    signals = list(gobject.signal_list_names(item))
+    signals.sort()
+
+    for signal in signals:
+        result_list += (class_name, signal)
+
+
+    try:
+        item =  gobject.type_parent(item)
+        get_widget_signals(item, result=result_list)
+    except RuntimeError:
+        pass
+
+
+def get_widget_signals(item, result=None, indent=0):
+    """
+    get all widget signals of an object and return a list of tupes: (class, signale_name)
+    
+    """
+
+    from inspect import isclass
+    import gobject
+
+    DONT_GO =(
+        object,
+        type,
+        gobject.GType,
+        gobject.GInterface,
+        gobject.GObjectMeta,
+        )
+    result_list = result or []
+
+#    if item in DONT_GO or type(item) is gobject.GType:
+    if type(item) is gobject.GType:  # signals_list_names segfaults on gobject.GInterface
+        return result
+
+    offset = " " * indent
+    
+
+    if isclass(item):
+        class_name = item.__name__
+    else:
+        class_name = item.__class__.__name__
+
+    signals = list(gobject.signal_list_names(item))
+    signals.sort()
+    
+    for signal in signals:
+        result_list += [(class_name, signal)]
+
+
+
+    if not isclass(item):
+        for base in item.__class__.__bases__:
+            result_list = get_widget_signals(
+                base, result=result_list, indent=indent+4)            
+
+    try:
+        item =  gobject.type_parent(item)
+        return get_widget_signals(item, result=result_list, indent=indent + 4)
+    except RuntimeError:
+        return result_list
