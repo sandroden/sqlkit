@@ -1,3 +1,9 @@
+python-sqlkit (0.8.5.1) hardy; urgency=low
+
+  * update to rel 0.8.5.1
+
+ -- Sandro Dentella <sandro@e-den.it>  Fri, 23 Jan 2009 21:51:13 +0100
+
 python-sqlkit (0.8.5) hardy; urgency=low
 
   * update to rel 0.8.5

@@ -1,6 +1,6 @@
 from db.proxy import DbProxy
 import exc
-__version__ = '0.8.5'
+__version__ = '0.8.5.1'
 
 
 import gettext

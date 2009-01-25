@@ -1,11 +1,21 @@
 
-sqlkit 0.8.5.1 - 22.1.09
+sqlkit 0.8.5.1 - 23.1.09
 	* fix release:
 	   + filter resulted not working
 	   + sqlite demo database was corrupted
+	   + completion fixes
 	* added labels for explanation of operators
 	* uses clean_value to validate input from filters, so that float
  	   and dates are correctly parsed
+	* improved completion behaviour: when a match is selected the
+	   editing finishes
+	* table columns: added an informative label
+	* improved browsing of data: now boolean and date/datetime do not
+	   enter in edit mode directly
+	* status bar: added a "seconds" argument indicating how many
+	   seconds a message should stay in the status bar
+	* widgets: resize() uses idle_add() so does not interfere width
+	   algorithm that decides optimal width
 	
 sqlkit 0.8.5 - 16.1.09	
 	
