@@ -342,7 +342,7 @@ class SqlTable(sqlwidget.SqlWidget):
             if width:
                 cell = gtk.CellRendererText()
             else:
-                cell = CellRendererVarchar(width)
+                cell = cell_renderers.CellRendererVarchar(width)
                 cell.fixed_width = True
 
         cell.set_property('editable', True)
@@ -1645,3 +1645,5 @@ class CellEntry(object):
     def get_text(self):
         return self.entry.get_text()
     
+
+
