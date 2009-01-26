@@ -52,6 +52,11 @@ class DemoSql(Demo):
         self.last_lo = GLOB['t'].lay_obj
         self.last_w  = GLOB['t'].widgets
         self.t = GLOB['t']
+        try:
+            self.t1 = GLOB['t1']
+        except:
+            pass
+            
 
         #self.xml.set_text(GLOB['l'].xml())
         self.create_widget_tree(toplevel=GLOB['t'].widgets['Window'])
