@@ -298,7 +298,8 @@ class SimpleCompletion(object):
         self.master.set_value(field_name, value, fkvalue=fkvalue, initial=False)
         if fkvalue:
             ## just handier to accept it already
-            self.master.cell_entry.entry.emit('activate')
+            if not self.master.is_mask():
+                self.master.cell_entry.entry.emit('activate')
         return True
         
 ### Sql SELECT
@@ -533,8 +534,7 @@ class SimpleCompletion(object):
         if self.master.is_fkey(self.field_name) or self.master.relationship_mode == 'm2m':
             ## check if the text entered was in fact a complete and legal fkey
             ## or unique field (for m2m)
-            if self.master.fkey_is_valid:
-#                self.master.sb(_("Valid value"), seconds=4)
+            if self.master.fkey_is_valid(self.field_name):
                 return False
             try:
                 clean_value = self.master.vfields[self.field_name].clean_value(text, input_is_fkey=False)

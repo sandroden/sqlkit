@@ -400,21 +400,24 @@ class ForeignKeyWidget(Widget):
         self.completion.add_callbacks(self.entry)
 
     def on_button_clicked(self, widget):
-        self.completion.show_possible_completion(
-            self.entry, mode='regexp')
+
+        self.completion.show_possible_completion(self.entry, mode='regexp')
         return True
 
     def on_key_press(self, widget, event, when='press'):
+
         return self.completion.keypress_event_cb(self.entry, event, self.field_name, when)
 
     def on_entry_changed(self, editable):
-        ## Don't trust this value, shown value and self.value are not coherent
+
         self.real_value = False
-        return False
 
     def clean_real_value(self, *args):
         ## the EntryText has been changed. The value may no longe be  valid
         self.real_value = False
+
+    def is_valid(self):
+        return self.real_value
 
     def set_value(self, value, shown=False):
         """
@@ -423,12 +426,12 @@ class ForeignKeyWidget(Widget):
         shown: the passed value is a value to be shown.
                a shown value is not cleaned (e.g.: for completion)
         """
-        if not shown:
+        if shown:
+            display_value = value
+        else:
             self.value = value
             display_value = self.completion.lookup_value(self.field_name, value)
             self.real_value = True  # we can trust this value, has been set by procedures
-        else:
-            display_value = value
             
         self.entry.set_text(display_value)
         

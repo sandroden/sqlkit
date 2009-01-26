@@ -852,7 +852,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.cell_entry.entry.connect('key-press-event', self.editable_keypress_cb, field_name)
 
         self.fkey_value = editable.get_text()
-        self.fkey_is_valid = True
+#        self.fkey_is_valid = True
         
         if hasattr(self.field_widgets[field_name], 'completion'):
             completion = self.field_widgets[field_name].completion
@@ -1360,7 +1360,7 @@ class SqlTable(sqlwidget.SqlWidget):
             self.cell_entry.entry.set_text(fkvalue)
             self.cell_entry.valid = True
             self.cell_entry.text = fkvalue
-            self.fkey_is_valid = field_name
+#            self.fkey_is_valid = field_name
             self.fkey_value = fkvalue
         else:
             if value is not None and not self.is_fkey(field_name):
@@ -1484,7 +1484,16 @@ class SqlTable(sqlwidget.SqlWidget):
                     return self.tvcolumns[field_name]
         if second_choice:
             return second_choice[0]
-           
+
+    def fkey_is_valid(self, field_name):
+        """
+        return True if current editable -if exists- has a value that does not need validation
+        """
+        if self.cell_entry and self.cell_entry.is_valid():
+            return True
+        return False
+    
+
 ### misc
     def set_opts(self, icons=True, scroll='xy', expand=True, width=None):
         """
@@ -1644,6 +1653,8 @@ class CellEntry(object):
     def get_text(self):
         return self.entry.get_text()
     
+
+
 
 
 

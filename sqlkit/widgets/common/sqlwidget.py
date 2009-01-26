@@ -1141,6 +1141,12 @@ class SqlWidget(gobject.GObject):
         return False
 
 
+    def fkey_is_valid(self):
+        """
+        return True if current editable -if exists- has a value that does not need validation
+        """
+        pass
+    
     def get_field_type(self, field_name):
         return self.fields[field_name]['type']
 

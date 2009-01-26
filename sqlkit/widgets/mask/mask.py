@@ -467,6 +467,11 @@ class SqlMask (sqlwidget.SqlWidget):
 
         return self.vfields[field_name].widget.gtkwidget
 
+    def fkey_is_valid(self, field_name):
+        """
+        return True if current editable -if exists- has a value that does not need validation
+        """
+        return self.vfields[field_name].widget.is_valid()
 
 ####### Misc
     def export(self, menuItem):
