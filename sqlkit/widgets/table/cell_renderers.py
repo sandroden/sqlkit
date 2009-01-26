@@ -322,7 +322,7 @@ class CellRendererVarchar(gtk.CellRendererText):
         context = widget.get_pango_context()
         description = context.get_font_description()
         metrics = context.get_metrics(description)
-        effective_lenght = min(self.lenght, MAX_CHARS)
+        effective_lenght = min(self.lenght, MAX_CHARS) or MAX_CHARS
         pango_width = metrics.get_approximate_char_width() * effective_lenght
 
         # Pango uses its own internal measure unit. "pango.PIXELS" converts it.
