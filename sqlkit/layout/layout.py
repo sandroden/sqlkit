@@ -912,7 +912,7 @@ def get_label(name, layout=None):
         else:
             label, tip = widgets.info.get(name, None)
 
-        return label
+        return label or name
 
     except TypeError, e:
         return name
