@@ -45,6 +45,25 @@ class TableBrowser(object):
         self.fill_model()
         self.lay_obj = self.l
         self.widgets = self.w
+        self.add_accelerators()
+
+    def add_accelerators(self):
+        """Add accelerators: now Ctrl-l"""
+
+        # key accelerators
+        self.accel_group = gtk.AccelGroup()
+        self.accel_group.connect_group(ord('l'), 
+                                       gtk.gdk.CONTROL_MASK, 
+                                       gtk.ACCEL_LOCKED, 
+                                       self.focus_filter)
+        self.accel_group.connect_group(ord('f'), 
+                                       gtk.gdk.CONTROL_MASK, 
+                                       gtk.ACCEL_LOCKED, 
+                                       self.focus_filter)
+        self.widgets['Window'].add_accel_group(self.accel_group)
+            
+    def focus_filter(self, *args):
+        self.widgets['e=filter'].grab_focus()
 
     def on_quit(self, widget):
         if self.x == 'quit':
