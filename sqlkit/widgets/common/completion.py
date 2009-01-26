@@ -274,21 +274,7 @@ class SimpleCompletion(object):
         Create an event that will cause completion to pop
         """
         entry.grab_focus()
-        #entry.select_region(0,0)
-        entry.set_position(100)
-
-        event =   gtk.gdk.Event(gtk.gdk.KEY_PRESS)
-        ## write something
-        event.keyval = gtk.keysyms.period  #ord(".")
-        event.window = entry.window
-        entry.emit('key-press-event',event)
-
-        ## and delete it...
-        event.keyval = gtk.keysyms.BackSpace
-        event.hardware_keycode = 22
-
-        entry.emit('key-press-event',event)        
-        return
+        entry.emit('changed')
 
 ### Call back
     def match_selected_cb(self, wdg, model, iter, field_name):
