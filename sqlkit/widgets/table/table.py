@@ -47,7 +47,7 @@ class SqlTable(sqlwidget.SqlWidget):
     edited_row_model_path = None
     currently_edited_field_name = None
     mapper = None
-    editable = None
+    cell_entry = None
 #    commit_allowed = dbg.TraceIt(True, name='commit_allowed', mode='rw')
          
     def __init__(self, *args, **kwargs):
@@ -81,16 +81,13 @@ class SqlTable(sqlwidget.SqlWidget):
         #register callback to toplevel window
         self.treeview.get_toplevel().connect("delete_event", self.delete_event)
         self.treeview.connect('key-press-event', self.keypress_event_cb)
+        self.treeview.connect('button-press-event', self.button_press_event_cb)
 
         self.setup_treeview_columns()
         self.fill_menu_hide_fields()
         ## let tree use all the available space... 
         if not self.naked:
             self.lay_obj.prop('A.external','yscale',1)
-
-#         if self.geom :
-#             self.lay_obj.prop('TV=tree', 'width-request', self.geom[0])
-#             self.lay_obj.prop('TV=tree', 'height-request', self.geom[1])
 
         if self.rows:
             gobject.idle_add(self.set_rows)
@@ -111,7 +108,6 @@ class SqlTable(sqlwidget.SqlWidget):
                 hbox = alignment.get_children()[0]
                 image, label = hbox.get_children()
                 label.set_text('')
-                
 
         self.treeview.hide()
         self.treeview.show()
@@ -205,6 +201,7 @@ class SqlTable(sqlwidget.SqlWidget):
             else:
                 cell = self.setup_generic_column(field_name, tvcolumn)
 
+            cell.connect('editing-canceled', self.cell_editing_canceled_cb, field_name)
             self.add_clickable_label(field_name, tvcolumn)
 
             if not self.is_editable(field_name):
@@ -606,6 +603,15 @@ class SqlTable(sqlwidget.SqlWidget):
         self.tvcolumns[field_name].set_property('visible', True)
 
 #### event handling & accelerators
+    def button_press_event_cb(self, widget, event):
+        """
+        Block browsing if last edited cell didn't validate
+        """
+        if self.cell_entry and not self.cell_entry.is_valid():
+            if not self.cell_validate():
+                return True
+        return False
+        
     def keyrelease_event_cb(self, wdg, event, data=None):
         return self.length_control(wdg, data)
     
@@ -752,6 +758,12 @@ class SqlTable(sqlwidget.SqlWidget):
         self.completion.show_possible_completion(wdg, field_name=data, mode='like')
         return True
     
+    def key_entry_ctrl_n(self, widget, event, data):
+
+        widget.emit('activate')
+        self.record_new(treeview)
+        return True
+    
     def length_control(self, wdg, field_name):
         if self.fields[field_name]['type'] is not str:
             return False
@@ -820,15 +832,25 @@ class SqlTable(sqlwidget.SqlWidget):
         self.initialize_record_editing(path)
         return True
     
+    def print_type(self, item):
+        print "SIGNALS", type(item), gobject.signal_list_names(item)
+        try:
+            widget =  gobject.type_parent(item)
+            self.print_type(widget)
+        except RuntimeError:
+            pass
+                
+
     def text_editing_started_cb(self, cell, editable, path, field_name):
         """
         prepare the editable, completion and validation
         """
         self.currently_edited_field_name = field_name
-        self.editable = editable
-        self.editable.connect('key-press-event', self.editable_keypress_cb, field_name)
-        #self.editable.connect('editing-done', self.validate_cell, field_name)
-        #self.editable.connect('remove-widget', self.remove_widget_cb, field_name)
+        self.cell_entry = CellEntry(editable, cell, path, field_name)
+
+        self.cell_entry.entry.connect('remove-widget', self.on_editable_remove_widget, field_name)
+        self.cell_entry.entry.connect('key-press-event', self.editable_keypress_cb, field_name)
+
         self.fkey_value = editable.get_text()
         self.fkey_is_valid = True
         
@@ -847,11 +869,10 @@ class SqlTable(sqlwidget.SqlWidget):
     
     def text_edited_cb(self, cell, path, new_text, field_name):
         """
-        calback on signal 'edited' on cell_renderer. Validation has already occurred in
+        calback on signal 'edited' on cell_renderer. 
         
         """
 
-        dbg.write(path, new_text, field_name)
         ## NOTE: liststore.clear will trigger text_edited_cb!!!
         if self.deleting_row:
             return True
@@ -859,65 +880,40 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.edited_row_model_path is None:
             return True
 
-        if not self.vfields[field_name].has_changed():
-            self.sb(_("No change"), seconds=1)
-            return True
-        
-        if self.relationship_mode == 'm2m' and not self.m2m_editable:
-            # in m2m we don't want to edit this field but just to add/remove objects
-            # I'm not sure if this should change
-            try:
-                self.set_current(filter_by={field_name :new_text}, substitute=True)
-            except (exc.NoResultFound, exc.MultipleResultsFound), e:
-                ## if there's no match, try completion
-                show = self.vfields[field_name].widget.completion.show_possible_completion
-                show(self.editable, 'start')
-                return True
-        else:
-            ## 
-            if not self.is_fkey(field_name):
-                self.vfields[field_name].set_value(new_text, initial=False)
-            return False
-        return True
+        if self.cell_validate():
+            self.cell_entry = None
 
     def editable_keypress_cb(self, widget, event, field_name):
+        """
+        Trigger the validation when moving around the cells
+        """
         ksym = gtk.gdk.keyval_name(event.keyval)
-        if ksym == 'Tab':
-            widget.stop_emission('key-press-event')
-            #self.treeview.stop_emission('key-press-event')
-            new_text = widget.get_text()
-            try:
-                if not self.vfields[field_name].has_changed():
-                    return False
-            except exc.ValidationError, e:
-                self.handle_validation_error(e)
-                return True
+        if ksym in ('Tab', 'Down', 'Up', 'Return'):
 
-            
-            if self.is_fkey(field_name):
-                ## rewriting original value must be ok
-                if self.fkey_is_valid or new_text == self.fkey_value:
-                    is_valid = True
-                else:
-                    is_valid = self.vfields[field_name].validate(new_text, input_is_fkey=False)
-            else:
-                is_valid = self.vfields[field_name].validate(new_text)
+            if self.cell_entry and not self.cell_entry.is_valid():
+                if not self.cell_validate():
+                    return True
 
-            if is_valid:
-                return False
-            else:
-                ## don't start a completion if nothing has been written
-                if new_text and hasattr(self.field_widgets[field_name], 'completion'):
-                    show = self.vfields[field_name].widget.completion.show_possible_completion
-                    show(self.editable, 'start')
-                    label_text = _(get_label(field_name, layout=self.lay_obj))
-
-                self.sb(_("%s was not valid for field %s") % (new_text, label_text))
-                return True
         ## any change in the text should invalidate the field
         if ksym not in ('Return'):
             self.fkey_is_valid = False
+
+    def cell_editing_canceled_cb(self, widget, field_name):
+        """
+        clean-up of cell_entry and restore value
+        """
+        self.set_value(field_name, self.vfields[field_name].initial_value)
+        self.cell_entry = None
         
+    def on_editable_remove_widget(self, widget, field_name):
+        """
+        If the call has invalid data we don't want to remove the widget
+        so that we can edit the wrong data rather then loosing what was already typed
+        """
+        if self.cell_entry and not self.cell_entry.is_valid():
+            return True
+        self.cell_entry = None
+       
 #### cell_data_func
     def cell_bool_cb(self, column, cell, model, iter, field_name):
         """function set by set_cell_data_func for nullable boolean"""
@@ -1268,6 +1264,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.edited_row_model_path = None
         self.commit_inhibited = False
         self.totals.compute()
+        self.cell_entry = None
         return ret
                                          
     def record_refresh(self):
@@ -1283,6 +1280,55 @@ class SqlTable(sqlwidget.SqlWidget):
         self.treeview.columns_autosize()
         sqlwidget.SqlWidget.record_refresh(self)
 
+#     def record_validate(self):
+#         """
+#         Validate a record and apply all possible needed trasformations, if any.
+#         """
+#         pass
+
+    def cell_validate(self):
+        """
+        validate cell value, return True if ok
+        The cell to be validated is the last visited cell, ie: the one whose field_name, path and cell
+        where set inside text_editing_started_cb
+        ForeignKey that do not validate should trigger completion
+
+        This must be called by:
+          - Return
+          - Tab
+          - Button1 on other cell
+          - edited callback
+        """
+        new_text = self.cell_entry.get_text()
+        field_name = self.currently_edited_field_name
+        
+        if self.relationship_mode == 'm2m' and not self.m2m_editable:
+            # in m2m we don't want to edit this field but just to add/remove objects
+            # I'm not sure if this should change
+            try:
+                self.set_current(filter_by={field_name :new_text}, substitute=True)
+            except (exc.NoResultFound, exc.MultipleResultsFound), e:
+                ## if there's no match, try completion
+                show = self.vfields[field_name].widget.completion.show_possible_completion
+                show(self.cell_entry.entry, 'start')
+                return False
+        else:
+            ## 
+            if self.is_fkey(field_name):
+                self.sb(_('Value is not valid, trying completion'))
+                show = self.vfields[field_name].widget.completion.show_possible_completion
+                show(self.cell_entry.entry, 'start', sb=False)
+                return False
+            else:
+                try:
+                    self.vfields[field_name].set_value(new_text, initial=False)
+                    return True
+                except exc.ValidationError, e:
+                    self.cell_entry.valid = False
+                    self.sb(e.message)
+                    return False
+        
+        
     def set_value(self, field_name, value, path=None, fkvalue=None, initial=False, shown=False):
         """
         called from within edited signal and completion.
@@ -1312,84 +1358,18 @@ class SqlTable(sqlwidget.SqlWidget):
         ## text would come up automatically but only after
         ## loosing the focus...
         if fkvalue:
-            self.editable.set_text(fkvalue)
+            self.cell_entry.entry.set_text(fkvalue)
+            self.cell_entry.valid = True
+            self.cell_entry.text = fkvalue
             self.fkey_is_valid = field_name
             self.fkey_value = fkvalue
         else:
             if value is not None and not self.is_fkey(field_name):
                 ## editable, if any, points to the last used editable
                 ## that may not be the one that belogs to field_name...
-                if self.editable and field_name == self.currently_edited_field_name:
-                    self.editable.set_text(str(value))
-    
-    def set_value_old(self, field_name, value, path=None, fkvalue=None, initial=False):
-        """
-        called from within edited signal and completion.
-        Validation should live here?
-        If path, is not passed (as when used from completion)
-        it is deduced from selection
-        fkey: if True the value is handled as a primary key.
-        Used from completion and from vfields/tablewidget
-        """
-
-        ## note: current cannot be used. We don't want the currently selected obj
-        ##       but the one that is to be saved. This operation can be triggered
-        ##       by a change in selection in which case self.current already points
-        ##       to the new selection
-        obj = self.get_current_obj(path=path)
-        
-        if not obj:
-            return True
-
-        ## casting of value
-        ptype = self.get_field_type(field_name)
-        if  ptype in sqlwidget.NUMBERS:
-            if value == '':
-                value = None
-            else:
-                if not type(value) == ptype:
-                    value = parse_decimal(value)
-
-        try:
-            #if value not in (True, False, None):
-            if value is not None and not isinstance(value, ptype):
-                value = ptype(value)
-        except TypeError:
-            # eg: setting a field to NULL
-            # or: a date that is already in the correct type
-            if value is None or type(value) == ptype:
-                pass
-            else:
-                print "problems while handling field: %s value: %s" % (field_name, value)
-                raise
-        except ValueError:
-            ## cast may fail becouse you wrote text in a context in which
-            ## a fkey is 
-            # eg.: you are editing an fk, you wrote text (that is not admitted)
-            # just ignore
-            # NOTE: you may also have is_fkey = True but with a string key
-            #       this case will raise (possibly) a db error on commit
-
-            if self.is_fkey(field_name) and not fkvalue:
-                return
-            else:
-                ## we should not arrive here, but there may be cases I'm missing now...
-                raise
-
-        setattr(obj, field_name, value)
-
-        ## text would come up automatically but only after
-        ## loosing the focus...
-        if fkvalue:
-            self.editable.set_text(fkvalue)
-        else:
-            if value and not self.is_fkey(field_name):
-                ## editable, if any, points to the last used editable
-                ## that may not be the one that belogs to field_name...
-                if self.editable and field_name == self.currently_edited_field_name:
-                    self.editable.set_text(str(value))
-            
-        return True
+                if self.cell_entry and field_name == self.cell_entry.field_name:
+                    #self.cell_entry.entry.set_text(str(value))
+                    self.cell_entry.entry.set_text(self.vfields[field_name].format_value(value))
     
     def get_selected_row(self):
         """Return the path of the selected row or None
@@ -1605,19 +1585,6 @@ class SqlTable(sqlwidget.SqlWidget):
 
 #### completion
 
-    def get_value_old(self, field_name, shown=True):
-        """return the value of the cell **currently edited***
-        The name is possibly misleading due to parallelism with
-        mask. 
-
-        shown: compatibility with mask version
-        """
-        
-        if field_name == self.currently_edited_field_name:
-            if self.editable:
-                return self.vfields[field_name].clean_value(self.editable.get_text())
-        return getattr(self.get_current_obj(), field_name)
-
     def get_value(self, field_name, shown=True):
         """
         return the value of the cell **currently edited***
@@ -1631,8 +1598,8 @@ class SqlTable(sqlwidget.SqlWidget):
         assert obj is not None, _("no current obj: maybe no record has yet been edited")
 
         if field_name == self.currently_edited_field_name:
-            if self.editable:
-                text = self.editable.get_text()
+            if self.cell_entry:
+                text = self.cell_entry.get_text()
                 if self.is_fkey(field_name):
                     if shown:
                     ## we can be here becouse a clean_value triggered it. So don't pass there a
@@ -1654,7 +1621,27 @@ class SqlTable(sqlwidget.SqlWidget):
             field.widget.add_completion(editable=editable)
         
 
+class CellEntry(object):
+    """
+    An object to store info on editable status
+    """
+    def __init__(self, editable, cell, path, field_name):
+        self.entry = editable
+        self.cell = cell
+        self.path = path
+        self.field_name = field_name
+        self.valid = True
+        self.text = editable.get_text()
+        self.entry.connect('changed', self.on_editable_change)
 
+    def on_editable_change(self, widget):
+        self.valid = False
 
+    def is_valid(self):
 
+        valid = self.valid or self.text == self.entry.get_text()
+        return valid
 
+    def get_text(self):
+        return self.entry.get_text()
+    

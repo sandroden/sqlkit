@@ -16,7 +16,7 @@ class CellWidget(object):
     def get_entry(self):
         # CellWidget has an editable only if we're editing...
         if self.field_name == self.master.currently_edited_field_name:
-            return self.master.editable
+            return self.master.cell_entry.entry
         else:
             msg = _("No current obj for field '%s' in %s")
             raise NotImplementedError(msg  % (self.field_name, self.master))

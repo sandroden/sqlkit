@@ -312,8 +312,7 @@ class SimpleCompletion(object):
         self.master.set_value(field_name, value, fkvalue=fkvalue, initial=False)
         if fkvalue:
             ## just handier to accept it already
-            self.master.editable.emit('activate')
-
+            self.master.cell_entry.entry.emit('activate')
         return True
         
 ### Sql SELECT

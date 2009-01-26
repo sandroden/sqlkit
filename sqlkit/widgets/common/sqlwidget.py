@@ -506,6 +506,7 @@ class SqlWidget(gobject.GObject):
             return
         try:
             self.session.commit()
+            self.sb(_('Saved'), seconds=3)
         except exceptions.SQLError, e:
             self.SQLErrorHandler(e)
             dbg.write("Exception: %s" % e.orig) 
