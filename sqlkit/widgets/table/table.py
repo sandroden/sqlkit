@@ -889,14 +889,13 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         ksym = gtk.gdk.keyval_name(event.keyval)
         if ksym in ('Tab', 'Down', 'Up', 'Return'):
+            ## FIXME: Down and Return should behave differently if the completion is visible
+            if ksym in ('Down', 'Return'): # and widget.get_completion().get_property('visible'):
+                return False
 
             if self.cell_entry and not self.cell_entry.is_valid():
                 if not self.cell_validate():
                     return True
-
-        ## any change in the text should invalidate the field
-        if ksym not in ('Return'):
-            self.fkey_is_valid = False
 
     def cell_editing_canceled_cb(self, widget, field_name):
         """
@@ -1645,5 +1644,7 @@ class CellEntry(object):
     def get_text(self):
         return self.entry.get_text()
     
+
+
 
 
