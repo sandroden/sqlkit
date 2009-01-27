@@ -5,6 +5,7 @@ import sqlkit
 import sqlalchemy as sa
 import gtk
 import re
+from sqlkit.widgets.table import utils
 
 class TableBrowser(object):
     def __init__(self, dbproxy, title=None, opts=None, x=None):
@@ -46,6 +47,7 @@ class TableBrowser(object):
         self.lay_obj = self.l
         self.widgets = self.w
         self.add_accelerators()
+        utils.set_height_request(self.tv, rows=min(30, len(self.model)))
 
     def add_accelerators(self):
         """Add accelerators: now Ctrl-l"""
