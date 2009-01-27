@@ -37,7 +37,6 @@ from sqlkit.widgets.table.tablewidgets import CellWidget
 from datetime import datetime, time, date, timedelta
 import gtk
 from pprint import pprint 
-from sqlkit.db import defaults
 from sqlalchemy.schema import ColumnDefault
 from decimal import Decimal
 from sqlkit.misc.babel_support import numbers, dates
@@ -191,9 +190,8 @@ class Field(object):
         """
         return the default value for this object
         """
+        value = self.master.get_default(self.field_name)
 
-        value = defaults.get_default(self.db_spec['col'].table.name, self.field_name)
-        #value = defaults.get_default(self.master.tables, self.field_name)
         if not value:
             try:
                 value = self.db_spec['default']

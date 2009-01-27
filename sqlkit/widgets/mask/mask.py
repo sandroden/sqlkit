@@ -27,6 +27,7 @@ import decimal
 import sqlkit
 from sqlkit import debug as dbg
 from sqlkit import exc, _
+import gobject
 
 #NOT_NULL_COLOR = gtk.gdk.color_parse('yellow')
 FK_COLOR = gtk.gdk.color_parse('navyblue')
@@ -50,7 +51,8 @@ class SqlMask (sqlwidget.SqlWidget):
         #current_idx = dbg.TraceIt(0, name='current_idx', mode='rw')
 
         sqlwidget.SqlWidget.__init__(self, *args, **kw)
-        self.record_new()
+        ## idle so that possible defaults get a chanche to be effective
+        gobject.idle_add(self.record_new)
 
 ####### Record browsing & saving
     def reload(self, **kw):

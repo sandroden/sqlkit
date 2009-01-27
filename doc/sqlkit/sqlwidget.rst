@@ -178,6 +178,17 @@ completeness:
     set_field_list(field_list): determinswhich field will be shown and in
     which order (for tables)
 
+:set_default:
+    set_default(field1_name=value, field2_name=value2): sets local defaults
+    for each field_name. For local default we mean default that are only
+    effective for the current instance of the SqlWidget. As an example: you
+    have one table for 'people' and want to open 2 different masks, one that
+    has default as "suppliers" and the second as "customers".
+    
+:get_default:
+    get_default(field_name): returns the cirrent default for
+    field_name. Precedence is given to the local_default
+
 Attributes
 ===========
 
