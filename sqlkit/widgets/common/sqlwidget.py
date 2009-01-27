@@ -739,17 +739,17 @@ class SqlWidget(gobject.GObject):
     
 ####### Validation
     def digits_check_input_cb(self, widget, event):
-        """prevents the possibility of inputting wrong chars"""
-        ## fixme: missing comma, and cut&paste
+        """
+        prevents the possibility of inputting wrong chars
+        """
         key = gtk.gdk.keyval_name (event.keyval)
-        #dbg.write(key)
-        ONLYDIGITS="([0-9.,]|BackSpace|Left|Right|F1|period|Tab|Up|Down)"
-        if not re.match (ONLYDIGITS, key):
-            #dbg.write("key: %s" % key)
+   
+        KEYPAD_KEYS = '(KP_[0-9]|KP_Add|KP_Decimal|KP_Subtract'
+        ONLYDIGITS="%s|[0-9.,]|BackSpace|Left|Right|F1|period|Tab|Up|Down)"
+
+        if not re.match (ONLYDIGITS % KEYPAD_KEYS, key):
+            self.sb(_('Char %s is not accepted in numeric context' % key))
             return True
-#     def record_display(self, record=None, incr=0):
-#         self.actions.on_record_display()
-        
 
 ####### Dialog
     def dialog(self, type='ok-cancel', text='', title='', layout="l=a"):
