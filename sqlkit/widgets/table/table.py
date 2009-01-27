@@ -882,6 +882,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         if self.cell_validate():
             self.cell_entry = None
+        #return True
 
     def editable_keypress_cb(self, widget, event, field_name):
         """
@@ -901,8 +902,15 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         clean-up of cell_entry and restore value
         """
+        if self.cell_entry.substitute:
+            dbg.write("Ignoring canceled due to 'substitute' in cell_entry")
+            # assigning a value to liststore, triggers 'editing-canceled'
+            self.cell_entry.substitute = False
+            return
+        dbg.write("Editing canceled")
         self.set_value(field_name, self.vfields[field_name].initial_value)
         self.cell_entry = None
+        self.sb(_("Editing canceled. Restoring original value"), seconds=3)
         
     def on_editable_remove_widget(self, widget, field_name):
         """
@@ -1019,25 +1027,19 @@ class SqlTable(sqlwidget.SqlWidget):
             pass
         return True
         
-    def remove_widget_cb(self, widget, field_name):
-        print "remove_widget", field_name
-        try:
-            print "TEXT", widget.get_text()
-        except:
-            pass
-        return True
-        
 #### model handling & sqlwidget override
-    def initialize_record_editing(self, path):
+    def initialize_record_editing(self, path, force=False, obj=None):
         """
         register the path of the editing and initialize all validation fields
+        called when entering a new row or when a new record is added in m2m
         """
         # in Masks this is done when set_field is used on record_display
         # here the display is automatic via set_cell_data_func so we have to set
         # initial value when starting editing a record
         
-        if not self.edited_row_model_path:
-            obj = self.get_selected_obj()
+        if not self.edited_row_model_path or force:
+            if not obj:
+                obj = self.get_selected_obj()
             if obj:
                 for field_name in self.field_list:
                     value = getattr(obj, field_name)
@@ -1305,9 +1307,12 @@ class SqlTable(sqlwidget.SqlWidget):
             # in m2m we don't want to edit this field but just to add/remove objects
             # I'm not sure if this should change
             try:
-                self.set_current(filter_by={field_name :new_text}, substitute=True)
+                dbg.write("new_text: %s" % new_text)
+                self.set_current(filter_by={field_name :new_text})
+                return True
             except (exc.NoResultFound, exc.MultipleResultsFound), e:
                 ## if there's no match, try completion
+                dbg.write("No match: try completion")
                 show = self.vfields[field_name].widget.completion.show_possible_completion
                 show(self.cell_entry.entry, 'start')
                 return False
@@ -1429,7 +1434,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return obj
 
     current = property(get_selected_obj)
-    def set_current(self, pk=None, substitute=False, filter_by=None):
+    def set_current(self, pk=None, filter_by=None):
         """
         retrieve object with primary key pk and set it as current object
         ie: in the row currently selected
@@ -1439,16 +1444,24 @@ class SqlTable(sqlwidget.SqlWidget):
         ## I really need not to flush, since in this moment there is a new object in the
         ## row that started completion that is not ready for flushing
         ## more: it may be due for substitution!!
-        
+
         row = self.get_selected_row()
+        assert row is not None
         
         obj = self.get_record_no_flush(pk=pk, filter_by=filter_by)
-        if substitute:
-            expired_obj = self.liststore[row][0]
-            self.session.expunge(expired_obj)
-            self.records.remove(expired_obj)
-            
+
+        expired_obj = self.liststore[row][0]
+        self.session.expunge(expired_obj)
+        self.records.remove(expired_obj)
+
+        ## assigning liststore value will trigger 'editing-canceled'
+        self.cell_entry.substitute = True
+        self.cell_entry.valid = True
         self.liststore[row][0] = obj
+        
+        path = self.edited_row_model_path
+        self.initialize_record_editing(path, force=True, obj=obj)
+
         self.records += [obj]
 
     def get_record_no_flush(self, pk=None, filter_by=None):
@@ -1641,6 +1654,7 @@ class CellEntry(object):
         self.valid = True
         self.text = editable.get_text()
         self.entry.connect('changed', self.on_editable_change)
+        self.substitute = False
 
     def on_editable_change(self, widget):
         self.valid = False
@@ -1653,9 +1667,3 @@ class CellEntry(object):
     def get_text(self):
         return self.entry.get_text()
     
-
-
-
-
-
-

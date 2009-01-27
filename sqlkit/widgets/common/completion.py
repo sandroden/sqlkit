@@ -537,14 +537,21 @@ class SimpleCompletion(object):
             if self.master.fkey_is_valid(self.field_name):
                 return False
             try:
-                clean_value = self.master.vfields[self.field_name].clean_value(text, input_is_fkey=False)
-                self.master.sb(_("Good match"), seconds=4)
-                self.master.set_value(self.field_name, clean_value, fkvalue=text)
-                if not clean_value:
-                    raise NoResultFound
+                if self.master.is_fkey(self.field_name):
+                    clean_value = self.master.vfields[self.field_name].clean_value(text, input_is_fkey=False)
+                    self.master.sb(_("Good match"), seconds=4)
+                    self.master.set_value(self.field_name, clean_value, fkvalue=text)
+                    if not clean_value:
+                        raise NoResultFound
 
-                return True
+                    return True
 
+                else:
+                    self.master.sb(_("No exact match, trying regexp completion"), seconds=4)
+                    self.show_possible_completion(entry, mode='regexp', sb=False)
+                    self.master.cell_entry.valid = False
+                    return True
+                    
             except (NoResultFound, MultipleResultsFound), e:
                 self.master.sb(_("No exact match, trying regexp completion"), seconds=4)
                 self.show_possible_completion(entry, mode='regexp', sb=False)
@@ -822,8 +829,9 @@ class M2mCompletion(FkeyCompletion):
         ## and use that one
             
         try:
-            self.master.set_current(pk=value, substitute=True)
-        except:
+            self.master.set_current(pk=value)
+        except Exception, e:
+            print e
             pass
 #             kw = {field_name: value}
 #             try:
@@ -869,13 +877,4 @@ def get_foreign_info(master, field_name, names=True):
 
     foreign_keys = master.fields[field_name]['fkey']
     return get_foreign_info(foreign_keys, names=names)
-
-
-
-
-
-
-
-
-
 
