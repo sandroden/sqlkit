@@ -903,11 +903,9 @@ class SqlTable(sqlwidget.SqlWidget):
         clean-up of cell_entry and restore value
         """
         if self.cell_entry.substitute:
-            dbg.write("Ignoring canceled due to 'substitute' in cell_entry")
             # assigning a value to liststore, triggers 'editing-canceled'
             self.cell_entry.substitute = False
             return
-        dbg.write("Editing canceled")
         self.set_value(field_name, self.vfields[field_name].initial_value)
         self.cell_entry = None
         self.sb(_("Editing canceled. Restoring original value"), seconds=3)
@@ -962,13 +960,12 @@ class SqlTable(sqlwidget.SqlWidget):
         """function set by set_cell_data_func
         gets the attribute from the record and returns it
         """
-
+        
         if not column.get_visible():
             return
         obj = model.get_value(iter, 0) 
         value = getattr(obj, field_name)
         formatted_value = self.vfields[field_name].format_value(value)
-
         if isinstance(obj, self.totals.total_class):
             obj.set_value_and_colors(cell, formatted_value, field_name)
         else:
@@ -1019,13 +1016,6 @@ class SqlTable(sqlwidget.SqlWidget):
     
         
 
-    def validate_cell(self, widget, field_name):
-        print "editing-done", field_name
-        try:
-            print "TEXT", widget.get_text()
-        except:
-            pass
-        return True
         
 #### model handling & sqlwidget override
     def initialize_record_editing(self, path, force=False, obj=None):
@@ -1300,14 +1290,14 @@ class SqlTable(sqlwidget.SqlWidget):
           - Button1 on other cell
           - edited callback
         """
+
         new_text = self.cell_entry.get_text()
         field_name = self.currently_edited_field_name
-        
+
         if self.relationship_mode == 'm2m' and not self.m2m_editable:
             # in m2m we don't want to edit this field but just to add/remove objects
             # I'm not sure if this should change
             try:
-                dbg.write("new_text: %s" % new_text)
                 self.set_current(filter_by={field_name :new_text})
                 return True
             except (exc.NoResultFound, exc.MultipleResultsFound), e:
@@ -1653,7 +1643,12 @@ class CellEntry(object):
         self.field_name = field_name
         self.valid = True
         self.text = editable.get_text()
-        self.entry.connect('changed', self.on_editable_change)
+
+        if isinstance(editable, gtk.Entry):
+            # Multiline does not have 'canged' and does not need invalidating
+            self.entry.connect('changed', self.on_editable_change)
+            
+            
         self.substitute = False
 
     def on_editable_change(self, widget):

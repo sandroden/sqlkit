@@ -34,15 +34,22 @@ class MultilineCellRenderer(gtk.CellRendererText):
         self._in_editor_menu = False
 
     def _on_editor_focus_out_event(self, editor, *args):
-        if self._in_editor_menu: return
-        editor.remove_widget()
-        self.emit("editing-canceled")
+
+        if self._in_editor_menu:
+            return
+
+        #editor.remove_widget()
+        #self.emit("editing-canceled")
 
     def _on_editor_key_press_event(self, editor, event):
-        if event.state & (gtk.gdk.SHIFT_MASK | gtk.gdk.CONTROL_MASK): return
+
+        if event.state & (gtk.gdk.SHIFT_MASK | gtk.gdk.CONTROL_MASK):
+            return
+
         if event.keyval in (gtk.keysyms.Return, gtk.keysyms.KP_Enter):
-            editor.remove_widget()
             self.emit("edited", editor.get_data("path"), editor.get_text())
+            editor.remove_widget()
+
         elif event.keyval == gtk.keysyms.Escape:
             editor.remove_widget()
             self.emit("editing-canceled")
@@ -60,7 +67,7 @@ class MultilineCellRenderer(gtk.CellRendererText):
         editor.set_size_request(cell_area.width, cell_area.height)
         editor.set_border_width(min(self.props.xpad, self.props.ypad))
         editor.set_data("path", path)
-        editor.connect("focus-out-event", self._on_editor_focus_out_event)
+#        editor.connect("focus-out-event", self._on_editor_focus_out_event)
         editor.connect("key-press-event", self._on_editor_key_press_event)
         editor.connect("populate-popup", self._on_editor_populate_popup)
         editor.show()
