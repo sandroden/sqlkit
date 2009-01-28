@@ -1,4 +1,17 @@
-
+	* MultiLine: fix for multiline
+	* input: now keypd work correctly and handles KP_Decimal according
+ 	        to locale
+	* fields: fixed default format for floats. Now #.###.@. Before it
+     		truncated decimals
+	* defaults: it's now possible to have defaults local to an
+        	instance of sqlwidget
+	* sqledit: improved GUI(now open correct N. of lines _ C-l)
+	* completion: several bug-fixes
+	* validation in table: now table correctly handles errors in
+	       validation: it's not possible to leave a field with wron
+	       value. 
+	* debug: get_widget_signals now returns signals for all __bases__
+	
 sqlkit 0.8.5.1 - 23.1.09
 	* fix release:
 	   + filter resulted not working

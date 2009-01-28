@@ -46,7 +46,13 @@ Even if the source state ``lenny`` can safely be used for ubuntu and etch.
     so the .deb does not require it. You can get it from Debian
     Experimental_ and it will install also in ubuntu
 
+.. note:: Babel
 
+   sqlkit depends on babel that is not packeged in debian but is packaged in
+   ubuntu with two different names in hardy and intrepid. So the package I
+   have prepared does not depend on it. You are supposed to add the
+   package. If using hardy install ``python-babel`` is using intrepid, use 
+   ``python-pybabel``
 
 mailing list
 ============
