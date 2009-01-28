@@ -41,6 +41,7 @@ from sqlalchemy.orm import attributes
 from sqlkit.misc.utils import Container
 import sqlkit
 from sqlkit import _
+from babel import numbers
 
 NUMBERS = (int, float, decimal.Decimal)
 
@@ -744,7 +745,15 @@ class SqlWidget(gobject.GObject):
         """
         key = gtk.gdk.keyval_name (event.keyval)
    
-        KEYPAD_KEYS = '(KP_[0-9]|KP_Add|KP_Decimal|KP_Subtract'
+        if key in ('KP_Decimal') and numbers.get_decimal_symbol() == ",":
+            event = gtk.gdk.Event(gtk.gdk.KEY_PRESS)
+            event.keyval = gtk.keysyms.comma
+            event.window = widget.window
+            
+            widget.emit('key-press-event', event)
+            return  True
+
+        KEYPAD_KEYS = '(KP_[0-9]|KP_Add|KP_Decimal|KP_Subtract|comma'
         ONLYDIGITS="%s|[0-9.,]|BackSpace|Left|Right|F1|period|Tab|Up|Down)"
 
         if not re.match (ONLYDIGITS % KEYPAD_KEYS, key):
