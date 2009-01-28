@@ -301,7 +301,7 @@ class FloatField(IntegerField):
 
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
-        self.format = "#,###.#"
+        self.format = "#,###.@"
         self.locale = babel.default_locale('LC_NUMERIC')
         
     def clean_value(self, value):
@@ -349,6 +349,8 @@ class DecimalField(IntegerField):
                         )
                 elif isinstance(value, Decimal):
                     pass
+                elif isinstance(value, float):
+                    value = self.clean_value(str(value))
                 else:
                     raise exc.ValidationError(_("value is not Decimal nor string: %s" % value))
             except Exception, e:
