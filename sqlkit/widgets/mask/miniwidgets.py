@@ -471,6 +471,7 @@ class CollectionWidget(Widget):
             metadata=self.master.metadata,
             dbproxy=self.master.dbproxy,
             naked=True,
+            col_width = filter_related(self.master.col_width, self.field_name),
             field_list = loader_spec.get('field_list', None),
             addto=self.gtkwidget,
             icons='b=gtk-new b=gtk-delete b=gtk-save b=gtk-zoom-fit',
@@ -528,5 +529,22 @@ class CollectionWidget(Widget):
         return label_map
 
 
+def filter_related(my_dict, relation):
+    """
+    filters a dict to use only width info for relation 'relation'
+    e.g:
+    a = {'ind.cap' : 5, 'username' : 7}
+    >>> filter_related(a, 'ind')
+    {'cap': 5}
+    """
 
+    new = {}
+    strip = '%s.' % relation
+    if my_dict:
+        for key in my_dict:
+            if key.startswith(strip):
+                nkey = re.sub('^%s' % strip, '', key)
+                new[nkey] = my_dict[key]
+
+    return new
 

@@ -138,6 +138,11 @@ mode/sql options
    equivalent to using: .set_format(format_dict).  See :ref:`localization`
    for more info
 
+:col_width:
+   a dictionary of field_name/width for columns (e.g: {'zip_code' : 6}). It
+   can be passed to masks also that will handle on to nested tables. In this
+   case if you have a relation with attribute 'address' you may use: 
+   {'address.zip_code': 6}
    
 Methods
 =======

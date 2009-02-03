@@ -335,7 +335,13 @@ class SqlWidget(gobject.GObject):
         """Fields is a dictionary with info on the fields derived from the
         db via the mapper (inspecting it)
         """
-        return minspect.InspectMapper(self.mapper, noup=self.noup, ro=self.ro)
+        info = minspect.InspectMapper(self.mapper, noup=self.noup, ro=self.ro)
+        ## fix column_width that may have been passed
+        if self.col_width:
+            for field_name, value in self.col_width.items():
+                if field_name in info:
+                    info[field_name]['length'] = value
+        return info
         
     def _get_layout(self, lay, naked):
         """lay may be a definition string or another SqlMask in case the layout has
@@ -874,11 +880,9 @@ class SqlWidget(gobject.GObject):
             response = self.dialog(type='yes-no-cancel', text="\n".join(msg))
                                    
             if response == gtk.RESPONSE_CANCEL:
-                #dbg.write("Response CANCEL")
                 return False
 
             if response == gtk.RESPONSE_YES:
-                #dbg.write("Response YES")
                 self.session.commit()
                 self.last_new_obj = None
 
