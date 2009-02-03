@@ -904,7 +904,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         clean-up of cell_entry and restore value
         """
-        if self.cell_entry.substitute:
+        if self.cell_entry and self.cell_entry.substitute:
             # assigning a value to liststore, triggers 'editing-canceled'
             self.cell_entry.substitute = False
             return
