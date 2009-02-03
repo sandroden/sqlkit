@@ -850,6 +850,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.cell_entry.entry.connect('remove-widget', self.on_editable_remove_widget, field_name)
         self.cell_entry.entry.connect('key-press-event', self.editable_keypress_cb, field_name)
+        if self.is_number(field_name):
+            editable.connect('key-press-event', self.digits_check_input_cb  )            
 
         self.fkey_value = editable.get_text()
 #        self.fkey_is_valid = True

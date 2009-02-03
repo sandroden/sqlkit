@@ -1,6 +1,6 @@
 	* MultiLine: fix for multiline
 	* input: now keypd work correctly and handles KP_Decimal according
- 	        to locale
+ 	        to locale, when in interger/decimal or float fields
 	* fields: fixed default format for floats. Now #.###.@. Before it
      		truncated decimals
 	* defaults: it's now possible to have defaults local to an
