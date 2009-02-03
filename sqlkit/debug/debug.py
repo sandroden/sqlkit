@@ -79,8 +79,6 @@ import new
 #from sqlkit.layout import misc  
 import pango
 import inspect
-import tokenize
-import keyword
 import time
 import inspect
 from  pdb import set_trace
