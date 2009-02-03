@@ -61,10 +61,13 @@ class Descr(object):
         if not hasattr(self, '__tablename__'):
             self.__tablename__ = self.__table__.name
     
-        if not self.__tablename__ in tables:
-            format = get_description(self.__table__, attr='format')
+        try:
+            if not self.__tablename__ in tables:
+                format = get_description(self.__table__, attr='format')
 
-        return tables[self.__tablename__].format % DictLike(self)
+            return tables[self.__tablename__].format % DictLike(self)
+        except:
+            return "<%s - %s>" % (self.__class__.__name__, hex(id(self)))
 
     def __getitem__(self, key):
         return getattr(self, key) or ''
