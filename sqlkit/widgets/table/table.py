@@ -1062,7 +1062,8 @@ class SqlTable(sqlwidget.SqlWidget):
         #commit_allowed_status = self.commit_allowed
         self.commit_inhibited = True
 
-        treeiter = self.liststore.append([self.last_new_obj])
+        #treeiter = self.liststore.append([self.last_new_obj])
+        treeiter = self.get_next_iter(self.last_new_obj)
         path = self.liststore.get_path(treeiter)
         col = self.get_first_editable_col()
 
@@ -1080,7 +1081,20 @@ class SqlTable(sqlwidget.SqlWidget):
         self.commit_inhibited = False
 
         return True
-        
+
+    def get_next_iter(self, new_obj):
+        """
+        get a new iter inserting a row just before last (sub)/total - if any-
+        """
+        for i in xrange(len(self.liststore)-1, 0, -1):
+            obj = self.liststore.get_value( self.liststore[i].iter, 0)
+            if isinstance(obj, self.totals.total_class):
+                continue
+            row = self.liststore[i]
+            break
+
+        return self.liststore.insert_after(row.iter, [new_obj])
+
     def record_display(self, index=None):
         """Display all records (appending them to liststore)"""
 
