@@ -510,19 +510,20 @@ class SqlWidget(gobject.GObject):
             self.session.commit()
             self.sb(_('Saved'), seconds=3)
         except exceptions.SQLError, e:
-            self.SQLErrorHandler(e)
-            dbg.write("Exception: %s" % e.orig) 
-            #self.message(str(e.orig))
-            self.session.rollback()
-            raise sqlkit.exc.CommitError
-            
+            if not self.SQLErrorHandler(e):
+                self.session.rollback()
+
     def SQLErrorHandler(self, e):
+        """
+        communicate the problem to the user
+        return True to prevent rollback
+        """
         # TIP: message in the status bar when a commit error is handled
         self.message(type='error',
                      text=_("%s - Dirty objects: %s - New objects: %s") % \
                      (str(e.orig),len(self.session.dirty),len(self.session.new)))
         self.sb(e.orig)
-        dbg.write("Scritto %s su sb" % (e.orig))
+        return False  # i.e.: rollback
 
     def record_validate(self, obj, mode, constraint={} ):
         """any validation should live here
@@ -1462,4 +1463,6 @@ class SqlWidget(gobject.GObject):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+
 
