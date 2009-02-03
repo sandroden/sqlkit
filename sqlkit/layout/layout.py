@@ -819,7 +819,7 @@ class Layout(object):
                         butts)
         lay = Layout(lay, addto=dialog.vbox)
         if text:
-            l.prop(('l=msg', 'text', text))
+            lay.prop(('l=msg', 'label', text))
         lay.show()
         if show:
             dialog.show_all()
