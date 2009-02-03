@@ -1142,6 +1142,7 @@ class SqlTable(sqlwidget.SqlWidget):
             dbg.write(obj, )
             #if not self.session.is_modified(obj):
             if not self.record_has_changed():
+                self.db('Nothing to save')
                 self.session.expunge(obj)
                 del obj
                 self.last_new_obj = None
@@ -1168,6 +1169,8 @@ class SqlTable(sqlwidget.SqlWidget):
         ## record represented in the SqlMask that may not yet be validated
 
         if not self.relationship_mode in ('m2m', 'm2o', 'o2m', 'o2o'):
+            # TIP: when saving m2m, we delay till leader record will be saved
+            self.db(_('delaying saving when main record will be saved'))
             self.commit()
 
         self.totals.compute()
@@ -1175,12 +1178,6 @@ class SqlTable(sqlwidget.SqlWidget):
         
         if hasattr(obj, '_sqlkit_mode'):
             del obj._sqlkit_mode
-
-        ### refresh the data
-        #idx = self.sqlData.current
-        #self.liststore[self.edited_row_model_path][0] = idx
-        #self.edited_row_model_path = None
-        #self.record_display(index=idx)
 
     def unsaved_changes_exist(self, skip_check=False):
         """collect possible changes and test if save is needed

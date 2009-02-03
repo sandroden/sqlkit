@@ -73,7 +73,7 @@ class SqlMask (sqlwidget.SqlWidget):
         """
         if not self.records:
             ## TIP: message in the statis bar
-            self.sb(_('No records present'), seconds=None)
+            self.sb(_('No record present'), seconds=5)
             return
         if not reread:
             try:
@@ -193,7 +193,7 @@ class SqlMask (sqlwidget.SqlWidget):
         #             v = self.valid (self.table, record)
         #             v.validate ()
 
-        if not self.record_has_changed():
+        if not self.record_has_changed() and not self.unsaved_changes_exist():
             if self.last_new_obj:
                 ## very important: existence of an instance that is not
                 ## persinstant will turn out in an error if it cannot be
@@ -201,6 +201,7 @@ class SqlMask (sqlwidget.SqlWidget):
                 self.session.expunge(self.last_new_obj)
                 self.current = None
                 self.last_new_obj = None
+            self.sb(_('Nothing to save'), seconds=4)
             return
         obj = self.record_mask2obj(self.current, skip_check=True)
 
