@@ -153,7 +153,7 @@ L=title ae=title:50-       L=year ae=year:5<
 # :50 is wrong for dates and numbers
 >>> sm = SqlMask(Class=Movie, dbproxy=db, naked=True, show=True)
 >>> sm.get_value('title')
-''
+
 >>> sm.set_value('director_id', 'f', shown=True)
 
 >>> sm.completions.director_id.show_possible_completion(sm.widgets['fk=director_id'].entry, 'start', pop=False) 
