@@ -40,7 +40,7 @@ from sqlkit.widgets.common import completion
 from sqlalchemy.orm import attributes
 from sqlkit.misc.utils import Container
 import sqlkit
-from sqlkit import _
+from sqlkit import _, exc
 from babel import numbers
 
 NUMBERS = (int, float, decimal.Decimal)
@@ -449,7 +449,7 @@ class SqlWidget(gobject.GObject):
             ## std toolbutton
             'tb=gtk-save-as'       : self.record_save_new,
             'tb=gtk-save'       : self.record_save_cb,
-            'tb=gtk-new'        : self.record_new,
+            'tb=gtk-new'        : self.record_new_cb,
             'tb=gtk-delete'     : self.record_delete,
             'tb=gtk-refresh'    : self.reload_cb,
             'tb=gtk-quit'       : self.delete_event,
@@ -459,7 +459,7 @@ class SqlWidget(gobject.GObject):
             ## in case the programmers has set them
             'b=gtk-save-as'       : self.record_save_new,
             'b=gtk-save'       : self.record_save_cb,
-            'b=gtk-new'        : self.record_new,
+            'b=gtk-new'        : self.record_new_cb,
             'b=gtk-delete'     : self.record_delete,
             'b=gtk-refresh'    : self.reload_cb,
             'b=gtk-quit'       : self.delete_event,
@@ -495,25 +495,33 @@ class SqlWidget(gobject.GObject):
         """invokes the validator before DELETing a record"""
         pass
     
-    def record_save_cb(self, ev):
+    def record_save_cb(self, widget, event=None):
         """Save the record and invokes the validator before UPDATE/INSERT a record
         """
         try:
             self.record_save()
-        except sqlkit.exc.CancelledAction:
+        except (sqlkit.exc.CancelledAction, sqlkit.exc.ValidationError):
             pass
+    
+    def record_new_cb(self, widget, event=None):
+        """Save the record and invokes the validator before UPDATE/INSERT a record
+        """
+        try:
+            self.record_new()
+        except sqlkit.exc.ValidationError:
+            return True
     
     def record_save_new(self, ev):
         """Save the record as a new record, ie letting pk not be set 
         """
         raise NotImplementedError
 
-    def commit(self):
+    def commit(self, message=_('Saved')):
         if self.ro:
             return
         try:
             self.session.commit()
-            self.sb(_('Saved'), seconds=3)
+            self.sb(message, seconds=3)
         except exceptions.SQLError, e:
             if not self.SQLErrorHandler(e):
                 self.session.rollback()
@@ -530,40 +538,47 @@ class SqlWidget(gobject.GObject):
         self.sb(e.orig)
         return False  # i.e.: rollback
 
-    def record_validate(self, obj, mode, constraint={} ):
+    def record_validate(self, obj):
         """any validation should live here
 
-        constraint: this is a dictionary of values that are enforced.
+        """
+        assert obj is not None
+        mode = obj in self.session.new and 'INSERT' or 'UPDATE'
+
+        self.validation_errors = {}
         
-        Constraints are applied *after* path2dict handling and before
-        actions.on_update / actions.on_insert
+        for field in self.gui_fields:
+            field_name = field.field_name
+            try:
+                if field.mapper:   # persisted fields, mask2obj has already cleaned  them
+                    value = getattr(obj, field_name)
+                    self.gui_fields[field_name].validate( value , clean=True)
+                else:              # fields only present in the GUI, value is not in obj
+                    value = self.gui_fields[field_name].get_value()
+                    self.gui_fields[field_name].validate( value , clean=True)
+                    
+            except exc.ValidationError, e:
+                self.handle_validation_errors(e, field_name=field_name)
 
-        """
-        ## FIXME: vars(obj) means nothing...
-        rdict = vars(obj)
-        ## Applying constraint *after* check that I inserted something
-        if constraint:
-            self.constraint=constraint
 
-        if mode == 'INSERT':
-            pass
-            #self.actions.on_insert(new=obj)
-            #dbg.write("INSERTING record", rdict)
-            #self.sqlData.add(rdict)
-
-        elif mode == 'UPDATE':
-            pass
-            #self.actions.on_update(new=obj)
-            #self.sqlData.set(rdict, index=int(self.model_path))
-            #self.sqlData.current = self.path2sqldata_index(self.model_path)
-            #self.sqlData.set(rdict)
-        pass
+        if self.validation_errors:
+            self.handle_validation_errors()
     
-    def handle_validation_error(self, error):
+    def handle_validation_errors(self, error=None, field_name=None):
         """
-        handle the error raised by a field
+        handle the error raised by a field or take care of action in
+        self.vaidation_error dict and raise exception for record_save
         """
-        self.sb(error.message, seconds=30)
+        if error:
+            if isinstance(error, sqlkit.exc.NotNullableFieldError):
+                self.validation_errors[field_name] = _("%s may not be NULL" % field_name)
+            
+            self.sb(error.message, seconds=30)
+        else:
+            self.dialog(type='ok', text=str(self.validation_errors))
+            raise exc.ValidationError
+        
+        print self.validation_errors
             
 
 ####### Record browsing 
@@ -712,7 +727,8 @@ class SqlWidget(gobject.GObject):
         return field.has_changed()
 
     def record_has_changed(self):
-        """check if any data has been written in the fields after
+        """
+        check if any data has been written in the fields after
         record display. Uses field.has_changed()
         """
         ## this is needed since it's hard to say if an instance has been modified
@@ -979,7 +995,7 @@ class SqlWidget(gobject.GObject):
                 (_('Filter panel'),  'activate', self.add_filter_cb),
                 ('-', None),
                 ('gtk-new', 'activate',  self.record_new),
-                ('gtk-save', 'activate',  self.record_save),
+                ('gtk-save', 'activate',  self.record_save_cb),
                 ('gtk-save-as', 'activate',  self.record_save_new),
                 ('-', None),
                 (_('Export'), 'activate', self.export),
@@ -1466,6 +1482,10 @@ class SqlWidget(gobject.GObject):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
+
+
+
+
 
 
 

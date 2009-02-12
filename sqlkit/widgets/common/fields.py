@@ -63,7 +63,10 @@ Other attributes
    * widget:  the widget used to represent it. May be sqlkit.widgets.mask.miniwidget or similar
    * format: the format used to represent the field (numeric or date/time)
    * locale: the locale to use to represent the field (numeric or date/time)
-
+   * DecimalFields also have precision/scale
+   * Varchar/TextFields also have blank=True/False (default: False). It determines if an empty string is
+     a valid value. Empty strings are differerent from NULL values
+     
 future
 -------
    This should provide a way to set the possible observer
@@ -303,14 +306,19 @@ class Field(object):
         """
         return value
     
-    def validate(self, value, input_is_fkey=False):
-        try:
-            ret = self.clean_value(value) and True
-            return ret
-        
-        except Exception, e:
-            msg = "Field %s could not validate value '%s': error was: %s" 
-            raise exc.ValidationError(_(msg % (field_name, e.message) ))
+    def validate(self, value, input_is_fkey=False, clean=False):
+        if not clean:
+            try:
+                value = self.clean_value(value) and True
+
+            except Exception, e:
+                msg = "Field %s could not validate value '%s': error was: %s" 
+                raise exc.ValidationError(_(msg % (field_name, e.message) ))
+
+        if value is None and not self.nullable:
+            raise exc.NotNullableFieldError(self.field_name)
+
+        return value
 
     def set_max_length(self, editable=None):
         """
@@ -583,12 +591,17 @@ class ForeignKeyField(Field):
         ret = self.master.metadata.bind.execute(sql).fetchone()
         return ret and ret[0]
 
-    def validate(self, value, input_is_fkey=False):
+    def validate(self, value, input_is_fkey=False, clean=False):
         try:
-            return self.clean_value(value, input_is_fkey=input_is_fkey)
+            value = self.clean_value(value, input_is_fkey=input_is_fkey)
         except Exception, e:
             msg = "Field %s could not validate value '%s': error was: %s" 
             raise exc.Validation.error(_(msg % (field_name, e.message) ))
+
+        if value is None and not self.nullable:
+            raise exc.NotNullableFieldError(self.field_name)
+
+        return value
         
     def get_value(self, shown=False):
         value = self.widget.get_value(shown=shown)

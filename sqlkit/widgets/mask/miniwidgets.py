@@ -389,6 +389,7 @@ class ForeignKeyWidget(Widget):
         self.real_value = True
         self.master.completions[self.field_name] = self.completion
         self.set_not_null_style()
+        self.value = None
 
     def add_completion(self):
         """add completion bindings and liststore

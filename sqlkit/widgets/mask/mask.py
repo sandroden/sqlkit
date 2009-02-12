@@ -77,8 +77,8 @@ class SqlMask (sqlwidget.SqlWidget):
             return
         if not reread:
             try:
-                self.record_save(None, ask=True)
-            except exc.CancelledAction:
+                self.record_save(ask=True)
+            except (exc.CancelledAction, exc.ValidationError):
                 return
 
         if index is not None:
@@ -186,16 +186,18 @@ class SqlMask (sqlwidget.SqlWidget):
             self.session.delete(obj)
         self.last_new_obj = None
         
-        self.commit()
+        self.commit(_('Deleted'))
         self.records.pop(self.current_idx)
+
         if not self.records:
+            self.clear_mask(check=False)
             self.record_new()
         else:
             if self.current_idx  > len(self.records) -1:
                 self.current_idx -= 1
             self.record_display(index=self.current_idx)
     
-    def record_save(self, ev, constraint={}, ask=True, *args):
+    def record_save(self, ask=True, *args):
         """
         invokes the validator before UPDATE/INSERT a record
         """
@@ -217,7 +219,7 @@ class SqlMask (sqlwidget.SqlWidget):
             return
         obj = self.record_mask2obj(self.current, skip_check=True)
 
-        #self.actions.on_save(obj, mode=self.current_mode)
+        self.record_validate(obj)
     
         if ask:
             if not self.save_unsaved(skip_check=True):
@@ -248,10 +250,9 @@ class SqlMask (sqlwidget.SqlWidget):
 
         self.record_new(clear=False)
         try:
-            self.record_save(self.current)
-        except InvalidRequestError, e:
-            print e.message
-            raise
+            self.record_save()
+        except exc.ValidateError, e:
+            pass
         
     def record_mask2obj(self, obj=None, skip_check=False):
         """collect data from the mask and set into the object if record_has_changed())
@@ -283,10 +284,9 @@ class SqlMask (sqlwidget.SqlWidget):
         NOTE: this does NOT prepare for a new record (missing obj)
         """
 
-        if check and  not self.save_unsaved():
+        if check and not self.save_unsaved():
             return
 
-#        self.current_idx = None
         self.current = None
         
         for field_name in self.field_list:
@@ -298,15 +298,27 @@ class SqlMask (sqlwidget.SqlWidget):
     clear = clear_mask
     
     def record_new(self, widget=None, clear=True):
-        """prepare a new object and set 
         """
-        if self.current and  not self.record_has_changed():
-            if self.last_new_obj:
-                self.sb(_("Already at new record"))
-                return
-        
+        prepare a new object and set
+        clear = True/False. clear=False is used when 'saving as'
+        """
+        #dbg.set_trace()
+        if self.current:
+            if not self.record_has_changed():
+                if self.last_new_obj:
+                    self.sb(_("Already at new record"))
+                    return
+
         if clear:
-            self.clear_mask()
+            try:
+                if self.current:
+                    ## this is important to trigger validation in time to prevent
+                    ## a change in self.current. No need if all we want is to
+                    ## 'save as new'
+                    self.record_save()
+                self.clear_mask(check=False)
+            except exc.ValidationError:
+                return
 
         self.current = self.get_new_object()
         self.last_new_obj = self.current
@@ -314,18 +326,6 @@ class SqlMask (sqlwidget.SqlWidget):
         self.current_idx = len(self.records) -1
         self.sb(_("New record %s") % (self.current_idx +1))
         self.current_mode = 'INSERT'
-        
-#     def unsaved_changes_exist(self):
-#         """collect possible changes and test if save is needed
-#         """
-
-#         if self.current and not self.record_has_changed():
-#             if self.last_new_obj:
-#                 self.session.expunge(self.last_new_obj)
-#                 del self.last_new_obj
-#                 self.last_new_obj = None
-
-#         return sqlwidget.SqlWidget.unsaved_changes_exist(self)
         
     def record_forward(self, ev):
         """display the next record in the mapper"""
@@ -359,7 +359,7 @@ class SqlMask (sqlwidget.SqlWidget):
         """accell_group, window, ord, flags or ev..."""
         try:
             self.record_save(None)
-        except exc.CancelledAction:
+        except (exc.CancelledAction, exc.ValidationError):
             pass
 
     def unsaved_changes_exist(self, skip_check=False):
@@ -503,6 +503,10 @@ class SqlMask (sqlwidget.SqlWidget):
         pass
     
     
+
+
+
+
 
 
 

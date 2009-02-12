@@ -44,7 +44,6 @@ class SqlTable(sqlwidget.SqlWidget):
     """
 
     __metaclass__ = dbg.LogTheMethods
-    edited_row_model_path = None
     currently_edited_field_name = None
     mapper = None
     cell_entry = None
@@ -58,6 +57,8 @@ class SqlTable(sqlwidget.SqlWidget):
         self.deleting_row = False
         self.tvcolumns = None
         self.totals = totals.Totals(self)
+        #self.edited_row_model_path = dbg.TraceIt(True, name='edited_row_model_path', mode='rw')
+        self.edited_row_model_path = None
         sqlwidget.SqlWidget.__init__(self, *args, **kwargs)
         
     def _get_layout(self, lay, naked):
@@ -578,9 +579,15 @@ class SqlTable(sqlwidget.SqlWidget):
         ## commit_allowed is a flag that prevents .commit() if a new object
         ## has been created but not yet filled: it wouldn't validate
         if not self.commit_inhibited:
-            self.record_save()                # uses self.edited_row_model_path
-            #self.record_initialize_gui_fields()  # self.uses get_current_obj
-            self.edited_row_model_path = None
+            try:
+                self.record_save()                # uses self.edited_row_model_path
+                self.edited_row_model_path = None
+            except exc.ValidationError:
+                path = self.edited_row_model_path
+                self.edited_row_model_path = None
+                self.treeview.get_selection().select_path(path)
+                self.edited_row_model_path = path                
+                return True
 
         self.emit('record-selected')
         return False
@@ -691,8 +698,11 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
     
     def key_tree_ctrl_n(self, treeview, event, data):
+        try:
+            self.record_new(treeview)
+        except exc.ValidationError:
+            return True
 
-        self.record_new(treeview)
         return False
         
     def key_tree_ctrl_shift_N(self, treeview, event, data):
@@ -706,7 +716,10 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
         
     def key_tree_ctrl_s(self, treeview, event, data):
-        self.record_save(treeview)
+        try:
+            self.record_save(treeview)
+        except exc.ValidationError:
+            pass
         return False
         
     def key_tree_ctrl_k(self, treeview, event, data):
@@ -728,6 +741,8 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.record_new(treeview)
             except exc.CommitError, e:
                 return False
+            except exc.ValidationError:
+                return True
 
         return False
 
@@ -833,7 +848,6 @@ class SqlTable(sqlwidget.SqlWidget):
         return True
     
     def print_type(self, item):
-        print "SIGNALS", type(item), gobject.signal_list_names(item)
         try:
             widget =  gobject.type_parent(item)
             self.print_type(widget)
@@ -1047,7 +1061,8 @@ class SqlTable(sqlwidget.SqlWidget):
         ## and not modified (as when you press Down Arrow several times
         ## beyond the lower row)
         if not self.record_has_changed():
-            if self.last_new_obj:
+            #if self.last_new_obj:
+            if self.current and self.current in self.session.new:
                 self.sb(_("Already at new record"))
                 return
         self.record_save()
@@ -1119,14 +1134,12 @@ class SqlTable(sqlwidget.SqlWidget):
         ## the problem here is to prevent changes in the already used record
         raise NotImplementedError
     
-    def record_save(self, ev = None, constraint={}, discard_unchanged=False):
+    def record_save(self, discard_unchanged=False):
 
         """save the record
 
         Detects if any editing has been done consulting self.edited_row_model_path set
         by text_editing_started_cb.
-
-        Detects if INSERT or UPDATE mode by analizing _sqlkit_mode
 
         see record_validate for constraint explanation
 
@@ -1152,21 +1165,13 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.edited_row_model_path = None
                 return
 
-        ## if _sqlkit_mode is not set as after a SELECT, it defaults to UPDATE
-        ## _sqlkit_mode is set in record_new
-    
-        mode = getattr(obj, '_sqlkit_mode', 'UPDATE')
-            
         ## 
         if not self.record_has_changed():
             self.edited_row_model_path = None
             return
 
-        #rdict.update(self.constraint)
-        try:
-            self.record_validate(obj, mode, constraint)
-        except exc.ValidationError, e:
-            self.handle_validate_error(e)
+
+        self.record_validate(obj)
             
         ## in m2m case we don't want to commit now. We would trigger a commit of the
         ## record represented in the SqlMask that may not yet be validated
@@ -1176,6 +1181,7 @@ class SqlTable(sqlwidget.SqlWidget):
             self.sb(_('delaying saving when main record will be saved'))
         else:
             self.commit()
+            
 
         self.totals.compute()
         self.last_new_obj = None
@@ -1680,4 +1686,9 @@ class CellEntry(object):
     def get_text(self):
         return self.entry.get_text()
     
+
+
+
+
+
 
