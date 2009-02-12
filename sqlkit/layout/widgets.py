@@ -140,7 +140,7 @@ class LWidget(object):
             self.lw['el_key'] = re.sub('[-<>|=]$','',el_def)
 
         ### gtk-stock?
-        if re.match('gtk-', self.val):
+        if re.match('gtk-', self.val) and not self.gtkClass == 'GtkImage':
             if re.match('GtkToolButton', self.gtkClass):
                 self.properties['stock_id'] = re.sub('\..+','',self.val)
                 self.properties['label'] = None
@@ -651,16 +651,22 @@ class ToolSpinButton(LContainer):
             
 class Image(LWidget):
     gtkClass = 'GtkImage'
-
     def _class_specific(self):
         ## self.var is probably the name of a image file
         ## let's check, look for it and set it with a full path
-        cdir = os.getcwd()
-        filename = os.path.join(cdir,self.var)
-        if os.stat(filename):
-            self.properties['pixbuf'] = filename
+
+        if self.var.startswith('gtk-'):
+            self.properties['icon_name'] = self.var
+            self.properties['icon_size'] = self.w
+            self.w = None
+            self.properties.pop('width_request', None)
         else:
-            print "Missing image: " + filename
+            cdir = os.getcwd()
+            filename = os.path.join(cdir,self.var)
+            if os.stat(filename):
+                self.properties['pixbuf'] = filename
+            else:
+                print "Missing image: " + filename
 
 class Window(LContainer):
     gtkClass = 'GtkWindow'

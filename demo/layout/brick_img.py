@@ -7,6 +7,7 @@ l.elements['i=img'].properties['pixbuf'] = os.path.join(os.getvwd(), 'img.jpg')
 
 lay = """
    i=logo.jpg
+   { i=gtk-dialog-error:6 i=gtk-dialog-question:6}
 """
 
 
