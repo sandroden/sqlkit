@@ -618,7 +618,7 @@ class ForeignKeyField(Field):
         self.widget.set_value(value, shown=shown)
 
     def has_changed(self):
-        if self.widget.real_value == False:
+        if hasattr(self.widget, 'real_value') and self.widget.real_value == False:
             return True
         else:
             return Field.has_changed(self)
@@ -652,6 +652,8 @@ class CollectionField(Field):
         if value is None:
             value = []
         self.widget.set_value(value)
+
+
 
 
 
