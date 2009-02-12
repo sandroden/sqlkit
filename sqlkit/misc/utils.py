@@ -47,6 +47,12 @@ class Container(object):
     def __repr__(self):
         return "%s" % self._attrs
 
+    def get(self, key, default):
+        try:
+            return getattr(self, key)
+        except KeyError:
+            return defalut
+
 if __name__ == '__main__' :
 
     c = Container()
