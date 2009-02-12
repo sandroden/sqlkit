@@ -1457,7 +1457,8 @@ class SqlTable(sqlwidget.SqlWidget):
         obj = self.get_record_no_flush(pk=pk, filter_by=filter_by)
 
         expired_obj = self.liststore[row][0]
-        self.session.expunge(expired_obj)
+        if expired_obj in self.session:
+            self.session.expunge(expired_obj)
         self.records.remove(expired_obj)
 
         ## assigning liststore value will trigger 'editing-canceled'
@@ -1678,5 +1679,7 @@ class CellEntry(object):
     def get_text(self):
         return self.entry.get_text()
     
+
+
 
 
