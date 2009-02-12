@@ -46,13 +46,14 @@ class SqlMask (sqlwidget.SqlWidget):
     current_mode = None
 
     def __init__(self, *args, **kw):
-        """Prepare for a new record
+        """
+        Prepare for a new record
         """
         #current_idx = dbg.TraceIt(0, name='current_idx', mode='rw')
 
         sqlwidget.SqlWidget.__init__(self, *args, **kw)
         ## idle so that possible defaults get a chanche to be effective
-        gobject.idle_add(self.record_new)
+        gobject.idle_add(self.record_new_idle)
 
 ####### Record browsing & saving
     def reload(self, **kw):
@@ -297,12 +298,20 @@ class SqlMask (sqlwidget.SqlWidget):
 
     clear = clear_mask
     
+    def record_new_idle(self):
+        """
+        record_new has been asked with idle_add from __init__
+        when no info on possible .reload() was available.
+        create a new record only if no records are present
+        """
+        if not self.records:
+            self.record_new()
+
     def record_new(self, widget=None, clear=True):
         """
         prepare a new object and set
         clear = True/False. clear=False is used when 'saving as'
         """
-        #dbg.set_trace()
         if self.current:
             if not self.record_has_changed():
                 if self.last_new_obj:
@@ -503,6 +512,8 @@ class SqlMask (sqlwidget.SqlWidget):
         pass
     
     
+
+
 
 
 
