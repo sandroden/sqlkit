@@ -9,10 +9,6 @@ lay = """
    nation
 """
 
-t0 = SqlMask(table='director', dbproxy=db, layout=lay)
-t0.resize(700, 500)
-t0.reload()
-
 lay2 = """
     title
     date_release
