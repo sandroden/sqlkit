@@ -27,7 +27,7 @@ widgets only interpret gtk, while fields teat with real values and do validation
 
 from sqlkit.widgets.common import localtimezone
 import gtk
-from sqlkit import debug as  dbg
+from sqlkit import debug as  dbg, _, exc
 from datetime import timedelta, time
 from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion
 import re
@@ -390,6 +390,7 @@ class ForeignKeyWidget(Widget):
         self.master.completions[self.field_name] = self.completion
         self.set_not_null_style()
         self.value = None
+        self.entry.connect('changed', self.on_entry_changed)
 
     def add_completion(self):
         """add completion bindings and liststore
@@ -434,21 +435,24 @@ class ForeignKeyWidget(Widget):
         """
         if shown:
             display_value = value
+            self.entry.set_text(display_value)
         else:
             self.value = value
             display_value = self.completion.lookup_value(self.field_name, value)
+            self.entry.set_text(display_value)
             self.real_value = True  # we can trust this value, has been set by procedures
             
-        self.entry.set_text(display_value)
-        
-    
     def get_value(self, shown=False):
         if shown:
             return self.entry.get_text() 
         if self.real_value:
             return self.value
         else:
-            raise NotImplementedError
+            if self.entry.get_text():
+                msg = _("'%s' may have an invalid value: try completion on that" % self.field_name)
+                raise exc.ValidationError(msg)
+            else:
+                return None
 
 class CollectionWidget(Widget):
     """

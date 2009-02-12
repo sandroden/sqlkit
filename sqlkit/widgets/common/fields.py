@@ -596,7 +596,7 @@ class ForeignKeyField(Field):
             value = self.clean_value(value, input_is_fkey=input_is_fkey)
         except Exception, e:
             msg = "Field %s could not validate value '%s': error was: %s" 
-            raise exc.Validation.error(_(msg % (field_name, e.message) ))
+            raise exc.ValidationError(_(msg % (self.field_name, value, e.message) ))
 
         if value is None and not self.nullable:
             raise exc.NotNullableFieldError(self.field_name)
@@ -617,6 +617,12 @@ class ForeignKeyField(Field):
             self.initial_value = value
         self.widget.set_value(value, shown=shown)
 
+    def has_changed(self):
+        if self.widget.real_value == False:
+            return True
+        else:
+            return Field.has_changed(self)
+    
 class CollectionField(Field):
     """
     A field that uses a SqlTable to show and edit a collection
