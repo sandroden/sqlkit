@@ -32,6 +32,7 @@ from datetime import timedelta, time
 from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion
 import re
 from decimal import Decimal
+import gobject
 
 NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
 
@@ -42,13 +43,17 @@ class Widget(object):
         self.field = field
         self.master = field.master
         self.field_name = field.field_name
-
-        if self.field.db_spec['edit']:
-            if not self.field.db_spec['nullable'] or self.field.db_spec['pkey']:
-                gtkwidget.modify_base(gtk.STATE_NORMAL, NOT_NULL_COLOR)
-
+        self.set_not_null_style()
         gtkwidget.set_property('sensitive', self.field.db_spec['edit']) 
 
+    def set_not_null_style(self):
+        if self.field.db_spec['edit']:
+            if not self.field.db_spec['nullable'] or self.field.db_spec['pkey']:
+                self.set_bg()
+
+    def set_bg(self, state=gtk.STATE_NORMAL,  color=NOT_NULL_COLOR):
+        self.gtkwidget.modify_base(state, NOT_NULL_COLOR)
+        
     def set_value(self, value, shown=False):
         """if shown is True, the displayed value is returned also in any
         case. The difference is only for ForeignKey
@@ -136,7 +141,6 @@ class DateWidget(Widget):
     def get_value(self, shown=False):
         return self.gtkwidget.get_property('time')
 
-
 class TimeWidget(Widget):
 
     def set_value(self, value):
@@ -200,7 +204,7 @@ class IntervalWidget(Widget):
             return None
         return value
 
-class DateTimeWidget(Widget):
+class DateTimeWidget(DateWidget):
 
     def __init__(self, *args):
         Widget.__init__(self, *args)
@@ -384,7 +388,8 @@ class ForeignKeyWidget(Widget):
         self.add_completion()
         self.real_value = True
         self.master.completions[self.field_name] = self.completion
-                    
+        self.set_not_null_style()
+
     def add_completion(self):
         """add completion bindings and liststore
         """

@@ -574,7 +574,11 @@ class DateEdit(gtk.HBox):
         else:
             raise AttributeError, 'unknown property %s' % property.name
             
+    def modify_base(self, state, color):
+        self.__date_entry.modify_base(state, color)
+        self.__time_combobox.get_children()[0].modify_base(state, color)
         
+
 # finally register our new Type
 if gobject.pygtk_version < (2, 8):
 	    gobject.type_register(DateEdit)

@@ -35,6 +35,9 @@ class FkEdit(gtk.HBox):
         
         self.connect('realize', self.set_packing)
 
+    def modify_base(self, state, color):
+        self.entry.modify_base(state, color)
+        
     def set_packing(self, other):
         parent = self.get_parent()
         props = [prop.name for prop in parent.list_child_properties()]
