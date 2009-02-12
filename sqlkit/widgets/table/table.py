@@ -1145,7 +1145,7 @@ class SqlTable(sqlwidget.SqlWidget):
             dbg.write(obj, )
             #if not self.session.is_modified(obj):
             if not self.record_has_changed():
-                self.db('Nothing to save')
+                self.sb(_('Nothing to save'))
                 self.session.expunge(obj)
                 del obj
                 self.last_new_obj = None
@@ -1171,9 +1171,10 @@ class SqlTable(sqlwidget.SqlWidget):
         ## in m2m case we don't want to commit now. We would trigger a commit of the
         ## record represented in the SqlMask that may not yet be validated
 
-        if not self.relationship_mode in ('m2m', 'm2o', 'o2m', 'o2o'):
+        if self.relationship_mode in ('m2m', 'm2o', 'o2m', 'o2o'):
             # TIP: when saving m2m, we delay till leader record will be saved
-            self.db(_('delaying saving when main record will be saved'))
+            self.sb(_('delaying saving when main record will be saved'))
+        else:
             self.commit()
 
         self.totals.compute()
@@ -1679,7 +1680,4 @@ class CellEntry(object):
     def get_text(self):
         return self.entry.get_text()
     
-
-
-
 
