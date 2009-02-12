@@ -35,7 +35,7 @@ class Director(Base):
 class Movie(Base):
     __tablename__  = 'movie'
     id             = Column(Integer, primary_key=True)
-    title          = Column(String(60))
+    title          = Column(String(60), nullable=False)
     description    = Column(String(512))
     year           = Column(Integer())
     date_release   = Column(Date())
