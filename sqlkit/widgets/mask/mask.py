@@ -149,7 +149,8 @@ class SqlMask (sqlwidget.SqlWidget):
         
         
     def clear_value(self, field_name):
-        """clear the value
+        """
+        clear the value
         """
         if field_name not in self.gui_fields:
             raise exc.FieldNotInLayout("field_name: %s" % (field_name))
@@ -158,7 +159,8 @@ class SqlMask (sqlwidget.SqlWidget):
         
         
     def get_value(self, field_name, data=False, shown=False):
-        """return the value from the widget
+        """
+        return the value from the widget
         """
 
         if field_name not in self.gui_fields:
@@ -169,24 +171,34 @@ class SqlMask (sqlwidget.SqlWidget):
         return field.get_value(shown=shown)
 
     def record_delete(self, widget=None, interactive=True):
-        """invokes the validator before DELETing a record"""
+        """
+        delete a record
+        """
             
         if interactive:
             response = self.dialog(type='ok-cancel', text=_("Delete this record?"))
             if response == gtk.RESPONSE_CANCEL:
                 return
-
-        self.session.delete(self.records[self.current_idx])
+        obj = self.records[self.current_idx]
+        if obj in self.session.new:
+            self.session.expunge(obj)
+        else:
+            self.session.delete(obj)
         self.last_new_obj = None
         
         self.commit()
         self.records.pop(self.current_idx)
-        if self.current_idx  > len(self.records) -1:
-            self.current_idx -= 1
-        self.record_display(index=self.current_idx)
+        if not self.records:
+            self.record_new()
+        else:
+            if self.current_idx  > len(self.records) -1:
+                self.current_idx -= 1
+            self.record_display(index=self.current_idx)
     
     def record_save(self, ev, constraint={}, ask=True, *args):
-        """invokes the validator before UPDATE/INSERT a record"""
+        """
+        invokes the validator before UPDATE/INSERT a record
+        """
         ## FIXME: validator
         
         #         if self.valid is not None:
