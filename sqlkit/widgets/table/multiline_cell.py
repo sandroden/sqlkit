@@ -22,7 +22,8 @@ class CellTextView(gtk.TextView, gtk.CellEditable):
         return text_buffer.get_text(*bounds)
 
     def set_text(self, text):
-        self.get_buffer().set_text(text)
+        if text:
+            self.get_buffer().set_text(text)
 
 
 class MultilineCellRenderer(gtk.CellRendererText):
@@ -64,7 +65,7 @@ class MultilineCellRenderer(gtk.CellRendererText):
         editor = CellTextView()
         editor.modify_font(self.props.font_desc)
         editor.set_text(self.props.text)
-        editor.set_size_request(cell_area.width, cell_area.height)
+        editor.set_size_request(cell_area.width *2, cell_area.height * 2)
         editor.set_border_width(min(self.props.xpad, self.props.ypad))
         editor.set_data("path", path)
 #        editor.connect("focus-out-event", self._on_editor_focus_out_event)
