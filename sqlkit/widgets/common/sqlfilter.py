@@ -277,7 +277,7 @@ class FilterPanel(object):
         Fill the model of the treeview that holds the data
         """
 
-        table = self.master.fields.get_primary_table(name=False)
+        table = self.master.mapper_info.get_primary_table(name=False)
         format_string = get_description(table, attr='format')
         description = tables[table.name].description
 
@@ -377,7 +377,7 @@ class FilterTool(object):
         self.panel = panel
         self.master = master
         self.field_name = field_name
-        self.db_spec = self.master.fields[field_name]
+        self.db_spec = self.master.mapper_info.fields[field_name]
         self.col = self.db_spec['col']
         self.table = self.db_spec['table']
         self.bind_name = self.master.metadata.bind.name
@@ -519,7 +519,7 @@ class FilterFKeyTool(FilterTool):
 
         FilterTool.__init__(self, field_name, panel, master)
 
-        foreign_keys = self.master.fields[self.field_name]['fkey']
+        foreign_keys = self.master.mapper_info.fields[self.field_name]['fkey']
         self.ftable, self.fcol = minspect.get_foreign_info(foreign_keys, names=False)
 
     def get_suitable_operators(self):

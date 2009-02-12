@@ -226,7 +226,7 @@ class SqlMask (sqlwidget.SqlWidget):
             tbl = self.tables[0]
         else:
             tbl = self.tables
-        for key in self.fields.get_pkeys(tbl):
+        for key in self.mapper_info.get_pkeys(tbl):
             if key in self.vfields and self.is_editable(key):
                 raise NotImplementedError
             
@@ -380,7 +380,7 @@ class SqlMask (sqlwidget.SqlWidget):
 
         for field_name, widget_key in self.laygen.fields_in_layout.iteritems():
             widget = self.widgets[widget_key]
-            field = field_chooser.get_field(field_name, self.fields[field_name], widget_key)
+            field = field_chooser.get_field(field_name, self.mapper_info.fields[field_name], widget_key)
             
             self.vfields[field_name] = field
             
@@ -411,7 +411,7 @@ class SqlMask (sqlwidget.SqlWidget):
     def _add_color_to_labels(self):
         """add bg colors and fonts to signal needed fields"""
 
-        for field_name in self.fields.keys():
+        for field_name in self.mapper_info.fields.keys():
             if field_name in self.labels:
                 lbl    = self.labels[field_name]
                 ev_wdg = self.labels[field_name].parent
@@ -421,7 +421,7 @@ class SqlMask (sqlwidget.SqlWidget):
                 lbl.modify_fg(gtk.STATE_PRELIGHT, LBL_HOOVER_STYLE)
 
                 ## label FK_COLOR to tell it's a foreign key
-                if self.fields[field_name]['fkey'] :
+                if self.mapper_info.fields[field_name]['fkey'] :
                     #dbg.write("FK", field_name)
                     self.labels[field_name].modify_fg(gtk.STATE_NORMAL, FK_COLOR)
                 else:
@@ -445,7 +445,7 @@ class SqlMask (sqlwidget.SqlWidget):
 
         ## all EventBox 
         self.labels = {}
-        for field_name in self.fields.keys():
+        for field_name in self.mapper_info.fields.keys():
             lbl_name_wdg = "l=%s" % field_name
             if lbl_name_wdg in self.widgets:
                 self.labels[field_name] = self.widgets[lbl_name_wdg]

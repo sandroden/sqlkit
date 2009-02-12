@@ -225,7 +225,9 @@ Attributes
    table or None. 
 
 :field_list:
-   a list of the field names the GUI is handling. It comprises PropertyLoaders
+   a list of the field names the GUI is handling. It comprises
+   PropertyLoaders (i.e. properties of the class that act as a loader of
+   other info - all relation are seend as PropertLoaders w/o column)
 
 :order_by:
    a string that will be passed as is to query i.e. to SQL. (eg: ``last_name DESC, first_name``)

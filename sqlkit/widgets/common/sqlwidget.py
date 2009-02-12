@@ -57,7 +57,7 @@ class SqlWidget(gobject.GObject):
                            ),
         }
 
-    fields   = None  # fields to use (InspectMapper)
+#    fields   = None  # fields to use (InspectMapper)
 #    tables = None    # Table objects referenced as foreign keys
     values = None    # real value for foreign key
                      # (when lookup is displeyed instead)
@@ -169,7 +169,7 @@ class SqlWidget(gobject.GObject):
         self.noup = noup
         self.rows = rows
         self.hidden_field = hide_fields
-        self.fields = self.get_fields()
+        self.mapper_info = self.get_fields()
         self.field_list = self.parse_fields(field_list, layout)
         self.ignored_fields = self._set_ignored_fields(ignore_fields)
         if hide_fields:
@@ -181,7 +181,6 @@ class SqlWidget(gobject.GObject):
         self.naked = naked
         self.lay   = layout
         self.sql   = sql
-#        self.sqlData = sqldata.SqlData(None, self.fields, self.session)
         self.single = single
         self.limit=limit
         self.relationship_mode = relationship_mode
@@ -281,9 +280,9 @@ class SqlWidget(gobject.GObject):
             ### If a layout was defined, we add propertyLoader only for SqlMask
             ###
             if self.is_mask() and layout:
-                get_the_keys = self.fields.all_keys
+                get_the_keys = self.mapper_info.all_keys
             else:
-                get_the_keys = self.fields.keys
+                get_the_keys = self.mapper_info.keys
                 
             if self.dev:
                 new_field_list = get_the_keys()
@@ -293,7 +292,7 @@ class SqlWidget(gobject.GObject):
                 ## i.e.: if you have city_id that references a city I want
                 ## to see it, but I don't want to see a sequence normally.
                 new_field_list = [f for f in get_the_keys()
-                          if not f == 'id' or self.fields[f]['fkey'] ]
+                          if not f == 'id' or self.mapper_info.fields[f]['fkey'] ]
 
             
         else:
@@ -340,7 +339,7 @@ class SqlWidget(gobject.GObject):
         if self.col_width:
             for field_name, value in self.col_width.items():
                 if field_name in info:
-                    info[field_name]['length'] = value
+                    info.fields[field_name]['length'] = value
         return info
         
     def _get_layout(self, lay, naked):
@@ -737,7 +736,7 @@ class SqlWidget(gobject.GObject):
         """
         return the pkeys of the primarytable
         """
-        return self.fields.pkeys[self.fields.get_primary_table()]
+        return self.mapper_info.pkeys[self.mapper_info.get_primary_table()]
 
     def get_value(self, field_name):
         """
@@ -946,7 +945,7 @@ class SqlWidget(gobject.GObject):
             try:
                 title=self.table
             except:
-                title= self.fields.get_primary_table()
+                title= self.mapper_info.get_primary_table()
         return title
     
     def add_filter_cb(self, event=None, visible=True):
@@ -961,7 +960,7 @@ class SqlWidget(gobject.GObject):
         
     def show_mapper_info(self, *args):
         from sqlkit.debug import gtk_dbg
-        gtk_dbg.ShowMapperInfo(self.fields)
+        gtk_dbg.ShowMapperInfo(self.mapper_info)
         
     def show_widget_info(self, *args):
         from sqlkit.debug import gtk_dbg
@@ -1011,22 +1010,22 @@ class SqlWidget(gobject.GObject):
         """
         return True if this field is a foreign key
         """
-        return bool(self.fields[field_name]['fkey'])
+        return bool(self.mapper_info.fields[field_name]['fkey'])
 
     def is_primary(self, field_name):
         """
         return True if this field is a Primary Key
         """
-        return bool(self.fields[field_name]['pkey'])
+        return bool(self.mapper_info.fields[field_name]['pkey'])
 
     def is_loader(self, field_name):
         """
         True if field_name is a loader for a related table
         """
-        if field_name not in self.fields:
-            return 
+        if field_name not in self.mapper_info.field_list:
+            return False
         from  sqlalchemy.orm import properties
-        prop = self.fields[field_name]['property']
+        prop = self.mapper_info.fields[field_name]['property']
         if isinstance(prop, properties.PropertyLoader):
             return True
         return False
@@ -1036,7 +1035,7 @@ class SqlWidget(gobject.GObject):
         """
         Return true if this field is a String type
         """
-        db_type = self.fields[field_name]['db_type']
+        db_type = self.mapper_info.fields[field_name]['db_type']
         if db_type:
             return issubclass(db_type, (sqltypes.String))
         return False
@@ -1045,7 +1044,7 @@ class SqlWidget(gobject.GObject):
         """
         Return true if this field is  date
         """
-        db_type = self.fields[field_name]['db_type']
+        db_type = self.mapper_info.fields[field_name]['db_type']
         if db_type:
             return issubclass(db_type, (sqltypes.Date))
         return False
@@ -1054,7 +1053,7 @@ class SqlWidget(gobject.GObject):
         """
         Return true if this field is  datetime
         """
-        db_type = self.fields[field_name]['db_type']
+        db_type = self.mapper_info.fields[field_name]['db_type']
         if db_type:
             return issubclass(db_type, (sqltypes.DateTime))
         return False
@@ -1063,7 +1062,7 @@ class SqlWidget(gobject.GObject):
         """
         Return true if this field is time
         """
-        db_type = self.fields[field_name]['db_type']
+        db_type = self.mapper_info.fields[field_name]['db_type']
         if db_type:
             return issubclass(db_type, (sqltypes.Time))
         return False
@@ -1072,11 +1071,11 @@ class SqlWidget(gobject.GObject):
         """
         Return true if this field is time
         """
-        db_type = self.fields[field_name]['db_type']
+        db_type = self.mapper_info.fields[field_name]['db_type']
         if db_type:
             if issubclass(db_type, (sqltypes.Interval)):
                 return True
-            elif self.fields[field_name]['type'] is datetime.timedelta:
+            elif self.mapper_info.fields[field_name]['type'] is datetime.timedelta:
                 return True
         return False
 
@@ -1084,7 +1083,7 @@ class SqlWidget(gobject.GObject):
         """
         Return true if this field is integer
         """
-        db_type = self.fields[field_name]['db_type']
+        db_type = self.mapper_info.fields[field_name]['db_type']
         if db_type:
             return issubclass(db_type, (sqltypes.Integer))
         return False
@@ -1093,7 +1092,7 @@ class SqlWidget(gobject.GObject):
         """
         Return true if this field is float
         """
-        db_type = self.fields[field_name]['db_type']
+        db_type = self.mapper_info.fields[field_name]['db_type']
         if db_type:
             return issubclass(db_type, (sqltypes.Float))
         return False
@@ -1102,7 +1101,7 @@ class SqlWidget(gobject.GObject):
         """
         Return true if this field is numeric
         """
-        db_type = self.fields[field_name]['db_type']
+        db_type = self.mapper_info.fields[field_name]['db_type']
         if db_type:
             return issubclass(db_type, (sqltypes.Numeric))
         return False
@@ -1113,7 +1112,7 @@ class SqlWidget(gobject.GObject):
         """
         Return true if this field is  date
         """
-        db_type = self.fields[field_name]['db_type']
+        db_type = self.mapper_info.fields[field_name]['db_type']
         if db_type:
             return issubclass(db_type, sqltypes.Boolean)
         else:
@@ -1123,19 +1122,19 @@ class SqlWidget(gobject.GObject):
         """
         Return true if this field is  date
         """
-        return self.fields[field_name]['nullable']
+        return self.mapper_info.fields[field_name]['nullable']
 
     def is_editable(self, field_name):
         """
         Return true if this field is  date
         """
-        return self.fields[field_name]['edit']
+        return self.mapper_info.fields[field_name]['edit']
 
     def is_number(self, field_name):
         """
         Return true if this field is a number 
         """
-        py_type = self.fields[field_name]['type']
+        py_type = self.mapper_info.fields[field_name]['type']
         if py_type:
             return issubclass(py_type, (int, float, decimal.Decimal))
         else:
@@ -1150,7 +1149,7 @@ class SqlWidget(gobject.GObject):
                 return True
         except:
             pass
-        db_type = self.fields[field_name]['db_type']
+        db_type = self.mapper_info.fields[field_name]['db_type']
         if db_type:
             return issubclass(db_type, (sqltypes.Text))
         return False
@@ -1163,7 +1162,7 @@ class SqlWidget(gobject.GObject):
         pass
     
     def get_field_type(self, field_name):
-        return self.fields[field_name]['type']
+        return self.mapper_info.fields[field_name]['type']
 
     def set_current(self, pk=None):
         """retrieve a record and set it as current
@@ -1259,9 +1258,9 @@ class SqlWidget(gobject.GObject):
         for key in ('table_name', 'name', 'db_type', 'col_spec', 'fkey', 'default',
                     'pkey', 'nullable', 'edit', 'length'):
             if key == "db_type":
-                model.set(model.append(), 0,  key, 1, self.fields[field_name][key].__name__)
+                model.set(model.append(), 0,  key, 1, self.mapper_info.fields[field_name][key].__name__)
             else:
-                model.set(model.append(), 0,  key, 1, self.fields[field_name][key])
+                model.set(model.append(), 0,  key, 1, self.mapper_info.fields[field_name][key])
 
         try:
             model.set(model.append(), 0,  'format', 1, self.vfields[field_name].format)
@@ -1290,7 +1289,7 @@ class SqlWidget(gobject.GObject):
         if field_name in self.defaults:
             value = self.defaults.get(field_name, None)
         else:
-            value = defaults.get_default(self.fields[field_name]['col'].table.name, field_name)
+            value = defaults.get_default(self.mapper_info.fields[field_name]['col'].table.name, field_name)
         return value
         
 ####### printing

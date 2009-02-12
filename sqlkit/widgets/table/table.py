@@ -150,7 +150,7 @@ class SqlTable(sqlwidget.SqlWidget):
             ## vfield as validation...
             
             self.vfields[field_name] = field_chooser.get_field(field_name,
-                                                              self.fields[field_name])
+                                                              self.mapper_info.fields[field_name])
             
         
     def setup_treeview_columns(self):
@@ -301,10 +301,10 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.col_width and field_name in self.col_width:
             width = self.col_width.get(field_name, )
         else:
-            if self.fields[field_name]['type'] == int:
+            if self.mapper_info.fields[field_name]['type'] == int:
                 width = 8
             else:
-                width = self.fields[field_name]['col'].type.precision
+                width = self.mapper_info.fields[field_name]['col'].type.precision
 
         if width:
             cell = cell_renderers.CellRendererVarchar(width)
@@ -334,7 +334,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.col_width and field_name in self.col_width:
             width = self.col_width.get(field_name, )
         else:
-            width = self.fields[field_name]['length']
+            width = self.mapper_info.fields[field_name]['length']
 
         if self.is_text(field_name):
             cell = cell_renderers.MultilineCellRenderer()
@@ -357,7 +357,7 @@ class SqlTable(sqlwidget.SqlWidget):
         tvcolumn.cells_data_func = [(cell, self.cell_default_cb, ('text', field_name) )]
         tvcolumn.set_expand(self.is_expandable(field_name))
 
-        specs = self.fields[field_name]['col_spec']
+        specs = self.mapper_info.fields[field_name]['col_spec']
         if specs:
             length = re.search('(\d*)', specs).group(1)
             try:
@@ -401,7 +401,7 @@ class SqlTable(sqlwidget.SqlWidget):
         tvcolumn.set_widget(event_box)
 
         ## bold italic
-        if not self.is_nullable(field_name) and not self.fields[field_name]['default']:
+        if not self.is_nullable(field_name) and not self.mapper_info.fields[field_name]['default']:
             label.set_markup('<b><i>%s</i></b>' % label_text)
                 
         
@@ -413,7 +413,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.is_text(field_name):
             return True
         if self.is_string(field_name):
-            if self.fields[field_name]['length'] > 20:
+            if self.mapper_info.fields[field_name]['length'] > 20:
                 return True
         return False
 
@@ -765,9 +765,9 @@ class SqlTable(sqlwidget.SqlWidget):
         return True
     
     def length_control(self, wdg, field_name):
-        if self.fields[field_name]['type'] is not str:
+        if self.mapper_info.fields[field_name]['type'] is not str:
             return False
-        length = self.fields[field_name]['length']
+        length = self.mapper_info.fields[field_name]['length']
         text = wdg.get_text()
         lstr = len(text)
         if length:
@@ -788,7 +788,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         NO_EDIT = (bool, date, datetime, time)
 
-        if not self.fields[field_name]['type'] in NO_EDIT:
+        if not self.mapper_info.fields[field_name]['type'] in NO_EDIT:
             return True
         return False
         
@@ -1595,11 +1595,11 @@ class SqlTable(sqlwidget.SqlWidget):
             field_list = re.split('[ ,]+', field_list)
         orig_field_list = copy(self.field_list)
         for field_name in field_list:
-            if field_name in self.fields:
+            if field_name in self.mapper_info.fields:
                 ## is already known, just make it visible
                 self.tvcolumns[field_name].set_property('visible', True)
             else:
-                raise NotImplementedError("Column %s is not kown in self.fields" % field_name)
+                raise NotImplementedError("Column %s is not kown in self.mapper_info.fields" % field_name)
         for field_name in orig_field_list:
             if field_name not in field_list:
                 self.tvcolumns[field_name].set_property('visible', False)

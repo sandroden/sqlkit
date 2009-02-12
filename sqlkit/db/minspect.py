@@ -73,6 +73,7 @@ class InspectMapper(Container):
             pass
 
         self.field_list = []
+        self.fields = Container()
         self.primarytable = self.get_primary_table
         self.noup = self.parse_noup(noup)
         self.mapper = mapper
@@ -160,7 +161,8 @@ class InspectMapper(Container):
 #         if mapper.c[field_name].foreign_keys:
 #              d['fkey'] = (mapper.c[field_name].foreign_key.column.table.name,
 #                         mapper.c[field_name].foreign_key.column.name)
-        setattr(self, field_name,  d)
+        self.fields.add_element(field_name, d)
+        #setattr(self.fields, field_name,  d)
 
     def _add_loader_field(self, field_name, mapper, property=None):
         """
@@ -212,7 +214,8 @@ class InspectMapper(Container):
             self.table_mappers[table_name] = (mapper.class_, mapper)
             self.pkeys[table_name] = []
 
-        setattr(self, field_name,  d)
+        self.fields.add_element(field_name, d)
+        #setattr(self.fields, field_name,  d)
 
     def keys(self):
         """Return all the field_names in the mapper but not loaders

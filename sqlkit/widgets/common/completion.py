@@ -84,7 +84,7 @@ class SimpleCompletion(object):
 
         It requires quite a lot of object be already setup in the master
         (actually SqlMask or SqlTable?)
-        self.master.fields: an InspectMapper Object
+        self.master.mapper_info.fields: an InspectMapper Object
         self.master.engine
         self.master.lay_obj a Layout object (for the tooltips method)
         self.master.mapper
@@ -102,13 +102,13 @@ class SimpleCompletion(object):
         self.widget = widget
         self.field_name = field_name
         self.completion = self.prepare_completion()
-        self.column = self.master.fields[field_name]['col']
+        self.column = self.master.mapper_info.fields[field_name]['col']
         self.table = self.column.table
         self.format = get_description(self.table, attr='format')
         self.description = tables[self.table.name].description
         self.attrs = tables[self.table.name].attrs
-#        self.columns = [self.master.fields[field_name]['col'] for field_name in self.attrs]
-        self.columns = [self.master.fields[self.field_name]['col']]
+#        self.columns = [self.master.mapper_info.fields[field_name]['col'] for field_name in self.attrs]
+        self.columns = [self.master.mapper_info.fields[self.field_name]['col']]
 #        self.attrs = tables[self.table.name].attrs
         self._group_by = None
         self._filter = None
@@ -809,7 +809,7 @@ class M2mCompletion(FkeyCompletion):
         SimpleCompletion.__init__(self, *args, **kw)
         self.description = get_description(self.table, attr='description')
         self.attrs = get_description(self.table, attr='attrs')
-        self.columns = [self.master.fields[field_name]['col'] for field_name in self.attrs]
+        self.columns = [self.master.mapper_info.fields[field_name]['col'] for field_name in self.attrs]
         self.from_obj = None
 
         
@@ -875,6 +875,6 @@ def get_foreign_info(master, field_name, names=True):
 
     from sqlkit.db.minspect import get_foreign_info
 
-    foreign_keys = master.fields[field_name]['fkey']
+    foreign_keys = master.mapper_info.fields[field_name]['fkey']
     return get_foreign_info(foreign_keys, names=names)
 
