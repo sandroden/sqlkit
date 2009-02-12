@@ -14,21 +14,86 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-fields classes to handle all details:
+Fields
+=======
+Mask/Tables are collection of data that may belong to the database or not.
+Each of the data represented in the GUI that need to partecipate to any
+updating/saving process shuld have it's own controller that is a Field.
 
-   set/get value
-   add all controls for completion
-   possible setup of observer
+A Field is an entity that knows how to handle a piece of data, be it on
+the database (a field_name) or just in the GUI. It knows:
+
+   - if it belongs to the database (it's attribute mapper is defined) and in
+     case how it is defined (sqlalchemy column)
+   - if it is nullable
+   - which widget must be used to represent it (see below)
+   - which locale/format should be used to represent it for numbers/dates/time
+
+It provides functions to
+
+   - set/get value
+   - get default value (but cannot always cope with server_side defaults)
+   - tell if it changed from the default
+   - clean value according to it's logic: i.e. return a value of the correct type
+   - validate values (possibly according to other criteria)
+
+
+Db attributes
+-------------
+
+The inspector of the mapper of the sqlwidget sets these values:
+
+   * field_name: the name of the field
+   * nullable: True if field is nullable or False
+   * editable: True if field is editable or False
+   * length: te desired length in chars
+   * default: a possible default option
+   * type: the python type
+
+   * mapper: defined as None for field that are mapped 
+   * table: the SA Table object
+   * column: the SA Column object
+   * property: the SA Property - if any
+   * fkey: the SA ForeignKey or None
+   * pkey: True is field is a PRIMARY KEY or False
+   
+Other attributes
+----------------
+
+   * widget:  the widget used to represent it. May be sqlkit.widgets.mask.miniwidget or similar
+   * format: the format used to represent the field (numeric or date/time)
+   * locale: the locale to use to represent the field (numeric or date/time)
+
+future
+-------
+   This should provide a way to set the possible observer
 
    validation based on the type should live here
 
    possibly more validation may live here
 
-   while a
-   
+formatting/locale
+-----------------
+
    see decimal_ to have an intro on formatting numbers
 
    .. _decimal http://java.sun.com/docs/books/tutorial/i18n/format/decimalFormat.html
+
+FieldChooser
+===============
+
+this class implements a way to decide which Field should be associated to each field_name
+in a mapper (used in setup_field_validation so that it can be easily overwritten)
+
+Widgets
+========
+
+A Field does not create a gtk widget to represent data, that's -rarely- done by
+sqlkit.widgets.mask.wiget.Widget. More tipically it is done by the layout procedure and
+the Fields/Widget just takes it control and adds completion capabilities.
+
+A notable exception to this rule is represented by any m2m relation, that in the layout is
+only present as a gtk.Alignment widget to which a children is added by mask.Widget  
 
 """
 import re
@@ -56,15 +121,15 @@ class FieldChooser(object):
         
     """
 
-    def __init__(self, master, w=None):
+    def __init__(self, master, widgets=None):
         """    
         w:           the widget dictionary retuned by Layout
         master:      the sqlkit widget (SqlMask)
         """
         self.master = master
-        self.w = w or {}
+        self.widgets = widgets or {}
 
-    def get_field(self, field_name, db_spec, def_str=None, test=False):
+    def get_field(self, field_name, db_spec=None, def_str=None, test=False):
         """return a field
 
         field_name:  the name of the field in the db
@@ -74,7 +139,7 @@ class FieldChooser(object):
                      as extracted by layoutgen and set in laygen.fields_in_layout dictionary
         """        
 
-        gtk_widget = self.w.get(def_str, None)
+        gtk_widget = self.widgets.get(def_str, None)
     
         args = (field_name, db_spec, def_str, self.master, gtk_widget, test)
         if self.master.is_fkey(field_name):
@@ -84,7 +149,6 @@ class FieldChooser(object):
             return CollectionField(*args)
         
         COL_SPEC = db_spec['col_spec'] or ''
-        DB_TYPE = db_spec['type']
 
         if self.master.is_integer(field_name):
             return IntegerField(*args)
@@ -146,7 +210,8 @@ class Field(object):
         """
 
         self.field_name = field_name
-        self.db_spec = db_spec
+        #self.db_spec = db_spec
+        self._add_info(db_spec)
         self.def_str = def_str
         self.master = master
         self.initial_value = None
@@ -161,6 +226,18 @@ class Field(object):
             self.widget = CellWidget(self)
         self.master.field_widgets[field_name] = self.widget
         self.set_max_length()
+
+    def _add_info(self, db_spec):
+        self.nullable =  db_spec.get('nullable', True)
+        self.editable =  db_spec.get('editable', True)
+        self.length   =  db_spec.get('length', None)
+        self.default  =  db_spec.get('default', None)
+        self.mapper   =  db_spec.get('mapper', None)
+        self.pkey     =  db_spec.get('pkey', None)
+        self.type     =  db_spec.get('type', None)
+        self.property =  db_spec.get('property', None)
+        self.column   =  db_spec.get('col', None)
+        self.table    =  db_spec.get('table', None)
 
     def set_value(self, value, initial=True, shown=False):
         value = self.clean_value(value)
@@ -194,7 +271,7 @@ class Field(object):
 
         if not value:
             try:
-                value = self.db_spec['default']
+                value = self.default
             except KeyError:
                 pass
             if isinstance(value, ColumnDefault):
@@ -259,8 +336,8 @@ class VarcharField(Field):
         return value
 
     def set_max_length(self):
-        if self.db_spec['length']:
-            self.widget.set_max_length(self.db_spec['length'])
+        if self.length:
+            self.widget.set_max_length(self.length)
 
 class IntegerField(Field):
     Widget = IntegerWidget
@@ -329,8 +406,8 @@ class DecimalField(IntegerField):
 
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
-        self.precision = self.db_spec.col.type.precision
-        self.scale = self.db_spec.col.type.scale
+        self.precision = self.column.type.precision
+        self.scale = self.column.type.scale
         self.format = "#,###.%s" % ('0' * self.scale)
         self.format_dec = "#.%s" % ('0' * self.scale)
         self.locale = babel.default_locale('LC_NUMERIC')

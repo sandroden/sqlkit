@@ -44,11 +44,11 @@ class Widget(object):
         self.master = field.master
         self.field_name = field.field_name
         self.set_not_null_style()
-        gtkwidget.set_property('sensitive', self.field.db_spec['editable']) 
+        gtkwidget.set_property('sensitive', self.field.editable) 
 
     def set_not_null_style(self):
-        if self.field.db_spec['editable']:
-            if not self.field.db_spec['nullable'] or self.field.db_spec['pkey']:
+        if self.field.editable:
+            if not self.field.nullable or self.field.pkey:
                 self.set_bg()
 
     def set_bg(self, state=gtk.STATE_NORMAL,  color=NOT_NULL_COLOR):
@@ -350,7 +350,7 @@ class ForeignKeyComboboxWidget(Widget):
         """
         display_value = self.completion.lookup_value(self.field_name, value)
         if value == None:
-            if self.field.db_spec['type'] == str:
+            if self.field.type == str:
                 value = ''
 
         self.model.clear()
@@ -456,12 +456,12 @@ class CollectionWidget(Widget):
     def __init__(self, *args):
         
         Widget.__init__(self, *args)
-        table = self.field.db_spec['table']
+        table = self.field.table
 
         from sqlkit.widgets import SqlTable
         loader_spec = self.master.laygen.loaders[self.field_name]
 
-        direction = self.field.db_spec['property'].direction.name
+        direction = self.field.property.direction.name
         if direction  == 'MANYTOMANY':
             direction = "m2m"
         elif direction == 'ONETOMANY':
@@ -471,7 +471,7 @@ class CollectionWidget(Widget):
             table=table.name,
             geom = (-1, -1),
             rows = loader_spec.get('rows', 5),
-            mapper = self.field.db_spec['mapper'],
+            mapper = self.field.mapper,
             session=self.master.session,
             metadata=self.master.metadata,
             dbproxy=self.master.dbproxy,
@@ -480,7 +480,7 @@ class CollectionWidget(Widget):
             field_list = loader_spec.get('field_list', None),
             addto=self.gtkwidget,
             icons='b=gtk-new b=gtk-delete b=gtk-save b=gtk-zoom-fit',
-            ignore_fields = self.field.db_spec['remote_attr'],
+            ignore_fields = [c.name for c in self.field.property.remote_side],
             dev = self.master.dev,
             relationship_leader = self.master,
             relationship_mode = direction,

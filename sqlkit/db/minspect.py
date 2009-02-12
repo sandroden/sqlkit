@@ -200,7 +200,7 @@ class InspectMapper(Container):
 #            'mapper'      :  mapper,
             'editable'        :  True,
 #            'direction'   :  mapper.props[field_name].direction
-            'remote_attr' : [c.name for c in property.remote_side]
+#            'remote_attr' : [c.name for c in property.remote_side]
             }
 
         try:
