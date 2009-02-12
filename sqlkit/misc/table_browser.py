@@ -125,16 +125,20 @@ class TableBrowser(object):
                'dbproxy' : self.dbproxy,
            }
         if mode == 'mask':
-            try:
-                SqlMask(**options)
-            except sqlkit.exc.MissingDescriptorField:
-                pass
+            SqlWid = SqlMask
         else:
-            try:
-                self.tbl = SqlTable(**options)
-            except sqlkit.exc.MissingDescriptorField:
-                pass
-            
+            SqlWid = SqlTable
+
+        try:
+            SqlWid(**options)
+        except sqlkit.exc.MissingDescriptorField:
+            pass
+        except sqlkit.exc.MissingPrimaryKey, e:
+            dialog, l = self.l.dialog(type='ok', lay="l=msg", text=e.message)
+            dialog.show_all()
+            response = dialog.run()
+            dialog.destroy()
+    
     def skip_table(self, table):
         """ this is just for skipping, must return True"""
         

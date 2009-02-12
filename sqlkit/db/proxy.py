@@ -17,6 +17,8 @@ import re
 from sqlalchemy import Table, MetaData, sql
 from sqlalchemy.orm import sessionmaker, mapper
 from sqlkit.db import minspect, utils
+from sqlkit.exc import MissingPrimaryKey
+from sqlkit import _
 #import dbg.gtk_dbg
 
 class DbProxy(object):
@@ -192,7 +194,16 @@ def table2mapper(table):
     """
 
     X = get_default_class(table)
-    m = mapper(X, table)
+    if table.primary_key:
+        m = mapper(X, table)
+    else:
+        primary_key = search_unique_keys(table)
+        if primary_key:
+            m = mapper(X, table, primary_key=primary_key)
+        else:
+            ## TIP: when assembling a mapper that does not have primary key
+            msg = _("Table %s doesn't not have a primay key, editing not possible" % table.name)
+            raise MissingPrimaryKey(msg)
     return m
 
 def get_default_class(table):
@@ -219,3 +230,11 @@ def get_default_class(table):
     return X
 
 
+def search_unique_keys(table):
+    """
+    return a column with unique index to be used if no other primary keys
+    """
+    
+    for index in table.indexes:
+        if index.unique:
+            return index.columns
