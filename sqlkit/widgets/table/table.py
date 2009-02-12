@@ -1086,7 +1086,10 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         get a new iter inserting a row just before last (sub)/total - if any-
         """
-        for i in xrange(len(self.liststore)-1, 0, -1):
+        if not len(self.liststore):
+            return self.liststore.append([new_obj])
+
+        for i in range(-1, -5, -1):
             obj = self.liststore.get_value( self.liststore[i].iter, 0)
             if isinstance(obj, self.totals.total_class):
                 continue
