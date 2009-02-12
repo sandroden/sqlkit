@@ -264,7 +264,12 @@ class Field(object):
 #         dbg.write("has_changed - %r: or: %r ==> %r" % (
 #             self.field_name, self.initial_value, self.get_value()))
 
-        return not self.get_value() == self.initial_value
+        try:
+            return not self.get_value() == self.initial_value
+        except exc.ValidationError:
+            # a validation error is a clear sign the values have been changed, but we propabli don't
+            # want to cope with them now
+            return True
     
     def get_default(self):
         """
