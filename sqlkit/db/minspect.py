@@ -50,7 +50,7 @@ class InspectMapper(Container):
     length      None or a Number
     property    the property used to access these data
     """
-    fields = None  # list of field_names in the mapper (all possible tables)
+    field_list = None  # list of field_names in the mapper (all possible tables)
     props  = None  # dict of properties 
     pkeys  = None  # dict table:[pkey1,...]
 
@@ -72,7 +72,7 @@ class InspectMapper(Container):
         except Exception, e:
             pass
 
-        self.fields = []
+        self.field_list = []
         self.primarytable = self.get_primary_table
         self.noup = self.parse_noup(noup)
         self.mapper = mapper
@@ -110,7 +110,7 @@ class InspectMapper(Container):
             dbg.write("%s precedentemente definito, cerchi guai..." % field_name)
             return
         
-        self.fields += [ field_name ]
+        self.field_list += [ field_name ]
         col = mapper.c[field_name] 
         
         try:
@@ -178,7 +178,7 @@ class InspectMapper(Container):
             dbg.write("%s precedentemente definito, cerchi guai..." % field_name)
             return
         
-        self.fields += [ field_name ]
+        self.field_list += [ field_name ]
 
         d = {
             'mapper'  :  property.mapper ,
@@ -234,7 +234,7 @@ class InspectMapper(Container):
         return self
 
     def __contains__(self, item):
-        if item in self.fields:
+        if item in self.field_list:
             return True
         return False
 
@@ -243,7 +243,7 @@ class InspectMapper(Container):
         return getattr(self, str(item))
     
     def __len__(self):
-        return len(self.fields)
+        return len(self.field_list)
     
     def tables(self, mode='name'):
         """return the table_names of the tables in the mapper
@@ -266,7 +266,7 @@ class InspectMapper(Container):
             
     def table_fields(self, table_name):
         """list of all field_names in 'table' """
-        return [f for f in self.fields if self[f]['table_name'] == table_name ]
+        return [f for f in self.field_list if self[f]['table_name'] == table_name ]
     
     def prop_fields(self, table_name):
         """list of all field_names in 'table' linked as propperty prop"""
@@ -340,7 +340,7 @@ class InspectMapper(Container):
           
         try:
             self.n += 1
-            r = getattr(self, self.fields[self.n])
+            r = getattr(self, self.field_list[self.n])
         except:
             raise StopIteration
       
@@ -462,7 +462,7 @@ def get_foreign_info(ForeignKey, names=True):
 #             dbg.write("%s precedentemente definito, cerchi guai..." % col.key)
 #             return
         
-#         self.fields += [ col.key ]
+#         self.field_list += [ col.key ]
 #         d = {
 #             'table_name'  :  col.table.name ,
 #             'name'        :  col.name,
