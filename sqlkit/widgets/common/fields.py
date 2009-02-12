@@ -324,14 +324,24 @@ class Field(object):
 class VarcharField(Field):
     Widget = VarcharWidget
     
+    def __init__(self, *args, **kw):
+        Field.__init__(self, *args, **kw)
+        self.blank = False
+        
     def clean_value(self, value):
-        if value == None:
-            value = ''
+        if value == '' and not self.blank:
+            value = None
         return value
+
+    def set_value(self, value, initial=True, shown=False):
+        value = self.clean_value(value)
+        if initial:
+            self.initial_value = value
+        self.widget.set_value(value or '')
 
     def get_value(self, shown=False):
         value = self.widget.get_value()
-        if value == '' and self.initial_value is None:
+        if value == '' and (self.initial_value is None or self.blank is False):
             return None
         return value
 
@@ -439,14 +449,12 @@ class DecimalField(IntegerField):
             return ''
         return numbers.format_decimal(value, format=self.format, locale=self.locale)
 
-class TextField(Field):
+class TextField(VarcharField):
     Widget = TextWidget
 
-    def clean_value(self, value):
-        if value is None:
-            value = ''
-        return value    
-        
+    def set_max_length(self):
+        pass
+
 class DateField(Field):
     Widget = DateWidget
     format = None
@@ -625,4 +633,6 @@ class CollectionField(Field):
         if value is None:
             value = []
         self.widget.set_value(value)
+
+
 

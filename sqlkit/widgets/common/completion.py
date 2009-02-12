@@ -326,7 +326,7 @@ class SimpleCompletion(object):
     
     def get_displayed_value(self, ):
 
-        val = self.master.get_value(self.field_name, shown=True)
+        val = self.master.get_value(self.field_name, shown=True) or ''
         assert isinstance(val, str)
         self.autostart_last_length = len(val)
         return self.add_for_LIKE(val)

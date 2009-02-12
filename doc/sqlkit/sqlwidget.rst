@@ -261,3 +261,12 @@ which are the needed ones...
 :recods-displayed:
    Records have been displayed. this may be after .reload() or .set_records([])
 
+
+Saving varchar and text fields
+==============================
+
+Text fields with empty values will be saved as NULL. To change this
+behaviour you need to set blank=True on fields::
+
+  t.gui_fields[field_name].blank = True
+
