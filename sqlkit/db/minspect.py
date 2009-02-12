@@ -134,7 +134,7 @@ class InspectMapper(Container):
             'pkey'        :  mapper.c[field_name].primary_key,
             'nullable'    :  mapper.c[field_name].nullable,
             'mapper'      :  mapper,
-            'edit'        :  self.set_noup(field_name, col.name, col)
+            'editable'        :  self.set_noup(field_name, col.name, col)
 #            'direction'   :  mapper.props[field_name].direction
             })
         try:
@@ -198,7 +198,7 @@ class InspectMapper(Container):
             'pkey'        :  None,
             'nullable'    :  True,
 #            'mapper'      :  mapper,
-            'edit'        :  True,
+            'editable'        :  True,
 #            'direction'   :  mapper.props[field_name].direction
             'remote_attr' : [c.name for c in property.remote_side]
             }
@@ -310,17 +310,17 @@ class InspectMapper(Container):
         if self.ro:
             return False
         
-        edit = True
-        ## if this field is not in the main (primary) table, don't edit it
+        editable = True
+        ## if this field is not in the main (primary) table, don't editable it
 #         if table_name != self.primarytable():
 #             #dbg.write("%s: %s != %s" % (field_name, table_name, self.primarytable()))
-#             edit = False
+#             editable = False
 
         if field_name in self.noup:
             #dbg.write("2", field_name, 'noup')
-            edit = False
+            editable = False
             
-        return edit
+        return editable
         
     def get_join_cnd(self):
         tables = self.tables(mode='mapper')
@@ -480,7 +480,7 @@ def get_foreign_info(ForeignKey, names=True):
 #             'pkey'        :  col.primary_key,
 #             'nullable'    :  col.nullable,
 #             'mapper'      :  self.mapper,
-#             'edit'        :  self.set_noup(col.key, col.table.name, col)
+#             'editable'        :  self.set_noup(col.key, col.table.name, col)
 # #            'direction'   :  mapper.props[field_name].direction
 #             }
 #         try:

@@ -1128,7 +1128,7 @@ class SqlWidget(gobject.GObject):
         """
         Return true if this field is  date
         """
-        return self.mapper_info.fields[field_name]['edit']
+        return self.mapper_info.fields[field_name]['editable']
 
     def is_number(self, field_name):
         """
@@ -1256,7 +1256,7 @@ class SqlWidget(gobject.GObject):
         tv.show_all()
         
         for key in ('table_name', 'name', 'db_type', 'col_spec', 'fkey', 'default',
-                    'pkey', 'nullable', 'edit', 'length'):
+                    'pkey', 'nullable', 'editable', 'length'):
             if key == "db_type":
                 model.set(model.append(), 0,  key, 1, self.mapper_info.fields[field_name][key].__name__)
             else:

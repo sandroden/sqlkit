@@ -618,7 +618,7 @@ SimpleTreeView = TreeInfoLayout
 class ShowMapperInfo(object):
     def __init__(self, InspectMapper):
         self.info = InspectMapper
-        cols = ['name', 'col__spec', 'pkey', 'fkey', 'Null', 'edit', 'table', ]
+        cols = ['name', 'col__spec', 'pkey', 'fkey', 'Null', 'editable', 'table', ]
         self.treeLayout = TreeInfoLayout(cols)
         self.tv = self.treeLayout.tv
         self.model = self.treeLayout.model
@@ -638,7 +638,7 @@ class ShowMapperInfo(object):
                 self.model.set(sun,
                           0, I['name'],
                           1, I['col_spec'],
-                          5, I['edit'],
+                          5, I['editable'],
                                )
                 if I['pkey']:
                     self.model.set(sun,

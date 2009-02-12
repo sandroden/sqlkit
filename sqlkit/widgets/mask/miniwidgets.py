@@ -44,10 +44,10 @@ class Widget(object):
         self.master = field.master
         self.field_name = field.field_name
         self.set_not_null_style()
-        gtkwidget.set_property('sensitive', self.field.db_spec['edit']) 
+        gtkwidget.set_property('sensitive', self.field.db_spec['editable']) 
 
     def set_not_null_style(self):
-        if self.field.db_spec['edit']:
+        if self.field.db_spec['editable']:
             if not self.field.db_spec['nullable'] or self.field.db_spec['pkey']:
                 self.set_bg()
 

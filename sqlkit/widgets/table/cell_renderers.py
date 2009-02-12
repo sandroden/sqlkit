@@ -4,7 +4,7 @@ from sqlkit import debug as  dbg
 from multiline_cell import MultilineCellRenderer
 
 class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
-    """An editable that allows to edit dates via a calnda popup
+    """An editable that allows to edit dates via a calendar popup
     Can also edit datetime but the popup will just change the date, not allow
     to edit the time
     """
