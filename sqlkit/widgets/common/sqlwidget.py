@@ -761,7 +761,7 @@ class SqlWidget(gobject.GObject):
             return  True
 
         KEYPAD_KEYS = '(KP_[0-9]|KP_Add|KP_Decimal|KP_Subtract|comma'
-        ONLYDIGITS="%s|[0-9.,]|BackSpace|Left|Right|F1|period|Tab|Up|Down)"
+        ONLYDIGITS="%s|[0-9.,]|BackSpace|Left|Right|F1|period|Tab|Up|Down|Return)"
 
         if not re.match (ONLYDIGITS % KEYPAD_KEYS, key):
             self.sb(_('Char %s is not accepted in numeric context' % key))
