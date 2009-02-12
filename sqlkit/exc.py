@@ -1,9 +1,12 @@
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+from sqlkit import _
 
 class FieldNotInLayout(Exception): pass
 class FieldValueNotSet(Exception): pass
 class NotHandledField(Exception): pass
 class NotHandledDefault(Exception): pass
+
+class MissingPrimaryKey(Exception): pass
 
 class NoSyncError(Exception): pass
 class SyncNotAvailable(Exception): pass
