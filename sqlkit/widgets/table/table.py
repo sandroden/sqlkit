@@ -686,7 +686,7 @@ class SqlTable(sqlwidget.SqlWidget):
             
             next_column = columns[0]
             next_field_name = next_column.get_data('field_name')
-            gobject.idle_add(self.treeview.set_cursor, path, next_columns,
+            gobject.idle_add(self.treeview.set_cursor, path, next_column,
                              self.get_direct_edit(next_field_name) )
         return False
     
