@@ -336,6 +336,13 @@ class SqlMask (sqlwidget.SqlWidget):
         self.sb(_("New record %s") % (self.current_idx +1))
         self.current_mode = 'INSERT'
         
+    def record_undo_cb(self, menuItem):
+        """
+        undo possible modification to the mask
+        """
+        self.discard_changes()
+        self.record_display(reread=True)
+        
     def record_forward(self, ev):
         """display the next record in the mapper"""
 
@@ -482,6 +489,17 @@ class SqlMask (sqlwidget.SqlWidget):
             event_box.connect('button-press-event',
                               self.filter_panel.add, field_name, self)
 
+    def _add_menu_undo(self):
+        """
+        Add an undo button to undo possible modification to the mask
+        """
+        if not 'M=modify' in self.widgets:
+            return
+        menu = self.widgets['M=modify']
+        item = gtk.ImageMenuItem('gtk-undo')
+        item.connect('activate', self.record_undo_cb)
+        menu.insert(item, 0)
+        
     def get_current_obj(self):
         """Return the object that is currently edited"""
         return self.current
@@ -512,6 +530,8 @@ class SqlMask (sqlwidget.SqlWidget):
         pass
     
     
+
+
 
 
 
