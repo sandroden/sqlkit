@@ -137,7 +137,7 @@ class LayoutGenerator (object):
         self.loaders = {}
         self.master = master
         self.fields_in_layout = {}  # {'first_name': 'e=first_name', 'date': 'd=date'}
-        self.fields = master.fields
+#        self.fields = master.fields
         #self.used_field_dict = {}
         if self.master.is_mask():
             if not lay:
@@ -242,15 +242,15 @@ class LayoutGenerator (object):
         """create a spec string that decides how long en entry must be
            reflects fom db
            """
-        length = self.fields[field_name]['length']
-        col_spec = self.fields[field_name]['col_spec'] or ''
-        db_type  = self.fields[field_name]['db_type'] 
+        length = self.master.fields[field_name]['length']
+        col_spec = self.master.fields[field_name]['col_spec'] or ''
+        db_type  = self.master.fields[field_name]['db_type'] 
             
         if self.master.is_fkey(field_name) or self.master.is_loader(field_name):
             ### FIXME: should I set the length of the foreign key?
             return ''
         
-        pytype = self.fields[field_name]['type']
+        pytype = self.master.fields[field_name]['type']
 
         if self.master.is_integer(field_name):
             return ":8"
@@ -299,11 +299,11 @@ class LayoutGenerator (object):
         #dbg.write('table_name:', table_name)
         tbl_field_name = m.group(2)
 
-        table = Table(table_name, self.fields.mapper.local_table.engine,
+        table = Table(table_name, self.master.fields.mapper.local_table.engine,
                       autoload=True)
         t1 = type(table.c[tbl_field_name].type)
         col_spec = table.c[tbl_field_name].type.get_col_spec()
-        t = self.fields.pytype[t1]
+        t = self.master.fields.pytype[t1]
         return (tbl_field_name, t, col_spec)
 
     def _add_default_buttons (self):
