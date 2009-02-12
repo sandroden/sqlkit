@@ -91,7 +91,7 @@ class SimpleCompletion(object):
         self.master.values in case of an id, completion will substitute it
              with a description field, for the user benefit. The real value
              of the field will be hold there.
-        self.master.vfields (mask wdgets): the mapping field_name -> widget
+        self.master.gui_fields (mask wdgets): the mapping field_name -> widget
         
         """
 
@@ -538,7 +538,7 @@ class SimpleCompletion(object):
                 return False
             try:
                 if self.master.is_fkey(self.field_name):
-                    clean_value = self.master.vfields[self.field_name].clean_value(text, input_is_fkey=False)
+                    clean_value = self.master.gui_fields[self.field_name].clean_value(text, input_is_fkey=False)
                     self.master.sb(_("Good match"), seconds=4)
                     self.master.set_value(self.field_name, clean_value, fkvalue=text)
                     if not clean_value:

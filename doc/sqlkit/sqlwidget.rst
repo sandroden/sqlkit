@@ -206,7 +206,7 @@ Attributes
    a container of all completion objects. Needed to change the behaviour of
    some completion (see :ref:`completion`)
 
-.. :vfields:
+.. :gui_fields:
 ..    a container for all validation fields. A validation fields is an objects
 ..    that lives in sqlkit.widgets.common.fields (temporary position) and that
 ..    knows how to represent a field and how to validate it. I'm thinking to

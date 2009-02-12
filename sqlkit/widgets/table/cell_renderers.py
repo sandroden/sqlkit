@@ -189,7 +189,7 @@ class CellRendererDate(gtk.GenericCellRenderer):
     def date_formatter(self, date):
         if date is None:
             return ""
-        return self.master.vfields[self.field_name].format_value(date)
+        return self.master.gui_fields[self.field_name].format_value(date)
         #return date.strftime("%d/%m/%y")
     
     
@@ -203,7 +203,7 @@ class CellRendererDate(gtk.GenericCellRenderer):
         #dbg.ddir(cell_area)
         ce = CellEditableCalendar(datetime = date, cell_area=cell_area,
                                   wdg=widget,
-                                  fmt_func=self.master.vfields[self.field_name].format_value)
+                                  fmt_func=self.master.gui_fields[self.field_name].format_value)
 #        ce = CellEditableCalendar(date = date, pos=(event.x, event.y))
         ce.show()
         ce.grab_focus()
@@ -280,7 +280,7 @@ class CellRendererDatetime(CellRendererDate):
         #dbg.ddir(cell_area)
         ce = CellEditableCalendar(datetime = date_time, cell_area=cell_area,
                                   wdg=widget,
-                                  fmt_func=self.master.vfields[self.field_name].format_value)
+                                  fmt_func=self.master.gui_fields[self.field_name].format_value)
 
 #        ce = CellEditableCalendar(date = date, pos=(event.x, event.y))
 

@@ -38,7 +38,7 @@ class SqlMask (sqlwidget.SqlWidget):
     """
 
     __metaclass__ = dbg.LogTheMethods
-#    vfields = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
+#    gui_fields = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
     labels   = None  # correspondance Label <-> EventBox
     row_count = 0    # number of records in the mapper
     current_idx = 0
@@ -142,30 +142,30 @@ class SqlMask (sqlwidget.SqlWidget):
         fkvalue: compatibility with SqlTable's one
         """
 
-        if field_name not in self.vfields:
+        if field_name not in self.gui_fields:
             raise exc.FieldNotInLayout("field_name: %s" % (field_name))
 
-        self.vfields[field_name].set_value(field_value, initial=initial, shown=shown)
+        self.gui_fields[field_name].set_value(field_value, initial=initial, shown=shown)
         
         
     def clear_value(self, field_name):
         """clear the value
         """
-        if field_name not in self.vfields:
+        if field_name not in self.gui_fields:
             raise exc.FieldNotInLayout("field_name: %s" % (field_name))
 
-        self.vfields[field_name].set_default()
+        self.gui_fields[field_name].set_default()
         
         
     def get_value(self, field_name, data=False, shown=False):
         """return the value from the widget
         """
 
-        if field_name not in self.vfields:
-            dbg.write("%s Non in vfields %s" % (field_name, self.vfields.keys()))
+        if field_name not in self.gui_fields:
+            dbg.write("%s Non in gui_fields %s" % (field_name, self.gui_fields.keys()))
             raise exc.FieldNotInLayout("field_name: %s" % (field_name))
 
-        field = self.vfields[field_name]
+        field = self.gui_fields[field_name]
         return field.get_value(shown=shown)
 
     def record_delete(self, widget=None, interactive=True):
@@ -227,7 +227,7 @@ class SqlMask (sqlwidget.SqlWidget):
         else:
             tbl = self.tables
         for key in self.mapper_info.get_pkeys(tbl):
-            if key in self.vfields and self.is_editable(key):
+            if key in self.gui_fields and self.is_editable(key):
                 raise NotImplementedError
             
         ## missing handling of Primary Key:
@@ -363,18 +363,18 @@ class SqlMask (sqlwidget.SqlWidget):
     def setup_field_validation(self):
         """fill variables from layout
 
-        vfields: validation fields
+        gui_fields: validation fields
         --------------------------
         is a dict: 
            :key:   is the field_name
            :value: is a field from sqlkit.widget.mask.fields
 
         """
-        ## vfields can be passed as argument of the class. In that case widgets
+        ## gui_fields can be passed as argument of the class. In that case widgets
         ## used to represent the data are provided by another SqlMask
         from  pprint import pprint
-        if not self.vfields:
-            self.vfields = {}
+        if not self.gui_fields:
+            self.gui_fields = {}
 
         field_chooser = FieldChooser(self, self.widgets)
 
@@ -382,7 +382,7 @@ class SqlMask (sqlwidget.SqlWidget):
             widget = self.widgets[widget_key]
             field = field_chooser.get_field(field_name, self.mapper_info.fields[field_name], widget_key)
             
-            self.vfields[field_name] = field
+            self.gui_fields[field_name] = field
             
     def toggle_with_null_cb(self, button):
         """a toggle function that loops through inconsinstent state also
@@ -468,13 +468,13 @@ class SqlMask (sqlwidget.SqlWidget):
     def get_widget(self, field_name):
         """get the widget that render field_name"""
 
-        return self.vfields[field_name].widget.gtkwidget
+        return self.gui_fields[field_name].widget.gtkwidget
 
     def fkey_is_valid(self, field_name):
         """
         return True if current editable -if exists- has a value that does not need validation
         """
-        return self.vfields[field_name].widget.is_valid()
+        return self.gui_fields[field_name].widget.is_valid()
 
 ####### Misc
     def export(self, menuItem):

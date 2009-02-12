@@ -28,7 +28,7 @@ forcing format representation
 ------------------------------
 
 A different representation can be forced using `Number Format Pattern
-Syntax`_ and setting the new values in the vfield class via the set_format
+Syntax`_ and setting the new values in the gui_field class via the set_format
 method that takes a dictionary as argument or the format argument to the widget::
 
   fmt = {
@@ -52,7 +52,7 @@ forcing format representation
 ------------------------------
 
 A different representation can be forced using `Date Format Pattern
-Syntax`_ and setting the new values in the vfield class via the set_format
+Syntax`_ and setting the new values in the gui_field class via the set_format
 as illustrated above for numbers.
 
 .. note::
@@ -62,7 +62,7 @@ as illustrated above for numbers.
    a different date format but not using babel.
 
    Temporarily you should set date_format attribute on the
-   vfield.widget.gtkwidget...
+   gui_field.widget.gtkwidget...
 
 
 Messages

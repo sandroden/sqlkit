@@ -41,7 +41,7 @@
 
 # integer
 >>> sm = SqlMask(Class=AllTypes, dbproxy=db, naked=True, show=False)
->>> f = sm.vfields['integer']
+>>> f = sm.gui_fields['integer']
 >>> print f
 <IntegerField - integer >
 >>> f.clean_value(1)
@@ -50,7 +50,7 @@
 (1L, <type 'long'>)
 
 # float
->>> f = sm.vfields['float']
+>>> f = sm.gui_fields['float']
 >>> print f
 <FloatField - float >
 >>> f.clean_value('1.2'), type(f.clean_value('1'))
@@ -59,28 +59,28 @@
 u'1.2'
 
 # numeric
->>> f = sm.vfields['numeric']
+>>> f = sm.gui_fields['numeric']
 >>> f.clean_value(Decimal('1.2'))
 Decimal("1.2")
 >>> f.clean_value('1.2'), type(f.clean_value('1.2'))
 (Decimal("1.20"), <class 'decimal.Decimal'>)
  
 # date
->>> f = sm.vfields['date']
+>>> f = sm.gui_fields['date']
 >>> f.clean_value(date(2008, 6, 2))
 datetime.date(2008, 6, 2)
 >>> f.clean_value('6/2/2008')
 datetime.date(2008, 6, 2)
 
 # datetime
->>> f = sm.vfields['datetime']
+>>> f = sm.gui_fields['datetime']
 >>> f.clean_value(datetime(2008, 6, 2, 15, 30))
 datetime.datetime(2008, 6, 2, 15, 30)
 >>> f.clean_value('2/6/2008 15:30')  ## missing datetime parsing
 datetime.datetime(2008, 2, 6, 15, 30)
 
 # time
->>> f = sm.vfields['time']
+>>> f = sm.gui_fields['time']
 >>> f.clean_value(time(15, 30))
 datetime.time(15, 30)
 >>> f.clean_value('15:30:00')  
@@ -101,14 +101,14 @@ datetime.time(15, 30)
 
 # integer
 >>> sm = SqlMask(Class=AllTypes, dbproxy=db, naked=True, show=False)
->>> f = sm.vfields['integer']
+>>> f = sm.gui_fields['integer']
 >>> f.clean_value(1)
 1
 >>> f.clean_value('1'), type(f.clean_value('1'))
 (1L, <type 'long'>)
 
 # float
->>> f = sm.vfields['float']
+>>> f = sm.gui_fields['float']
 >>> print f
 <FloatField - float >
 >>> f.clean_value(1)
@@ -117,28 +117,28 @@ datetime.time(15, 30)
 (1.0, <type 'float'>)
 
 # numeric
->>> f = sm.vfields['numeric']
+>>> f = sm.gui_fields['numeric']
 >>> f.clean_value(Decimal('1.2'))
 Decimal("1.2")
 >>> f.clean_value('1,20'), type(f.clean_value('1,20'))
 (Decimal("1.20"), <class 'decimal.Decimal'>)
  
 # date
->>> f = sm.vfields['date']
+>>> f = sm.gui_fields['date']
 >>> f.clean_value(date(2008, 6, 2))
 datetime.date(2008, 6, 2)
 >>> f.clean_value('2/6/2008')
 datetime.date(2008, 6, 2)
 
 # datetime
->>> f = sm.vfields['datetime']
+>>> f = sm.gui_fields['datetime']
 >>> f.clean_value(datetime(2008, 6, 2, 15, 30))
 datetime.datetime(2008, 6, 2, 15, 30)
 >>> f.clean_value('2/6/2008 15:30')  
 datetime.datetime(2008, 6, 2, 15, 30)
 
 # time
->>> f = sm.vfields['time']
+>>> f = sm.gui_fields['time']
 >>> f.clean_value(time(15, 30))
 datetime.time(15, 30)
 >>> f.clean_value('15:30:00')  

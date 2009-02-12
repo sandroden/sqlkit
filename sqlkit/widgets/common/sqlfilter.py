@@ -390,7 +390,7 @@ class FilterTool(object):
     def get_value(self):
         
         value = self.widget.get_value() 
-        f = self.master.vfields[self.field_name]
+        f = self.master.gui_fields[self.field_name]
         return f.clean_value(value)
 
     def set_active(self, active):

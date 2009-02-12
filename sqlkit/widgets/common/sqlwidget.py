@@ -139,7 +139,7 @@ class SqlWidget(gobject.GObject):
         """
         gobject.GObject.__init__(self)
         self.related = Container()
-        self.vfields = Container()
+        self.gui_fields = Container()
         self.field_widgets = Container()
         self.completions = Container()
         self.label_map = map_labels(buf=label_map, private=True)
@@ -703,11 +703,11 @@ class SqlWidget(gobject.GObject):
         """return the value from the widget
         """
         
-        if field_name not in self.vfields:
-            dbg.write("%s Non in vfields %s" % (field_name, self.vfields.keys()))
+        if field_name not in self.gui_fields:
+            dbg.write("%s Non in gui_fields %s" % (field_name, self.gui_fields.keys()))
             raise sqlkit.exc.FieldNotInLayout("field_name: %s" % (field_name))
 
-        field = self.vfields[field_name]
+        field = self.gui_fields[field_name]
         
         return field.has_changed()
 
@@ -1221,12 +1221,12 @@ class SqlWidget(gobject.GObject):
             return
 
         for field_name, format in format_dict.items():
-            if field_name in self.vfields:
+            if field_name in self.gui_fields:
                 if isinstance(format, tuple):
                     format, locale = format
-                    self.vfields[field_name].locale = locale
+                    self.gui_fields[field_name].locale = locale
 
-                self.vfields[field_name].format = format
+                self.gui_fields[field_name].format = format
 
         for widget in self.related:
             widget.set_format(format_dict)
@@ -1263,7 +1263,7 @@ class SqlWidget(gobject.GObject):
                 model.set(model.append(), 0,  key, 1, self.mapper_info.fields[field_name][key])
 
         try:
-            model.set(model.append(), 0,  'format', 1, self.vfields[field_name].format)
+            model.set(model.append(), 0,  'format', 1, self.gui_fields[field_name].format)
         except:
             pass
 

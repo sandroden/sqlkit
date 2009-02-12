@@ -149,7 +149,7 @@ class SqlTable(sqlwidget.SqlWidget):
         for field_name in self.field_list:
             ## vfield as validation...
             
-            self.vfields[field_name] = field_chooser.get_field(field_name,
+            self.gui_fields[field_name] = field_chooser.get_field(field_name,
                                                               self.mapper_info.fields[field_name])
             
         
@@ -571,7 +571,7 @@ class SqlTable(sqlwidget.SqlWidget):
         # 8. selected existent LAST record -> delete
         
         if self.edited_row_model_path is None:
-            #self.record_initialize_vfields()
+            #self.record_initialize_gui_fields()
             self.emit('record-selected')
             return False
         
@@ -579,7 +579,7 @@ class SqlTable(sqlwidget.SqlWidget):
         ## has been created but not yet filled: it wouldn't validate
         if not self.commit_inhibited:
             self.record_save()                # uses self.edited_row_model_path
-            #self.record_initialize_vfields()  # self.uses get_current_obj
+            #self.record_initialize_gui_fields()  # self.uses get_current_obj
             self.edited_row_model_path = None
 
         self.emit('record-selected')
@@ -808,7 +808,7 @@ class SqlTable(sqlwidget.SqlWidget):
         elif status == False:   status = None
         elif status == None:    status = True
 
-        self.vfields[field_name].set_value( status, initial=False )        
+        self.gui_fields[field_name].set_value( status, initial=False )        
             
         return True
     
@@ -822,7 +822,7 @@ class SqlTable(sqlwidget.SqlWidget):
         obj = self.liststore[path][0]
         status = getattr(obj, field_name)
 
-        self.vfields[field_name].set_value(not status, initial=False)
+        self.gui_fields[field_name].set_value(not status, initial=False)
         
         return True
     
@@ -908,7 +908,7 @@ class SqlTable(sqlwidget.SqlWidget):
             # assigning a value to liststore, triggers 'editing-canceled'
             self.cell_entry.substitute = False
             return
-        self.set_value(field_name, self.vfields[field_name].initial_value)
+        self.set_value(field_name, self.gui_fields[field_name].initial_value)
         self.cell_entry = None
         self.sb(_("Editing canceled. Restoring original value"), seconds=3)
         
@@ -967,7 +967,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return
         obj = model.get_value(iter, 0) 
         value = getattr(obj, field_name)
-        formatted_value = self.vfields[field_name].format_value(value)
+        formatted_value = self.gui_fields[field_name].format_value(value)
         if isinstance(obj, self.totals.total_class):
             obj.set_value_and_colors(cell, formatted_value, field_name)
         else:
@@ -1035,7 +1035,7 @@ class SqlTable(sqlwidget.SqlWidget):
             if obj:
                 for field_name in self.field_list:
                     value = getattr(obj, field_name)
-                    self.vfields[field_name].set_value(value, initial=True)
+                    self.gui_fields[field_name].set_value(value, initial=True)
 
         self.edited_row_model_path = path
         
@@ -1073,7 +1073,7 @@ class SqlTable(sqlwidget.SqlWidget):
                                  start_editing = True)
         ## set defaults
         for field_name in self.field_list:
-            self.vfields[field_name].set_default()
+            self.gui_fields[field_name].set_default()
 
         self.records += [self.last_new_obj]  ## adding to records is vital to get fk correctly, in
                                              ## case this table is a M2M of M2O
@@ -1320,19 +1320,19 @@ class SqlTable(sqlwidget.SqlWidget):
             except (exc.NoResultFound, exc.MultipleResultsFound), e:
                 ## if there's no match, try completion
                 dbg.write("No match: try completion")
-                show = self.vfields[field_name].widget.completion.show_possible_completion
+                show = self.gui_fields[field_name].widget.completion.show_possible_completion
                 show(self.cell_entry.entry, 'start')
                 return False
         else:
             ## 
             if self.is_fkey(field_name):
                 self.sb(_('Value is not valid, trying completion'))
-                show = self.vfields[field_name].widget.completion.show_possible_completion
+                show = self.gui_fields[field_name].widget.completion.show_possible_completion
                 show(self.cell_entry.entry, 'start', sb=False)
                 return False
             else:
                 try:
-                    self.vfields[field_name].set_value(new_text, initial=False)
+                    self.gui_fields[field_name].set_value(new_text, initial=False)
                     return True
                 except exc.ValidationError, e:
                     self.cell_entry.valid = False
@@ -1347,7 +1347,7 @@ class SqlTable(sqlwidget.SqlWidget):
         If path, is not passed (as when used from completion)
         it is deduced from selection
         fkey: if True the value is handled as a primary key.
-        Used from completion and from vfields/tablewidget
+        Used from completion and from gui_fields/tablewidget
         """
 
         ## note: self.current cannot be used. We don't want the currently selected obj
@@ -1361,9 +1361,9 @@ class SqlTable(sqlwidget.SqlWidget):
 
         ## casting of value
         if self.is_fkey(field_name):
-            value = self.vfields[field_name].clean_value(value, input_is_fkey=True)
+            value = self.gui_fields[field_name].clean_value(value, input_is_fkey=True)
         else:
-            value = self.vfields[field_name].clean_value(value)
+            value = self.gui_fields[field_name].clean_value(value)
         setattr(obj, field_name, value)
 
         ## text would come up automatically but only after
@@ -1380,7 +1380,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 ## that may not be the one that belogs to field_name...
                 if self.cell_entry and field_name == self.cell_entry.field_name:
                     #self.cell_entry.entry.set_text(str(value))
-                    self.cell_entry.entry.set_text(self.vfields[field_name].format_value(value))
+                    self.cell_entry.entry.set_text(self.gui_fields[field_name].format_value(value))
     
     def get_selected_row(self):
         """Return the path of the selected row or None
@@ -1499,7 +1499,7 @@ class SqlTable(sqlwidget.SqlWidget):
         second_choice = []
         for field_name in self.field_list:
             if self.tvcolumns[field_name].get_visible() and self.is_editable(field_name):
-                if self.vfields[field_name].get_default():
+                if self.gui_fields[field_name].get_default():
                     second_choice += [self.tvcolumns[field_name]]
                 else:
                     return self.tvcolumns[field_name]
@@ -1635,9 +1635,9 @@ class SqlTable(sqlwidget.SqlWidget):
                     ## second time. If you ask for 'shown' I give you shown.
                         return text
                     else:
-                        return self.vfields[field_name].clean_value(text, input_is_fkey=False)
+                        return self.gui_fields[field_name].clean_value(text, input_is_fkey=False)
                 else:
-                    return self.vfields[field_name].clean_value(text)
+                    return self.gui_fields[field_name].clean_value(text)
         return getattr(obj, field_name)
 
     def set_editable(self, editable=True):
@@ -1646,7 +1646,7 @@ class SqlTable(sqlwidget.SqlWidget):
         table are not normally editable table if have relationship_mode = m2m
         """
         self.m2m_editable = editable
-        for field in self.vfields:
+        for field in self.gui_fields:
             field.widget.add_completion(editable=editable)
         
 
