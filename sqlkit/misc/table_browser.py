@@ -32,7 +32,7 @@ class TableBrowser(object):
             )
         self.w = self.l.show()
         self.tv = self.w['TV=tree']
-        cols = ['table', 'def', 'pkey', 'fkey', 'nullable']
+        cols = ['table', 'def', 'pkey', 'fkey', 'nullable', 'indexes']
         self.stv = layout.misc.EasyTreeView(cols, tv=self.tv)
         self.model = self.tv.get_model()
         #self.configure_treeview(self.tv)
@@ -163,12 +163,25 @@ class TableBrowser(object):
                 self.get_table_info_in_model(None, (table, iter))
 
     def get_table_info_in_model(self, junk, (table_name, iter)):
-        #dbg.write(table_name, iter)
+        """
+        fill the model relative to info on table 
+        """
+        
         tbl = sa.Table(table_name, self.dbproxy.metadata, autoload=True)
+        index_dict = {}
         self.tables[table_name] = tbl
         pks = []
         for pk in tbl.primary_key:
             pks += [pk.name]
+
+        ## 
+        for i, index in enumerate(tbl.indexes):
+            for j, col in enumerate(index.columns):
+                # show order of column in index
+                if not col.name in index_dict:
+                    index_dict[col.name] = []
+                index_dict[col.name] += [index.unique and 'UNIQUE_%s.%s' % (i, j) or 'IDX_%s.%s' % (i,j)]
+
         self.model.set(iter, 2, ",".join(pks))
             
         for c in tbl.c:
@@ -181,4 +194,11 @@ class TableBrowser(object):
                 self.model.set(col, 3, repr(c.foreign_keys) )
             if not c.nullable:
                 self.model.set(col, 4, "NOT NULL")
+            if c.name in index_dict:
+                self.model.set(col, 5, " ".join(index_dict[c.name]))
 
+        path = self.model.get_path(iter)
+        self.tv.expand_row(path, True)
+                
+
+        

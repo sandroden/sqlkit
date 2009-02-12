@@ -1,13 +1,13 @@
 .. _sqledit:
 
-=========
- Sqledit
-=========
+=====================================
+ Sqledit - browsing and editing data
+=====================================
 
 
 Sqledit is a data editor/browser. It may be called on a database and it will
 present a list of all tables that can be selected for editing (choosing 
-Mask or Table mode) or for introspection.
+:ref:`mask` or :ref:`table`) or for introspection.
 
 .. image:: ../img/sqledit.png
 
@@ -33,7 +33,7 @@ It has many options::
 
 
 .sqleditdb
-============
+==========
 
 You can write configurations in a file in your home calle ``.sqleditdb`` and
 start sqledit on that configuration using a nickname::
@@ -50,9 +50,16 @@ start sqledit on that configuration using a nickname::
    field_list = nome, cognome, email, ludo
 
   
-Valid opion are URL and any other option for sqledit. The special option
+Valid option are URL and any other option for sqledit. The special option
 ``copy`` force sqledit to read the other definition first and then
 overwrite.
 In this case 'brasile' shares all optioons with '2giugno'  but overwrites
 field_list.
+
+schema browser
+==============
+
+Introspection of the database will give you the possibility to see all
+fields of a table showing all fields, with type, primary keys, foreign keys and
+indexes.
 
