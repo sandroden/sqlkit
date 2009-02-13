@@ -30,6 +30,7 @@ class Container(object):
         return self.add_element(key, value)
     
     def __iter__(self):
+        self._n = 0
         return self
 
     def next(self):
@@ -60,6 +61,13 @@ if __name__ == '__main__' :
     print c.keys()
     print 'uno' in c
     c['due'] = 2
+    c['tre'] = 3
+    c['quattro'] = 4
     print c.due
+    for x in c:
+        if x>2:
+            break
+        print x
+        
     for x in c:
         print x
