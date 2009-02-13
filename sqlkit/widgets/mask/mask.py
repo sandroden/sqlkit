@@ -58,8 +58,10 @@ class SqlMask (sqlwidget.SqlWidget):
 ####### Record browsing & saving
     def reload(self, **kw):
 
-        if not self.save_unsaved():
+        response = self.save_unsaved()
+        if response == gtk.RESPONSE_CANCEL:
             return
+            
         self.current_idx = 0
         length = sqlwidget.SqlWidget.reload(self, **kw)
         if not length:
@@ -190,8 +192,8 @@ class SqlMask (sqlwidget.SqlWidget):
         self.commit(_('Deleted'))
         self.records.pop(self.current_idx)
 
+        self.clear_mask(check=False)
         if not self.records:
-            self.clear_mask(check=False)
             self.record_new()
         else:
             if self.current_idx  > len(self.records) -1:
@@ -202,32 +204,32 @@ class SqlMask (sqlwidget.SqlWidget):
         """
         invokes the validator before UPDATE/INSERT a record
         """
-        ## FIXME: validator
-        
-        #         if self.valid is not None:
-        #             v = self.valid (self.table, record)
-        #             v.validate ()
 
         if not self.record_has_changed() and not self.unsaved_changes_exist():
-            if self.last_new_obj:
-                ## very important: existence of an instance that is not
-                ## persinstant will turn out in an error if it cannot be
-                ## saved. That can occur also when simply setting a loader attribute.
-                self.session.expunge(self.last_new_obj)
-                self.current = None
-                self.last_new_obj = None
+#             if self.last_new_obj:
+#                 ## very important: existence of an instance that is not
+#                 ## persinstant will turn out in an error if it cannot be
+#                 ## saved. That can occur also when simply setting a loader attribute.
+#                 self.session.expunge(self.last_new_obj)
+#                 self.current = None
+#                self.last_new_obj = None
             self.sb(_('Nothing to save'), seconds=4)
             return
-        obj = self.record_mask2obj(self.current, skip_check=True)
 
-        self.record_validate(obj)
-    
         if ask:
-            if not self.save_unsaved(skip_check=True):
+            response = self.save_unsaved(skip_check=True)
+            if response == gtk.RESPONSE_CANCEL:
                 raise exc.CancelledAction
-        else:
-            self.commit()
-            self.last_new_obj = None
+
+            if response == gtk.RESPONSE_NO: 
+                return
+            
+        obj = self.record_mask2obj(self.current, skip_check=True)
+                
+        self.record_validate(obj, single_fields=False)
+            
+        self.commit()
+        self.last_new_obj = None
         
         self.record_display(reread=True)
         self.current_mode = 'UPDATE'
@@ -252,32 +254,36 @@ class SqlMask (sqlwidget.SqlWidget):
         self.record_new(clear=False)
         try:
             self.record_save()
-        except exc.ValidateError, e:
+        except exc.ValidationError, e:
             pass
         
     def record_mask2obj(self, obj=None, skip_check=False):
-        """collect data from the mask and set into the object if record_has_changed())
+        """
+        collect data from the mask and set into the object if record_has_changed())
         """
         if not obj:
             return obj
 
-
         if skip_check or self.record_has_changed():
-            if obj not in self.session:     # see note in record_new
-#                 for i in self.session:
-#                     print i, id(i)
-#                 print "OBJ:", obj, id(obj), obj not in self.session
+            if obj not in self.session: ## it should never happen, really... why do we need?
                 self.session.add(obj)
-                
-            for field_name in self.field_list:      
+
+            self.validation_errors = {}
+
+            for field in self.gui_fields:
+                field_name = field.field_name
                 try:
-                    value = self.get_value(field_name)
-                except exc.FieldNotInLayout:
-                    continue
+                    value = self.gui_fields[field_name].get_value()
+                    self.gui_fields[field_name].validate( value , clean=True)
 
-                #print "setattr(obj, %s, %s)" % (field_name, self.get_value(field_name))
-                setattr(obj, field_name, self.get_value(field_name))
+                    if field.mapper:   # persisted fields, mask2obj has already cleaned  them
+                        setattr(obj, field_name, self.get_value(field_name))
 
+                except exc.ValidationError, e:
+                    self.handle_validation_errors(e, field_name=field_name)
+
+            if self.validation_errors:
+                self.handle_validation_errors()
         return obj
 
     def clear_mask(self, widget=None, check=True):
@@ -378,12 +384,12 @@ class SqlMask (sqlwidget.SqlWidget):
         except (exc.CancelledAction, exc.ValidationError):
             pass
 
-    def unsaved_changes_exist(self, skip_check=False):
-        """collect possible changes and test if save is needed
-        """
+#     def unsaved_changes_exist(self, skip_check=False):
+#         """collect possible changes and test if save is needed
+#         """
 
-        self.record_mask2obj(self.current, skip_check=skip_check)
-        return sqlwidget.SqlWidget.unsaved_changes_exist(self)
+#         self.record_mask2obj(self.current, skip_check=skip_check)
+#         return sqlwidget.SqlWidget.unsaved_changes_exist(self)
         
 
 ####### Layout, Reflection & Analisys

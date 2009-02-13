@@ -80,7 +80,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.treeview.connect('cursor-changed', self.cursor_changed_cb)
 #        self.treeview.connect('select-cursor-row', self.select_cursor_row_cb)
         #register callback to toplevel window
-        self.treeview.get_toplevel().connect("delete_event", self.delete_event)
+        self.treeview.get_toplevel().connect("delete_event", self.delete_event_cb)
         self.treeview.connect('key-press-event', self.keypress_event_cb)
         self.treeview.connect('button-press-event', self.button_press_event_cb)
 

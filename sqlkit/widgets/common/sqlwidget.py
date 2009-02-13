@@ -19,7 +19,7 @@ import datetime
 import os
 import inspect 
 from sqlkit import layout
-from sqlkit.layout import map_labels
+from sqlkit.layout import map_labels, get_label
 import sqlalchemy.types as sqltypes
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy import Table
@@ -385,13 +385,14 @@ class SqlWidget(gobject.GObject):
             table.child_set_property(internal_align, 'y-options', gtk.EXPAND | gtk.FILL)
 
         if 'Window' in self.lay_obj.elements:
-            self.lay_obj.connect(('Window', 'delete_event', self.delete_event))
+            self.lay_obj.connect(('Window', 'delete_event', self.delete_event_cb))
             if self.geom:
                 self.resize(*self.geom)
 
         if self.is_mask():
             self._add_click_for_filter()
             self._add_color_to_labels()
+            self._add_menu_undo()
 
 
         self.setup_field_validation()
@@ -452,7 +453,7 @@ class SqlWidget(gobject.GObject):
             'tb=gtk-new'        : self.record_new_cb,
             'tb=gtk-delete'     : self.record_delete,
             'tb=gtk-refresh'    : self.reload_cb,
-            'tb=gtk-quit'       : self.delete_event,
+            'tb=gtk-quit'       : self.delete_event_cb,
             'tb=gtk-go-forward' : self.record_forward,
             'tb=gtk-go-back'    : self.record_back,
 
@@ -462,7 +463,7 @@ class SqlWidget(gobject.GObject):
             'b=gtk-new'        : self.record_new_cb,
             'b=gtk-delete'     : self.record_delete,
             'b=gtk-refresh'    : self.reload_cb,
-            'b=gtk-quit'       : self.delete_event,
+            'b=gtk-quit'       : self.delete_event_cb,
             'b=gtk-go-forward' : self.record_forward,
             'b=gtk-go-back'    : self.record_back,
             }
@@ -508,7 +509,7 @@ class SqlWidget(gobject.GObject):
         """
         try:
             self.record_new()
-        except sqlkit.exc.ValidationError:
+        except (sqlkit.exc.ValidationError, sqlkit.exc.CancelledAction):
             return True
     
     def record_save_new(self, ev):
@@ -538,29 +539,20 @@ class SqlWidget(gobject.GObject):
         self.sb(e.orig)
         return False  # i.e.: rollback
 
-    def record_validate(self, obj):
-        """any validation should live here
-
+    def record_validate(self, obj, single_fields=True):
+        """
+        any validation should live here
+        single_fields=bool validation of single fields is done here for table 
+                           but in  mask2obj for Maks
+                           single_fields determines if check for single fields is done
         """
         assert obj is not None
         mode = obj in self.session.new and 'INSERT' or 'UPDATE'
 
         self.validation_errors = {}
-        
-        for field in self.gui_fields:
-            field_name = field.field_name
-            try:
-                if field.mapper:   # persisted fields, mask2obj has already cleaned  them
-                    value = getattr(obj, field_name)
-                    self.gui_fields[field_name].validate( value , clean=True)
-                else:              # fields only present in the GUI, value is not in obj
-                    value = self.gui_fields[field_name].get_value()
-                    self.gui_fields[field_name].validate( value , clean=True)
-                    
-            except exc.ValidationError, e:
-                self.handle_validation_errors(e, field_name=field_name)
 
-
+        if single_fields:
+            self.record_validate_fields(obj)
         if self.validation_errors:
             self.handle_validation_errors()
     
@@ -570,17 +562,87 @@ class SqlWidget(gobject.GObject):
         self.vaidation_error dict and raise exception for record_save
         """
         if error:
-            if isinstance(error, sqlkit.exc.NotNullableFieldError):
-                self.validation_errors[field_name] = _("%s may not be NULL" % field_name)
-            
+            if not field_name in self.validation_errors:
+                self.validation_errors[field_name] = []
+                                       
+            self.validation_errors[field_name] += [error.message]
+                
             self.sb(error.message, seconds=30)
-        else:
-            self.dialog(type='ok', text=str(self.validation_errors))
-            raise exc.ValidationError
-        
-        print self.validation_errors
             
+        else:
+            self.validation_error_dialog()
 
+    def validation_error_dialog(self):
+        """
+        represent the errors in self.validation_errors and raise ValidationError
+        to correctly propagate the error upwards
+        """
+        general_msg = _('Errors are present in the record. \nCorrect them now, to continue \nor delete the record')
+        
+
+        layout = """i=gtk-dialog-error:6 l=general:<
+                    TVS=details -"""
+        
+        dialog, lay = self.lay_obj.dialog(lay=layout, type='ok',
+                                          title=_("Validation errors"))
+        lay.widgets['l=general'].set_text(general_msg)
+        
+        tv = lay.widgets['TV=details']
+        model = gtk.ListStore(str, str)
+        tv.set_model(model)
+        tv.set_property('width-request', 420)
+        tv.set_property('height-request', 150)
+        
+        cell1 = gtk.CellRendererText()
+        cell2 = gtk.CellRendererText()
+
+        tc1 = gtk.TreeViewColumn(_("Field name"), cell1, markup=0)
+        tc2 = gtk.TreeViewColumn(_("Error"), cell2, markup=1)
+
+        tv.append_column(tc1)
+        tv.append_column(tc2)
+        tv.show_all()
+
+        self.validation_error_fill_model(model)
+
+        dialog.show_all()
+        response = dialog.run()
+        dialog.destroy()
+        
+        raise exc.ValidationError
+
+    def validation_error_fill_model(self, model):
+        """
+        Fill the model of the treeview that presents the validation errors
+        """
+
+        for key in (self.validation_errors.keys()):
+            for i, err in enumerate(self.validation_errors[key]):
+                iter = model.append(None)
+                if i == 0:
+                    
+                    model.set(iter, 0, "<b>%s</b>" % _(get_label(key, layout=self.lay_obj)))
+                model.set(iter, 1, "<i>%s</i>" % err)
+            
+    def record_validate_fields(self, obj):
+        """
+        validate any fields in self.gui_fields
+        """
+
+        for field in self.gui_fields:
+            field_name = field.field_name
+            try:
+                if field.mapper:   # persisted fields, mask2obj has already cleaned  them
+                    value = getattr(obj, field_name)
+                    self.gui_fields[field_name].validate( value , clean=True)
+                else:              # fields only present in the GUI, value is not in obj
+                    value = self.gui_fields[field_name].get_value()
+                    self.gui_fields[field_name].validate( value , clean=True)
+
+            except exc.ValidationError, e:
+                self.handle_validation_errors(e, field_name=field_name)
+
+        
 ####### Record browsing 
     def clear(self, widget=None):
         """clear the mask for a new record"""
@@ -658,8 +720,13 @@ class SqlWidget(gobject.GObject):
         self.reload(  (sql, bind_parameters)  )
     
     def reload_cb(self, widget):
-        """issue a reload operation on master. Call back of reload button"""
-        self.reload( )
+        """
+        issue a reload operation on master. Call back of reload button
+        """
+        try:
+            self.reload( )
+        except (exc.ValidationError):
+            return True
 
     def record_forward(self):
         """it doesn't make any sense here, but we need it to prevent
@@ -783,18 +850,22 @@ class SqlWidget(gobject.GObject):
             return True
 
 ####### Dialog
-    def dialog(self, type='ok-cancel', text='', title='', layout="l=a"):
+    def dialog(self, type='ok-cancel', text='', title='', layout=None, icon='gtk-dialog-question'):
         """
         pop a dialog modal and transient, type can be:
         ok, ok-cancel, yes-no, yes-no-cancel, ok-apply-cancel
         text uses markup
         """
+        if not layout:
+            layout = 'i=%s:6 l=message' % icon
+            
+
         dialog, l = self.lay_obj.dialog(lay=layout, title=title,
                                         type=type, show=False)
-        if layout == 'l=a':
-            l.prop(('l=a', 'use_markup', True))
-            l.widgets['l=a'].set_text(text)
-            
+        if 'l=message' in l.widgets:
+            l.prop(('l=message', 'use_markup', True))
+            l.widgets['l=message'].set_text(text)
+
 #         l.widgets['l=a'].set_markup(
 #             '<span size="14000">%s</span>' % text)
         dialog.show_all()
@@ -860,14 +931,16 @@ class SqlWidget(gobject.GObject):
         """
         pass
     
-    def delete_event(self, *args):
-        """Quit operations: check if need to save first """
+    def delete_event_cb(self, *args):
+        """
+        Quit operations: check if need to save first
+        """
 
-        ### fixme: must add cheks
-        ### fixme2: must the toplevel be destrouyed (or is reparented?)
-
-        if not self.save_unsaved():
-            return
+        try:
+            self.record_save()
+        except (exc.ValidationError, exc.CancelledAction), e:
+            print e
+            return True
 
         self.widgets['Window'].destroy()
         self.filter_panel.destroy()
@@ -875,51 +948,53 @@ class SqlWidget(gobject.GObject):
             self.gquit()
 
     def save_unsaved(self, refresh=True, skip_check=False):
-        """check if it needs saving. In case ask for confirmation and proceed.
+        """
+        Check if it needs saving. In case ask for confirmation and proceed.
         This triggers both session changes *AND* changes to the current mask that
         may not be in the session.
 
         skip_check: we already know it needs saving. Passed to unsaved_changes_exists
         Return False if cancel is pressed
         """
-
-        if self.unsaved_changes_exist(skip_check=skip_check):
+        response = True
+        if self.unsaved_changes_exist() or skip_check:
             msg = [_("Save unsaved data?")]
-            if self.session.dirty:
-                #dbg.write("unsaved", self.session.dirty)
-                msg += [_('unsaved: %s') % (len(self.session.dirty))]
-                msg += [self.get_differences(o) for o in self.session.dirty]
-            if self.session.new:
-                msg += [_('new: %s') % (len(self.session.new))]
+            if not skip_check:
+                if self.session.dirty:
+                    #dbg.write("unsaved", self.session.dirty)
+                    msg += [_('unsaved: %s') % (len(self.session.dirty))]
+                    msg += [self.get_differences(o) for o in self.session.dirty]
+                if self.session.new:
+                    msg += [_('new: %s') % (len(self.session.new))]
 
             response = self.dialog(type='yes-no-cancel', text="\n".join(msg))
                                    
             if response == gtk.RESPONSE_CANCEL:
-                return False
+                pass
 
             if response == gtk.RESPONSE_YES:
-                self.session.commit()
-                self.last_new_obj = None
-
+                self.record_save(ask=False)
+            
             ## you don't want to save. Let's prevent a delayed commit
             ## we don't need to care about deleted becouse when you delete
             ## the commit is immediate
             if response == gtk.RESPONSE_NO:
-                #dbg.write("RESPONSE NO")
-                if refresh:
-                    for obj in self.session.dirty:
-                        dbg.write("session.refresh(%s)" % obj)
-                        self.session.refresh(obj)
-                    for obj in self.session.new:
-                        dbg.write("session.expunge(%s)" % obj)
-                        self.session.expunge(obj)
-                    self.last_new_obj = None  ## FIXME: unsure...
-                else:
-                    dbg.write("refresh:", refresh)
-                dbg.write(self.session.dirty)
+                self.discard_changes()
      
-        return True
+        return response
 
+    def discard_changes(self):
+        """
+        Discard any changes in the session, refreshing all objects
+        """
+        for obj in self.session.dirty:
+            dbg.write("session.refresh(%s)" % obj)
+            self.session.refresh(obj)
+        for obj in self.session.new:
+            dbg.write("session.expunge(%s)" % obj)
+            self.session.expunge(obj)
+        self.last_new_obj = None  ## FIXME: unsure...
+        
     def unsaved_changes_exist(self, skip_check=False):
         """
         check if session needs committing by looking dirty, deleted and new
@@ -1000,7 +1075,7 @@ class SqlWidget(gobject.GObject):
                 ('-', None),
                 (_('Export'), 'activate', self.export),
                 
-                ('gtk-quit', 'activate', self.delete_event)
+                ('gtk-quit', 'activate', self.delete_event_cb)
                 )
             self.lay_obj.menu(
                 'm=help',
