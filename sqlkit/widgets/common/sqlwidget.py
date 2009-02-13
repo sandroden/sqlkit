@@ -774,18 +774,16 @@ class SqlWidget(gobject.GObject):
         self.query = django2query(self.mapper, self.query, OR=OR, *args, **kwargs)
         
     def get_differences(self, obj):
-        """show differences between old and new version of an object
+        """
+        show differences between old and new version of an object
         """
         msg = []
-#        for field_name in self.mapper.columns.keys():
         for field_name in self.field_list:
-            #print "FIELD_LIST", self.field_list
             new = None
             try:
                 field_name_transated = _(get_label(field_name, layout=self.lay_obj))
                 new, unchanged, old =  attributes.get_history(
                     attributes.instance_state(obj), field_name_translated)
-                #print "%s:: new: %s - unchanged: %s - old: %s" % (field_name, new, unchanged, old)
             except:
                 pass
             if new:
@@ -793,7 +791,8 @@ class SqlWidget(gobject.GObject):
         return "\n".join(msg)
 
     def has_changed(self, field_name):
-        """return the value from the widget
+        """
+        return the value from the widget
         """
         
         if field_name not in self.gui_fields:
@@ -821,13 +820,8 @@ class SqlWidget(gobject.GObject):
             if sqlwidget.record_has_changed():
                 return True
 
-        for field_name in self.field_list:      
-            try:
-                changed = self.has_changed(field_name)
-            except sqlkit.exc.FieldNotInLayout:
-                continue
-
-            if changed:
+        for field in self.gui_fields:      
+            if self.has_changed(field.field_name):
                 return True
 
         return False

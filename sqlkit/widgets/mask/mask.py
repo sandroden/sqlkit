@@ -90,7 +90,6 @@ class SqlMask (sqlwidget.SqlWidget):
         else:
             display_idx = (self.current_idx or 0) + incr 
 
-            #dbg.set_trace()
         try:
             assert display_idx >= 0  # no negative indexes
             obj = self.records[display_idx]
@@ -109,22 +108,10 @@ class SqlMask (sqlwidget.SqlWidget):
 
         self.sb(msg_info)
 
-        for field_name in self.field_list:
-            try:
-                value = getattr(obj, field_name)
-                dbg.write("VALUE (%s): %s" % (field_name, value))
-                self.set_value(field_name, value)
-                #self.get_value(field_name) ????
-            except exc.FieldNotInLayout, e:
-                pass
+        for field in self.gui_fields:
+            value = getattr(obj, field.field_name)
+            self.set_value(field.field_name, value)
 
-        #self.actions.on_record_display(new=obj)
-        #sqlwidget.SqlWidget.record_display(self, new=data_in)
-        
-        ## return True if a record has beeen displayed. In case we 2 Mask in sync
-        ## this will stop the master mask to continue in the next record until
-        ## the first has been terminated
-        #dbg.write("%s DATA DISPLAYed " % self.nick)
         return True
 
     def set_records(self, records, index=0):
@@ -288,7 +275,8 @@ class SqlMask (sqlwidget.SqlWidget):
         return obj
 
     def clear_mask(self, widget=None, check=True):
-        """clear the mask for a new record
+        """
+        clear the mask for a new record
         NOTE: this does NOT prepare for a new record (missing obj)
         """
 
@@ -297,11 +285,8 @@ class SqlMask (sqlwidget.SqlWidget):
 
         self.current = None
         
-        for field_name in self.field_list:
-            try:
-                self.clear_value(field_name)
-            except exc.FieldNotInLayout, e:
-                pass
+        for field in self.gui_fields:
+            self.clear_value(field.field_name)
 
     clear = clear_mask
     
