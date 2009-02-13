@@ -814,6 +814,9 @@ class SqlWidget(gobject.GObject):
         ## I want to avoid the dialog: do you want to save?
         ## session.dirty would (correctly) say a commit is needed
 
+        if not self.current:
+            return False
+        
         for sqlwidget in self.related:
             if sqlwidget.record_has_changed():
                 return True
