@@ -1062,12 +1062,19 @@ class SqlWidget(gobject.GObject):
         gtk_dbg.ShowClassInfo(self) 
         
     def _fill_menubar_menu(self):
-        """here all menus are filled for filtering,  sorting, ro, query..."""
+        """
+        here all menus are filled for filtering,  sorting, ro, query...
+        """
+
+        from sqlkit.layout.misc import StockMenuItem
+        
         if 'm=file' in self.widgets:
+            item = StockMenuItem(_('Filter panel'), 'gtk-find')
+            item.connect('activate', self.add_filter_cb)
+            self.widgets['M=file'].append(item)
             self.lay_obj.menu(
                 'm=file',
                 # meu entry to pop filter tool
-                (_('Filter panel'),  'activate', self.add_filter_cb),
                 ('-', None),
                 ('gtk-new', 'activate',  self.record_new),
                 ('gtk-save', 'activate',  self.record_save_cb),

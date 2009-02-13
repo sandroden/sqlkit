@@ -437,6 +437,7 @@ class SqlTable(sqlwidget.SqlWidget):
 #### column menu
     def popup_col_menu(self, ev, field_name):
 
+        from sqlkit.layout.misc import StockMenuItem
         try:
             self.widgets['M=popup'].destroy()
         except:
@@ -449,7 +450,7 @@ class SqlTable(sqlwidget.SqlWidget):
         ## TIP: menu entry to add a filter in the filter panel
         field_name_localized = get_label(field_name, layout=self.lay_obj).replace('_', '__')
         label_str = _("Add a filter on '%s'") % field_name_localized
-        item = gtk.MenuItem(label=label_str)
+        item = StockMenuItem(label=label_str, stock='gtk-find')
 #        item.connect('activate', self.filter_panel.add, ev, field_name )
         item.connect('activate', self.filter_panel.add, ev, field_name, self )
         menu.append(item)
@@ -466,7 +467,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         ## hide
         # TIP: column menu opt
-        item = gtk.MenuItem(label=_("Hide this column"))
+        item = StockMenuItem(label=_("Hide this column"), stock='gtk-close')
         item.connect('activate', self.hide_fields_cb, field_name )
         menu.append(item)
 
