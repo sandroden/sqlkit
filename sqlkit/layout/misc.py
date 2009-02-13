@@ -1,6 +1,15 @@
 import gtk
 import layout
 
+class StockMenuItem(gtk.ImageMenuItem):
+    
+    def __init__(self, label, stock, size=gtk.ICON_SIZE_MENU):
+        gtk.ImageMenuItem.__init__(self, label)
+        image = gtk.Image()        
+        image.set_from_stock(stock, size)
+        self.set_image(image)
+        self.show_all()
+
 class EasyTreeView(object):
     def __init__(self, cols, tv=None, model=None, sort=True,
                  resize=True, show=True, but='', title='EasyTreeView'):
