@@ -69,7 +69,7 @@ class SqlMask (sqlwidget.SqlWidget):
             self.record_new()
         return length
 
-    def record_display(self, record=None, incr=0, index=None, reread=False):
+    def record_display(self, record=None, incr=0, index=None, check=True):
         """display an object record in the mask
 
         display the data provided by self.records[self.current + incr]
@@ -79,7 +79,7 @@ class SqlMask (sqlwidget.SqlWidget):
             ## TIP: message in the statis bar
             self.sb(_('No record present'), seconds=5)
             return
-        if not reread:
+        if check:
             try:
                 self.record_save(ask=True)
             except (exc.CancelledAction, exc.ValidationError):
@@ -232,7 +232,7 @@ class SqlMask (sqlwidget.SqlWidget):
         self.commit()
         self.last_new_obj = None
         
-        self.record_display(reread=True)
+        self.record_display(check=False)
         self.current_mode = 'UPDATE'
         
     def record_save_new(self, wdg, constraint={}):
@@ -348,7 +348,7 @@ class SqlMask (sqlwidget.SqlWidget):
         undo possible modification to the mask
         """
         self.discard_changes()
-        self.record_display(reread=True)
+        self.record_display(check=False)
         
     def record_forward(self, ev):
         """display the next record in the mapper"""

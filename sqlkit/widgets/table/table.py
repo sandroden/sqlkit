@@ -1114,8 +1114,11 @@ class SqlTable(sqlwidget.SqlWidget):
 
         return self.liststore.insert_after(row.iter, [new_obj])
 
-    def record_display(self, index=None):
-        """Display all records (appending them to liststore)"""
+    def record_display(self, index=None, check=False):
+        """
+        Display all records (appending them to liststore)
+        check=False  - not used here but present becouse is used in Mask
+        """
 
         if index == None:
             self.liststore.clear()
