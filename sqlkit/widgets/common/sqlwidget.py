@@ -539,38 +539,49 @@ class SqlWidget(gobject.GObject):
         self.sb(e.orig)
         return False  # i.e.: rollback
 
-    def record_validate(self, obj, single_fields=True):
+    def record_validate(self, obj=None, single_fields=True, related=None):
         """
         any validation should live here
         single_fields=bool validation of single fields is done here for table 
                            but in  mask2obj for Maks
                            single_fields determines if check for single fields is done
+        returns the validation_error dict to propagate the error info upward
         """
-        assert obj is not None
-        mode = obj in self.session.new and 'INSERT' or 'UPDATE'
+        if not hasattr(self, 'validation_errors') or related:
+            self.validation_errors = {}
 
-        self.validation_errors = {}
+        if obj is None:
+            obj = self.get_current_obj()
+            if obj is None:
+                return {}
+
+        for sqlwidget in self.related:
+            self.validation_errors.update(
+                sqlwidget.record_validate(related=sqlwidget.relationship_path))
+            
+        mode = obj in self.session.new and 'INSERT' or 'UPDATE'
 
         if single_fields:
             self.record_validate_fields(obj)
-        if self.validation_errors:
-            self.handle_validation_errors()
+
+        if related:
+            return self.validation_errors
+
+        if self.validation_errors: # just one error dialog
+            self.validation_error_dialog()
     
     def handle_validation_errors(self, error=None, field_name=None):
         """
         handle the error raised by a field or take care of action in
         self.vaidation_error dict and raise exception for record_save
         """
-        if error:
-            if not field_name in self.validation_errors:
-                self.validation_errors[field_name] = []
-                                       
-            self.validation_errors[field_name] += [error.message]
-                
-            self.sb(error.message, seconds=30)
-            
-        else:
-            self.validation_error_dialog()
+
+        if not field_name in self.validation_errors:
+            self.validation_errors[field_name] = []
+
+        self.validation_errors[field_name] += [error.message]
+
+        self.sb(error.message, seconds=30)
 
     def validation_error_dialog(self):
         """
@@ -608,7 +619,8 @@ class SqlWidget(gobject.GObject):
         dialog.show_all()
         response = dialog.run()
         dialog.destroy()
-        
+
+        self.validation_errors = {}
         raise exc.ValidationError
 
     def validation_error_fill_model(self, model):
@@ -620,7 +632,6 @@ class SqlWidget(gobject.GObject):
             for i, err in enumerate(self.validation_errors[key]):
                 iter = model.append(None)
                 if i == 0:
-                    
                     model.set(iter, 0, "<b>%s</b>" % _(get_label(key, layout=self.lay_obj)))
                 model.set(iter, 1, "<i>%s</i>" % err)
             
@@ -803,7 +814,10 @@ class SqlWidget(gobject.GObject):
         ## I want to avoid the dialog: do you want to save?
         ## session.dirty would (correctly) say a commit is needed
 
-        
+        for sqlwidget in self.related:
+            if sqlwidget.record_has_changed():
+                return True
+
         for field_name in self.field_list:      
             try:
                 changed = self.has_changed(field_name)
@@ -1564,10 +1578,4 @@ class SqlWidget(gobject.GObject):
 def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
-
-
-
-
-
-
 

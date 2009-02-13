@@ -58,7 +58,8 @@ class SqlMask (sqlwidget.SqlWidget):
 ####### Record browsing & saving
     def reload(self, **kw):
 
-        response = self.save_unsaved()
+        changed = self.record_has_changed()
+        response = self.save_unsaved(skip_check=changed)
         if response == gtk.RESPONSE_CANCEL:
             return
             
@@ -282,8 +283,8 @@ class SqlMask (sqlwidget.SqlWidget):
                 except exc.ValidationError, e:
                     self.handle_validation_errors(e, field_name=field_name)
 
-            if self.validation_errors:
-                self.handle_validation_errors()
+#             if self.validation_errors:
+#                 self.validation_error_dialog()
         return obj
 
     def clear_mask(self, widget=None, check=True):
