@@ -189,7 +189,7 @@ class TimeTZWidget(Widget):
 
 
 class IntervalWidget(Widget):
-
+    __metaclass__ = dbg.LogTheMethods
     def set_value(self, value):
         if value and not isinstance(value, timedelta):
             msg = "value for %s must be a timedelta (now: %s)" % (self.field_name, value)
@@ -198,7 +198,7 @@ class IntervalWidget(Widget):
 
     def get_value(self, shown=False):
         ## if all values are 0 and initial value is None, return None
-        
+
         value = self.gtkwidget.get_property('interval') 
         if value == timedelta(0) and self.field.initial_value == None:
             return None

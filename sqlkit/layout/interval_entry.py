@@ -8,6 +8,8 @@ should work out a bettere widget an possibly contribute it...
 import gobject
 import gtk
 from datetime import timedelta
+from sqlkit import debug as dbg
+
 
 class IntervalEdit(gtk.Alignment):
     __gtype_name__ = 'IntervalEntry'
@@ -74,11 +76,14 @@ class IntervalEdit(gtk.Alignment):
         if property.name == 'interval':
             
             days = self.days.get_text() or 0
-            hours = self.hours.get_text() or 0
-            #minutes = self.minutes.get_text() or 0 
-            #seconds = self.seconds.get_text() or 0
+            hours = self.hours.get_text() or '0:0:0'
+        
+            assert len(hours.split(':')) == 3
+
             hours, minutes, seconds = hours.split(':')
+
             value = timedelta(days=int(days), hours=int(hours),
                                       minutes=int(minutes), seconds=int(seconds))
             return value
             
+
