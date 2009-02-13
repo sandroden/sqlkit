@@ -704,7 +704,7 @@ class SqlWidget(gobject.GObject):
             self.clear(check=False)
         self.records = query.all()
         if display:
-            self.record_display()
+            self.record_display(check=False)
 
         length = len(self.records)
         return length
