@@ -311,7 +311,7 @@ class Field(object):
         """
         return value
     
-    def validate(self, value, input_is_fkey=False, clean=False):
+    def validate(self, value, clean=False):
         if not clean:
             try:
                 value = self.clean_value(value) and True
@@ -596,9 +596,14 @@ class ForeignKeyField(Field):
         ret = self.master.metadata.bind.execute(sql).fetchone()
         return ret and ret[0]
 
-    def validate(self, value, input_is_fkey=False, clean=False):
+    def validate(self, value, clean=False):
+        """
+        for an fkey field a 'clean' value is an fkey, by definition...
+        """
+        input_is_fkey = clean
+
         try:
-            value = self.clean_value(value, input_is_fkey=input_is_fkey)
+            value = self.clean_value(value, input_is_fkey=clean)
         except Exception, e:
             msg = "Field %s could not validate value '%s': error was: %s" 
             raise exc.ValidationError(_(msg % (self.field_name, value, e.message) ))

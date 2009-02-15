@@ -188,12 +188,14 @@ class SqlMask (sqlwidget.SqlWidget):
                 self.current_idx -= 1
             self.record_display(index=self.current_idx)
     
-    def record_save(self, ask=True, *args):
+    def record_save(self, ask=True, new_obj=False, *args):
         """
         invokes the validator before UPDATE/INSERT a record
+        ask:  ask if save is required
+        new_obj:   the record is new. It forces mask2obj to skip check and save all fields
         """
 
-        if not self.record_has_changed() and not self.unsaved_changes_exist():
+        if not new_obj and not self.record_has_changed() and not self.unsaved_changes_exist():
 #             if self.last_new_obj:
 #                 ## very important: existence of an instance that is not
 #                 ## persinstant will turn out in an error if it cannot be
@@ -205,14 +207,15 @@ class SqlMask (sqlwidget.SqlWidget):
             return
 
         if ask:
-            response = self.save_unsaved(skip_check=True)
+            response = self.save_unsaved(skip_check=True, proceed=False)
+
             if response == gtk.RESPONSE_CANCEL:
                 raise exc.CancelledAction
 
             if response == gtk.RESPONSE_NO: 
                 return
             
-        obj = self.record_mask2obj(self.current, skip_check=True)
+        obj = self.record_mask2obj(self.current, force=new_obj)
                 
         self.record_validate(obj, single_fields=False)
             
@@ -223,7 +226,8 @@ class SqlMask (sqlwidget.SqlWidget):
         self.current_mode = 'UPDATE'
         
     def record_save_new(self, wdg, constraint={}):
-        """create a new record by cloning the present
+        """
+        create a new record by cloning the present
         """
 
         ## if PKey is editable we should add a check that is not the same
@@ -241,21 +245,21 @@ class SqlMask (sqlwidget.SqlWidget):
 
         self.record_new(clear=False)
         try:
-            self.record_save()
+            self.record_save(new_obj=True)
         except exc.ValidationError, e:
             pass
         
-    def record_mask2obj(self, obj=None, skip_check=False):
+    def record_mask2obj(self, obj=None, force=False):
         """
         collect data from the mask and set into the object if record_has_changed())
         """
         if not obj:
             return obj
 
-        if skip_check or self.record_has_changed():
-            if obj not in self.session: ## it should never happen, really... why do we need?
-                self.session.add(obj)
+        if obj not in self.session: ## it should never happen, really... why do we need?
+            self.session.add(obj)
 
+        if force or self.record_has_changed():
             self.validation_errors = {}
 
             for field in self.gui_fields:
@@ -305,7 +309,7 @@ class SqlMask (sqlwidget.SqlWidget):
         clear = True/False. clear=False is used when 'saving as'
         """
         if self.current:
-            if not self.record_has_changed():
+            if clear and not self.record_has_changed():
                 if self.last_new_obj:
                     self.sb(_("Already at new record"))
                     return

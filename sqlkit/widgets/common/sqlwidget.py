@@ -543,10 +543,11 @@ class SqlWidget(gobject.GObject):
         """
         any validation should live here
         single_fields=bool validation of single fields is done here for table 
-                           but in  mask2obj for Maks
+                           but in  mask2obj for Masks
                            single_fields determines if check for single fields is done
         returns the validation_error dict to propagate the error info upward
         """
+
         if not hasattr(self, 'validation_errors') or related:
             self.validation_errors = {}
 
@@ -639,7 +640,6 @@ class SqlWidget(gobject.GObject):
         """
         validate any fields in self.gui_fields
         """
-
         for field in self.gui_fields:
             field_name = field.field_name
             try:
@@ -958,7 +958,7 @@ class SqlWidget(gobject.GObject):
         if self.single:
             self.gquit()
 
-    def save_unsaved(self, refresh=True, skip_check=False):
+    def save_unsaved(self, refresh=True, skip_check=False, proceed=True):
         """
         Check if it needs saving. In case ask for confirmation and proceed.
         This triggers both session changes *AND* changes to the current mask that
@@ -984,7 +984,8 @@ class SqlWidget(gobject.GObject):
                 pass
 
             if response == gtk.RESPONSE_YES:
-                self.record_save(ask=False)
+                if proceed:
+                    self.record_save(ask=False)
             
             ## you don't want to save. Let's prevent a delayed commit
             ## we don't need to care about deleted becouse when you delete
