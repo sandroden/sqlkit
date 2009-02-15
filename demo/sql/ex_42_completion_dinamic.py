@@ -11,9 +11,9 @@ lay = """
    nation
 """
 
-t = SqlMask(Class=model.Director, dbproxy=db, layout=lay)
+t = SqlMask(class_=model.Director, dbproxy=db, layout=lay)
 
 t.completions.last_name.filter(nation='$nation')
 t.set_value('nation', 'ITA')
 
-t2 = SqlMask(Class=model.Director, dbproxy=db, layout=lay)
+t2 = SqlMask(class_=model.Director, dbproxy=db, layout=lay)

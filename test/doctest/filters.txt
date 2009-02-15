@@ -13,14 +13,14 @@
 >>> from sqlkit.widgets import SqlMask, SqlTable
 
 >>> lay = "title"
->>> sm = SqlMask(Class=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> sm.lay_obj.lay
 'L=title ae=title:50-'
 >>> sm.laygen.fields_in_layout
 {'title': 'e=title'}
 
 ## completions
->>> sm = SqlMask(Class=Movie, dbproxy=db, naked=True, show=True)
+>>> sm = SqlMask(class_=Movie, dbproxy=db, naked=True, show=True)
 >>> sm.get_value('title')
 ''
 >>> sm.set_value('director_id', 'f', shown=True)
@@ -32,12 +32,12 @@ Fellini
 Faenza
 Fellini
 Truffaut
->>> sm = SqlMask(Class=AllTypes, dbproxy=db, naked=True, show=False)
+>>> sm = SqlMask(class_=AllTypes, dbproxy=db, naked=True, show=False)
 >>> n = sm.reload()
->>> t = SqlTable(Class=AllTypes, dbproxy=db, naked=True, show=False)
+>>> t = SqlTable(class_=AllTypes, dbproxy=db, naked=True, show=False)
 
 ## Filters
->>> sm = SqlMask(Class=AllTypes, dbproxy=db, naked=True, show=False)
+>>> sm = SqlMask(class_=AllTypes, dbproxy=db, naked=True, show=False)
 >>> sm.add_filter(integer__gte=1)
 >>> sm.add_filter(float__gte=1.1)
 >>> sm.add_filter(numeric__gte=1.1)

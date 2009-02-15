@@ -2,7 +2,7 @@
 
 Adding a relation is as easy as adding the relation name to the layout.
 Note that in this case the table name is not sufficient, we need to know
-the mapping so we pass a Class attribute that is really a mapped class
+the mapping so we pass a class_ attribute that is really a mapped class
 (in this example built with declarative layer)
 
 """
@@ -14,7 +14,7 @@ lay = """
    m2m=movies -
 """
 
-t = SqlMask(Class=model.Director, dbproxy=db, layout=lay)
+t = SqlMask(class_=model.Director, dbproxy=db, layout=lay)
 
 t.reload()
 

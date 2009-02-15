@@ -50,7 +50,7 @@ below you can see some alternatives that would work as well::
   # passing a mapped class (Movie here is build with declarative layer):
   # the metadata is found from the mapper.local_table.metadata
 
-  SqlTable(Class=Movies, session=sess)
+  SqlTable(class_=Movies, session=sess)
 
 Session are created with  ``autoflush=False``, ``expire_on_commit=False`` but
 can be changed when building ``DbProxy``. 

@@ -13,7 +13,7 @@
 >>> from sqlkit.widgets.common.fields import FieldChooser
 
 >>> lay = "title year director_id m2m=genres date_release"
->>> sm = SqlMask(Class=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> field_chooser = FieldChooser(sm, sm.widgets)
 >>> field_name, key = 'title', 'title'
 >>> print field_chooser.get_field(field_name, sm.mapper_info.fields[field_name], key)
@@ -40,7 +40,7 @@
 >>> from datetime import date, datetime, time, timedelta
 
 # integer
->>> sm = SqlMask(Class=AllTypes, dbproxy=db, naked=True, show=False)
+>>> sm = SqlMask(class_=AllTypes, dbproxy=db, naked=True, show=False)
 >>> f = sm.gui_fields['integer']
 >>> print f
 <IntegerField - integer >
@@ -100,7 +100,7 @@ datetime.time(15, 30)
 >>> silent = reload(dates)
 
 # integer
->>> sm = SqlMask(Class=AllTypes, dbproxy=db, naked=True, show=False)
+>>> sm = SqlMask(class_=AllTypes, dbproxy=db, naked=True, show=False)
 >>> f = sm.gui_fields['integer']
 >>> f.clean_value(1)
 1

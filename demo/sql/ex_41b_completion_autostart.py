@@ -12,6 +12,6 @@ lay = """
    m2m=genres -
 """
 
-t = SqlMask(Class=model.Movie, dbproxy=db, layout=lay)
+t = SqlMask(class_=model.Movie, dbproxy=db, layout=lay)
 t.related.genres.completions.name.autostart = 2
 

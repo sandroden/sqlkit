@@ -100,7 +100,7 @@ on the query directly::
    tk_tbl = ticket.Ticket.__table__
    my_id = self.db.get_session().query(ticket.User).filter_by(username=setup.USERNAME).one().id
 
-   t = sk.SqlTable(Class=ticket.Ticket, field_list=field_list, order_by='priority', **self.meta)
+   t = sk.SqlTable(class_=ticket.Ticket, field_list=field_list, order_by='priority', **self.meta)
    t.add_filter(status=1)
    t.query = t.query.filter(or_(tk_tbl.c['assigned_by_id'] == my_id ,
                                 tk_tbl.c['assigned_to_id'] == my_id , ))

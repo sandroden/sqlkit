@@ -10,7 +10,7 @@ lay = """
     director_id
 """
 
-t = SqlMask(Class=model.Movie, dbproxy=db, layout=lay)
+t = SqlMask(class_=model.Movie, dbproxy=db, layout=lay)
 
 t.completions.director_id.group_by = 'nation'
 

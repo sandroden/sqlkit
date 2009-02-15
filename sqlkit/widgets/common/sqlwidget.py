@@ -65,52 +65,50 @@ class SqlWidget(gobject.GObject):
 #    __metaclass__ = misc.autoreload.MetaAutoReloader
     records = None
     last_new_obj = None
-    def __init__ (self, mapper=None,
-                  ## geometry
-                  layout = None,
-                  naked=False,
-                  geom=(-1,-1),
-                  rows=10,
-                  addto=None,
-                  title=None,
-                  show=True,
-                  icons='',
-                  col_width = None,
-                  # SQL
-                  table=None,
-                  tables=None,
-                  Class=None,
-                  join=None,
-                  ro=False,
-                  noup=[],
-                  sql=None,
-                  constraint={},
-                  dbproxy = None,
-                  order_by=None,
-                  limit=200,
-                  field_list=None,
-#                  filter=True,
-                  session=None,
-                  metadata = None,
-                  ignore_fields = None,
-                  hide_fields = None,
-                  ## more
-                  single=False,
-                  nick=None,
-                  about_dialog = None,
-#                  actions=None,
-                  dev=False,
-                  xml=False,
-                  relationship_mode = 'SINGLE',
-                  relationship_path = None,
-                  relationship_leader = None,
-                  format=None,
-                  label_map = None,
-                  ):
+
+    def __init__(self, mapper=None,
+                 ## geometry
+                 layout = None,
+                 naked=False,
+                 geom=(-1,-1),
+                 rows=10,
+                 addto=None,
+                 title=None,
+                 show=True,
+                 icons='',
+                 col_width = None,
+                 # SQL
+                 table=None,
+                 tables=None,
+                 class_=None,
+                 join=None,
+                 ro=False,
+                 noup=[],
+                 sql=None,
+                 constraint={},
+                 dbproxy = None,
+                 order_by=None,
+                 limit=200,
+                 field_list=None,
+                 session=None,
+                 metadata = None,
+                 ignore_fields = None,
+                 hide_fields = None,
+                 ## more
+                 single=False,
+                 nick=None,
+                 about_dialog = None,
+                 dev=False,
+                 xml=False,
+                 relationship_mode = 'SINGLE',
+                 relationship_path = None,
+                 relationship_leader = None,
+                 format=None,
+                 label_map = None,
+                 ):
         """create an interface and allow to save/store data from a database
 
         layout:    a layout describing the desired layout (see layout package)
-#        actions: a validator to be used to validate fields and records
         naked:  in case the mask should *not* be added interactive buttons
                 needed if the layout already contains all the required buttons
         ro:     Boolean. When in read-only no save/delete is alllowed
@@ -123,7 +121,7 @@ class SqlWidget(gobject.GObject):
         dev:    if dev=False (default) fields ending with '_id' and not fk
                 are not shown
         hide:   fields not to be shown (space or comma separated or list)
-        Class:  an instrumented class (one connected o a mapper). This along with
+        class_:  an instrumented class (one connected o a mapper). This along with
                 session may be the only parameters
         table[s]: a table name. The plural is left for a possibe extensions to automatic join
         mapper: a sqlalchemy mapper. a Class is built runtime, metadata is read from local_table
@@ -158,7 +156,7 @@ class SqlWidget(gobject.GObject):
 #        self.engine = self.get_engine(engine, mapper)
         self.session = self.get_session(session)
         self.order_by = order_by
-        self.mapper = self.get_mapper(mapper, table or tables, Class)
+        self.mapper = self.get_mapper(mapper, table or tables, class_)
         self.metadata = self.get_metadata(metadata, self.mapper)
         ## we can use singular or plural as an option, plural in the code
         if table and not tables:
@@ -237,12 +235,12 @@ class SqlWidget(gobject.GObject):
         else:
             return self.dbproxy.get_session()
     
-    def get_mapper(self, mapper, tables, Class=None):
+    def get_mapper(self, mapper, tables, class_=None):
 
         if mapper:
             return mapper
-        elif Class:
-            mapper = class_mapper(Class)
+        elif class_:
+            mapper = class_mapper(class_)
         else:
             mapper = self.dbproxy.get_mapper(mapper, tables)
             

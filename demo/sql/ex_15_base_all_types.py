@@ -6,9 +6,9 @@ as interval and NullableBool (that it not working at all).
 
 """
 
-t = SqlMask(Class=model.AllTypes, dbproxy=db )
+t = SqlMask(class_=model.AllTypes, dbproxy=db )
 t.reload()
 
-t1 = SqlTable(Class=model.AllTypes, dbproxy=db )
+t1 = SqlTable(class_=model.AllTypes, dbproxy=db )
 t1.reload()
 

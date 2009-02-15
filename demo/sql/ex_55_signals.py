@@ -5,8 +5,8 @@
 """
 
 
-t = SqlTable(Class=model.Director, dbproxy=db, )
-t2 = SqlTable(Class=model.Movie, dbproxy=db,  )
+t = SqlTable(class_=model.Director, dbproxy=db, )
+t2 = SqlTable(class_=model.Movie, dbproxy=db,  )
 
 def show_movies(widget):
     if widget.current:
