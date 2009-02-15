@@ -275,7 +275,7 @@ class Field(object):
         """
         return the default value for this object
         """
-        value = self.master.get_default(self.field_name)
+        value = self.master.defaults.get(self.field_name)
 
         if not value:
             try:

@@ -35,7 +35,7 @@ from sqlkit import debug as  dbg
 import gobject
 import sqlfilter
 #from sqlkit.widgets.common import sqlfilter2 as sqlfilter
-from sqlkit.db import minspect
+from sqlkit.db import minspect, defaults
 from sqlkit.widgets.common import completion
 from sqlalchemy.orm import attributes
 from sqlkit.misc.utils import Container
@@ -192,7 +192,7 @@ class SqlWidget(gobject.GObject):
         self.show(show)
         self.set_format(format)
         self.query = self.session.query(self.mapper)
-        self.defaults = {}
+        self.defaults = defaults.Defaults(self.tables, metadata=self.metadata, local=True)
             
     def show(self, show):
         """create the widget and go on displaying the layout
@@ -1381,26 +1381,6 @@ class SqlWidget(gobject.GObject):
         response = dialog.run()
         dialog.destroy()
         
-    def set_default(self, **kwargs):
-        """
-        """
-        from sqlkit.db import defaults
-
-        for field_name, default_value in kwargs.items():
-            self.defaults[field_name] = default_value
-        
-    def get_default(self, field_name):
-        """
-        return the default for the field in this instance of sqlwidget
-        firstly the local default dictionary is queried, secondly the defaults module
-        """
-        from sqlkit.db import defaults
-
-        if field_name in self.defaults:
-            value = self.defaults.get(field_name, None)
-        else:
-            value = defaults.get_default(self.mapper_info.fields[field_name]['col'].table.name, field_name)
-        return value
         
 ####### printing
     def printing(self):

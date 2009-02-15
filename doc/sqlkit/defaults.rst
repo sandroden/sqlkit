@@ -7,21 +7,24 @@ Defaults
 Defaults are a handy way to avoid typing too much. Defaults are handled by
 sqlkit.db.defaults.Default class::
 
- def_visita = defaults.Defaults('cliente_visita', metadata=elixir.metadata)
+ from sqlkit.db  import defaults
+ def_visita = defaults.Defaults('cliente_visita', metadata=db.metadata, local=False)
  def_visita.set_defaults( {'data' : def_visita.now, 'telefonata' : True})
- def_visita.fk('venditore_id', 'username', 'mauro')
- def_visita.fk('negozio_id', 'negozio', 'Macherio')
+ def_visita.set_default( title='Write a title...', duration=90)
+ def_visita.fk('director_id', 'first_name', 'Olmi')
 
 
-Defaults class requires a table name and a metaclass to know where to
+*Defaults* class requires a table name and a metaclass to know where to
 autoload/read table definition. 
+
+Defaults can be local to a sqlwidget or global to the application.
 
 set_default
 ===========
 
 The main method is ``set_defaults`` that
 requires a dictionary as argument with *field_name* as keys and *field
-defaults* as value.
+defaults* as value. Alternatively ``set_default`` accepts keyword args.
 
 fk
 ===
@@ -41,3 +44,20 @@ SA defaults & server defaults
 
 At the moment Sqlalchemy defaults are handled only in case of a fixed value
 (not a callable) and defaults defined in the server as well.
+
+.. _local_defaults:
+
+Defaults local to the application
+=================================
+
+Sqlwidgets have an attribute called ``defaults`` that is an instance of 
+``sqlwidget.db.defaults.Defaults`` already correctly instantiated that allow 
+to set defalts local only to the instance of sqlwidget they belong to.
+
+You can use such a default in any of the following ways::
+
+  m = SqlMask(table='movie', ...)
+  m.defaults.set_default(actor=False)
+  m.defaults.set_defaults( {'title' : 'write your preferred...'} )
+  m.defaults.fk('director_id', 'first_name', 'Fellini')
+

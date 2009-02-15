@@ -4,7 +4,8 @@ import sqlalchemy
 tables = {}
 
 def set_default(table_name, tbl_dict):
-    """Add a dictionary with one entry for each field of a table
+    """
+    Add a dictionary with one entry for each field of a table
     """
     global tables
     if table_name in tables:
@@ -16,24 +17,37 @@ def set_default(table_name, tbl_dict):
 
 class Defaults(object):
 
-    def __init__(self, table_name, metadata=None):
+    def __init__(self, table_name, metadata=None, local=False):
         self.table_name = table_name
         self.metadata = metadata
-#         if metadata:
-#             self.table = metadata.tables[table_name]
+        self.local = local
+        if local:
+            self.tdict = {}
+        else:
+            global tables
+            if self.table_name in tables:
+                self.tdict = tables[self.table_name]
+            else:
+                self.tdict = tables[self.table_name] = {}
 
     def set_defaults(self, tbl_dict):
-        global tables
+        """
+        set defaults using a dict as input
+        """
         if self.table_name in tables:
-            tdict = tables[self.table_name]
-            tdict.update(tbl_dict)
+            self.tdict = tables[self.table_name]
+            self.tdict.update(tbl_dict)
 
         else:
             tables[self.table_name] = tbl_dict
 
-    def set_default(self, field_name, value):
-        tbl_dict = {field_name: value}
-        self.set_defaults(tbl_dict)
+    def set_default(self, **kw):
+        """
+        set a single default
+        """
+        for field_name, value in kw.iteritems():
+            tbl_dict = {field_name: value}
+            self.set_defaults(tbl_dict)
 
     def fk(self, field_name, attr, value):
         ## when we define defaults, metadata may not yet have loaded the table
@@ -57,11 +71,26 @@ class Defaults(object):
                 tables[self.table_name][field_name] = None
             return tables[self.table_name][field_name]
         
-        self.set_default(field_name, get_by_description)
+        self.set_defaults( {field_name : get_by_description})
     
     today = datetime.date.today
     now = datetime.datetime.now
 
+
+    def get(self, field_name):
+        """
+        Return the default value for a field_name
+        if the value is a callable... call it
+        """
+        try:
+            value = self.tdict[field_name]
+            if callable(value):
+                return value()
+            else:
+                return value
+
+        except KeyError, e:
+            return get_default(self.table_name, field_name)
 
 def get_default(table_name, field_name):
     """
