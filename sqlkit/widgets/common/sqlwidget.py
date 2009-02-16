@@ -56,7 +56,7 @@ class SqlWidget(gobject.GObject):
                            (),
                            ),
         }
-
+    gui_fields = None
 #    fields   = None  # fields to use (InspectMapper)
 #    tables = None    # Table objects referenced as foreign keys
     values = None    # real value for foreign key
@@ -137,7 +137,7 @@ class SqlWidget(gobject.GObject):
         """
         gobject.GObject.__init__(self)
         self.related = Container()
-        self.gui_fields = Container()
+        self.gui_fields = Container(self.gui_fields)
         self.field_widgets = Container()
         self.completions = Container()
         self.label_map = map_labels(buf=label_map, private=True)

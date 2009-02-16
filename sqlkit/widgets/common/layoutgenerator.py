@@ -219,8 +219,18 @@ class LayoutGenerator (object):
         
         
     def get_widget(self, field_name):
-        """choose appropriate widget to represent this field
         """
+        choose appropriate widget to represent this field
+        check if a particular field was already defined in gui_fields
+        """
+
+        ## check if we defined already a Fiedl via gui_field
+        if field_name in self.master.gui_fields:
+            field = self.master.gui_fields[field_name]
+            widget = getattr(field, 'default_def_string')
+            if widget:
+                return widget
+            
 
         #self.used_field_dict[field_name] = 
 
@@ -239,9 +249,10 @@ class LayoutGenerator (object):
         return widget
 
     def create_spec(self, field_name):
-        """create a spec string that decides how long en entry must be
-           reflects fom db
-           """
+        """
+        create a spec string that decides how long en entry must be
+        reflects fom db
+        """
         length = self.master.mapper_info.fields[field_name]['length']
         col_spec = self.master.mapper_info.fields[field_name]['col_spec'] or ''
         db_type  = self.master.mapper_info.fields[field_name]['db_type'] 

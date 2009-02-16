@@ -14,11 +14,12 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+=======
 Fields
 =======
 Mask/Tables are collection of data that may belong to the database or not.
-Each of the data represented in the GUI that need to partecipate to any
-updating/saving process shuld have it's own controller that is a Field.
+Each of the data represented in the GUI that needs to partecipate to any
+updating/saving process should have it's own controller that is a Field.
 
 A Field is an entity that knows how to handle a piece of data, be it on
 the database (a field_name) or just in the GUI. It knows:
@@ -32,7 +33,7 @@ the database (a field_name) or just in the GUI. It knows:
 It provides functions to
 
    - set/get value
-   - get default value (but cannot always cope with server_side defaults)
+   - get default value (but will not cope with server_side defaults)
    - tell if it changed from the default
    - clean value according to it's logic: i.e. return a value of the correct type
    - validate values (possibly according to other criteria)
@@ -80,23 +81,40 @@ formatting/locale
 
    see decimal_ to have an intro on formatting numbers
 
-   .. _decimal http://java.sun.com/docs/books/tutorial/i18n/format/decimalFormat.html
+.. _decimal: http://java.sun.com/docs/books/tutorial/i18n/format/decimalFormat.html
 
 FieldChooser
 ===============
 
-this class implements a way to decide which Field should be associated to each field_name
-in a mapper (used in setup_field_validation so that it can be easily overwritten)
+This class implements a way to decide which Field should be associated to
+each field_name in a mapper (used in setup_field_validation so that it can
+be easily overwritten).  It's important to understand that it already
+receives a gtkwidget from layoutgenerator; that widget has been set by
+introspection on the layout description and of the field in the database.
+
+You can overwrite the decision of the field redefining the gui_field on a
+derived sqlwidget::
+
+  class Movie(SqlMask):
+      gui_fields = {'date_release' : VarcharField}
+
+  t = Movie(table='movie', dbproxy=db, layout=lay)
+  
+It's up to the field defined in this way to be able to handle the type of data.
+This setting can be used to add field constraints (eg: mail address
+validation) or to completely change the widget that represent data.
 
 Widgets
 ========
 
-A Field does not create a gtk widget to represent data, that's -rarely- done by
-sqlkit.widgets.mask.wiget.Widget. More tipically it is done by the layout procedure and
-the Fields/Widget just takes it control and adds completion capabilities.
+A Field does not create a gtk widget to represent data, that's -rarely- done
+by sqlkit.widgets.mask.miniwiget.Widget. More tipically it is done by the
+layout procedure and the Fields/Widget just takes its control and adds
+completion capabilities.
 
-A notable exception to this rule is represented by any m2m relation, that in the layout is
-only present as a gtk.Alignment widget to which a children is added by mask.Widget  
+A notable exception to this rule is represented by any m2m relation, that in
+the layout is only present as a gtk.Alignment widget to which a children is
+added by mask.Widget
 
 """
 import re
@@ -126,14 +144,15 @@ class FieldChooser(object):
 
     def __init__(self, master, widgets=None):
         """    
-        w:           the widget dictionary retuned by Layout
+        widgets:     the widget dictionary retuned by Layout
         master:      the sqlkit widget (SqlMask)
         """
         self.master = master
         self.widgets = widgets or {}
 
     def get_field(self, field_name, db_spec=None, def_str=None, test=False):
-        """return a field
+        """
+        return a field
 
         field_name:  the name of the field in the db
         db_spec:     the dict for this field as worked out by InspectMapper
@@ -143,8 +162,12 @@ class FieldChooser(object):
         """        
 
         gtk_widget = self.widgets.get(def_str, None)
-    
-        args = (field_name, db_spec, def_str, self.master, gtk_widget, test)
+        args = (field_name, db_spec, self.master, gtk_widget, test)
+
+        if field_name in self.master.gui_fields:
+            return self.master.gui_fields.get(field_name)(*args)
+
+
         if self.master.is_fkey(field_name):
             return ForeignKeyField(*args)
 
@@ -202,7 +225,9 @@ class FieldChooser(object):
 
 class Field(object):
     Widget = None
-    def __init__(self, field_name, db_spec, def_str, master, gtkwidget, test=False):
+    default_def_string = 'ae'
+
+    def __init__(self, field_name, db_spec, master, gtkwidget, test=False):
         """
         field_name:  the name of the field in the db
         db_spec:     the dict as worked out by InspectMapper
@@ -215,10 +240,10 @@ class Field(object):
         self.field_name = field_name
         #self.db_spec = db_spec
         self._add_info(db_spec)
-        self.def_str = def_str
+#        self.def_str = def_str
         self.master = master
         self.initial_value = None
- 
+
         if test:  # in test I don't want conplaints on already prensent widgets
             return
         if gtkwidget:
@@ -259,7 +284,8 @@ class Field(object):
         pass
 
     def has_changed(self, verbose=False):
-        """return True if field has changed after last set
+        """
+        return True if field has changed after last set
         """
 #         dbg.write("has_changed - %r: or: %r ==> %r" % (
 #             self.field_name, self.initial_value, self.get_value()))
@@ -464,12 +490,14 @@ class DecimalField(IntegerField):
 
 class TextField(VarcharField):
     Widget = TextWidget
+    default_def_string = 'TXS'
 
     def set_max_length(self):
         pass
 
 class DateField(Field):
     Widget = DateWidget
+    default_def_string = 'd'
     format = None
         
     def __init__(self, *args, **kw):
@@ -498,6 +526,7 @@ class DateField(Field):
         
 class TimeField(DateField):
     Widget = TimeWidget
+    default_def_string = 'ae'
 
     def clean_value(self, value):
         if isinstance(value, basestring):
@@ -552,6 +581,7 @@ class BooleanField(Field):
     """
 
     Widget = BooleanWidget
+    default_def_string = 'c'
 
     def clean_value(self, value):
         if value is None:

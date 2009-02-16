@@ -18,6 +18,7 @@ Contents:
    sqlkit/contents
    layout/contents
    debug/contents
+   internals/contents
 
 Indices and tables
 ==================
