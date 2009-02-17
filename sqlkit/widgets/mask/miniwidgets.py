@@ -34,7 +34,8 @@ import re
 from decimal import Decimal
 import gobject
 
-NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
+#NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
+NOT_NULL_COLOR = gtk.gdk.color_parse('#f6ebba')
 
 
 class Widget(object):
