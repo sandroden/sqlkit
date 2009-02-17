@@ -585,18 +585,19 @@ def get_filter_widget(field_name, panel, master, value=None):
 
 
 class FilterWidget():
+    
     def __init__(self, tool):
 
         ## I'd like *not* to .present the widget for any successive field added
         ## but I have not been able to get focus on the window w/o .present()
         self.tool = tool
-        self.label_text = _(layout.get_label(tool.field_name, layout=self.tool.panel.l))
+        self.label_text = tool.master.get_label(tool.field_name)
 
         ## labels
         self.field_name_event_box = gtk.EventBox()
         self.field_label           = gtk.Label(self.label_text)
         # TIP: appears in the menu in the filter panel to add a second entry of the same field
-        label_str = _("Add a new filter on this field '%s'") % _(self.label_text).replace('_', '__')
+        label_str = _("Add a new filter on this field '%s'") % self.label_text.replace('_', '__')
         self.field_name_event_box.set_tooltip_text(label_str)
         self.check_button         = gtk.CheckButton()
 

@@ -1272,6 +1272,12 @@ class SqlWidget(gobject.GObject):
     def get_field_type(self, field_name):
         return self.mapper_info.fields[field_name]['type']
 
+    def get_label(self, field_name):
+        """
+        return field_name translated according to map_label + gettext
+        """
+        return _(get_label(field_name, layout=self.lay_obj))
+
     def set_current(self, pk=None):
         """retrieve a record and set it as current
         """
