@@ -398,7 +398,7 @@ class SimpleCompletion(object):
         """
         if self.autostart:
             text = self.master.get_value(self.field_name, shown=True)
-            length = len(text)
+            length = len(text or '')
 
             if (not self.autostart_last_length  and length >= self.autostart) \
                    or (length + 1 < self.autostart_last_length):
