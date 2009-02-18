@@ -294,7 +294,7 @@ class SimpleCompletion(object):
             fkvalue = model.get(iter, self.DESCRIPTION_COL)[0]
         else:
             fkvalue = None
-        
+
         self.master.set_value(field_name, value, fkvalue=fkvalue, initial=False)
         if fkvalue:
             ## just handier to accept it already
@@ -671,9 +671,10 @@ class FkeyCompletion(SimpleCompletion):
 
 ### What to show
     def lookup_value(self, field_name, field_value):
-        """retrieve the value in a lookup table in case of foreign_key
         """
-        if not field_value:
+        retrieve the value in a lookup table in case of foreign_key
+        """
+        if field_value is None:
             return ''
         try:
             return self.lookup_values[field_name][field_value]
@@ -701,25 +702,23 @@ class FkeyCompletion(SimpleCompletion):
         return value
 
     def append_to_model(self, obj):
-        """add to a model that has 4 cols:
-             0: the value to be used as foreign key
-             1: the value to be shown in the entry 
-             2: data to be shown in the dropdown
-             3: a dictionary of all fields in the returned row
-                this can be used to set additional fields
-
+        """
+        add to the model that has 5 cols
         """
 
-        obj_list = [getattr(obj, i) or '' for i in obj.keys()]
+        obj_list = []
+        for i in obj.keys():
+            val = getattr(obj, i)
+            if val is None:
+                val = ''
+            obj_list += [val]
+
         fvalue = obj_list[0]
         try:
-            fdescr = obj_list[1] or ''
+            fdescr = obj_list[1] 
         except IndexError, e:
             fdescr = obj_list[0]  # a fk that is a key, not an id and is the only one
         
-#        fk_table, fk_key = get_foreign_info(self.master, self.field_name)
-#        format_string    = tables[fk_table].format
-#        description      = self.format % self.instance2dict(obj)
         Obj = DictLike(obj)
         description = self.format % Obj
         m_iter = self.get_iter(obj)

@@ -886,7 +886,7 @@ class SqlTable(sqlwidget.SqlWidget):
     
     def text_edited_cb(self, cell, path, new_text, field_name):
         """
-        calback on signal 'edited' on cell_renderer. 
+        callback on signal 'edited' on cell_renderer. 
         
         """
 
@@ -1017,7 +1017,7 @@ class SqlTable(sqlwidget.SqlWidget):
         else:
             fkey_value = getattr(obj, field_name)
 
-            if fkey_value:
+            if fkey_value is not None:
                 path = model.get_path(iter)
                 value = self.completions[field_name].lookup_value(field_name, fkey_value)
                 cell.set_property('text', value)
