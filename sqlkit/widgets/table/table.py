@@ -906,10 +906,10 @@ class SqlTable(sqlwidget.SqlWidget):
         Trigger the validation when moving around the cells
         """
         ksym = gtk.gdk.keyval_name(event.keyval)
-        if ksym in ('Tab', 'Down', 'Up', 'Return'):
-            ## FIXME: Down and Return should behave differently if the completion is visible
-            if ksym in ('Down', 'Return'): # and widget.get_completion().get_property('visible'):
-                return False
+        if ksym in ('Tab',):
+#             ## FIXME: Down and Return should behave differently if the completion is visible
+#             if ksym in ('Down'): # and widget.get_completion().get_property('visible'):
+#                 return False
 
             if self.cell_entry and not self.cell_entry.is_valid():
                 if not self.cell_validate():
@@ -1327,13 +1327,13 @@ class SqlTable(sqlwidget.SqlWidget):
             # I'm not sure if this should change
             try:
                 self.set_current(filter_by={field_name :new_text})
-                return True
+                return 
             except (exc.NoResultFound, exc.MultipleResultsFound), e:
                 ## if there's no match, try completion
                 dbg.write("No match: try completion")
                 show = self.gui_fields[field_name].widget.completion.show_possible_completion
                 show(self.cell_entry.entry, 'start')
-                return False
+                return True
         else:
             ## 
             if self.is_fkey(field_name):
@@ -1368,8 +1368,8 @@ class SqlTable(sqlwidget.SqlWidget):
         obj = self.get_current_obj(path=path)
         
         if not obj:
-            return 
-
+            return
+        
         ## casting of value
         if self.is_fkey(field_name):
             value = self.gui_fields[field_name].clean_value(value, input_is_fkey=True)
@@ -1383,7 +1383,6 @@ class SqlTable(sqlwidget.SqlWidget):
             self.cell_entry.entry.set_text(fkvalue)
             self.cell_entry.valid = True
             self.cell_entry.text = fkvalue
-#            self.fkey_is_valid = field_name
             self.fkey_value = fkvalue
         else:
             if value is not None and not self.is_fkey(field_name):
