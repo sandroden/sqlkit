@@ -684,7 +684,7 @@ class SqlWidget(gobject.GObject):
 #         if reload_constraint == True:
 #             self.sql = (sql_str, params)
 
-        self.session.clear()
+        self.session.expunge_all()
         self.last_new_obj = None
         query = self.query.filter(sql_str)
         if params:
