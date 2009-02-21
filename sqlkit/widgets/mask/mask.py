@@ -28,6 +28,7 @@ import sqlkit
 from sqlkit import debug as dbg
 from sqlkit import exc, _
 import gobject
+import gtk
 
 #NOT_NULL_COLOR = gtk.gdk.color_parse('yellow')
 FK_COLOR = gtk.gdk.color_parse('navyblue')
@@ -339,13 +340,15 @@ class SqlMask (sqlwidget.SqlWidget):
         self.discard_changes()
         self.record_display(check=False)
         
-    def record_forward(self, ev):
-        """display the next record in the mapper"""
+    def record_forward(self, event=None):
+        """
+        display the next record in the mapper"""
 
         return self.record_display(incr=1)
     
-    def record_back(self, ev):
-        """display the previous record in the mapper"""
+    def record_back(self, event=None):
+        """
+        display the previous record in the mapper"""
         
         return self.record_display(incr=-1)
     
@@ -496,6 +499,20 @@ class SqlMask (sqlwidget.SqlWidget):
         item.connect('activate', self.record_undo_cb)
         menu.insert(item, 0)
         
+    def add_accelerators(self):
+        """
+        Add wheel mouse support
+        """
+        if sqlwidget.SqlWidget.add_accelerators(self):
+
+            def scroll_event_cb(widget, event):
+                if event.direction == gtk.gdk.SCROLL_UP:
+                    return self.record_display(incr=-1)
+                else:
+                    return self.record_display(incr=1)
+
+            self.widgets['Window'].connect('scroll_event', scroll_event_cb)
+
     def get_current_obj(self):
         """Return the object that is currently edited"""
         return self.current

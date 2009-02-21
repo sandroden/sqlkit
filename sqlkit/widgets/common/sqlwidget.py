@@ -392,7 +392,6 @@ class SqlWidget(gobject.GObject):
             self._add_color_to_labels()
             self._add_menu_undo()
 
-
         self.setup_field_validation()
         self._add_actions_to_buttons()
         self._fill_menubar_menu()
@@ -424,11 +423,13 @@ class SqlWidget(gobject.GObject):
         return sqlfilter.FilterPanel(self, visible=False)
 
     def add_accelerators(self):
-        """Add accelerators: now Ctrl-h, Ctrl-q"""
+        """
+        Add accelerators: now Ctrl-h, Ctrl-q
+        """
 
         # key accelerators
         if self.addto:
-            return
+            return False
         
         self.accel_group = gtk.AccelGroup()
         self.accel_group.connect_group(ord('h'), 
@@ -440,7 +441,7 @@ class SqlWidget(gobject.GObject):
                                        gtk.ACCEL_LOCKED, 
                                        self.gquit)
         self.widgets['Window'].add_accel_group(self.accel_group)
-            
+        return True
         
     def _add_actions_to_buttons(self):
         """ Add default actions to std buttons"""
