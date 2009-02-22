@@ -55,6 +55,9 @@ below you can see some alternatives that would work as well::
 Session are created with  ``autoflush=False``, ``expire_on_commit=False`` but
 can be changed when building ``DbProxy``. 
 
+Since version 0.8.6 default value for *autocommit* as been turned to  *True*
+to prevent `idle in transaction`_ in postgres.
+
 
 session & expire_on_commit
 ==========================
@@ -262,3 +265,6 @@ behaviour you need to set blank=True on fields::
 
   t.gui_fields[field_name].blank = True
 
+
+
+.. _`idle in transaction`: http://groups.google.it/group/sqlalchemy/browse_frm/thread/6abb815a3728d41c?hl=it&tvc=1&q=idle

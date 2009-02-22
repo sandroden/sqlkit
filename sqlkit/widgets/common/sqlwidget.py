@@ -520,6 +520,9 @@ class SqlWidget(gobject.GObject):
         if self.ro:
             return
         try:
+            ## when session.autocomit = False, a transaction is automatically started
+            if self.session.autocommit:
+                self.session.begin()
             self.session.commit()
             self.sb(message, seconds=3)
         except exceptions.SQLError, e:
@@ -706,6 +709,13 @@ class SqlWidget(gobject.GObject):
             self.record_display(check=False)
 
         length = len(self.records)
+        ## after a reload the transaction will stay opend if session.autocommit=False
+        ## in postgres this will be evident by "idle in transaction" state of he process
+        ## that will inhibit a number of operation (eg.: altering tables)
+        ## FIXME: whe we have m2m relation this is not enought, I open some table
+        ## and I don't understand where...
+        ## nice info here: http://wiki.dspace.org/index.php/Idle_In_Transaction_Problem
+        self.session.rollback()
         return length
 
     def set_records(self, records):

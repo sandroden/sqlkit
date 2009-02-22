@@ -1284,6 +1284,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.commit_inhibited = False
         self.totals.compute()
         self.cell_entry = None
+        self.session.rollback()
         return ret
                                          
     def record_refresh(self):

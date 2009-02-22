@@ -42,7 +42,7 @@ class DbProxy(object):
     """
     def __init__(self, metadata=None, engine=None, bind=None,
                  expire_on_commit=False,
-                 Session=None, autocommit=False, autoflush=False):
+                 Session=None, autocommit=True, autoflush=False):
         if metadata:
             self.metadata = metadata
         else:
