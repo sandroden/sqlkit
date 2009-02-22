@@ -275,6 +275,8 @@ class SimpleCompletion(object):
         """
         entry.grab_focus()
         entry.emit('changed')
+        ## we don't want selection to prevent autocompletion from deleting already written text
+        entry.select_region(-1,-1)
 
 ### Call back
     def match_selected_cb(self, wdg, model, iter, field_name):
@@ -877,4 +879,6 @@ def get_foreign_info(master, field_name, names=True):
 
     foreign_keys = master.mapper_info.fields[field_name]['fkey']
     return get_foreign_info(foreign_keys, names=names)
+
+
 
