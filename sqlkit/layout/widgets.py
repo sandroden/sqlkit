@@ -140,7 +140,8 @@ class LWidget(object):
             self.lw['el_key'] = re.sub('[-<>|=]$','',el_def)
 
         ### gtk-stock?
-        if re.match('gtk-', self.val) and not self.gtkClass == 'GtkImage':
+#         if re.match('gtk-', self.val) and not self.gtkClass == 'GtkImage':
+        if gtk.icon_factory_lookup_default(self.val) and not self.gtkClass == 'GtkImage':
             if re.match('GtkToolButton', self.gtkClass):
                 self.properties['stock_id'] = re.sub('\..+','',self.val)
                 self.properties['label'] = None
@@ -598,7 +599,8 @@ class ToolButton(LWidget):
     gtkClass = 'GtkToolButton'
 
     def _class_specific(self):
-        if re.match("gtk-",self.val):
+        #if re.match("gtk-",self.val):
+        if gtk.icon_factory_lookup_default(self.val):
             del self.properties['label'] 
             #self.properties['stock_id'] = self.val
 
@@ -654,8 +656,8 @@ class Image(LWidget):
     def _class_specific(self):
         ## self.var is probably the name of a image file
         ## let's check, look for it and set it with a full path
-
-        if self.var.startswith('gtk-'):
+        #if self.var.startswith('gtk-'):
+        if gtk.icon_factory_lookup_default(self.var):
             self.properties['icon_name'] = self.var
             self.properties['icon_size'] = self.w
             self.w = None
