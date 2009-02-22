@@ -252,7 +252,11 @@ class SimpleCompletion(object):
                         miter_dict[obj[self._group_by]][1] = True
                     except IndexError, e:
                         print "Probable missing value for %s" % text
-
+                    except KeyError:
+                        ## FIXME but I have not uderstood why I need it.
+                        # I get here when -after accepting a completion- I go back and delete some chars
+                        pass
+                    
                 self.model.set_value(row.iter, self.MATCH_COL, match)
 
 
