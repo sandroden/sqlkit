@@ -561,7 +561,7 @@ class SqlTable(sqlwidget.SqlWidget):
         Main callback triggered when the TreeSelection changes. When run
         this function tries to record_save()
         """
-        # selection change in several different ways:
+        # selection changes in several different ways:
 
         # 1. no selection -> selection of existing row
         # 2. no selection -> selection on new row
@@ -573,7 +573,6 @@ class SqlTable(sqlwidget.SqlWidget):
         # 8. selected existent LAST record -> delete
         
         if self.edited_row_model_path is None:
-            #self.record_initialize_gui_fields()
             self.emit('record-selected')
             return False
         
@@ -583,7 +582,7 @@ class SqlTable(sqlwidget.SqlWidget):
             try:
                 self.record_save()                # uses self.edited_row_model_path
                 self.edited_row_model_path = None
-            except exc.ValidationError:
+            except exc.ValidationError, e:
                 path = self.edited_row_model_path
                 self.edited_row_model_path = None
                 self.treeview.get_selection().select_path(path)
@@ -1157,7 +1156,8 @@ class SqlTable(sqlwidget.SqlWidget):
             dbg.write('no self.edited_row_model_path, nothing to save', self.edited_row_model_path)
             return
 
-        obj = self.liststore[self.edited_row_model_path][0]
+#        obj = self.liststore[self.edited_row_model_path][0]
+        obj = self.get_current_obj()
 
         if discard_unchanged:
             dbg.write(obj, )
@@ -1170,11 +1170,11 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.edited_row_model_path = None
                 return
 
-        ## 
-        if not self.record_has_changed():
+        ## if the obj is new, you need to validate it anyhow: it was not changed but didn't start
+        ## from a validated point    
+        if not self.record_has_changed() and obj not in self.session.new:
             self.edited_row_model_path = None
             return
-
 
         self.record_validate(obj)
             
