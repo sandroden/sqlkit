@@ -540,7 +540,7 @@ class SqlTable(sqlwidget.SqlWidget):
                    ('quarter',_('quarter')), ('year',_('year'))]
 
         for period, trad in periods:
-            item = gtk.MenuItem(label=_("Subtotals on %s") % period)
+            item = gtk.MenuItem(label=_("Subtotals by %s") % trad)
             item.connect('activate', add_break_date_cb, field_name, period)
             menu.append(item)
         
