@@ -1181,7 +1181,8 @@ class SqlTable(sqlwidget.SqlWidget):
         ## in m2m case we don't want to commit now. We would trigger a commit of the
         ## record represented in the SqlMask that may not yet be validated
 
-        if self.relationship_mode in ('m2m', 'm2o', 'o2m', 'o2o'):
+        if self.relationship_leader and (
+            self.relationship_leader.current in self.session.new):
             # TIP: when saving m2m, we delay till leader record will be saved
             self.sb(_('delaying saving when main record will be saved'))
         else:
