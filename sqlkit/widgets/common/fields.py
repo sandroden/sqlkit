@@ -162,7 +162,7 @@ class FieldChooser(object):
         """        
 
         gtk_widget = self.widgets.get(def_str, None)
-        args = (field_name, db_spec, self.master, gtk_widget, test)
+        args = (field_name, db_spec, self.master, gtk_widget, def_str, test)
 
         if field_name in self.master.gui_fields:
             return self.master.gui_fields.get(field_name)(*args)
@@ -226,14 +226,15 @@ class Field(object):
     Widget = None
     default_def_string = 'ae'
 
-    def __init__(self, field_name, db_spec, master, gtkwidget, test=False):
+    def __init__(self, field_name, db_spec, master, gtkwidget, def_str=None, test=False, widget=None):
         """
         field_name:  the name of the field in the db
         db_spec:     the dict as worked out by InspectMapper
         def_str:     the definition string in the layout that determined
                      the gtk.Widget (eg.: c=married, e=first_name)
         master:      the sqlkit widget: an instance of SqlMask or SqlTable
-        widget:      the miniwidget to be used
+        widget:      the miniwidget to be used. Defaults to class-define self.Widget
+        gtkwidget:   the gtk widget to be used
         """
 
         self.field_name = field_name
@@ -245,9 +246,14 @@ class Field(object):
 
         if test:  # in test I don't want conplaints on already prensent widgets
             return
+
+        if def_str and  def_str.startswith('ro='):
+            widget = ReadOnlyWidget
+            
+        Widget = widget or self.Widget
         if gtkwidget:
             ## used in SqlMask
-            self.widget = self.Widget(gtkwidget, self)
+            self.widget = Widget(gtkwidget, self)
         else:
             ### used in SqlTable
             self.widget = CellWidget(self)

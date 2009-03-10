@@ -104,8 +104,41 @@ class VarcharWidget(Widget):
     def set_max_length(self, length):
         self.gtkwidget.set_max_length(length)
         
-class ReadOnlyWidget(VarcharWidget):
-    pass
+class ReadOnlyWidget(Widget):
+
+    def __init__(self, *args):
+
+        Widget.__init__(self, *args)
+        self.gtkwidget.set_property('xpad', 0)
+        self.gtkwidget.set_property('sensitive', True) 
+        self.gtkwidget.set_property('selectable', True) 
+        if self.master.is_fkey(self.field_name):
+            self.completion = FkeyCompletion(self.master, self, self.field_name)
+        else:
+            self.completion = None
+
+    def set_value(self, value, shown=True):
+
+        self.gtkwidget.set_data('value', value)
+        if self.completion:
+            string_value = self.completion.lookup_value(value)
+        else:
+            string_value = str(self.field.format_value(value)) or ''
+
+        self.set_label(string_value)
+
+    def set_label(self, value):
+        """
+        this is meant to be overloaded for particular needs
+        """
+        self.gtkwidget.set_text(value or '')
+
+    def get_value(self, shown=False):
+
+        return self.field.initial_value
+
+    def set_max_length(self, max):
+        pass
     
 class IntegerWidget(VarcharWidget):
 

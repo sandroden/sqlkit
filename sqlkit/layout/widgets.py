@@ -1035,6 +1035,7 @@ class ColorButton(LWidget):
 _W = {
     'l'   : Label,
     'lf'  : LabelFill,
+    'ro'  : LabelFill,
     'L'   : EventLabel,
     'nl'  : NotebookLabel,
     'fl'  : FrameLabel,
