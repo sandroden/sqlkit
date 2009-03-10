@@ -193,6 +193,9 @@ class SqlTable(sqlwidget.SqlWidget):
             elif self.is_number(field_name):  ## Number
                 col = columns.NumericColumn(self, field_name, label)
 
+            elif self.is_text(field_name):  ## Multiline
+                col = columns.MultilineColumn(self, field_name, label)
+
             elif self.is_string(field_name):  ## Varchar
                 col = columns.VarcharColumn(self, field_name, label)
 
@@ -549,7 +552,11 @@ class SqlTable(sqlwidget.SqlWidget):
 
     def key_entry_ctrl_n(self, widget, event, data):
 
-        widget.emit('activate')
+        try:
+            widget.emit('activate')
+        except:
+            ## CellTextView does not have activate signal
+            pass
         self.record_new()
         return True
     
@@ -585,11 +592,11 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         return the next column and if browsing must enter in edit mode
         """
-        from datetime import datetime, date, time, timedelta
+#        from datetime import datetime, date, time, timedelta
         if not self.is_editable(field_name):
             return False
 
-        NO_EDIT = (bool, date, datetime, time)
+        NO_EDIT = (bool,)
 
         if not self.mapper_info.fields[field_name]['type'] in NO_EDIT:
             return True
@@ -606,16 +613,6 @@ class SqlTable(sqlwidget.SqlWidget):
                 if not self.cell_validate():
                     return True
 
-    def on_editable_remove_widget(self, widget):
-        """
-        If the call has invalid data we don't want to remove the widget
-        so that we can edit the wrong data rather then loosing what was already typed
-        """
-        if self.cell_entry and not self.cell_entry.is_valid():
-            widget.stop_emission('remove-widget')
-            return True
-        self.cell_entry = None
-       
 #### model handling & sqlwidget override
     def initialize_record_editing(self, path, force=False, obj=None):
         """
@@ -928,6 +925,7 @@ class SqlTable(sqlwidget.SqlWidget):
             else:
                 try:
                     self.gui_fields[field_name].set_value(new_text, initial=False)
+                    self.cell_entry.valid = True
                     return True
                 except exc.ValidationError, e:
                     self.cell_entry.valid = False
@@ -944,7 +942,6 @@ class SqlTable(sqlwidget.SqlWidget):
         fkey: if True the value is handled as a primary key.
         Used from completion and from gui_fields/tablewidget
         """
-
         ## note: self.current cannot be used. We don't want the currently selected obj
         ##       but the one that is to be saved. This operation can be triggered
         ##       by a change in selection in which case self.current already points
@@ -1244,4 +1241,6 @@ class SqlTable(sqlwidget.SqlWidget):
         for field in self.gui_fields:
             field.widget.add_completion(editable=editable)
         
+
+
 

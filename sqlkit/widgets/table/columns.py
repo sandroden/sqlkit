@@ -37,7 +37,7 @@ class GenericColumn(object):
     EXPAND = True
     MIN_DEFAULT_WIDTH = 4
     MAX_DEFAULT_WIDTH = 30
-    
+
     def __init__(self, master, field_name, title):
         """
         Generic column with cell render setup
@@ -79,7 +79,7 @@ class GenericColumn(object):
         ## connect
         cell.connect('edited', self.edited_cb)
         cell.connect('editing-started', self.editing_started_cb)
-        cell.connect('editing-canceled', self.cell_editing_canceled_cb)
+        cell.connect('editing-canceled', self.editing_canceled_cb)
 
         return cell
 
@@ -97,7 +97,7 @@ class GenericColumn(object):
         if self.master.edited_row_model_path is None:
             return True
 
-        if self.master.cell_validate():
+        if self.master.cell_entry and self.master.cell_validate():
             self.master.cell_entry = None
         else:
             return True
@@ -129,7 +129,7 @@ class GenericColumn(object):
             cell.set_property('cell-background-set', False)
         
 
-    def cell_editing_canceled_cb(self, widget):
+    def editing_canceled_cb(self, widget):
         """
         clean-up of cell_entry and restore value
         """
@@ -268,7 +268,7 @@ class BooleanColumn(GenericColumn):
         self.column.pack_start(cell, True)
         
         ## connect
-        cell.connect('editing-canceled', self.cell_editing_canceled_cb) # ???
+        cell.connect('editing-canceled', self.editing_canceled_cb) # ???
         cell.connect('toggled', self.toggled_signal_cb, self.master.liststore)
             
         self.column.set_cell_data_func(cell, self.cell_data_func_cb)
@@ -330,7 +330,7 @@ class VarcharColumn(GenericColumn):
     A renderer that expands only large fields and that centers text if it's little
     Cell renderer is choosen according to VarChar or Text
     """
-
+    __metaclass__ = dbg.LogTheMethods
     
     def setup_cell_renderers(self, cell_renderer=None):
 
@@ -338,14 +338,11 @@ class VarcharColumn(GenericColumn):
 
         ## look for a possibly defined width
         ## choose cell renderer
-        if self.master.is_text(self.field_name):
-            cell = cell_renderers.MultilineCellRenderer()
+        if width:
+            cell = cell_renderers.CellRendererVarchar(width)
+            cell.fixed_width = True
         else:
-            if width:
-                cell = cell_renderers.CellRendererVarchar(width)
-                cell.fixed_width = True
-            else:
-                cell = gtk.CellRendererText()
+            cell = gtk.CellRendererText()
 
         GenericColumn.setup_cell_renderers(self, cell_renderer=cell)
         cell.set_property('ellipsize', pango.ELLIPSIZE_END)
@@ -375,9 +372,9 @@ class VarcharColumn(GenericColumn):
         """
         self.master.currently_edited_field_name = self.field_name
         self.master.cell_entry = CellEntry(editable, cell, path, self.field_name)
-
-        editable.connect('remove-widget', self.master.on_editable_remove_widget)
+        editable.connect('remove-widget', self.remove_widget_cb)
         editable.connect('key-press-event', self.master.keypress_event_cb)
+        editable.connect('focus-out-event', self.focus_out_cb, cell, path)
         self.editable_connects(editable)
         
         self.master.fkey_value = editable.get_text()
@@ -394,6 +391,56 @@ class VarcharColumn(GenericColumn):
         self.master.initialize_record_editing(path)
         self.master.commit_inhibited = False
         return True
+
+    def remove_widget_cb(self, widget):
+        """
+        If the call has invalid data we don't want to remove the widget
+        so that we can edit the wrong data rather then loosing what was already typed
+        """
+        if self.master.cell_entry and not self.master.cell_entry.is_valid():
+            widget.stop_emission('remove-widget')
+            return True
+        self.master.cell_entry = None
+
+    def focus_out_cb(self, widget, event, cell, path):
+        if self.master.cell_entry:
+            widget.activate()
+
+class MultilineColumn(VarcharColumn):
+    """
+    A renderer able to show and edit in multiline mode. Very basic...
+    """
+
+    
+    def setup_cell_renderers(self, cell_renderer=None):
+
+        width = self.get_width()
+
+        cell = cell_renderers.MultilineCellRenderer(self.master)
+
+        GenericColumn.setup_cell_renderers(self, cell_renderer=cell)
+        cell.set_property('ellipsize', pango.ELLIPSIZE_END)
+
+        return cell
+
+    def remove_widget_cb(self, widget):
+        """
+        If the call has invalid data we don't want to remove the widget
+        so that we can edit the wrong data rather then loosing what was already typed
+        """
+        if self.master.cell_entry:
+            self.master.cell_validate()
+
+        self.master.cell_entry = None
+
+    def focus_out_cb(self, widget, event, cell, path):
+
+        if self.master.cell_entry:
+            self.master.cell_validate()
+            cell.emit("edited", cell.editor.get_data("path"), cell.editor.get_text())
+            cell.editor.remove_widget()
+
+        pass
 
 class NumericColumn(VarcharColumn):
     """
@@ -507,7 +554,9 @@ class CellEntry(object):
         if isinstance(editable, gtk.Entry):
             # Multiline does not have 'canged' and does not need invalidating
             self.entry.connect('changed', self.on_editable_change)
-            
+        else:
+            ## this is just a hack to force cell_validate() when browsing away
+            self.valid = False
             
         self.substitute = False
 
@@ -522,3 +571,5 @@ class CellEntry(object):
     def get_text(self):
         return self.entry.get_text()
     
+    def __repr__(self):
+        return "<CellEntry: (%s) %s>" % (self.valid, self.get_text())
