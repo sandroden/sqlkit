@@ -12,7 +12,7 @@ lay = """
 lay2 = """
     title
     date_release
-    L=description TXS=description
+    TXS=description 
     director_id
     """
 t = SqlMask(table='movie', dbproxy=db, layout=lay2)

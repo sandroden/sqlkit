@@ -19,10 +19,17 @@
 >>> sm.laygen.fields_in_layout
 {'title': 'e=title'}
 
->>> lay = "TXS=description"
+>>> lay = "TXS==description"
 >>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> sm.lay_obj.lay
 'TXS=description'
+>>> sm.laygen.fields_in_layout
+{'description': 'TX=description'}
+
+>>> lay = "TXS=description"
+>>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm.lay_obj.lay
+'L=description TXS=description:50-'
 >>> sm.laygen.fields_in_layout
 {'description': 'TX=description'}
 

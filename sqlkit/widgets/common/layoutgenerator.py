@@ -168,9 +168,10 @@ class LayoutGenerator (object):
         p2 = re.compile(r"""
         (?<!\S)                # next row must not match if preceded by any str
                                # %string is a qualifier for notebooks
-                               # {N is for noteooks and so on
-        (?P<field>[a-z_0-9A-Z\.]+)  # the field + a possible table (table.field)
-        (?![-=])               # the row above is only matched if not followed
+                               # {N is for notebooks and so on
+        ( ((?P<mod>[a-zA-Z0-9]+)(?P<equal>=+))? # a possible modifier
+        (?P<field>[a-z_0-9A-Z\.]+))  # the field + a possible table (table.field)
+        (?![-])               # the row above is only matched if not followed
                                # by - o = (b=gtk-save-as *must not* match)
         (?P<spec>:[-<>.,a-zA-Z\d]*)?
         (?P<end>\b)
@@ -182,9 +183,10 @@ class LayoutGenerator (object):
         """called from inside regexp
         """
         field_name = m.group('field')
+        mod = m.group('mod')
         
-        if field_name not in self.master.field_list:
-            return field_name
+        if field_name not in self.master.field_list or mod in ('L','le', 'm2m', 'o2m','m2o'):
+            return m.group(0)
 
 #         ## this is for reference of fields defined in other tables: tbl.field
 #         if field_name not in self.fields:
@@ -193,7 +195,7 @@ class LayoutGenerator (object):
 #             if t is None:  # this is not a db field
 #                 return field_name
 
-        widget = self.get_widget(field_name)
+        widget = mod or self.get_widget(field_name)
         spec = m.group('spec') or ''
         
         if self.master.is_loader(field_name):
@@ -201,9 +203,14 @@ class LayoutGenerator (object):
 
         if not spec:
             spec = self.create_spec(field_name)
-
+        
         self.fields_in_layout[field_name] = "%s=%s" % (self.get_edit_string(widget), field_name)
-                             
+
+        if m.group('equal') == '==':
+            ## implement the request to provide a way prevent layoutgenerator from creating the label
+            ## == inhibits creation of label.
+            return m.group(0).replace('==', '=')
+        
         return "L=%s %s=%s%s" % (field_name, widget, field_name, spec)
 
     def get_edit_string(self, mod):
@@ -223,7 +230,6 @@ class LayoutGenerator (object):
         choose appropriate widget to represent this field
         check if a particular field was already defined in gui_fields
         """
-
         ## check if we defined already a Fiedl via gui_field
         if field_name in self.master.gui_fields:
             field = self.master.gui_fields[field_name]
