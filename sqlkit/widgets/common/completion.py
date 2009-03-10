@@ -520,7 +520,7 @@ class SimpleCompletion(object):
         
     def key_entry_Return(self, wdg, event, data):
         #
-        return self.check_existance(wdg)
+        return not self.check_existance(wdg)
 
     def key_entry_Tab(self, wdg, event, data):
         # waiting for a complete handling of validation
@@ -532,17 +532,17 @@ class SimpleCompletion(object):
     def check_existance(self, entry):
         """
         don't accept false fkey...
-        return False if OK as it is used in return code of key_press_cb
+        Return True if field exists or validates
         """
         text = entry.get_text()
         if not text:
-            return False
+            return True
 
         if self.master.is_fkey(self.field_name) or self.master.relationship_mode == 'm2m':
             ## check if the text entered was in fact a complete and legal fkey
             ## or unique field (for m2m)
             if self.master.fkey_is_valid(self.field_name):
-                return False
+                return True
             try:
                 if self.master.is_fkey(self.field_name):
                     clean_value = self.master.gui_fields[self.field_name].clean_value(text, input_is_fkey=False)
@@ -557,14 +557,13 @@ class SimpleCompletion(object):
                     self.master.sb(_("No exact match, trying regexp completion"), seconds=4)
                     self.show_possible_completion(entry, mode='regexp', sb=False)
                     self.master.cell_entry.valid = False
-                    return True
+                    return False
                     
             except (NoResultFound, MultipleResultsFound), e:
                 self.master.sb(_("No exact match, trying regexp completion"), seconds=4)
                 self.show_possible_completion(entry, mode='regexp', sb=False)
-                return True
-
-        return False
+                return False
+        return True
 
     def get_obj_no_flush(self, value):
         """
@@ -883,6 +882,8 @@ def get_foreign_info(master, field_name, names=True):
 
     foreign_keys = master.mapper_info.fields[field_name]['fkey']
     return get_foreign_info(foreign_keys, names=names)
+
+
 
 
 
