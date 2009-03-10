@@ -155,10 +155,8 @@ class SqlTable(sqlwidget.SqlWidget):
             
         
     def setup_treeview_columns(self):
-        """Setup the presentation of columns.
-        Some assumptions are made:
-        - bool render as toggles
-        - other render as editable text cells
+        """
+        Setup the presentation of columns.
         """
 
         #create and append columns
@@ -188,10 +186,13 @@ class SqlTable(sqlwidget.SqlWidget):
                 cell = self.setup_boolean_column(field_name, tvcolumn)
 
             elif self.is_date(field_name):   ## Dates
-                cell = self.setup_date_column(field_name, tvcolumn)
+#                cell = self.setup_date_column(field_name, tvcolumn)
+                cell = self.setup_generic_column(field_name, tvcolumn)
+#                                                 editing_started_cb=self.date_editing_started_cb)
 
             elif self.is_datetime(field_name):  ## Datetime
-                cell = self.setup_datetime_column(field_name, tvcolumn)
+#                cell = self.setup_datetime_column(field_name, tvcolumn)
+                cell = self.setup_generic_column(field_name, tvcolumn)
 
             elif self.is_number(field_name):  ## Number
                 cell = self.setup_number_column(field_name, tvcolumn)
@@ -239,39 +240,39 @@ class SqlTable(sqlwidget.SqlWidget):
         cell.fixed_width = True
         return  cell
         
-    def setup_date_column(self, field_name, tvcolumn):
-        """
-        A date calendar that pops a gtk.Calendar to edit
-        """
+#     def setup_date_column(self, field_name, tvcolumn):
+#         """
+#         A date calendar that pops a gtk.Calendar to edit
+#         """
 
-        cell = cell_renderers.CellRendererDate(master=self, field_name=field_name)
-        cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-        cell.set_property('sensitive', False)
-        cell.set_property('xpad', 4)
-        tvcolumn.pack_start(cell, True)
-        #tvcolumn.add_attribute(cell, 'date', j )
-        cell.connect('editing-started', self.generic_editing_started_cb, field_name )
-        cell.connect('date-changed', self.date_changed_cb, field_name )
-        tvcolumn.set_cell_data_func(cell, self.cell_dates_cb, ('date', field_name) )
-        tvcolumn.cells_data_func = [(cell, self.cell_dates_cb, ('date', field_name) )]
-        return  cell
+#         cell = cell_renderers.CellRendererDate(master=self, field_name=field_name)
+#         cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+#         cell.set_property('sensitive', False)
+#         cell.set_property('xpad', 4)
+#         tvcolumn.pack_start(cell, True)
+#         #tvcolumn.add_attribute(cell, 'date', j )
+#         cell.connect('editing-started', self.generic_editing_started_cb, field_name )
+#         cell.connect('date-changed', self.date_changed_cb, field_name )
+#         tvcolumn.set_cell_data_func(cell, self.cell_dates_cb, ('date', field_name) )
+#         tvcolumn.cells_data_func = [(cell, self.cell_dates_cb, ('date', field_name) )]
+#         return  cell
 
-    def setup_datetime_column(self, field_name, tvcolumn):
-        """
-        A datetime cell' renderer
-        """
+#     def setup_datetime_column(self, field_name, tvcolumn):
+#         """
+#         A datetime cell' renderer
+#         """
 
-        cell = cell_renderers.CellRendererDatetime(master=self, field_name=field_name)
-        cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-        cell.set_property('sensitive', False)
-        cell.set_property('xpad', 4)
-        tvcolumn.pack_start(cell, True)
-        #tvcolumn.add_attribute(cell, 'datetime', j )
-        cell.connect('editing-started', self.generic_editing_started_cb, field_name )
-        cell.connect('datetime-changed', self.date_changed_cb, field_name )
-        tvcolumn.set_cell_data_func(cell, self.cell_dates_cb,('datetime', field_name) )
-        tvcolumn.cells_data_func = [(cell, self.cell_dates_cb, ('datetime', field_name) )]
-        return  cell
+#         cell = cell_renderers.CellRendererDatetime(master=self, field_name=field_name)
+#         cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
+#         cell.set_property('sensitive', False)
+#         cell.set_property('xpad', 4)
+#         tvcolumn.pack_start(cell, True)
+#         #tvcolumn.add_attribute(cell, 'datetime', j )
+#         cell.connect('editing-started', self.generic_editing_started_cb, field_name )
+#         cell.connect('datetime-changed', self.date_changed_cb, field_name )
+#         tvcolumn.set_cell_data_func(cell, self.cell_dates_cb,('datetime', field_name) )
+#         tvcolumn.cells_data_func = [(cell, self.cell_dates_cb, ('datetime', field_name) )]
+#         return  cell
 
     def setup_fkey_column(self, field_name, tvcolumn):
         """
@@ -371,20 +372,24 @@ class SqlTable(sqlwidget.SqlWidget):
                 pass
         return  cell
 
-    def setup_generic_column(self, field_name, tvcolumn):
+    def setup_generic_column(self, field_name, tvcolumn, cell_data_func=None, editing_started_cb=None):
         """
         Similar to string but no special treatment
+        
         """
+        
+        cell_data_func_cb = cell_data_func or self.cell_default_cb
+        editing_started_cb = editing_started_cb or self.text_editing_started_cb
 
         cell = gtk.CellRendererText()
         cell.set_property('editable', True)
         cell.set_property('editable-set', True)
         cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
         cell.connect('edited', self.text_edited_cb, field_name)
-        cell.connect('editing-started', self.text_editing_started_cb, field_name)
+        cell.connect('editing-started', editing_started_cb, field_name)
         tvcolumn.pack_start(cell, True)
-        #tvcolumn.add_attribute(cell, 'text', j )
-        tvcolumn.set_cell_data_func(cell, self.cell_default_cb, ('text', field_name) )
+
+        tvcolumn.set_cell_data_func(cell, cell_data_func_cb, ('text', field_name) )
         tvcolumn.cells_data_func = [(cell, self.cell_default_cb, ('text', field_name) )]
         tvcolumn.set_expand(self.is_expandable(field_name))
         return  cell
@@ -847,6 +852,13 @@ class SqlTable(sqlwidget.SqlWidget):
         self.initialize_record_editing(path)
         return True
     
+    def date_editing_started_cb(self, cell, editable, path, field_name):
+
+        self.currently_edited_field_name = field_name
+        self.initialize_record_editing(path)
+        #editable.connect('button-press-event', date_utils.date_started_cb, field_name)
+        return True
+    
     def print_type(self, item):
         try:
             widget =  gobject.type_parent(item)
@@ -937,7 +949,9 @@ class SqlTable(sqlwidget.SqlWidget):
        
 #### cell_data_func
     def cell_bool_cb(self, column, cell, model, iter, field_name):
-        """function set by set_cell_data_func for nullable boolean"""
+        """
+        function set by set_cell_data_func for nullable boolean
+        """
 
         if not column.get_visible():
             return
@@ -955,25 +969,29 @@ class SqlTable(sqlwidget.SqlWidget):
                 cell.set_property('inconsistent', False)
     
     def cell_default_cb(self, column, cell, model, iter, (prop_name, field_name)):
-        """function set by set_cell_data_func
+        """
+        function set by set_cell_data_func
         gets the attribute from the record and returns it
         """
 
         if not column.get_visible():
             return
         obj = model.get_value(iter, 0) 
+        
         value = getattr(obj, field_name)
-        cell.set_property(prop_name, value)        
+        formatted_value = self.gui_fields[field_name].format_value(value)
+        cell.set_property(prop_name, formatted_value)        
 #        cell.set_property('cell-background', None)        
 #        cell.set_property('foreground', None)        
         if isinstance(obj, self.totals.total_class):
-            obj.set_value_and_colors(cell, value, field_name)
+            obj.set_value_and_colors(cell, formatted_value, field_name)
         else:
             cell.set_property('foreground-set', False)
             cell.set_property('cell-background-set', False)
         
     def cell_number_cb(self, column, cell, model, iter, (prop_name, field_name)):
-        """function set by set_cell_data_func
+        """
+        function set by set_cell_data_func
         gets the attribute from the record and returns it
         """
         
@@ -990,7 +1008,8 @@ class SqlTable(sqlwidget.SqlWidget):
             cell.set_property('cell-background-set', False)
         
     def cell_dates_cb(self, column, cell, model, iter, (prop_name, field_name)):
-        """function set by set_cell_data_func
+        """
+        function set by set_cell_data_func
         gets the attribute from the record and returns it
         """
         if not column.get_visible():
@@ -1032,6 +1051,12 @@ class SqlTable(sqlwidget.SqlWidget):
     
         
 
+        
+    def date_started_cb(self, widget, event, field_name):
+        """
+        popup calendar and sincronize
+        """
+        pass
         
 #### model handling & sqlwidget override
     def initialize_record_editing(self, path, force=False, obj=None):
