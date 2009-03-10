@@ -817,6 +817,9 @@ class FrameWithLabel(LContainer):
         ## and create the children. We pass the child over to Alignment
         alignment = Alignment(al_str,(0,0),    'F' ,
                               children_list=children_list, elements=elements, layout=layout)
+#         fl_def = "fl=%s" % self.val.replace('F','')
+#         frame_label = FrameLabel(fl_def, (0,0), 'F', elements=elements, layout=layout) 
+#         self.lw['children_list'] = [ alignment, frame_label ]
         self.lw['children_list'] = [ alignment ]
         ## correct the parent_container of the child
         alignment.lw['container_flag'] = 'A'

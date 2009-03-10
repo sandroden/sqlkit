@@ -13,10 +13,12 @@ lay = """
       } -
 """
 
+import gtk
 
 l = Layout(lay, opts="-")
 
 w = l.show()
+#w['F.table'].set_label('frame label')
 
 
         
