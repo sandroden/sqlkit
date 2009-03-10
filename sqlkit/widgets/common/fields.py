@@ -201,14 +201,13 @@ class FieldChooser(object):
             return IntervalField(*args)
 
         if self.master.is_time(field_name):
-            if re.search('WITH TIME ZONE', COL_SPEC):
-                # FIXME
+            if db_spec['col'].type.timezone:
                 return TimeField(*args)
             else:
                 return TimeField(*args)
 
         if self.master.is_datetime(field_name):
-            if re.search('WITH TIME ZONE', COL_SPEC):
+            if db_spec['col'].type.timezone:
                 return DateTimeTZField(*args)
             else:
                 return DateTimeField(*args)
