@@ -152,7 +152,9 @@ class DjangoParser(object):
 
     def compose(self):
         for path in self.joins:
-            self.query = self.query.join(path).reset_joinpoint()
+            if path:
+                self.query = self.query.join(path).reset_joinpoint()
+
         return self.query.filter(self.sql() )
 
 #######  Functions  ############
