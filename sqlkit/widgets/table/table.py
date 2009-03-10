@@ -143,9 +143,12 @@ class SqlTable(sqlwidget.SqlWidget):
     def on_zoom_fit(self, widget, *args):
         tv_utils.zoom_to_fit(self.treeview, resize=True)
 
-    def reload_cb(self, *args):
-        """this is the real callback: C-r and toolbutton 
+    def reload_cb(self, widget, *args):
         """
+        this is the real callback: C-r and toolbutton 
+        """
+        self.grab_focus(widget)
+        
         if hasattr(self, 'filter_panel'):
             self.filter_panel.reload_cb(None)
         else:
@@ -532,7 +535,7 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
     
     def key_tree_ctrl_r(self, treeview, event, data):
-        self.reload_cb()
+        self.reload_cb(treeview)
         return True
     
     def key_tree_Down(self, treeview, event, data):

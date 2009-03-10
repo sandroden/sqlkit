@@ -456,8 +456,8 @@ class SqlWidget(gobject.GObject):
             'tb=gtk-delete'     : self.record_delete,
             'tb=gtk-refresh'    : self.reload_cb,
             'tb=gtk-quit'       : self.delete_event_cb,
-            'tb=gtk-go-forward' : self.record_forward,
-            'tb=gtk-go-back'    : self.record_back,
+            'tb=gtk-go-forward' : self.record_forward_cb,
+            'tb=gtk-go-back'    : self.record_back_cb,
 
             ## in case the programmers has set them
             'b=gtk-save-as'       : self.record_save_new,
@@ -466,17 +466,16 @@ class SqlWidget(gobject.GObject):
             'b=gtk-delete'     : self.record_delete,
             'b=gtk-refresh'    : self.reload_cb,
             'b=gtk-quit'       : self.delete_event_cb,
-            'b=gtk-go-forward' : self.record_forward,
-            'b=gtk-go-back'    : self.record_back,
+            'b=gtk-go-forward' : self.record_forward_cb,
+            'b=gtk-go-back'    : self.record_back_cb,
             }
         for widget_name, handler in actions.iteritems():
             if widget_name in self.widgets:
-                #print "_add_actions_to_button: %s %s %s" % (
-                #    widget_name, 'clicked', handler)
-                #self.widgets[widget_name].connect('clicked', handler)
                 self.lay_obj.connect((widget_name, 'clicked', handler))
-                #self.lay_obj.tooltips.set_tip(self.widgets[widget_name], "mmh")
-                #self.lay_obj.tip(widget_name, "mi chiamo %s" % widget_name)
+
+                ## this assures that clicking reload/save will trigger foucus-out from widgets
+                ## so that validation occurs.
+                self.widgets[widget_name].set_property('can-focus', True)
 
         ## style for toolbar if any
         if 'O.tool' in self.widgets:
@@ -729,19 +728,24 @@ class SqlWidget(gobject.GObject):
         """
         issue a reload operation on master. Call back of reload button
         """
+        self.grab_focus(widget)
         try:
             self.reload( )
         except (exc.ValidationError):
             return True
 
-    def record_forward(self):
-        """it doesn't make any sense here, but we need it to prevent
-        _add_actions_to_button from failing"""
+    def record_forward_cb(self):
+        """
+        it doesn't make any sense here, but we need it to prevent
+        _add_actions_to_button from failing
+        """
         pass
 
-    def record_back(self):
-        """it doesn't make any sense here, but we need it to prevent
-        _add_actions_to_button from failing"""
+    def record_back_cb(self):
+        """
+        it doesn't make any sense here, but we need it to prevent
+        _add_actions_to_button from failing
+        """
         pass
     
     def get_new_object(self, session=True):
@@ -1357,6 +1361,19 @@ class SqlWidget(gobject.GObject):
         response = dialog.run()
         dialog.destroy()
         
+        
+    def grab_focus(self, widget):
+        """
+        make sure the focus is grabbed so that all validation-related triggers
+        update correctly. If the widget cannot get focus, try tb=gtk-save
+        """
+
+        if not widget or isinstance(widget, gtk.AccelGroup):
+            sqlwidget = self.relationship_leader or self
+            sqlwidget.widgets['tb=gtk-save'].grab_focus()
+        else:
+            widget.grab_focus()
+
         
 ####### printing
     def printing(self):

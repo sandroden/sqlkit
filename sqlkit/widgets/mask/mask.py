@@ -342,16 +342,18 @@ class SqlMask (sqlwidget.SqlWidget):
         self.discard_changes()
         self.record_display(check=False)
         
-    def record_forward(self, event=None):
+    def record_forward_cb(self, widget):
         """
         display the next record in the mapper"""
 
+        self.grab_focus(widget)
         return self.record_display(incr=1)
     
-    def record_back(self, event=None):
+    def record_back_cb(self, widget):
         """
         display the previous record in the mapper"""
         
+        self.grab_focus(widget)
         return self.record_display(incr=-1)
     
     def add_accelerators(self):
@@ -385,20 +387,16 @@ class SqlMask (sqlwidget.SqlWidget):
     def clear_cb(self, accell_group, window, ord, flags):
         self.record_new()
 
-    def record_save_cb(self,  *args):
-        """accell_group, window, ord, flags or ev..."""
+    def record_save_cb(self, widget, *args):
+        """
+        recard save callback...
+        """
+        self.grab_focus(widget)
+
         try:
             self.record_save(None)
         except (exc.CancelledAction, exc.ValidationError):
             pass
-
-#     def unsaved_changes_exist(self, skip_check=False):
-#         """collect possible changes and test if save is needed
-#         """
-
-#         self.record_mask2obj(self.current, skip_check=skip_check)
-#         return sqlwidget.SqlWidget.unsaved_changes_exist(self)
-        
 
 ####### Layout, Reflection & Analisys
 
