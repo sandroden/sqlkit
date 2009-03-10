@@ -1229,6 +1229,7 @@ class SqlTable(sqlwidget.SqlWidget):
             obj = model[path][0]
             if obj in self.records:
                 self.records.remove(obj)
+
             if self.relationship_mode == 'SINGLE':
                 if obj in self.session.new:
                     self.session.expunge(obj)
@@ -1237,13 +1238,11 @@ class SqlTable(sqlwidget.SqlWidget):
                 #self.session.flush([obj])
                 self.commit()
             else:
-                pass
                 ## we're in M2M relationship or equivalent:
                 ## we don't want to delete the object, just delete the relationship
                 ## with the referred father
-#                self.session.expunge(obj)
-
-#                del obj
+                if obj in self.session.new:
+                    self.session.expunge(obj)
 
             self.edited_row_model_path = None
             model.remove(iter)
