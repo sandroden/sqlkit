@@ -366,7 +366,10 @@ class SqlTable(sqlwidget.SqlWidget):
         ## has been created but not yet filled: it wouldn't validate
         if not self.commit_inhibited:
             try:
-                self.record_save()                # uses self.edited_row_model_path
+                if self.relationship_mode == 'm2m' and not self.m2m_editable:
+                    self.record_save(discard_unchanged=False)
+                else:
+                    self.record_save(discard_unchanged=True)
                 self.edited_row_model_path = None
             except exc.ValidationError, e:
                 path = self.edited_row_model_path
@@ -724,6 +727,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.sb(_('Nothing to save'))
                 self.session.expunge(obj)
                 del obj
+                self.liststore.remove(self.liststore.get_iter(self.edited_row_model_path))
                 self.last_new_obj = None
                 self.edited_row_model_path = None
                 return
