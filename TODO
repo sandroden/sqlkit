@@ -1,12 +1,3 @@
-gettext
-==========
-
-Va aggiunta localizzazione. In realtà va aggiunta a layout più che a sqlkit.
-
-gestione errori sqlalchemy
-===========================
-
-
 DateEdit
 =========
 
@@ -26,9 +17,6 @@ normale a seconda che il campo nel db sia nullable o meno
 SqlTable
 ===========
  
-* aggiungere una funzione che permetta di impostare il numero di righe
-  (Pietro 10)
-
 * microwidget per nascondere e rimettere colonne in alto a destra sopra barra
   scorrimento (pietro 3). Molti esempi in rete, uno fra i tanti sunbird, sia
   nell'elenco eventi che nell'elenco task.
@@ -40,20 +28,6 @@ SqlTable
 * pensare come editare i campi a più righe o con righe molto lunghe. Occorre
   creare un popup con il testo e poi sincronizzarlo. Hai idee migliori?
   (Pietro 6)
-
-* deve potersi cancellare una data nel formato tabellare (pietro 8). 
-
-* quando si passa con Tab su una data non deve aprirsi il calendarietto fino
-  a quando non clicco Enter (pietro 7)
-
-* valutare l'uso di combobox anche in table. Ho visto un esempio in cui il
-  click sulla cella trasformava la cella stessa in un combobox per
-  editing. In realtà la priorità di questo sale se risulta più
-  facile ed intuitivo risolvere il problema in questo modo...
-
-  ma forse il comportamento è migliore con un edit normale e quindi è meglio 
-  parlarne assieme
-
 
 PyGtkMVC
 ==========
@@ -67,15 +41,6 @@ modo da poter avere on oggetto (dizionario?) che mi rappresenta lo stato del
 layout e che se lo modifico mi cambia o stato del layout.
 
 
-localization
-====================
-
-1. gettext: (pietro 9) credevo avessi già qualcosa da mostrare
-    
-2. come si deve affrontare il problema di scrivere i numeri?
-   come fare per usare il formato europeo dei divisori decimali? (pietro 7)
-   credo che si debba chiedere in lista
-
 Validazione
 ============
 
@@ -85,14 +50,3 @@ guardare anche i widget di validazione come:
 http://www.astro.umass.edu/~dpopowich/python/ 
 
 
-Dialogo Save
-===============
-
-Trovare un modo carino di mostrare le modifiche che verrebbero salvate
-(Pietro 4)
-
-filter-panel
-=============
-
-Operatori: aggiungere label di spiegazione (es: LIKE ha %, regexp ha ^, .*,
-           etc) (pietro 6)
