@@ -546,7 +546,7 @@ class SqlWidget(gobject.GObject):
             if not self.commit_error_handler(e):
                 self.session.rollback()
 
-    def commit_error_andler(self, e):
+    def commit_error_handler(self, e):
         """
         communicate the problem to the user
         return True to prevent rollback
@@ -928,7 +928,6 @@ class SqlWidget(gobject.GObject):
         """
         Quit operations: check if need to save first
         """
-
         try:
             self.record_save()
         except (exc.ValidationError, exc.CancelledAction), e:

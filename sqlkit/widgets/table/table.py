@@ -75,19 +75,15 @@ class SqlTable(sqlwidget.SqlWidget):
         self.treeview = self.widgets["TV=tree"]
         self.treeview.set_enable_search(False)
         self.treeview.show_all()
-        #dbg.write(type(self.treeview))
         self.treeview.set_model(self.liststore)
         
         self.treeview.set_rules_hint(True)
-        #set selection mode
+        # set selection mode
         treeselection = self.treeview.get_selection()
         treeselection.set_mode(gtk.SELECTION_SINGLE)
-        #callback for selection changes
+        # callback for selection changes
         treeselection.connect('changed', self.selection_changed_cb)
         self.treeview.connect('cursor-changed', self.cursor_changed_cb)
-#        self.treeview.connect('select-cursor-row', self.select_cursor_row_cb)
-        #register callback to toplevel window
-        self.treeview.get_toplevel().connect("delete_event", self.delete_event_cb)
         self.treeview.connect('key-press-event', self.keypress_event_cb)
         self.treeview.connect('button-press-event', self.button_press_event_cb)
 
