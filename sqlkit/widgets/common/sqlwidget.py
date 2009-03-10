@@ -571,7 +571,9 @@ class SqlWidget(gobject.GObject):
             return self.validation_errors
 
         if self.validation_errors: # just one error dialog
-            self.validation_error_dialog()
+            dialog = ValidationErrorDialog(self)
+            dialog.run()
+            #self.validation_error_dialog()
     
     def handle_validation_errors(self, error=None, field_name=None):
         """
@@ -586,58 +588,6 @@ class SqlWidget(gobject.GObject):
 
         self.sb(error.message, seconds=30)
 
-    def validation_error_dialog(self):
-        """
-        represent the errors in self.validation_errors and raise ValidationError
-        to correctly propagate the error upwards
-        """
-        general_msg = _('Errors are present in the record. \nCorrect them now, to continue \nor delete the record')
-        
-
-        layout = """i=gtk-dialog-error:6 l=general:<
-                    TVS=details -"""
-        
-        dialog, lay = self.lay_obj.dialog(lay=layout, type='ok',
-                                          title=_("Validation errors"))
-        lay.widgets['l=general'].set_text(general_msg)
-        
-        tv = lay.widgets['TV=details']
-        model = gtk.ListStore(str, str)
-        tv.set_model(model)
-        tv.set_property('width-request', 420)
-        tv.set_property('height-request', 150)
-        
-        cell1 = gtk.CellRendererText()
-        cell2 = gtk.CellRendererText()
-
-        tc1 = gtk.TreeViewColumn(_("Field name"), cell1, markup=0)
-        tc2 = gtk.TreeViewColumn(_("Error"), cell2, markup=1)
-
-        tv.append_column(tc1)
-        tv.append_column(tc2)
-        tv.show_all()
-
-        self.validation_error_fill_model(model)
-
-        dialog.show_all()
-        response = dialog.run()
-        dialog.destroy()
-
-        self.validation_errors = {}
-        raise exc.ValidationError
-
-    def validation_error_fill_model(self, model):
-        """
-        Fill the model of the treeview that presents the validation errors
-        """
-
-        for key in (self.validation_errors.keys()):
-            for i, err in enumerate(self.validation_errors[key]):
-                iter = model.append(None)
-                if i == 0:
-                    model.set(iter, 0, "<b>%s</b>" % _(get_label(key, layout=self.lay_obj)))
-                model.set(iter, 1, "<i>%s</i>" % err)
-            
     def record_validate_fields(self, obj):
         """
         validate any fields in self.gui_fields
@@ -782,23 +732,6 @@ class SqlWidget(gobject.GObject):
         from sqlkit.db.django_syntax import django2query
         self.query = django2query(self.mapper, self.query, OR=OR, *args, **kwargs)
         
-    def get_differences(self, obj):
-        """
-        show differences between old and new version of an object
-        """
-        msg = []
-        for field_name in self.field_list:
-            new = None
-            try:
-                field_name_transated = _(get_label(field_name, layout=self.lay_obj))
-                new, unchanged, old =  attributes.get_history(
-                    attributes.instance_state(obj), field_name_translated)
-            except:
-                pass
-            if new:
-                msg += ["%s: %s -> %s" % (field_name, old, new)]
-        return "\n".join(msg)
-
     def has_changed(self, field_name):
         """
         return the value from the widget
@@ -978,17 +911,9 @@ class SqlWidget(gobject.GObject):
         """
         response = True
         if self.unsaved_changes_exist() or skip_check:
-            msg = [_("Save unsaved data?")]
-            if not skip_check:
-                if self.session.dirty:
-                    #dbg.write("unsaved", self.session.dirty)
-                    msg += [_('unsaved: %s') % (len(self.session.dirty))]
-                    msg += [self.get_differences(o) for o in self.session.dirty]
-                if self.session.new:
-                    msg += [_('new: %s') % (len(self.session.new))]
+            dialog = UnsavedDataDialog(self)
+            response = dialog.run()
 
-            response = self.dialog(type='yes-no-cancel', text="\n".join(msg))
-                                   
             if response == gtk.RESPONSE_CANCEL:
                 pass
 
@@ -1572,3 +1497,192 @@ def set_template_dir(dir):
     global print_template_dir
     print_template_dir = dir
 
+
+class UnsavedDataDialog(object):
+    """
+    A dialog that allows to see which data have been modifiedx
+    """
+    def __init__(self, master):
+        self.master = master
+        general_msg = [_("Save unsaved data?")]
+        layout = "{v { i=gtk-dialog-question:6 l=msg}  {>.details TVS=details} }"
+        
+        self.dialog, l = master.lay_obj.dialog(title=_("Unsave data"),
+            type='yes-no-cancel', text="\n".join(general_msg),  lay=layout)
+
+        l.xml(filename='/tmp/exp.glade')
+        tv = l.widgets['TV=details']
+        expander = l.widgets['X.details']
+        self.model = gtk.TreeStore(str, str, str, str)
+        tv.set_model(self.model)
+        tv.set_property('width-request', 600)
+        tv.set_property('height-request', 150)
+        
+        cell0 = gtk.CellRendererText()
+        cell1 = gtk.CellRendererText()
+        cell2 = gtk.CellRendererText()
+        cell3 = gtk.CellRendererText()
+
+        tc0 = gtk.TreeViewColumn(_("State"),     cell0, markup=0)
+        tc1 = gtk.TreeViewColumn(_("Field name"), cell1, markup=1)
+        tc2 = gtk.TreeViewColumn(_("Original"), cell2, markup=2)
+        tc3 = gtk.TreeViewColumn(_("Modified"), cell2, markup=3)
+
+        tv.append_column(tc0)
+        tv.append_column(tc1)
+        tv.append_column(tc2)
+        tv.append_column(tc3)
+        tv.show_all()
+
+        self.fill_model()
+
+        self.dialog.show_all()
+
+    def run(self):
+        response = self.dialog.run()
+        self.dialog.destroy()
+        return response
+
+    def get_differences(self, obj):
+        """
+        show differences between old and new version of an object
+        """
+
+        for field in self.master.gui_fields:
+            if not field.mapper: # trash any gui, not persisted field
+                return
+            
+            new = None
+            field_name_translated = _(get_label(field.field_name, layout=self.master.lay_obj))
+            try:
+                new, unchanged, old =  attributes.get_history(
+                    attributes.instance_state(obj), field.field_name)
+            except:
+                pass
+
+            if new:
+                yield field_name_translated, old, new
+
+        
+    def fill_model(self):
+        
+        """
+        Dialog to allow analysis of changed data
+        """
+        if self.master.is_mask():
+            try:
+                self.master.record_mask2obj()
+            except:
+                exc.ValidationError
+
+        if self.master.session.dirty or (
+            self.master.record_has_changed() and self.master.current not in self.master.session.new):
+            dirty_iter = self.model.append(None)
+            self.model.set(dirty_iter, 0, '<b>%s</b>' % _('Modified'))
+
+            for item in self.master.session.dirty:
+                for field_name, old, new in self.get_differences(item):
+                    field = self.master.gui_fields[field_name]
+                    iter = self.model.append(None)
+                    self.model.set(iter,
+                                   1, field_name,
+                                   2, str(field.get_human_value(old)),
+                                   3, str(field.get_human_value(new)),
+                                   )
+
+            if self.master.current not in self.master.session.dirty:
+                for field in self.master.gui_fields:
+                    if not field.mapper:
+                        continue
+                    if field.has_changed():
+                        iter = self.model.append(None)
+                        self.model.set(iter,
+                                       1, field.field_name,
+                                       2, field.get_human_value(field.initial_value),
+                                       )
+                        try:
+                            self.model.set(iter, 3, field.get_human_value(field.get_value()))
+                        except exc.ValidationError, e:
+                            self.model.set(iter, 3, "ERROR: %s" % e.message)
+
+        if self.master.session.deleted:
+            deleted_iter = model.append(None)
+            self.model.set(dirty_iter, 0, '<b>%s</b>' % _('Deleted'))
+            for item in self.master.session.deleted:
+                iter = self.model.append(None)
+                self.model.set(iter,
+                               2, "%s" % item)
+                
+                
+        if self.master.session.new:
+            new_iter = self.model.append(None)
+            self.model.set(new_iter, 0, '<b>%s</b>' % _('New'))
+            for item in self.master.session.new:
+                iter = self.model.append(None)
+                self.model.set(iter,
+                               3, "%s" % item.__class__.__name__)
+                
+                
+
+
+
+
+class ValidationErrorDialog(object):
+
+    def __init__(self, master):
+        """
+        represent the errors in self.validation_errors and raise ValidationError
+        to correctly propagate the error upwards
+        """
+        self.master = master
+        general_msg = _('Errors are present in the record. \nCorrect them now, to continue \nor delete the record')
+        
+
+        layout = """i=gtk-dialog-error:6 l=general:<
+                    TVS=details -"""
+        
+        self.dialog, lay = master.lay_obj.dialog(lay=layout, type='ok',
+                                          title=_("Validation errors"))
+        lay.widgets['l=general'].set_text(general_msg)
+        
+        tv = lay.widgets['TV=details']
+        model = gtk.ListStore(str, str)
+        tv.set_model(model)
+        tv.set_property('width-request', 420)
+        tv.set_property('height-request', 150)
+        
+        cell1 = gtk.CellRendererText()
+        cell2 = gtk.CellRendererText()
+
+        tc1 = gtk.TreeViewColumn(_("Field name"), cell1, markup=0)
+        tc2 = gtk.TreeViewColumn(_("Error"), cell2, markup=1)
+
+        tv.append_column(tc1)
+        tv.append_column(tc2)
+        tv.show_all()
+
+        self.fill_model(model)
+        self.dialog.show_all()
+
+    def run(self):
+        response = self.dialog.run()
+        self.dialog.destroy()
+
+        self.master.validation_errors = {}
+        raise exc.ValidationError
+
+    def fill_model(self, model):
+        """
+        Fill the model of the treeview that presents the validation errors
+        """
+
+        for key in (self.master.validation_errors.keys()):
+            for i, err in enumerate(self.master.validation_errors[key]):
+                iter = model.append(None)
+                if i == 0:
+                    model.set(iter, 0, "<b>%s</b>" % _(get_label(key, layout=self.master.lay_obj)))
+                model.set(iter, 1, "<i>%s</i>" % err)
+            
+#     def fill_model(self):
+#         self.master.validation_error_fill_model(model)        
+    
