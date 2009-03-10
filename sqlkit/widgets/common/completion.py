@@ -547,10 +547,10 @@ class SimpleCompletion(object):
                 if self.master.is_fkey(self.field_name):
                     clean_value = self.master.gui_fields[self.field_name].clean_value(text, input_is_fkey=False)
                     self.master.sb(_("Good match"), seconds=4)
-                    self.master.set_value(self.field_name, clean_value, fkvalue=text)
                     if not clean_value:
                         raise NoResultFound
 
+                    self.master.set_value(self.field_name, clean_value, fkvalue=text)
                     return True
 
                 else:
