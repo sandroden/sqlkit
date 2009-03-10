@@ -550,7 +550,7 @@ class SqlTable(sqlwidget.SqlWidget):
     def key_entry_ctrl_n(self, widget, event, data):
 
         widget.emit('activate')
-        self.record_new(treeview)
+        self.record_new()
         return True
     
     def key_entry_Tab(self, widget, event, data):
