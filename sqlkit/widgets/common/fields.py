@@ -271,6 +271,8 @@ class Field(object):
         self.property =  db_spec.get('property', None)
         self.column   =  db_spec.get('col', None)
         self.table    =  db_spec.get('table', None)
+        if self.pkey:
+            self.nullable = False
 
     def set_value(self, value, initial=True, shown=False):
         value = self.clean_value(value)
