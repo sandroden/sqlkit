@@ -332,7 +332,7 @@ class CellRendererVarchar(gtk.CellRendererText):
         xpad = self.get_property('xpad')
         size[2] = width + xpad * 2
 
-        dbg.write("lenght", self.lenght)
+#        dbg.write("lenght", self.lenght)
         return tuple(size)
         
 
