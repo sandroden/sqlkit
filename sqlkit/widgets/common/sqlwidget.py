@@ -172,7 +172,7 @@ class SqlWidget(gobject.GObject):
         self.ignored_fields = self._set_ignored_fields(ignore_fields)
         if hide_fields:
             self.hide_fields()
-        self.title = self._get_title(title)
+        self._title = self._create_title(title)
 #        self.tables = {}
         self.values = {}
         ## create the interface and add obvious constraints
@@ -363,7 +363,7 @@ class SqlWidget(gobject.GObject):
         lay = self.laygen.layout
         self.layout = lay
         self.lay_obj = layout.Layout(self.layout, addto=self.addto,
-                                     title=self.title, opts='T-', label_map=self.label_map)
+                                     title=self._title, opts='T-', label_map=self.label_map)
         #if self.xml:
         #    self.lay_obj.xml('/tmp/m_%s.glade' % self.nick)
 
@@ -490,6 +490,21 @@ class SqlWidget(gobject.GObject):
                               ('gtk-refresh', 'activate', self.reload_cb),
                               )
 
+    def _set_title(self, title):
+
+        if 'Window' in self.widgets:
+            self.widgets['Window'].set_title(title)
+        self._title = title
+        
+    def _get_title(self):
+        
+        if 'Window' in self.widgets:
+            return self.widgets['Window'].get_title(title)
+        else:
+            return getattr(self, '_title', None)
+        
+    title = property(_get_title, _set_title)
+            
 ####### Saving
     def record_delete(self, widget=None):
         """invokes the validator before DELETing a record"""
@@ -977,7 +992,7 @@ class SqlWidget(gobject.GObject):
                 #print e, vars(e)
                 pass
 
-    def _get_title(self, title=None):
+    def _create_title(self, title=None):
         if not title:
             try:
                 title=self.table

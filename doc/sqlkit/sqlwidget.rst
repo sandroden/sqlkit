@@ -75,7 +75,7 @@ layout options
 ==============
 
 :title:
-   the title for the gtk.Window
+   the title for the gtk.Window. 
 
 :show:
    a boolean to tell if the Window will be visible
@@ -231,6 +231,9 @@ Attributes
    an instance of ``sqlkit.db.defaults.Defauls`` instantiated with
    local=True as explained in :ref:`local_defaults`. Any default set with
    this instance will only be visible in this sqlwidget.
+
+:title:
+   the title of the Window.
 
 .. _sqlalchemy: http://www.sqlalchemy.org
 
