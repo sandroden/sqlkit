@@ -238,7 +238,9 @@ class SqlMask (sqlwidget.SqlWidget):
             tbl = self.tables
         for key in self.mapper_info.get_pkeys(tbl):
             if key in self.gui_fields and self.is_editable(key):
-                raise NotImplementedError
+                if not self.gui_fields[key].has_changed():
+                    self.dialog(text=_("Primary key (%s) didn't change. Refusing to save as new" % key))
+                    return
             
         ## missing handling of Primary Key:
         ## should I delete the old one? should I look for editable attribute of the
