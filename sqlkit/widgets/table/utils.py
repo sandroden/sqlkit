@@ -76,11 +76,18 @@ def set_height_request(treeview, rows=None):
     spacing = treeview.style_get_property('vertical-separator')
 
     needed_height = cell_height * rows + (spacing) * (rows-1)
+    top_widget = column.get_property('widget')
+    if top_widget:
+       top_height = top_widget.get_allocation().height
+    else:
+        top_height = cell_height
+ 
+    needed_height += top_height
+ 
+
     dbg.write('needed', needed_height, 'spacing', spacing)
 
-    # This would not be needed if a previous call to "height-request" hadn't
-    # been made. However, there was maybe a reason to do it.
-    treeview.set_property('height-request', -1)
+    treeview.set_property('height-request', needed_height)
 
     toplevel        = treeview.get_toplevel()
     visible_rect    = treeview.get_visible_rect()
