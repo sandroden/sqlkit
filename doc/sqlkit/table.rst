@@ -53,10 +53,6 @@ Each column is clickable. Clicking on the column pops up a menu that enables:
 Cell renderers
 ==============
 
-Dates
------
-Dates are represented with a CellRenderer that pops up up the calendar. I'm not
-at all satisfied with this. Any hint is appreciated
 
 Boolean
 ---------
@@ -73,7 +69,7 @@ I don't have a satisfactory CellRender for long text. Any hint is appreciated.
 Export
 =======
 
-A very minimal export function allow to export visible data in a csv (comma
+A very minimal export function allows to export visible data in a csv (comma
 separated value) format. Follow File -> Export.
 
 Shortcut
@@ -95,3 +91,9 @@ in the editable cell
 :Esc:           aborts editing 
 
 
+Signals
+=======
+
+:button-press-event: this event is emitted when clicking in the treeview if
+       there are no pending validation errors (in which case you are forced
+       to solve them before)

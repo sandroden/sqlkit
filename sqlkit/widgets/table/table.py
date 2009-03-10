@@ -41,6 +41,13 @@ class SqlTable(sqlwidget.SqlWidget):
     """implementation with a listore with a single column that holds the
     sqlalchemy obj
     """
+    __gsignals__ = {
+        'button-press-event' : (gobject.SIGNAL_RUN_LAST,
+                           gobject.TYPE_BOOLEAN,
+                                # event, obj, field_name
+                           (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_STRING),
+                           ),
+        }
 
     __metaclass__ = dbg.LogTheMethods
     currently_edited_field_name = None
@@ -390,7 +397,6 @@ class SqlTable(sqlwidget.SqlWidget):
     def show_column(self, menuItem, field_name,):
         self.tvcolumns[field_name].set_property('visible', True)
 
-#### event handling & accelerators
     def button_press_event_cb(self, widget, event):
         """
         Block browsing if last edited cell didn't validate
@@ -398,8 +404,24 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.cell_entry and not self.cell_entry.is_valid():
             if not self.cell_validate():
                 return True
+            
+        ## emit button-press-event of the sqlwidget: event, field_name, value
+        #  this happens before the selection gets changed so we cannot use get_selected_obj()
+
+        try:
+            path, column, x_in_cell, y_in_cell = widget.get_path_at_pos(int(event.x),int(event.y))
+            iter = self.liststore.get_iter(path)
+            obj = self.liststore.get_value(iter,0)
+            field_name = column.get_data('field_name')
+        except TypeError, e:
+            obj = None
+            field_name = None
+            
+        self.emit('button-press-event', event, obj, field_name )
+        
         return False
         
+#### event handling & accelerators
     def keyrelease_event_cb(self, wdg, event, data=None):
         return self.length_control(wdg, data)
     
