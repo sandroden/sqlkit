@@ -75,3 +75,23 @@ Export
 
 A very minimal export function allow to export visible data in a csv (comma
 separated value) format. Follow File -> Export.
+
+Shortcut
+========
+
+in the treeeview
+----------------
+
+:Control-x:  eliminates a line
+:Control-k:  eliminates a line 
+:Control-s:  saves the record
+:Control-q:  quits the table
+:Control-n:  opens a new record
+
+in the editable cell
+--------------------
+:Control-Enter: pops a completion (regexp mode)
+:Shift-Enter:   pops a completion (start mode)
+:Esc:           aborts editing 
+
+

@@ -732,6 +732,11 @@ class SqlTable(sqlwidget.SqlWidget):
         self.record_delete(treeview)
         return False
     
+    def key_tree_ctrl_x(self, treeview, event, data):
+        
+        self.record_delete(treeview)
+        return False
+    
     def key_tree_ctrl_r(self, treeview, event, data):
         self.reload_cb()
         return True

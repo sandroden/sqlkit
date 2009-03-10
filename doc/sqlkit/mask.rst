@@ -81,8 +81,13 @@ attribute of the SqlWidget. In example 26 we use::
 that changes pack properties to a gtk.Table whose name is ``T.a``
 
 
-Scrolling
+Shortcuts
 ----------
 
-The mouse wheel allows to browse the records that have been loaded by a
-reload operation
+
+:mouse scrolling: allows to browse the records that have been loaded by a
+   reload operation
+:Control-s:  saves the record
+:Control-q:  quits the table
+:Control-n:  opens a new record
+
