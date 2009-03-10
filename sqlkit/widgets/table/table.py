@@ -332,7 +332,13 @@ class SqlTable(sqlwidget.SqlWidget):
 
     def reload_sort_cb(self, widget, field_name, direction):
         
-        self.order_by = ("%s %s" % (field_name, direction))
+        col = self.gui_fields[field_name].column
+        if direction == 'ASC':
+            self.order_by = col
+        else:
+            self.order_by = col.desc()
+            
+        #self.order_by = ("%s %s" % (field_name, direction))
         self.reload_cb(None)
         
 #### callbacks treeview
