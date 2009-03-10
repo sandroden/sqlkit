@@ -374,7 +374,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if not self.commit_inhibited:
             try:
                 if self.relationship_mode == 'm2m' and not self.m2m_editable:
-                    self.record_save(discard_unchanged=False)
+                    self.record_save(discard_unchanged=False, discard_new=True)
                 else:
                     self.record_save(discard_unchanged=True)
                 self.edited_row_model_path = None
@@ -721,7 +721,7 @@ class SqlTable(sqlwidget.SqlWidget):
         ## the problem here is to prevent changes in the already used record
         raise NotImplementedError
     
-    def record_save(self, discard_unchanged=False):
+    def record_save(self, discard_unchanged=False, discard_new=False):
 
         """save the record
 
@@ -739,17 +739,16 @@ class SqlTable(sqlwidget.SqlWidget):
             dbg.write('no self.edited_row_model_path, nothing to save', self.edited_row_model_path)
             return
 
-#        obj = self.liststore[self.edited_row_model_path][0]
         obj = self.get_current_obj()
 
-        if discard_unchanged:
-            dbg.write(obj, )
-            #if not self.session.is_modified(obj):
+        if discard_unchanged or (discard_new and obj in self.session.new):
             if not self.record_has_changed():
                 self.sb(_('Nothing to save'))
-                self.session.expunge(obj)
+                if obj in self.session.new:
+                    self.liststore.remove(self.liststore.get_iter(self.edited_row_model_path))
+                    self.records.remove(obj)
+                    self.session.expunge(obj)
                 del obj
-                self.liststore.remove(self.liststore.get_iter(self.edited_row_model_path))
                 self.last_new_obj = None
                 self.edited_row_model_path = None
                 return
