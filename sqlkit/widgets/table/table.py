@@ -522,34 +522,6 @@ class SqlTable(sqlwidget.SqlWidget):
 
         return False
 
-        
-    def key_entry_shift_Return(self, wdg, event, data):
-        self.completion.show_possible_completion(wdg, field_name=data, mode='start')
-        return True
-    
-#     def key_tree_Return(self, wdg, event, data):
-#         #dbg.write()
-#         return False
-    
-#     def key_entry_Return(self, wdg, event, data):
-#         #dbg.write('TEXT',wdg.get_text())
-#         return False
-    
-#     def key_entry_F1(self, wdg, event, data):
-#         self.completion.show_possible_completion(wdg, field_name=data, mode='regexp')
-#         return True
-    
-#     def key_entry_F2(self, wdg, event, data):
-#         return True
-    
-# #     def key_entry_Down(self, wdg, event, data):
-# #         return 
-    
-    def key_entry_ctrl_Return(self, wdg, event, data):
-        self.completion.show_possible_completion(wdg, field_name=data, mode='like')
-        return True
-    
-
     def key_entry_ctrl_n(self, widget, event, data):
 
         widget.emit('activate')
