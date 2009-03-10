@@ -1,23 +1,40 @@
 sqlkit 0.8.6-pre -
 	
+	* table: * complete restructure of TreeColumn/CellRenderers creation
+	           now will be easyer to customize them
+	         * fix in height in netsed table definition (e.g.:m2m=field:3)
+	         * great improve in dialog on saveing/deleteing records
+	           now is possible to see changes
+	         * added signal 'press-button-event'
+	         * improved detection of useless save dialog
+	         * added Contrl-x shortcut as Contr-k
+	         * fix in deleting when in m2m mode: obj was not expunjed
+	         * date cell renderer now is a normal varchar. t loast
+                   calendar but can be deleted!!!
+	         * order_by: now column obj are used that make it possible
+	           to use it also when join constraints are used
 	* gui_fields: now any loop on fields is done on gui_fields, that
 	        can be mapped in the class (persisted) or not. irst step
 	        to adding normal, not presisted, fields. No longer vfield
 	        list. 
 	* validation:
 		this is the main improvement of this release. Any check
-        	that is known by the fields is doen before committing AND
-        	any errors if dispayed in a single dialog
+        	that is known by the fields is done before committing AND
+        	all errors are dispayed in a single dialog
 	
 		In table: now table correctly handles errors in
 		validation: it's not possible to leave a field with wrong
 		value. Nullable values are checkd only when committing
-	* mask: added undo menu entry (trivial,triggers discard_changes)
+	* mask: * added undo menu entry (trivial,triggers discard_changes)
+	        * layoutgenerator; change in syntax. Now TXS=description
+	          will correctly add label while TXS==description will not
+	
 	* MultiLine: fix for multiline
 	* input: now keypd work correctly and handles KP_Decimal according
  	        to locale, when in interger/decimal or float fields
-	* fields: fixed default format for floats. Now #.###.@. Before it
-     		truncated decimals
+	* fields: * fixed default format for floats. Now #.###.@. Before it
+       		    truncated decimals
+	          * added get_human_value()
 	* defaults: it's now possible to have defaults local to an
         	instance of sqlwidget
 	* sqledit: improved GUI(now open correct N. of lines _ C-l)
@@ -26,6 +43,7 @@ sqlkit 0.8.6-pre -
 	* layout: stock imaes can be used as in i=gtk-save
 	* layout: added MenuItem that accepts StockItem and Text.
 	* defaults: now local defaults act as global defaults (eg: fk method)
+	* sqlwidget: title can be set in any moment
 	
 sqlkit 0.8.5.1 - 23.1.09
 	* fix release:
