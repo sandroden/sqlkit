@@ -19,7 +19,7 @@ from sqlalchemy.orm import sessionmaker, mapper
 from sqlkit.db import minspect, utils
 from sqlkit.exc import MissingPrimaryKey
 from sqlkit import _
-#import dbg.gtk_dbg
+from sqlalchemy.orm.interfaces import SessionExtension
 
 class DbProxy(object):
     """
@@ -55,12 +55,16 @@ class DbProxy(object):
                 self.Session = sessionmaker(bind=self.metadata.bind,
                                             expire_on_commit=expire_on_commit,
                                             autoflush=autoflush,
-                                            autocommit=autocommit)
+                                            autocommit=autocommit,
+                                            extension=SKSessionExtension(),
+                                            )
                 self.Session() # test if expire_on_commit is accepted
             except:
                 self.Session = sessionmaker(bind=self.metadata.bind,
                                             autoflush=autoflush,
-                                            autocommit=autocommit)
+                                            autocommit=autocommit,
+                                            extension=SKSessionExtension(),
+                                            )
         else:
             self.Session = Session
         self.engine = self.metadata.bind
@@ -161,33 +165,19 @@ class DbProxy(object):
             return T1.outerjoin(T2)
         else:
             return T1.join(T2)
-            
-#         join_cnd = minspect.get_join_cnd([ T1, T2 ] )
-#         #dbg.write("join condition (%s -%s): %s" % (T1, T2, join_cnd))
-#         if mode in ('innerjoin', 'inner'):
-#             dbg.write('join... non outer')
-#             j = T1.join(T2, and_(*join_cnd))
-#         else:
-#             dbg.write('outerjoin', T1, T2, join_cnd)
-#             j = T1.outerjoin(T2, *join_cnd)
-    
-#         return j
-         
-#     def inspect_mapper(self, mapper, noup=None, ro=False):
-#         """Return an instance of minspect.InspectMapper
-#         """
 
-#         m=minspect.InspectMapper(mapper, noup=noup, ro=ro)        
-#         # A mapper created using .join or .outerjoin from one table
+class SKSessionExtension(SessionExtension):
+    def after_flush(self, session, flush_context):
+        """
+        implement the after-flush signal
+        """
         
-#         if isinstance(mapper.local_table, sql.Join):
-#             m=minspect.InspectJoinMapper(mapper, noup=noup, ro=ro)
-#         # A mapper of a single table or a mapper creater with 'properties' option
-#         # that results in a Lazy/Eager load  one
-#         else:
-#             m=minspect.InspectMapper(mapper, noup=noup, ro=ro)
-#         return m
+        sqlwidget= getattr(self, 'sk_sqlwidget', None)
+        current= getattr(self, 'sk_sqlwidget', None)
 
+        if sqlwidget and current:
+            sqlwidget.emit('after-flush', current, session)
+        
 def table2mapper(table):
     """
     return a mapper for a class created on the fly. table is a sqlalchemy.Table obj
@@ -238,3 +228,4 @@ def search_unique_keys(table):
     for index in table.indexes:
         if index.unique:
             return index.columns
+

@@ -55,14 +55,16 @@ class SqlWidget(gobject.GObject):
                            gobject.TYPE_BOOLEAN,
                            (),
                            ),
-        }
+        'after-flush' :    (gobject.SIGNAL_RUN_LAST,
+                           gobject.TYPE_BOOLEAN,
+                            # object, new, dirty, deleted
+                           (gobject.TYPE_PYOBJECT , gobject.TYPE_PYOBJECT ),
+                            )
+                            }
     gui_fields = None
-#    fields   = None  # fields to use (InspectMapper)
-#    tables = None    # Table objects referenced as foreign keys
     values = None    # real value for foreign key
                      # (when lookup is displeyed instead)
 #    __metaclass__ = dbg.LogTheMethods
-#    __metaclass__ = misc.autoreload.MetaAutoReloader
     records = None
     last_new_obj = None
 
@@ -106,7 +108,9 @@ class SqlWidget(gobject.GObject):
                  format=None,
                  label_map = None,
                  ):
-        """create an interface and allow to save/store data from a database
+
+        """
+        create an interface and allow to save/store data from a database
 
         layout:    a layout describing the desired layout (see layout package)
         naked:  in case the mask should *not* be added interactive buttons
@@ -135,6 +139,7 @@ class SqlWidget(gobject.GObject):
         relationship_leader: the main sqlmask (sqltable) that "owns" the filter_panel
         format: a format dict as for set_format, settings formatting info for numbers and dates
         """
+
         gobject.GObject.__init__(self)
         self.related = Container()
         self.gui_fields = Container(self.gui_fields)
@@ -529,19 +534,34 @@ class SqlWidget(gobject.GObject):
             return True
     
     def record_save_new(self, ev):
-        """Save the record as a new record, ie letting pk not be set 
+        """
+        Save the record as a new record, ie letting pk not be set 
         """
         raise NotImplementedError
 
     def commit(self, message=_('Saved')):
+        from sqlkit.db.proxy import SKSessionExtension
+        
         if self.ro:
             return
         try:
             ## when session.autocomit = False, a transaction is automatically started
+            obj = self.get_current_obj()
+
+            ## this is needed for after-flush signal emission that is implemented inside
+            ## SKSessionExtension
+            for extension in self.session.extensions:
+                if isinstance(extension, SKSessionExtension): 
+                    extension.sk_sqlwidget = self
+                    extension.sk_current = obj
+
             if self.session.autocommit:
                 self.session.begin()
+                
             self.session.commit()
+                
             self.sb(message, seconds=3)
+
         except (exceptions.DBAPIError, exceptions.FlushError), e:
             if not self.commit_error_handler(e):
                 self.session.rollback()

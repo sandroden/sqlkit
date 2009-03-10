@@ -259,6 +259,16 @@ which are the needed ones...
 :recods-displayed:
    Records have been displayed. this may be after .reload() or .set_records([])
 
+:after-flush:
+   
+   flush has occurred, normally commit should not add any errors. This in
+   implemented with a SessionExtension: if you used the default session
+   optainn via get_session() you are assured that it will be correct. If you
+   create a session by yourself, be sure to add SKSessionExtension to the
+   session or you won't have this signal.
+
+   signature of the callback: (sqlwidget, object, session)
+   where object is the object current in the sqlwidget.
 
 Saving varchar and text fields
 ==============================
