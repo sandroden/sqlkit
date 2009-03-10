@@ -346,7 +346,7 @@ class Field(object):
                 msg = "Field %s could not validate value '%s': error was: %s" 
                 raise exc.ValidationError(_(msg % (field_name, e.message) ))
 
-        if value is None and not self.nullable:
+        if value is None and not self.nullable and not self.default:
             raise exc.NotNullableFieldError(self.field_name)
 
         return value
@@ -356,6 +356,12 @@ class Field(object):
         Set max length of the entry used, based on the info from the database
         """
         pass
+
+    def get_human_value(self, value):
+        """
+        return the value or a translation in human readable for foreign key
+        """
+        return value
         
     def __repr__(self):
         return "<%s - %s >" % (self.__class__.__name__, self.field_name)
@@ -650,6 +656,9 @@ class ForeignKeyField(Field):
             return None
         return value
 
+    def get_human_value(self, value):
+        return self.widget.completion.lookup_value(value)
+    
     def set_value(self, value, initial=True, shown=False):
         if not shown:
             value = self.clean_value(value, input_is_fkey=True)
@@ -692,8 +701,4 @@ class CollectionField(Field):
         if value is None:
             value = []
         self.widget.set_value(value)
-
-
-
-
 
