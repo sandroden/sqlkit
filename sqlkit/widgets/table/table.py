@@ -1,4 +1,3 @@
-# Copyright (C) 2005-2006, Michele Comitini <mcm@glisco.it>
 # Copyright (C) 2005-2006-2007-2008, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -47,6 +46,7 @@ class SqlTable(sqlwidget.SqlWidget):
     currently_edited_field_name = None
     mapper = None
     cell_entry = None
+    cell_renderers = None
 #    commit_allowed = dbg.TraceIt(True, name='commit_allowed', mode='rw')
          
     def __init__(self, *args, **kwargs):
@@ -153,275 +153,50 @@ class SqlTable(sqlwidget.SqlWidget):
             self.gui_fields[field_name] = field_chooser.get_field(field_name,
                                                               self.mapper_info.fields[field_name])
             
-        
     def setup_treeview_columns(self):
         """
         Setup the presentation of columns.
         """
+        import columns
 
-        #create and append columns
         self.tvcolumns = {}
-        for i, field_name in enumerate(self.field_list):
-            j = i+1
-            if field_name in widgets.info:
-                v_txt = widgets.info[field_name][0]
-            else:
-                v_txt = field_name
-
-            tvcolumn = gtk.TreeViewColumn(v_txt.replace('_',' '))
-            tvcolumn.set_data('field_name', field_name)
-            tvcolumn.set_resizable(True)
-            tvcolumn.set_expand(False)
-            tvcolumn.set_reorderable(True)
-            tvcolumn.set_clickable(True)
-#            tvcolumn.set_property('sort-indicator', True)
-            tvcolumn.connect('clicked', self.clicked_cb, field_name)
+        for field_name in self.field_list:
             
-            self.tvcolumns[field_name] = tvcolumn
+            if field_name in widgets.info:
+                label = widgets.info[field_name][0]
+            else:
+                label = field_name
 
-            if self.is_fkey(field_name) :   ## FKey
-                cell = self.setup_fkey_column(field_name, tvcolumn)
+            ## first check if you have a Custom Renderer
+            if self.cell_renderers and field_name in self.cell_renderers:
+                col = self.cell_renderers.get(field_name)(field_name, label)
+
+            elif self.is_fkey(field_name) :   ## FKey
+                col = columns.FKeyColumn(self, field_name, label)
 
             elif self.is_boolean(field_name):  ## boolean
-                cell = self.setup_boolean_column(field_name, tvcolumn)
+                col = columns.BooleanColumn(self, field_name, label)
 
             elif self.is_date(field_name):   ## Dates
-#                cell = self.setup_date_column(field_name, tvcolumn)
-                cell = self.setup_generic_column(field_name, tvcolumn)
-#                                                 editing_started_cb=self.date_editing_started_cb)
+                col = columns.DateColumn(self, field_name, label)
 
             elif self.is_datetime(field_name):  ## Datetime
-#                cell = self.setup_datetime_column(field_name, tvcolumn)
-                cell = self.setup_generic_column(field_name, tvcolumn)
+                col = columns.DateTimeColumn(self, field_name, label)
 
             elif self.is_number(field_name):  ## Number
-                cell = self.setup_number_column(field_name, tvcolumn)
+                col = columns.NumericColumn(self, field_name, label)
 
             elif self.is_string(field_name):  ## Varchar
-                cell = self.setup_string_column(field_name, tvcolumn)
+                col = columns.VarcharColumn(self, field_name, label)
 
             else:
-                cell = self.setup_generic_column(field_name, tvcolumn)
+                col = columns.GenericColumn(self, field_name, label)
 
-            cell.connect('editing-canceled', self.cell_editing_canceled_cb, field_name)
-            self.add_clickable_label(field_name, tvcolumn)
-
-            if not self.is_editable(field_name):
-                try:
-                    cell.set_property('editable', False)
-                except:
-                    cell.set_property('sensitive', False)
-
-            self.treeview.append_column(tvcolumn)
-            #tvcolumn.set_fixed_width(self.width)
+            self.tvcolumns[field_name] = col.column
+            self.treeview.append_column(col.column)
 
         self.treeview.columns_autosize()
         self.fix_expandable_columns()
-
-    def setup_boolean_column(self, field_name, tvcolumn):
-        """
-        A boolen that steps throught undefined if field is nullable
-        """
-        cell = gtk.CellRendererToggle()
-        tvcolumn.pack_start(cell, True)
-        tvcolumn.set_expand(False)
-        #tvcolumn.add_attribute(cell, 'active', j )
-        cell.set_property('activatable', True)
-        cell.connect('editing-started', self.generic_editing_started_cb, field_name )
-
-        if self.is_nullable(field_name):
-            cell.connect('toggled', self.toggled_null_signal_cb,
-                         (self.liststore, field_name))
-        else:
-            cell.connect('toggled', self.toggled_signal_cb,
-                         (self.liststore, field_name))
-        tvcolumn.set_cell_data_func(cell, self.cell_bool_cb, field_name)
-        tvcolumn.cells_data_func = [(cell, self.cell_bool_cb, field_name)]
-        cell.fixed_width = True
-        return  cell
-        
-#     def setup_date_column(self, field_name, tvcolumn):
-#         """
-#         A date calendar that pops a gtk.Calendar to edit
-#         """
-
-#         cell = cell_renderers.CellRendererDate(master=self, field_name=field_name)
-#         cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-#         cell.set_property('sensitive', False)
-#         cell.set_property('xpad', 4)
-#         tvcolumn.pack_start(cell, True)
-#         #tvcolumn.add_attribute(cell, 'date', j )
-#         cell.connect('editing-started', self.generic_editing_started_cb, field_name )
-#         cell.connect('date-changed', self.date_changed_cb, field_name )
-#         tvcolumn.set_cell_data_func(cell, self.cell_dates_cb, ('date', field_name) )
-#         tvcolumn.cells_data_func = [(cell, self.cell_dates_cb, ('date', field_name) )]
-#         return  cell
-
-#     def setup_datetime_column(self, field_name, tvcolumn):
-#         """
-#         A datetime cell' renderer
-#         """
-
-#         cell = cell_renderers.CellRendererDatetime(master=self, field_name=field_name)
-#         cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-#         cell.set_property('sensitive', False)
-#         cell.set_property('xpad', 4)
-#         tvcolumn.pack_start(cell, True)
-#         #tvcolumn.add_attribute(cell, 'datetime', j )
-#         cell.connect('editing-started', self.generic_editing_started_cb, field_name )
-#         cell.connect('datetime-changed', self.date_changed_cb, field_name )
-#         tvcolumn.set_cell_data_func(cell, self.cell_dates_cb,('datetime', field_name) )
-#         tvcolumn.cells_data_func = [(cell, self.cell_dates_cb, ('datetime', field_name) )]
-#         return  cell
-
-    def setup_fkey_column(self, field_name, tvcolumn):
-        """
-        A renderer that shows the value instead of the id
-        """
-        # use set_fkey_descr function to put text in the cell
-        # if this is a foreign key
-        cell = gtk.CellRendererText()
-        cell.set_property('editable', True)
-        #cell.set_property('editable-set', True)
-        #cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-        cell.connect('edited', self.text_edited_cb, field_name)
-        cell.connect('editing-started', self.text_editing_started_cb, field_name)
-        tvcolumn.pack_start(cell, True)
-        #tvcolumn.add_attribute(cell, 'text', j)
-        tvcolumn.set_cell_data_func(cell, self.set_fkey_descr, field_name)
-        tvcolumn.cells_data_func = [(cell, self.set_fkey_descr, field_name)]
-
-        cell.set_property('foreground', 'navyblue')
-
-        return  cell
-
-    def setup_number_column(self, field_name, tvcolumn):
-        """
-        A renderer similar to varchar but with different expand options
-        and with right justification
-        """
-        if self.col_width and field_name in self.col_width:
-            width = self.col_width.get(field_name, )
-        else:
-            if self.mapper_info.fields[field_name]['type'] == int:
-                width = 8
-            else:
-                width = self.mapper_info.fields[field_name]['col'].type.precision
-
-        if width:
-            cell = cell_renderers.CellRendererVarchar(width)
-        else:
-            cell = gtk.CellRendererText()
-
-        cell.set_property('editable', True)
-        cell.set_property('editable-set', True)
-        cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-        cell.connect('edited', self.text_edited_cb, field_name)
-        cell.connect('editing-started', self.text_editing_started_cb, field_name)
-        tvcolumn.pack_start(cell, True)
-        #tvcolumn.add_attribute(cell, 'text', j )
-        tvcolumn.set_cell_data_func(cell, self.cell_number_cb, ('text', field_name) )
-        tvcolumn.cells_data_func = [(cell, self.cell_number_cb, ('text', field_name) )]
-        tvcolumn.set_expand(self.is_expandable(field_name))
-
-        ## left alignment for NUMBERS
-        cell.set_property('xalign', 1.0)
-        return  cell
-
-    def setup_string_column(self, field_name, tvcolumn):
-        """
-        A renderer that expands only large fields and that centers text if it's little
-        """
-
-        if self.col_width and field_name in self.col_width:
-            width = self.col_width.get(field_name, )
-        else:
-            width = self.mapper_info.fields[field_name]['length']
-
-        if self.is_text(field_name):
-            cell = cell_renderers.MultilineCellRenderer()
-        else:
-            if width:
-                cell = gtk.CellRendererText()
-            else:
-                cell = cell_renderers.CellRendererVarchar(width)
-                cell.fixed_width = True
-
-        cell.set_property('editable', True)
-        cell.set_property('editable-set', True)
-        cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-        cell.connect('edited', self.text_edited_cb, field_name)
-        cell.connect('editing-started', self.text_editing_started_cb, field_name)
-        cell.set_property('ellipsize', pango.ELLIPSIZE_END)
-        tvcolumn.pack_start(cell, True)
-        #tvcolumn.add_attribute(cell, 'text', j )
-        tvcolumn.set_cell_data_func(cell, self.cell_default_cb, ('text', field_name) )
-        tvcolumn.cells_data_func = [(cell, self.cell_default_cb, ('text', field_name) )]
-        tvcolumn.set_expand(self.is_expandable(field_name))
-
-        specs = self.mapper_info.fields[field_name]['col_spec']
-        if specs:
-            length = re.search('(\d*)', specs).group(1)
-            try:
-                #dbg.write('lung',length)
-                ## if field has less then 3 chars, position it in the middle
-                if int(length) <= 3:
-                    dbg.write(field_name, 'in centro', length, int(length))
-                    cell.set_property('xalign', 0.5)
-            except:
-                pass
-        return  cell
-
-    def setup_generic_column(self, field_name, tvcolumn, cell_data_func=None, editing_started_cb=None):
-        """
-        Similar to string but no special treatment
-        
-        """
-        
-        cell_data_func_cb = cell_data_func or self.cell_default_cb
-        editing_started_cb = editing_started_cb or self.text_editing_started_cb
-
-        cell = gtk.CellRendererText()
-        cell.set_property('editable', True)
-        cell.set_property('editable-set', True)
-        cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
-        cell.connect('edited', self.text_edited_cb, field_name)
-        cell.connect('editing-started', editing_started_cb, field_name)
-        tvcolumn.pack_start(cell, True)
-
-        tvcolumn.set_cell_data_func(cell, cell_data_func_cb, ('text', field_name) )
-        tvcolumn.cells_data_func = [(cell, self.cell_default_cb, ('text', field_name) )]
-        tvcolumn.set_expand(self.is_expandable(field_name))
-        return  cell
-
-    def add_clickable_label(self, field_name, tvcolumn):
-        """
-        Add a clickable label to the column via EventBox
-        """
-        label_text = _(get_label(field_name, layout=self.lay_obj))
-        event_box = gtk.EventBox()
-        label = gtk.Label()
-        label.set_markup(label_text)
-        event_box.add(label)
-        event_box.show_all()
-        tvcolumn.set_widget(event_box)
-
-        ## bold italic
-        if not self.is_nullable(field_name) and not self.mapper_info.fields[field_name]['default']:
-            label.set_markup('<b><i>%s</i></b>' % label_text)
-                
-        
-    def is_expandable(self, field_name):
-        """
-        make expandable only Strings with n_chars > 20 or Text
-        """
-
-        if self.is_text(field_name):
-            return True
-        if self.is_string(field_name):
-            if self.mapper_info.fields[field_name]['length'] > 20:
-                return True
-        return False
 
     def fix_expandable_columns(self):
         """
@@ -603,14 +378,6 @@ class SqlTable(sqlwidget.SqlWidget):
     def cursor_changed_cb(self, treeview, user_data = None):
         return False
         
-    def clicked_cb(self, treeview, field_name):
-        event =   gtk.gdk.Event(gtk.gdk.BUTTON_PRESS)
-        event.button = 1
-        dbg.write(event)
-        self.popup_col_menu(event, field_name)
-        
-        return True
-    
     def show_column(self, menuItem, field_name,):
         self.tvcolumns[field_name].set_property('visible', True)
 
@@ -634,7 +401,6 @@ class SqlTable(sqlwidget.SqlWidget):
         else:
             #self.length_control(wdg, data)
             pre = 'entry'
-
         ksym = gtk.gdk.keyval_name(event.keyval)
         mods = ['key_' + pre]
         for prefix, mask in [('ctrl', gtk.gdk.CONTROL_MASK),
@@ -648,13 +414,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 mods.append(prefix)
 
         ksym = '_'.join(mods + [ksym])
-        
-        ## precedence to actions
-#         if ksym in dir(self.actions):
-#             ret = getattr(self.actions, ksym)(wdg, event, data)
-#             dbg.write("RET: ", ret)
-#             if ret is True:
-#                 return ret
+
         if ksym in dir(self):
             return getattr(self, ksym)(wdg, event, data)
         else:
@@ -783,12 +543,27 @@ class SqlTable(sqlwidget.SqlWidget):
         self.completion.show_possible_completion(wdg, field_name=data, mode='like')
         return True
     
+
     def key_entry_ctrl_n(self, widget, event, data):
 
         widget.emit('activate')
         self.record_new(treeview)
         return True
     
+    def key_entry_Tab(self, widget, event, data):
+        """
+        Trigger the validation when moving around the cells
+        """
+        ksym = gtk.gdk.keyval_name(event.keyval)
+        if ksym in ('Tab',):
+#             ## FIXME: Down and Return should behave differently if the completion is visible
+#             if ksym in ('Down'): # and widget.get_completion().get_property('visible'):
+#                 return False
+
+            if self.cell_entry and not self.cell_entry.is_valid():
+                if not self.cell_validate():
+                    return True
+
     def length_control(self, wdg, field_name):
         if self.mapper_info.fields[field_name]['type'] is not str:
             return False
@@ -818,251 +593,26 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
         
 #### callbacks columns
-    def toggled_null_signal_cb(self, cell, path, (model, field_name)):
-        """
-        callback that cicle into tri-state
-        """
-
-        self.currently_edited_field_name = field_name
-        self.initialize_record_editing(path)
-
-        obj = self.liststore[path][0]
-        status = getattr(obj, field_name)
-        # status may be True/False/None - I want to cicle
-        if   status == True:    status = False
-        elif status == False:   status = None
-        elif status == None:    status = True
-
-        self.gui_fields[field_name].set_value( status, initial=False )        
-            
-        return True
-    
-    def toggled_signal_cb(self, cell, path, (model, field_name)):
-        """
-        callback that cicle into True/False
-        """
-
-        self.initialize_record_editing(path)
-
-        obj = self.liststore[path][0]
-        status = getattr(obj, field_name)
-
-        self.gui_fields[field_name].set_value(not status, initial=False)
-        
-        return True
-    
-    def generic_editing_started_cb(self, cell, editable, path, field_name):
-
-        self.currently_edited_field_name = field_name
-        self.initialize_record_editing(path)
-        return True
-    
-    def date_editing_started_cb(self, cell, editable, path, field_name):
-
-        self.currently_edited_field_name = field_name
-        self.initialize_record_editing(path)
-        #editable.connect('button-press-event', date_utils.date_started_cb, field_name)
-        return True
-    
-    def print_type(self, item):
-        try:
-            widget =  gobject.type_parent(item)
-            self.print_type(widget)
-        except RuntimeError:
-            pass
-                
-
-    def text_editing_started_cb(self, cell, editable, path, field_name):
-        """
-        prepare the editable, completion and validation
-        """
-        self.currently_edited_field_name = field_name
-        self.cell_entry = CellEntry(editable, cell, path, field_name)
-
-        self.cell_entry.entry.connect('remove-widget', self.on_editable_remove_widget, field_name)
-        self.cell_entry.entry.connect('key-press-event', self.editable_keypress_cb, field_name)
-        if self.is_number(field_name) and not self.is_fkey(field_name):
-            editable.connect('key-press-event', self.digits_check_input_cb  )            
-
-        self.fkey_value = editable.get_text()
-#        self.fkey_is_valid = True
-        
-        if hasattr(self.field_widgets[field_name], 'completion'):
-            completion = self.field_widgets[field_name].completion
-            if completion and not self.is_text(field_name):
-                completion.add_completion(editable)
-                completion.add_callbacks(editable)
-            
-        ## MAX LENGTH
-        self.field_widgets[field_name].field.set_max_length()
-                
-        self.initialize_record_editing(path)
-        self.commit_inhibited = False
-        return True
-    
-    def text_edited_cb(self, cell, path, new_text, field_name):
-        """
-        callback on signal 'edited' on cell_renderer. 
-        
-        """
-
-        ## NOTE: liststore.clear will trigger text_edited_cb!!!
-        if self.deleting_row:
-            return True
-
-        if self.edited_row_model_path is None:
-            return True
-
-        if self.cell_validate():
-            self.cell_entry = None
-        #return True
-
-    def editable_keypress_cb(self, widget, event, field_name):
+    def editable_keypress_cb(self, widget, event):
         """
         Trigger the validation when moving around the cells
         """
         ksym = gtk.gdk.keyval_name(event.keyval)
-        if ksym in ('Tab',):
-#             ## FIXME: Down and Return should behave differently if the completion is visible
-#             if ksym in ('Down'): # and widget.get_completion().get_property('visible'):
-#                 return False
-
+        if ksym in ('Tab'):
             if self.cell_entry and not self.cell_entry.is_valid():
                 if not self.cell_validate():
                     return True
 
-    def cell_editing_canceled_cb(self, widget, field_name):
-        """
-        clean-up of cell_entry and restore value
-        """
-        if self.cell_entry and self.cell_entry.substitute:
-            # assigning a value to liststore, triggers 'editing-canceled'
-            self.cell_entry.substitute = False
-            return
-        self.set_value(field_name, self.gui_fields[field_name].initial_value)
-        self.cell_entry = None
-        self.sb(_("Editing canceled. Restoring original value"), seconds=3)
-        
-    def on_editable_remove_widget(self, widget, field_name):
+    def on_editable_remove_widget(self, widget):
         """
         If the call has invalid data we don't want to remove the widget
         so that we can edit the wrong data rather then loosing what was already typed
         """
         if self.cell_entry and not self.cell_entry.is_valid():
+            widget.stop_emission('remove-widget')
             return True
         self.cell_entry = None
        
-#### cell_data_func
-    def cell_bool_cb(self, column, cell, model, iter, field_name):
-        """
-        function set by set_cell_data_func for nullable boolean
-        """
-
-        if not column.get_visible():
-            return
-        obj = model.get_value(iter, 0) 
-        value = getattr(obj, field_name)
-        cell.set_property('active', value)        
-        if isinstance(obj, self.totals.total_class):
-            #obj.set_value_and_colors(cell, value, field_name)
-            cell.set_property('visible', False)        
-        else:
-            cell.set_property('visible', True)        
-            if value is None:
-                cell.set_property('inconsistent', True)
-            else:    
-                cell.set_property('inconsistent', False)
-    
-    def cell_default_cb(self, column, cell, model, iter, (prop_name, field_name)):
-        """
-        function set by set_cell_data_func
-        gets the attribute from the record and returns it
-        """
-
-        if not column.get_visible():
-            return
-        obj = model.get_value(iter, 0) 
-        
-        value = getattr(obj, field_name)
-        formatted_value = self.gui_fields[field_name].format_value(value)
-        cell.set_property(prop_name, formatted_value)        
-#        cell.set_property('cell-background', None)        
-#        cell.set_property('foreground', None)        
-        if isinstance(obj, self.totals.total_class):
-            obj.set_value_and_colors(cell, formatted_value, field_name)
-        else:
-            cell.set_property('foreground-set', False)
-            cell.set_property('cell-background-set', False)
-        
-    def cell_number_cb(self, column, cell, model, iter, (prop_name, field_name)):
-        """
-        function set by set_cell_data_func
-        gets the attribute from the record and returns it
-        """
-        
-        if not column.get_visible():
-            return
-        obj = model.get_value(iter, 0) 
-        value = getattr(obj, field_name)
-        formatted_value = self.gui_fields[field_name].format_value(value)
-        if isinstance(obj, self.totals.total_class):
-            obj.set_value_and_colors(cell, formatted_value, field_name)
-        else:
-            cell.set_property(prop_name, formatted_value)        
-            cell.set_property('foreground-set', False)
-            cell.set_property('cell-background-set', False)
-        
-    def cell_dates_cb(self, column, cell, model, iter, (prop_name, field_name)):
-        """
-        function set by set_cell_data_func
-        gets the attribute from the record and returns it
-        """
-        if not column.get_visible():
-            return
-        obj = model.get_value(iter, 0) 
-        if isinstance(obj, self.totals.total_class):
-            cell.set_property('visible', False)        
-        else:
-            cell.set_property('visible', True)        
-            value = getattr(obj, field_name)
-            cell.set_property(prop_name, value)        
-        
-    def set_fkey_descr(self, column, cell, model, iter, field_name):
-        """cell_data_function used by column that have fkey
-        """
-        if not column.get_visible():
-            return
-        obj = model.get(iter, 0)[0]
-        if not obj:
-            return
-        if isinstance(obj, self.totals.total_class):
-            cell.set_property('text', '')
-        else:
-            fkey_value = getattr(obj, field_name)
-
-            if fkey_value is not None:
-                path = model.get_path(iter)
-                value = self.completions[field_name].lookup_value(fkey_value)
-                cell.set_property('text', value)
-            else:
-                cell.set_property('text', '')
-
-    def date_changed_cb(self, event, path, date, col):
-	self.edited_row_model_path = path
-        
-        obj = self.liststore[path][0]
-        setattr(obj, col, date)
-        return True
-    
-        
-
-        
-    def date_started_cb(self, widget, event, field_name):
-        """
-        popup calendar and sincronize
-        """
-        pass
-        
 #### model handling & sqlwidget override
     def initialize_record_editing(self, path, force=False, obj=None):
         """
@@ -1692,33 +1242,3 @@ class SqlTable(sqlwidget.SqlWidget):
             field.widget.add_completion(editable=editable)
         
 
-class CellEntry(object):
-    """
-    An object to store info on editable status
-    """
-    def __init__(self, editable, cell, path, field_name):
-        self.entry = editable
-        self.cell = cell
-        self.path = path
-        self.field_name = field_name
-        self.valid = True
-        self.text = editable.get_text()
-
-        if isinstance(editable, gtk.Entry):
-            # Multiline does not have 'canged' and does not need invalidating
-            self.entry.connect('changed', self.on_editable_change)
-            
-            
-        self.substitute = False
-
-    def on_editable_change(self, widget):
-        self.valid = False
-
-    def is_valid(self):
-
-        valid = self.valid or self.text == self.entry.get_text()
-        return valid
-
-    def get_text(self):
-        return self.entry.get_text()
-    
