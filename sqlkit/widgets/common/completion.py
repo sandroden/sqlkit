@@ -115,6 +115,7 @@ class SimpleCompletion(object):
         self.mapper = self.master.mapper # used to track path relationship
         self.from_obj = None
         self.force_enum = False
+        self.displaying_completion = False
         
     def set_group_by(self, field_name):
         """if group_by is not already in table.attrs, add it runtime
@@ -211,7 +212,7 @@ class SimpleCompletion(object):
         text = self.model.get_value(iter, self.DESCRIPTION_COL)
         prev = getattr(self, '_prev_match_value', None)
         
-        if self.enum_mode:
+        if self.mode == 'enum':
             return True
 
         if key != prev:
@@ -284,6 +285,7 @@ class SimpleCompletion(object):
         """
         Create an event that will cause completion to pop
         """
+        self.displaying_completion = True
         entry.grab_focus()
         entry.emit('changed')
         ## we don't want selection to prevent autocompletion from deleting already written text
@@ -313,6 +315,8 @@ class SimpleCompletion(object):
             ## just handier to accept it already
             if not self.master.is_mask():
                 self.master.cell_entry.entry.emit('activate')
+
+        self.displaying_completion = False
         return True
         
 ### Sql SELECT
@@ -321,7 +325,7 @@ class SimpleCompletion(object):
         execute the SELECT DISTINCT and return values
         """
         oper = self.get_match_operator()
-        if self.enum_mode:
+        if mode == 'enum':
             sql = self.compose_select_statement(None, None)
         else:
             filtering_value = self.get_displayed_value()
@@ -334,8 +338,17 @@ class SimpleCompletion(object):
 
     def compose_select_statement(self, oper, value):
 
-        where = self.column.op(oper)(value)
-        where = self.add_filters(where)
+
+        if oper:
+            where = self.column.op(oper)(value)
+            where = self.add_filters(where)
+        else:
+            ## this should come from mode == 'enum'
+            if self._filter:
+                where = self.add_filters(self.column)
+            else:
+                where = None
+            
         sql = select(self.columns, where, from_obj=self.from_obj)
 
         return sql.order_by(self.column).distinct()
@@ -534,6 +547,10 @@ class SimpleCompletion(object):
         self.show_possible_completion(wdg, mode='regexp')
         return True
         
+    def key_entry_ctrl_shift_Return(self, wdg, event, data):
+        self.show_possible_completion(wdg, mode='enum')
+        return True
+        
     def key_entry_Return(self, wdg, event, data):
         #
         return not self.check_existance(wdg)
@@ -683,7 +700,8 @@ class FkeyCompletion(SimpleCompletion):
             where = self.table.columns[self.description].op(oper)(value)
             where = self.add_filters(where)
         else:
-            ## this should come from enum_mode = False
+            ## this should come from mode == 'enum'
+            where = None
             if self._filter:
                 where = self.add_filters(None)
             
@@ -856,18 +874,8 @@ class M2mCompletion(FkeyCompletion):
         except Exception, e:
             print e
             pass
-#             kw = {field_name: value}
-#             try:
-#                 print "CERCO, cerco: ", kw
-#                 self.master.set_current(filter_by=kw, substitute=True)
-#                 print "..."
-#             except NoResultFound, e:
-#                 print e
-#                 msg = "No record for this specification: (%s=%s). Retry" % (field_name, value)
-#             except MultipleResultsFound, e:
-#                 print e
-#                 msg = "Choice is not unique: (%s=%s). Retry" % (field_name, value)
-#                 return False
+
+        self.displaying_completion = False
         return True
         
     def __str__(self):
@@ -900,4 +908,14 @@ def get_foreign_info(master, field_name, names=True):
 
     foreign_keys = master.mapper_info.fields[field_name]['fkey']
     return get_foreign_info(foreign_keys, names=names)
+
+
+
+
+
+
+
+
+
+
 

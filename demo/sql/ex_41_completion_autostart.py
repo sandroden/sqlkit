@@ -12,6 +12,8 @@ lay = """
    date_release
 """
 
-t = SqlMask(Class=model.Movie, dbproxy=db, layout=lay)
+t = SqlMask(class_=model.Movie, dbproxy=db, layout=lay)
 t.completions.director_id.autostart = 2
+
+
 
