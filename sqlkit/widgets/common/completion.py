@@ -114,6 +114,7 @@ class SimpleCompletion(object):
         self._filter = None
         self.mapper = self.master.mapper # used to track path relationship
         self.from_obj = None
+        self.force_enum = False
         
     def set_group_by(self, field_name):
         """if group_by is not already in table.attrs, add it runtime
@@ -181,6 +182,8 @@ class SimpleCompletion(object):
         regexp: typed text is a regexp (*~ or ILIKE)
         all: all values
         """
+        if self.force_enum:
+            mode = 'enum'
         self.mode = mode
         if sb:
             # TIP: status bar 
@@ -198,7 +201,8 @@ class SimpleCompletion(object):
                 print self.model.get_value(row.iter, 1)
 
     def match_func(self, completion, key, iter):
-        """When editing, this function limits the visible entry of the model
+        """
+        When editing, this function limits the visible entry of the model
         """
         ## I want to have also group_by field in the completion, but only when
         ## thare's a match to be shown under that group
@@ -207,6 +211,9 @@ class SimpleCompletion(object):
         text = self.model.get_value(iter, self.DESCRIPTION_COL)
         prev = getattr(self, '_prev_match_value', None)
         
+        if self.enum_mode:
+            return True
+
         if key != prev:
             self._prev_match_value = key
             self.model_set_match_col(key)
@@ -310,14 +317,17 @@ class SimpleCompletion(object):
         
 ### Sql SELECT
     def select_values(self, field_name, mode):
-        """execute the SELECT DISTINCT and return values
         """
-
+        execute the SELECT DISTINCT and return values
+        """
         oper = self.get_match_operator()
-        filtering_value = self.get_displayed_value()
-        self.autostart_last_length = len(filtering_value)
+        if self.enum_mode:
+            sql = self.compose_select_statement(None, None)
+        else:
+            filtering_value = self.get_displayed_value()
+            self.autostart_last_length = len(filtering_value)
 
-        sql = self.compose_select_statement(oper, filtering_value)
+            sql = self.compose_select_statement(oper, filtering_value)
         self.sql = sql
         
         return self.master.metadata.bind.execute(sql)
@@ -382,7 +392,10 @@ class SimpleCompletion(object):
         for key in ignore:
             del kw[key]
         if kw:
-            return where & self.get_filtered_clause_list(**kw)
+            if where:
+                return where & self.get_filtered_clause_list(**kw)
+            else:
+                return self.get_filtered_clause_list(**kw)
         else:
             return where
 
@@ -402,6 +415,9 @@ class SimpleCompletion(object):
         1. when more that self.autostart chars have been written
         2. if text in entry has fewer chars than chars that triggered it
         """
+        if self.displaying_completion:
+            return
+        
         if self.autostart:
             text = self.master.get_value(self.field_name, shown=True)
             length = len(text or '')
@@ -659,15 +675,18 @@ class FkeyCompletion(SimpleCompletion):
             
     def compose_select_statement(self, oper, value):
 
-#        field_list = tables[self.table.name].attrs
-#        field_list = [self.table.columns[name] for name in  self.attrs]
-
         order_by = [self.description]
         if self.group_by:
             order_by = [self._group_by] + order_by
+
+        if oper:
+            where = self.table.columns[self.description].op(oper)(value)
+            where = self.add_filters(where)
+        else:
+            ## this should come from enum_mode = False
+            if self._filter:
+                where = self.add_filters(None)
             
-        where = self.table.columns[self.description].op(oper)(value)
-        where = self.add_filters(where)
         sql = select(self.columns, where, from_obj=self.from_obj)
 
         return sql.order_by(*order_by).distinct()
@@ -816,7 +835,6 @@ class M2mCompletion(FkeyCompletion):
         self.attrs = get_description(self.table, attr='attrs')
         self.columns = [self.master.mapper_info.fields[field_name]['col'] for field_name in self.attrs]
         self.from_obj = None
-
         
     def match_selected_cb(self, wdg, model, iter, field_name):
         """after selecting an entry store the value in self.values and set
@@ -882,8 +900,4 @@ def get_foreign_info(master, field_name, names=True):
 
     foreign_keys = master.mapper_info.fields[field_name]['fkey']
     return get_foreign_info(foreign_keys, names=names)
-
-
-
-
 

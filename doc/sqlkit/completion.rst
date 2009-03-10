@@ -33,13 +33,17 @@ The match of the completion have two *modes*:
   :regexp: the match is done via regular expression if db supports it or via
     LIKE operator adding ``%`` on both sides
 
+  :enum: any value matches. All possible values are shown. This mimic an enum
+    field. When there are only few vaues this may result more ntural than
+    the others 
+
 Since completion implies a search that may return *many* records, it's only
 triggered on demand. Normal binding are:
 
   :shift   Return: triggers 'start' mode completion
   :control Return: triggers 'regexp' mode completion. This is also triggered 
                    pressing the down arrow of a foreign key
-
+  :shift control Return: triggers 'enum' mode 
 
 .. _description:
 
@@ -174,8 +178,17 @@ In case you have a related table you can go back to the main table::
   t.related.movie.completions.title.filter(director_id='$main.director_id)
 
 
+enum mode
+---------
 
+Enum mode is the way you can mimic a standard enumeration field: you see all
+fields independently from what you have in your entry. This is more natural
+in some circumstancies if you ony have few values.
 
+You can get this behaviour all the times just hitting
+Control-Shift-Return or in ForeignKey fields double-clicking the down arrow.
+Since you probably whant this depening on the values
+of the table you can programmatically choose to serve completion *only* via
+this way setting ``force_enum = True`` on the completion::
 
-
-  
+   t.completions.director_id.force_enum = True

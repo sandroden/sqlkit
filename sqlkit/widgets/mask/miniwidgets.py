@@ -392,16 +392,35 @@ class ForeignKeyWidget(Widget):
         self.master.completions[self.field_name] = self.completion
 
         ## button connect
-        self.button.connect('button-press-event', self.completion.pop_menu,  self.field_name, 3)
-        self.button.connect('clicked', self.on_button_clicked)
+        self.button.connect('button-press-event', self.button_press_cb, self.field_name)
+        #self.button.connect('clicked', self.on_button_clicked)
 
         ## entry connect
         self.completion.add_callbacks(self.entry)
 
-    def on_button_clicked(self, widget):
+    def button_press_cb(self, widget, event, field_name):
+        """
+        Double click -> mode enum
+        Simple click <3> -> menu
+        """
 
-        self.completion.show_possible_completion(self.entry, mode='regexp')
+        if event.button == 3:
+            self.completion.pop_menu(widget, event, self.field_name)
+
+        elif event.button == 1:
+            if event.type == gtk.gdk._2BUTTON_PRESS:
+                # cancel reques by first simple click
+                gobject.source_remove(self.idle_id)
+                    
+                mode = 'enum'
+            else:
+                mode = 'regexp'
+        
+            self.idle_id = gobject.idle_add(
+                self.completion.show_possible_completion, self.entry, mode)
+                
         return True
+
 
     def on_key_press(self, widget, event, when='press'):
 

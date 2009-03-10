@@ -246,7 +246,7 @@ class SqlMask (sqlwidget.SqlWidget):
 
         self.record_new(clear=False)
         try:
-            self.record_save(new_obj=True)
+            self.record_save(ask=False, new_obj=True)
         except exc.ValidationError, e:
             pass
         
