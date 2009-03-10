@@ -543,20 +543,38 @@ class SqlWidget(gobject.GObject):
                 self.session.begin()
             self.session.commit()
             self.sb(message, seconds=3)
-        except exceptions.SQLError, e:
-            if not self.SQLErrorHandler(e):
+        except (exceptions.DBAPIError, exceptions.FlushError), e:
+            if not self.commit_error_handler(e):
                 self.session.rollback()
 
-    def SQLErrorHandler(self, e):
+    def commit_error_andler(self, e):
         """
         communicate the problem to the user
         return True to prevent rollback
         """
-        # TIP: message in the status bar when a commit error is handled
-        self.message(type='error',
-                     text=_("%s - Dirty objects: %s - New objects: %s") % \
-                     (str(e.orig),len(self.session.dirty),len(self.session.new)))
-        self.sb(e.orig)
+        if isinstance(e, exceptions.IntegrityError):
+            # TIP: message in the status bar when a commit error is handled
+            msg = _("Error while writing to the database. Possible causes: you are saving \n" + \
+                  "an already existent record or deleting a record that is referenced by other " \
+                  "records. \nOriginal error was: \n%s") % e.message
+            self.message(type='error', text=_(msg))
+            self.sb(e.message)
+
+        elif isinstance(e, exceptions.DBAPIError):
+            # TIP: message in the status bar when a commit error is handled
+            self.message(type='error',
+                         text=_("%s - Dirty objects: %s - New objects: %s") % \
+                         (str(e.orig),len(self.session.dirty),len(self.session.new)))
+            self.sb(e.orig)
+
+        elif isinstance(e, exceptions.FlushError):
+            # TIP: message in the status bar when a commit error is handled
+            msg = _("Error while writing to the database: \n" \
+                    "are you 'saving as new' an already known record?\n" + \
+                    "original error was: \n%s") % e.message
+            self.message(type='error', text=_(msg))
+            self.sb(e.message)
+
         return False  # i.e.: rollback
 
     def record_validate(self, obj=None, single_fields=True, related=None):
