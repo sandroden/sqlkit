@@ -426,10 +426,9 @@ class SqlWidget(gobject.GObject):
         """
         Add accelerators: now Ctrl-h, Ctrl-q
         """
-
         # key accelerators
         if self.addto:
-            return False
+            return 
         
         self.accel_group = gtk.AccelGroup()
         self.accel_group.connect_group(ord('h'), 
@@ -444,10 +443,14 @@ class SqlWidget(gobject.GObject):
         return True
         
     def _add_actions_to_buttons(self):
-        """ Add default actions to std buttons"""
+
+        """
+        Add default actions to std buttons
+        """
+        
         actions = {
             ## std toolbutton
-            'tb=gtk-save-as'       : self.record_save_new,
+            'tb=gtk-save-as'    : self.record_save_new,
             'tb=gtk-save'       : self.record_save_cb,
             'tb=gtk-new'        : self.record_new_cb,
             'tb=gtk-delete'     : self.record_delete,
@@ -1525,7 +1528,6 @@ class UnsavedDataDialog(object):
         self.dialog, l = master.lay_obj.dialog(title=_("Unsave data"),
             type='yes-no-cancel', text="\n".join(general_msg),  lay=layout)
 
-        l.xml(filename='/tmp/exp.glade')
         tv = l.widgets['TV=details']
         expander = l.widgets['X.details']
         self.model = gtk.TreeStore(str, str, str, str)

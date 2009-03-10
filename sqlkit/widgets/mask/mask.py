@@ -353,12 +353,24 @@ class SqlMask (sqlwidget.SqlWidget):
         return self.record_display(incr=-1)
     
     def add_accelerators(self):
+
         """
         C-S-n clear
         C-s  save- record
+        add mouse wheel support
         """
-        
         sqlwidget.SqlWidget.add_accelerators(self)
+        if not self.widgets['Window']:
+            return
+            
+        def scroll_event_cb(widget, event):
+            
+            if event.direction == gtk.gdk.SCROLL_UP:
+                return self.record_display(incr=-1)
+            else:
+                return self.record_display(incr=1)
+
+        self.widgets['Window'].connect('scroll_event', scroll_event_cb)
 
         self.accel_group.connect_group(
             ord('n'), gtk.gdk.CONTROL_MASK|gtk.gdk.SHIFT_MASK,  
@@ -367,6 +379,7 @@ class SqlMask (sqlwidget.SqlWidget):
         self.accel_group.connect_group(
             ord('s'), gtk.gdk.CONTROL_MASK,
             gtk.ACCEL_LOCKED, self.record_save_cb)
+
     def clear_cb(self, accell_group, window, ord, flags):
         self.record_new()
 
@@ -499,20 +512,6 @@ class SqlMask (sqlwidget.SqlWidget):
         item.connect('activate', self.record_undo_cb)
         menu.insert(item, 0)
         
-    def add_accelerators(self):
-        """
-        Add wheel mouse support
-        """
-        if sqlwidget.SqlWidget.add_accelerators(self):
-
-            def scroll_event_cb(widget, event):
-                if event.direction == gtk.gdk.SCROLL_UP:
-                    return self.record_display(incr=-1)
-                else:
-                    return self.record_display(incr=1)
-
-            self.widgets['Window'].connect('scroll_event', scroll_event_cb)
-
     def get_current_obj(self):
         """Return the object that is currently edited"""
         return self.current
