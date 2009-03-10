@@ -243,16 +243,7 @@ class DateTimeTZWidget(DateTimeWidget):
 
     def get_value(self, shown=False):
         value = self.gtkwidget.get_property('time')
-        if not self.TZ:
-            ## Local will return a tzinfo with the timezone of the system
-            ## it will be added to bypass the limitaition od dateedit
-            self.TZ = localtimezone.Local
-            self.microsecond = 0
-
-        if value:
-            return value.replace(tzinfo=self.TZ, microsecond=self.microsecond)
-        return None
-
+        return value
 
 class TextWidget(Widget):
 

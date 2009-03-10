@@ -568,17 +568,26 @@ class DateTimeField(DateField):
             return None
 
         if isinstance(value, basestring):
-            tmp_date = re.split('\s+', value)
-            value = dates.parse_date(tmp_date[0], locale=self.locale)
-            if len(tmp_date) >= 1:
-                time_list = [int(i) for i in tmp_date[1].split(':')]
-            else:
-                time_list = []
-                
-            value = datetime.combine(value, time(*time_list))
+            tmp_date = re.split('\s+', value.strip())
+            try:
+                date_value = dates.parse_date(tmp_date[0], locale=self.locale)
+            except Exception, e:
+                raise exc.ValidationError(_('Wrong date format: %s' % tmp_date[0] ))
 
-                
+            try:
+                if len(tmp_date) > 1:
+                    time_list = [int(i) for i in re.split('[:.]', tmp_date[1]) ]
+                else:
+                    time_list = []
+                time_value = time(*time_list)
+
+            except Exception, e:
+                raise exc.ValidationError(_('Wrong time format' ))
+
+            value = datetime.combine(date_value, time_value)
+
         return value
+
         
     def format_value(self, value):
 
@@ -590,15 +599,46 @@ class DateTimeField(DateField):
 class DateTimeTZField(DateTimeField):
     Widget = DateTimeTZWidget
 
+    def __init__(self, *args, **kwargs):
+        DateTimeField.__init__(self, *args, **kwargs)
+        self.TZ = None
+        
     def clean_value(self, value):
 
-        if value in (None, ''):
-            return None
+        value = DateTimeField.clean_value(self, value)
 
-        if isinstance(value, basestring):
-            value = dates.parse_datetime(value)
-        return value
+        if not self.TZ:
+            ## Local will return a tzinfo with the timezone of the system
+            ## it will be added to bypass the limitaition od dateedit
+            self.TZ = localtimezone.Local
+            self.microsecond = 0
+
         
+        if value:
+            return value.replace(tzinfo=self.TZ, microsecond=self.microsecond)
+        return None
+
+    def set_value(self, value, initial=True, shown=False):
+
+        DateTimeField.set_value(self, value, initial=initial)
+        
+        if initial:
+            if value:
+                self.TZ = value.tzinfo
+                self.microsecond = value.microsecond
+            else:
+                self.TZ = None
+                self.microsecond = 0
+        
+    def get_value(self, shown=False):
+        """
+        Implement a hack arount the fact that you normally don't need TZ
+        and I don't provide a cell_renderer that gives you the opportunity to change it
+        Attach the same timezone as the original data
+        """
+        value = self.widget.get_value()
+        return self.clean_value(value)
+
 class BooleanField(Field):
     """
     A simple boolean field that does not allow NULL
@@ -719,4 +759,6 @@ class CollectionField(Field):
         if value is None:
             value = []
         self.widget.set_value(value)
+
+
 
