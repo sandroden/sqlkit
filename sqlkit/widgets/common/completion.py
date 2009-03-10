@@ -676,14 +676,14 @@ class FkeyCompletion(SimpleCompletion):
     
 
 ### What to show
-    def lookup_value(self, field_name, field_value):
+    def lookup_value(self, field_value):
         """
         retrieve the value in a lookup table in case of foreign_key
         """
         if field_value is None:
             return ''
         try:
-            return self.lookup_values[field_name][field_value]
+            return self.lookup_values[self.field_name][field_value]
         except Exception, e:
             descr_fields =  get_description(self.table)
             format =        tables[self.table.name].format
@@ -697,14 +697,14 @@ class FkeyCompletion(SimpleCompletion):
             else:
                 value = format % all[0]
                 try:
-                    self.lookup_values[field_name][field_value] = value
+                    self.lookup_values[self.field_name][field_value] = value
                     return value
                 except KeyError:
-                    self.lookup_values[field_name] = {}
-                    self.lookup_values[field_name][field_value] = value
+                    self.lookup_values[self.field_name] = {}
+                    self.lookup_values[self.field_name][field_value] = value
                     return value
 
-            self.lookup_values[field_name][field_value] = value
+            self.lookup_values[self.field_name][field_value] = value
         return value
 
     def append_to_model(self, obj):

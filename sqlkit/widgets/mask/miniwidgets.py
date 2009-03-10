@@ -349,7 +349,7 @@ class ForeignKeyComboboxWidget(Widget):
         """We have a 'real_value' that is normally an id or a key and a 'display_value'
         that is the value we want to show
         """
-        display_value = self.completion.lookup_value(self.field_name, value)
+        display_value = self.completion.lookup_value(value)
         if value == None:
             if self.field.type == str:
                 value = ''
@@ -439,7 +439,7 @@ class ForeignKeyWidget(Widget):
             self.entry.set_text(display_value)
         else:
             self.value = value
-            display_value = self.completion.lookup_value(self.field_name, value)
+            display_value = self.completion.lookup_value(value)
             self.entry.set_text(display_value)
             self.real_value = True  # we can trust this value, has been set by procedures
             

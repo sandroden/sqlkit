@@ -1018,7 +1018,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
             if fkey_value is not None:
                 path = model.get_path(iter)
-                value = self.completions[field_name].lookup_value(field_name, fkey_value)
+                value = self.completions[field_name].lookup_value(fkey_value)
                 cell.set_property('text', value)
             else:
                 cell.set_property('text', '')
