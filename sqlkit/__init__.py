@@ -3,7 +3,7 @@ import sys
 import os
 import gettext
 
-__version__ = '0.8.5.1'
+__version__ = '0.8.6-rc1'
 
 
 cwd = os.path.abspath(os.path.dirname(__file__))

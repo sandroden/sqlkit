@@ -38,9 +38,9 @@ and install it via::
 
   apt-get install python-sqlkit
 
-Even if the source state ``lenny`` can safely be used for ubuntu and etch.
+Even if the source states ``lenny`` it can safely be used for ubuntu.
 
-.. note:: Note
+.. note:: Sqlalchemy
     
     sqlkit depends on sqlalchemy >= 0.5 that is not yet packaged by ubuntu
     so the .deb does not require it. You can get it from Debian
@@ -48,11 +48,15 @@ Even if the source state ``lenny`` can safely be used for ubuntu and etch.
 
 .. note:: Babel
 
-   sqlkit depends on babel that is not packeged in debian but is packaged in
+   sqlkit depends on babel that is not packaged in debian but is packaged in
    ubuntu with two different names in hardy and intrepid. So the package I
    have prepared does not depend on it. You are supposed to add the
-   package. If using hardy install ``python-babel`` is using intrepid, use 
-   ``python-pybabel``
+   package. If using hardy install ``python-babel`` is using jaunty, use
+   ``python-pybabel``. If using intrepid... I'm almost sure there was a
+   pybabel, but there is no more... install by hand! Alternatively you can
+   use the packages ``python-sqlkit-hardy`` or ``python-sqlkit-lenny`` that
+   add the specific dependacies. ``python-sqlkit-lenny`` is good for *jaunty*
+   as well and probably for any following release.
 
 mailing list
 ============

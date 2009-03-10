@@ -18,9 +18,9 @@ _('opts')
 # TIP: opts in filetr panel
 _('tools')
 # TIP: serach mode:
- _('regexp')
+_('regexp')
 # TIP: search mode
- _('start')
+_('start')
 # _('')
 # _('')
 # _('')

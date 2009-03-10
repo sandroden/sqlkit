@@ -1,12 +1,20 @@
-                      ANNOUNCE: sqlkit 0.8.3 
+                      ANNOUNCE: sqlkit 0.8.6-rc1
 
-                        November, 10  2008
+                        March, 10 - 2009
 
 
-I'm happy to announce release 0.8.3 of sqlkit package for python -  the first
-public release.
+I'm happy to announce release 0.8.6-rc1 of sqlkit package for python.
 
   http://sqlkit.argolinux.org/
+
+This release
+------------
+
+This rel. adds validation and corrects handling of most database problems.
+Adds signals and a much more friendly interface in many operation and is
+definitely more stable. It's now used in a production environment.
+
+Refer to http://sqlkit.argolinux.org/download/Changelog for details
 
 The package
 -----------
@@ -49,6 +57,7 @@ Sqlkit is based on:
   * Sqlalchemy (>= 0.5)
   * glade
   * dateutils
+  * babel (localization)
 
 
 Dowload & more:

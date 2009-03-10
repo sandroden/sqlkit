@@ -38,12 +38,14 @@ sqlkit 0.8.6-pre -
 	* defaults: it's now possible to have defaults local to an
         	instance of sqlwidget
 	* sqledit: improved GUI(now open correct N. of lines _ C-l)
-	* completion: several bug-fixes
+	* completion: added 'enum' mode to mimic enum widget with doubleclick
+        	several bug-fixes
 	* debug: get_widget_signals now returns signals for all __bases__
 	* layout: stock imaes can be used as in i=gtk-save
 	* layout: added MenuItem that accepts StockItem and Text.
 	* defaults: now local defaults act as global defaults (eg: fk method)
 	* sqlwidget: title can be set in any moment
+	             added signal after-flush
 	
 sqlkit 0.8.5.1 - 23.1.09
 	* fix release:

@@ -29,8 +29,8 @@ upload: etch sarge
 etch:
 	upload-deb etch/main $(DEB) 
 
-lenny:
-	upload-deb lenny/main $(DEB) 
+# lenny:
+# 	upload-deb lenny/main $(DEB) 
 
 sk:
 	upload-deb lenny/sqlkit $(DEB) 
@@ -62,7 +62,8 @@ tgz:
 
 rsync:
 	rsync --progress ../$(TGZ) $(WWW)/
-	rsync --progress ../$(DEB) $(WWW)/
+	for file in $(DEB); do rsync --progress ../$${file} $(WWW)/; done
+	#rsync --progress ../$(DEB) $(WWW)/
 	ssh apt@www2 'cd $(DIR) && rm -f sqlkit-latest.tar.gz && ln -s $(TGZ) sqlkit-latest.tar.gz'
 	rsync Changelog $(WWW)/
 

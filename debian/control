@@ -25,9 +25,9 @@ Description: GUI library to edit data of databases
  - sqledit: python script to edit db
  - completely effortless editing of relationships
  - very easy way to set defaults
- - possibility to display total in numeric fields
+ - possibility to display totals in numeric fields
  - constraints: any possible sql constraint can be attached to a Mask 
-   or a Table. It can be expressed a s a normal sqlalchemy query or with
+   or a Table. It can be expressed as a normal sqlalchemy query or with
    django-like syntax
-
-
+ - completely localized
+ - easy way to add hooks and validation
