@@ -104,6 +104,9 @@ class VarcharWidget(Widget):
     def set_max_length(self, length):
         self.gtkwidget.set_max_length(length)
         
+class ReadOnlyWidget(VarcharWidget):
+    pass
+    
 class IntegerWidget(VarcharWidget):
 
     def __init__(self, *args):

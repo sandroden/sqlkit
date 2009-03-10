@@ -827,7 +827,7 @@ class SqlWidget(gobject.GObject):
         """
         key = gtk.gdk.keyval_name (event.keyval)
    
-        if key in ('KP_Decimal') and numbers.get_decimal_symbol() == ",":
+        if key in ('KP_Decimal',) and numbers.get_decimal_symbol() == ",":
             event = gtk.gdk.Event(gtk.gdk.KEY_PRESS)
             event.keyval = gtk.keysyms.comma
             event.window = widget.window
@@ -836,7 +836,7 @@ class SqlWidget(gobject.GObject):
             return  True
 
         KEYPAD_KEYS = '(KP_[0-9]|KP_Add|KP_Decimal|KP_Subtract|comma'
-        ONLYDIGITS="%s|[0-9.,]|BackSpace|Left|Right|F1|period|Tab|Up|Down|Return)"
+        ONLYDIGITS="%s|[0-9.,]|BackSpace|Left|Right|F1|period|Tab|Up|Down|Return|Esc)"
 
         if not re.match (ONLYDIGITS % KEYPAD_KEYS, key):
             self.sb(_('Char %s is not accepted in numeric context' % key))

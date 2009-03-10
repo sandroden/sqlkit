@@ -463,8 +463,7 @@ class NumericColumn(VarcharColumn):
         cell.set_property('xalign', 1.0)
 
     def editable_connects(self, editable):
-        pass
-        #editable.connect('key-press-event', self.master.digits_check_input_cb  )            
+        editable.connect('key-press-event', self.master.digits_check_input_cb  )            
 
 
 class FKeyColumn(VarcharColumn):
