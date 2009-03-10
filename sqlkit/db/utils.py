@@ -273,6 +273,28 @@ def get_labels_and_tips_from_sqlkit(table, metadata=None):
 
 ###################
 
+
+def get_differences(session, obj):
+    """
+    show differences between old and new version of an object
+    """
+    from sqlalchemy.orm import attributes, class_mapper
+
+    mapper = class_mapper(obj.__class__)
+    for prop in mapper.iterate_properties:
+        new = None
+        try:
+            new, unchanged, old =  attributes.get_history(
+                attributes.instance_state(obj), prop.key)
+        except Exception, e:
+            pass
+
+        if new:
+            yield prop.key, old, new
+
+
+
+
 if __name__ == '__main__':
     from sqlkit.db import proxy
 
