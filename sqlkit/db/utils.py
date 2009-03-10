@@ -274,7 +274,7 @@ def get_labels_and_tips_from_sqlkit(table, metadata=None):
 ###################
 
 
-def get_differences(session, obj):
+def get_differences(obj, session):
     """
     show differences between old and new version of an object
     """
@@ -291,6 +291,18 @@ def get_differences(session, obj):
 
         if new:
             yield prop.key, old, new
+
+
+def clean_for_markup(text):
+    """
+    quote string from undesired chars in pango markup
+    """
+
+    if isinstance(text, (tuple, list)):
+        text = [clean_for_markup(item) for item in text]
+    else:
+        text = re.sub('([<\'>])', '', str(text))
+    return str(text)
 
 
 

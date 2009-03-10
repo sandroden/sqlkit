@@ -1614,37 +1614,17 @@ class UnsavedDataDialog(object):
         self.dialog.destroy()
         return response
 
-    def get_differences(self, obj):
-        """
-        show differences between old and new version of an object
-        """
-
-        for field in self.master.gui_fields:
-            if not field.mapper: # trash any gui, not persisted field
-                return
-            
-            new = None
-            field_name_translated = _(get_label(field.field_name, layout=self.master.lay_obj))
-            try:
-                new, unchanged, old =  attributes.get_history(
-                    attributes.instance_state(obj), field.field_name)
-            except:
-                pass
-
-            if new:
-                yield field_name_translated, old, new
-
-        
     def fill_model(self):
         
         """
         Dialog to allow analysis of changed data
         """
+        from sqlkit.db import utils 
         if self.master.is_mask():
             try:
-                self.master.record_mask2obj()
-            except:
-                exc.ValidationError
+                self.master.record_mask2obj(self.master.get_current_obj())
+            except Exception, e:
+                exc.ValidationError(e.message)
 
         if self.master.session.dirty or (
             self.master.record_has_changed() and self.master.current not in self.master.session.new):
@@ -1652,29 +1632,18 @@ class UnsavedDataDialog(object):
             self.model.set(dirty_iter, 0, '<b>%s</b>' % _('Modified'))
 
             for item in self.master.session.dirty:
-                for field_name, old, new in self.get_differences(item):
+                for field_name, old, new in utils.get_differences(item, self.master.session):
+                    if not field_name in self.master.gui_fields:
+                        continue
                     field = self.master.gui_fields[field_name]
+
                     iter = self.model.append(None)
                     self.model.set(iter,
-                                   1, field_name,
-                                   2, str(field.get_human_value(old)),
-                                   3, str(field.get_human_value(new)),
+                                   0, "<i>%s</i>" % utils.clean_for_markup(item)[:25],
+                                   1, "%s" % self.master.get_label(field_name),
+                                   2, old and utils.clean_for_markup(field.get_human_value(old)) or '',
+                                   3, new and utils.clean_for_markup(field.get_human_value(new)) or '',
                                    )
-
-            if self.master.current not in self.master.session.dirty:
-                for field in self.master.gui_fields:
-                    if not field.mapper:
-                        continue
-                    if field.has_changed():
-                        iter = self.model.append(None)
-                        self.model.set(iter,
-                                       1, field.field_name,
-                                       2, field.get_human_value(field.initial_value),
-                                       )
-                        try:
-                            self.model.set(iter, 3, field.get_human_value(field.get_value()))
-                        except exc.ValidationError, e:
-                            self.model.set(iter, 3, "ERROR: %s" % e.message)
 
         if self.master.session.deleted:
             deleted_iter = model.append(None)

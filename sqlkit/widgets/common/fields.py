@@ -720,6 +720,8 @@ class ForeignKeyField(Field):
         return value
 
     def get_human_value(self, value):
+        if isinstance(value, (list, tuple)):
+            return str([self.widget.completion.lookup_value(v) for v in value])
         return self.widget.completion.lookup_value(value)
     
     def set_value(self, value, initial=True, shown=False):
