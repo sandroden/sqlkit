@@ -1560,8 +1560,8 @@ class UnsavedDataDialog(object):
 
         tc0 = gtk.TreeViewColumn(_("State"),     cell0, markup=0)
         tc1 = gtk.TreeViewColumn(_("Field name"), cell1, markup=1)
-        tc2 = gtk.TreeViewColumn(_("Original"), cell2, markup=2)
-        tc3 = gtk.TreeViewColumn(_("Modified"), cell2, markup=3)
+        tc2 = gtk.TreeViewColumn(_("Original value"), cell2, markup=2)
+        tc3 = gtk.TreeViewColumn(_("Present value"), cell2, markup=3)
 
         tv.append_column(tc0)
         tv.append_column(tc1)
