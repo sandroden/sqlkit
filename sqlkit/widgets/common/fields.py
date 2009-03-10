@@ -514,8 +514,10 @@ class DateField(Field):
         #    pass
 
     def clean_value(self, value):
+
         if value in (None, ''):
             return None
+
         try:
             if isinstance(value, basestring):
                 value = dates.parse_date(value)
@@ -528,6 +530,10 @@ class DateField(Field):
         return value
     
     def format_value(self, value):
+
+        if not value:
+            return ''
+
         return dates.format_date(value, format=self.format, locale=self.locale)
         
 class TimeField(DateField):
@@ -540,7 +546,7 @@ class TimeField(DateField):
         return value
         
     def format_value(self, value):
-        return format_time(value, format=self.format, locale=self.locale)
+        return dates.format_time(value, format=self.format, locale=self.locale)
         
 class TimeTZField(TimeField):
     Widget = TimeTZWidget
@@ -557,6 +563,10 @@ class DateTimeField(DateField):
     Widget = DateTimeWidget
 
     def clean_value(self, value):
+
+        if value in (None, ''):
+            return None
+
         if isinstance(value, basestring):
             tmp_date = re.split('\s+', value)
             value = dates.parse_date(tmp_date[0], locale=self.locale)
@@ -571,12 +581,20 @@ class DateTimeField(DateField):
         return value
         
     def format_value(self, value):
+
+        if not value:
+            return ''
+        
         return dates.format_datetime(value, format=self.format, locale=self.locale)
         
 class DateTimeTZField(DateTimeField):
     Widget = DateTimeTZWidget
 
     def clean_value(self, value):
+
+        if value in (None, ''):
+            return None
+
         if isinstance(value, basestring):
             value = dates.parse_datetime(value)
         return value
