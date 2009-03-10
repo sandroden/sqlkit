@@ -6,12 +6,6 @@ This is the base class for :ref:`mask` and :ref:`table` that implements the
 common interface.
 
 
-.. note:: import
-
-   in the first releases, ``import`` was done directly from sqlkit, but that
-   was suboptimal in many ways, so I moved it to ``sqlkit.widgets``. 
-
-
 main options
 ================
 
