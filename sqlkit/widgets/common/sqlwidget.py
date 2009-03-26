@@ -545,7 +545,9 @@ class SqlWidget(gobject.GObject):
         self.actiongroup_edit.add_actions([
             ('Save', gtk.STOCK_SAVE, None, '<Ctrl>s', None, self.record_save_cb),
             ])
-
+        if self.ro:
+            self.actiongroup_edit.set_sensitive(False)
+            
         self.actiongroup_browse.add_actions([
             ('Filters', gtk.STOCK_FIND, _('Filter panel'), None, None, self.add_filter_cb),
             ('Reload', gtk.STOCK_REFRESH, _("Reload"), '<Ctrl>r', None, self.reload_cb),

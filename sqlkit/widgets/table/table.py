@@ -136,11 +136,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.actiongroup_table   = gtk.ActionGroup('Table')
 
-        self.actiongroup_general.add_actions([
-            ('New', gtk.STOCK_NEW,   None, '', None, self.record_new_cb),
-            ])
-
         self.actiongroup_edit.add_actions([
+            ('New', gtk.STOCK_NEW,   None, '', None, self.record_new_cb),
             ('Delete', gtk.STOCK_DELETE, None, '', None, self.record_delete),
             ('RecordDelete', gtk.STOCK_DELETE, None, '<Control>k', None, self.record_delete),
             ])
