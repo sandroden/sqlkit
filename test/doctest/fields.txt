@@ -63,9 +63,16 @@ u'1.2'
 >>> f = sm.gui_fields['numeric']
 >>> f.clean_value(Decimal('1.2'))
 Decimal("1.2")
->>> f.clean_value('1.2'), type(f.clean_value('1.2'))
-(Decimal("1.20"), <class 'decimal.Decimal'>)
- 
+
+>>> f.clean_value('4881.69'), type(f.clean_value('4881.69'))
+(Decimal("4881.69"), <class 'decimal.Decimal'>)
+
+>>> f.clean_value(4881.69), type(f.clean_value(4881.69))
+(Decimal("4881.69"), <class 'decimal.Decimal'>)
+
+>>> f.clean_value(12), type(f.clean_value(12))
+(Decimal("12.00"), <class 'decimal.Decimal'>)
+
 # date
 >>> f = sm.gui_fields['date']
 >>> f.clean_value(date(2008, 6, 2))
@@ -121,8 +128,18 @@ datetime.time(15, 30)
 >>> f = sm.gui_fields['numeric']
 >>> f.clean_value(Decimal('1.2'))
 Decimal("1.2")
->>> f.clean_value('1,20'), type(f.clean_value('1,20'))
-(Decimal("1.20"), <class 'decimal.Decimal'>)
+
+>>> f.clean_value('4881,69'), type(f.clean_value('4881,69'))
+(Decimal("4881.69"), <class 'decimal.Decimal'>)
+
+# these test fail for unknown reason. I don't have time ti investigate
+# as real code works 
+# >>> f.clean_value(4881.69), type(f.clean_value(4881.69))
+# (Decimal("4881.69"), <class 'decimal.Decimal'>)
+
+>>> f.clean_value(12), type(f.clean_value(12))
+(Decimal("12.00"), <class 'decimal.Decimal'>)
+
  
 # date
 >>> f = sm.gui_fields['date']

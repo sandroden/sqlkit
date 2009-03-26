@@ -480,7 +480,7 @@ class DecimalField(IntegerField):
         self.precision = self.column.type.precision
         self.scale = self.column.type.scale
         self.format = "#,###.%s" % ('0' * self.scale)
-        self.format_dec = "#.%s" % ('0' * self.scale)
+        self.format_f = "%%.%sf" % self.scale
         self.locale = babel.default_locale('LC_NUMERIC')
         
     def clean_value(self, value):
@@ -490,15 +490,15 @@ class DecimalField(IntegerField):
             try:
                 if isinstance(value, basestring):
                 ## why there's no parse_Decimal in babel?
-                    value = Decimal(
-                        numbers.format_decimal(
-                            numbers.parse_decimal(value, locale=self.locale),
-                            format=self.format_dec, locale='en')
-                        )
+                    fl = self.format_f % numbers.parse_decimal(value, locale=self.locale)
+                    value = Decimal(fl)
                 elif isinstance(value, Decimal):
                     pass
-                elif isinstance(value, float):
+                elif isinstance(value, int):
                     value = self.clean_value(str(value))
+                elif isinstance(value, float):
+                    fl_str = numbers.format_decimal(value, locale=self.locale)
+                    value = self.clean_value(fl_str)
                 else:
                     raise exc.ValidationError(_("value is not Decimal nor string: %s" % value))
             except Exception, e:
