@@ -68,8 +68,8 @@ class DemoSql(Demo):
 d = DemoSql(xml=False, debug=True)
 
 if len(sys.argv) > 1:
+    d.iconify()
     d.load_module_by_idx(sys.argv[1])
-
 
 gtk.main()
 

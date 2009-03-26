@@ -427,6 +427,9 @@ class Demo(object):
             return (None, None)
 
 
+    def iconify(self):
+        self.w['Window'].iconify()
+        
 class TreeShow(object):
     def __init__(self, data):
         l = layout.Layout( "TVS=a", opts="Vs")
