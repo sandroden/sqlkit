@@ -1,18 +1,18 @@
-                      ANNOUNCE: sqlkit 0.8.6-rc1
+                      ANNOUNCE: sqlkit 0.8.6-rc2
 
-                        March, 10 - 2009
+                        March, 25 - 2009
 
 
-I'm happy to announce release 0.8.6-rc1 of sqlkit package for python.
+I'm happy to announce release 0.8.6-rc21 of sqlkit package for python.
 
   http://sqlkit.argolinux.org/
 
 This release
 ------------
 
-This rel. adds validation and corrects handling of most database problems.
-Adds signals and a much more friendly interface in many operation and is
-definitely more stable. It's now used in a production environment.
+Many things have been added: signals, hooks for validation, improved filters
+for related tables, many new demo snippets and many bug fixes are among the
+most importants.
 
 Refer to http://sqlkit.argolinux.org/download/Changelog for details
 

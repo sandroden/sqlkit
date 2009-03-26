@@ -1,10 +1,3 @@
-DateEdit
-=========
-
-2. deve gestire anche time TZinfo (con aggiunta di una proprietà)
-   Al momento ha una sola proprietà 'time' (oltre a (show-time) per
-   gestire datetime). Bisogna aggiungere una gestione del TZ
-
 CheckBox 
 =========
 
@@ -39,14 +32,5 @@ filter. Non ho ancora le idee chiare.
 Vorrei anche aggiungerlo come elemento opzionale in un elemento layout, in
 modo da poter avere on oggetto (dizionario?) che mi rappresenta lo stato del
 layout e che se lo modifico mi cambia o stato del layout.
-
-
-Validazione
-============
-
-Capitolo importante da affrontare. non è difficile aggiunere validazioni, più
-complesso gestire la parte GTK di rimando, colorazione dei campi errati....
-guardare anche i widget di validazione come:
-http://www.astro.umass.edu/~dpopowich/python/ 
 
 

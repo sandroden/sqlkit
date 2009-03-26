@@ -1,4 +1,63 @@
-sqlkit 0.8.6-pre -
+
+sqlkit 0.8.6-rc2 - March, 26 2009
+
+	* sqlwidget: record_has_changed forces setting attributes in the
+	             object: this makes validation more stable 
+	             save dialogs: much better representation of
+	             differences that are to be saved
+	             readonly mode now correctly sets actiongroup_edit 
+	               not sensitive
+	
+	* uimanager: menus are now handled with uimanager so that was possible
+	             to make them sensitive o context
+	
+	* signals:  added signal after-flush (added demo)
+	            added delete-event to sqlwidget
+	            'button-press-event'now has also a 'menu' arg
+	
+	* filters: filters on relationships are now aliased (see note in
+	           docs on relationship)
+	
+	* hooks:   hooks have been added: 
+		     + on_completion__%s
+		     + on_change_value__%s
+		     + on_validation
+		     + on_field_validation__%s
+		     + on_activate__%s
+	           Added 5 examples in demo
+	
+	* table:   added popup menu on right click on records to:
+	             + delete
+	             + view in mask (see below)
+	             + add new record
+	          popup menu is changable in a simple way from
+                 	'button-press-event' signal (see demo)
+	          better handling of silent deletion of object not changed
+	          added View Record that can also show with a layout (see demo)
+	
+	* miniwidgets: rewritten DateEdit to warn and complein of parse errors
+
+	* django2sa: now join are made in a way that is accepted by sa rel 0.5+
+
+	* utils: fixed get_differences to return all modified attributes 
+	         and added get_history
+
+	* validation: no validation on empty values (if not nullable is
+            	triggered just before saving)
+	
+	* fixes: as usual many fixes:
+	         - back the possibility to delete foreign keys in table
+	         - completion in m2m corner cases
+	         - fixed hide_fields()
+
+	* fields: float now have format=None
+	          you can now set BLANK_OK globally if instead of setting
+  	             it on all fields
+	
+	* demo: many more examples and added not nullable fields and set
+	        cascade on relation between director and movies.
+	
+sqlkit 0.8.6-rc1 - March, 10 2009
 	
 	* table: * complete restructure of TreeColumn/CellRenderers creation
 	           now will be easyer to customize them
@@ -45,16 +104,6 @@ sqlkit 0.8.6-pre -
 	* layout: added MenuItem that accepts StockItem and Text.
 	* defaults: now local defaults act as global defaults (eg: fk method)
 	* sqlwidget: title can be set in any moment
-	* signals:  added signal after-flush
-
-	* filters: filters on relationships are now aliased (see note in
-	           docs on relationship)
-	* hooks:   hooks have been added: 
-	           on_completion__%s
-	           on_change_value__%s
-	           on_validation
-	           on_activate__%s
-	* miniwidgets: rewritten DateEdit to warn and complein of parse errors
 	
 sqlkit 0.8.5.1 - 23.1.09
 	* fix release:
