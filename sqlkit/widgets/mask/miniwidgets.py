@@ -33,6 +33,7 @@ from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion
 import re
 from decimal import Decimal
 import gobject
+from sqlkit import exc
 
 #NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
 NOT_NULL_COLOR = gtk.gdk.color_parse('#f6ebba')
@@ -184,11 +185,27 @@ class DateWidget(Widget):
     def __init__(self, *args):
         Widget.__init__(self, *args)
         self.gtkwidget.set_property('show-time', False)
+        self.invalid = None  # True of the 
+        self.gtkwidget.connect('wrong-date-format', self.wrong_format_cb, )
+        self.gtkwidget.connect('date-changed', self.date_changed_cb, )
+
+    def wrong_format_cb(self, widget, date_string):
+        print "Received wrong format signal", date_string
+        self.invalid = date_string
+
+    def date_changed_cb(self, widget, date_string):
+        self.invalid = None
 
     def set_value(self, value):
+
+        self.invalid = None
         self.gtkwidget.set_property('time', value)
 
     def get_value(self, shown=False):
+
+        if self.invalid:
+            raise exc.ValidationError("Wrong date format: %s" % self.invalid)
+
         return self.gtkwidget.get_property('time')
 
 class TimeWidget(Widget):

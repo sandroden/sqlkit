@@ -96,6 +96,11 @@ class DateEdit(gtk.HBox):
                           ()),
         'date_changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
                           ()),                          
+        'wrong-date-format' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                          (gobject.TYPE_STRING)),                          
+    
+        'good-date-format' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                          ()),                          
     
     }
 
@@ -239,12 +244,12 @@ class DateEdit(gtk.HBox):
         
     def date_entry_focus_out_event(self, widget, data=None):
         # check entry for valid date, reset if not
-        str = self.__date_entry.get_text()
-        if str is '':
+        string = self.__date_entry.get_text()
+        if string is '':
             self.set_time(None)
             return
         try:
-            new_date = time.strptime(str, self.date_format)
+            new_date = time.strptime(string, self.date_format)
             if self.__show_time:
                 the_time = datetime.datetime(new_date.tm_year,
                                              new_date.tm_mon,
@@ -259,6 +264,7 @@ class DateEdit(gtk.HBox):
                                              )
             self.set_time(the_time)
         except ValueError, e:
+            self.emit('wrong-date-format', string)
             self.set_time(self.__current_time)
  
  
@@ -378,6 +384,7 @@ class DateEdit(gtk.HBox):
         
         
     def time_entry_focus_out_event(self, widget, data=None):
+
         # check entry for valid time, reset if not
         str = self.__time_combobox.child.get_text()
         try:
