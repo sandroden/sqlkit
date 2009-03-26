@@ -293,7 +293,8 @@ class SimpleCompletion(object):
 
 ### Call back
     def match_selected_cb(self, wdg, model, iter, field_name):
-        """after selecting an entry store the value in self.values and set
+        """
+        after selecting an entry store the value in self.values and set
         the entry with the correct value.
         """
         # the completion model has 1 or 4 columns (in case of FKey):
@@ -304,7 +305,8 @@ class SimpleCompletion(object):
         #         if more fields are present more columns get written
 
         value = model.get(iter, self.VALUE_COL)[0]
-
+        obj = model.get_value(iter, self.OBJ_COL)
+        
         if self.master.is_fkey(field_name):
             fkvalue = model.get(iter, self.DESCRIPTION_COL)[0]
         else:
@@ -317,8 +319,9 @@ class SimpleCompletion(object):
                 self.master.cell_entry.entry.emit('activate')
 
         self.displaying_completion = False
+        self.master.run_hook('on_completion', obj, field_name=self.field_name)
         return True
-        
+
 ### Sql SELECT
     def select_values(self, field_name, mode):
         """
@@ -855,11 +858,13 @@ class M2mCompletion(FkeyCompletion):
         self.from_obj = None
         
     def match_selected_cb(self, wdg, model, iter, field_name):
-        """after selecting an entry store the value in self.values and set
+        """
+        after selecting an entry store the value in self.values and set
         the entry with the correct value.
         """
 
         value = model.get(iter, self.VALUE_COL)[0]
+        obj = model.get_value(iter, self.OBJ_COL)
 
         if self.master.is_fkey(field_name):
             fkvalue = model.get(iter, self.DESCRIPTION_COL)[0]
@@ -876,6 +881,7 @@ class M2mCompletion(FkeyCompletion):
             pass
 
         self.displaying_completion = False
+        self.master.run_hook('on_completion', obj, field_name=self.field_name)
         return True
         
     def __str__(self):

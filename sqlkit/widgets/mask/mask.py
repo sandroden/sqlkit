@@ -111,7 +111,7 @@ class SqlMask (sqlwidget.SqlWidget):
 
         for field in self.gui_fields:
             value = getattr(obj, field.field_name)
-            self.set_value(field.field_name, value)
+            self.set_value(field.field_name, value, initial=True)
 
         return True
 
@@ -127,7 +127,7 @@ class SqlMask (sqlwidget.SqlWidget):
             self.record_display(index=index)
         self.record_refresh()
 
-    def set_value(self, field_name, field_value, fkvalue=None, initial=True, shown=False):
+    def set_value(self, field_name, field_value, fkvalue=None, initial=False, shown=False):
         """
         invoke field.set_value
         
@@ -138,8 +138,10 @@ class SqlMask (sqlwidget.SqlWidget):
             raise exc.FieldNotInLayout("field_name: %s" % (field_name))
 
         self.gui_fields[field_name].set_value(field_value, initial=initial, shown=shown)
-        
-        
+
+        if not initial:
+            self.run_hook('on_change_value', field_value, fkvalue, field_name=field_name)
+    
     def clear_value(self, field_name):
         """
         clear the value
@@ -197,13 +199,6 @@ class SqlMask (sqlwidget.SqlWidget):
         """
 
         if not new_obj and not self.record_has_changed() and not self.unsaved_changes_exist():
-#             if self.last_new_obj:
-#                 ## very important: existence of an instance that is not
-#                 ## persinstant will turn out in an error if it cannot be
-#                 ## saved. That can occur also when simply setting a loader attribute.
-#                 self.session.expunge(self.last_new_obj)
-#                 self.current = None
-#                self.last_new_obj = None
             self.sb(_('Nothing to save'), seconds=4)
             return
 
@@ -224,7 +219,6 @@ class SqlMask (sqlwidget.SqlWidget):
         self.last_new_obj = None
         
         self.record_display(check=False)
-        self.current_mode = 'UPDATE'
         
     def record_save_new(self, wdg, constraint={}):
         """

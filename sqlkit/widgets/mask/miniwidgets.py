@@ -83,6 +83,18 @@ class VarcharWidget(Widget):
 
         Widget.__init__(self, *args)
         self.add_completion()
+        self.gtkwidget.connect('key-press-event', self.on_key_press)
+
+    def on_key_press(self, widget, event):
+        ksym = gtk.gdk.keyval_name(event.keyval)
+
+        if not ksym == 'Return':
+            return
+        
+        if event.state & (gtk.gdk.CONTROL_MASK | gtk.gdk.SHIFT_MASK):
+            return
+
+        self.master.run_hook('on_activate', self, field_name=self.field_name)
 
     def add_completion(self):
         """add completion bindings and liststore
@@ -145,6 +157,7 @@ class IntegerWidget(VarcharWidget):
     def __init__(self, *args):
         Widget.__init__(self, *args)
         self.gtkwidget.set_alignment(1)
+        self.gtkwidget.connect('key-press-event', self.on_key_press)
         self.gtkwidget.connect('key-press-event', self.master.digits_check_input_cb  )
                 
     def set_value(self, value):
@@ -300,8 +313,17 @@ class TextWidget(Widget):
         
 
 class BooleanWidget(Widget):
-    """Null value is not admittable"""
+    """
+    Null value is not admittable
+    """
 
+    def __init__(self, *args):
+        Widget.__init__(self, *args)
+        self.gtkwidget.connect_after('toggled', self.on_toggled_cb)
+
+    def on_toggled_cb(self, widget):
+        self.master.run_hook('on_activate', self, field_name=self.field_name)
+        
     def set_value(self, value):
         self.gtkwidget.set_active(bool(value))
 

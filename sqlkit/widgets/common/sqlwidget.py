@@ -604,7 +604,6 @@ class SqlWidget(gobject.GObject):
                            single_fields determines if check for single fields is done
         returns the validation_error dict to propagate the error info upward
         """
-
         if not hasattr(self, 'validation_errors') or related:
             self.validation_errors = {}
 
@@ -613,12 +612,16 @@ class SqlWidget(gobject.GObject):
             if obj is None:
                 return {}
 
+        try:
+            self.run_hook('on_validation', )
+        except exc.ValidationError, e:
+            self.handle_validation_errors(e)
+
+
         for sqlwidget in self.related:
             self.validation_errors.update(
                 sqlwidget.record_validate(related=sqlwidget.relationship_path))
             
-        mode = obj in self.session.new and 'INSERT' or 'UPDATE'
-
         if single_fields:
             self.record_validate_fields(obj)
 
@@ -635,7 +638,9 @@ class SqlWidget(gobject.GObject):
         handle the error raised by a field or take care of action in
         self.vaidation_error dict and raise exception for record_save
         """
-
+        if not field_name:
+            field_name = 'record validation' # a key to be used in self.validation_errors
+        
         if not field_name in self.validation_errors:
             self.validation_errors[field_name] = []
 
@@ -862,6 +867,30 @@ class SqlWidget(gobject.GObject):
             self.sb(_('Char %s is not accepted in numeric context' % key))
             return True
 
+####### Hooks
+    def run_hook(self, mode, *args, **kw):
+        """
+        look for a possible hook and call it.
+        mode: the hook type (eg.: set_value, completion...)
+        """
+        
+        if not self.relationship_leader or (self.relationship_leader is self):
+            hook_name = "%s" % (mode)
+        else:
+            hook_name = "%s__%s" % (mode, '__'.join(self.relationship_path))
+
+        sqlwidget = self.relationship_leader or self
+
+        if 'field_name' in kw:
+            hook_name += "__%(field_name)s" % kw
+            
+        if hasattr(sqlwidget, hook_name):
+            if 'field_name' in kw:
+                return getattr(sqlwidget, hook_name)(kw['field_name'], *args)
+            else:
+                return getattr(sqlwidget, hook_name)(*args)
+    
+        
 ####### Dialog
     def dialog(self, type='ok-cancel', text='', title='', layout=None, icon='gtk-dialog-question'):
         """

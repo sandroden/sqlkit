@@ -308,6 +308,74 @@ Signals
        and ``session.deleted`` and find which attributes have been changed
        (you may want to use `get_differences`)
 
+
+Hooks
+======
+
+Beside signals there is another way to add controls: hooks. A hook is a
+function that will be called in particular moments only if present. 
+
+Hooks are searched in the methods of the class and field_name will be
+substituted correctly. 
+
+At the moment the hooks are:
+
+:on_change_value__field_name: called any time the value is set using set_value without
+    initial=True flag. Ie: should be called any time a value is changed from
+    the original
+
+    .. function:: on_change_value__field_name(field_name, value, fkvalue)
+
+       :param field_name:  the field_name
+       :param value:  the new value
+       :param fkvalue: if field is a ForeignKey, the value shown
+
+:on_completion__field_name: called when a completion if choosen
+
+    .. function:: on_completion__field_name(field_name, obj)
+
+       :param field_name:  the field_name
+       :param obj:  the matched object in the completion
+   
+:on_validation: called when all the values have been callected in the object,
+    before calling validation on all fields and related widgets. That's a
+    good point to implement any procedure to add authomathisms. Within this
+    hook you can propagate errors to the validation machinery in two of ways:
+
+    1. raising ``sqlkit.exc.ValidationError``. Simple when just one error is
+       found
+    2. filling self.validation_errors: a dict holding all error. The key is
+       the field_name or "recod_validation", the value a list of error messages
+    
+    .. function:: on_validation()
+
+:on_activate__field_name: when *Return* is pressed in Mask view. Good to
+    complete fields via calculation on other fields (eg: total, vat...)
+
+    .. function:: on_activate__field_name(field_name, field)
+
+       :param field_name:  the field_name
+       :param field:  the ``sqlkit.widgets.common.field``
+   
+    
+If you need to add hooks for related sqlwidgets (those that display related
+records as explained in :ref:`relationships`) you need to add the
+relationship_path in the method name, i.e. the value you have used in the
+table definition for the relation (and in the layout as in m2m=actors)
+
+example
+--------
+
+This example show how to use hooks to play a sound on completion::
+
+  class MovieMask(SqlMask):
+      def on_completion__genre(self, field_name, obj):
+           if obj.genre == 'horror':
+	        play('horror.wav')
+
+  MovieMask(class=models.Movie, ...)
+
+
 .. _diff:
 
 get_differences

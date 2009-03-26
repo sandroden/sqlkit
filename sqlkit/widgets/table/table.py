@@ -376,6 +376,8 @@ class SqlTable(sqlwidget.SqlWidget):
         if not self.commit_inhibited:
             try:
                 if self.relationship_mode == 'm2m' and not self.m2m_editable:
+                    ## a new record means a record that has not been substituted by completion
+                    ## after completion-match the record is in the session but not in session.new
                     self.record_save(discard_unchanged=False, discard_new=True)
                 else:
                     self.record_save(discard_unchanged=True)
@@ -879,12 +881,6 @@ class SqlTable(sqlwidget.SqlWidget):
         self.treeview.columns_autosize()
         sqlwidget.SqlWidget.record_refresh(self)
 
-#     def record_validate(self):
-#         """
-#         Validate a record and apply all possible needed trasformations, if any.
-#         """
-#         pass
-
     def cell_validate(self):
         """
         validate cell value, return True if ok
@@ -971,7 +967,10 @@ class SqlTable(sqlwidget.SqlWidget):
                 if self.cell_entry and field_name == self.cell_entry.field_name:
                     #self.cell_entry.entry.set_text(str(value))
                     self.cell_entry.entry.set_text(self.gui_fields[field_name].format_value(value))
-    
+
+        if not initial:
+            self.run_hook('on_change_value', value, fkvalue, field_name=field_name)
+
     def get_selected_row(self):
         """Return the path of the selected row or None
 
