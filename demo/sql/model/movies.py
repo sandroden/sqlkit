@@ -29,6 +29,7 @@ class Director(Base):
     first_name  = Column(String(60))
     nation      = Column(String(6))
     
+    movies      = relation('Movie', backref='director', cascade='all, delete-orphan',)
     def __repr__(self):
         return u'<Director: %s (%s)>' % (self.last_name, self.nation)
 
@@ -40,7 +41,9 @@ class Movie(Base):
     year           = Column(Integer())
     date_release   = Column(Date())
     director_id    = Column(Integer, ForeignKey('director.id'))
-    director       = relation('Director', backref='movies')
+
+    ## relations
+#    director       = relation('Director', backref='movies', cascade='all, delete-orphan',)
     actors         = relation('Actor', backref='movies', secondary=movie_casting)
     genres         = relation('Genre', backref='movies', secondary=movie_genre)
 
