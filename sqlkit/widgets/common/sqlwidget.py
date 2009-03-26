@@ -1409,6 +1409,12 @@ class SqlWidget(gobject.GObject):
         else:
             return l[k]
         
+    def record_show_changes(self):
+        if self.record_has_changed():
+            for field in self.gui_fields:
+                if field.has_changed():
+                    print "OLD: %s   NEW: %s" % (field.initial_value, field.get_value())
+                    
 ###### printing  --  very old code - Not used at the present time
     def printing(self):
         """this will pop entries in the print setup to allow for printing
