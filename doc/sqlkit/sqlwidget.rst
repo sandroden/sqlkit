@@ -213,24 +213,39 @@ Attributes
 
    a container for all related sqlwidgets (i.e.: SqlWidgets that have a
    relation with this sqlwidget defined by sqlalchemy and that are 
-   dispayed in the widget)
+   dispayed in the widget).
+
+   This is used in all situation in which you need to fine-tune the
+   configuration of a related table (completion, layout, ...)
 
 .. attribute:: completions
 
    a container of all completion objects. Needed to change the behaviour of
    some completion (see :ref:`completion`)
 
-.. :gui_fields:
-..    a container for all validation fields. A validation fields is an objects
-..    that lives in sqlkit.widgets.common.fields (temporary position) and that
-..    knows how to represent a field and how to validate it. I'm thinking to
-..    change it to fields,  but my mind is not made up...
+.. attribute:: gui_fields
+   a container for all validation fields. A validation fields is an objects
+   that lives in sqlkit.widgets.common.fields (temporary position) and that
+   knows how to represent a field and how to validate it. 
 
 .. attribute:: query
 
    the sqlalchemy query object (``session.query(mapper)``) with all
    constraints applied. Can be manipulated as necessary as long as it stay a
    query object.
+
+.. attribute:: layout
+
+   the layout definition for this SqlWidget. This is the used definition for
+   SqlMask while for SqlTable is only used if the record is opend in SqlMask
+   (right click on the record in SqlTable).
+
+   You can also set in on a related table::
+
+      GUI="director @ m2m=movies"
+      t = SqlMask(class_=Director, layout=GUI, ...)
+      t.related.movies.layout = "title @ m2m=actors"
+   
 
 .. attribute:: lay_obj
 

@@ -97,13 +97,26 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.rows:
             gobject.idle_add(self.set_rows)
 
+        self.icon_setup()
+        self.treeview.hide()
+        self.treeview.show()
+        gobject.idle_add(tv_utils.set_optimal_width, self.treeview)
+        return (self.lay_obj, self.widgets)
+
+    def icon_setup(self):
+        """
+        setup icons at the botton of the table if any 'icons' was passed to sqlwidget
+        """
+
+        self.lay_obj.prop(
+            ('A.icons', 'xscale', 0),
+            ('A.icons', 'xalign', 0),
+            ('A.icons', 'top-padding', 0),
+            ('A.icons', 'bottom-padding', 0),
+            ('A.icons', 'left-padding', 0)
+            )
+        ## just icons, no text
         if self.icons:
-            self.lay_obj.prop(
-                ('A.icons', 'xscale', 0),
-                ('A.icons', 'xalign', 0),
-                ('A.icons', 'left-padding', 0)
-                )
-            ## just icons, no text
             for b in self.icons.split(" "):
                 self.widgets[b].set_label = None
                 self.widgets[b].get_image().set_property('icon-size', 1)
@@ -114,11 +127,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 image, label = hbox.get_children()
                 label.set_text('')
 
-        self.treeview.hide()
-        self.treeview.show()
-        gobject.idle_add(tv_utils.set_optimal_width, self.treeview)
-        return (self.lay_obj, self.widgets)
-
+        
     def prepare_actions(self):
         """
         Prepare action needed by UIManager
@@ -1270,14 +1279,18 @@ class SqlTable(sqlwidget.SqlWidget):
         
 
     def record_in_mask(self, widget):
+        """
+        Open a SqlMask to show self.current
+        """
 
         from sqlkit.widgets import SqlMask
 
         def follow_selection(table, mask):
             mask.set_records([table.current])
 
-        mask = SqlMask(mapper=self.mapper, session=self.session, layout=self.lay,
+        mask = SqlMask(mapper=self.mapper, session=self.session, layout=self.layout,
                                  relationship_mode='FIXED')
+        mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
         mask.set_records([self.current])
 
         handler_id = self.connect('record-selected', follow_selection, mask)
@@ -1286,8 +1299,6 @@ class SqlTable(sqlwidget.SqlWidget):
             self.disconnect(id)
 
         mask.connect('delete-event', disconnect, handler_id)
-        
-
 
 #### completion
 
@@ -1326,10 +1337,3 @@ class SqlTable(sqlwidget.SqlWidget):
         for field in self.gui_fields:
             field.widget.add_completion(editable=editable)
         
-
-
-
-
-
-
-

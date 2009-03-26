@@ -188,7 +188,7 @@ class SqlWidget(gobject.GObject):
         self.values = {}
         ## create the interface and add obvious constraints
         self.naked = naked
-        self.lay   = layout
+        self.layout   = layout
         self.sql   = sql
         self.single = single
         self.limit=limit
@@ -384,7 +384,7 @@ class SqlWidget(gobject.GObject):
         """
         create the widget and go on displaying the layout
         """
-        self.lay_obj, self.widgets  = self._get_layout(self.lay, self.naked,)
+        self.lay_obj, self.widgets  = self._get_layout(self.layout, self.naked,)
             
         ## only render when dimentions are complete
         lcontainer_name = self.lay_obj.container().el_def

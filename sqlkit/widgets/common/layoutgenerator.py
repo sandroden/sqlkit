@@ -334,12 +334,15 @@ class LayoutGenerator (object):
         """ % (self.layout)
     
     def create_for_table(self):
+        """
+        A minimal layout for nested sqlwidget
+        """
+        
         lay = """
           TVS=tree
-        """
-        if self.master.icons:
-            lay = "%s\n{A.icons {H %s}}" % (lay, self.master.icons)
-            
+          {A.icons {H.icons %s}}          
+        """ % (self.master.icons)
+
         return lay
 
     def _look_for_explicit(self, lay):
