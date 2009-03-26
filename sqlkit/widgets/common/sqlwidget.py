@@ -59,7 +59,12 @@ class SqlWidget(gobject.GObject):
                            gobject.TYPE_BOOLEAN,
                             # object, new, dirty, deleted
                            (gobject.TYPE_PYOBJECT , gobject.TYPE_PYOBJECT ),
-                            )
+                            ),
+        'delete-event' : (gobject.SIGNAL_RUN_LAST,
+                           gobject.TYPE_BOOLEAN,
+                           (),
+                           ),
+
                             }
     gui_fields = None
     values = None    # real value for foreign key
@@ -939,11 +944,12 @@ class SqlWidget(gobject.GObject):
         except (exc.ValidationError, exc.CancelledAction), e:
             print e
             return True
-
+        self.emit('delete-event')
         self.widgets['Window'].destroy()
         self.filter_panel.destroy()
         if self.single:
             self.gquit()
+        del self
 
 ###### Record browsing 
     def clear(self, widget=None):

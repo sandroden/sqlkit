@@ -295,19 +295,27 @@ Signals
    create a session by yourself, be sure to add ``sqlkit.db.proxy.SKSessionExtension`` to the
    session extensions or you won't have this signal.
 
-.. function:: after_flush_callback(sqlwidget, object, session)
+   .. function:: after_flush_callback(sqlwidget, object, session)
 
-   :param sqlwidget: the sqlwidget that emitted the signal
-   :param object: the object that was *current* when session ws
-       flushed. Current means that it was the main object represented. Many
-       other widgets may be present, possibily in "dirty state", "new" or
-       "deleted", but current was the one selected in a table or displayed in
-       the main mask
-   :session: the session that was flushed. The moment in which the signal is
-       emitted you can still dig into ``session.dirty``, ``session.new`` 
-       and ``session.deleted`` and find which attributes have been changed
-       (you may want to use `get_differences`)
+      :param sqlwidget: the sqlwidget that emitted the signal
+      :param object: the object that was *current* when session ws
+	  flushed. Current means that it was the main object represented. Many
+	  other widgets may be present, possibily in "dirty state", "new" or
+	  "deleted", but current was the one selected in a table or displayed in
+	  the main mask
+      :session: the session that was flushed. The moment in which the signal is
+	  emitted you can still dig into ``session.dirty``, ``session.new`` 
+	  and ``session.deleted`` and find which attributes have been changed
+	  (you may want to use `get_differences`)
 
+:delete-event:
+
+   emitted when the sqlwidget is destroyed
+
+   .. function:: delete_event_callback(sqlwidget)
+
+      :param sqlwidget: the sqlwidget that emitted the signal
+      
 
 Hooks
 ======
