@@ -3,8 +3,9 @@
 after-flush is triggered from withing SessionExtension as after_flush method.
 It's emitted when flushing has occurred but state of the session still retains
 all info on objects: session.dirty, session.new, session.deleted are available
-and ach object has info on it's history
+and each object has info on it's history
 
+Try changing some values and read the output
 """
 
 
@@ -17,7 +18,7 @@ def after_flush_cb(sqlwidget, obj, session):
         print "New object: %s" % o
     for o in session.dirty:
         print "Updated objects: %s" % o
-        for field_name, old, new in get_differences(o, sqlwidget.session):
+        for field_name, old, new in get_differences(o):
             print "%s: %s ==> %s" % (field_name, old, new)
         
     for o in session.deleted:

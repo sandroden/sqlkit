@@ -1677,7 +1677,7 @@ class UnsavedDataDialog(object):
             self.model.set(dirty_iter, 0, '<b>%s</b>' % _('Modified'))
 
             for item in self.master.session.dirty:
-                for field_name, old, new in utils.get_differences(item, self.master.session):
+                for field_name, old, new in utils.get_differences(item):
                     if item.__class__ is self.master.mapper.class_ and (
                         field_name in self.master.gui_fields):
                         

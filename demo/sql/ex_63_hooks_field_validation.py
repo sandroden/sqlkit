@@ -6,7 +6,6 @@ the field
 
 """
 from sqlkit.exc import ValidationError
-from sqlkit.db.utils import get_differences
 
 class Film(SqlMask):
 

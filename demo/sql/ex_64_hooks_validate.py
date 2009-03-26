@@ -13,7 +13,7 @@ from sqlkit.db.utils import get_differences
 
 class Film(SqlMask):
     def on_field_validation__genres(self, field_name, field_value, field):
-        for field_name, old, new in get_differences(self.current, self.session):
+        for field_name, old, new in get_differences(self.current):
             if field_name == 'genres':
                 raise ValidationError("I don't want you to change the genre!!!")
         

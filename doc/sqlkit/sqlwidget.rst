@@ -422,13 +422,13 @@ get_differences
 Module sqlkit.db.utils provides a simple function that yealds all modified
 attributes of an object, along with their old and new values
 
-.. function:: get_differences(obj, session)
+.. function:: get_differences(obj)
 
    :param obj: the object to be inspected
    :param session: the session the object belongs to
    :rtype: field_name, old_value, new_value. Old value and new value are lists.
 
-.. function:: get_history(obj, field_name, session)
+.. function:: get_history(obj, field_name)
 
    :param obj: the object to be inspected
    :param field_name: the field_name 

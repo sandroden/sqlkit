@@ -274,12 +274,13 @@ def get_labels_and_tips_from_sqlkit(table, metadata=None):
 ###################
 
 
-def get_differences(obj, session):
+def get_differences(obj, session=None):
     """
     show differences between old and new version of an object
     """
-    from sqlalchemy.orm import attributes, class_mapper
+    from sqlalchemy.orm import attributes, class_mapper, object_session
 
+    session = object_session(obj)
     mapper = class_mapper(obj.__class__)
     for prop in mapper.iterate_properties:
         new = None
@@ -293,7 +294,7 @@ def get_differences(obj, session):
         except Exception, e:
             pass
 
-def get_history(obj, field_name, session):
+def get_history(obj, field_name, session=None):
     """
     show the history of a field of an object
     """

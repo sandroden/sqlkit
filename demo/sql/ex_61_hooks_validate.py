@@ -13,7 +13,7 @@ class Film(SqlMask):
     def on_validation(self):
 
         changed = False
-        for field_name, old, new in get_differences(self.current, self.session):
+        for field_name, old, new in get_differences(self.current):
             print field_name, old, new
             changed = True
 
