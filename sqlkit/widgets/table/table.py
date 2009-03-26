@@ -223,6 +223,9 @@ class SqlTable(sqlwidget.SqlWidget):
             self.tvcolumns[field_name] = col.column
             self.treeview.append_column(col.column)
 
+            if field_name in self.hidden_fields:
+                col.column.set_visible(False)
+            
         self.treeview.columns_autosize()
         self.fix_expandable_columns()
 
@@ -1199,12 +1202,21 @@ class SqlTable(sqlwidget.SqlWidget):
         dialog.destroy()
         return 
 
-    def hide_fields(self, *field_name_list):
+    def hide_fields(self, field_name_list='', force=False, ):
         """
         Hide a column and add the entry in the menu to make it show up again
+        field_name_list may be a list or a string (in which case it is split with, and spaces)
         """
-        if len(field_name_list) == 1:
-            field_name_list = re.split("[ ,]+", field_name_list[0])
+
+        if len(field_name_list) == 0:
+            field_name_list = self.hidden_fields
+
+        if isinstance(field_name_list, basestring):
+            field_name_list = re.split("[ ,]+", field_name_list)
+            self.hidden_fields = field_name_list
+
+        if not self.tvcolumns:
+            return
 
         for field_name in field_name_list:
             self.tvcolumns[field_name].set_property('visible', False)

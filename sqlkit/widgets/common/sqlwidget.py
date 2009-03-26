@@ -177,12 +177,12 @@ class SqlWidget(gobject.GObject):
         self.ro = ro
         self.noup = noup
         self.rows = rows
-        self.hidden_field = hide_fields
+        self.hidden_fields = hide_fields or []
         self.mapper_info = self.get_fields()
         self.field_list = self.parse_fields(field_list, layout)
         self.ignored_fields = self._set_ignored_fields(ignore_fields)
         if hide_fields:
-            self.hide_fields()
+            self.hide_fields(force=True)
         self._title = self._create_title(title)
 #        self.tables = {}
         self.values = {}
