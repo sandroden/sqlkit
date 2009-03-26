@@ -460,11 +460,23 @@ class DateEdit(LWidget):
     ## this widget is provided by dateedit module
     ## it's a pity set_custom_handler should only use str1, str2, int1, int2
     transpose = {
+        'date' : 'string1',
+        }
+    class_properties = {
+        'creation_function' : 'lay_dateedit',
+        'date' : None,
+        }
+            
+class DateTimeEdit(LWidget):
+    gtkClass = 'Custom'
+    ## this widget is provided by dateedit module
+    ## it's a pity set_custom_handler should only use str1, str2, int1, int2
+    transpose = {
         'time' : 'string1',
         'show-time' : 'string2',
         }
     class_properties = {
-        'creation_function' : 'lay_dateedit',
+        'creation_function' : 'lay_datetimeedit',
 #        'int1' : '',
 #        'int2' : '',
         'time' : None,
@@ -1042,6 +1054,7 @@ _W = {
     'e'   : Entry,
     'ae'  : AlignmentEntry,
     'd'   : DateEdit,
+    'dt'  : DateTimeEdit,
     'da'  : DrawingArea,
     'i'   : Image,
     'b'   : Button,
@@ -1101,7 +1114,13 @@ class CustomWidget(object):
     def lay_dateedit(self):
         import dateedit
         d = dateedit.DateEdit()
-        d.set_property('show-time', False)
+        d.show()
+        return d
+
+    def lay_datetimeedit(self):
+        import dateedit
+        d = dateedit.DateTimeEdit()
+        d.set_property('show-time', True)
         d.show()
         return d
 

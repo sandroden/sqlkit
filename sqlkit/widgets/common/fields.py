@@ -70,7 +70,7 @@ Other attributes
      
 future
 -------
-   This should provide a way to set the possible observer
+   This should provide a way to set the possible observers
 
    validation based on the type should live here
 
@@ -410,6 +410,7 @@ class VarcharField(Field):
         if self.length:
             self.widget.set_max_length(self.length)
 
+##### Numbers
 class IntegerField(Field):
     Widget = IntegerWidget
     
@@ -437,7 +438,7 @@ class IntegerField(Field):
         value = self.clean_value(value)
         if initial:
             self.initial_value = value
-        self.widget.set_value(self.format_value(value))
+        self.widget.set_value(value)
 
     def format_value(self, value):
         if value is None:
@@ -449,7 +450,7 @@ class FloatField(IntegerField):
 
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
-        self.format = "#,###.@"
+        self.format = "#.###,000"
         self.locale = babel.default_locale('LC_NUMERIC')
         
     def clean_value(self, value):
@@ -517,6 +518,7 @@ class TextField(VarcharField):
     def set_max_length(self):
         pass
 
+##### Time/Dates
 class DateField(Field):
     Widget = DateWidget
     default_def_string = 'd'
@@ -557,28 +559,97 @@ class TimeField(DateField):
     default_def_string = 'ae'
 
     def clean_value(self, value):
+
         if isinstance(value, basestring):
-            value = dates.parse_time(value)
+            try:
+                value = dates.parse_time(value)
+            except IndexError, e:
+                try:
+                    value = dates.parse_time("%s:00" % value)
+                except Exception, e:
+                    raise exc.ValidationError(e.message)
         return value
         
     def format_value(self, value):
-        return dates.format_time(value, format=self.format, locale=self.locale)
+        if not value:
+            return ''
         
+        if not isinstance(value, time):
+            value = self.clean_value(value)
+
+        return dates.format_time(value, format=self.format, locale=self.locale)
+
 class TimeTZField(TimeField):
     Widget = TimeTZWidget
 
+    def __init__(self, *args, **kwargs):
+        TimeField.__init__(self, *args, **kwargs)
+        self.TZ = None
+        
     def clean_value(self, value):
         if isinstance(value, basestring):
             value = dates.parse_time(value)
         return value
         
+    def set_value(self, value, initial=True, shown=False):
+
+        TimeField.set_value(self, value, initial=initial)
+        
+        if initial:
+            if value:
+                self.TZ = value.tzinfo
+                self.microsecond = value.microsecond
+            else:
+                self.TZ = None
+                self.microsecond = 0
+        
+#     def set_value(self, value):
+#         if value:
+#             self.TZ = value.tzinfo
+#             self.microsecond = value.microsecond
+#         else:
+#             self.TZ = None
+#             self.microsecond = 0
+
+#         if not value:
+#             value = ''
+#         elif isinstance(value, time):
+
+#             value = value.strftime("%H:%M")
+#         self.gtkwidget.set_text(value)
+
+    def get_value(self, shown=False):
+        value = self.gtkwidget.get_text() 
+        print self, self.field_name, value
+        if not self.TZ:
+            ## Local will return a tzinfo with the timezone of the system
+            ## it will be added to bypass the limitaition od dateedit
+            self.TZ = localtimezone.Local
+            self.microsecond = 0
+
+        if not value:
+            return None
+        value = time(*[int(i) for i in re.split('[.:]', value)]) 
+        return value.replace(tzinfo=self.TZ, microsecond=self.microsecond)
+
 class IntervalField(Field):
     Widget = IntervalWidget
 
 class DateTimeField(DateField):
     Widget = DateTimeWidget
 
-    def clean_value(self, value):
+    def __init__(self, *args, **kwargs):
+        DateField.__init__(self, *args, **kwargs)
+        self.microsecond = 0
+        self.second = 0
+        
+    def clean_value(self, value, add_second=False, add_microsecond=False):
+        """
+        parse and return a clean value (ie: a datetime)
+        if add_second/add_microsecond, second and microsecond as found in self.(micro)second
+        and stored there by set_value are attached to work around widgets that may not be able 
+        (or willing) return seconds and microseconds
+        """
 
         if value in (None, ''):
             return None
@@ -602,8 +673,28 @@ class DateTimeField(DateField):
 
             value = datetime.combine(date_value, time_value)
 
+        if isinstance(value, datetime):
+            if add_second:
+                value = value.replace(second=self.second)
+            if add_microsecond:
+                value = value.replace(microsecond=self.microsecond)
+            
         return value
 
+    def set_value(self, value, initial=True, shown=False):
+
+        Field.set_value(self, value, initial=initial)
+        
+        if initial:
+            if value:
+                self.TZ = value.tzinfo
+                self.microsecond = value.microsecond
+                self.second = value.second
+            else:
+                self.TZ = None
+                self.microsecond = 0
+                self.second = 0
+        
         
     def format_value(self, value):
 
@@ -612,43 +703,41 @@ class DateTimeField(DateField):
         
         return dates.format_datetime(value, format=self.format, locale=self.locale)
         
+    def get_value(self, shown=False):
+
+        value = self.widget.get_value()
+
+        if value and value.microsecond:
+            self.microsecond = value.microsecond
+            value = value.replace(microsecond=self.microsecond)
+
+        return value
+        
 class DateTimeTZField(DateTimeField):
     Widget = DateTimeTZWidget
 
     def __init__(self, *args, **kwargs):
         DateTimeField.__init__(self, *args, **kwargs)
         self.TZ = None
+        self.microsecond = 0
         
-    def clean_value(self, value):
+    def clean_value(self, value, add_second=False, add_microsecond=False):
 
-        value = DateTimeField.clean_value(self, value)
+        value = DateTimeField.clean_value(self, value, add_second, add_microsecond)
 
         if not self.TZ:
             ## Local will return a tzinfo with the timezone of the system
             ## it will be added to bypass the limitation of dateedit
             self.TZ = localtimezone.Local
-            self.microsecond = 0
-
         
         if value:
             if value.tzinfo:
                 return value
             else:
-                return value.replace(tzinfo=self.TZ, microsecond=self.microsecond)
+                return value.replace(tzinfo=self.TZ)
+
         return None
 
-    def set_value(self, value, initial=True, shown=False):
-
-        DateTimeField.set_value(self, value, initial=initial)
-        
-        if initial:
-            if value:
-                self.TZ = value.tzinfo
-                self.microsecond = value.microsecond
-            else:
-                self.TZ = None
-                self.microsecond = 0
-        
     def get_value(self, shown=False):
         """
         Implement a hack around the fact that you normally don't need TZ
@@ -658,6 +747,7 @@ class DateTimeTZField(DateTimeField):
         value = self.widget.get_value()
         return self.clean_value(value)
 
+##### Boolean
 class BooleanField(Field):
     """
     A simple boolean field that does not allow NULL
@@ -690,6 +780,7 @@ class BooleanNullField(Field):
             raise ValidationError(msg) 
         return value
     
+##### Misc
 class ForeignKeyField(Field):
     """
     A field that uses ComboBoxEntry

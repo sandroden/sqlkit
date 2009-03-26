@@ -50,6 +50,9 @@
 >>> f.clean_value('1'), type(f.clean_value('1'))
 (1L, <type 'long'>)
 
+>>> isinstance(f.format_value(f.clean_value('1')), basestring)
+True
+
 # float
 >>> f = sm.gui_fields['float']
 >>> print f
@@ -57,7 +60,10 @@
 >>> f.clean_value('1.2'), type(f.clean_value('1'))
 (1.2, <type 'float'>)
 >>> f.format_value(1.2)
-u'1.2'
+u'1.200'
+
+>>> isinstance(f.format_value(f.clean_value('1.2')), basestring)
+True
 
 # numeric
 >>> f = sm.gui_fields['numeric']
@@ -73,12 +79,18 @@ Decimal("1.2")
 >>> f.clean_value(12), type(f.clean_value(12))
 (Decimal("12.00"), <class 'decimal.Decimal'>)
 
+>>> isinstance(f.format_value(f.clean_value('1.2')), basestring)
+True
+
 # date
 >>> f = sm.gui_fields['date']
 >>> f.clean_value(date(2008, 6, 2))
 datetime.date(2008, 6, 2)
 >>> f.clean_value('6/2/2008')
 datetime.date(2008, 6, 2)
+
+>>> isinstance(f.format_value(f.clean_value('2/6/2008')), basestring)
+True
 
 # datetime
 >>> f = sm.gui_fields['datetime']
@@ -87,12 +99,22 @@ datetime.datetime(2008, 6, 2, 15, 30)
 >>> f.clean_value('2/6/2008 15:30')  ## missing datetime parsing
 datetime.datetime(2008, 2, 6, 15, 30)
 
+>>> isinstance(f.format_value(f.clean_value('2/6/2008 15:30')), basestring)
+True
+
 # time
 >>> f = sm.gui_fields['time']
 >>> f.clean_value(time(15, 30))
 datetime.time(15, 30)
+
 >>> f.clean_value('15:30:00')  
 datetime.time(15, 30)
+
+>>> f.clean_value('15:30')  
+datetime.time(15, 30)
+
+>>> isinstance(f.format_value(f.clean_value('15:30')), basestring)
+True
 
 
 #####################################

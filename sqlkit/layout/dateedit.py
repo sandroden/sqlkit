@@ -1,5 +1,5 @@
 # Python GTK+ date and time entry widget. Version 0.2
-# Copyright (C) 2005  Fabian Sturm
+# Copyright (C) 2005  Fabian Sturm, Sandro Dentella 2009
 #
 # ported from the libgnomeui/gnome-dateedit.c
 # with changes where it makes sense for python (e.g. constructor, 
@@ -37,83 +37,65 @@ import pygtk
 import gobject
 import gtk
 from gtk import gdk
- 
+import re
+from sqlkit import _
+
+class WrongDateFormat(Exception): pass
  # gnome_date_edit_new:
- # @the_time: date and time to be displayed on the widget
+ # @the_date: date and time to be displayed on the widget
  # @show_time: whether time should be displayed
  # @use_24_format: whether 24-hour format is desired for the time display.
  #
  # Description: Creates a new #GnomeDateEdit widget which can be used
  # to provide an easy to use way for entering dates and times.
- # If @the_time is 0 then current time is used.
+ # If @the_date is 0 then current time is used.
  #
  # Returns: a new #GnomeDateEdit widget. 
 class DateEdit(gtk.HBox):
     __gtype_name__ = 'DateEdit'
     
     __gproperties__ = {
-        'time' : (gobject.TYPE_PYOBJECT,                       # type
-                    'Time',                                    # nick name
-                    'The time currently selected',             # description
+        'date' : (gobject.TYPE_PYOBJECT,                       # type
+                    'Date',                                    # nick name
+                    'The date currently selected',             # description
                     gobject.PARAM_READWRITE),                  # flags
 
-        'initial_time' : (gobject.TYPE_PYOBJECT,
-                    'Initial Time',
-                    'The initial time',
+        'initial_date' : (gobject.TYPE_PYOBJECT,
+                    'Initial Date',
+                    'The initial date',
                     gobject.PARAM_READABLE),
                   
-        'lower_hour' : (gobject.TYPE_INT,
-                    'Lower Hour',
-                    'Lower hour in the time popup selector',
-                    0,
-                    24,
-                    7,
-                    gobject.PARAM_READWRITE),
-
-        'upper_hour' : (gobject.TYPE_INT,
-                    'Upper Hour',
-                    'Upper hour in the time popup selector',
-                    0,
-                    24,
-                    19,
-                    gobject.PARAM_READWRITE),
-                  
-        'show_time' : (gobject.TYPE_BOOLEAN,
-                    'Show Time',
-                    'Show the time widget',
-                    True,
-                    gobject.PARAM_READWRITE),
-                    
-        'use_24h_format' : (gobject.TYPE_BOOLEAN,
-                    'Use 24h Format',
-                    'Display time in 24h format',
-                    True,
-                    gobject.PARAM_READWRITE)
     }
 
     __gsignals__ = {
-        'time_changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                          ()),
         'date_changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
                           ()),                          
-        'wrong-date-format' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                          (gobject.TYPE_STRING)),                          
-    
-        'good-date-format' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                          ()),                          
-    
     }
 
     def __init__(self):
         gtk.HBox.__init__(self)
         
         # preset values
-        self.__initial_time = self.__current_time = None
+        self._initial_date = self._current_date = None
+        self.invalid_date = False
         #datetime.datetime.today()
-        self.__lower_hour = 7;
-        self.__upper_hour = 19;        
-        self.__show_time = True
+
+        self.locale_setup()
+        self.build_layout()
         
+        self._date_entry.connect('focus-out-event', self.date_entry_focus_out_event_cb)
+        self._date_button.connect('clicked', self.date_button_clicked_cb)
+
+        self._calendar.connect('day-selected', self.day_selected_cb)
+        self._calendar.connect('day-selected-double-click', self.day_selected_double_click_cb)
+
+        self._cal_popup.connect('delete_event', self.delete_popup_cb)
+        self._cal_popup.connect('key_press_event', self.key_press_popup_cb)
+        self._cal_popup.connect('button_press_event', self.button_press_popup_cb)
+           
+        self.date_format = '%x'
+
+    def locale_setup(self):
         if os.name == 'nt':
             # Todo: fix this for windows
             self.__use_24h_format = False
@@ -131,81 +113,84 @@ class DateEdit(gtk.HBox):
             # restore original locale
             locale.setlocale(locale.LC_ALL, saved_locale)
         
-        # some space around the widgets, and two boxes
+#####  layout
+    def build_layout(self):
+
         self.set_spacing(6)
         date_box = gtk.HBox()
         self.add(date_box)
         date_box.show()
-        time_box = gtk.HBox()
-        self.add(time_box)
-        time_box.show()
         
         # the date entry
-        self.__date_entry = gtk.Entry()
-        self.__date_entry.connect('focus-out-event', self.date_entry_focus_out_event)
-        self.__date_entry.set_max_length(15)
-        self.__date_entry.set_width_chars(10)
-        self.__align_entry = gtk.Alignment(1,0,1,0)
-        #self.pack_start(self.__date_entry, True, True, 0)
-        date_box.add(self.__align_entry)
-        self.__align_entry.add(self.__date_entry)
-        self.__align_entry.show()
-        self.__date_entry.show()
-        
-        # the date button
-        self.__date_button = gtk.Button()
-        self.__align_arrow = gtk.Alignment(0,0,0,0)
-        self.__align_arrow.show()
-        self.__align_arrow.add(self.__date_button)
+        self._date_entry = gtk.Entry()
+        self._entry = self._date_entry
+        self._date_entry.set_max_length(15)
+        self._date_entry.set_width_chars(10)
+        self._align_entry = gtk.Alignment(1,0,1,0)
+        #self.pack_start(self._date_entry, True, True, 0)
+        date_box.add(self._align_entry)
+        self._align_entry.add(self._date_entry)
+        self._align_entry.show()
+        self._date_entry.show()
 
-        self.__date_button.connect('clicked', self.date_button_clicked)
-        #self.pack_start(self.__date_button, False, False, 0)
-        date_box.add(self.__align_arrow)
-        # the down arrow
-        arrow = gtk.Arrow(gtk.ARROW_DOWN, gtk.SHADOW_OUT)
-        self.__date_button.add(arrow)
-        arrow.show()
+
+        ## default style
+        self._default_base = self._date_entry.get_style().base[gtk.STATE_NORMAL]
+
+        # the date button
+        self._date_button = gtk.Button()
+        #pixmap = gtk.gdk.pixbuf_new_from_file('cal32.png')
+        image = gtk.Image()
+        image.set_from_file(os.path.join(os.path.dirname(__file__),'cal15.png'))
+        self._date_button.set_image(image)
+        self._align_arrow = gtk.Alignment(0,0,0,0)
+        self._align_arrow.show()
+        self._align_arrow.add(self._date_button)
+
+        #self.pack_start(self._date_button, False, False, 0)
+        date_box.add(self._align_arrow)
+#         # the down arrow
+#         arrow = gtk.Arrow(gtk.ARROW_DOWN, gtk.SHADOW_OUT)
+#         self._date_button.add(arrow)
+#         arrow.show()
         # finally show the button
-        self.__date_button.show()
-        
-        # the time entry combobox
-        self.__time_combobox = gtk.ComboBoxEntry()
-        self.__time_combobox.connect('changed', self.time_combobox_changed)
-        self.__time_combobox.child.connect('focus-out-event', self.time_entry_focus_out_event)
-        self.__time_combobox.child.set_max_length(12)
-        self.__time_combobox.child.set_width_chars(8)
-        time_box.add(self.__time_combobox)
-        self.__time_combobox.set_no_show_all(True)
-        self.__time_combobox.show()
-        self.connect('realize', self.fill_time_combobox)
+        self._date_button.show()
         
         # the calendar popup
-        self.__cal_popup = gtk.Window(gtk.WINDOW_POPUP)
-        self.__cal_popup.set_title('popup for calendar')
-        self.__cal_popup.set_events(self.__cal_popup.get_events() | gdk.KEY_PRESS_MASK)
-        self.__cal_popup.connect('delete_event', self.delete_popup)
-        self.__cal_popup.connect('key_press_event', self.key_press_popup)
-        self.__cal_popup.connect('button_press_event', self.button_press_popup)
-        self.__cal_popup.set_resizable(False) # Todo: Needed?
+        self._cal_popup = gtk.Window(gtk.WINDOW_POPUP)
+        self._cal_popup.set_title('popup for calendar')
+        self._cal_popup.set_events(self._cal_popup.get_events() | gdk.KEY_PRESS_MASK)
+        self._cal_popup.set_resizable(False) # Todo: Needed?
+
         frame = gtk.Frame()
         frame.set_shadow_type(gtk.SHADOW_OUT)
-        self.__cal_popup.add(frame)
+        self._cal_popup.add(frame)
         frame.show()
-        # the calendar
-        self.__calendar = gtk.Calendar()
-        self.__calendar.display_options(gtk.CALENDAR_SHOW_DAY_NAMES 
-                                        | gtk.CALENDAR_SHOW_HEADING)
-        self.__calendar.connect('day-selected', self.day_selected)
-        self.__calendar.connect('day-selected-double-click', self.day_selected_double_click)
-        frame.add(self.__calendar)
-        self.__calendar.show()
-           
-        # set the initial widget properties
-        self.set_show_time(self.__show_time)
-        self.set_time(self.__initial_time)
-        self.set_use_24h_format(self.__use_24h_format)
-        self.date_format = '%x'
 
+        # the calendar
+        self._calendar = gtk.Calendar()
+        self._calendar.display_options(gtk.CALENDAR_SHOW_DAY_NAMES 
+        # some space around the widgets, and two boxes
+                                        | gtk.CALENDAR_SHOW_HEADING)
+        frame.add(self._calendar)
+
+        self._calendar.show()
+
+    def flash_bg(self, entry, color, seconds):
+        """
+        flash background color for seconds to warn for wrong date format
+        """
+        colormap = entry.get_colormap()
+        base_color = colormap.alloc_color(color)
+        entry.modify_base(gtk.STATE_NORMAL, base_color)
+
+        gobject.timeout_add(1000 * seconds, entry.modify_base,
+                            gtk.STATE_NORMAL, self._default_base)
+        
+    def modify_base(self, state, color):
+        self._date_entry.modify_base(state, color)
+        self._default_base = color
+        
     def popup_grab_on_window(self, window, activate_time):
         if gdk.pointer_grab(window, True, gdk.BUTTON_PRESS_MASK 
                                           | gdk.BUTTON_RELEASE_MASK
@@ -220,13 +205,13 @@ class DateEdit(gtk.HBox):
 
 
     def position_popup(self):
-        req = self.__cal_popup.size_request()
-        (x,y) = gdk.Window.get_origin(self.__date_button.window)
+        req = self._cal_popup.size_request()
+        (x,y) = gdk.Window.get_origin(self._date_button.window)
 
-        x += self.__date_button.allocation.x
-        y += self.__date_button.allocation.y
-        bwidth = self.__date_button.allocation.width
-        bheight = self.__date_button.allocation.height
+        x += self._date_button.allocation.x
+        y += self._date_button.allocation.y
+        bwidth = self._date_button.allocation.width
+        bheight = self._date_button.allocation.height
 
         x += bwidth - req[0]
         y += bheight
@@ -234,91 +219,70 @@ class DateEdit(gtk.HBox):
         if x < 0: x = 0
         if y < 0: y = 0
         
-        self.__cal_popup.move(x,y)
+        self._cal_popup.move(x,y)
 
 
     def hide_popup(self):
-        self.__cal_popup.hide()
-        self.__cal_popup.grab_remove()
+        self._cal_popup.hide()
+        self._cal_popup.grab_remove()
         
         
-    def date_entry_focus_out_event(self, widget, data=None):
+#####  callback
+    def date_entry_focus_out_event_cb(self, widget, event):
         # check entry for valid date, reset if not
-        string = self.__date_entry.get_text()
-        if string is '':
-            self.set_time(None)
+        date_string = self._date_entry.get_text()
+        if not date_string:
+            self.set_date(None)
             return
         try:
-            new_date = time.strptime(string, self.date_format)
-            if self.__show_time:
-                the_time = datetime.datetime(new_date.tm_year,
-                                             new_date.tm_mon,
-                                             new_date.tm_mday,
-                                             self.__current_time.hour,
-                                             self.__current_time.minute,
-                                             self.__current_time.second)
-            else:
-                the_time = datetime.datetime(new_date.tm_year,
-                                             new_date.tm_mon,
-                                             new_date.tm_mday,
-                                             )
-            self.set_time(the_time)
+            new_date = time.strptime(date_string, self.date_format)
+            the_date = datetime.date(new_date.tm_year,new_date.tm_mon,new_date.tm_mday,)
+            self.set_date(the_date, from_focus_out=True)
         except ValueError, e:
-            self.emit('wrong-date-format', string)
-            self.set_time(self.__current_time)
+            self.wrong_date_format(e, date_string)
  
- 
-    def date_button_clicked(self, widget, data=None):
+    def date_button_clicked_cb(self, widget):
         # Temporarily grab pointer and keyboard on a window we know exists        
         if not self.popup_grab_on_window(widget.window, gtk.get_current_event_time()):
-            print 'error during grab'
             return
         
         # set calendar date
-        if not self.get_time:
-            self.__calendar.select_month(self.__current_time.month - 1, self.__current_time.year)
-            self.__calendar.select_day(self.__current_time.day)        
+        if not self.get_date:
+            self._calendar.select_month(self._current_date.month - 1, self._current_date.year)
+            self._calendar.select_day(self._current_date.day)        
         
         # position and show popup window
         self.position_popup()
-        self.__cal_popup.grab_add()
-        self.__cal_popup.show()
-        self.__calendar.grab_focus()
+        self._cal_popup.grab_add()
+        self._cal_popup.show()
+        self._calendar.grab_focus()
         
         # Now transfer our grabs to the popup window, this should always succed
-        self.popup_grab_on_window(self.__cal_popup.window, gtk.get_current_event_time())
+        self.popup_grab_on_window(self._cal_popup.window, gtk.get_current_event_time())
 
-
-    def day_selected(self, widget, data=None):
-        (year, month, day) = self.__calendar.get_date()
+    def day_selected_cb(self, widget):
+        year, month, day = self._calendar.get_date()
         month += 1        
-        try:
-            the_time = datetime.datetime(year, month, day,
-                                         self.__current_time.hour,
-                                         self.__current_time.minute,
-                                         self.__current_time.second)
-        except:
-            the_time = datetime.datetime(year, month, day,0,0,0)
-        self.set_time(the_time)
+        the_date = datetime.date(year, month, day)
+        self.set_date(the_date)
 
-
-    def day_selected_double_click(self, widget, data=None):
+    def day_selected_double_click_cb(self, widget, data=None):
         self.hide_popup()
 
 
-    def key_press_popup(self, widget, data=None):        
-        # Todo, Fixme: what is the name of gdk.Escape? missing?
-        if data == None or data.keyval != 65307:
-            return False
+    def key_press_popup_cb(self, widget, event):   
+        """
+        Implement Esc to get rid of calendar
+        """
+        if event.keyval == gtk.keysyms.Escape:
+            self.hide_popup()
+            return True
 
-        # Todo: does not work and what does it do anyway?
-        #widget.stop_emission_by_name('key_press_event')
-        self.hide_popup()
-        return True
+        return False
 
 
     # Todo: is this correct?
-    def button_press_popup(self, widget, data=None):
+    def button_press_popup_cb(self, widget, data=None):
         # We don't ask for button press events on the grab widget, so
         # if an event is reported directly to the grab widget, it must
         # be on a window outside the application (and thus we remove
@@ -339,22 +303,170 @@ class DateEdit(gtk.HBox):
         return True
 
 
-    def delete_popup(self, widget, data=None):
+    def delete_popup_cb(self, widget, data=None):
         # Todo: is this ever called??
-        print 'delete_popup'
         self.hide_popup();
+        lll
         return TRUE;
 
+####### date & gobject
+    def wrong_date_format(self, error, date_string):
+        self.invalid_date = True
+        self.flash_bg(self._date_entry, 'orangered', 2)
+        
+    def get_date(self):
+
+        date_string = self._date_entry.get_text()
+        
+        if self.invalid_date:
+            return date_string
+            ## i'd like to raise the error but python wouldn't catch it...
+            #raise WrongDateFormat(_('Wrong format for date %s' % date_string))
+
+        if not date_string:
+            self._current_date = None
+            return None
+
+        return self._current_date
+
+    def set_date(self, new_date, from_focus_out=False):
+        """
+        new_date is a datetime.date object. Can be set by:
+          - do_set_property
+          - focus_out_event
+          - popup click 
+        """
+
+        date_changed = not new_date == self._current_date
+        self.invalid_date = False
+        
+        # set the time and date string
+        if new_date:
+            self._date_entry.set_text(new_date.strftime(self.date_format))
+        else:
+            self._date_entry.set_text('')
+
+        if date_changed:
+            self._current_date = new_date
+            self.emit('date-changed')
+            return True
+        return False
+    
+    def do_get_property(self, property): 
+        if property.name == 'date':
+            return self.get_date()
+        elif property.name == 'initial-date':
+            return self._initial_date
+        else:
+            raise AttributeError, 'unknown property %s' % property.name
+
+    # set_properties
+    def do_set_property(self, property, value):
+        if property.name == 'date':
+            self.set_date(value)
+        else:
+            raise AttributeError, 'unknown property %s' % property.name
+            
+
+
+class DateTimeEdit(DateEdit):
+
+    __gtype_name__ = 'DateTimeEdit'
+    
+    __gproperties__ = {
+        'datetime' : (gobject.TYPE_PYOBJECT,                       # type
+                    'Date',                                    # nick name
+                    'The date currently selected',             # description
+                    gobject.PARAM_READWRITE),                  # flags
+
+        'initial_datetime' : (gobject.TYPE_PYOBJECT,
+                    'Initial Date',
+                    'The initial date',
+                    gobject.PARAM_READABLE),
+                  
+        'lower-hour' : (gobject.TYPE_INT,
+                    'Lower Hour',
+                    'Lower hour in the time popup selector',
+                    0,
+                    24,
+                    7,
+                    gobject.PARAM_READWRITE),
+
+        'upper-hour' : (gobject.TYPE_INT,
+                    'Upper Hour',
+                    'Upper hour in the time popup selector',
+                    0,
+                    24,
+                    19,
+                    gobject.PARAM_READWRITE),
+                  
+        'show-time' : (gobject.TYPE_BOOLEAN,
+                    'Show Time',
+                    'Show the time widget',
+                    True,
+                    gobject.PARAM_READWRITE),
+                    
+        'use-24h-format' : (gobject.TYPE_BOOLEAN,
+                    'Use 24h Format',
+                    'Display time in 24h format',
+                    True,
+                    gobject.PARAM_READWRITE)
+        }
+
+    __gsignals__ = {
+        'datetime_changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                          ()),
+        'time_changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                          ()),
+        }
+    def __init__(self):
+
+        # preset values
+        self._initial_datetime = self._current_datetime = None
+        #datetime.datetime.today()
+        self._lower_hour = 7;
+        self._upper_hour = 19;        
+        self._show_time = True
+        self._use_24h_format = True
+        
+        DateEdit.__init__(self)
+        
+        self._time_combobox.connect('changed', self.time_combobox_changed_cb)
+        self._time_combobox.child.connect('focus-out-event', self.time_entry_focus_out_event_cb)
+        self.connect('realize', self.fill_time_combobox)
+
+
+    def build_layout(self):
+
+        DateEdit.build_layout(self)
+
+        time_box = gtk.HBox()
+        self.add(time_box)
+        time_box.show()
+        
+
+        # the time entry combobox
+        self._time_combobox = gtk.ComboBoxEntry()
+        self._time_combobox.child.set_max_length(12)
+        self._time_combobox.child.set_width_chars(8)
+        time_box.add(self._time_combobox)
+        self._time_combobox.set_no_show_all(True)
+        self._time_combobox.show()
+           
+        # set the initial widget properties
+        self.set_show_time(self._show_time)
+#        self.set_time(self._initial_datetime)
+        self.set_use_24h_format(self._use_24h_format)
 
     def fill_time_combobox(self, widget, data=None):
-        if self.__lower_hour > self.__upper_hour:
+        if self._lower_hour > self._upper_hour:
             return
             
         # create the new model    
         store = gtk.TreeStore(str)
-        for i in range(self.__lower_hour, self.__upper_hour + 1):
+        for i in range(self._lower_hour, self._upper_hour + 1):
             the_time = datetime.time(i, 0)
-            if self.__use_24h_format:
+            if self._use_24h_format:
                 label = the_time.strftime('%H:%M')
             else:
                 label = the_time.strftime('%I:%M %p')
@@ -363,197 +475,158 @@ class DateEdit(gtk.HBox):
             # create sub menu
             for j in range(15,60,15):
                 the_time = datetime.time(i,j)
-                if self.__use_24h_format:
+                if self._use_24h_format:
                     label = the_time.strftime('%H:%M')
                 else:
                     label = the_time.strftime('%I:%M %p')
                 store.append(iter, [label])
                 
         # finally replace current model with this new one                
-        self.__time_combobox.set_model(store)
-        if self.__time_combobox.get_text_column() == -1:
-            self.__time_combobox.set_text_column(0)
+        self._time_combobox.set_model(store)
+        if self._time_combobox.get_text_column() == -1:
+            self._time_combobox.set_text_column(0)
 
-
-    def time_combobox_changed(self, widget, data=None):
+    def time_combobox_changed_cb(self, widget, data=None):
         # if the changed was due to a time selection in the menu, 
         # handle as if focus-out-event
-        if self.__time_combobox.get_active_iter() != None:
-            self.time_entry_focus_out_event(widget, data)
+        if self._time_combobox.get_active_iter() != None:
+            self.time_entry_focus_out_event_cb(widget, data)
 
-        
-        
-    def time_entry_focus_out_event(self, widget, data=None):
+    def time_entry_focus_out_event_cb(self, widget, data=None):
 
         # check entry for valid time, reset if not
-        str = self.__time_combobox.child.get_text()
+        time_text = self._time_combobox.child.get_text()
         try:
-            if self.__use_24h_format:
-                new_time = time.strptime(str, '%H:%M')
+            if self._use_24h_format:
+                new_time = time.strptime(time_text, '%H:%M')
             else:
-                new_time = time.strptime(str, '%I:%M %p')
+                new_time = time.strptime(time_text, '%I:%M %p')
 
-            the_time = datetime.datetime(self.__current_time.year,
-                                         self.__current_time.month,
-                                         self.__current_time.day,
-                                         new_time.tm_hour,
-                                         new_time.tm_min,
-                                         self.__current_time.second)
-            self.set_time(the_time)
-        except ValueError:
-            self.set_time(self.__current_time)
-        
-        
+            the_time = datetime.time(new_time.tm_hour,new_time.tm_min)
+            the_date = self.get_date()
+            
+            the_datetime = datetime.datetime.combine(self.get_date(), the_time)
+
+        except Exception, e:
+            self.wrong_time_format(e, time_text)
         
     ############################################
     # properties and their convenience functions
 
-    def get_time(self):
-        if self.__show_time:
-            if self.__time_combobox.child.get_text() == '':
-                self.__current_time = None
-                    
-            return self.__current_time
-        else:
-            if self.__date_entry.get_text() == '':
-                self.__current_time = None
-                    
-            if self.__current_time is None:
-                return None
-            else:
-                the_time = datetime.date(self.__current_time.year,
-                                         self.__current_time.month,
-                                         self.__current_time.day,
-                                         )
-            return the_time
-
-
-    def set_time(self, the_time):
-        # check for valid datetime
-        if the_time is None or the_time  == '':
-            #the_time = datetime.datetime.today()
-            if self.__current_time == None:
-                date_changed = False
-            else:
-                date_changed = True
-                self.__current_time = None
-                self.__date_entry.set_text('')
-                self.emit('date-changed')    
-                
-            if self.__current_time == None:
-                time_changed = False
-            else:
-                time_changed = True
-                self.__time_combobox.child.set_text('')
-                self.emit('time-changed')
-            return
-        #assert isinstance(the_time, (datetime.datetime, datetime.date, datetime.time))
-
-        # convert a date/time to full datetime
-        if not isinstance(the_time, datetime.datetime):
-            if isinstance(the_time, datetime.date):
-                try:
-                    the_time = datetime.datetime(the_time.year,
-                                                 the_time.month,
-                                                 the_time.day,
-                                                 self.__current_time.hour,
-                                                 self.__current_time.minute,
-                                                 self.__current_time.second)
-                except:
-                    the_time = datetime.datetime(the_time.year,
-                                                 the_time.month,
-                                                 the_time.day,
-                                                 0, 0, 0)
-                    
-            elif isinstance(the_time, datetime.time):
-                try:
-                    the_time = datetime.datetime(self.__current_time.year,
-                                                 self.__current_time.month,
-                                                 self.__current_time.day,
-                                                 the_time.hour,
-                                                 the_time.minute,
-                                                 the_time.second)
-                except:
-                    the_time = datetime.datetime(0,0,0,
-                                                 the_time.hour,
-                                                 the_time.minute,
-                                                 the_time.second)
-
-        # conditional vars
-        date_changed = False
-        time_changed = False
-
-        # check if time not yet set
-        if self.__current_time == None:
-            self.__current_time = the_time
+    def wrong_time_format(self, error, date_string):
+        self.invalid_time = True
+        self.flash_bg(self._time_combobox.child, 'orangered', 2)
         
-        # check if date changed
-        if self.__current_time.day != the_time.day or \
-           self.__current_time.month != the_time.month or \
-           self.__current_time.year != the_time.year:
-            date_changed = True
-            
-        # check if time chanegd
-        if self.__current_time.hour != the_time.hour or \
-           self.__current_time.minute != the_time.minute or \
-           self.__current_time.second != the_time.second:
-            time_changed = True       
-        
-        # now we can override the old time with the new one
-        self.__current_time = the_time
-
-        # set the time and date string
-        self.__date_entry.set_text(the_time.strftime(self.date_format))
-        if self.__use_24h_format == True:
-            self.__time_combobox.child.set_text(the_time.strftime('%H:%M'))
-        else:
-            self.__time_combobox.child.set_text(the_time.strftime('%I:%M %p'))
-
-        # emit signal on date change
-        if date_changed == True:
-            self.emit('date-changed')
-            
-        # emit signal on time change
-        if time_changed == True:
-            self.emit('time-changed')    
-       
-
-    def set_lower_hour(self, value):
-        if value < 0 or value > 24 or value > self.__upper_hour:
-            return
-        self.__lower_hour = value
-        self.fill_time_combobox(None)
-
-
-    def set_upper_hour(self, value):
-        if value < 0 or value > 24 or value < self.__lower_hour:
-            return
-        self.__upper_hour = value
-        self.fill_time_combobox(None)
-        
-        
-    def set_show_time(self, show_time):
-        if show_time == True:
-            self.__show_time = True
-            self.__time_combobox.show()
-        else:
-            self.__show_time = False
-            self.__time_combobox.hide()
-    
-    
     def set_use_24h_format(self, use_24h_format):
         dt = self.get_time()
-        self.__use_24h_format = use_24h_format
+        self._use_24h_format = use_24h_format
         self.fill_time_combobox(self)
         self.set_time(dt)
 
 
     # get_properties
+    def set_lower_hour(self, value):
+        if value < 0 or value > 24 or value > self._upper_hour:
+            return
+        self._lower_hour = value
+        self.fill_time_combobox(None)
+
+
+    def set_upper_hour(self, value):
+        if value < 0 or value > 24 or value < self._lower_hour:
+            return
+        self._upper_hour = value
+        self.fill_time_combobox(None)
+        
+        
+    def set_show_time(self, show_time):
+        if show_time == True:
+            self._show_time = True
+            self._time_combobox.show()
+        else:
+            self._show_time = False
+            self._time_combobox.hide()
+    
+    
+    def get_time(self):
+        """
+        return only the time
+        """
+
+        time_string = self._time_combobox.child.get_text()
+        
+        if not time_string:
+            self._current_time = None
+            return None
+
+        else:
+            try:
+                value = datetime.time(*[int(i) for i in re.split('[.:]', time_string)]) 
+                return value
+            except Exception, e:
+                self.wrong_time_format(e, time_string)
+                return time_string
+            
+    def get_datetime(self):
+        ### I should propagate errors via an Exception but I'm not able write now. See:
+        # http://www.mail-archive.com/pygtk@daa.com.au/msg17444.html
+
+        new_date = self.get_date()
+        if isinstance(new_date, basestring):
+            return new_date
+
+        new_time = self.get_time()
+        if isinstance(new_date, basestring):
+            return new_time
+
+        if not new_date:
+            return None
+        
+        return datetime.datetime.combine(self.get_date(), self.get_time() or datetime.time())
+        
+    def set_datetime(self, new_datetime):
+
+        if new_datetime:
+            date_changed = self.set_date(new_datetime.date())
+            time_changed = self.set_time(new_datetime.time())
+        else:
+            date_changed = self.set_date(None)
+            time_changed = self.set_time(None)
+
+        if date_changed or time_changed:
+            self.invalid_time = False
+            self.invalid_date = False
+            self.emit('datetime-changed')
+
+
+    def set_time(self, new_time, focus=False):
+
+        time_changed =  new_time == self._current_time
+
+        if new_time == None:
+            self._time_combobox.child.set_text('')
+        else:
+            # set the time and date string
+            if self._use_24h_format == True:
+                self._time_combobox.child.set_text(new_time.strftime('%H:%M'))
+            else:
+                self._time_combobox.child.set_text(new_time.strftime('%I:%M %p'))
+
+        # emit signal on time change
+        if time_changed == True:
+            self._current_time = new_time
+            self.invalid_time = False
+            self.emit('time-changed')    
+            return True
+
+        return False
+
+    # get_properties
     def do_get_property(self, property): 
-        if property.name == 'time':
-            return self.get_time()
-        elif property.name == 'initial-time':
-            return self.__initial_time
+        if property.name == 'datetime':
+            return self.get_datetime()
+        elif property.name == 'initial-datetime':
+            return self.__initial_datetime
         elif property.name == 'lower-hour': 
             return self.__lower_hour
         elif property.name == 'upper-hour':
@@ -568,8 +641,8 @@ class DateEdit(gtk.HBox):
 
     # set_properties
     def do_set_property(self, property, value):
-        if property.name == 'time':
-            self.set_time(value)
+        if property.name == 'datetime':
+            self.set_datetime(value)
         elif property.name == 'lower-hour': 
             self.set_lower_hour(value)
         elif property.name == 'upper-hour':
@@ -581,12 +654,30 @@ class DateEdit(gtk.HBox):
         else:
             raise AttributeError, 'unknown property %s' % property.name
             
-    def modify_base(self, state, color):
-        self.__date_entry.modify_base(state, color)
-        self.__time_combobox.get_children()[0].modify_base(state, color)
-        
-
 # finally register our new Type
 if gobject.pygtk_version < (2, 8):
 	    gobject.type_register(DateEdit)
+	    gobject.type_register(DateTimeEdit)
+
+if __name__ == '__main__':
+
+    w = gtk.Window()
+    v = gtk.VBox()
+    d1 = DateTimeEdit()
+    d2 = DateTimeEdit()
+    d3 = DateEdit()
+    d2.set_property('show_time', False)
+    v.add(d1)
+    v.add(d2)
+    v.add(d3)
+#    d1.set_property('datetime', None)
+    d1.set_property('datetime', datetime.datetime.now())
+    d3.set_property('date', datetime.date.today())
+    d3.set_property('date', None)
+    w.add(v)
+    w.show_all()
+
+    gtk.main()
+    
+
 

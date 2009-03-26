@@ -117,7 +117,7 @@ widgets.register(GreedyTreeView, 'TV', MyWidget, force=True)
 
 class LayoutGenerator (object):
     map_types = {
-        datetime.datetime     : 'd',
+        datetime.datetime     : 'dt',
         datetime.date         : 'd',
         datetime.time         : 'ae', 
         datetime.timedelta    : 'delta', 

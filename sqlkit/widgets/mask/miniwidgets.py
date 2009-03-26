@@ -88,7 +88,7 @@ class VarcharWidget(Widget):
 
     def on_key_press(self, widget, event):
         ksym = gtk.gdk.keyval_name(event.keyval)
-
+        
         if not ksym == 'Return':
             return
         
@@ -162,20 +162,25 @@ class IntegerWidget(VarcharWidget):
         self.gtkwidget.connect('key-press-event', self.master.digits_check_input_cb  )
                 
     def set_value(self, value):
-        # Entry
-        if value is None:
-            txt_value = ''
-        else:
-            txt_value = str(value)
-            
-        self.gtkwidget.set_text(txt_value)
+        self.text_value = self.field.format_value(value)
+        self.gtkwidget.set_text(self.text_value)
         
     def get_value(self, shown=False):
         text = self.gtkwidget.get_text( )
         return self.field.clean_value(text)
 
 class FloatWidget(IntegerWidget):
-    pass
+    
+    def get_value(self, shown=False):
+        ## the representation of a float normally trims it, so, if I know I have not changed
+        ## anything I return the old value
+
+        text = self.gtkwidget.get_text( )
+
+        if self.text_value == text:
+            return self.field.initial_value
+
+        return self.field.clean_value(text)
 
 class DecimalWidget(IntegerWidget):
     pass
@@ -184,79 +189,46 @@ class DateWidget(Widget):
 
     def __init__(self, *args):
         Widget.__init__(self, *args)
-        self.gtkwidget.set_property('show-time', False)
-        self.invalid = None  # True of the 
-        self.gtkwidget.connect('wrong-date-format', self.wrong_format_cb, )
         self.gtkwidget.connect('date-changed', self.date_changed_cb, )
 
     def wrong_format_cb(self, widget, date_string):
-        print "Received wrong format signal", date_string
         self.invalid = date_string
 
-    def date_changed_cb(self, widget, date_string):
+    def date_changed_cb(self, widget):
         self.invalid = None
 
     def set_value(self, value):
 
         self.invalid = None
-        self.gtkwidget.set_property('time', value)
+        self.gtkwidget.set_property('date', value)
 
     def get_value(self, shown=False):
 
-        if self.invalid:
-            raise exc.ValidationError("Wrong date format: %s" % self.invalid)
-
-        return self.gtkwidget.get_property('time')
+        value = self.gtkwidget.get_property('date')
+        if isinstance(value, basestring):
+            raise exc.ValidationError(_("Wrong date format: %s") % value)
+        else:
+            return value
 
 class TimeWidget(Widget):
 
     def set_value(self, value):
-        if not value:
-            value = ''
-        elif isinstance(value, time):
-            value = value.strftime("%H:%M")
-        self.gtkwidget.set_text(value)
+        self.gtkwidget.set_text(self.field.format_value(value))
 
     def get_value(self, shown=False):
+        
         value = self.gtkwidget.get_text() 
-        if not value:
-            return None
-        return time(*[int(i) for i in re.split('[.:]', value)])
-
-
-class TimeTZWidget(Widget):
-
-    def set_value(self, value):
-        if value:
-            self.TZ = value.tzinfo
-            self.microsecond = value.microsecond
-        else:
-            self.TZ = None
-            self.microsecond = 0
-
-        if not value:
-            value = ''
-        elif isinstance(value, time):
-
-            value = value.strftime("%H:%M")
-        self.gtkwidget.set_text(value)
-
-    def get_value(self, shown=False):
-        value = self.gtkwidget.get_text() 
-        if not self.TZ:
-            ## Local will return a tzinfo with the timezone of the system
-            ## it will be added to bypass the limitaition od dateedit
-            self.TZ = localtimezone.Local
-            self.microsecond = 0
 
         if not value:
             return None
         value = time(*[int(i) for i in re.split('[.:]', value)]) 
-        return value.replace(tzinfo=self.TZ, microsecond=self.microsecond)
+        return self.field.clean_value(value)
 
+class TimeTZWidget(Widget):
+    pass
 
 class IntervalWidget(Widget):
-    __metaclass__ = dbg.LogTheMethods
+
     def set_value(self, value):
         if value and not isinstance(value, timedelta):
             msg = "value for %s must be a timedelta (now: %s)" % (self.field_name, value)
@@ -274,43 +246,21 @@ class IntervalWidget(Widget):
 class DateTimeWidget(DateWidget):
 
     def __init__(self, *args):
-        Widget.__init__(self, *args)
+        DateWidget.__init__(self, *args)
         self.gtkwidget.set_property('show-time', True)
         self.initial_delta = timedelta(0)
         
     def set_value(self, value):
         ## FIXME: datetime has only time?
-        self.gtkwidget.set_property('time', value)
-
-        if value:
-            self.microsecond = value.microsecond
-        else:
-            self.microsecond = 0
-
-        if value:
-            return value.replace(microsecond=self.microsecond)
-
+        return self.gtkwidget.set_property('datetime', value)
+        
     def get_value(self, shown=False):
-        value = self.gtkwidget.get_property('time')
+        value = self.gtkwidget.get_property('datetime')
+        value = self.field.clean_value(value, add_second=True, add_microsecond=True)
         return value 
 
 class DateTimeTZWidget(DateTimeWidget):
-
-    def set_value(self, value):
-        ## FIXME: datetime has only time?
-        self.gtkwidget.set_property('time', value)
-        ## the gtkwidget does not show the TZ info and does not give it back
-        ## so we store the original value
-        if value:
-            self.TZ = value.tzinfo
-            self.microsecond = value.microsecond
-        else:
-            self.TZ = None
-            self.microsecond = 0
-
-    def get_value(self, shown=False):
-        value = self.gtkwidget.get_property('time')
-        return value
+    pass
 
 class TextWidget(Widget):
 
