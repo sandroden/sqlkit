@@ -669,6 +669,9 @@ class SimpleCompletion(object):
         return "<SimpleCompletion: %s>" % self.field_name
         
 class FkeyCompletion(SimpleCompletion):
+    """
+    A completion that follows foreign key to get values to complete and to substitute for lookup.
+    """
     VALUE_COL = 0
     DESCRIPTION_COL = 1
     MARKUP_COL = 2
@@ -679,6 +682,7 @@ class FkeyCompletion(SimpleCompletion):
     def __init__(self, master, widget, *args, **kw):
         SimpleCompletion.__init__(self, master, widget, *args, **kw)
         self.table, self.column = get_foreign_info(self.master, self.field_name, names=False)
+        self.table_lookup, self.column_lookup = self.table, self.column
         self.description = get_description(self.table, attr='description')
         self.attrs = get_description(self.table, attr='attrs')
         self.columns = [self.table.columns[name] for name in self.attrs]
@@ -724,11 +728,11 @@ class FkeyCompletion(SimpleCompletion):
         try:
             return self.lookup_values[self.field_name][field_value]
         except Exception, e:
-            descr_fields =  get_description(self.table)
-            format =        tables[self.table.name].format
-            fields = [self.table.columns[f_name] for f_name in descr_fields]
+            descr_fields =  get_description(self.table_lookup)
+            format =        tables[self.table_lookup.name].format
+            fields = [self.table_lookup.columns[f_name] for f_name in descr_fields]
 
-            sql = select(fields, self.column == field_value)
+            sql = select(fields, self.column_lookup == field_value)
             all = self.master.metadata.bind.execute(sql).fetchall()
 
             if len(all) != 1:
@@ -843,6 +847,14 @@ class FkeyCompletion(SimpleCompletion):
         return "<FkeyCompletion: %s>" % self.field_name
         
 class M2mCompletion(FkeyCompletion):
+    """
+    A completion that completes on the whole line: each field can be used to choose the same
+    record. It's not possible in this mode to compose a new record field by field.
+
+    The lookup of foreign key values needs a different table than the one used to complete.
+    This is called table_lookup/column_lookup
+    """
+    
     VALUE_COL = 0
     DESCRIPTION_COL = 1
     MARKUP_COL = 2
@@ -852,6 +864,8 @@ class M2mCompletion(FkeyCompletion):
         
     def __init__(self, *args, **kw):
         SimpleCompletion.__init__(self, *args, **kw)
+        if self.master.is_fkey(self.field_name):
+            self.table_lookup, self.column_lookup = get_foreign_info(self.master, self.field_name, names=False)
         self.description = get_description(self.table, attr='description')
         self.attrs = get_description(self.table, attr='attrs')
         self.columns = [self.master.mapper_info.fields[field_name]['col'] for field_name in self.attrs]

@@ -130,7 +130,7 @@ class TableBrowser(object):
             SqlWid = SqlTable
 
         try:
-            SqlWid(**options)
+            self.t = SqlWid(**options)
         except sqlkit.exc.MissingDescriptorField:
             pass
         except sqlkit.exc.MissingPrimaryKey, e:
