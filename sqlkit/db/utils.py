@@ -287,7 +287,7 @@ def get_differences(obj, session):
         try:
             new, unchanged, old =  attributes.get_history(
                 attributes.instance_state(obj), prop.key)
-            if new:
+            if new or old:
                 yield prop.key, old, new
 
         except Exception, e:
