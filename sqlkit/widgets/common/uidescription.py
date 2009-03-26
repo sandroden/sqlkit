@@ -68,7 +68,7 @@ TABLE_UI = '''
         <menuitem action="MaskView" />
         <menuitem action="New" />
         <separator name="sep_del" />
-        <menuitem action="Delete" />
+        <menuitem action="RecordDelete" />
   </popup>
 '''
 

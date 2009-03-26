@@ -1,4 +1,4 @@
-# Copyright (C) 2005-2006-2007-2008, Sandro Dentella <sandro@e-den.it>
+ # Copyright (C) 2005-2006-2007-2008, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -132,6 +132,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.actiongroup_edit.add_actions([
             ('Delete', gtk.STOCK_DELETE, None, '', None, self.record_delete),
+            ('RecordDelete', gtk.STOCK_DELETE, None, '<Control>k', None, self.record_delete),
             ])
 
         self.actiongroup_table.add_actions([
@@ -431,10 +432,6 @@ class SqlTable(sqlwidget.SqlWidget):
             if not self.cell_validate():
                 return True
 
-        if event.button == 3:
-            menu = self.ui_manager.get_widget('/TreePopup')
-            menu.popup(None, None, None, event.button, event.time)
-        
         ## emit button-press-event of the sqlwidget: event, field_name, value
         #  this happens before the selection gets changed so we cannot use get_selected_obj()
 
@@ -442,11 +439,24 @@ class SqlTable(sqlwidget.SqlWidget):
             path, column, x_in_cell, y_in_cell = widget.get_path_at_pos(int(event.x),int(event.y))
             iter = self.liststore.get_iter(path)
             obj = self.liststore.get_value(iter,0)
+            if isinstance(obj, self.totals.total_class):
+                obj = None
             field_name = column.get_data('field_name')
         except TypeError, e:
             obj = None
             field_name = None
             
+        ## enable/disable menu entries
+        action = self.ui_manager.get_action('/TreePopup/MaskView')
+        action.set_sensitive(obj and True or False)
+            
+        action_delete = self.ui_manager.get_action('/TreePopup/RecordDelete')
+        action_delete.set_sensitive(obj and True or False)
+            
+        if event.button == 3:
+            menu = self.ui_manager.get_widget('/TreePopup')
+            menu.popup(None, None, None, event.button, event.time)
+        
         self.emit('button-press-event', event, obj, field_name )
         
         return False
