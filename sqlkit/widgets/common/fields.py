@@ -116,6 +116,21 @@ A notable exception to this rule is represented by any m2m relation, that in
 the layout is only present as a gtk.Alignment widget to which a children is
 added by mask.Widget
 
+Global variables
+================
+
+Varchar fields will try to cast an empty value to None unless blank_ok is set
+in the field::
+
+    t.gui_field.field_name.blank_ok = True
+
+or globally:
+
+    from sqlkit.widgets.common import fields
+    fields.BLANK_OK = True
+
+Default value for BLANK_OK is False.
+
 """
 import re
 from sqlkit.widgets.mask.miniwidgets import *
@@ -130,6 +145,7 @@ from sqlkit import exc, _
 import babel
 
 from sqlkit.exc import ValidationError, NotHandledField, NotHandledDefault
+BLANK_OK = False
 
 class FieldChooser(object):
 
@@ -389,10 +405,10 @@ class VarcharField(Field):
     
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
-        self.blank = False
+        self.blank_ok = BLANK_OK
         
     def clean_value(self, value):
-        if value == '' and not self.blank:
+        if value == '' and not self.blank_ok:
             value = None
         return value
 
@@ -404,7 +420,7 @@ class VarcharField(Field):
 
     def get_value(self, shown=False):
         value = self.widget.get_value()
-        if value == '' and (self.initial_value is None or self.blank is False):
+        if value == '' and (self.initial_value is None or self.blank_ok is False):
             return None
         return value
 
