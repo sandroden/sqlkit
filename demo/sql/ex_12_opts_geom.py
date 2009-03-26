@@ -3,10 +3,10 @@
 read-only set all columns as not updateable
 """
 
-t = SqlTable(table='movie',
+t = SqlMask(table='movie',
              dbproxy=db,
              order_by='director_id',
-             geom = (700, 500),
+             geom = (1000, 500),
          )
 
 

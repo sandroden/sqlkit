@@ -12,7 +12,7 @@ lay = """
 """
 
 t = SqlMask(class_=model.Movie, dbproxy=db, layout=lay)
-t.completions.director_id.filter(nation='ITA')
+t.completions.director_id.filter(nation='IT')
 
 
 

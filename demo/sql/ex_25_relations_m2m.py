@@ -6,7 +6,10 @@ the mapping so we pass a class_ attribute that is really a class build with
 declarative layer
 
 In this case you cannot add actors from the interface, but you can select them
-and add them to the cast of the film (as wella s genres)
+and add them to the cast of the film (as well as genres).
+
+You can set actors'table editable you like. Have a look at one of the next
+examples. 
 
 
 """

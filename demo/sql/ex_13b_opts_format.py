@@ -11,7 +11,6 @@ It's possible to force a different representation setting 'format' and possibly
 t = SqlTable(table='movie',
              dbproxy=db,
              order_by='director_id',
-             geom = (700, 500),
              rows = 15,
              format = {'year': '#'}, # don't use group separator
          )

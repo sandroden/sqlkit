@@ -1,9 +1,9 @@
 """layout/fancy layout
 
-A more complex layout, tha uses notebook.
+A more complex layout, that uses notebook.
 
 At first you may be hit by the funny description language, but you'll soon
-realize that in *many* circumstancies it's enougt for a database application
+realize that in *many* circumstancies it's enought for a database application
 and lets you test several different layout in minutes.
 
 You can also see how to add other gtk widgets and connect them
