@@ -937,6 +937,9 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.relationship_mode == 'm2m' and not self.m2m_editable:
             # in m2m we don't want to edit this field but just to add/remove objects
             # I'm not sure if this should change
+            if not new_text:
+                return True
+
             try:
                 self.set_current(filter_by={field_name :new_text})
                 return 
