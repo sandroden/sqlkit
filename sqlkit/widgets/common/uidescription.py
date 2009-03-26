@@ -64,6 +64,7 @@ TABLE_UI = '''
   </menubar>
 
   <popup name="TreePopup">
+        <separator name="sep_1" />
         <menuitem action="MaskView" />
         <menuitem action="New" />
         <separator name="sep_del" />
