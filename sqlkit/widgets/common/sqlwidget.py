@@ -617,11 +617,6 @@ class SqlWidget(gobject.GObject):
             if obj is None:
                 return {}
 
-        try:
-            self.run_hook('on_validation', )
-        except exc.ValidationError, e:
-            self.handle_validation_errors(e)
-
 
         for sqlwidget in self.related:
             self.validation_errors.update(
@@ -629,6 +624,11 @@ class SqlWidget(gobject.GObject):
             
         if single_fields:
             self.record_validate_fields(obj)
+
+        try:
+            self.run_hook('on_validation', )
+        except exc.ValidationError, e:
+            self.handle_validation_errors(e)
 
         if related:
             return self.validation_errors
@@ -641,7 +641,7 @@ class SqlWidget(gobject.GObject):
     def handle_validation_errors(self, error=None, field_name=None):
         """
         handle the error raised by a field or take care of action in
-        self.vaidation_error dict and raise exception for record_save
+        self.validation_error dict and raise exception for record_save
         """
         if not field_name:
             field_name = 'record validation' # a key to be used in self.validation_errors
@@ -827,12 +827,21 @@ class SqlWidget(gobject.GObject):
 
         if not self.current:
             return False
-        
+
         for sqlwidget in self.related:
             if sqlwidget.record_has_changed():
                 return True
 
         for field in self.gui_fields:      
+
+            if self.is_mask():
+                ## this part is needed only for mask as in table the cell-renderer does it
+                ## as soon as you leave the cell
+                ## if we setattr now the value in the entry cannot reach the object
+                ## My doubt is that we should probably firstly run the validation
+                obj = self.current
+                setattr(obj, field.field_name, field.get_value())
+
             if self.has_changed(field.field_name):
                 return True
 

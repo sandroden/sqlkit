@@ -15,7 +15,8 @@ lay = """
 
 {|.date
          date        time
-         datetime    datetime_tz
+#         datetime    datetime_tz
+         datetime    
          time        time_tz
          interval
          }
