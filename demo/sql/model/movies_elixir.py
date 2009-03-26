@@ -1,7 +1,7 @@
 import elixir
 from sqlkit.db import proxy
 
-db = proxy.DbProxy(engine="sqlite:///movies.sqlite")
+db = proxy.DbProxy(engine="sqlite:///db.sqlite")
 __metadata__ = db.metadata
 #__session__ = db.get_session()
 

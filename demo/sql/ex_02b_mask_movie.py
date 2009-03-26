@@ -1,4 +1,4 @@
-"""base/derived Mask
+"""base/different layout
 
 a different layout with ReadOnly widgets and and exmple of == syntax that
 prevents generation of label creation: in this case label is created

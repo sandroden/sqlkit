@@ -8,7 +8,7 @@ from sqlkit.db import proxy
 import os
 
 Base = declarative_base()
-engine = "sqlite:///%s/movies.sqlite" % os.path.abspath(os.path.dirname(__file__))
+engine = "sqlite:///%s/db.sqlite" % os.path.abspath(os.path.dirname(__file__))
 db = proxy.DbProxy(engine=engine, metadata=Base.metadata)
 
 
@@ -25,7 +25,7 @@ movie_genre = Table('movie_genre' , Base.metadata,
 class Director(Base):
     __tablename__ = 'director'
     id             = Column(Integer, primary_key=True)
-    last_name   = Column(String(60))
+    last_name   = Column(String(60), nullable=False)
     first_name  = Column(String(60))
     nation      = Column(String(6))
     
@@ -59,7 +59,7 @@ class Genre(Base):
 class Actor(Base):
     __tablename__ = 'actor'
     id             = Column(Integer, primary_key=True)
-    first_name     = Column(String(60))
+    first_name     = Column(String(60), nullable=False)
     last_name      = Column(String(60))
 
     def __repr__(self):
@@ -74,11 +74,11 @@ class Nation(Base):
 class AllTypes(Base):
     __tablename__ = 'all_types'
     id             = Column(Integer(), primary_key=True)
-    varchar10      = Column(String(10))
+    varchar10      = Column(String(10), nullable=False)
     varchar200     = Column(String(200))
     text           = Column(Text())
     uni            = Column(Unicode(10, assert_unicode=False))
-    uni_text       = Column(UnicodeText(assert_unicode=False))
+    uni_text       = Column(UnicodeText(assert_unicode=False), nullable=False)
     date           = Column(Date())
     datetime       = Column(DateTime(timezone=False))
     datetime_tz    = Column(DateTime(timezone=True))

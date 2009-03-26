@@ -26,7 +26,7 @@ from sqlkit.widgets import SqlMask, SqlTable
 from sqlkit.db import proxy, defaults, utils
 import model
 
-db = proxy.DbProxy(engine="sqlite:///model/movies.sqlite")
+db = proxy.DbProxy(engine="sqlite:///model/db.sqlite")
 
 class DemoSql(Demo):
     def load_module(self, name):

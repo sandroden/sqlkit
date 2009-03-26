@@ -9,16 +9,16 @@ parameter metadata and session
 Table
 -----
 base editing mode: table view
-passing the tablename triggers the reflection of the table fom the database
+passing the tablename triggers the reflection of the table from the database
 
-
+NOT NULL fields are rendered with columns with italic font
 """
 
 from sqlkit.widgets import SqlTable
 from sqlkit.db import proxy
 import model
 
-db = proxy.DbProxy(bind="sqlite:///model/movies.sqlite")
+db = proxy.DbProxy(bind="sqlite:///model/db.sqlite")
 
 
 t = SqlTable(table='movie',    dbproxy=db, order_by='title', )
