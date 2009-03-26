@@ -866,7 +866,7 @@ class M2mCompletion(FkeyCompletion):
         SimpleCompletion.__init__(self, *args, **kw)
         if self.master.is_fkey(self.field_name):
             self.table_lookup, self.column_lookup = get_foreign_info(self.master, self.field_name, names=False)
-        self.description = get_description(self.table, attr='description')
+        self.description = self.column.name
         self.attrs = get_description(self.table, attr='attrs')
         self.columns = [self.master.mapper_info.fields[field_name]['col'] for field_name in self.attrs]
         self.from_obj = None
