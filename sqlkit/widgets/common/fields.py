@@ -625,13 +625,16 @@ class DateTimeTZField(DateTimeField):
 
         if not self.TZ:
             ## Local will return a tzinfo with the timezone of the system
-            ## it will be added to bypass the limitaition od dateedit
+            ## it will be added to bypass the limitation of dateedit
             self.TZ = localtimezone.Local
             self.microsecond = 0
 
         
         if value:
-            return value.replace(tzinfo=self.TZ, microsecond=self.microsecond)
+            if value.tzinfo:
+                return value
+            else:
+                return value.replace(tzinfo=self.TZ, microsecond=self.microsecond)
         return None
 
     def set_value(self, value, initial=True, shown=False):
@@ -648,7 +651,7 @@ class DateTimeTZField(DateTimeField):
         
     def get_value(self, shown=False):
         """
-        Implement a hack arount the fact that you normally don't need TZ
+        Implement a hack around the fact that you normally don't need TZ
         and I don't provide a cell_renderer that gives you the opportunity to change it
         Attach the same timezone as the original data
         """

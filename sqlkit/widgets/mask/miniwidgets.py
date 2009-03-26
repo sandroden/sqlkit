@@ -287,10 +287,11 @@ class DateTimeWidget(DateWidget):
         else:
             self.microsecond = 0
 
-    def get_value(self, shown=False):
-        value = self.gtkwidget.get_property('time')
         if value:
             return value.replace(microsecond=self.microsecond)
+
+    def get_value(self, shown=False):
+        value = self.gtkwidget.get_property('time')
         return value 
 
 class DateTimeTZWidget(DateTimeWidget):
@@ -348,9 +349,9 @@ class BooleanWidget(Widget):
         return self.gtkwidget.get_active( )
         
 class BooleanNullWidget(Widget):
-    """This gtkwidget is placed in inconsinstent state to represent NULL
     """
-
+    This gtkwidget is placed in inconsinstent state to represent NULL
+    """
     def set_value(self, value):
         if value == None:
             self.gtkwidget.set_inconsistent(True)
@@ -643,6 +644,8 @@ def filter_related(my_dict, relation):
                 new[nkey] = my_dict[key]
 
     return new
+
+
 
 
 
