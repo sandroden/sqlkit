@@ -422,7 +422,7 @@ class FilterTool(object):
         query = query.reset_joinpoint()
 
         if self.master.relationship_path:
-            query = query.join(self.master.relationship_path)
+            query = query.join(*self.master.relationship_path)
 
         if op_value in ('IS NULL', 'IS NOT NULL', 'IS TRUE', 'IS FALSE'):
             # NULL
