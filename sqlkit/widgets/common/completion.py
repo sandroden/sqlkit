@@ -37,7 +37,7 @@ from sqlalchemy import text, select, Table
 from sqlalchemy.sql import and_, or_, not_
 from sqlkit.db.proxy import table2mapper
 from sqlkit.db.utils import tables, get_description, DictLike
-from sqlkit.exc import *
+from sqlkit import exc
 from sqlkit.db.django_syntax import django2sqlalchemy, path2join
 from copy import copy
 
@@ -584,7 +584,7 @@ class SimpleCompletion(object):
                     clean_value = self.master.gui_fields[self.field_name].clean_value(text, input_is_fkey=False)
                     self.master.sb(_("Good match"), seconds=4)
                     if not clean_value:
-                        raise NoResultFound
+                        raise exc.NoResultFound
 
                     self.master.set_value(self.field_name, clean_value, fkvalue=text)
                     return True
@@ -595,7 +595,7 @@ class SimpleCompletion(object):
                     self.master.cell_entry.valid = False
                     return False
                     
-            except (NoResultFound, MultipleResultsFound), e:
+            except (exc.NoResultFound, exc.MultipleResultsFound), e:
                 self.master.sb(_("No exact match, trying regexp completion"), seconds=4)
                 self.show_possible_completion(entry, mode='regexp', sb=False)
                 return False
@@ -735,8 +735,12 @@ class FkeyCompletion(SimpleCompletion):
             sql = select(fields, self.column_lookup == field_value)
             all = self.master.metadata.bind.execute(sql).fetchall()
 
-            if len(all) != 1:
-                raise LookupValueNotReturningOneValue("%s returns %s values" % (sql, len(all)))
+            if len(all) == 0:
+                raise exc.LookupValueMissingValue("%s returns no values for %s/%s" % (
+                    sql, self.field_name, field_value))
+            elif len(all) > 1:
+                raise exc.LookupValueMultipleValues("%s returns multiple values for %s/%s" % (
+                    sql, self.field_name, field_value))
             else:
                 value = format % all[0]
                 try:

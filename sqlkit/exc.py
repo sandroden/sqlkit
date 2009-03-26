@@ -27,7 +27,10 @@ class InvalidValue(ValidationError):
 class CommitError(ValidationError): pass
 class CancelledAction(Exception): pass
 
-class LookupValueNotReturningOneValue(Exception): pass
+class LookupValueError(Exception): pass
+class LookupValueMissingValue(LookupValueError): pass
+class LookupValueMultipleValues(LookupValueError): pass
+
 class MissingDescriptorField(Exception): pass
 class UnhandledMultipleForeignkeys(Exception): pass
 
