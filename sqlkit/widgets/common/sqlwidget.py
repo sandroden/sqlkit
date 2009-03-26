@@ -804,7 +804,10 @@ class SqlWidget(gobject.GObject):
         """
         prevents the possibility of inputting wrong chars
         """
+        import gtk
         key = gtk.gdk.keyval_name (event.keyval)
+        if (event.state | gtk.gdk.CONTROL_MASK):
+            return 
    
         if key in ('KP_Decimal',) and numbers.get_decimal_symbol() == ",":
             event = gtk.gdk.Event(gtk.gdk.KEY_PRESS)
