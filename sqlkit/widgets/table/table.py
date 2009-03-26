@@ -795,14 +795,14 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.sb(_('Nothing to save'))
                 if obj in self.session.new:
                     self.commit_inhibited = True
-                    ## removing the liststore elemnet triggers edited_cb
+                    ## removing the liststore element triggers edited_cb
                     ## so I need to set the path to None to prevent errors
                     path = self.edited_row_model_path
                     self.edited_row_model_path = None
                     self.liststore.remove(self.liststore.get_iter(path))
                     self.commit_inhibited = False
-                    self.records.remove(obj)
                     self.session.expunge(obj)
+                    self.records.remove(obj)
                 del obj
                 self.last_new_obj = None
                 self.edited_row_model_path = None
