@@ -110,6 +110,18 @@ Signals
 
 :button-press-event: this event is emitted when clicking in the treeview if
        there are no pending validation errors (in which case you are forced
-       to solve them before)
+       to solve them before). It is mainly used to handle the default
+       menu. Look in the example to see how you can manipulate the menu.
+
+
+  .. method:: button_press_cb(table, event, obj, field_name, menu)
+ 
+     :param table: the SqlTable that emitted the signal
+     :param event: the gtk.gdk.Event associated
+     :param obj: the object currently selected or None
+     :param field_name: the field_name of the selected column
+     :param menu: the default menu that il popped up by this
+          button-press-event if event.button == 3 or None
+     
 
 

@@ -1149,6 +1149,24 @@ class SqlWidget(gobject.GObject):
             widget.set_format(format_dict)
             
         
+    def add_temporary_item(self, item, menu, position=0, separator=False):
+        """
+        Adds an action to a menu and removes it with 'selection-done'
+        position: the position where to insert the item (default: 0)
+        separator: boolean: add a separator (not implemented)
+        """
+        if not menu:
+            return
+        
+        def remove_widget_cb(menu, item):
+            menu.remove(item)
+
+        item.show()
+        menu.insert(item, position)
+        menu.connect('selection-done', remove_widget_cb, item)
+        if separator:
+            self.add_temporary_item(gtk.SeparatorMenuItem(), menu, position=position+1)
+        
 ###### Checks
     def is_mask(self, obj=False):
         ## bad way to prevent chicken and eggs import problems 

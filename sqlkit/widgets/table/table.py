@@ -45,7 +45,8 @@ class SqlTable(sqlwidget.SqlWidget):
         'button-press-event' : (gobject.SIGNAL_RUN_LAST,
                            gobject.TYPE_BOOLEAN,
                                 # event, obj, field_name
-                           (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_STRING),
+                           (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_STRING,
+                            gobject.TYPE_PYOBJECT),
                            ),
         }
 
@@ -452,12 +453,13 @@ class SqlTable(sqlwidget.SqlWidget):
             
         action_delete = self.ui_manager.get_action('/TreePopup/RecordDelete')
         action_delete.set_sensitive(obj and True or False)
-            
+
+        menu = None
         if event.button == 3:
             menu = self.ui_manager.get_widget('/TreePopup')
             menu.popup(None, None, None, event.button, event.time)
         
-        self.emit('button-press-event', event, obj, field_name )
+        self.emit('button-press-event', event, obj, field_name, menu )
         
         return False
         
@@ -1285,6 +1287,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         mask.connect('delete-event', disconnect, handler_id)
         
+
 
 #### completion
 
