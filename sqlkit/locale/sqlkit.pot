@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2009-03-04 12:31+0100\n"
+"POT-Creation-Date: 2009-03-26 10:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -27,7 +27,7 @@ msgstr ""
 msgid "field %s cannot have value %s"
 msgstr ""
 
-#: sqlkit/db/proxy.py:205
+#: sqlkit/db/proxy.py:195
 #, python-format
 msgid "Table %s doesn't not have a primary key, editing not possible"
 msgstr ""
@@ -56,36 +56,41 @@ msgstr ""
 
 #. menu entry
 #: sqlkit/misc/words.py:11
-msgid "file"
+msgid "File"
 msgstr ""
 
 #. menu entry
-#: sqlkit/misc/words.py:13
-msgid "modify"
+#: sqlkit/misc/words.py:13 sqlkit/widgets/common/sqlwidget.py:536
+msgid "Modify"
 msgstr ""
 
 #. menu entry
-#: sqlkit/misc/words.py:15
-msgid "help"
+#: sqlkit/misc/words.py:15 sqlkit/widgets/common/sqlwidget.py:539
+msgid "Help"
 msgstr ""
 
-#. opts in filetr panel
-#: sqlkit/misc/words.py:17
-msgid "opts"
+#. menu entry
+#: sqlkit/misc/words.py:17 sqlkit/widgets/common/sqlwidget.py:537
+msgid "Go"
 msgstr ""
 
 #. opts in filetr panel
 #: sqlkit/misc/words.py:19
-msgid "tools"
+msgid "opts"
+msgstr ""
+
+#. opts in filetr panel
+#: sqlkit/misc/words.py:21 sqlkit/widgets/common/sqlwidget.py:538
+msgid "Tools"
 msgstr ""
 
 #. serach mode:
-#: sqlkit/misc/words.py:21
+#: sqlkit/misc/words.py:23
 msgid "regexp"
 msgstr ""
 
 #. search mode
-#: sqlkit/misc/words.py:23
+#: sqlkit/misc/words.py:25
 msgid "start"
 msgstr ""
 
@@ -95,69 +100,69 @@ msgstr ""
 msgid "search mode: %s"
 msgstr ""
 
-#: sqlkit/widgets/common/completion.py:462
+#: sqlkit/widgets/common/completion.py:468
 msgid "Show all info on this field, db type & Co."
 msgstr ""
 
 #. menu enty in menu on right click on down arro in fkey completion widget
-#: sqlkit/widgets/common/completion.py:468
+#: sqlkit/widgets/common/completion.py:474
 msgid "Show possible values: regexp  - Ctrl-Enter"
 msgstr ""
 
 #. yellow tip to menu entry in down arrow in completion widget
-#: sqlkit/widgets/common/completion.py:471
+#: sqlkit/widgets/common/completion.py:477
 msgid "Show all values in the db that match your string"
 msgstr ""
 
-#: sqlkit/widgets/common/completion.py:476
+#: sqlkit/widgets/common/completion.py:482
 msgid "Show possible values, starting - Shift-Enter"
 msgstr ""
 
-#: sqlkit/widgets/common/completion.py:478
+#: sqlkit/widgets/common/completion.py:484
 msgid "Show all values in the database starting with your string"
 msgstr ""
 
-#: sqlkit/widgets/common/completion.py:484
+#: sqlkit/widgets/common/completion.py:490
 msgid "Edit the referenced table in 'table' mode"
 msgstr ""
 
-#: sqlkit/widgets/common/completion.py:486
+#: sqlkit/widgets/common/completion.py:492
 msgid "Edit the table from which admitted values are taken in 'table' mode"
 msgstr ""
 
-#: sqlkit/widgets/common/completion.py:491
+#: sqlkit/widgets/common/completion.py:497
 msgid "Edit the referenced table in 'mask' mode"
 msgstr ""
 
-#: sqlkit/widgets/common/completion.py:493
+#: sqlkit/widgets/common/completion.py:499
 msgid "Edit the table from which admitted values are taken in 'mask' mode"
 msgstr ""
 
-#: sqlkit/widgets/common/completion.py:579
+#: sqlkit/widgets/common/completion.py:586
 msgid "Good match"
 msgstr ""
 
-#: sqlkit/widgets/common/completion.py:587
-#: sqlkit/widgets/common/completion.py:593
+#: sqlkit/widgets/common/completion.py:594
+#: sqlkit/widgets/common/completion.py:600
 msgid "No exact match, trying regexp completion"
 msgstr ""
 
-#: sqlkit/widgets/common/fields.py:486
+#: sqlkit/widgets/common/fields.py:523
 #, python-format
 msgid "value is not Decimal nor string: %s"
 msgstr ""
 
-#: sqlkit/widgets/common/fields.py:526
+#: sqlkit/widgets/common/fields.py:564
 #, python-format
 msgid "value is not date nor string: %s"
 msgstr ""
 
-#: sqlkit/widgets/common/fields.py:570
+#: sqlkit/widgets/common/fields.py:681 sqlkit/widgets/mask/miniwidgets.py:209
 #, python-format
 msgid "Wrong date format: %s"
 msgstr ""
 
-#: sqlkit/widgets/common/fields.py:580
+#: sqlkit/widgets/common/fields.py:691
 msgid "Wrong time format"
 msgstr ""
 
@@ -254,37 +259,49 @@ msgid "Result page for your query"
 msgstr ""
 
 #. status bar message
-#: sqlkit/widgets/common/sqlfilter.py:231 sqlkit/widgets/table/table.py:713
-#: sqlkit/widgets/table/table.py:850
+#: sqlkit/widgets/common/sqlfilter.py:233 sqlkit/widgets/table/table.py:762
+#: sqlkit/widgets/table/table.py:905
 #, python-format
 msgid "Total N. of records: %s"
 msgstr ""
 
 #. appears in the menu in the filter panel to add a second entry of the same
 #. field
-#: sqlkit/widgets/common/sqlfilter.py:600
+#: sqlkit/widgets/common/sqlfilter.py:623
 #, python-format
 msgid "Add a new filter on this field '%s'"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:605
+#: sqlkit/widgets/common/sqlfilter.py:628
 msgid "Use this filter"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlfilter.py:645
+#: sqlkit/widgets/common/sqlfilter.py:668
 msgid "Click here to select an operator"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:230
+#: sqlkit/widgets/common/sqlwidget.py:420
 msgid "Hiding field is only supported for Tables"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:537
+#: sqlkit/widgets/common/sqlwidget.py:552
+msgid "Filter panel"
+msgstr ""
+
+#: sqlkit/widgets/common/sqlwidget.py:553
+msgid "Reload"
+msgstr ""
+
+#: sqlkit/widgets/common/sqlwidget.py:562
+msgid "Inspect widgets"
+msgstr ""
+
+#: sqlkit/widgets/common/sqlwidget.py:623
 msgid "Saved"
 msgstr ""
 
 #. message in the status bar when a commit error is handled
-#: sqlkit/widgets/common/sqlwidget.py:557
+#: sqlkit/widgets/common/sqlwidget.py:657
 #, python-format
 msgid ""
 "Error while writing to the database. Possible causes: you are saving \n"
@@ -294,13 +311,13 @@ msgid ""
 "%s"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:566
+#: sqlkit/widgets/common/sqlwidget.py:666
 #, python-format
 msgid "%s - Dirty objects: %s - New objects: %s"
 msgstr ""
 
 #. message in the status bar when a commit error is handled
-#: sqlkit/widgets/common/sqlwidget.py:572
+#: sqlkit/widgets/common/sqlwidget.py:672
 #, python-format
 msgid ""
 "Error while writing to the database: \n"
@@ -309,138 +326,125 @@ msgid ""
 "%s"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:838
+#: sqlkit/widgets/common/sqlwidget.py:795
+msgid "Disreguarding new obj"
+msgstr ""
+
+#: sqlkit/widgets/common/sqlwidget.py:821
 #, python-format
 msgid "Char %s is not accepted in numeric context"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1054
-msgid "Filter panel"
-msgstr ""
-
-#: sqlkit/widgets/common/sqlwidget.py:1065
-msgid "Export"
-msgstr ""
-
-#: sqlkit/widgets/common/sqlwidget.py:1076
-msgid "Inspect tables"
-msgstr ""
-
-#: sqlkit/widgets/common/sqlwidget.py:1077
-msgid "Inspect widgets"
-msgstr ""
-
-#: sqlkit/widgets/common/sqlwidget.py:1078
-msgid "Inspect class"
-msgstr ""
-
-#: sqlkit/widgets/common/sqlwidget.py:1087
+#: sqlkit/widgets/common/sqlwidget.py:1117
 msgid "Sorry, export is implemented only for table view"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1337
+#: sqlkit/widgets/common/sqlwidget.py:1387
 msgid "Property"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1338
+#: sqlkit/widgets/common/sqlwidget.py:1388
 msgid "Value"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1499
+#: sqlkit/widgets/common/sqlwidget.py:1580
 msgid "Missing data"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1543
+#: sqlkit/widgets/common/sqlwidget.py:1624
 msgid "Save unsaved data?"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1546
+#: sqlkit/widgets/common/sqlwidget.py:1627
 msgid "Unsave data"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1561
+#: sqlkit/widgets/common/sqlwidget.py:1642
 msgid "State"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1562
-#: sqlkit/widgets/common/sqlwidget.py:1692
+#: sqlkit/widgets/common/sqlwidget.py:1643
+#: sqlkit/widgets/common/sqlwidget.py:1753
 msgid "Field name"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1563
+#: sqlkit/widgets/common/sqlwidget.py:1644
 msgid "Original value"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1564
+#: sqlkit/widgets/common/sqlwidget.py:1645
 msgid "Present value"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1616
+#: sqlkit/widgets/common/sqlwidget.py:1677
 msgid "Modified"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1645 sqlkit/widgets/mask/mask.py:181
+#: sqlkit/widgets/common/sqlwidget.py:1704 sqlkit/widgets/mask/mask.py:201
 msgid "Deleted"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1654
+#: sqlkit/widgets/common/sqlwidget.py:1714
 msgid "New"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1673
+#: sqlkit/widgets/common/sqlwidget.py:1734
 msgid ""
 "Errors are present in the record. \n"
 "Correct them now, to continue \n"
 "or delete the record"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1680
+#: sqlkit/widgets/common/sqlwidget.py:1741
 msgid "Validation errors"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1693
+#: sqlkit/widgets/common/sqlwidget.py:1754
 msgid "Error"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:81
+#: sqlkit/widgets/mask/mask.py:87
 msgid "No record present"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:104
+#: sqlkit/widgets/mask/mask.py:110
 msgid "Already last record"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:106
+#: sqlkit/widgets/mask/mask.py:112
 msgid "Already first record"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:171 sqlkit/widgets/table/table.py:802
-msgid "Delete this record?"
+#: sqlkit/widgets/mask/mask.py:190 sqlkit/widgets/table/table.py:856
+#, python-format
+msgid ""
+"Delete this record?\n"
+"(%s)"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:207 sqlkit/widgets/table/table.py:749
+#: sqlkit/widgets/mask/mask.py:221 sqlkit/widgets/table/table.py:795
 msgid "Nothing to save"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:242
+#: sqlkit/widgets/mask/mask.py:255
 #, python-format
 msgid "Primary key (%s) didn't change. Refusing to save as new"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:317 sqlkit/widgets/table/table.py:650
+#: sqlkit/widgets/mask/mask.py:330 sqlkit/widgets/table/table.py:699
 msgid "Already at new record"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:335
+#: sqlkit/widgets/mask/mask.py:350
 #, python-format
 msgid "New record %s"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:534
+#: sqlkit/widgets/mask/mask.py:537
 msgid "Export feature available only for Tables"
 msgstr ""
 
-#: sqlkit/widgets/mask/miniwidgets.py:463
+#: sqlkit/widgets/mask/miniwidgets.py:489
 #, python-format
 msgid "'%s' may have an invalid value: try completion on that"
 msgstr ""
@@ -449,94 +453,102 @@ msgstr ""
 msgid "Editing canceled. Restoring original value"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:239
+#. column menu opt
+#. modify menu entry
+#: sqlkit/widgets/table/table.py:147 sqlkit/widgets/table/table.py:328
+msgid "Show field"
+msgstr ""
+
+#: sqlkit/widgets/table/table.py:148 sqlkit/widgets/table/table.py:329
+msgid "Hide field"
+msgstr ""
+
+#: sqlkit/widgets/table/table.py:150
+msgid "Export"
+msgstr ""
+
+#: sqlkit/widgets/table/table.py:151
+msgid "View this record in a Mask"
+msgstr ""
+
+#: sqlkit/widgets/table/table.py:271
 #, python-format
 msgid "Add a filter on '%s'"
 msgstr ""
 
 #. column menu opt
-#: sqlkit/widgets/table/table.py:257
+#: sqlkit/widgets/table/table.py:289
 msgid "Hide this column"
 msgstr ""
 
 #. column menu opt
-#: sqlkit/widgets/table/table.py:264
+#: sqlkit/widgets/table/table.py:296
 msgid "Create total"
 msgstr ""
 
 #. column menu total
-#: sqlkit/widgets/table/table.py:274
+#: sqlkit/widgets/table/table.py:306
 #, python-format
 msgid "Subtotal on %s"
 msgstr ""
 
-#. column menu opt
-#. modify menu entry
-#: sqlkit/widgets/table/table.py:296
-msgid "Show field"
-msgstr ""
-
-#: sqlkit/widgets/table/table.py:297
-msgid "Hide field"
-msgstr ""
-
-#: sqlkit/widgets/table/table.py:326
+#: sqlkit/widgets/table/table.py:358
 msgid "day"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:326
+#: sqlkit/widgets/table/table.py:358
 msgid "week"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:326
+#: sqlkit/widgets/table/table.py:358
 msgid "month"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:327
+#: sqlkit/widgets/table/table.py:359
 msgid "quarter"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:327
+#: sqlkit/widgets/table/table.py:359
 msgid "year"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:330
+#: sqlkit/widgets/table/table.py:362
 #, python-format
 msgid "Subtotals by %s"
 msgstr ""
 
 #. check in input field length %s %s -> field_name length
-#: sqlkit/widgets/table/table.py:580
+#: sqlkit/widgets/table/table.py:639
 #, python-format
 msgid "Input exceeded max %s length (%s)"
 msgstr ""
 
 #. when saving m2m, we delay till leader record will be saved
-#: sqlkit/widgets/table/table.py:771
+#: sqlkit/widgets/table/table.py:825
 msgid "delaying saving when main record will be saved"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:925
+#: sqlkit/widgets/table/table.py:980
 msgid "Value is not valid, trying completion"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1002
+#: sqlkit/widgets/table/table.py:1060
 msgid "INSERT mode"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1004
+#: sqlkit/widgets/table/table.py:1062
 msgid "UPDATE mode"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1156
+#: sqlkit/widgets/table/table.py:1214
 msgid "Export in csv file"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1223
+#: sqlkit/widgets/table/table.py:1312
 msgid "no current obj: maybe no record has yet been edited"
 msgstr ""
 
-#: sqlkit/widgets/table/tablewidgets.py:21
+#: sqlkit/widgets/table/tablewidgets.py:25
 #, python-format
 msgid "No current obj for field '%s' in %s"
 msgstr ""

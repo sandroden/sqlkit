@@ -533,10 +533,10 @@ class SqlWidget(gobject.GObject):
 
         self.actiongroup_general.add_actions([
             ('File', None, 'File' ),
-            ('Modify', None, '_Modify' ),
-            ('Go', None, '_Go' ),
-            ('Tools', None, '_Tools' ),
-            ('Help', None, '_Help' ),
+            ('Modify', None, _('Modify') ),
+            ('Go', None, _('Go') ),
+            ('Tools', None, _('Tools') ),
+            ('Help', None, _('Help') ),
 
             ('Quit', gtk.STOCK_QUIT, None, '<Ctrl>q', None, self.delete_event_cb),
             ('About', gtk.STOCK_ABOUT, None, None, None, self.about_dialog_cb),
@@ -1782,5 +1782,7 @@ class ValidationErrorDialog(object):
 #     def fill_model(self):
 #         self.master.validation_error_fill_model(model)        
     
+
+
 
 

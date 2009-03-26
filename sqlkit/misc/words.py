@@ -8,15 +8,17 @@ _('filter')
 # TIP: output page of the filter panel
 _('output')
 # TIP: menu entry
-_('file')
+_('File')
 # TIP: menu entry
-_('modify')
+_('Modify')
 # TIP: menu entry
-_('help')
+_('Help')
+# TIP: menu entry
+_('Go')
 # TIP: opts in filetr panel
 _('opts')
 # TIP: opts in filetr panel
-_('tools')
+_('Tools')
 # TIP: serach mode:
 _('regexp')
 # TIP: search mode
