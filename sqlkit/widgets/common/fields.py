@@ -452,7 +452,8 @@ class FloatField(IntegerField):
 
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
-        self.format = "#.###,000"
+        #self.format = "#.###,000"
+        self.format = None
         self.locale = babel.default_locale('LC_NUMERIC')
         
     def clean_value(self, value):

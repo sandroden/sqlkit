@@ -60,7 +60,7 @@ True
 >>> f.clean_value('1.2'), type(f.clean_value('1'))
 (1.2, <type 'float'>)
 >>> f.format_value(1.2)
-u'1.200'
+u'1.2'
 
 >>> isinstance(f.format_value(f.clean_value('1.2')), basestring)
 True
