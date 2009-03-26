@@ -88,10 +88,19 @@ filtering all films that have a certain genre.
 
 .. note::
 
-   the filter is not *aliased*, (see `sqlalchemy docs`_) so that applying
-   filters to the same table will result sometimes in a counterintuitive
-   situation (that is anyhow correct if you understand it)
+   Starting from 0.8.6-pre2 filters on a related table are *aliased*
+   (see `sqlalchemy docs`_). This is relevant if you filter on related
+   table via different path (eg: filtering staff and manager of a table
+   projects, where both staff and managers are a m2m relation to User).
 
+   There are cases wher this is really what you want but in some cases this
+   is not. Here you really need to deeply understand waht is happenning
+   underneath at the SQL level. As an example if you have a sqlmask of
+   directors with a related table of films, if you filter on films and use a
+   filter on title (containig 'la') and a filter on year (> 2005), the two
+   filters will not be related to the same film: you'll get all directors
+   that have a film with 'la' in the title and (possibly a
+   different) film produce after 2005. This may or may not be what you want...
 
 
 Many2many relationship
@@ -174,4 +183,5 @@ that name and realizes that it's a PropertyLoader. That means that such an
 entry point has been put there by a ``relation``. 
 
 
-.. _`sqlalchemy docs`: http://www.sqlalchemy.org/docs/05/documentation.html#datamapping_joins_aliases
+.. _`sqlalchemy docs`: http://www.sqlalchemy.org/docs/05/sqlexpression.html?highlight=alias#using-aliases
+

@@ -170,7 +170,7 @@ class FilterPanel(object):
         after: entry will be positioned after widget 'after'
         """
         ## FIXME: after and show?
-        search_path = "%s__%s" % (master.relationship_path, field_name)
+        search_path = "%s__%s" % ("__".join(master.relationship_path), field_name)
         if not search_path in self.search_filter_field_names or force:
             widget = get_filter_widget(field_name, self, master, value)
             self.search_filter_widgets += [ widget]
@@ -378,8 +378,13 @@ class FilterTool(object):
         self.master = master
         self.field_name = field_name
         self.db_spec = self.master.mapper_info.fields[field_name]
-        self.col = self.db_spec['col']
-        self.table = self.db_spec['table']
+        if self.master.relationship_path:
+            ## use an alias in case we have another filter to the same table
+            self.table = self.db_spec['table'].alias()
+        else:
+            self.table = self.db_spec['table']
+        self.col = self.table.c[self.field_name]
+#        self.col = self.db_spec['col']
         self.bind_name = self.master.metadata.bind.name
         self.widget = FilterWidget(self)
 
@@ -422,7 +427,15 @@ class FilterTool(object):
         query = query.reset_joinpoint()
 
         if self.master.relationship_path:
-            query = query.join(*self.master.relationship_path)
+            # query = query.join(*self.master.relationship_path)
+            if len(self.master.relationship_path) == 1:
+                query = query.join( (self.table, self.master.relationship_path[0]))
+            else:
+                ## NOTE: if relationship_path is longer that 1, the table is not aliased, i.e.: if you place
+                ## 2 search conditions to the same table (e.g. searching on staff and manager of a project-
+                ## and both manager and staff are m2m relation to User)
+                ## will most surely lead to no result
+                query = query.join(*self.master.relationship_path)
 
         if op_value in ('IS NULL', 'IS NOT NULL', 'IS TRUE', 'IS FALSE'):
             # NULL
@@ -449,7 +462,8 @@ class FilterTool(object):
         
 
     def _compose_field_whereclause(self, query, value, op_value):
-        """return a sql whereclause for field
+        """
+        return a sql whereclause for field
 
         """
         
@@ -462,7 +476,8 @@ class FilterTool(object):
     def add_filter_cb(self, menuitem, event, n ):
         self.panel.add(None, None, self.field_name, self.master, force=True)
         
-    
+    def __repr__(self):
+        return "<%s - %s>" % (self.__class__.__name__, self.master.get_label(self.field_name))
 
 class FilterStringTool(FilterTool):
 
@@ -553,7 +568,7 @@ class FilterFKeyTool(FilterTool):
         query = query.reset_joinpoint()
 
         if self.master.relationship_path:
-            query = query.join(self.master.relationship_path)
+            query = query.join(*self.master.relationship_path)
 
         return query.filter(self.col.in_(ids))
 
@@ -584,7 +599,7 @@ def get_filter_widget(field_name, panel, master, value=None):
 # _('output')  _('filter')
 
 
-class FilterWidget():
+class FilterWidget(object):
     
     def __init__(self, tool):
 
@@ -703,7 +718,8 @@ class FilterWidget():
         """
         self.field_widget.set_text(str(value)) 
     
-    def pop_menu(self, wdg, ev, num_button):
-        if ev.button == num_button:
-            self.menu.popup(None, None, None, ev.button, ev.time )
+#     def pop_menu(self, wdg, ev, num_button):
+#         print "POP_MENU", self, self.menu
+#         if ev.button == num_button:
+#             self.menu.popup(None, None, None, ev.button, ev.time )
         
