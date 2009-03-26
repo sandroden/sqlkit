@@ -346,7 +346,8 @@ class VarcharColumn(GenericColumn):
 
         GenericColumn.setup_cell_renderers(self, cell_renderer=cell)
         cell.set_property('ellipsize', pango.ELLIPSIZE_END)
-
+        cell.set_data('width', width)
+        
         self.set_alignment(cell)
         return cell
 
@@ -420,6 +421,7 @@ class MultilineColumn(VarcharColumn):
 
         GenericColumn.setup_cell_renderers(self, cell_renderer=cell)
         cell.set_property('ellipsize', pango.ELLIPSIZE_END)
+        cell.set_data('width', width)
 
         return cell
 
@@ -457,6 +459,8 @@ class NumericColumn(VarcharColumn):
                 width = 8
             else:
                 width = self.master.gui_fields[self.field_name].column.type.precision
+
+        return width
 
     def set_alignment(self, cell):
 

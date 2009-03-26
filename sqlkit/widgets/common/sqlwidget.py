@@ -1372,6 +1372,12 @@ class SqlWidget(gobject.GObject):
                 model.set(model.append(), 0,  key, 1, self.mapper_info.fields[field_name][key])
 
         try:
+            cell = self.tvcolumns[field_name].get_cell_renderers()[0]
+            model.set(model.append(), 0,  'width', 1, cell.get_data('width'))
+        except:
+            pass
+
+        try:
             model.set(model.append(), 0,  'format', 1, self.gui_fields[field_name].format)
         except:
             pass
