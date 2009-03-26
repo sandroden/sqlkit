@@ -260,8 +260,17 @@ class Field(object):
         self.master.field_widgets[field_name] = self.widget
         self.set_max_length()
 
+    def set_nullable(self, value):
+        self._nullable = value
+        self.widget.set_not_null_style()
+
+    def get_nullable(self):
+        return self._nullable
+
+    nullable = property(get_nullable, set_nullable)
+    
     def _add_info(self, db_spec):
-        self.nullable =  db_spec.get('nullable', True)
+        self._nullable =  db_spec.get('nullable', True)  # don't trigger now widget.set_bg()
         self.editable =  db_spec.get('editable', True)
         self.length   =  db_spec.get('length', None)
         self.default  =  db_spec.get('default', None)
@@ -272,7 +281,7 @@ class Field(object):
         self.column   =  db_spec.get('col', None)
         self.table    =  db_spec.get('table', None)
         if self.pkey:
-            self.nullable = False
+            self._nullable = False
 
     def set_value(self, value, initial=True, shown=False):
         value = self.clean_value(value)

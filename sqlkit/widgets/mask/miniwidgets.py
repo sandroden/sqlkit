@@ -49,7 +49,7 @@ class Widget(object):
 
     def set_not_null_style(self):
         if self.field.editable:
-            if not self.field.nullable or self.field.pkey:
+            if not self.field.nullable:
                 self.set_bg()
 
     def set_bg(self, state=gtk.STATE_NORMAL,  color=NOT_NULL_COLOR):
@@ -604,4 +604,6 @@ def filter_related(my_dict, relation):
                 new[nkey] = my_dict[key]
 
     return new
+
+
 

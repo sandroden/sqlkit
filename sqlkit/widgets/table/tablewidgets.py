@@ -13,6 +13,10 @@ class CellWidget(object):
 
         self.master.field_widgets[field_name] = self
         
+    def set_not_null_style(self):
+        # FIXME: should set label in bold italics...
+        pass
+
     def get_entry(self):
         # CellWidget has an editable only if we're editing...
         if self.field_name == self.master.currently_edited_field_name:
