@@ -11,7 +11,8 @@ schemas: no way to add columns or add foreign key relationships is provided.
 A typical usage can be::
 
 
-  from sqlkit import SqlTable, SqlMask, DbProxy
+  from sqlkit.widgets import SqlTable, SqlMask
+  from sqlkit import DbProxy
   
   db = DbProxy(engine='sqledit:///movies.sqlite')
   t = SqlMask(table='movie', dbproxy=db, single=True)

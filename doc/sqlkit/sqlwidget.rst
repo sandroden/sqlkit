@@ -28,7 +28,8 @@ Since a typical scenario is to have to provide a session different in each
 SqlWidget and a metadata, an object is provided -``dbproxy``- that can be
 initialized from the engine specification::
 
-  from sqlkit.widgets import SqlMask, SqlTable, dbproxy
+  from sqlkit.widgets import SqlMask, SqlTable
+  from sqlkit import dbproxy
   db = proxy.DbProxy(engine="sqlite:///model/movies.sqlite")
   SqlTable(table="movies", dbproxy=db)
 
