@@ -20,7 +20,7 @@ from sqlkit.layout import layout, misc
 from sqlkit import debug as dbg
 from sqlkit.db.utils import tables, get_description
 import sqlalchemy
-from sqlalchemy.sql import select
+from sqlalchemy.sql import select, Join
 from sqlkit.db import minspect
 from datetime import *
 from sqlkit.db.django_syntax import django2components
@@ -385,7 +385,13 @@ class FilterTool(object):
             self.table = self.db_spec['table'].alias()
         else:
             self.table = self.db_spec['table']
-        self.col = self.table.c[self.field_name]
+
+        if isinstance(self.master.mapper.local_table, Join):
+            fname = "%s_%s" % (self.table.name, self.field_name)
+            self.col = self.table.c[fname]
+        else:
+            self.col = self.table.c[self.field_name]
+
 #        self.col = self.db_spec['col']
         self.bind_name = self.master.metadata.bind.name
         self.widget = FilterWidget(self)

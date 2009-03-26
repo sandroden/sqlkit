@@ -232,16 +232,19 @@ class SqlWidget(gobject.GObject):
             return mapper.local_table.metadata
         
     def get_table(self, tables):
+        from sqlalchemy.sql import Join
+        
         if isinstance(tables, Table):
             return tables.name
         if tables:
             return tables.split()[0]  ## FIXME: works for 1 single table
         if self.mapper:
-            try:
-                return self.mapper.local_table.name
-            except Exception, e:
-                print e
-                return None
+            if isinstance(self.mapper.local_table, Join):
+                name = "%s_%s" % (self.mapper.local_table.left, self.mapper.local_table.right)
+            else:
+                name = self.mapper.local_table.name
+
+            return name
 
     def parse_fields(self, field_list, layout):
         if not field_list:
@@ -491,11 +494,12 @@ class SqlWidget(gobject.GObject):
     
     def get_table_labels(self):
         """
-        get labels and tipd from the db is they exists
+        get labels and tips from the db is they exists
         """
         from sqlkit.db.utils import get_labels_and_tips_from_sqlkit
-        for table in self.tables.split():
-            self.label_map.update( get_labels_and_tips_from_sqlkit(table, metadata=self.metadata))
+        if self.tables:
+            for table in self.tables.split():
+                self.label_map.update( get_labels_and_tips_from_sqlkit(table, metadata=self.metadata))
             
     def resize(self, width, height):
         """
