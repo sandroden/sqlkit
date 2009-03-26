@@ -283,15 +283,37 @@ def get_differences(obj, session):
     mapper = class_mapper(obj.__class__)
     for prop in mapper.iterate_properties:
         new = None
+
         try:
             new, unchanged, old =  attributes.get_history(
                 attributes.instance_state(obj), prop.key)
+            if new:
+                yield prop.key, old, new
+
         except Exception, e:
             pass
 
-        if new:
-            yield prop.key, old, new
+def get_history(obj, field_name, session):
+    """
+    show the history of a field of an object
+    """
+    from sqlalchemy.orm import attributes, class_mapper
 
+    mapper = class_mapper(obj.__class__)
+    for prop in mapper.iterate_properties:
+
+        if prop.key == field_name:
+
+            try:
+                new, unchanged, old =  attributes.get_history(
+                    attributes.instance_state(obj), prop.key)
+                return new, unchanged, old
+
+            except Exception, e:
+                pass
+            
+
+    
 
 def clean_for_markup(text):
     """
