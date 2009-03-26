@@ -371,10 +371,6 @@ class SqlWidget(gobject.GObject):
             if self.geom:
                 self.resize(*self.geom)
 
-        if self.is_mask():
-            self._add_click_for_filter()
-            self._add_color_to_labels()
-
         self.setup_field_validation()
         self.prepare_actions()
         self.prepare_uimanager()

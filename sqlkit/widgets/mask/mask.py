@@ -34,7 +34,7 @@ import gtk
 FK_COLOR = gtk.gdk.color_parse('navyblue')
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
 
-class SqlMask (sqlwidget.SqlWidget):
+class SqlMask(sqlwidget.SqlWidget):
     """doc string for sqlmask
     """
 
@@ -398,6 +398,15 @@ class SqlMask (sqlwidget.SqlWidget):
 
 ####### Layout, Reflection & Analisys
 
+    def _get_layout(self, lay, naked):
+        self.lay_obj, self.widgets  = sqlwidget.SqlWidget._get_layout(self, lay, naked)
+
+        self._add_click_for_filter()
+        self._add_color_to_labels()
+        self.add_wheel_support()
+
+        return self.lay_obj, self.widgets  
+        
     def setup_field_validation(self):
         """fill variables from layout
 
