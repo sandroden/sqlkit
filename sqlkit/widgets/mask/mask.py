@@ -60,7 +60,13 @@ class SqlMask(sqlwidget.SqlWidget):
     def reload(self, **kw):
 
         changed = self.record_has_changed()
-        response = self.save_unsaved(skip_check=changed)
+
+        if changed:
+            skip_new = False
+        else:
+            skip_new = self.current
+            
+        response = self.save_unsaved(skip_check=changed, skip_new=skip_new)
         if response == gtk.RESPONSE_CANCEL:
             return
             
@@ -209,7 +215,8 @@ class SqlMask(sqlwidget.SqlWidget):
         new_obj:   the record is new. It forces mask2obj to skip check and save all fields
         """
 
-        if not new_obj and not self.record_has_changed() and not self.unsaved_changes_exist():
+        if not new_obj and not self.record_has_changed() and not (
+            self.unsaved_changes_exist(skip_new=self.current)):
             self.sb(_('Nothing to save'), seconds=4)
             return
 

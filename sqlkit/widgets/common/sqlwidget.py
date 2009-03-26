@@ -727,17 +727,18 @@ class SqlWidget(gobject.GObject):
 
         return False
 
-    def save_unsaved(self, refresh=True, skip_check=False, proceed=True):
+    def save_unsaved(self, refresh=True, skip_new=False, skip_check=False, proceed=True):
         """
         Check if it needs saving. In case ask for confirmation and proceed.
         This triggers both session changes *AND* changes to the current mask that
         may not be in the session.
 
         skip_check: we already know it needs saving. Passed to unsaved_changes_exists
+        skip_new: skip_new may be an object whose changes we disregard (see unsaved_changes_exist)
         Return False if cancel is pressed
         """
         response = True
-        if self.unsaved_changes_exist() or skip_check:
+        if self.unsaved_changes_exist(skip_new=skip_new) or skip_check:
             dialog = UnsavedDataDialog(self)
             response = dialog.run()
 
@@ -768,9 +769,11 @@ class SqlWidget(gobject.GObject):
             self.session.expunge(obj)
         self.last_new_obj = None  ## FIXME: unsure...
         
-    def unsaved_changes_exist(self, skip_check=False):
+    def unsaved_changes_exist(self, skip_new=False, skip_check=False):
         """
         check if session needs committing by looking dirty, deleted and new
+        skip_new: skip_new may be an object that we are not interested in saving
+                  new object that where not changed but have default values fall here
         """
         # skip_check is passed to Mask.unsaved_changes_exists
         if self.session.dirty:
@@ -782,6 +785,9 @@ class SqlWidget(gobject.GObject):
 
         if self.session.new:
             for obj in self.session.new:
+                if obj is skip_new:
+                    self.sb(_("Disreguarding new obj"), seconds=3)
+                    continue
                 if self.session.is_modified(obj, passive=True):
                     return True
 
