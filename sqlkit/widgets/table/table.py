@@ -743,7 +743,13 @@ class SqlTable(sqlwidget.SqlWidget):
             if not self.record_has_changed():
                 self.sb(_('Nothing to save'))
                 if obj in self.session.new:
-                    self.liststore.remove(self.liststore.get_iter(self.edited_row_model_path))
+                    self.commit_inhibited = True
+                    ## removing the liststore elemnet triggers edited_cb
+                    ## so I need to set the path to None to prevent errors
+                    path = self.edited_row_model_path
+                    self.edited_row_model_path = None
+                    self.liststore.remove(self.liststore.get_iter(path))
+                    self.commit_inhibited = False
                     self.records.remove(obj)
                     self.session.expunge(obj)
                 del obj
