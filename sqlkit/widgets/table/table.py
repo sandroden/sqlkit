@@ -609,7 +609,7 @@ class SqlTable(sqlwidget.SqlWidget):
         Trigger the validation when moving around the cells
         """
         ksym = gtk.gdk.keyval_name(event.keyval)
-        if ksym in ('Tab'):
+        if ksym in ('Tab',):
             if self.cell_entry and not self.cell_entry.is_valid():
                 if not self.cell_validate():
                     return True
@@ -913,6 +913,9 @@ class SqlTable(sqlwidget.SqlWidget):
         else:
             ## 
             if self.is_fkey(field_name):
+                if not new_text:
+                    self.gui_fields[field_name].set_value(None, initial=False)                    
+                    return True
                 self.sb(_('Value is not valid, trying completion'))
                 show = self.gui_fields[field_name].widget.completion.show_possible_completion
                 show(self.cell_entry.entry, 'start', sb=False)
