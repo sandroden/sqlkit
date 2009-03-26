@@ -356,7 +356,7 @@ class Field(object):
     def validate(self, value, clean=False):
         if not clean:
             try:
-                value = self.clean_value(value) and True
+                value = self.clean_value(value) 
 
             except Exception, e:
                 msg = "Field %s could not validate value '%s': error was: %s" 
@@ -365,7 +365,9 @@ class Field(object):
         if value is None and not self.nullable and not self.default:
             raise exc.NotNullableFieldError(self.field_name)
 
-        return value
+        self.master.run_hook('on_field_validation', value, self, field_name=self.field_name)
+
+        return True
 
     def set_max_length(self, editable=None):
         """
@@ -814,6 +816,8 @@ class ForeignKeyField(Field):
 
         if value is None and not self.nullable:
             raise exc.NotNullableFieldError(self.field_name)
+
+        self.master.run_hook('on_field_validation', value, field_name=self.field_name)
 
         return value
         

@@ -6,14 +6,22 @@ only table...
 try changing something and then saving.
 
 """
+from sqlkit.exc import ValidationError
+from sqlkit.db.utils import get_differences
 
 class Film(SqlMask):
     def on_validation(self):
-        from sqlkit.exc import ValidationError
-        
-        raise ValidationError("I don't want you to change anything!!!")
+
+        changed = False
+        for field_name, old, new in get_differences(self.current, self.session):
+            print field_name, old, new
+            changed = True
+
+        if changed:
+            raise ValidationError("I don't want you to change anything!!!")
 
 t = Film(class_=model.Movie, dbproxy=db, )
+t.gui_fields.description.blank = True  #don't try to change '' in None
 
 t.reload()
 

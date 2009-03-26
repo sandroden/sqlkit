@@ -324,16 +324,18 @@ At the moment the hooks are:
     initial=True flag. Ie: should be called any time a value is changed from
     the original
 
-    .. function:: on_change_value__field_name(field_name, value, fkvalue)
+    .. function:: on_change_value__field_name(sqlwidget, field_name, value, fkvalue)
 
+       :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
        :param field_name:  the field_name
        :param value:  the new value
        :param fkvalue: if field is a ForeignKey, the value shown
 
 :on_completion__field_name: called when a completion if choosen
 
-    .. function:: on_completion__field_name(field_name, obj)
+    .. function:: on_completion__field_name(sqlwidget, field_name, obj)
 
+       :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
        :param field_name:  the field_name
        :param obj:  the matched object in the completion
    
@@ -347,13 +349,26 @@ At the moment the hooks are:
     2. filling self.validation_errors: a dict holding all error. The key is
        the field_name or "recod_validation", the value a list of error messages
     
-    .. function:: on_validation()
+    .. function:: on_validation(sqlwidget)
+
+       :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
+
+:on_field_validation__field_name: called to validate a single field
+    as for the previous ``on_validation``
+
+    1. raising ``sqlkit.exc.ValidationError``. Simple when just one error is
+       found
+    2. filling self.validation_errors: a dict holding all error. The key is
+       the field_name or "recod_validation", the value a list of error messages
+    
+    .. function:: on_validation(sqlwidget, field_name, field_value, field)
 
 :on_activate__field_name: when *Return* is pressed in Mask view. Good to
     complete fields via calculation on other fields (eg: total, vat...)
 
-    .. function:: on_activate__field_name(field_name, field)
+    .. function:: on_activate__field_name(sqlwidget, field_name, field)
 
+       :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
        :param field_name:  the field_name
        :param field:  the ``sqlkit.widgets.common.field``
    
