@@ -574,7 +574,8 @@ class SimpleCompletion(object):
         if not text:
             return True
 
-        if self.master.is_fkey(self.field_name) or self.master.relationship_mode == 'm2m':
+        if self.master.is_fkey(self.field_name) or (
+            self.master.relationship_mode == 'm2m' and not self.master.m2m_editable):
             ## check if the text entered was in fact a complete and legal fkey
             ## or unique field (for m2m)
             if self.master.fkey_is_valid(self.field_name):
