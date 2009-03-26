@@ -131,7 +131,8 @@ class SqlWidget(gobject.GObject):
         mapper: a sqlalchemy mapper. a Class is built runtime, metadata is read from local_table
         session: the session where to put all data.
 
-        relationship_mode: SINGLE, m2m, m2o, o2m
+        relationship_mode: SINGLE, FIXED, m2m, m2o, o2m
+                FIXED: any filter/reload is inibited
         relationship_path: the path needed to join two tables. See sqlalchemy on 'quering
                   with joins'. Used by filter_panel to setup join condition when filtering
                   when relationship_mode is not SINGLE. May be a list or a string:
@@ -211,7 +212,11 @@ class SqlWidget(gobject.GObject):
         #dbg.write('lcontainer_name: ', el_def)
         if show:
             self.widgets[el_def].show()
-        
+
+        if self.relationship_mode == 'FIXED':
+            self.actiongroup_edit.set_sensitive(False)
+            self.actiongroup_browse.set_sensitive(False)
+            
     def _set_ignored_fields(self, ignored_list):
         """
         Ignored fields will not even be in self.field_list
@@ -1077,7 +1082,6 @@ class SqlWidget(gobject.GObject):
         """
         Pop a Filter Panel, called from menu item
         """
-
         self.filter_panel.w['Window'].present()
 
     def add_filter(self, **kw):

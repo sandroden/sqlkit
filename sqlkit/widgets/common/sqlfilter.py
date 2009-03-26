@@ -169,6 +169,8 @@ class FilterPanel(object):
         add a FilterTool to the filter panel + operator and string entry
         after: entry will be positioned after widget 'after'
         """
+        if not self.master.ui_manager.get_action('/Main/File/Filters').is_sensitive():
+            return
         ## FIXME: after and show?
         search_path = "%s__%s" % ("__".join(master.relationship_path), field_name)
         if not search_path in self.search_filter_field_names or force:
