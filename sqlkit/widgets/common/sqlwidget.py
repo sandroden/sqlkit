@@ -346,7 +346,8 @@ class SqlWidget(gobject.GObject):
         return info
         
     def _get_layout(self, lay, naked):
-        """lay may be a definition string or another SqlMask in case the layout has
+        """
+        lay may be a definition string or another SqlMask in case the layout has
         just been build by another SqlMask object and we just need to
         add controls and so on
         """
@@ -387,7 +388,7 @@ class SqlWidget(gobject.GObject):
             table = internal_align.get_parent()
             table.child_set_property(internal_align, 'y-options', gtk.EXPAND | gtk.FILL)
 
-        if 'Window' in self.lay_obj.elements:
+        if self.is_toplevel():
             self.lay_obj.connect(('Window', 'delete_event', self.delete_event_cb))
             if self.geom:
                 self.resize(*self.geom)
@@ -395,14 +396,83 @@ class SqlWidget(gobject.GObject):
         if self.is_mask():
             self._add_click_for_filter()
             self._add_color_to_labels()
-            self._add_menu_undo()
 
         self.setup_field_validation()
-        self._add_actions_to_buttons()
-        self._fill_menubar_menu()
-        self.add_accelerators()
+        self.prepare_actions()
+        self.prepare_uimanager()
+
         return (self.lay_obj, self.widgets)
     
+    def prepare_actions(self):
+        """
+        Prepare action needed by UIManager
+        """
+        self.actiongroup_general = gtk.ActionGroup('General')
+        self.actiongroup_edit  = gtk.ActionGroup('Edit')
+        self.actiongroup_browse  = gtk.ActionGroup('Browse')
+        self.actiongroup_print   = gtk.ActionGroup('Print')    
+        self.actiongroup_debug   = gtk.ActionGroup('Debug')    
+
+        self.actiongroup_general.add_actions([
+            ('File', None, 'File' ),
+            ('Modify', None, '_Modify' ),
+            ('Go', None, '_Go' ),
+            ('Tools', None, '_Tools' ),
+            ('Help', None, '_Help' ),
+
+            ('Quit', gtk.STOCK_QUIT, None, '<Ctrl>q', None, self.delete_event_cb),
+            ('About', gtk.STOCK_ABOUT, None, None, None, self.about_dialog_cb),
+            ])
+
+        self.actiongroup_edit.add_actions([
+            ('Save', gtk.STOCK_SAVE, None, '<Ctrl>s', None, self.record_save_cb),
+            ])
+
+        self.actiongroup_browse.add_actions([
+            ('Filters', gtk.STOCK_FIND, _('Filter panel'), None, None, self.add_filter_cb),
+            ('Reload', gtk.STOCK_REFRESH, _("Reload"), '<Ctrl>r', None, self.reload_cb),
+            ('Forward', gtk.STOCK_GO_FORWARD, None, '<Alt>f', None, self.record_forward_cb),
+            ('Back',   gtk.STOCK_GO_BACK, None, '<Alt>b', None, self.record_back_cb),
+            ])
+
+        self.actiongroup_print.add_actions([
+            ])
+
+        self.actiongroup_debug.add_actions([
+            ('Gtk-tree', gtk.STOCK_EXECUTE, _('Inspect widgets'), '<Ctrl><Alt>i', None, self.show_widget_info),
+            ])
+
+    def prepare_uimanager(self):
+        """
+        Prepare UIManager, actions, and accelerators
+        """
+
+        import uidescription
+
+        self.ui_manager = gtk.UIManager()
+
+        if self.is_toplevel():
+            self.accel_group = self.ui_manager.get_accel_group()
+            self.widgets['Window'].add_accel_group(self.accel_group)
+
+        self.ui_manager.add_ui_from_string(uidescription.GENERAL_UI)
+        self.ui_browse_id = self.ui_manager.add_ui_from_string(uidescription.BROWSE_UI)
+        self.ui_debug_id = self.ui_manager.add_ui_from_string(uidescription.DEBUG_UI)
+
+        self.ui_manager.insert_action_group(self.actiongroup_general, 0)
+        self.ui_manager.insert_action_group(self.actiongroup_edit, 1)
+        self.ui_manager.insert_action_group(self.actiongroup_browse, 2)
+        self.ui_manager.insert_action_group(self.actiongroup_print, 3)
+        self.ui_manager.insert_action_group(self.actiongroup_debug, 4)
+
+        ## pack menu and toolbar if it's a toplevel
+        if 'V.header' in self.widgets:
+            header = self.widgets['V.header']
+            menu    = self.ui_manager.get_widget('/Main')
+            toolbar = self.ui_manager.get_widget('/TbMain')
+            header.add(menu)
+            header.add(toolbar)
+
     def _get_relationship_path(self, path):
         """
         relationship_path is the path needed to get from the main sqlwiget to here:
@@ -427,85 +497,15 @@ class SqlWidget(gobject.GObject):
         
         return sqlfilter.FilterPanel(self, visible=False)
 
-    def add_accelerators(self):
-        """
-        Add accelerators: now Ctrl-h, Ctrl-q
-        """
-        # key accelerators
-        if self.addto:
-            return 
-        
-        self.accel_group = gtk.AccelGroup()
-        self.accel_group.connect_group(ord('h'), 
-                                       gtk.gdk.CONTROL_MASK, 
-                                       gtk.ACCEL_LOCKED, 
-                                       self.show_widget_info)
-        self.accel_group.connect_group(ord('q'), 
-                                       gtk.gdk.CONTROL_MASK, 
-                                       gtk.ACCEL_LOCKED, 
-                                       self.gquit)
-        self.widgets['Window'].add_accel_group(self.accel_group)
-        return True
-        
-    def _add_actions_to_buttons(self):
-
-        """
-        Add default actions to std buttons
-        """
-        
-        actions = {
-            ## std toolbutton
-            'tb=gtk-save-as'    : self.record_save_new,
-            'tb=gtk-save'       : self.record_save_cb,
-            'tb=gtk-new'        : self.record_new_cb,
-            'tb=gtk-delete'     : self.record_delete,
-            'tb=gtk-refresh'    : self.reload_cb,
-            'tb=gtk-quit'       : self.delete_event_cb,
-            'tb=gtk-go-forward' : self.record_forward_cb,
-            'tb=gtk-go-back'    : self.record_back_cb,
-
-            ## in case the programmers has set them
-            'b=gtk-save-as'       : self.record_save_new,
-            'b=gtk-save'       : self.record_save_cb,
-            'b=gtk-new'        : self.record_new_cb,
-            'b=gtk-delete'     : self.record_delete,
-            'b=gtk-refresh'    : self.reload_cb,
-            'b=gtk-quit'       : self.delete_event_cb,
-            'b=gtk-go-forward' : self.record_forward_cb,
-            'b=gtk-go-back'    : self.record_back_cb,
-            }
-        for widget_name, handler in actions.iteritems():
-            if widget_name in self.widgets:
-                self.lay_obj.connect((widget_name, 'clicked', handler))
-
-                ## this assures that clicking reload/save will trigger foucus-out from widgets
-                ## so that validation occurs.
-                self.widgets[widget_name].set_property('can-focus', True)
-
-        ## style for toolbar if any
-        if 'O.tool' in self.widgets:
-            self.widgets['O.tool'].set_show_arrow(False)
-            self.lay_obj.prop('O.tool', 'toolbar_style','GTK_TOOLBAR_ICONS')
-    
-        if 'O.quit' in self.widgets:
-            self.widgets['O.quit'].set_show_arrow(False)
-            self.lay_obj.prop('O.quit', 'toolbar_style','GTK_TOOLBAR_ICONS')
-
-        if 'm=modify' in self.widgets:
-            self.lay_obj.menu('m=modify',
-                              ('gtk-delete', 'activate', self.record_delete),
-                              ('gtk-refresh', 'activate', self.reload_cb),
-                              )
-
     def _set_title(self, title):
 
-        if 'Window' in self.widgets:
+        if self.is_toplevel():
             self.widgets['Window'].set_title(title)
         self._title = title
         
     def _get_title(self):
         
-        if 'Window' in self.widgets:
+        if self.is_toplevel():
             return self.widgets['Window'].get_title(title)
         else:
             return getattr(self, '_title', None)
@@ -741,13 +741,13 @@ class SqlWidget(gobject.GObject):
         self.emit('records-displayed')
         pass
 
-    def reload_one(self,field, value):
-        """compact way to view a single record or records with a single property"""
+#     def reload_one(self,field, value):
+#         """compact way to view a single record or records with a single property"""
 
-        sql = "%s = :%s" % (field, field)
-        bind_parameters = {field : value}
+#         sql = "%s = :%s" % (field, field)
+#         bind_parameters = {field : value}
         
-        self.reload(  (sql, bind_parameters)  )
+#         self.reload(  (sql, bind_parameters)  )
     
     def reload_cb(self, widget):
         """
@@ -1095,42 +1095,6 @@ class SqlWidget(gobject.GObject):
         from sqlkit.debug import gtk_dbg
         gtk_dbg.ShowClassInfo(self) 
         
-    def _fill_menubar_menu(self):
-        """
-        here all menus are filled for filtering,  sorting, ro, query...
-        """
-
-        from sqlkit.layout.misc import StockMenuItem
-        
-        if 'm=file' in self.widgets:
-            item = StockMenuItem(_('Filter panel'), 'gtk-find')
-            item.connect('activate', self.add_filter_cb)
-            self.widgets['M=file'].append(item)
-            self.lay_obj.menu(
-                'm=file',
-                # meu entry to pop filter tool
-                ('-', None),
-                ('gtk-new', 'activate',  self.record_new),
-                ('gtk-save', 'activate',  self.record_save_cb),
-                ('gtk-save-as', 'activate',  self.record_save_new),
-                ('-', None),
-                (_('Export'), 'activate', self.export),
-                
-                ('gtk-quit', 'activate', self.delete_event_cb)
-                )
-            self.lay_obj.menu(
-                'm=help',
-                ('gtk-about', 'activate', self.about_dialog_cb),
-                )
-            self.lay_obj.menu(
-                'm=tools',
-
-                (_('Inspect tables'), 'activate',  self.show_mapper_info),
-                (_('Inspect widgets'), 'activate', self.show_widget_info),
-                (_('Inspect class'), 'activate', self.show_class_info),
-
-                )
-            self.printing()
     def clear_cb(self, *args):
         self.clear()
 
@@ -1286,7 +1250,12 @@ class SqlWidget(gobject.GObject):
             return issubclass(db_type, (sqltypes.Text))
         return False
 
-
+    def is_toplevel(self):
+        """
+        return a boolean indicating if the widget is a toplevel widget
+        """
+        return 'Window' in self.widgets
+    
     def fkey_is_valid(self):
         """
         return True if current editable -if exists- has a value that does not need validation
@@ -1422,12 +1391,9 @@ class SqlWidget(gobject.GObject):
         update correctly. If the widget cannot get focus, try tb=gtk-save
         """
 
-        if not widget or isinstance(widget, gtk.AccelGroup):
-            sqlwidget = self.relationship_leader or self
-            sqlwidget.widgets['tb=gtk-save'].grab_focus()
-        else:
-            widget.grab_focus()
-
+        sqlwidget = self.relationship_leader or self
+        save_widget = sqlwidget.ui_manager.get_widget('/Main/File')
+        save_widget.grab_focus()
         
 ####### printing
     def printing(self):

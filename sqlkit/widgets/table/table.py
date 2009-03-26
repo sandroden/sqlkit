@@ -118,23 +118,41 @@ class SqlTable(sqlwidget.SqlWidget):
         gobject.idle_add(tv_utils.set_optimal_width, self.treeview)
         return (self.lay_obj, self.widgets)
 
-    
-    def _add_actions_to_buttons(self):
+    def prepare_actions(self):
         """
-        add zoom to fit
+        Prepare action needed by UIManager
         """
-        sqlwidget.SqlWidget._add_actions_to_buttons(self)
-        if 'tb=gtk-zoom-fit' in self.widgets:
-            self.widgets['tb=gtk-zoom-fit'].connect('clicked', self.on_zoom_fit)
+        sqlwidget.SqlWidget.prepare_actions(self)
 
-        if 'b=gtk-zoom-fit' in self.widgets:
-            self.widgets['b=gtk-zoom-fit'].connect('clicked', self.on_zoom_fit)
+        self.actiongroup_table   = gtk.ActionGroup('Table')
 
-        if 'm=modify' in self.widgets:
-            self.lay_obj.menu('m=modify',
-                              ('gtk-zoom-fit', 'activate', self.on_zoom_fit, False),
-                              )
+        self.actiongroup_general.add_actions([
+            ('New', gtk.STOCK_NEW,   None, '', None, self.record_new_cb),
+            ])
 
+        self.actiongroup_edit.add_actions([
+            ('Delete', gtk.STOCK_DELETE, None, '<Ctrl>k', None, self.record_delete),
+            ])
+
+        self.actiongroup_table.add_actions([
+            ('Zoom-fit', gtk.STOCK_ZOOM_FIT, None, None, None, self.on_zoom_fit),
+            ('ShowColumns', None, _('Show field')),
+            ('HideColumns', None, _('Hide field')),
+            ('Records', None, 'Records'),
+            ('Export', None, _('Export'), None, None, self.export),
+            ])
+
+    def prepare_uimanager(self):
+
+        from sqlkit.widgets.common import uidescription
+        
+        sqlwidget.SqlWidget.prepare_uimanager(self)
+        self.ui_manager.insert_action_group(self.actiongroup_table, 0)
+
+        self.ui_manager.add_ui_from_string(uidescription.TABLE_UI)
+
+        self.ui_manager.get_action('/Main/Go/Forward').set_visible(False)
+        self.ui_manager.get_action('/Main/Go/Back').set_visible(False)
 
     def on_zoom_fit(self, widget, *args):
         tv_utils.zoom_to_fit(self.treeview, resize=True)
@@ -560,7 +578,14 @@ class SqlTable(sqlwidget.SqlWidget):
             pass
         self.record_new()
         return True
-    
+
+    def key_tree_ctrl_s(self, treeview, event, data):
+        try:
+            self.record_save(treeview)
+        except exc.ValidationError:
+            pass
+        return False
+       
     def key_entry_Tab(self, widget, event, data):
         """
         Trigger the validation when moving around the cells
@@ -1248,6 +1273,8 @@ class SqlTable(sqlwidget.SqlWidget):
         for field in self.gui_fields:
             field.widget.add_completion(editable=editable)
         
+
+
 
 
 

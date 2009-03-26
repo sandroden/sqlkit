@@ -327,19 +327,11 @@ class LayoutGenerator (object):
         # a 'naked' mask is a mask w/o buttons. Maybe buttons are define by the
         # programmer inside the layout, maybe are not desired
 
-        if self.master.is_mask():
-            nav_buttons="tb=gtk-go-back tb=gtk-go-forward"
-        else:
-            nav_buttons="tb=gtk-zoom-fit"
-
-            
         self.layout = """
-        {B m=file m=modify m=tools m=help}
-        {O.tool tb=gtk-save tb=gtk-save-as tb=gtk-delete tb=gtk-new tb=gtk-refresh 
-        %s } 
+        {V.header }
         {A.external { %s}}
         sb=StBar
-        """ % (nav_buttons, self.layout)
+        """ % (self.layout)
     
     def create_for_table(self):
         lay = """

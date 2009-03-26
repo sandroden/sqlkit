@@ -122,12 +122,10 @@ class SqlMask (sqlwidget.SqlWidget):
         """
         if display_idx is None:
             display_idx = self.current_idx or 0
-            
-        if 'tb=gtk-go-forward' in self.widgets:
-            self.widgets['tb=gtk-go-forward'].set_property('sensitive',  display_idx+1 < len(self.records))
-        if 'tb=gtk-go-back' in self.widgets:
-            self.widgets['tb=gtk-go-back'].set_property('sensitive',  display_idx >0)
-        
+
+        self.ui_manager.get_action('/Main/Go/Forward').set_sensitive(display_idx+1 < len(self.records))
+        self.ui_manager.get_action('/Main/Go/Back').set_sensitive(display_idx > 0)
+
     def set_records(self, records, index=0):
         """
         set records to browse, and display number idx
@@ -365,14 +363,10 @@ class SqlMask (sqlwidget.SqlWidget):
         self.grab_focus(widget)
         return self.record_display(incr=-1)
     
-    def add_accelerators(self):
-
+    def add_wheel_support(self):
         """
-        C-S-n clear
-        C-s  save- record
         add mouse wheel support
         """
-        sqlwidget.SqlWidget.add_accelerators(self)
         if not self.widgets['Window']:
             return
             
@@ -385,13 +379,6 @@ class SqlMask (sqlwidget.SqlWidget):
 
         self.widgets['Window'].connect('scroll_event', scroll_event_cb)
 
-        self.accel_group.connect_group(
-            ord('n'), gtk.gdk.CONTROL_MASK|gtk.gdk.SHIFT_MASK,  
-            gtk.ACCEL_LOCKED, self.clear_cb)
-
-        self.accel_group.connect_group(
-            ord('s'), gtk.gdk.CONTROL_MASK,
-            gtk.ACCEL_LOCKED, self.record_save_cb)
 
     def clear_cb(self, accell_group, window, ord, flags):
         self.record_new()
@@ -433,30 +420,31 @@ class SqlMask (sqlwidget.SqlWidget):
             
             self.gui_fields[field_name] = field
             
-    def toggle_with_null_cb(self, button):
-        """a toggle function that loops through inconsinstent state also
+    def prepare_actions(self):
         """
-        value = v = button.get_active()
-        null = n = button.get_inconsistent()
+        Prepare action needed by UIManager
+        """
+        sqlwidget.SqlWidget.prepare_actions(self)
 
-        ## -   -> True  -> False
-        if null:  # - next is True
-            button.set_active(True)
-            button.set_inconsistent(False)
-        else:
-            dbg.write("Null False")
-            if value == True:
-                dbg.write('Vero passo a Falso')
-                button.set_inconsistent(False)
-                button.set_active(False) 
-            else:
-                dbg.write('False passo a Null')
-                button.set_inconsistent(True)
+        self.actiongroup_edit.add_actions([
+            ('New', gtk.STOCK_NEW,   None, '', None, self.record_new_cb),
+            ('Save-as', gtk.STOCK_SAVE_AS, None, None, None, self.record_save_new),
+            ('Undo', gtk.STOCK_UNDO, None, None, None, self.record_undo_cb),
+            ])
 
-        return True
-            
-            
-            
+        self.actiongroup_edit.add_actions([
+            ('Delete', gtk.STOCK_DELETE, None, '', None, self.record_delete),
+            ])
+
+    def prepare_uimanager(self):
+
+        from sqlkit.widgets.common import uidescription
+        
+        sqlwidget.SqlWidget.prepare_uimanager(self)
+
+        self.ui_manager.add_ui_from_string(uidescription.MASK_UI)
+
+
     def _add_color_to_labels(self):
         """add bg colors and fonts to signal needed fields"""
 
@@ -510,17 +498,6 @@ class SqlMask (sqlwidget.SqlWidget):
             event_box.connect('button-press-event',
                               self.filter_panel.add, field_name, self)
 
-    def _add_menu_undo(self):
-        """
-        Add an undo button to undo possible modification to the mask
-        """
-        if not 'M=modify' in self.widgets:
-            return
-        menu = self.widgets['M=modify']
-        item = gtk.ImageMenuItem('gtk-undo')
-        item.connect('activate', self.record_undo_cb)
-        menu.insert(item, 0)
-        
     def get_current_obj(self):
         """Return the object that is currently edited"""
         return self.current

@@ -521,7 +521,7 @@ class CollectionWidget(Widget):
             col_width = filter_related(self.master.col_width, self.field_name),
             field_list = loader_spec.get('field_list', None),
             addto=self.gtkwidget,
-            icons='b=gtk-new b=gtk-delete b=gtk-save b=gtk-zoom-fit',
+#            icons='b=gtk-new b=gtk-delete b=gtk-save b=gtk-zoom-fit',
             ignore_fields = [c.name for c in self.field.property.remote_side],
             dev = self.master.dev,
             relationship_leader = self.master,
