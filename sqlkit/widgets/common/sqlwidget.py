@@ -214,7 +214,7 @@ class SqlWidget(gobject.GObject):
             self.widgets[el_def].show()
 
         if self.relationship_mode == 'FIXED':
-            self.actiongroup_edit.set_sensitive(False)
+            self.actiongroup_edit.set_sensitive(True)
             self.actiongroup_browse.set_sensitive(False)
             
     def _set_ignored_fields(self, ignored_list):
@@ -1740,3 +1740,5 @@ class ValidationErrorDialog(object):
 #     def fill_model(self):
 #         self.master.validation_error_fill_model(model)        
     
+
+

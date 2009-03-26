@@ -4,21 +4,27 @@
  SqlTables
 ===========
 
-SqlTable is a widget that represent data in a table fasion. Columns that are
+SqlTable is a widget that represent data in a table mode. Columns that are
 foreign keys are presented in blue and a :ref:`description <description>` of
-the foreign key is performed.
+the foreign key is used.
+
+Clicking on any row of the treeview gives the possibility to show the record
+in a Mask View. If a layout was passed to the ``SqlTable``, it will be
+passed to SqlMask.
 
 
 Options
 =======
 
-:rows: 
-  how many rows should be initially allocated space for
+.. class:: sqlkit.widgets.Sqlwidget(same options as sqlwidget + listed below)
+
+  :param rows:  how many rows should be initially allocated space for
 
 Attributes
 ==========
 
-:totals:
+.. attribute:: totals
+
    class for :ref:`totals`: see the specific documentation for further info
 
 .. image:: ../img/menu.png
@@ -27,17 +33,25 @@ Attributes
 Methods
 =======
 
-:set_opts:
-   allows to disable icons in a m2m relationship (icons=False), eliminate
-   scrollbars (scroll=x|y|xy|None)
+.. method:: set_opts(scroll=None, icons=True)
 
-:set_editable:
-   only meaningful for table that represent an m2m relationship: turns the
-   table from non editable to editable, read the explanation in
-   :ref:`relationships`
+   :param scroll: eliminate scrollbars (values: x|y|xy|None)
 
-:hide_field:
-   hides columns, adding a row in the menu to make it show up again at will 
+   :param icons: allows to disable icons in a m2m relationship
+   :type scroll: boolean 
+   
+
+.. method:: set_editable(editable)
+
+   :param editable: Only meaningful for table that represent an
+          m2m relationship: turns the table from non editable to editable, 
+	  read the explanation in :ref:`relationships`
+   :type editable: boolean
+
+.. method:: hide_fields(field_list)
+
+   :param field_list:  hides columns, adding a row in the menu to make it
+          show up again at will 
    
 Column headers
 ==============
@@ -97,3 +111,5 @@ Signals
 :button-press-event: this event is emitted when clicking in the treeview if
        there are no pending validation errors (in which case you are forced
        to solve them before)
+
+

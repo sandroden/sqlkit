@@ -62,6 +62,13 @@ TABLE_UI = '''
         <menu action="HideColumns" />
      </menu>
   </menubar>
+
+  <popup name="TreePopup">
+        <menuitem action="MaskView" />
+        <menuitem action="New" />
+        <separator name="sep_del" />
+        <menuitem action="Delete" />
+  </popup>
 '''
 
 MASK_UI = '''

@@ -371,6 +371,8 @@ class SqlMask (sqlwidget.SqlWidget):
             return
             
         def scroll_event_cb(widget, event):
+            if not self.actiongroup_browse.get_sensitive():
+                return
             
             if event.direction == gtk.gdk.SCROLL_UP:
                 return self.record_display(incr=-1)

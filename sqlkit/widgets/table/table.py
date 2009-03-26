@@ -140,6 +140,7 @@ class SqlTable(sqlwidget.SqlWidget):
             ('HideColumns', None, _('Hide field')),
             ('Records', None, 'Records'),
             ('Export', None, _('Export'), None, None, self.export),
+            ('MaskView', gtk.STOCK_ZOOM_IN, _('View this record in a Mask'), None, None, self.record_in_mask),
             ])
 
     def prepare_uimanager(self):
@@ -426,7 +427,11 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.cell_entry and not self.cell_entry.is_valid():
             if not self.cell_validate():
                 return True
-            
+
+        if event.button == 3:
+            menu = self.ui_manager.get_widget('/TreePopup')
+            menu.popup(None, None, None, event.button, event.time)
+        
         ## emit button-press-event of the sqlwidget: event, field_name, value
         #  this happens before the selection gets changed so we cannot use get_selected_obj()
 
@@ -1236,6 +1241,25 @@ class SqlTable(sqlwidget.SqlWidget):
         self.field_list = field_list
         
 
+    def record_in_mask(self, widget):
+
+        from sqlkit.widgets import SqlMask
+
+        def follow_selection(table, mask):
+            mask.set_records([table.current])
+
+        mask = SqlMask(mapper=self.mapper, session=self.session, layout=self.lay,
+                                 relationship_mode='FIXED')
+        mask.set_records([self.current])
+
+        handler_id = self.connect('record-selected', follow_selection, mask)
+
+        def disconnect(mask, id):
+            self.disconnect(id)
+
+        mask.connect('delete-event', disconnect, handler_id)
+        
+
 #### completion
 
     def get_value(self, field_name, shown=True):
@@ -1273,6 +1297,8 @@ class SqlTable(sqlwidget.SqlWidget):
         for field in self.gui_fields:
             field.widget.add_completion(editable=editable)
         
+
+
 
 
 
