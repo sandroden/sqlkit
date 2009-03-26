@@ -113,8 +113,21 @@ class SqlMask (sqlwidget.SqlWidget):
             value = getattr(obj, field.field_name)
             self.set_value(field.field_name, value, initial=True)
 
+        self.set_arrows_sensitivness(display_idx)
         return True
 
+    def set_arrows_sensitivness(self, display_idx=None):
+        """
+        set sensitivness of back and forward arrows according to records length and position
+        """
+        if display_idx is None:
+            display_idx = self.current_idx or 0
+            
+        if 'tb=gtk-go-forward' in self.widgets:
+            self.widgets['tb=gtk-go-forward'].set_property('sensitive',  display_idx+1 < len(self.records))
+        if 'tb=gtk-go-back' in self.widgets:
+            self.widgets['tb=gtk-go-back'].set_property('sensitive',  display_idx >0)
+        
     def set_records(self, records, index=0):
         """
         set records to browse, and display number idx
@@ -321,6 +334,8 @@ class SqlMask (sqlwidget.SqlWidget):
                 self.clear_mask(check=False)
             except exc.ValidationError:
                 return
+
+        self.set_arrows_sensitivness()
 
         self.current = self.get_new_object()
         self.last_new_obj = self.current

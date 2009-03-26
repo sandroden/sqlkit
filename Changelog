@@ -45,7 +45,16 @@ sqlkit 0.8.6-pre -
 	* layout: added MenuItem that accepts StockItem and Text.
 	* defaults: now local defaults act as global defaults (eg: fk method)
 	* sqlwidget: title can be set in any moment
-	             added signal after-flush
+	* signals:  added signal after-flush
+
+	* filters: filters on relationships are now aliased (see note in
+	           docs on relationship)
+	* hooks:   hooks have been added: 
+	           on_completion__%s
+	           on_change_value__%s
+	           on_validation
+	           on_activate__%s
+	* miniwidgets: rewritten DateEdit to warn and complein of parse errors
 	
 sqlkit 0.8.5.1 - 23.1.09
 	* fix release:
