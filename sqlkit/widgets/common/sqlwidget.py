@@ -1654,16 +1654,25 @@ class UnsavedDataDialog(object):
 
             for item in self.master.session.dirty:
                 for field_name, old, new in utils.get_differences(item, self.master.session):
-                    if not field_name in self.master.gui_fields:
-                        continue
-                    field = self.master.gui_fields[field_name]
+                    if item.__class__ is self.master.mapper.class_ and (
+                        field_name in self.master.gui_fields):
+                        
+                        field = self.master.gui_fields[field_name]
+
+                        old_value = old and utils.clean_for_markup(field.get_human_value(old)) or ''
+                        new_value = new and utils.clean_for_markup(field.get_human_value(new)) or ''
+                    else:
+                        ## FIXME: we could also look for better representation in related widgets
+                        old_value = old
+                        new_value = new
 
                     iter = self.model.append(None)
                     self.model.set(iter,
-                                   0, "<i>%s</i>" % utils.clean_for_markup(item)[:25],
+                                   0, "<i>%s</i>" % (utils.clean_for_markup(repr(item))[:25] or
+                                                     utils.clean_for_markup(item)[:25]),
                                    1, "%s" % self.master.get_label(field_name),
-                                   2, old and utils.clean_for_markup(field.get_human_value(old)) or '',
-                                   3, new and utils.clean_for_markup(field.get_human_value(new)) or '',
+                                   2, old_value,
+                                   3, new_value,
                                    )
 
         if self.master.session.deleted:
@@ -1672,6 +1681,7 @@ class UnsavedDataDialog(object):
             for item in self.master.session.deleted:
                 iter = self.model.append(None)
                 self.model.set(iter,
+                               0, "<i>%s</i>" % item.__class__.__name__,
                                2, "%s" % item)
                 
                 
@@ -1681,7 +1691,8 @@ class UnsavedDataDialog(object):
             for item in self.master.session.new:
                 iter = self.model.append(None)
                 self.model.set(iter,
-                               3, "%s" % item.__class__.__name__)
+                               0, "<i>%s</i>" % item.__class__.__name__,
+                               3, "%s" % item)
                 
                 
 
