@@ -131,7 +131,7 @@ class SqlTable(sqlwidget.SqlWidget):
             ])
 
         self.actiongroup_edit.add_actions([
-            ('Delete', gtk.STOCK_DELETE, None, '<Ctrl>k', None, self.record_delete),
+            ('Delete', gtk.STOCK_DELETE, None, '', None, self.record_delete),
             ])
 
         self.actiongroup_table.add_actions([
@@ -835,7 +835,8 @@ class SqlTable(sqlwidget.SqlWidget):
             return True
         
         if interactive:
-            response = self.dialog(type='ok-cancel', text=_("Delete this record?"))
+            text = _("Delete this record?\n(%s)" % self.current)
+            response = self.dialog(type='ok-cancel', text=text)
             if response == gtk.RESPONSE_CANCEL:
                 return
 

@@ -187,7 +187,8 @@ class SqlMask(sqlwidget.SqlWidget):
         """
             
         if interactive:
-            response = self.dialog(type='ok-cancel', text=_("Delete this record?"))
+            text = _("Delete this record?\n(%s)" % self.current)
+            response = self.dialog(type='ok-cancel', text=text)
             if response == gtk.RESPONSE_CANCEL:
                 return
         obj = self.records[self.current_idx]
