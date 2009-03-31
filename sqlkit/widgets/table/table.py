@@ -144,8 +144,10 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.actiongroup_table.add_actions([
             ('Zoom-fit', gtk.STOCK_ZOOM_FIT, None, None, None, self.on_zoom_fit),
-            ('ShowColumns', None, _('Show field')),
-            ('HideColumns', None, _('Hide field')),
+            ('ShowColumns', None, _('Show field')),  # menuitem
+            ('HideColumns', None, _('Hide field')),  # menuitem
+#            ('VisibleColumns', None, None),          # menu
+#            ('HiddenColumns', None, None),           # menu
             ('Records', None, 'Records'),
             ('Export', None, _('Export'), None, None, self.export),
             ('MaskView', gtk.STOCK_ZOOM_IN, _('View this record in a Mask'), None, None, self.record_in_mask),
@@ -369,6 +371,36 @@ class SqlTable(sqlwidget.SqlWidget):
     def add_subtotal_cb(self, menu_item, field_name):
         self.totals.add_break(field_name)
 
+    def menu_add_toggle_column(self, field_name):
+        """
+        Add a menu entry to show columns in the menu 'modify' or change it's
+        visibility according to real state of the column
+        """
+
+        action_name = 'field_%s' % field_name
+        action = self.ui_manager.get_action('/Main/Modify/ShowColumns/%s' % action_name)
+        if not action:
+            self.actiongroup_table.add_actions([
+                (action_name, None, self.get_label(field_name), None, None, self.show_column,),
+                ], field_name)
+
+            menu_def = '''
+              <menubar name="Main">
+                 <menu action="Modify">
+                    <menu action="ShowColumns" >
+                         <menuitem action="%s" />
+                    </menu>
+                 </menu>
+               </menubar>
+            ''' % action_name
+
+            self.ui_manager.add_ui_from_string(menu_def)
+
+        else:
+            action.set_visible(not action.get_visible())
+            
+        self.tvcolumns[field_name].set_property('visible', False)
+        
     def reload_sort_cb(self, widget, field_name, direction):
         
         col = self.gui_fields[field_name].column
@@ -429,6 +461,8 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
         
     def show_column(self, menuItem, field_name,):
+
+        self.menu_add_toggle_column(field_name)
         self.tvcolumns[field_name].set_property('visible', True)
 
     def button_press_event_cb(self, widget, event):
@@ -1257,15 +1291,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return
 
         for field_name in field_name_list:
-            self.tvcolumns[field_name].set_property('visible', False)
-            field_name_localized = get_label(field_name, layout=self.lay_obj).replace('_', '__')
-            item = gtk.MenuItem(field_name_localized)
-            item.connect('activate', self.show_column, field_name)
-            try:
-                self.menu_show.append(item)
-            except AttributeError: #Naked Tables don't have self.menu_show
-                pass
-            item.show()
+            self.menu_add_toggle_column(field_name)
 
     def set_field_list(self, field_list):
         """
