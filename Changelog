@@ -1,3 +1,14 @@
+sqlkit 0.8.6-rc2 - 
+	
+	* mask: fix tips. In some cases accented letters would crash
+	        right cick on label pops info on field
+	* mysql: fixed reflection of some Types and REGEXP operator
+	* export: now ForeignKey are translated on exporting
+	* table: better with of columns
+	         some Types are mapped to Varchar and handled (eg. PGInet)
+	         Modify menu allows to re-show columns that have been
+  	           hidden interactively
+	         added function select_path
 
 sqlkit 0.8.6-rc2 - March, 26 2009
 

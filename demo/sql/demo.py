@@ -62,7 +62,7 @@ class DemoSql(Demo):
         self.create_widget_tree(toplevel=GLOB['t'].widgets['Window'])
         self.prepare_treestore_for_elements(GLOB['t'].lay_obj.elements)
         GLOB['t'].widgets['Window'].set_title(file_name)
-        self.w['Window'].set_title("Esempio: %s" % (file_name))
+        self.w['Window'].set_title("Example: %s" % (file_name))
 
 
 d = DemoSql(xml=False, debug=True)
