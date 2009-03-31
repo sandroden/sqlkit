@@ -411,6 +411,7 @@ class MultilineColumn(VarcharColumn):
     """
     A renderer able to show and edit in multiline mode. Very basic...
     """
+    MIN_DEFAULT_WIDTH = 40
 
     
     def setup_cell_renderers(self, cell_renderer=None):
@@ -474,6 +475,7 @@ class FKeyColumn(VarcharColumn):
     """
     A renderer that shows the value instead of the id
     """
+    MIN_DEFAULT_WIDTH = 15
 
     def cell_set_property(self, cell):
 
@@ -514,7 +516,7 @@ class DateColumn(VarcharColumn):
     possibly popping a calendar
     """
 
-    MIN_DEFAULT_WIDTH = 8
+    MIN_DEFAULT_WIDTH = 10
     
     def editable_connects(self, editable):
 
