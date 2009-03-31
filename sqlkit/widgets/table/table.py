@@ -1342,6 +1342,19 @@ class SqlTable(sqlwidget.SqlWidget):
 
         mask.connect('delete-event', disconnect, handler_id)
 
+    def select_path(self, path=None, obj=None):
+        """
+        Select path ``path``. If path is null and obj is not null try finding path at which is obj
+        """
+        if path is None and obj:
+            try:
+                path = self.records.index(obj)
+            except ValueError:
+                pass
+
+        if path is not None:
+            self.treeview.get_selection().select_path(path)
+            
 #### completion
 
     def get_value(self, field_name, shown=True):

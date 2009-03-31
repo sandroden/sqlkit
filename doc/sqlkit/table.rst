@@ -53,6 +53,12 @@ Methods
    :param field_list:  hides columns, adding a row in the menu to make it
           show up again at will 
    
+.. method:: select_path(path=None, obj=None)
+
+   :param path:  the path to be selected or None
+   :param obj:  if path is None, the object to be searched for and selected
+
+   
 Column headers
 ==============
 
