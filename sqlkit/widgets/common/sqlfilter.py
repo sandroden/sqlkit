@@ -390,7 +390,7 @@ class FilterTool(object):
         cols = prop.columns
         
         if len(cols) >= 2:
-            msg = """I'm not able to understand which column you want here. %s field_name has
+            msg = """I'm not able to understand which column you want here:  field_name '%s' has
             several columns: %s""" % (self.field_name, prop.columns)
             raise NotImplementedError(msg)
 

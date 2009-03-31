@@ -1331,7 +1331,7 @@ class SqlTable(sqlwidget.SqlWidget):
             mask.set_records([table.current])
 
         mask = SqlMask(mapper=self.mapper, session=self.session, layout=self.layout,
-                                 relationship_mode='FIXED')
+                                 relationship_mode='FIXED', metadata=self.metadata)
         mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
         mask.set_records([self.current])
 
