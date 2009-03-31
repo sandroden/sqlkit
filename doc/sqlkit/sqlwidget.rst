@@ -74,6 +74,9 @@ slower. Previous 0.5 rel called it ``autoflush``
      contained in the Foreignkey, so you won't be able to show one2many or
      many2many relationships
 
+     If you pass 2 table as in ``movie director`` sqlkit will try to join
+     them and build a proper mapper.
+
   :param class\_: a sqlalchemy mapped class (eg: that defined via declarative
      layer). The mapper will be automatically found
 

@@ -57,6 +57,19 @@ more examples can be found in the :ref:`constraints` sections as they share
 the same syntax. Note that a filter can be changed by the user while a
 constraint is invisible to him.
 
+filters and join
+----------------
+
+When filtering programmatically on a join you must use the field_name as
+known by the mapper, i.e. composition of table_name + field_name. Look demo
+on join too see how it works::
+
+  t = SqlTable(tables="movie director", dbproxy=db )
+  t.add_filter(director_nation='IT') # NOTE director_nation
+
+Here the field *nation* of table *director* is referenced as
+``director_nation``
+
 Date filters
 =============
 

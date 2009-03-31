@@ -386,13 +386,20 @@ class FilterTool(object):
         else:
             self.table = self.db_spec['table']
 
+        prop = self.master.mapper.get_property(self.field_name)
+        cols = prop.columns
+        
+        if len(cols) >= 2:
+            msg = """I'm not able to understand which column you want here. %s field_name has
+            several columns: %s""" % (self.field_name, prop.columns)
+            raise NotImplementedError(msg)
+
         if isinstance(self.master.mapper.local_table, Join):
-            fname = "%s_%s" % (self.table.name, self.field_name)
-            self.col = self.table.c[fname]
+            ## FIXME: no aliasing in this case
+            self.col = cols[0]
         else:
             self.col = self.table.c[self.field_name]
 
-#        self.col = self.db_spec['col']
         self.bind_name = self.master.metadata.bind.name
         self.widget = FilterWidget(self)
 
