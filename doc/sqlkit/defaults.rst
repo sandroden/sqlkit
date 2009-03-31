@@ -51,7 +51,7 @@ Defaults local to the application
 =================================
 
 Sqlwidgets have an attribute called ``defaults`` that is an instance of 
-``sqlwidget.db.defaults.Defaults`` already correctly instantiated that allow 
+``sqlwidget.db.defaults.Defaults`` already correctly instantiated that allows 
 to set defalts local only to the instance of sqlwidget they belong to.
 
 You can use such a default in any of the following ways::
