@@ -58,6 +58,7 @@ tgz:
 	hg archive -t tgz ../sqlkit-$(VER).tar.gz
 
 rsync:
+	ssh apt@www2 'mv $(DIR) && rm -f sqlkit-latest.tar.gz && rm *sqlkit* OLD'
 	rsync --progress ../$(TGZ) $(WWW)/
 	for file in $(DEB); do rsync --progress ../$${file} $(WWW)/; done
 	#rsync --progress ../$(DEB) $(WWW)/
