@@ -411,8 +411,9 @@ class SqlMask(sqlwidget.SqlWidget):
 
         self._add_click_for_filter()
         self._add_color_to_labels()
+        self._add_tips()
         self.add_wheel_support()
-
+        
         return self.lay_obj, self.widgets  
         
     def setup_field_validation(self):
@@ -483,7 +484,24 @@ class SqlMask(sqlwidget.SqlWidget):
                 else:
                     #dbg.write("NO", field_name)
                     pass
-            
+
+    def _add_tips(self):
+        """
+        Add tips to labels starting from label_map
+        """
+        for field_name, values in self.label_map.iteritems():
+            label, help_text = values
+
+            key = "l=%s" % field_name
+
+            if label:
+                if key in self.widgets:
+                    self.widgets[key].set_text(label)
+
+            if help_text:
+                if key in self.widgets:
+                    self.widgets[key].set_tooltip_text(help_text)
+
     def ene_cb(self, eb, ev):
         eb.get_child().set_state(gtk.STATE_PRELIGHT)
         return True

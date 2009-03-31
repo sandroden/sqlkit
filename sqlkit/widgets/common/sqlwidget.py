@@ -350,7 +350,8 @@ class SqlWidget(gobject.GObject):
         self.laygen = LayoutGenerator(self, naked=naked, lay=lay)
         lay = self.laygen.layout
         self.lay_obj = layout.Layout(lay, addto=self.addto,
-                                     title=self._title, opts='T-', label_map=self.label_map)
+                                     title=self._title, opts='T-')
+
         #if self.xml:
         #    self.lay_obj.xml('/tmp/m_%s.glade' % self.nick)
 

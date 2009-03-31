@@ -332,6 +332,7 @@ class LayoutGenerator (object):
         {A.external { %s}}
         sb=StBar
         """ % (self.layout)
+#        {A.external {S {p { %s}}}}
     
     def create_for_table(self):
         """
