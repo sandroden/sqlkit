@@ -173,7 +173,7 @@ class SKSessionExtension(SessionExtension):
         """
         
         sqlwidget= getattr(self, 'sk_sqlwidget', None)
-        current= getattr(self, 'sk_sqlwidget', None)
+        current= getattr(self, 'sk_current', None)
 
         if sqlwidget and current:
             sqlwidget.emit('after-flush', current, session)
