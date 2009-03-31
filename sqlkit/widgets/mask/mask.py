@@ -532,9 +532,14 @@ class SqlMask(sqlwidget.SqlWidget):
         for field_name, label in self.labels.iteritems():
             #print "label", label, 'field_name', field_name
             event_box = label.parent
-            event_box.connect('button-press-event',
-                              self.filter_panel.add, field_name, self)
+            event_box.connect('button-press-event', self.button_press_event_cb, field_name)
 
+    def button_press_event_cb(self, widget, event, field_name):
+        if event.button == 3:
+            self.show_field_info(None, field_name)
+        else:
+            self.filter_panel.add(widget, event, field_name, self)        
+        
     def get_current_obj(self):
         """Return the object that is currently edited"""
         return self.current
