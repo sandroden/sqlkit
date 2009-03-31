@@ -1204,19 +1204,38 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         export visible data in csv format
         """
-        txt = []
-        for row in self.liststore:
-            line = [str(getattr(row[0], f, '') or '') for f in self.field_list
-                    if self.tvcolumns[f].get_property('visible')]
-            txt += ["\t".join(line)]
+        import csv
+        
+        def next_row():
+            for row in self.liststore:
+                line = [self.gui_fields[f].get_human_value(getattr(row[0], f)) for f in self.field_list
+                        if self.tvcolumns[f].get_property('visible')]
+                yield line
 
-        txt = "\n".join(txt)
-        dialog = gtk.FileSelection(title=_("Export in csv file"))
+        dialog = gtk.FileChooserDialog(_("Export in csv file"),
+                                       None,
+                                       gtk.FILE_CHOOSER_ACTION_SAVE,
+                                       (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                                        gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+        dialog.set_default_response(gtk.RESPONSE_OK)
+        dialog.set_current_name("export.csv")
+        
+        filter = gtk.FileFilter()
+        filter.set_name("csv files")
+        filter.add_pattern("*.csv")
+        dialog.add_filter(filter)
+        
+        filter = gtk.FileFilter()
+        filter.set_name("all files")
+        filter.add_pattern("*.*")
+        dialog.add_filter(filter)
+
         ret = dialog.run()
         if ret == gtk.RESPONSE_OK:
             filename = dialog.get_filename()
-            f= open(filename, 'w')
-            f.write(txt)
+            f = open(filename, "wb")
+            writer = csv.writer(f)
+            writer.writerows(next_row())
             f.close()
         dialog.destroy()
         return 
@@ -1334,5 +1353,3 @@ class SqlTable(sqlwidget.SqlWidget):
         for field in self.gui_fields:
             field.widget.add_completion(editable=editable)
         
-
-
