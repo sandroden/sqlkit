@@ -1,4 +1,4 @@
- # Copyright (C) 2005-2006-2007-2008, Sandro Dentella <sandro@e-den.it>
+# Copyright (C) 2005-2006-2007-2008, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -226,7 +226,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 col = columns.VarcharColumn(self, field_name, label)
 
             else:
-                col = columns.GenericColumn(self, field_name, label)
+                col = columns.VarcharColumn(self, field_name, label)
 
             self.tvcolumns[field_name] = col.column
             self.treeview.append_column(col.column)
@@ -1334,3 +1334,5 @@ class SqlTable(sqlwidget.SqlWidget):
         for field in self.gui_fields:
             field.widget.add_completion(editable=editable)
         
+
+

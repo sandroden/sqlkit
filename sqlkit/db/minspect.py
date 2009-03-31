@@ -82,14 +82,15 @@ class InspectMapper(Container):
         self.loop_on_props()
 
                               
-    def get_py_type(self, Type,):
+    def get_py_type(self, Type, field_name):
         for typ in (Type,) + Type.__mro__:
             try:
                 return SA_TYPE_MAP[typ]
             except KeyError:
                 continue
 
-        raise NotImplementedError("Couldn't resolve SA type for %s" % Type)
+        msg = "Couldn't resolve SA type for field_name '%s' %s" % (field_name, Type)
+        raise NotImplementedError(msg)
         
         
     def loop_on_props(self):
@@ -123,7 +124,7 @@ class InspectMapper(Container):
             'table'       :  mapper.local_table ,
             'col'         :  mapper.c[field_name] ,
             'db_type'     :  type(mapper.c[field_name].type), 
-            'type'        :  self.get_py_type(type(mapper.c[field_name].type), ),
+            'type'        :  self.get_py_type(type(mapper.c[field_name].type), field_name),
             'col_spec'    :  col_spec,
             'is_serial'   :  is_serial(mapper.c[field_name]),
             'property'    :  property,

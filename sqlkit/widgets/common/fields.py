@@ -190,8 +190,6 @@ class FieldChooser(object):
         if self.master.is_loader(field_name):
             return CollectionField(*args)
         
-        COL_SPEC = db_spec['col_spec'] or ''
-
         if self.master.is_integer(field_name):
             return IntegerField(*args)
 
@@ -232,11 +230,13 @@ class FieldChooser(object):
             return TextField(*args)
         
         if self.master.is_string(field_name):
-                return VarcharField(*args)
+            return VarcharField(*args)
 
+        else:
+            return VarcharField(*args)
 
-        raise NotHandledField("Field %s is not handled in any way: COL_SPEC: %s" %
-                              (field_name, COL_SPEC))
+#         raise NotHandledField("Field '%s' is not handled in any way: COL_SPEC: %s" %
+#                               (field_name, db_spec['col_spec']))
 
 class Field(object):
     Widget = None

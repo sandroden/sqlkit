@@ -12,7 +12,7 @@
 >>> ip = InspectMapper(mapper)
 
 >>> def check(field_name):
-...    return ip.get_py_type(type(mapper.c[field_name].type))    
+...    return ip.get_py_type(type(mapper.c[field_name].type), field_name) 
 
 >>> check('id')
 <type 'int'>
