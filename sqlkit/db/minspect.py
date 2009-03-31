@@ -1,7 +1,7 @@
 from sqlalchemy import *
 import sqlalchemy 
 import sys
-from sqlkit import debug as dbg
+from sqlkit import debug as dbg, exc
 import datetime
 import decimal
 import re
@@ -361,7 +361,7 @@ def get_foreign_info(ForeignKey, names=True):
     foreign_keys = ForeignKey
 
     if len(foreign_keys) > 1:
-        raise UnhandledMultipleForeignkeys(foreign_keys)
+        raise exc.UnhandledMultipleForeignKeys(foreign_keys)
     else:
         fkcol = foreign_keys[0]
         ## table/column name are unicode but they must be strng to be

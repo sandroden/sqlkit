@@ -32,5 +32,5 @@ class LookupValueMissingValue(LookupValueError): pass
 class LookupValueMultipleValues(LookupValueError): pass
 
 class MissingDescriptorField(Exception): pass
-class UnhandledMultipleForeignkeys(Exception): pass
+class UnhandledMultipleForeignKeys(Exception): pass
 
