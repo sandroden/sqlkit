@@ -66,8 +66,6 @@ class InspectMapper(Container):
             # these type so no have a correspondence a base in a SA Type
             SA_TYPE_MAP.update({
                 sqlalchemy.databases.postgres.PGInet  : str, 
-                sqlalchemy.databases.postgres.PGChar  : str, 
-                sqlalchemy.databases.postgres.PGInterval  : datetime.timedelta,
                 })
         except Exception, e:
             pass
@@ -85,7 +83,7 @@ class InspectMapper(Container):
 
                               
     def get_py_type(self, Type,):
-        for typ in (Type,) + Type.__bases__:
+        for typ in (Type,) + Type.__mro__:
             try:
                 return SA_TYPE_MAP[typ]
             except KeyError:
