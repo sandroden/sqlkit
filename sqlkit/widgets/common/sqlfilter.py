@@ -31,7 +31,7 @@ import warnings
 class SqlDataFixNeeded(Exception): pass
 
 OP_MSGID = {
-    'regexp' : _('Match as regexp'),
+    'REGEXP' : _('Match as regexp'),
     'match' : _('Match as LIKE, "%" automatically added'),
     'ICONTAINS' : _('Match as LIKE case insensitive, "%" automatically added'),
     '~' : _('Match as regexp'),
