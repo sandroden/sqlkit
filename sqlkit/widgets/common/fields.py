@@ -395,7 +395,7 @@ class Field(object):
         """
         return the value or a translation in human readable for foreign key
         """
-        return value
+        return self.format_value(value)
         
     def __repr__(self):
         return "<%s - %s >" % (self.__class__.__name__, self.field_name)
@@ -572,6 +572,7 @@ class DateField(Field):
             return ''
 
         return dates.format_date(value, format=self.format, locale=self.locale)
+        
         
 class TimeField(DateField):
     Widget = TimeWidget
