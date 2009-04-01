@@ -176,6 +176,7 @@ class SKSessionExtension(SessionExtension):
         current= getattr(self, 'sk_current', None)
 
         if sqlwidget and current:
+            sqlwidget.run_hook('on_after_flush', current, session)
             sqlwidget.emit('after-flush', current, session)
         
 def table2mapper(table):
