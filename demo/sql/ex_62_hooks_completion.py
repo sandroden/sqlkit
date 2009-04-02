@@ -3,13 +3,13 @@
 on_completion is triggered any time you choose from a completion
 """
 
-class Film(SqlMask):
-    def on_completion__director_id(self, field_name, obj):
+class Hook(oxbject):
+    def on_completion__director_id(self, mask, field_name, obj):
         print vars(obj)
         print "Was this film directed by %s?" % obj['last_name']
 
 
-t = Film(class_=model.Movie, dbproxy=db, )
+t = SqlMask(class_=model.Movie, dbproxy=db, hooks=Hook())
 
 t.reload()
 

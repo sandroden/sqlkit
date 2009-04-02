@@ -1322,18 +1322,26 @@ class SqlTable(sqlwidget.SqlWidget):
 
     def record_in_mask(self, widget):
         """
-        Open a SqlMask to show self.current
+        Open a SqlMask to show self.current. Any class __bases__ is used so that possible
+        Mixins get to the mask. This allows to propagate hooks to the new Mask.
+
+        GuiFields present in the table are copied 
         """
 
-        from sqlkit.widgets import SqlMask
-
-        def follow_selection(table, mask):
-            mask.set_records([table.current])
+        from sqlkit.widgets import SqlMask, SqlTable
 
         mask = SqlMask(mapper=self.mapper, session=self.session, layout=self.layout,
-                                 relationship_mode='FIXED', metadata=self.metadata)
+                       relationship_mode='FIXED', metadata=self.metadata, hooks=self.hooks)
         mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
         mask.set_records([self.current])
+
+        for field in mask.gui_fields:
+            if field.field_name in self.gui_fields:
+                mask.gui_fields[field.field_name] = field
+
+        ## signals to keep selection in sync 
+        def follow_selection(table, mask):
+            mask.set_records([table.current])
 
         handler_id = self.connect('record-selected', follow_selection, mask)
 
@@ -1341,6 +1349,8 @@ class SqlTable(sqlwidget.SqlWidget):
             self.disconnect(id)
 
         mask.connect('delete-event', disconnect, handler_id)
+
+        self.mask = mask
 
     def select_path(self, path=None, obj=None):
         """

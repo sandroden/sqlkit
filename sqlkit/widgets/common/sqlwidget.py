@@ -112,6 +112,7 @@ class SqlWidget(gobject.GObject):
                  relationship_leader = None,
                  format=None,
                  label_map = None,
+                 hooks = None,
                  ):
 
         """
@@ -147,6 +148,7 @@ class SqlWidget(gobject.GObject):
         """
 
         gobject.GObject.__init__(self)
+        self.hooks = hooks
         self.related = Container()
         self.gui_fields = Container(self.gui_fields)
         self.field_widgets = Container()
@@ -901,7 +903,6 @@ class SqlWidget(gobject.GObject):
         look for a possible hook and call it.
         mode: the hook type (eg.: set_value, completion...)
         """
-        
         if not self.relationship_leader or (self.relationship_leader is self):
             hook_name = "%s" % (mode)
         else:
@@ -912,11 +913,11 @@ class SqlWidget(gobject.GObject):
         if 'field_name' in kw:
             hook_name += "__%(field_name)s" % kw
             
-        if hasattr(sqlwidget, hook_name):
+        if hasattr(sqlwidget.hooks, hook_name):
             if 'field_name' in kw:
-                return getattr(sqlwidget, hook_name)(kw['field_name'], *args)
+                return getattr(sqlwidget.hooks, hook_name)(self, kw['field_name'], *args)
             else:
-                return getattr(sqlwidget, hook_name)(*args)
+                return getattr(sqlwidget.hooks, hook_name)(self, *args)
     
         
 ###### Callback
