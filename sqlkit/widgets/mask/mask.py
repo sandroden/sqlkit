@@ -55,6 +55,7 @@ class SqlMask(sqlwidget.SqlWidget):
         sqlwidget.SqlWidget.__init__(self, *args, **kw)
         ## idle so that possible defaults get a chanche to be effective
         gobject.idle_add(self.record_new_idle)
+        self.run_hook('on_init')
 
 ####### Record browsing & saving
     def reload(self, **kw):

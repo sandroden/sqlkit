@@ -68,6 +68,7 @@ class SqlTable(sqlwidget.SqlWidget):
         #self.edited_row_model_path = dbg.TraceIt(True, name='edited_row_model_path', mode='rw')
         self.edited_row_model_path = None
         sqlwidget.SqlWidget.__init__(self, *args, **kwargs)
+        self.run_hook('on_init')
         
     def _get_layout(self, lay, naked):
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
@@ -1322,10 +1323,11 @@ class SqlTable(sqlwidget.SqlWidget):
 
     def record_in_mask(self, widget):
         """
-        Open a SqlMask to show self.current. Any class __bases__ is used so that possible
-        Mixins get to the mask. This allows to propagate hooks to the new Mask.
+        Open a SqlMask to show self.current.
+        Hooks are set on the newly created mask so that validation is retained
+        Remember to set any possible configuration of the table in an 'on_init'
+        hook so that it will be propagated
 
-        GuiFields present in the table are copied 
         """
 
         from sqlkit.widgets import SqlMask, SqlTable
@@ -1334,10 +1336,6 @@ class SqlTable(sqlwidget.SqlWidget):
                        relationship_mode='FIXED', metadata=self.metadata, hooks=self.hooks)
         mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
         mask.set_records([self.current])
-
-        for field in mask.gui_fields:
-            if field.field_name in self.gui_fields:
-                mask.gui_fields[field.field_name] = field
 
         ## signals to keep selection in sync 
         def follow_selection(table, mask):

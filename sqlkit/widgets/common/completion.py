@@ -896,7 +896,7 @@ class M2mCompletion(FkeyCompletion):
         try:
             self.master.set_current(pk=value)
         except Exception, e:
-            print e
+            print 'match selected debug', e
             pass
 
         self.displaying_completion = False

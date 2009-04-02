@@ -8,15 +8,10 @@ SqlTable is a widget that represent data in a table mode. Columns that are
 foreign keys are presented in blue and a :ref:`description <description>` of
 the foreign key is used.
 
-Clicking on any row of the treeview gives the possibility to show the record
-in a Mask View. If a layout was passed to the ``SqlTable``, it will be
-passed to SqlMask.
-
-
 Options
 =======
 
-.. class:: sqlkit.widgets.Sqlwidget(same options as sqlwidget + listed below)
+.. class:: sqlkit.widgets.SqlTable(same options as sqlwidget + listed below)
 
   :param rows:  how many rows should be initially allocated space for
 
@@ -129,5 +124,20 @@ Signals
      :param menu: the default menu that il popped up by this
           button-press-event if event.button == 3 or None
      
+
+.. _recordinmask:
+
+RecordInMask
+============
+
+Clicking on any row of the treeview gives the possibility to show the record
+in a Mask View. If a layout was passed to the ``SqlTable``, it will be
+passed to SqlMask. In this case all hooks, fields possibly configured
+and completions will be copied in the new Mask.
+
+If you need to configure this Mask in a particular fashion you can put all
+configuration in a hook named :ref:`on_init <hooks>`. This code will be executed
+both for Table and Mask generation that allows to use the same Hook for both
+widgets
 
 

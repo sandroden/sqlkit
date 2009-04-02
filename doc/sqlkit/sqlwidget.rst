@@ -3,7 +3,7 @@
 ============
 
 This is the base class for :ref:`mask` and :ref:`table` that implements the
-common interface.
+common interface. 
 
 
 main options
@@ -333,7 +333,8 @@ Signals
    .. function:: delete_event_callback(sqlwidget)
 
       :param sqlwidget: the sqlwidget that emitted the signal
-      
+
+.. _hooks:      
 
 Hooks
 ======
@@ -341,8 +342,8 @@ Hooks
 Beside signals there is another way to add controls: hooks. A hook is a
 function that will be called in particular moments only if present. 
 
-Hooks are searched in the methods of the class and field_name will be
-substituted correctly. 
+Hooks are searched in the methods of a class declared in the optional ``hooks`` 
+argument. 
 
 At the moment the hooks are:
 
@@ -397,6 +398,16 @@ At the moment the hooks are:
        :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
        :param field_name:  the field_name
        :param field:  the ``sqlkit.widgets.common.field``
+   
+    
+:on_init: run as the last command of __init__. It's main purpouse is to 
+    allow to configure a widgte in a way that will be handed over to a
+    possible SqlMask generated right-clicking from a table row (see :ref:`recordinmask`).
+
+
+    .. function:: on_init(sqlwidget)
+
+       :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
    
     
 If you need to add hooks for related sqlwidgets (those that display related
