@@ -1186,6 +1186,13 @@ class SqlWidget(gobject.GObject):
             obj = self
         return isinstance(obj, SqlMask)
     
+    def is_table(self, obj=False):
+        ## bad way to prevent chicken and eggs import problems 
+        from sqlkit.widgets import SqlTable
+        if obj == False: ## obj may be an empty str: ''
+            obj = self
+        return isinstance(obj, SqlTable)
+    
     def is_fkey(self, field_name):
         """
         return True if this field is a foreign key

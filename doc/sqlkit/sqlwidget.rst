@@ -209,6 +209,14 @@ completeness:
 
     set which field will be shown and in which order (for tables)
 
+.. method:: is_table()
+
+    return True if the sqlwidgget is a SqlTable
+
+.. method:: is_mask()
+
+    return True if the sqlwidgget is a SqlMask
+
 Attributes
 ===========
 
