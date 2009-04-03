@@ -2,6 +2,7 @@ import datetime
 import sqlalchemy
 
 tables = {}
+hooks = {}
 
 def set_default(table_name, tbl_dict):
     """
@@ -112,3 +113,40 @@ def get_default(table_name, field_name):
 
     
 
+
+def register_hook(table, hook):
+    """
+    Register a hook for table. Each time a sqlwidget is instantiated for the table
+    a hook is searched for here to initialize the sqlwidget
+
+    Hook must be a class
+
+    """
+    from inspect import isclass
+
+    global hooks
+    
+    if isinstance(table, sqlalchemy.Table):
+        table_name = table.name
+    else:
+        table_name = table
+        
+    if not isclass(hook):
+        hook = hook.__class__
+    
+    hooks[table_name] = hook
+
+def get_hook(table, instance=False):
+    """
+    Return a hook tor table or None
+    """
+    
+    if isinstance(table, sqlalchemy.Table):
+        table_name = table.name
+    else:
+        table_name = table
+
+    hook = hooks.get(table_name, None)
+    if hook and  instance:
+        hook = hook()
+    return hook

@@ -36,6 +36,7 @@ database editing (``sqledit -c url``)
 import re
 from sqlalchemy import Table
 from sqlalchemy.exc import OperationalError, ProgrammingError
+from defaults import register_hook, get_hook
 
 ########   descriptor
 from sqlkit.misc.utils import Container

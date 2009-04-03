@@ -350,8 +350,26 @@ Hooks
 Beside signals there is another way to add controls: hooks. A hook is a
 function that will be called in particular moments only if present. 
 
-Hooks are searched in the methods of a class declared in the optional ``hooks`` 
-argument. 
+Hooks are searched for in the methods of a class declared in the optional
+``hooks`` argument.
+
+Hooks can be registered using ``sqlkit.db.utils.register_hook`` (and
+``get_hook``) so that any sqlwidget built on that table will use those
+hooks. The advantage is that browsing data (e.g. using right click on a
+table row) can lead to opening table that are not configured.
+
+.. function:: register_hook(table, hook_class)
+
+   :param table: table (may be a SA table of a table_name)
+   :param hook_class: hook class (may be a clsss or an instance)
+
+.. function:: get_hook(table)
+
+   :param table: table (may be a SA table of a table_name)
+   :return hook_class: hook class 
+
+Use it with care as it may lead in situation in which not all fields are
+present (due e.g. to a different layout or different field_list)
 
 At the moment the hooks are:
 

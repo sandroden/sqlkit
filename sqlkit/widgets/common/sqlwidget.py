@@ -148,7 +148,6 @@ class SqlWidget(gobject.GObject):
         """
 
         gobject.GObject.__init__(self)
-        self.hooks = hooks
         self.related = Container()
         self.gui_fields = Container(self.gui_fields)
         self.field_widgets = Container()
@@ -175,6 +174,7 @@ class SqlWidget(gobject.GObject):
         if table and not tables:
             tables = table
         self.tables = self.get_table(tables)
+        self.hooks = hooks or defaults.get_hook(self.tables, instance=True)
         self.nick= self.get_nick(nick)
         self.ro = ro
         self.noup = noup
