@@ -21,6 +21,9 @@ Main features of sqlkit:
  - :ref:`constraints`: any possible sql constraint can be attached to a Mask 
    or a Table. It can be expressed a s a normal sqlalchemy query or with
    django-like syntax
+ - :ref:`signals`
+ - :ref:`hooks` for a very easy customization of behaviour and for validation
+ - more than 50 snippets of code to test each feature
 
 .. _sqlalchemy: http://www.sqlalchemy.org
 

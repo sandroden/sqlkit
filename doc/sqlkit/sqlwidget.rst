@@ -311,16 +311,11 @@ Attributes
 
 .. _sqlalchemy: http://www.sqlalchemy.org
 
-.. API
-.. ===
-
-.. .. automodule:: sqlkit.db.proxy
-.. .. autoclass:: DbProxy
-..    :members: get_session
   
+.. _signals:
 
 Signals
-=======
+========
 
 
 :record-selected:
@@ -372,24 +367,22 @@ Hooks are searched for in the methods of a class declared in the optional
 ``hooks`` argument.
 
 Hooks can be registered using ``sqlkit.db.utils.register_hook`` (and
-``get_hook``) so that any sqlwidget built on that table will use those
-hooks. The advantage is that browsing data (e.g. using right click on a
-table row) can lead to opening table that are not configured.
+``get_hook`` from :ref:`utils <utils>` module) so that any sqlwidget built
+on that table will use those hooks. The advantage is that browsing data
+(e.g. using right click on a table row) can lead to opening table that are
+not configured: registering hooks is a way to enforce configuration (and
+possibly constraints) on any widget.
 
-.. function:: register_hook(table, hook_class)
-
-   :param table: table (may be a SA table of a table_name)
-   :param hook_class: hook class (may be a clsss or an instance)
-
-.. function:: get_hook(table)
-
-   :param table: table (may be a SA table of a table_name)
-   :return hook_class: hook class 
+As layout hooks can be registered with a nick (default is ``default``) so
+that you can register different hooks for different editing flavour: you can
+have a table for people and you can decide to open it with customer or
+provider layout/hooks just registering both layout and hooks and using
+argument ``layout_nick``.
 
 Use it with care as it may lead in situation in which not all fields are
 present (due e.g. to a different layout or different field_list)
 
-At the moment the hooks are:
+The following hooks are defined:
 
 :on_change_value__field_name: called any time the value is set using set_value without
     initial=True flag. Ie: should be called any time a value is changed from
