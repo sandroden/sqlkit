@@ -104,13 +104,13 @@ def get_default(table_name, field_name):
         
     try:
         value = tables[table_name][field_name]
-        if callable(value):
-            return value()
-        else:
-            return value
-        
     except KeyError, e:
-        pass
+        return
+
+    if callable(value):
+        return value()
+    else:
+        return value
 
     
 
