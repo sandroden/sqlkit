@@ -446,7 +446,7 @@ class SimpleCompletion(object):
                 self.autostart = autostart
         return True
     
-    def pop_menu(self, wdg, ev, field_name, num_button):
+    def pop_menu(self, wdg, ev, field_name, num_button=3):
         """pops a menu with chooices of different completion::
               - regexp
               - start
