@@ -98,6 +98,9 @@ def get_default(table_name, field_name):
     """
     Return the default value for a field_name
     if the value is a callable... call it
+
+    :param table: the table for which we want defaults
+    :param field_name: the name of the field 
     """
     if isinstance(table_name, sqlalchemy.Table):
         table_name = table_name.name
@@ -112,10 +115,19 @@ def get_default(table_name, field_name):
     else:
         return value
 
-    
+def get_table_name(table):
+    """
+    return a table name. input may be a tablename or a sqlalchemy.Table
+    """
 
+    if isinstance(table, sqlalchemy.Table):
+        table_name = table.name
+    else:
+        table_name = table
 
-def register_hook(table, hook):
+    return table_name
+
+def register_hook(table, hook, nick='default'):
     """
     Register a hook for table. Each time a sqlwidget is instantiated for the table
     a hook is searched for here to initialize the sqlwidget
@@ -128,45 +140,34 @@ def register_hook(table, hook):
 
     global hooks
     
-    if isinstance(table, sqlalchemy.Table):
-        table_name = table.name
-    else:
-        table_name = table
-        
     if not isclass(hook):
         hook = hook.__class__
     
-    hooks[table_name] = hook
+    table_name = get_table_name(table)
+    hook_dict = hooks.get(table_name, {})
+    hook_dict[nick] = hook
+    hooks[table_name] = hook_dict
 
-def get_hook(table, instance=False):
+def get_hook(table, instance=False, nick='default'):
     """
     Return a hook tor table or None
 
     :param table: the table for which we want the hook
     :param instance: a boolean: True is we want an instance False if we want the class
     """
-    
-    if isinstance(table, sqlalchemy.Table):
-        table_name = table.name
-    else:
-        table_name = table
 
-    hook = hooks.get(table_name, None)
-    if hook and  instance:
+    global hooks
+    table_name = get_table_name(table)
+
+    table_hooks = hooks.get(table_name, None)
+    try:
+        hook = table_hooks[nick]
+    except (KeyError, TypeError), e:
+        return None
+    
+    if instance:
         hook = hook()
     return hook
-
-def get_table_name(table):
-    """
-    return a table name. input may be a tablename or a sqlalchemy.Table
-    """
-
-    if isinstance(table, sqlalchemy.Table):
-        table_name = table.name
-    else:
-        table_name = table
-
-    return table_name
 
 def register_layout(table, layout, nick='default', persistent=False):
     """

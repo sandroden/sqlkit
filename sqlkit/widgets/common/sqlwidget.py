@@ -175,7 +175,7 @@ class SqlWidget(gobject.GObject):
         if table and not tables:
             tables = table
         self.tables = self._get_table(tables)
-        self.hooks = hooks or defaults.get_hook(self.tables, instance=True)
+        self.hooks = hooks or defaults.get_hook(self.tables, instance=True, nick=layout_nick)
         self.nick= self.get_nick(nick)
         self.ro = ro
         self.noup = noup
@@ -1808,5 +1808,7 @@ class ValidationErrorDialog(object):
                     model.set(iter, 0, "<b>%s</b>" % _(get_label(key, layout=self.master.lay_obj)))
                 model.set(iter, 1, "<i>%s</i>" % err)
             
+
+
 
 

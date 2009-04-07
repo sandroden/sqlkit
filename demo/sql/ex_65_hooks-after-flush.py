@@ -12,7 +12,7 @@ from sqlkit.db.utils import get_differences
 
 class Validation(object):
 
-    def on_after_flush(self, obj, session):
+    def on_after_flush(self, table, obj, session):
 
         for o in session.new:
             print "New object: %s" % o
