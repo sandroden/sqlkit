@@ -619,7 +619,7 @@ class SqlWidget(gobject.GObject):
         """
         try:
             self.record_save()
-        except (sqlkit.exc.CancelledAction, sqlkit.exc.ValidationError):
+        except (exc.DialogValidationError, exc.CancelledAction), e:
             pass
     
     def record_new_cb(self, widget, event=None):
@@ -627,7 +627,7 @@ class SqlWidget(gobject.GObject):
         """
         try:
             self.record_new()
-        except (sqlkit.exc.ValidationError, sqlkit.exc.CancelledAction):
+        except (exc.DialogValidationError, exc.CancelledAction):
             return True
     
     def record_save_new(self, ev):
@@ -738,13 +738,18 @@ class SqlWidget(gobject.GObject):
                 return True
 
         for field in self.gui_fields:      
-            if self.is_mask():
-                ## this part is needed only for mask as in table the cell-renderer does it
-                ## as soon as you leace the cell
-                ## if we setattr now the value in the entry cannot reach the object
-                ## My doubt is that we should probably firstly run the validation
-                setattr(obj, field.field_name, field.get_value())
-            if self.has_changed(field.field_name):
+            try:
+                if self.is_mask():
+                    ## this part is needed only for mask as in table the cell-renderer does it
+                    ## as soon as you leace the cell
+                    ## if we setattr now the value in the entry cannot reach the object
+                    ## My doubt is that we should probably firstly run the validation
+                    setattr(obj, field.field_name, field.get_value())
+
+                if self.has_changed(field.field_name):
+                    return True
+
+            except exc.ValidationError, e:
                 return True
 
         return False
@@ -856,7 +861,6 @@ class SqlWidget(gobject.GObject):
             if obj is None:
                 return {}
 
-
         for sqlwidget in self.related:
             self.validation_errors.update(
                 sqlwidget.record_validate(related=sqlwidget.relationship_path))
@@ -967,9 +971,9 @@ class SqlWidget(gobject.GObject):
         """
         try:
             self.record_save()
-        except (exc.ValidationError, exc.CancelledAction), e:
-            print e
+        except (exc.DialogValidationError, exc.CancelledAction), e:
             return True
+        
         self.emit('delete-event')
         self.widgets['Window'].destroy()
         self.filter_panel.destroy()
@@ -1790,7 +1794,7 @@ class ValidationErrorDialog(object):
         self.dialog.destroy()
 
         self.master.validation_errors = {}
-        raise exc.ValidationError
+        raise exc.DialogValidationError
 
     def fill_model(self, model):
         """
@@ -1804,10 +1808,5 @@ class ValidationErrorDialog(object):
                     model.set(iter, 0, "<b>%s</b>" % _(get_label(key, layout=self.master.lay_obj)))
                 model.set(iter, 1, "<i>%s</i>" % err)
             
-#     def fill_model(self):
-#         self.master.validation_error_fill_model(model)        
-    
-
-
 
 

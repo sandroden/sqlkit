@@ -90,7 +90,7 @@ class SqlMask(sqlwidget.SqlWidget):
         if check:
             try:
                 self.record_save(ask=True)
-            except (exc.CancelledAction, exc.ValidationError):
+            except (exc.CancelledAction, exc.DialogValidationError):
                 return
 
         if index is not None:
@@ -402,7 +402,7 @@ class SqlMask(sqlwidget.SqlWidget):
 
         try:
             self.record_save(None)
-        except (exc.CancelledAction, exc.ValidationError):
+        except (exc.DialogValidationError, exc.CancelledAction), e:
             pass
 
 ####### Layout, Reflection & Analisys

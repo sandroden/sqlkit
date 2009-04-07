@@ -12,6 +12,7 @@ class NoSyncError(Exception): pass
 class SyncNotAvailable(Exception): pass
 class MissingEngine(Exception): pass
 class ValidationError(Exception): pass
+class DialogValidationError(ValidationError): pass
 class NotNullableFieldError(ValidationError):
     def __init__(self, field_name, message=None):
         self.field_name = field_name
