@@ -486,16 +486,24 @@ class SqlWidget(gobject.GObject):
         save_widget = sqlwidget.ui_manager.get_widget('/Main/File')
         save_widget.grab_focus()
         
-    def sb(self, text, seconds=10):
+    def sb(self, text, seconds=10, delay=False):
         """
-        write on the status bar, if present
+        Write on the status bar if present in this  sqlwidget or in the ``relationship_leader``
+
+        :param text: the text to be written
+        :param seconds: how may seconds the text should stay visible
+        :param delay: boolean. If True message is added in an idle cicle. It means it will be shown
+               after other possibly scheduled automatic messages that would hide its visibility.
         """
 
         if self.relationship_leader:
             self.relationship_leader.sb(text, seconds=seconds)
         else:
             try:
-                self.lay_obj.sb(text, seconds=seconds)
+                if delay:
+                    gobject.idle_add(self.lay_obj.sb, text, seconds)
+                else:
+                    self.lay_obj.sb(text, seconds=seconds)
             except Exception, e:
                 #print e, vars(e)
                 pass
@@ -1808,7 +1816,3 @@ class ValidationErrorDialog(object):
                     model.set(iter, 0, "<b>%s</b>" % _(get_label(key, layout=self.master.lay_obj)))
                 model.set(iter, 1, "<i>%s</i>" % err)
             
-
-
-
-

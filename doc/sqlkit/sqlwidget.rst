@@ -167,13 +167,16 @@ slower. Previous 0.5 rel called it ``autoflush``
      to generate the layout for SqlMask also for table's
      :ref:`RecordInMask`.
 
-  :param layut_nick:
+  :param layout_nick:
      nick name of a layout to be used. Defaults to ``default``. A layout can
      be registered under a nick via ``sqlkit.db.utils.register_layout``
-     function (see :ref:`utils`)
+     function (see :ref:`utils <utils>`)
      
 Methods
 =======
+
+.. .. autoclass:: sqlkit.widgets.common.sqlwidget.SqlWidget
+..    :members: 
 
 These methods are better explained elsewhere. I recap them here just for
 completeness:
@@ -224,6 +227,13 @@ completeness:
 .. method:: is_mask()
 
     return True if the sqlwidgget is a SqlMask
+
+.. method:: sb(message, secodns=10, delay=False)
+
+   Adds a message in the stack of messages of the status bar, and removes it
+   after secondss seconds. If delay=True it uses gobject.idle_add to give
+   more chance to be visible (not hidden buy other automatic messages)
+
 
 Attributes
 ===========
