@@ -162,8 +162,16 @@ slower. Previous 0.5 rel called it ``autoflush``
      Adds a mapping between field_names and msgid/translation for gettext and
      tooltips
 
+  :param layout: 
+     string description of the layout as described in :ref:`mask`. It's used
+     to generate the layout for SqlMask also for table's
+     :ref:`RecordInMask`.
 
-
+  :param layut_nick:
+     nick name of a layout to be used. Defaults to ``default``. A layout can
+     be registered under a nick via ``sqlkit.db.utils.register_layout``
+     function (see :ref:`utils`)
+     
 Methods
 =======
 

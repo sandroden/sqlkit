@@ -76,6 +76,7 @@ class SqlWidget(gobject.GObject):
     def __init__(self, mapper=None,
                  ## geometry
                  layout = None,
+                 layout_nick = 'default',
                  naked=False,
                  geom=(-1,-1),
                  rows=10,
@@ -166,14 +167,14 @@ class SqlWidget(gobject.GObject):
         self.constraint=constraint
         self.dbproxy = dbproxy
 #        self.engine = self.get_engine(engine, mapper)
-        self.session = self.get_session(session)
+        self.session = self._get_session(session)
         self.order_by = order_by
-        self.mapper = self.get_mapper(mapper, table or tables, class_)
-        self.metadata = self.get_metadata(metadata, self.mapper)
+        self.mapper = self._get_mapper(mapper, table or tables, class_)
+        self.metadata = self._get_metadata(metadata, self.mapper)
         ## we can use singular or plural as an option, plural in the code
         if table and not tables:
             tables = table
-        self.tables = self.get_table(tables)
+        self.tables = self._get_table(tables)
         self.hooks = hooks or defaults.get_hook(self.tables, instance=True)
         self.nick= self.get_nick(nick)
         self.ro = ro
@@ -181,16 +182,15 @@ class SqlWidget(gobject.GObject):
         self.rows = rows
         self.hidden_fields = hide_fields or []
         self.mapper_info = self.get_fields()
-        self.field_list = self.parse_fields(field_list, layout)
+        self.layout   = layout or self._get_layout_from_nick(layout_nick)
+        self.field_list = self._parse_fields(field_list)
         self.ignored_fields = self._set_ignored_fields(ignore_fields)
         if hide_fields:
             self.hide_fields(force=True)
         self._title = self._create_title(title)
-#        self.tables = {}
-        self.values = {}
+
         ## create the interface and add obvious constraints
         self.naked = naked
-        self.layout   = layout
         self.sql   = sql
         self.single = single
         self.limit=limit
@@ -205,13 +205,16 @@ class SqlWidget(gobject.GObject):
         self.query = self.session.query(self.mapper)
         self.defaults = defaults.Defaults(self.tables, metadata=self.metadata, local=True)
             
-    def get_session(self, session):
+    def _get_session(self, session):
+        """
+        return a session suitable for this widget
+        """
         if session:
             return session
         else:
             return self.dbproxy.get_session()
     
-    def get_mapper(self, mapper, tables, class_=None):
+    def _get_mapper(self, mapper, tables, class_=None):
 
         if mapper:
             return mapper
@@ -223,7 +226,7 @@ class SqlWidget(gobject.GObject):
         #self.tables = [mapper.local_table.name]  ## FIXME: what when we have a join?
         return mapper
 
-    def get_metadata(self, metadata, mapper):
+    def _get_metadata(self, metadata, mapper):
         if metadata:
             return metadata
         if self.dbproxy:
@@ -233,7 +236,7 @@ class SqlWidget(gobject.GObject):
             ## one metadata in the same session?... boh
             return mapper.local_table.metadata
         
-    def get_table(self, tables):
+    def _get_table(self, tables):
         from sqlalchemy.sql import Join
         
         if isinstance(tables, Table):
@@ -248,7 +251,7 @@ class SqlWidget(gobject.GObject):
 
             return name
 
-    def parse_fields(self, field_list, layout):
+    def _parse_fields(self, field_list):
         if not field_list:
             ### if no layout was defined and no field_list was passed
             ### we don't add PropertyLoader (ManyToMany relations):
@@ -256,7 +259,7 @@ class SqlWidget(gobject.GObject):
             ###
             ### If a layout was defined, we add propertyLoader only for SqlMask
             ###
-            if self.is_mask() and layout:
+            if self.is_mask() and self.layout:
                 get_the_keys = self.mapper_info.all_keys
             else:
                 get_the_keys = self.mapper_info.keys
@@ -383,6 +386,16 @@ class SqlWidget(gobject.GObject):
 
         return (self.lay_obj, self.widgets)
     
+    def _get_layout_from_nick(self, nick):
+        """
+        return a layout for table/nick nick
+        """
+        from sqlkit.db import get_layout
+
+        ## FIXME: self.master.tables is not really defined. Mau be a string or a list 
+        
+        return get_layout(self.tables, nick=nick)
+
     def show(self, show):
         """
         create the widget and go on displaying the layout

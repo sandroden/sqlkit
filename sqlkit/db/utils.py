@@ -17,6 +17,26 @@
 Utilities
 =========
 
+Hooks
+-----
+
+.. autofunction::  register_hook
+
+.. autofunction::  get_hook
+
+Layout
+------
+
+.. autofunction::  register_layout
+
+.. autofunction::  get_layout
+
+Database
+--------
+
+.. autofunction::  get_differences
+
+
 Descr
 -----
 This module provide a bare simple Class to help creating 
@@ -36,7 +56,7 @@ database editing (``sqledit -c url``)
 import re
 from sqlalchemy import Table
 from sqlalchemy.exc import OperationalError, ProgrammingError
-from defaults import register_hook, get_hook
+from defaults import register_hook, get_hook, register_layout, get_layout
 
 ########   descriptor
 from sqlkit.misc.utils import Container
@@ -278,6 +298,13 @@ def get_labels_and_tips_from_sqlkit(table, metadata=None):
 def get_differences(obj, session=None):
     """
     show differences between old and new version of an object
+    this is a generator, you should use as in::
+
+       for fiel_name, old_value, new_value:
+           print 'field   %s changed from %s, to %s' % (field_name, old_value, new_value)
+
+    :param obj: the object to look for changes
+    
     """
     from sqlalchemy.orm import attributes, class_mapper, object_session
 
@@ -298,6 +325,10 @@ def get_differences(obj, session=None):
 def get_history(obj, field_name, session=None):
     """
     show the history of a field of an object
+
+    :param obj: the object to look for history
+    :param field_name: the field name of which we want to know the history
+    :return: new, unchanged, old
     """
     from sqlalchemy.orm import attributes, class_mapper
 

@@ -130,15 +130,17 @@ class LayoutGenerator (object):
         }
     
     def __init__ (self, master, naked=False, lay=None):
-        """fields: an InspectMapper object
         """
+        fields: an InspectMapper object
+        """
+        self.master = master
+
         if lay:
             lay = re.sub('#.*\n','', lay)
+
         self.loaders = {}
-        self.master = master
         self.fields_in_layout = {}  # {'first_name': 'e=first_name', 'date': 'd=date'}
-#        self.fields = master.mapper_info.fields
-        #self.used_field_dict = {}
+
         if self.master.is_mask():
             if not lay:
                 lay = "\n".join(self.master.field_list)
@@ -385,7 +387,4 @@ class LayoutGenerator (object):
                     
                 self.fields_in_layout[field_name] = "%s=%s" % (
                     self.get_edit_string(mod), field_name)
-
-                    
-
 

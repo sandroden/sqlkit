@@ -3,6 +3,7 @@ import sqlalchemy
 
 tables = {}
 hooks = {}
+layout_dict = {}
 
 def set_default(table_name, tbl_dict):
     """
@@ -119,7 +120,8 @@ def register_hook(table, hook):
     Register a hook for table. Each time a sqlwidget is instantiated for the table
     a hook is searched for here to initialize the sqlwidget
 
-    Hook must be a class
+    :param table: a table for which we want to register the hook
+    :param hook: the hook to be registered (a class or an instance)
 
     """
     from inspect import isclass
@@ -139,6 +141,9 @@ def register_hook(table, hook):
 def get_hook(table, instance=False):
     """
     Return a hook tor table or None
+
+    :param table: the table for which we want the hook
+    :param instance: a boolean: True is we want an instance False if we want the class
     """
     
     if isinstance(table, sqlalchemy.Table):
@@ -150,3 +155,56 @@ def get_hook(table, instance=False):
     if hook and  instance:
         hook = hook()
     return hook
+
+def get_table_name(table):
+    """
+    return a table name. input may be a tablename or a sqlalchemy.Table
+    """
+
+    if isinstance(table, sqlalchemy.Table):
+        table_name = table.name
+    else:
+        table_name = table
+
+    return table_name
+
+def register_layout(table, layout, nick='default', persistent=False):
+    """
+    Register a layout for table with a nick (default nick is 'default')
+    Each time a sqlwidget is instantiated for the table
+    a layout is searched for here 
+
+    :param table: the table to register the layout for. May be a sqlakchemy.Table or a string
+    :param layout: the layut to be registered
+    :param nick: the name of a nick to use for this layout (used for SqlMask(... nick=nick)
+    :param persistent: register in the _sqlkit tables (not yet implemented)
+    """
+
+    global layout_dict
+
+    table_name = get_table_name(table)
+    table_layout_dict = layout_dict.get(table_name, {})
+    table_layout_dict[nick] = layout
+    layout_dict[table_name] = table_layout_dict
+
+    if persistent:
+        raise NotImplementedError("registering of layout is not yet implemented")
+
+
+def get_layout(table, nick='default'):
+    """
+    Return a layout for table for nick 'nick'
+
+    :param table: the table to register the layout for. May be a sqlakchemy.Table or a string
+    :param nick: the nick used for this layout 
+    
+    """
+    
+    global layout_dict
+    table_name = get_table_name(table)
+
+    table_layout_dict = layout_dict.get(table_name, None)
+    try:
+        return table_layout_dict[nick]
+    except (KeyError, TypeError), e:
+        return None
