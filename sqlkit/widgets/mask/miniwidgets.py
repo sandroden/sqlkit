@@ -486,7 +486,7 @@ class ForeignKeyWidget(Widget):
             return self.value
         else:
             if self.entry.get_text():
-                msg = _("'%s' may have an invalid value: try completion on that" % self.field_name)
+                msg = _("'%s' may have an invalid value: try completion on that") % self.field_name
                 raise exc.ValidationError(msg)
             else:
                 return None
