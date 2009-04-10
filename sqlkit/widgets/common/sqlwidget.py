@@ -881,7 +881,7 @@ class SqlWidget(gobject.GObject):
         try:
             self.run_hook('on_validation', )
         except exc.ValidationError, e:
-            self.handle_validation_errors(e)
+            self.add_validation_error(e)
 
         if related:
             return self.validation_errors
@@ -895,14 +895,23 @@ class SqlWidget(gobject.GObject):
             dialog = ValidationWarningDialog(self)
             dialog.run()
 
-    def handle_validation_errors(self, error, field_name=None):
+    def add_validation_error(self, error, field_name=None):
         """
         keep track of the error in self.validation_errors/validation_warnings
         so that a further process can collect them and present them to the user
+
+        :param error:   the ValidationError or an error message string
+        :field_name:    the field_name to which the error refers. Defaults to 'record validation'
         """
         if not field_name:
-            field_name = 'record validation' # a key to be used in self.validation_errors
+            ## TIP: the general validation for the record
+            field_name = _('record validation') # a key to be used in self.validation_errors
 
+        if isinstance(error, basestring):
+            error_message = error
+        else:
+            error_message = error.message
+            
         if isinstance(error, exc.ValidationWarning):
             error_dict = self.validation_warnings
         else:
@@ -911,10 +920,18 @@ class SqlWidget(gobject.GObject):
         if not field_name in error_dict:
             error_dict[field_name] = []
 
-        error_dict[field_name] += [error.message]
+        error_dict[field_name] += [error_message]
 
-        self.sb(error.message, seconds=30)
+        self.sb(error_message, seconds=30)
 
+    def add_not_null_error(self, field_name):
+        """
+        simple way to add a not nullable field error
+        :param field_name: the field_name that canno be nullable
+        """
+        error = exc.NotNullableFieldError(field_name, master=self)
+        self.add_validation_error(error, field_name)
+        
     def record_validate_fields(self, obj):
         """
         validate any fields in self.gui_fields
@@ -930,7 +947,7 @@ class SqlWidget(gobject.GObject):
                     self.gui_fields[field_name].validate( value , clean=True)
 
             except exc.ValidationError, e:
-                self.handle_validation_errors(e, field_name=field_name)
+                self.add_validation_error(e, field_name=field_name)
 
         
 ###### Hooks
@@ -967,7 +984,7 @@ class SqlWidget(gobject.GObject):
         self.grab_focus(widget)
         try:
             self.reload( )
-        except (exc.ValidationError):
+        except exc.DialogValidationError, e:
             return True
 
     def record_forward_cb(self):
