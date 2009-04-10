@@ -379,7 +379,7 @@ class Field(object):
                 raise exc.ValidationError(_(msg % (field_name, e.message) ))
 
         if value is None and not self.nullable and not self.default:
-            raise exc.NotNullableFieldError(self.field_name)
+            raise exc.NotNullableFieldError(self.field_name, master=self.master)
 
         self.master.run_hook('on_field_validation', value, self, field_name=self.field_name)
 
@@ -833,7 +833,7 @@ class ForeignKeyField(Field):
             raise exc.ValidationError(_(msg % (self.field_name, value, e.message) ))
 
         if value is None and not self.nullable:
-            raise exc.NotNullableFieldError(self.field_name)
+            raise exc.NotNullableFieldError(self.field_name, master=self.master)
 
         self.master.run_hook('on_field_validation', value, field_name=self.field_name)
 
