@@ -850,7 +850,7 @@ class SqlWidget(gobject.GObject):
         ONLYDIGITS="%s|[0-9.,]|BackSpace|Left|Right|F1|period|Tab|Up|Down|Return|Esc)"
 
         if not re.match (ONLYDIGITS % KEYPAD_KEYS, key):
-            self.sb(_('Char %s is not accepted in numeric context' % key))
+            self.sb(_('Char %s is not accepted in numeric context') % key)
             return True
 
     def record_validate(self, obj=None, single_fields=True, related=None):
@@ -863,6 +863,7 @@ class SqlWidget(gobject.GObject):
         """
         if not hasattr(self, 'validation_errors') or related:
             self.validation_errors = {}
+            self.validation_warnings = {}
 
         if obj is None:
             obj = self.get_current_obj()
@@ -872,6 +873,7 @@ class SqlWidget(gobject.GObject):
         for sqlwidget in self.related:
             self.validation_errors.update(
                 sqlwidget.record_validate(related=sqlwidget.relationship_path))
+            self.validation_warnings.update(sqlwidget.validation_warnings)
             
         if single_fields:
             self.record_validate_fields(obj)
@@ -889,18 +891,27 @@ class SqlWidget(gobject.GObject):
             dialog.run()
             #self.validation_error_dialog()
     
-    def handle_validation_errors(self, error=None, field_name=None):
+        if self.validation_warnings: # just one error dialog
+            dialog = ValidationWarningDialog(self)
+            dialog.run()
+
+    def handle_validation_errors(self, error, field_name=None):
         """
-        handle the error raised by a field or take care of action in
-        self.validation_error dict and raise exception for record_save
+        keep track of the error in self.validation_errors/validation_warnings
+        so that a further process can collect them and present them to the user
         """
         if not field_name:
             field_name = 'record validation' # a key to be used in self.validation_errors
-        
-        if not field_name in self.validation_errors:
-            self.validation_errors[field_name] = []
 
-        self.validation_errors[field_name] += [error.message]
+        if isinstance(error, exc.ValidationWarning):
+            error_dict = self.validation_warnings
+        else:
+            error_dict = self.validation_errors
+
+        if not field_name in error_dict:
+            error_dict[field_name] = []
+
+        error_dict[field_name] += [error.message]
 
         self.sb(error.message, seconds=30)
 
@@ -1762,21 +1773,25 @@ class UnsavedDataDialog(object):
 
 class ValidationErrorDialog(object):
 
+    GENERAL_MSG = _('Errors are present in the record. \nCorrect them now, to continue \nor delete the record')
+    TITLE = _("Validation errors")
+    TYPE = 'ok'
+    ERROR_DICT = 'validation_errors'
+    IMAGE = 'gtk-dialog-error'
+    
     def __init__(self, master):
         """
         represent the errors in self.validation_errors and raise ValidationError
         to correctly propagate the error upwards
         """
         self.master = master
-        general_msg = _('Errors are present in the record. \nCorrect them now, to continue \nor delete the record')
         
 
-        layout = """i=gtk-dialog-error:6 l=general:<
-                    TVS=details -"""
+        layout = """i=%s:6 l=general:<
+                    TVS=details -""" % self.IMAGE
         
-        self.dialog, lay = master.lay_obj.dialog(lay=layout, type='ok',
-                                          title=_("Validation errors"))
-        lay.widgets['l=general'].set_text(general_msg)
+        self.dialog, lay = master.lay_obj.dialog(lay=layout, type=self.TYPE, title=self.TITLE)
+        lay.widgets['l=general'].set_text(self.GENERAL_MSG)
         
         tv = lay.widgets['TV=details']
         model = gtk.ListStore(str, str)
@@ -1793,7 +1808,7 @@ class ValidationErrorDialog(object):
         tv.append_column(tc1)
         tv.append_column(tc2)
         tv.show_all()
-
+        self.error_dict = getattr(self.master, self.ERROR_DICT)
         self.fill_model(model)
         self.dialog.show_all()
 
@@ -1801,7 +1816,7 @@ class ValidationErrorDialog(object):
         response = self.dialog.run()
         self.dialog.destroy()
 
-        self.master.validation_errors = {}
+        self.error_dict = {}
         raise exc.DialogValidationError
 
     def fill_model(self, model):
@@ -1809,10 +1824,30 @@ class ValidationErrorDialog(object):
         Fill the model of the treeview that presents the validation errors
         """
 
-        for key in (self.master.validation_errors.keys()):
-            for i, err in enumerate(self.master.validation_errors[key]):
+        for key in self.error_dict.keys():
+            for i, err in enumerate(self.error_dict[key]):
                 iter = model.append(None)
                 if i == 0:
-                    model.set(iter, 0, "<b>%s</b>" % _(get_label(key, layout=self.master.lay_obj)))
+                    model.set(iter, 0, "<b>%s</b>" % self.master.get_label(key))
                 model.set(iter, 1, "<i>%s</i>" % err)
             
+
+class ValidationWarningDialog(ValidationErrorDialog):
+
+    GENERAL_MSG = _('You can continue or go back editing. \nRead the following warnings to decide')
+    TITLE = _("Validation Warnings")
+    TYPE = 'ok-cancel'
+    ERROR_DICT = 'validation_warnings'
+    IMAGE = 'gtk-dialog-warning'
+    
+    def run(self):
+        response = self.dialog.run()
+        self.dialog.destroy()
+
+        self.error_dict = {}
+        if response == gtk.RESPONSE_CANCEL:
+            raise exc.DialogValidationError
+        else:
+            pass
+
+

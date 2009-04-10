@@ -253,6 +253,7 @@ Attributes
    some completion (see :ref:`completion`)
 
 .. attribute:: gui_fields
+
    a container for all validation fields. A validation fields is an objects
    that lives in sqlkit.widgets.common.fields (temporary position) and that
    knows how to represent a field and how to validate it. 
@@ -358,10 +359,15 @@ Signals
 .. _hooks:      
 
 Hooks
-======
+=====
 
 Beside signals there is another way to add controls: hooks. A hook is a
 function that will be called in particular moments only if present. 
+
+Hooks are the main way to customize the behaviuour of a sqlwidget.  Some of
+the hooks (``on_validation.*``) are related to validation other are related
+to configuration (``on init``), others (``on_activate``) may be used to save
+typing.
 
 Hooks are searched for in the methods of a class declared in the optional
 ``hooks`` argument.
@@ -452,17 +458,19 @@ records as explained in :ref:`relationships`) you need to add the
 relationship_path in the method name, i.e. the value you have used in the
 table definition for the relation (and in the layout as in m2m=actors)
 
+.. _wav_example:
+
 example
---------
+-------
 
 This example show how to use hooks to play a sound on completion::
 
-  class MovieMask(SqlMask):
+  class Hook(obj):
       def on_completion__genre(self, field_name, obj):
            if obj.genre == 'horror':
 	        play('horror.wav')
 
-  MovieMask(class=models.Movie, ...)
+  MovieMask(class=models.Movie, hooks=Hook(), ...)
 
 
 .. _diff:

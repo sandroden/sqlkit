@@ -11,21 +11,52 @@ class MissingPrimaryKey(Exception): pass
 class NoSyncError(Exception): pass
 class SyncNotAvailable(Exception): pass
 class MissingEngine(Exception): pass
-class ValidationError(Exception): pass
-class DialogValidationError(ValidationError): pass
+
+### Validation
+class ValidationError(Exception):
+    """
+    Each hook or field.validate_value() can raise a ValidationError that will
+    cause the saving/deleting procedure to abort and present a Dialog to inform
+    the user of the error present, the old and the new value.
+    """
+    pass
+
+class DialogValidationError(ValidationError):
+    """
+    A validation error that makes the outer procedures to abort. It's
+    trapped by delete_event_cb and record_save_cb.
+    """
+    pass
+
+class ValidationWarning(ValidationError):
+    """
+    This is not a real Error. It will make a different popup window to be
+    presented with a message and a possibility to abort or continue.
+    """
+    pass
+
 class NotNullableFieldError(ValidationError):
-    def __init__(self, field_name, message=None):
+    """
+    An error that specifies which field cannot be empty
+    """
+    def __init__(self, field_name, message=None, master=None):
         self.field_name = field_name
-        self.message = message or _("field %s cannot be NULL") % field_name
+        if master:
+            self.field_name = master.get_label(field_name)
+        self.message = message or _("field %s cannot be NULL") % self.field_name
     
 class InvalidValue(ValidationError):
-    def __init__(self, field_name, value, message=None):
+    def __init__(self, field_name, value, message=None, master=None):
         self.field_name = field_name
+        if master:
+            self.field_name = master.get_label(field_name)
         self.value = value
         self.message = message or _('field %s cannot have value %s') % (
-            field_name, value)
+            self.field_name, value)
     
 class CommitError(ValidationError): pass
+
+
 class CancelledAction(Exception): pass
 
 class LookupValueError(Exception): pass

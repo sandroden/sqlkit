@@ -278,6 +278,7 @@ class SqlMask(sqlwidget.SqlWidget):
 
         if force or self.record_has_changed():
             self.validation_errors = {}
+            self.validation_warnings = {}
 
             for field in self.gui_fields:
                 field_name = field.field_name
@@ -289,10 +290,8 @@ class SqlMask(sqlwidget.SqlWidget):
                         setattr(obj, field_name, self.get_value(field_name))
 
                 except exc.ValidationError, e:
-                    self.handle_validation_errors(e, field_name=field_name)
+                    self.add_validation_error(e, field_name=field_name)
 
-#             if self.validation_errors:
-#                 self.validation_error_dialog()
         return obj
 
     def clear_mask(self, widget=None, check=True):

@@ -18,6 +18,7 @@ SQLKit
    filters
    completion
    constraints
+   validation
    defaults
    totals
    relationship
