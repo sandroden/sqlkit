@@ -25,7 +25,7 @@ from sqlkit.db import minspect
 from datetime import *
 from sqlkit.db.django_syntax import django2components
 from sqlkit.misc.datetools import string2dates
-from sqlkit import _
+from sqlkit import _, exc
 import warnings
 
 class SqlDataFixNeeded(Exception): pass
@@ -211,7 +211,10 @@ class FilterPanel(object):
             display = True
             
         if self.default_reload:
-            length = self.master.reload(limit=self.get_limit(), display=display )
+            try:
+                length = self.master.reload(limit=self.get_limit(), display=display )
+            except exc.DialogValidationError, e:
+                return
 
         else:
             ## FIXME: sqlData no longe exists
