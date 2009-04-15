@@ -197,9 +197,9 @@ div.bodywrapper {
     margin: 0 240px 0 0;
     border-right: 1px solid #ccc
     }
-div.body a {
-    text-decoration: underline
-    }
+/* div.body a { */
+/*     text-decoration: underline */
+/*     } */
 div.sphinxsidebar {
     margin: 0;
     padding: 0.5em 15px 15px 0;

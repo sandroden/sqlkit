@@ -5,8 +5,8 @@ Validation
 ===========
 
 Validation is very important and is mainly accomplished via :ref:`hooks`:
-``on_validation`` and ``on_field_validation__field_name`` are expressly created for
-that with all the variants for related tables.
+``on_validation`` and ``on_field_validation__field_name`` are expressly
+created for that with all the variants for related tables.
 
 There are many different snippets in the demo related to validation and
 hooks: they are part of the documentation.
@@ -17,8 +17,8 @@ Validation Errors
 The validation has the following steps:
 
   1. Each field in ``gui_fields``, i.e. all fields that have a grafical
-     representation are looked for the value and a hook
-     ``on_field_validation__field_name`` is tried.
+     representation are looked for the value and a hook named
+     ``on_field_validation__field_name`` -if present- is run .
 
      .. note::  At present fields representing m2m or o2m relations (e.g. *movies*  in a
                 *director* class) are not searched for
@@ -26,14 +26,14 @@ The validation has the following steps:
                 ``on_validation`` hook to set validation on relations
 
      Each method of the hooks class can raise a ValidationWarning directly
-     that is cought by the main validation loop, and populates an
+     that is cought by the main validation loop, and populates
      ``validation_error`` dict or can feed this dict via the sqlwidget's
      method ``add_validation_error`` or ``add_not_null_error``
 
      .. method:: add_validation_error(error, field_name)
 
-        :param error:   the ValidationError or an error message string
-        :field_name:    the field_name to which the error refers. Defaults to 'record validation'
+        :param error:   the *ValidationError* or an error message string
+        :param field_name:    the field_name to which the error refers. Defaults to 'record validation'
        
 
      .. method:: add_not_null_error(error, field_name)
@@ -45,7 +45,7 @@ The validation has the following steps:
      ``validation_error``  dict is updated.
 
   2. If the ``validation_error`` dict has collected some errrors a
-     ValidationDialog is presented to the user::
+     *ValidationErrorDialog* is presented to the user::
 
        class Hooks(object):
 
@@ -69,7 +69,7 @@ Validation Warnings
 In a similar way you can raise/add a Validation Warning that will warn with
 a message but will not abort the process. 
 
-ValidationWarningDialog is presented after ValidationErrorDialog if both are
+*ValidationWarningDialog* is presented after *ValidationErrorDialog* if both are
 needed.
 
 

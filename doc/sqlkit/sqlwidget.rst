@@ -508,3 +508,11 @@ behaviour you need to set blank=True on fields::
 
 
 .. _`idle in transaction`: http://groups.google.it/group/sqlalchemy/browse_frm/thread/6abb815a3728d41c?hl=it&tvc=1&q=idle
+
+Utils
+=====
+
+.. _utils:
+
+.. automodule:: sqlkit.db.utils
+

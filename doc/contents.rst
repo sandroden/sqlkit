@@ -13,7 +13,7 @@ Welcome to sqlkit's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    sqlkit/contents
    layout/contents

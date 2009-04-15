@@ -8,22 +8,14 @@ SQLKit
    Documentation for your release is in :file:`doc` directory
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    tour
-   intro
-   sqlwidget
-   mask
-   table
-   filters
-   completion
-   constraints
-   validation
-   defaults
-   totals
-   relationship
-   localization
-   utils
+   widgets
+   browsing
+   editing
+
    sqledit
    download
    missing
+

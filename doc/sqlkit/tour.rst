@@ -2,6 +2,30 @@
 Sqlkit feature's tour
 =======================
 
+.. _sqlkit:
+
+Features
+========
+
+
+Sqlkit is a tool to edit __data__ in the easiest possible way, to be used
+building applications that use databases. It is not an editor for tables
+schemas: no way to add columns or add foreign key relationships is provided.
+
+A typical usage can be::
+
+
+  from sqlkit.widgets import SqlTable, SqlMask
+  from sqlkit import DbProxy
+  
+  db = DbProxy(engine='sqledit:///movies.sqlite')
+  t = SqlMask(table='movie', dbproxy=db, single=True)
+     
+that will pop up an editor for the record. Filter panel will be available
+just clicking on the label of the fields.
+
+
+
 Main features of sqlkit:
 
  - editor of databases in 2 modes: :ref:`table` & :ref:`mask`
@@ -28,7 +52,7 @@ Main features of sqlkit:
 .. _sqlalchemy: http://www.sqlalchemy.org
 
 Views
-======
+-----
 
 Two possible views: table & mask
 
@@ -53,7 +77,7 @@ that where requested by the following instructions::
    t2 = SqlTable(table='partecipazioni_invitato', dbproxy=db, )
 
 Filter
-=========
+------
 
 
 Each label of both views can be clicked to get a filter panel:
@@ -61,7 +85,7 @@ Each label of both views can be clicked to get a filter panel:
 .. image:: ../img/filter-panel.png
 
 Completion
-============
+----------
 
 :ref:`completion` is triggered by F1 key, Ctrl-Enter or Shift-Enter.  If the
 field is a foreign key it will pop up a list of foreign values otherwise it
@@ -75,13 +99,13 @@ db engine in use.
 
 
 Layout
-========
+------
 
 Very easy way to draw a layout. See :ref:`layout` widgets for a tour.
 
 
 Sqledit
-=========
+-------
 
 A full featured program (python script) that can browse a database. Many
 options (``sqledit -h``).
@@ -100,7 +124,7 @@ of the examples::
 the last is a very minimal db present in ``doc/db/movies.sqlite``
 
 Relationships
-==============
+-------------
 
 :many2one: are just recognized automatically with simple introspection
 :many2many: is very simply added to SqlMask declaring in the layout and
@@ -110,13 +134,13 @@ Relationships
 Many more detail in :ref:`relationships`
 
 Totals
-======
+------
 
 It's possible to display totals and subtotals in a table view. More in 
 :ref:`totals`
 
 Constraints
-============
+-----------
 
 A :ref:`contraint <constraints>` can be as simple as::
 
@@ -130,3 +154,38 @@ will allow spanning from one table to a related (provided a relation was
 established at sqlalchemy level) and from attribute name to operator to e
 used.  
 
+
+Basic assumptions
+=================
+
+1. You use PrimaryKeys and ForeignKeys throughout the db.
+   If you don't use ForeignKeys sqlkit will just work w/o any special
+   behaviour. If you don't use PrimaryKeys sqlkit will not even open the table.
+
+2. You are using one single metadata. This is a limit but it's my normal
+   environment. There's not really anything that cannot be changed easily
+   about this, simply I didn't have need for this, nor working cases.  (While
+   I was plenty of ideas on other features...)
+
+.. _fkey:
+
+ForeignKeys
+===========
+
+Everywhere there's a ForeignKey I try to represent it in
+the best possible way. More info in the completion chapter:
+:ref:`description`
+
+
+sqlkit supported backend structure
+==================================
+
+1. sqlkit is built on sqlalchemy that allows editing db with many
+   `different engines`_. I use it with postgres, mysql and sqlite. 
+   Other engines are supported but need a very simple addition that I'd be
+   willing to do on demand.
+
+2. SqlMask/SqlTable must be fed with a table, a class (eg: from declarative
+   layer) or a mapper.
+
+.. _`different engines`: http://www.sqlalchemy.org/docs/05/intro.html#overview_sqlalchemy_dbms
