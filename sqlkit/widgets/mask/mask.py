@@ -21,7 +21,6 @@ from sqlalchemy import *
 from sqlalchemy.exc import InvalidRequestError
 from sqlkit.widgets.common.fields import FieldChooser
 import sqlkit
-from sqlkit.validation import validator
 from sqlkit.widgets.common import completion, sqlwidget
 import decimal
 import sqlkit
