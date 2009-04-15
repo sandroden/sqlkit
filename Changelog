@@ -1,9 +1,30 @@
+sqlkit 0.8.6-rc3 - 
+
+	* hooks: - hooks are now in a separated class that can be registered
+    	           globally under a nickname. If present 'default' hook
+                   is used
+ 	         - added after_flush and on_init
+
+	* layout: now layout can be registered globally in the same way
+	           hooks can.
+
+	* validation: - added ValidationWarnings that allow to warn the
+	           user but don't abort saving operation
+	          - fix cases in which validation didn't allow to save 
+	* fixes: after_flush signal
+
+	* fields: get_human value returs a formatted value (date/numbers)
+	
+	
 sqlkit 0.8.6-rc2 - 
 	
 	* mask: fix tips. In some cases accented letters would crash
 	        right cick on label pops info on field
+
 	* mysql: fixed reflection of some Types and REGEXP operator
+
 	* export: now ForeignKey are translated on exporting
+
 	* table: better with of columns
 	         some Types are mapped to Varchar and handled (eg. PGInet)
 	         Modify menu allows to re-show columns that have been
