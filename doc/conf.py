@@ -157,7 +157,7 @@ htmlhelp_basename = 'sqlkitdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
-  ('contents', 'sqlkit.tex', 'sqlkit Documentation', 'Sandro Dentella', 'manual'),
+  ('sqlkit/contents', 'sqlkit.tex', 'sqlkit Documentation', 'Sandro Dentella', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

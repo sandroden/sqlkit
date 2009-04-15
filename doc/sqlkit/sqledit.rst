@@ -1,8 +1,8 @@
 .. _sqledit:
 
-=====================================
- Sqledit - browsing and editing data
-=====================================
+==========================================================
+ Sqledit - the standalone program to browse and edit data
+==========================================================
 
 
 Sqledit is a data editor/browser. It may be called on a database and it will

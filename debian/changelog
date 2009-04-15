@@ -1,3 +1,9 @@
+python-sqlkit (0.8.6-rc3) hardy; urgency=low
+
+  * rel candidate 3 for 0.8.6
+
+ -- Sandro Dentella <sandro@e-den.it>  Wed, 15 Apr 2009 11:59:55 +0200
+
 python-sqlkit (0.8.6-rc2) hardy; urgency=low
 
   * rel candidate 2 for 0.8.6

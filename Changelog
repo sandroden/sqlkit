@@ -15,9 +15,6 @@ sqlkit 0.8.6-rc3 -
 
 	* fields: get_human value returs a formatted value (date/numbers)
 	
-	
-sqlkit 0.8.6-rc2 - 
-	
 	* mask: fix tips. In some cases accented letters would crash
 	        right cick on label pops info on field
 
