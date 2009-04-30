@@ -476,6 +476,16 @@ The following hooks are defined:
 	  (you may want to use `get_differences`), but you won't have
           correctly setup relation's object
 
+:on_after_flush_postexec: run as the signal with the same name from within
+    after_flush_postexec session extension method
+
+    As in the precedent hook this is called exactly withing the session
+    extension method by the same name. When it's run the session will have
+    no longer informations on session.dirty/session.new/session.delete but
+    will have all relations set-up.
+
+    The callback has the same signature as for ``on_after_flush``
+
         
 If you need to add hooks for related sqlwidgets (those that display related
 records as explained in :ref:`relationships`) you need to add the

@@ -179,6 +179,18 @@ class SKSessionExtension(SessionExtension):
             sqlwidget.run_hook('on_after_flush', current, session)
             sqlwidget.emit('after-flush', current, session)
         
+    def after_flush_postexec(self, session, flush_context):
+        """
+        implement the after-flush-postexec signal
+        """
+        
+        sqlwidget= getattr(self, 'sk_sqlwidget', None)
+        current= getattr(self, 'sk_current', None)
+
+        if sqlwidget and current:
+            sqlwidget.run_hook('on_after_flush_postexec', current, session)
+            #sqlwidget.emit('after-flush-postexec', current, session)
+        
 def table2mapper(table):
     """
     return a mapper for a class created on the fly. table is a sqlalchemy.Table obj
