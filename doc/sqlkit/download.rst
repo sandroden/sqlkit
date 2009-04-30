@@ -50,14 +50,14 @@ Even if the source states ``lenny`` it can safely be used for ubuntu.
 
    sqlkit depends on babel that is not packaged in debian but is packaged in
    ubuntu with two different names in hardy and jounty and is missing in
-   intrepid. So
-   the package I have prepared does not depend on it. You are supposed to
-   add the package. If using hardy install ``python-babel`` is using jaunty,
-   use ``python-pybabel``. If using intrepid... I'm almost sure there was a
-   pybabel, but there is no more... install by hand! Alternatively you can
-   use the packages ``python-sqlkit-hardy`` or ``python-sqlkit-lenny`` that
-   add the specific dependacies. ``python-sqlkit-lenny`` is good for
-   *jaunty* as well and hopefully for any following release.
+   intrepid. So the package I have prepared does not depend on it. You are
+   supposed to add the package. If using hardy install ``python-babel`` if
+   using jaunty, use ``python-pybabel`` instead. If using intrepid... I'm
+   almost sure there was a pybabel, but there is no more... install by hand!
+   Alternatively you can use the packages ``python-sqlkit-hardy`` or
+   ``python-sqlkit-lenny`` that add the specific
+   dependacies. ``python-sqlkit-lenny`` is good for *jaunty* as well and
+   hopefully for any following release.
 
 mailing list
 ============
