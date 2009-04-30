@@ -533,14 +533,6 @@ class SqlWidget(gobject.GObject):
             return
         gobject.idle_add(self.widgets['Window'].resize, width, height)
         
-    def get_table_label(self):
-        """
-        get labels and tips from the db is they exists
-        """
-        from sqlkit.db.utils import get_labels_and_tips_from_sqlkit
-        for table in self.tables.split():
-            self.label_map.update( get_labels_and_tips_from_sqlkit(table, metadata=self.metadata))
-            
     def gquit(self, *args):
         gtk.main_quit()
                        
@@ -1181,7 +1173,8 @@ class SqlWidget(gobject.GObject):
         """
         return field_name translated according to map_label + gettext
         """
-        return _(get_label(field_name, layout=self.lay_obj))
+        label = get_label(field_name, layout=self.lay_obj)
+        return _(label)
 
     def set_current(self, pk=None):
         """retrieve a record and set it as current
