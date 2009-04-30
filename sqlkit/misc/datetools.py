@@ -41,7 +41,7 @@ as already stated::
 means a 3 months period, starting from beginnig of last month to end of next
 month
 
-Not implemented yet
+Persiods
 -------------------
 @ is a compact way to set a period::
 
@@ -95,6 +95,10 @@ def string2dates(string):
     m = re.search(CHARS, string)
     if not m:
         return string, None
+
+    if '@' in string:
+        base = string.replace('@','')
+        string = "%s > %s" % (base.lower(), base.upper())
 
     data = string.split('>')
 
