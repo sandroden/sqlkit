@@ -20,10 +20,10 @@ This operation has the following main actors:
        No validation is done by default on this field, the completed text
        can be further edited.
 
-     * the *foreign key* (frequentrly an ``id``) along with a *representation of
-       the referenced record* (eg: the fullname of a director). A check is
-       made: there's no way to input a text that is not matched on the
-       remote field (see :ref:`description` below).
+     * the *foreign key* (frequentrly an ``id``) along with a 
+       *representation of the referenced record* (eg: the fullname of a
+       director). A check is made: there's no way to input a text that is
+       not matched on the  remote field (see :ref:`description` below).
 
      * a *complete record* as when we edit a relation and we use a filter on
        one field but we aim at setting a complete record. E.g.: we select an
@@ -31,7 +31,9 @@ This operation has the following main actors:
        example 40d.
 
 
-  3. the **representation of the result**: in *enum* mode there is no doubt 
+  3. the **representation of the result**: when using completion on a
+     ForeignKey or on an m2m relation, the representaion of the possible
+     values needs to be taken. 
 
   4. the **operator** used when searching: normally ``regexp`` or ``like``
 
@@ -161,33 +163,31 @@ world "love".
 Filters on a field that is a foreign key will be relative to the related
 table::
 
-  t.completions.director_id.filter(nationality='ITA')
+  # nation_cod is a field_name of the table
+  t.completions.director_id.filter(nation_cod='ITA')
 
 will build a constraint on the **director** table filtering only italian
 directors. 
 
-.. note:: 
+If you set relation on your Director class as in::
 
-  filters on foreign keys are limited in the fact that they are built on a
-  table (as opposed to built on a mapper) so that they know nothing on the
-  relationship between tables and cannot span other relationships. The
-  reason they are build on tables is that the referenced table is reflected
-  (and limited) by the information in the ForeignKey. I plan to add the
-  possibility to look for a registered class for that table.
+  class Director(Base):
+      ...
+      nation_cod = Column(ForeignKey(Nation.cod))
+      nation = relation(Nation)
 
-If you need to filter w/o any filters you can press the key ``Alt`` along
-with normal ``Ctrl-Enter`` or ``Shift-Enter``. This is needed sometimes to
-bypass normal constraints: suppose you have an entry where you are supposed
-to enter a username. You set a filter on *active* users, now you need to fix
-an old record that really has a user that is no longer *active*, you can press
-``Alt`` to bypass the filter on completion. Remember that :ref:`validation` is a
-completely different mechanism than completion.
+you can set filter on the completion based on this relation::
+
+  ## nation__code (note the double underscore!!!) will trigger
+  ## a filter on the cod field_name of the relation nation 
+  t.completions.director_id.filter(nation__cod='ITA')
+   
 
 dynamic filters
 ----------------
 
 It's also possible to set a "dinamic filter" i.e. a filter depending on the
-value already entered in another field::
+value already of another field::
 
   t.completions.last_name.filter(nation='$nation')
 
@@ -212,6 +212,37 @@ this way setting ``force_enum = True`` on the completion::
 
    t.completions.director_id.force_enum = True
 
+more customization
+-------------------
+
+There are normally 2 possible completion according to the filter level.
+An example can better clarify: suppose you have an entry where you are supposed
+to enter a username. You set a filter on *active* users, now you need to fix
+an old record that really has a user that is no longer *active*. You need to
+loosen you filtering criterion momentarily. You can do that Pressing the
+``Alt`` key along with normal ``Ctrl-Enter`` or ``Shift-Enter``
+
+These two filtering criteria are stored in two ``session.query`` objects and
+are stored in the completion with attributes:
+
+ :filtered_query: the query with filters. You set filters on this query with
+         ``filter()`` method. If a ``filtered_query`` already_exists,
+         filters are added, otherwise it's written from ``query``
+
+ :query: the default query, used when no filter is desired (``Alt`` is pressed).
+         You set filters on this adding argument "main_query = True" to 
+	 ``.filter(main_query=True)``. 
+
+Of course each one can be customized with the normal sqlalchemy syntax also.
+
+Note that if you have both filters (with and without main_query option)
+order makes difference as ``filtered_query`` is build based on ``query`` in
+*that* moment.
+
+
+Remember that :ref:`validation` is a completely different mechanism than
+completion even if it's not possible to add a field that cannot come from a
+completion. 
 
 Behaviour on completion with m2m/m2o relationship
 =================================================

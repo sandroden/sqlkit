@@ -72,6 +72,7 @@ class Actor(Base):
     last_name      = Column(String(60))
     nation_cod     = Column(ForeignKey('nation.cod'))
 
+    nation         = relation('Nation', backref='actors')
     def __repr__(self):
         return u'<Actor %s %s>' % (self.first_name, self.last_name)
 

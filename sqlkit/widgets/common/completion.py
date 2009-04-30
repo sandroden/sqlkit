@@ -35,12 +35,15 @@ from sqlkit import debug as dbg, _
 import sqlkit
 from sqlalchemy import text, select, Table
 from sqlalchemy.sql import and_, or_, not_
+from sqlalchemy.orm import class_mapper, mapper
 from sqlkit.db.proxy import table2mapper
 from sqlkit.db.utils import tables, get_description, DictLike
 from sqlkit import exc
-from sqlkit.db.django_syntax import django2sqlalchemy, path2join
+from sqlkit.db.django_syntax import django2query
 from copy import copy
+from sqlkit.db import utils
 from sqlkit.debug.sql import debug_inline_params
+from gobject import markup_escape_text
 
 ####### Completion
 # EntryCompletion widgets are added on the fly triggered by F1, C-F1 or menu items
@@ -63,6 +66,7 @@ class SimpleCompletion(object):
     MARKUP_COL = 0
     OBJ_COL = 1
     MATCH_COL = 2
+    SEARCH_COL = 0
         
     def __init__(self, master, widget, field_name):
 
@@ -112,19 +116,23 @@ class SimpleCompletion(object):
         self.columns = [self.master.mapper_info.fields[self.field_name]['col']]
 #        self.attrs = tables[self.table.name].attrs
         self._group_by = None
-        self._filter = None
+        self._order_by = [self.column]
+        self._dynamic_filters = None
         self.mapper = self.master.mapper # used to track path relationship
-        self.from_obj = None
         self.force_enum = False
         self.displaying_completion = False
+#        self.query = self.master.session.query(getattr(self.master.mapper.class_, self.field_name)).autoflush(False)
+        self.query = self.master.session.query(*self.columns).autoflush(False)
+        self.filtered_query = None
         
     def set_group_by(self, field_name):
         """if group_by is not already in table.attrs, add it runtime
         """
         if not field_name in self.attrs:
             self.attrs += [field_name]
-            self.columns = [self.table.columns[name] for name in self.attrs]
+            self.columns += [self.table.columns[field_name]]
         self._group_by = field_name
+        self._order_by = [self.table.columns[f] for f in [field_name, self.description]]
         
     def get_group_by(self):
 
@@ -215,7 +223,7 @@ class SimpleCompletion(object):
             for row in self.model:
                 print self.model.get_value(row.iter, 1)
 
-    def debug_completion_sql(self, mode='start', value=None, apply_filter=True):
+    def debug_completion_sql(self, mode='start', value='', apply_filter=True):
         """
         Debug version of show_possible_completion
         """
@@ -230,7 +238,7 @@ class SimpleCompletion(object):
         ## thare's a match to be shown under that group
         ## so I need to passs twice, this is done just once each completion
         ## popup
-        text = self.model.get_value(iter, self.DESCRIPTION_COL)
+        text = self.model.get_value(iter, self.SEARCH_COL)
         prev = getattr(self, '_prev_match_value', None)
         
         if self.mode == 'enum':
@@ -253,7 +261,7 @@ class SimpleCompletion(object):
         for row in self.model:
 
             value = self.model.get_value(row.iter, self.VALUE_COL)
-            text  = self.model.get_value(row.iter, self.DESCRIPTION_COL)
+            text  = self.model.get_value(row.iter, self.SEARCH_COL)
             obj   = self.model.get_value(row.iter, self.OBJ_COL)
 
             if text is None:
@@ -349,35 +357,47 @@ class SimpleCompletion(object):
         execute the SELECT DISTINCT and return values
         """
         oper = self.get_match_operator()
-        if mode == 'enum':
-            sql = self.compose_select_statement(None, None)
+
+        if self._apply_filter:
+            query = self.filtered_query or self.query
         else:
+            query = self.query
+
+        if not mode == 'enum':
             filtering_value = self.get_displayed_value(value=value)
             self.autostart_last_length = len(filtering_value)
 
-            sql = self.compose_select_statement(oper, filtering_value)
-        self.sql = sql
+            query = self.compose_select_statement(query, oper, filtering_value)
+
+        query = query.order_by(*self._order_by).distinct()
         if return_sql:
-            return sql
+            return query
         
-        return self.master.metadata.bind.execute(sql)
+        return query.all()
 
-    def compose_select_statement(self, oper, value):
+#     def compose_select_statement(self, oper, value):
 
+
+#         if oper:
+#             where = self.column.op(oper)(value)
+#             where = self.add_filters(where)
+#         else:
+#             ## this should come from mode == 'enum'
+#             if self._filter:
+#                 where = self.add_filters(self.column)
+#             else:
+#                 where = None
+            
+#         sql = select(self.columns, where, from_obj=self.from_obj)
+
+#         return sql.order_by(self.column).distinct()
+    
+    def compose_select_statement(self, query, oper, value):
 
         if oper:
-            where = self.column.op(oper)(value)
-            where = self.add_filters(where)
-        else:
-            ## this should come from mode == 'enum'
-            if self._filter:
-                where = self.add_filters(self.column)
-            else:
-                where = None
+            query = query.filter(self.column.op(oper)(value))
             
-        sql = select(self.columns, where, from_obj=self.from_obj)
-
-        return sql.order_by(self.column).distinct()
+        return self.add_dynamic_filters(query)
     
     def get_displayed_value(self, value=None):
 
@@ -414,41 +434,25 @@ class SimpleCompletion(object):
                     value = '%' + value + '%'
         return value
     
-    def add_filters(self, where):
+    def add_dynamic_filters(self, query):
         """
-        Add filters set with ``.filter``
+        Add dinamic filters set with ``.filter``
         """
-        if not self._filter  or not self._apply_filter:
-            return where
+        if not self._dynamic_filters  or not self._apply_filter:
+            return query
 
-        ## substitute values 
-        kw = copy(self._filter)
-        ignore = []
-        for key, val in kw.iteritems():
+        ## substitute values
+        kw = {}
+        
+        for key, val in self._dynamic_filters.iteritems():
             value =  self.parse_value(val)   # get a possible dynamic filter
             if value:
                 kw[key] = value
-            else:
-                ## no value there in this moment
-                ignore += [ key ]
-        for key in ignore:
-            del kw[key]
-        if kw:
-            if where:
-                return where & self.get_filtered_clause_list(**kw)
-            else:
-                return self.get_filtered_clause_list(**kw)
-        else:
-            return where
-
-    def get_filtered_clause_list(self, **kw):
-        """
-        apply filter rules to this particular completion request,
-        use mapper to follow possible further relations
-        """
         
-        clause_list, path = django2sqlalchemy(mapper=self.mapper, **kw)
-        return clause_list
+        if kw:
+            return django2query(query, self.mapper, **kw)
+        else:
+            return query
 
 ### Misc
     def autostart_completion(self):
@@ -648,10 +652,12 @@ class SimpleCompletion(object):
         query = self.master.session.query(table2mapper(self.table)).autoflush(False)
         return query.filter_by( **filter_cnd ).one()
         
-    def filter(self, **kwargs):
+    def filter(self, OR=False, main_query=False, **kwargs):
         """
+        :param main_query: add the filter to the main query
+        
         Add filters to the completion. Filters must be expressed in django-like syntax
-        value can be in the form ``$field_name`` (see below)::
+        Value can be in the form ``$field_name`` (see below)::
 
           t.completions.field1.filter(cod='$field2')
 
@@ -661,40 +667,51 @@ class SimpleCompletion(object):
            2. to add .filter(field2 = value) to the query that retrieves the possible
               completions
 
-        Filter conditions are relative to the database "main" table: i.e. the table
-        refereneced in the mapper of the table as 'local_table'.
+        Filter conditions are relative to the mapper of the completion: for a completion
+        on a ForeignKey it's the referenced table's mapper.
 
         t.get_value() is relative to the SqlWidget in which completions is requested.
         This is relevant when related tables are present in the mask. Field value of the main mask
         can be referred to as ``$main.field_name``
 
-
           1. each token starting with ``$`` as in ``$title`` is stripped
              from the ``$`` and the remaining part is used as field_name and
              t.get_value(field_name) is used instead
 
-          2. if the field_name part starts with ``main`` (as in ``$main.title``)
+          2. if the field_name part starts with ``main.`` (as in ``$main.title``)
              t.get_value(field_name) is not issued in the active SqlWidget but in
              the SqlWidget pointed to by ``relationship_leader``
 
              This in general is the main SqlMask holding possibly different m2m
-             tables. This make possible for  line in an m2m table to complete
-             only values related to the referring header.
+             tables. This makes it possible for rows in an m2m table to complete
+             only with values related to the referring header.
              
         """
 
-        self._filter = kwargs  # used runtime by self.add_filters
-        clause_list, path = django2sqlalchemy(mapper=self.mapper, **kwargs)
-        ## let's build a suitable from_obj from this path:
-        self.from_obj = path2join(path, self.mapper)
+        kw_dyn = {}
+
+        for key, val in kwargs.iteritems():
+            if isinstance(val, basestring) and val.startswith('$'):
+                kw_dyn.update({key: re.sub('^\$', '', val)})
+
+        for key in kw_dyn:
+            kwargs.pop(key)
+
+        if kwargs:
+            if main_:
+                self.query = django2query(self.query, self.mapper, OR=OR, **kwargs)
+            else:
+                self.filtered_query = django2query(self.filtered_query or self.query,
+                                                   self.mapper, OR=OR, **kwargs)
+
+        self._dynamic_filters = kw_dyn
         
     def parse_value(self, value):
         """
         return value after 2 substitutions as described in .filter()
 
         """
-        if isinstance(value, str) and  value.startswith('$'):
-            value = value.replace('$','')
+        if isinstance(value, str):
             
             if value.startswith('main.'):
                 value = value.replace('main.','')
@@ -716,49 +733,41 @@ class FkeyCompletion(SimpleCompletion):
     MARKUP_COL = 2
     OBJ_COL = 3
     MATCH_COL = 4
-    
+    SEARCH_COL = 5
         
     def __init__(self, master, widget, *args, **kw):
         SimpleCompletion.__init__(self, master, widget, *args, **kw)
         self.table, self.column = get_foreign_info(self.master, self.field_name, names=False)
         self.table_lookup, self.column_lookup = self.table, self.column
         self.description = get_description(self.table, attr='description')
+        self.search_field = self.description
         self.attrs = get_description(self.table, attr='attrs', metadata=self.master.metadata)
-        self.columns = [self.table.columns[name] for name in self.attrs]
         self.format    = get_description(self.table, attr='format', metadata=self.master.metadata)
-        self.from_obj = None
+        self._order_by = [self.table_lookup.c[self.description]]
         self.widget = widget
+        class_ = utils.get_class(self.table_lookup)
+        if class_:
+            self.mapper = class_mapper(class_)
+        else:
+            class Tbl(object): pass
+            self.mapper = mapper(Tbl, self.table_lookup)
+        self.columns = [getattr(self.mapper.class_, field_name) for field_name in self.attrs]
+        self.query = self.master.session.query(*self.columns).autoflush(False)
 
+        
     def get_entry(self):
         return self.widget.entry
 
     def prepare_model(self):
         ## last col is for markup
-        return gtk.ListStore(str, str, str, object, bool)
+        return gtk.ListStore(str, str, str, object, bool, str)
             
-    def compose_select_statement(self, oper, value):
+    def compose_select_statement(self, query, oper, value):
 
-        mycolumns = copy(self.columns)
-
-        order_by = [self.table_lookup.columns[self.description]]
-        if self.group_by:
-            order_by = [self.table_lookup.columns[self._group_by]] + order_by
         if oper:
-            where = self.table_lookup.columns[self.description].op(oper)(value)
-            where = self.add_filters(where)
-        else:
-            ## this should come from mode == 'enum'
-            where = None
-            if self._filter:
-                where = self.add_filters(None)
+            query = query.filter(self.table_lookup.columns[self.search_field].op(oper)(value))
 
-        for col in order_by:
-            if not col in mycolumns:
-                mycolumns += [col]
-            
-        sql = select(mycolumns, where, from_obj=self.from_obj)
-
-        return sql.order_by(*order_by).distinct()
+        return query
     
 
 ### What to show
@@ -772,7 +781,7 @@ class FkeyCompletion(SimpleCompletion):
             return self.lookup_values[self.field_name][field_value]
         except Exception, e:
             descr_fields =  get_description(self.table_lookup)
-            format =        tables[self.table_lookup.name].format
+            format =        get_description(self.table_lookup, attr='format')
             fields = [self.table_lookup.columns[f_name] for f_name in descr_fields]
 
             sql = select(fields, self.column_lookup == field_value)
@@ -803,17 +812,11 @@ class FkeyCompletion(SimpleCompletion):
         """
 
         obj_list = []
-        for i in obj.keys():
-            val = getattr(obj, i)
-            if val is None:
-                val = ''
-            obj_list += [val]
 
-        fvalue = obj_list[0]
-        try:
-            fdescr = obj_list[1] 
-        except IndexError, e:
-            fdescr = obj_list[0]  # a fk that is a key, not an id and is the only one
+        ## FIXME what if we have a multiple pkey?
+        fvalue  = getattr(obj, self.attrs[0])
+        fdescr  = getattr(obj, self.description)
+        fsearch = getattr(obj, self.search_field)
         
         Obj = DictLike(obj)
         description = self.format % Obj
@@ -822,10 +825,12 @@ class FkeyCompletion(SimpleCompletion):
         self.model.set(m_iter,
                        self.VALUE_COL,       fvalue,
                        self.DESCRIPTION_COL, description,
-                       self.MARKUP_COL,      "   %s" % self.markup_clean(description),
+                       self.MARKUP_COL,      "   %s" % markup_escape_text(description),
                        self.OBJ_COL,         Obj,
                        self.MATCH_COL,       True,
+                       self.SEARCH_COL,      fsearch,
                        )
+
     def get_iter(self, obj):
         # based on self.__prev_group_by_value
         #          self.__prev_group_by_iter
@@ -845,27 +850,13 @@ class FkeyCompletion(SimpleCompletion):
                 self._prev_group_by_iter = None
                 self.model.set(m_iter,
                                self.DESCRIPTION_COL, new_value,
-                               self.MARKUP_COL,      "<b><i>%s</i></b>" % self.markup_clean(new_value),
+                               self.MARKUP_COL,      "<b><i>%s</i></b>" % markup_escape_text(new_value),
                                self.MATCH_COL,       True
                                )
                 m_iter = self.model.append(None)
             return m_iter
                     
-    def markup_clean(self, text):
-        text = re.sub('\&', '&amp;', text)
-        text = re.sub('<', '&lt;', text)
-        text = re.sub('>', '&gt;', text)
-        return text
             
-    def filter(self, **kwargs):
-        """
-        see doctring in SimpleCompletion
-        """
-        self._filter = kwargs
-        #clause_list, path = django2sqlalchemy(table=self.table, **kwargs)
-        ## let's build a suitable from_obj from this path:
-        #self.from_obj = path2join(path, self.mapper)
-        
     def get_obj_no_flush(self, value):
         """
         check if the object exists and .one(), but don't trigger .flush()
@@ -907,26 +898,37 @@ class M2mCompletion(FkeyCompletion):
     MARKUP_COL = 2
     OBJ_COL = 3
     MATCH_COL = 4
-    
+    SEARCH_COL = 5
         
     def __init__(self, *args, **kw):
 
         SimpleCompletion.__init__(self, *args, **kw)
 
+        self.query = self.master.session.query(self.master.mapper.class_).autoflush(False)
+
         if self.master.is_fkey(self.field_name):
-            self.table_lookup, self.column_lookup = get_foreign_info(self.master, self.field_name, names=False)
-            self.description = get_description(self.table_lookup.name, attr='description',
+            table_lookup_real, column_lookup = get_foreign_info(self.master, self.field_name, names=False)
+            self.table_lookup = table_lookup_real.alias()
+            self.column_lookup = self.table_lookup.c[column_lookup.name]
+            self.search_field = get_description(table_lookup_real.name, attr='description',
                                                metadata=self.master.metadata)
-            self.from_obj = self.table.join(self.table_lookup, onclause= self.column == self.column_lookup)
+            self.sql_join = (self.column == self.column_lookup)
         else:
             self.table_lookup, self.column_lookup = self.table, self.column
-            self.description = self.column.name
-            self.from_obj = None
-        
+            self.search_field = self.column.name
+            self.description = self.search_field
+        self._order_by = [self.table.c[self.description]]
+
         self.attrs = copy(get_description(self.table, attr='attrs', metadata=self.master.metadata))
-        if not self.field_name in self.attrs:
-            self.attrs += [self.field_name]   # needed for oder_by
-        self.columns = [self.master.mapper_info.fields[field_name]['col'] for field_name in self.attrs]
+        self.columns = [getattr(self.master.mapper.class_, field_name) for field_name in self.attrs]
+        self.search_column = self.table_lookup.c[self.search_field]
+        self.columns += [self.search_column]
+        
+        self.query = self.master.session.query(*self.columns).autoflush(False)
+        
+        if self.master.is_fkey(self.field_name):
+            self.query = self.query.join((self.table_lookup, self.sql_join)).reset_joinpoint()
+
         
     def match_selected_cb(self, wdg, model, iter, field_name):
         """
@@ -956,6 +958,11 @@ class M2mCompletion(FkeyCompletion):
         return True
         
     def filter(self, **kwargs):
+        """
+        """
+        # Filtering on an m2m acts on the resulting row, not on single column
+        # so we need to have the same filter on all columns
+
         for completion in self.master.completions:
             completion._filter_single(**kwargs)
 

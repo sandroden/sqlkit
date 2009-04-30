@@ -167,12 +167,18 @@ class TableDescr(object):
     def __init__(self, table, format=None, pk=None, metadata=None):
         global tables
 
-        if isinstance(table , Table):
-            table_name = table.name
+        if isinstance(table, Table):
             self.table = table
-        else:
+            table_name = table.name
+
+        elif isinstance(table, basestring):
             table_name = table
-            
+
+        elif hasattr(table, 'original'):  # A Table.alias()
+            self.table = table.original
+            table_name = table.original.name
+
+
         self.table_name = table_name
 #        self.format = format
         self.metadata = metadata
@@ -266,12 +272,22 @@ class TableDescr(object):
     def __repr__(self):
         return "table: %s - format: %s" % (self.table_name, self.format)
 
-def get_description(table, metadata=None, attr='attrs'):
+
+def get_table_name(table):
     if isinstance(table, Table):
         table_name = table.name
-    else:
+                
+    elif isinstance(table, basestring):
         table_name = table
+
+    elif hasattr(table, 'original'):  # A Table.alias()
+        table_name = table.original.name
         
+    return table_name
+
+def get_description(table, metadata=None, attr='attrs'):
+
+    table_name = get_table_name(table)
     try:
         return getattr(tables[table_name], attr)
     except MissingMetadata, e:
