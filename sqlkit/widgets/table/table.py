@@ -38,7 +38,8 @@ import gtk
 import pango
 
 class SqlTable(sqlwidget.SqlWidget):
-    """implementation with a listore with a single column that holds the
+    """
+    implementation with a listore with a single column that holds the
     sqlalchemy obj
     """
     __gsignals__ = {
@@ -47,6 +48,11 @@ class SqlTable(sqlwidget.SqlWidget):
                                 # event, obj, field_name
                            (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_STRING,
                             gobject.TYPE_PYOBJECT),
+                           ),
+        'context-changed' : (gobject.SIGNAL_RUN_LAST,
+                           gobject.TYPE_BOOLEAN,
+                                # current (or None)
+                           (gobject.TYPE_PYOBJECT,),
                            ),
         }
 
@@ -433,6 +439,8 @@ class SqlTable(sqlwidget.SqlWidget):
         
         if self.edited_row_model_path is None:
             self.emit('record-selected')
+            if self.get_selected_obj() or len(self.records):
+                self.emit('context-changed', self.get_selected_obj() or self.records[0])
             return False
         
         ## commit_allowed is a flag that prevents .commit() if a new object
@@ -454,6 +462,8 @@ class SqlTable(sqlwidget.SqlWidget):
                 return True
 
         self.emit('record-selected')
+        if self.get_selected_obj() or len(self.records):
+            self.emit('context-changed', self.get_selected_obj() or self.records[0])
         return False
     
     def select_cursor_row_cb(self, treeview, start_editing, user_data):
@@ -969,6 +979,9 @@ class SqlTable(sqlwidget.SqlWidget):
         self.totals.compute()
         self.cell_entry = None
         self.session.rollback()
+        if self.get_selected_obj() or len(self.records):
+            self.emit('context-changed', self.get_selected_obj() or self.records[0])
+        
         return ret
                                          
     def record_refresh(self):
@@ -983,6 +996,8 @@ class SqlTable(sqlwidget.SqlWidget):
         self.totals.compute()
         self.treeview.columns_autosize()
         sqlwidget.SqlWidget.record_refresh(self)
+        if self.get_selected_obj() or len(self.records):
+            self.emit('context-changed', self.get_selected_obj() or self.records[0])
 
     def cell_validate(self):
         """
@@ -1136,6 +1151,8 @@ class SqlTable(sqlwidget.SqlWidget):
             return None
         else:
             obj = self.liststore[path][0]
+            if isinstance(obj, self.totals.total_class):
+                return None
             return obj
 
     current = property(get_selected_obj)
@@ -1348,10 +1365,11 @@ class SqlTable(sqlwidget.SqlWidget):
         mask.set_records([self.current])
 
         ## signals to keep selection in sync 
-        def follow_selection(table, mask):
-            mask.set_records([table.current])
+        def follow_selection(table, obj, mask):
+            mask.set_records([obj])
 
-        handler_id = self.connect('record-selected', follow_selection, mask)
+#        handler_id = self.connect('record-selected', follow_selection, mask)
+        handler_id = self.connect('context-changed', follow_selection, mask)
 
         def disconnect(mask, id):
             self.disconnect(id)
@@ -1381,11 +1399,12 @@ class SqlTable(sqlwidget.SqlWidget):
         mask.set_records(pk=getattr(self.current, field_name))
 
         ## signals to keep selection in sync 
-        def follow_selection(table, mask):
-            if self.current:
+        def follow_selection(table, obj, mask):
+            if obj and self.current:
                 mask.set_records(pk=getattr(self.current, field_name))
 
-        handler_id = self.connect('record-selected', follow_selection, mask)
+#        handler_id = self.connect('record-selected', follow_selection, mask)
+        handler_id = self.connect('context-changed', follow_selection, mask)
 
         def disconnect(mask, id):
             self.disconnect(id)

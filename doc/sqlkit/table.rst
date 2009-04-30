@@ -123,7 +123,20 @@ Signals
      :param field_name: the field_name of the selected column
      :param menu: the default menu that il popped up by this
           button-press-event if event.button == 3 or None
-     
+
+.. _context_changed:     
+
+:context-changed:
+
+   Records have been displayed or selection was changed. 
+   This is use to track any change in the records both selected or displayed
+   and was added to be used by RecordInMask below
+   
+   .. function:: records_displayed_cb(sqlwidget, current):
+      
+      :param sqlwidget: the widget the emitted the signal
+      :param current: the obj that was current in the row or the first
+             record in the liststore.
 
 .. _recordinmask:
 

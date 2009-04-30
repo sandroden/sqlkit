@@ -323,9 +323,19 @@ Signals
    A record has been displayed in Mask or selected in Table.
    The callback will just receive the widget as argument.
 
-:recods-displayed:
+   .. function:: records_selected_cb(sqlwidget):
+      
+      :param sqlwidget: the widget the emitted the signal
+
+:records-displayed:
    Records have been displayed. this may be after .reload() or .set_records([])
    The callback will just receive the widget as argument.
+   See also :ref:`context changed <context_changed>` to see another signal
+   that better tracks *any* change
+
+   .. function:: records_displayed_cb(sqlwidget):
+      
+      :param sqlwidget: the widget the emitted the signal
 
 :after-flush:
    
