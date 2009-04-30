@@ -63,10 +63,11 @@ by default. It's possible to use ``OR`` operator adding ``OR=True``  argument.
 from sqlalchemy.sql.expression import ColumnElement, ClauseList 
 from sqlalchemy.sql import and_, or_
 from sqlalchemy import Table
-from sqlalchemy.orm import ColumnProperty, PropertyLoader
+from sqlalchemy.orm import ColumnProperty, PropertyLoader, class_mapper
 from sqlalchemy.types import Date, DateTime
 from copy import deepcopy
 from sqlkit.misc.datetools import string2dates
+from sqlkit.db import utils
 
 OPERATORS = {
     'icontains'  : 'icontains',
@@ -97,6 +98,10 @@ class DjangoParser(object):
         if isinstance(mapper_or_table, Table):
             self.mapper = None
             self.table = mapper_or_table
+            class_ = utils.get_class(self.table.name)
+            if class_:
+                self.mapper = class_mapper(class_)
+                                     
         else:
             self.mapper = mapper_or_table
             self.table = self.mapper.local_table
@@ -178,6 +183,7 @@ def django2components(mapper_or_table, kw=None):
     """
     if isinstance(mapper_or_table, Table):
         mapper = None
+        
         table = mapper_or_table
     else:
         mapper = mapper_or_table

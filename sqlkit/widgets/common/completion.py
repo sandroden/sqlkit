@@ -40,6 +40,7 @@ from sqlkit.db.utils import tables, get_description, DictLike
 from sqlkit import exc
 from sqlkit.db.django_syntax import django2sqlalchemy, path2join
 from copy import copy
+from sqlkit.debug.sql import debug_inline_params
 
 ####### Completion
 # EntryCompletion widgets are added on the fly triggered by F1, C-F1 or menu items
@@ -175,7 +176,8 @@ class SimpleCompletion(object):
 
         
 ### Filling & popping the completion
-    def show_possible_completion(self, widget, mode, apply_filter=True, pop=True, sb=True):
+    def show_possible_completion(self, widget, mode, apply_filter=True, pop=True, sb=True,
+                                 value=None, return_sql=False):
         """
         fill in a ListStore to use with completion, fetch data from db
         
@@ -186,6 +188,9 @@ class SimpleCompletion(object):
            :enum: all values
 
         :param apply_filter: filter added with .filter() will be applied
+        :param return_sql:   boolean only the sql is returned (debug purpose)
+        :param value:        value to use as "displayed value". debug purpose
+        :param pop:          don't try to pop the selection (debug purpose)
         
         """
         self._apply_filter = apply_filter
@@ -197,7 +202,10 @@ class SimpleCompletion(object):
             self.master.sb(_("search mode: %s") % mode)
         self.model.clear()
 
-        result = self.select_values(self.field_name, mode)
+        result = self.select_values(self.field_name, mode, return_sql=return_sql, value=value)
+        if return_sql:
+            return debug_inline_params(result, bind=None)
+        
         for obj in result:
             self.append_to_model(obj)
 
@@ -207,6 +215,13 @@ class SimpleCompletion(object):
             for row in self.model:
                 print self.model.get_value(row.iter, 1)
 
+    def debug_completion_sql(self, mode='start', value=None, apply_filter=True):
+        """
+        Debug version of show_possible_completion
+        """
+        return self.show_possible_completion(None, mode, return_sql=True, value=value,
+                                             apply_filter=apply_filter)
+    
     def match_func(self, completion, key, iter):
         """
         When editing, this function limits the visible entry of the model
@@ -329,7 +344,7 @@ class SimpleCompletion(object):
         return True
 
 ### Sql SELECT
-    def select_values(self, field_name, mode):
+    def select_values(self, field_name, mode, return_sql=False, value=None):
         """
         execute the SELECT DISTINCT and return values
         """
@@ -337,11 +352,13 @@ class SimpleCompletion(object):
         if mode == 'enum':
             sql = self.compose_select_statement(None, None)
         else:
-            filtering_value = self.get_displayed_value()
+            filtering_value = self.get_displayed_value(value=value)
             self.autostart_last_length = len(filtering_value)
 
             sql = self.compose_select_statement(oper, filtering_value)
         self.sql = sql
+        if return_sql:
+            return sql
         
         return self.master.metadata.bind.execute(sql)
 
@@ -362,10 +379,13 @@ class SimpleCompletion(object):
 
         return sql.order_by(self.column).distinct()
     
-    def get_displayed_value(self, ):
+    def get_displayed_value(self, value=None):
 
-        val = self.master.get_value(self.field_name, shown=True) or ''
-        assert isinstance(val, str)
+        if value is not None:
+            val = value
+        else:
+            val = self.master.get_value(self.field_name, shown=True) or ''
+        assert isinstance(val, basestring)
         self.autostart_last_length = len(val)
         return self.add_for_LIKE(val)
 

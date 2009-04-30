@@ -1,0 +1,117 @@
+# -*- mode: python -*-
+
+>>> import os
+
+>>> os.environ['LANG'] = 'en_US.utf8'
+
+>>> import sys
+>>> sys.path.insert(0, '../../demo/sql/model')
+>>> sys.path.insert(0, '../../')
+
+>>> from movies import Movie, Director, AllTypes, Nation, db
+>>> from sqlkit.widgets import SqlMask
+
+>>> lay = "title year director_id m2m=genres m2m=actors "
+>>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+
+## 01 - title simple
+>>> print sm.completions.title.debug_completion_sql(value='il')
+SELECT DISTINCT movie.title 
+FROM movie 
+WHERE movie.title LIKE 'il%' ORDER BY movie.title
+
+## 02 - title mode regexp
+>>> print sm.completions.title.debug_completion_sql(value='il', mode='regexp')
+SELECT DISTINCT movie.title 
+FROM movie 
+WHERE movie.title LIKE '%il%' ORDER BY movie.title
+
+## 03 - filter title
+>>> sm.completions.title.filter(title__icontains='a')
+>>> print sm.completions.title.debug_completion_sql(value='il')
+SELECT DISTINCT movie.title 
+FROM movie 
+WHERE (movie.title LIKE 'il%') AND lower(movie.title) LIKE lower('%a%') ORDER BY movie.title
+
+## 04 - numbers do not have completions
+>>> print sm.completions.year.debug_completion_sql(value=None)
+Traceback (most recent call last):
+    ...
+AttributeError: 'Container' object has no attribute 'year'
+
+## 05 - completion simple on ForeignKey 
+>>> print sm.completions.director_id.debug_completion_sql(value=None)
+SELECT DISTINCT director.id, director.last_name 
+FROM director 
+WHERE director.last_name LIKE '%' ORDER BY director.last_name
+
+## 06 - filter on completion on ForeignKey 
+>>> sm.completions.director_id.filter(last_name__ilike='fe%')
+>>> print sm.completions.director_id.debug_completion_sql(value='xx')
+SELECT DISTINCT director.id, director.last_name 
+FROM director 
+WHERE (director.last_name LIKE 'xx%') AND lower(director.last_name) LIKE lower('fe%') ORDER BY director.last_name
+
+## 07 - completion on m2m enum mode  - no real filter
+>>> print sm.related.genres.completions.name.debug_completion_sql(value='xxx', mode='enum')
+SELECT DISTINCT genre.name 
+FROM genre ORDER BY genre.name
+
+## 08 - filter on completion m2m enum mode  - 
+>>> sm.related.genres.completions.name.filter(name__ilike='dr')
+>>> print sm.related.genres.completions.name.debug_completion_sql(value='xxx', mode='enum')
+SELECT DISTINCT genre.name 
+FROM genre 
+WHERE lower(genre.name) LIKE lower('dr') ORDER BY genre.name
+
+## 09 - Completion on fields of an m2m - field: first_name
+>>> print sm.related.actors.completions.first_name.debug_completion_sql(value='a')
+SELECT DISTINCT actor.id, actor.first_name, actor.last_name 
+FROM actor 
+WHERE actor.first_name LIKE 'a%' ORDER BY actor.first_name
+
+## 10 - Completion on fields of an m2m - field: last_name
+>>> print sm.related.actors.completions.last_name.debug_completion_sql(value='a')
+SELECT DISTINCT actor.id, actor.first_name, actor.last_name 
+FROM actor 
+WHERE actor.last_name LIKE 'a%' ORDER BY actor.last_name
+
+## 11 - completion on a foreign_key of an m2m
+>>> print sm.related.actors.completions.nation_cod.debug_completion_sql(value='Italy')
+SELECT DISTINCT actor.id, actor.first_name, actor.last_name, actor.nation_cod 
+FROM actor JOIN nation ON actor.nation_cod = nation.cod 
+WHERE nation.nation LIKE 'Italy%' ORDER BY nation.nation
+
+## 12 - filter on a completion of an m2m
+>>> sm.related.actors.completions.first_name.filter(first_name__ilike='f%')
+>>> print sm.related.actors.completions.nation_cod.debug_completion_sql(value='')
+SELECT DISTINCT actor.id, actor.first_name, actor.last_name, actor.nation_cod 
+FROM actor JOIN nation ON actor.nation_cod = nation.cod 
+WHERE (nation.nation LIKE '%') AND lower(actor.first_name) LIKE lower('f%') ORDER BY nation.nation
+
+## 13 - completion on a foreign_key of an m2m  - same as 11 but different output since filter
+##      was set in 12. The flter was set on another field but non editable m2m implies
+##      the same filter on all fields
+>>> print sm.related.actors.completions.nation_cod.debug_completion_sql(value='Italy')
+SELECT DISTINCT actor.id, actor.first_name, actor.last_name, actor.nation_cod 
+FROM actor JOIN nation ON actor.nation_cod = nation.cod 
+WHERE (nation.nation LIKE 'Italy%') AND lower(actor.first_name) LIKE lower('f%') ORDER BY nation.nation
+
+## 14 - filter on a completion of an m2m with relation on table
+>>> sm.related.actors.completions.nation_cod.filter(nation__cod='Italy')
+>>> print sm.related.actors.completions.nation_cod.debug_completion_sql(value='')
+Traceback (most recent call last):
+    ...
+NotImplementedError: Can't cross relationship if you don't provide a mapper
+
+>>> from sqlkit.db import utils
+>>> utils.register_class(Movie)
+>>> utils.register_class(Nation)
+
+## 15 - filter on a completion of an m2m with relation on table - afetr registering
+>>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm.related.actors.completions.nation_cod.filter(nation__cod='Italy')
+>>> print sm.related.actors.completions.nation_cod.debug_completion_sql(value='')
+Traceback (most recent call last):
+    ...
+NotImplementedError: Can't cross relationship if you don't provide a mapper
