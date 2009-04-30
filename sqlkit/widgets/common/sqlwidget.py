@@ -1763,8 +1763,8 @@ class UnsavedDataDialog(object):
                         
                         field = self.master.gui_fields[field_name]
 
-                        old_value = old and utils.clean_for_markup(field.get_human_value(old)) or ''
-                        new_value = new and utils.clean_for_markup(field.get_human_value(new)) or ''
+                        old_value = old and utils.clean_for_markup(field.get_human_value(old)) 
+                        new_value = new and utils.clean_for_markup(field.get_human_value(new)) 
                     else:
                         ## FIXME: we could also look for better representation in related widgets
                         old_value = old
