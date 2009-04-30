@@ -226,11 +226,15 @@ class TableDescr(object):
                 self.attrs.insert(0, field.name)
                 
     def get_table(self):
+        """
+        return the sqlalchemy.Table or try to get it from metadata
+        """
+
         try:
             return self.table
         except AttributeError:
             if not self.metadata:
-                raise MissingMetadata("Description  for %s cannot be guessed")
+                raise MissingMetadata("Description  for '%s' cannot be guessed" % self.table_name)
         
         ## first time we meet this table  -> inspect w/ autoload
         return Table(self.table_name, self.metadata, autoload=True)
