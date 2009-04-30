@@ -1,6 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-   -*- mode: python -*-
 
+"""
+opens the demo console or directly an example defined by its number:
+
+./demo.py 25
+./demo.py -N 40b
+
+usage: %prog [opts] ex_number
+   -N, --no-gtk-debug: gtk debug
+
+"""
 
 
 import gtk
@@ -12,13 +22,17 @@ ppdir = os.path.dirname(pdir)
 sys.path.insert(0,pdir)    
 sys.path.insert(0,ppdir)    
 
-from sqlkit import debug as dbg
-dbg.debug(True)
-dbg.debug(True, gtk=True)
-dbg.trace_class(ok='SqlTable|SqlWidget|SqlMask|Completion')
-but = 'set_fkey_descr|(lookup|get)_value|[el]ne_cb|match_func' + \
-    '|cell_.*_cb|lookup_value|is_fkey|instance2'
-dbg.trace_function(exclude=but)
+from sqlkit.misc import optionparse
+opts, args = optionparse.parse(__doc__)
+
+if not opts.no_gtk_debug:
+    from sqlkit import debug as dbg
+    dbg.debug(True)
+    dbg.debug(True, gtk=True)
+    dbg.trace_class(ok='SqlTable|SqlWidget|SqlMask|Completion')
+    but = 'set_fkey_descr|(lookup|get)_value|[el]ne_cb|match_func' + \
+        '|cell_.*_cb|lookup_value|is_fkey|instance2'
+    dbg.trace_function(exclude=but)
 
 from demo_tour import Demo
 import sqlkit
