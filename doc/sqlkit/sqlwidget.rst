@@ -452,7 +452,31 @@ The following hooks are defined:
 
        :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
    
-    
+:on_after_flush: run as the signal with the same name from within
+    after_flush session extension method
+
+    This hook is completely similar to 'after-flush' signal, but is meant to
+    be defined in a separate class so that it's easier to propagate
+    validation hooks to a spawned child (RecordInMask)
+
+    Open a mask right clicking on a record, change something and
+    save. You'll see that on_after_flush is called eather.
+
+   .. function:: on_after_flush_callback(sqlwidget, object, session)
+
+      :param sqlwidget: the sqlwidget that emitted the signal
+      :param object: the object that was *current* when session ws
+	  flushed. Current means that it was the main object represented. Many
+	  other widgets may be present, possibily in "dirty state", "new" or
+	  "deleted", but current was the one selected in a table or displayed in
+	  the main mask
+      :session: the session that was flushed. The moment in which the signal is
+	  emitted you can still dig into ``session.dirty``, ``session.new`` 
+	  and ``session.deleted`` and find which attributes have been changed
+	  (you may want to use `get_differences`), but you won't have
+          correctly setup relation's object
+
+        
 If you need to add hooks for related sqlwidgets (those that display related
 records as explained in :ref:`relationships`) you need to add the
 relationship_path in the method name, i.e. the value you have used in the
