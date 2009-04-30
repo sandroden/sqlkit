@@ -188,4 +188,4 @@ sqlkit supported backend structure
 2. SqlMask/SqlTable must be fed with a table, a class (eg: from declarative
    layer) or a mapper.
 
-.. _`different engines`: http://www.sqlalchemy.org/docs/05/intro.html#overview_sqlalchemy_dbms
+.. _`different engines`: http://www.sqlalchemy.org/trac/wiki/DatabaseNotes
