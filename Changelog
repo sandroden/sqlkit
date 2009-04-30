@@ -1,3 +1,40 @@
+sqlkit 0.8.6-rc4 - 
+
+	* completion: deep rewrite that enable many fetures: 
+	         * now completion is configurable directly with sqlalchemy
+	           syntax also and is more clear what you expect.
+	         * conditions can be set on relation also
+	         * a bunch of tests show exactly the expected behaviour
+	         * some more examples have been added
+	         * added possibility to have 2 completion behaviuor on the
+	           same field
+	         * completion now works also on fkey of an m2m
+
+	* filters: 
+	         * added '@' syntax for sqlkit.misc.datetools
+	         * filters now work for expressions too. See example
+	           ex_30.
+	
+	* signals: * added 'changed_context' signal for tables to make it
+	             easy to follow changes in RecordInMask/RecordMaskFkey
+
+	* hooks: added after_flush_postexec hook
+
+	* sqlwidget: 
+	         * DifferencesDialog (to show which differences need to
+	           be saved) was improved
+
+	* table:  Added default menu entry to edit the ForeignKey field
+           	  when clicking on a cell that holds a ForeignKey.
+	          This feature is called RecordMaskFkey
+
+	* utils:  Added register_class/get_class to store/restrieve
+	          classes. Needed by RecordMaskFKey 
+
+	* miniwidgets: fixed nullable boolean widget
+
+	* postgres: added handling of pg_interval
+	
 sqlkit 0.8.6-rc3 - 
 
 	* hooks: - hooks are now in a separated class that can be registered

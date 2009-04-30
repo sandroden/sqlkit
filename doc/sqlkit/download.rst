@@ -34,6 +34,11 @@ You can also add the source::
 
   deb http://apt.argolinux.org/ lenny sqlkit
 
+you will probably want to add the key:
+
+  sudo wget -q http://deb.argolinux.org/apt.key -O- | sudo apt-key add - 
+  sudo apt-get update
+
 and install it via::
 
   apt-get install python-sqlkit
