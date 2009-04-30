@@ -66,6 +66,7 @@ TABLE_UI = '''
   <popup name="TreePopup">
         <separator name="sep_1" />
         <menuitem action="MaskView" />
+        <menuitem action="MaskViewFKey" />
         <menuitem action="New" />
         <separator name="sep_del" />
         <menuitem action="RecordDelete" />

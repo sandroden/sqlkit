@@ -152,6 +152,7 @@ class SqlTable(sqlwidget.SqlWidget):
             ('Records', None, 'Records'),
             ('Export', None, _('Export'), None, None, self.export),
             ('MaskView', gtk.STOCK_ZOOM_IN, _('View this record in a Mask'), None, None, self.record_in_mask),
+            ('MaskViewFKey', gtk.STOCK_ZOOM_IN, _('View this ForeignKey in a Mask'), None, None, self.fkey_record_in_mask),
             ])
 
     def prepare_uimanager(self):
@@ -492,11 +493,20 @@ class SqlTable(sqlwidget.SqlWidget):
         action = self.ui_manager.get_action('/TreePopup/MaskView')
         action.set_sensitive(obj and True or False)
             
+        action_fk = self.ui_manager.get_action('/TreePopup/MaskViewFKey')
+        if field_name and self.is_fkey(field_name):
+            action_fk.set_visible(True)
+            label = self.get_label(field_name).replace('_', '__')
+            action_fk.set_property('label', _("View '%s' in a Mask") % label)
+        else:
+            action_fk.set_visible(False)
+            
         action_delete = self.ui_manager.get_action('/TreePopup/RecordDelete')
         action_delete.set_sensitive(obj and True or False)
 
         menu = None
         if event.button == 3:
+            self._field_name = field_name
             menu = self.ui_manager.get_widget('/TreePopup')
             menu.popup(None, None, None, event.button, event.time)
         
@@ -1348,7 +1358,41 @@ class SqlTable(sqlwidget.SqlWidget):
 
         mask.connect('delete-event', disconnect, handler_id)
 
-        self.mask = mask
+        self._mask = mask
+
+    def fkey_record_in_mask(self, widget):
+        """
+        Open a SqlMask to show the fkey of this field
+
+        """
+        if not hasattr(self, '_field_name'):
+            return
+
+        field_name = self._field_name
+        del self._field_name
+        
+        from sqlkit.widgets import SqlMask, SqlTable
+
+        ftable = self.completions[field_name].table
+
+        mask = SqlMask(table=ftable.name, session=self.session, dbproxy=self.dbproxy, 
+                       relationship_mode='FIXED', metadata=self.metadata)
+        mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
+        mask.set_records(pk=getattr(self.current, field_name))
+
+        ## signals to keep selection in sync 
+        def follow_selection(table, mask):
+            if self.current:
+                mask.set_records(pk=getattr(self.current, field_name))
+
+        handler_id = self.connect('record-selected', follow_selection, mask)
+
+        def disconnect(mask, id):
+            self.disconnect(id)
+
+        mask.connect('delete-event', disconnect, handler_id)
+
+        self._fmask = mask
 
     def select_path(self, path=None, obj=None):
         """
