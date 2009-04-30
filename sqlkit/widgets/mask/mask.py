@@ -471,13 +471,21 @@ class SqlMask(sqlwidget.SqlWidget):
     def _add_color_to_labels(self):
         """add bg colors and fonts to signal needed fields"""
 
+        def ene_cb(eb, ev):
+            eb.get_child().set_state(gtk.STATE_PRELIGHT)
+            return True
+
+        def lne_cb(eb, ev):
+            eb.get_child().set_state(gtk.STATE_NORMAL)
+            return True
+
         for field_name in self.mapper_info.fields.keys():
             if field_name in self.labels:
                 lbl    = self.labels[field_name]
                 ev_wdg = self.labels[field_name].parent
 
-                ev_wdg.connect('enter-notify-event', self.ene_cb)
-                ev_wdg.connect('leave-notify-event', self.lne_cb)
+                ev_wdg.connect('enter-notify-event', ene_cb)
+                ev_wdg.connect('leave-notify-event', lne_cb)
                 lbl.modify_fg(gtk.STATE_PRELIGHT, LBL_HOOVER_STYLE)
 
                 ## label FK_COLOR to tell it's a foreign key
@@ -492,6 +500,7 @@ class SqlMask(sqlwidget.SqlWidget):
         """
         Add tips to labels starting from label_map
         """
+
         for field_name, values in self.label_map.iteritems():
             label, help_text = values
 
@@ -505,13 +514,6 @@ class SqlMask(sqlwidget.SqlWidget):
                 if key in self.widgets:
                     self.widgets[key].set_tooltip_text(help_text)
 
-    def ene_cb(self, eb, ev):
-        eb.get_child().set_state(gtk.STATE_PRELIGHT)
-        return True
-    def lne_cb(self, eb, ev):
-        eb.get_child().set_state(gtk.STATE_NORMAL)
-        return True
-        
     def _add_click_for_filter(self):
         """Add controls according to data type represented
         check on input for integers
