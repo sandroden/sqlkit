@@ -17,6 +17,17 @@
 Utilities
 =========
 
+Hooks and Layout are the core for any customization. If you customize a
+Mask, chances are you would like to use that customization, any time you open
+that table, or you may need several different customization (eg. employees,
+manager may share some fields and differ on other fields).
+
+The following utilities give you the possibility to register Hooks and Layout
+to make them available to any sqlwidget to which no Hook/Layout is passed.
+
+Each time you register a hook/layout/class you can specify a nickname (eg.:
+customer/provider)
+
 Hooks
 -----
 
@@ -30,6 +41,20 @@ Layout
 .. autofunction::  register_layout
 
 .. autofunction::  get_layout
+
+Classes
+-------
+
+Classes can be registered as well. If you register a class, all the times you
+pass a table to a sqlwidget, the class will be used, so that ll relations will
+be available as well. This is particularly usefull in case you use
+:ref:`RecordInMask` that can open a table that may use a layout with m2m/m2o
+nested table that would result as unknown if the table was reflected from the
+db.
+
+.. autofunction::  register_class
+
+.. autofunction::  get_class
 
 Database
 --------
@@ -56,7 +81,7 @@ database editing (``sqledit -c url``)
 import re
 from sqlalchemy import Table
 from sqlalchemy.exc import OperationalError, ProgrammingError
-from defaults import register_hook, get_hook, register_layout, get_layout
+from defaults import register_hook, get_hook, register_layout, get_layout, register_class, get_class
 
 ########   descriptor
 from sqlkit.misc.utils import Container

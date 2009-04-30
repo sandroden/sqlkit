@@ -133,11 +133,20 @@ RecordInMask
 Clicking on any row of the treeview gives the possibility to show the record
 in a Mask View. If a layout was passed to the ``SqlTable``, it will be
 passed to SqlMask. In this case all hooks, fields possibly configured
-and completions will be copied in the new Mask.
+and completions will be copied in the new Mask. Same for the hooks.
 
 If you need to configure this Mask in a particular fashion you can put all
 configuration in a hook named :ref:`on_init <hooks>`. This code will be executed
 both for Table and Mask generation that allows to use the same Hook for both
 widgets
+
+RecordInMask for ForeignKeys
+============================
+
+Similarly, if the column in which you click is a ForeignKey, the popped menu
+will show an entry to edit the referenced record in a mask.
+
+To be sure it will have the customization you want you can 
+:ref:`register <utils>` Layout, Hooks and Class.
 
 

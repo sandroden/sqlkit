@@ -216,6 +216,11 @@ class SqlWidget(gobject.GObject):
     
     def _get_mapper(self, mapper, tables, class_=None):
 
+        from sqlkit.db.utils import get_class
+
+        if not mapper and not class_ and get_class(tables):
+            class_ = get_class(tables)
+        
         if mapper:
             return mapper
         elif class_:
@@ -1859,5 +1864,7 @@ class ValidationWarningDialog(ValidationErrorDialog):
             raise exc.DialogValidationError
         else:
             pass
+
+
 
 

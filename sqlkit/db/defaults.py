@@ -4,6 +4,7 @@ import sqlalchemy
 tables = {}
 hooks = {}
 layout_dict = {}
+class_dict = {}
 
 def set_default(table_name, tbl_dict):
     """
@@ -209,3 +210,44 @@ def get_layout(table, nick='default'):
         return table_layout_dict[nick]
     except (KeyError, TypeError), e:
         return None
+
+def register_class(class_, table=None, nick='default'):
+    """
+    Register a layout for table with a nick (default nick is 'default')
+    Each time a sqlwidget is instantiated for the table
+    a layout is searched for here 
+
+    :param table: the table to register the layout for. May be a sqlakchemy.Table or a string
+    :param layout: the layout to be registered
+    :param nick: the nick
+    """
+
+    global class_dict
+
+    if not table:
+        table = class_.__table__
+        
+    table_name = get_table_name(table)
+    table_class_dict = class_dict.get(table_name, {})
+    table_class_dict[nick] = class_
+    class_dict[table_name] = table_class_dict
+
+def get_class(table, nick='default'):
+    """
+    Return a layout for table for nick 'nick'
+
+    :param table: the table to register the layout for. May be a sqlakchemy.Table or a string
+    :param nick: the nick used for this layout 
+    
+    """
+    
+    global class_dict
+    table_name = get_table_name(table)
+
+    table_class_dict = class_dict.get(table_name, None)
+    try:
+        return table_class_dict[nick]
+    except (KeyError, TypeError), e:
+        return None
+
+
