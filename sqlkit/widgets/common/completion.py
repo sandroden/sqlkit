@@ -175,14 +175,20 @@ class SimpleCompletion(object):
 
         
 ### Filling & popping the completion
-    def show_possible_completion(self, widget, mode, pop=True, sb=True):
+    def show_possible_completion(self, widget, mode, apply_filter=True, pop=True, sb=True):
         """
         fill in a ListStore to use with completion, fetch data from db
-        mode determines the match of the already typed text:
-        start: only matching data starting with typed text
-        regexp: typed text is a regexp (*~ or ILIKE)
-        all: all values
+        
+        :param mode: determines the match of the already typed text:
+
+           :start: only matching data starting with typed text
+           :regexp: typed text is a regexp (*~ or ILIKE)
+           :enum: all values
+
+        :param apply_filter: filter added with .filter() will be applied
+        
         """
+        self._apply_filter = apply_filter
         if self.force_enum:
             mode = 'enum'
         self.mode = mode
@@ -392,7 +398,7 @@ class SimpleCompletion(object):
         """
         Add filters set with ``.filter``
         """
-        if not self._filter:
+        if not self._filter  or not self._apply_filter:
             return where
 
         ## substitute values 
@@ -546,12 +552,24 @@ class SimpleCompletion(object):
         self.show_possible_completion(wdg, mode='start')
         return True
         
+    def key_entry_shift_alt_Return(self, wdg, event, data):
+        self.show_possible_completion(wdg, mode='start', apply_filter=False)
+        return True
+        
     def key_entry_ctrl_Return(self, wdg, event, data):
         self.show_possible_completion(wdg, mode='regexp')
         return True
         
+    def key_entry_ctrl_alt_Return(self, wdg, event, data):
+        self.show_possible_completion(wdg, mode='regexp', apply_filter=False)
+        return True
+        
     def key_entry_ctrl_shift_Return(self, wdg, event, data):
         self.show_possible_completion(wdg, mode='enum')
+        return True
+        
+    def key_entry_ctrl_shift_alt_Return(self, wdg, event, data):
+        self.show_possible_completion(wdg, mode='enum', apply_filter=False)
         return True
         
     def key_entry_Return(self, wdg, event, data):

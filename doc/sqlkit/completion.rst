@@ -36,7 +36,7 @@ This operation has the following main actors:
   4. the **operator** used when searching: normally ``regexp`` or ``like``
 
 
-The match of the completion has three *modes*:
+The match of the completion has these *modes*:
 
   :start: partially written text is used as a filter and completion must
     match from the start of the field. It uses LIKE operator
@@ -55,6 +55,9 @@ triggered on demand. Normal binding are:
   :control Return: triggers 'regexp' mode completion. This is also triggered 
                    pressing the down arrow of a foreign key
   :shift control Return: triggers 'enum' mode 
+
+Pressing ``Alt`` along with the other keys will prevent any
+:ref:`filter_completion`
 
 .. _description:
 
@@ -152,7 +155,7 @@ to set constraints)::
   t = SqlTable(class_=Movie,...)
   t.completions.title.filter(title__icontains='love')
 
-this line will instruct the completion to only show title that contains the
+this line will instruct the completion to only show titles that contain the
 world "love".
 
 Filters on a field that is a foreign key will be relative to the related
@@ -167,7 +170,18 @@ directors.
 
   filters on foreign keys are limited in the fact that they are built on a
   table (as opposed to built on a mapper) so that they know nothing on the
-  relationship between tables and cannot span other relationships 
+  relationship between tables and cannot span other relationships. The
+  reason they are build on tables is that the referenced table is reflected
+  (and limited) by the information in the ForeignKey. I plan to add the
+  possibility to look for a registered class for that table.
+
+If you need to filter w/o any filters you can press the key ``Alt`` along
+with normal ``Ctrl-Enter`` or ``Shift-Enter``. This is needed sometimes to
+bypass normal constraints: suppose you have an entry where you are supposed
+to enter a username. You set a filter on *active* users, now you need to fix
+an old record that really has a user that is no longer *active*, you can press
+``Alt`` to bypass the filter on completion. Remember that :ref:`validation` is a
+completely different mechanism than completion.
 
 dynamic filters
 ----------------
