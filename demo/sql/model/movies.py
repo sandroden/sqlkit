@@ -70,6 +70,7 @@ class Actor(Base):
     id             = Column(Integer, primary_key=True)
     first_name     = Column(String(60), nullable=False)
     last_name      = Column(String(60))
+    nation_cod     = Column(ForeignKey('nation.cod'))
 
     def __repr__(self):
         return u'<Actor %s %s>' % (self.first_name, self.last_name)

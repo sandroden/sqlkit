@@ -5,27 +5,38 @@ Completion
 ============
 
 Completion is the way you can avoid writing too much if the system already
-has your data. it means you write some text that will be used as filter in a
+has your data. It means you write some text that will be used as filter in a
 select statements of all possible values.
 
-This operation has 3 main actors: 
+This operation has the following main actors: 
 
-  1. the search field
-  2. the operator used when searching
-  3. the representation of the result
+  1. the **search field**: the field in which you type text that should be used
+     as filter to limit the output
 
-It comes in two *flavours*:
+  2. the **object that should be returned**: 
+ 
+     * the *string* to be used (as in enum mode, or in completion in values
+       used in the same column). This is only available for char/text fields
+       No validation is done by default on this field, the completed text
+       can be further edited.
 
-  1. completions on the same column (eg.: data that you have already written
-     in other records). This is only available for char/text fields.
+     * the *foreign key* (frequentrly an ``id``) along with a *representation of
+       the referenced record* (eg: the fullname of a director). A check is
+       made: there's no way to input a text that is not matched on the
+       remote field (see :ref:`description` below).
 
-     No check is made in this field, the text can be further edited
+     * a *complete record* as when we edit a relation and we use a filter on
+       one field but we aim at setting a complete record. E.g.: we select an
+       actor from a list and we may be filtering the name or the nation. See
+       example 40d.
 
-  2. completion on foreign key. A check is made: there's no way to input a
-     text that is not matched on the remote field (see :ref:`description`
-     below). 
 
-The match of the completion have two *modes*:
+  3. the **representation of the result**: in *enum* mode there is no doubt 
+
+  4. the **operator** used when searching: normally ``regexp`` or ``like``
+
+
+The match of the completion has three *modes*:
 
   :start: partially written text is used as a filter and completion must
     match from the start of the field. It uses LIKE operator
@@ -33,8 +44,8 @@ The match of the completion have two *modes*:
   :regexp: the match is done via regular expression if db supports it or via
     LIKE operator adding ``%`` on both sides
 
-  :enum: any value matches. All possible values are shown. This mimic an enum
-    field. When there are only few vaues this may result more ntural than
+  :enum: any value matches. All possible values are shown. This mimics an enum
+    field. When there are only few vaues this may result more natural than
     the others 
 
 Since completion implies a search that may return *many* records, it's only
@@ -86,15 +97,8 @@ When SqlWidget creates a class on the fly it looks for the 'format' field to
 add a __str__ method to the class, so that this representation is used
 whenever suitable (eg.: when a filter action is performed in a Mask)
 
-behaviour on completion
-========================
 
-When the completion is in a SqlTable that represents an m2m relationship (as
-``actors`` would be for ``movies``), the completion does not simply add the
-single field but substitutes the whole record.
-
-
-autocompletion
+Autocompletion
 ==============
 
 You can force completion to start after n chars has been entered setting the
@@ -125,7 +129,7 @@ completion is that if a valid value is found, no further completion is done.
   solutions but only the already retrieved ones. You can request a new
   completion... 
 
-group_by
+Group_by
 ========
 
 There is also en easy possibility to add grouping of completion via a
@@ -138,17 +142,18 @@ completion_group_by::
 
 .. _`filter_completion`:
 
-filtering completion
+Filtering completion
 =====================
 
-you can programmatically decide to filter what a completion returns in a
+You can programmatically decide to filter what a completion returns in a
 very easy way using :ref:`django like syntax <constraints>` (the same used
 to set constraints)::
 
+  t = SqlTable(class_=Movie,...)
   t.completions.title.filter(title__icontains='love')
 
-If ``t`` represents the SqlMask or SqlTable of a movie, this line will
-instruct the completion to only show title that contains the world "love". 
+this line will instruct the completion to only show title that contains the
+world "love".
 
 Filters on a field that is a foreign key will be relative to the related
 table::
@@ -162,7 +167,7 @@ directors.
 
   filters on foreign keys are limited in the fact that they are built on a
   table (as opposed to built on a mapper) so that they know nothing on the
-  relationship between tables and cannot span other relationships
+  relationship between tables and cannot span other relationships 
 
 dynamic filters
 ----------------
@@ -192,3 +197,17 @@ of the table you can programmatically choose to serve completion *only* via
 this way setting ``force_enum = True`` on the completion::
 
    t.completions.director_id.force_enum = True
+
+
+Behaviour on completion with m2m/m2o relationship
+=================================================
+
+When the completion is in a SqlTable that represents a not editable m2m
+relationship (as ``actors`` would be for ``movies``), the completion does
+not simply add the single field but substitutes the whole record.
+
+On such a relationship table's completion you can set filter that will act
+on all fields. Rationale: if you have a movie/actor relationship and set a
+contraint on actors so that only femail should be selected, you probably
+want to retain that filter independently from the fact that you select the
+nation, the first or the last name.

@@ -685,9 +685,9 @@ class FkeyCompletion(SimpleCompletion):
         self.table, self.column = get_foreign_info(self.master, self.field_name, names=False)
         self.table_lookup, self.column_lookup = self.table, self.column
         self.description = get_description(self.table, attr='description')
-        self.attrs = get_description(self.table, attr='attrs')
+        self.attrs = get_description(self.table, attr='attrs', metadata=self.master.metadata)
         self.columns = [self.table.columns[name] for name in self.attrs]
-        self.format    = get_description(self.table, attr='format')
+        self.format    = get_description(self.table, attr='format', metadata=self.master.metadata)
         self.from_obj = None
         self.widget = widget
 
@@ -700,23 +700,27 @@ class FkeyCompletion(SimpleCompletion):
             
     def compose_select_statement(self, oper, value):
 
-        order_by = [self.description]
-        if self.group_by:
-            order_by = [self._group_by] + order_by
+        mycolumns = copy(self.columns)
 
+        order_by = [self.table_lookup.columns[self.description]]
+        if self.group_by:
+            order_by = [self.table_lookup.columns[self._group_by]] + order_by
         if oper:
-            where = self.table.columns[self.description].op(oper)(value)
+            where = self.table_lookup.columns[self.description].op(oper)(value)
             where = self.add_filters(where)
         else:
             ## this should come from mode == 'enum'
             where = None
             if self._filter:
                 where = self.add_filters(None)
+
+        for col in order_by:
+            if not col in mycolumns:
+                mycolumns += [col]
             
-        sql = select(self.columns, where, from_obj=self.from_obj)
+        sql = select(mycolumns, where, from_obj=self.from_obj)
 
         return sql.order_by(*order_by).distinct()
-
     
 
 ### What to show
@@ -868,13 +872,23 @@ class M2mCompletion(FkeyCompletion):
     
         
     def __init__(self, *args, **kw):
+
         SimpleCompletion.__init__(self, *args, **kw)
+
         if self.master.is_fkey(self.field_name):
             self.table_lookup, self.column_lookup = get_foreign_info(self.master, self.field_name, names=False)
-        self.description = self.column.name
-        self.attrs = get_description(self.table, attr='attrs')
+            self.description = get_description(self.table_lookup.name, attr='description',
+                                               metadata=self.master.metadata)
+            self.from_obj = self.table.join(self.table_lookup, onclause= self.column == self.column_lookup)
+        else:
+            self.table_lookup, self.column_lookup = self.table, self.column
+            self.description = self.column.name
+            self.from_obj = None
+        
+        self.attrs = copy(get_description(self.table, attr='attrs', metadata=self.master.metadata))
+        if not self.field_name in self.attrs:
+            self.attrs += [self.field_name]   # needed for oder_by
         self.columns = [self.master.mapper_info.fields[field_name]['col'] for field_name in self.attrs]
-        self.from_obj = None
         
     def match_selected_cb(self, wdg, model, iter, field_name):
         """
@@ -902,6 +916,13 @@ class M2mCompletion(FkeyCompletion):
         self.displaying_completion = False
         self.master.run_hook('on_completion', obj, field_name=self.field_name)
         return True
+        
+    def filter(self, **kwargs):
+        for completion in self.master.completions:
+            completion._filter_single(**kwargs)
+
+    def _filter_single(self, **kwargs):
+        FkeyCompletion.filter(self, **kwargs)
         
     def __str__(self):
         return "<M2mCompletion: %s>" % self.field_name
@@ -933,14 +954,3 @@ def get_foreign_info(master, field_name, names=True):
 
     foreign_keys = master.mapper_info.fields[field_name]['fkey']
     return get_foreign_info(foreign_keys, names=names)
-
-
-
-
-
-
-
-
-
-
-
