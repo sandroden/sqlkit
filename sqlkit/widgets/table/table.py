@@ -1392,7 +1392,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         mask.connect('delete-event', disconnect, handler_id)
 
-        self._fmask = mask
+        self._fmask = mask  # just for debug
 
     def select_path(self, path=None, obj=None):
         """

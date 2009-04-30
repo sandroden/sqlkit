@@ -7,6 +7,7 @@ import inspect
 import tokenize
 import keyword
 import time
+from gobject import markup_escape_text
 
 class wshow(object):
     
@@ -1228,7 +1229,7 @@ class ShowLogs(object):
 
         meth_str = meth
         meth_str = "<span foreground='%s'>%s</span>" % (
-            col.get(indent, 'palevioletred'), self.quote(meth))
+            col.get(indent, 'palevioletred'), markup_escape_text(meth))
 
         self.last_indent = indent
 
@@ -1292,7 +1293,7 @@ class ShowLogs(object):
             }
         meth = re.sub('(.*)\.(.*)',r'\2', str(meth))
         meth_str = "<span foreground='%s'>%s</span>" % (
-            color[mode], self.quote(meth))
+            color[mode], markup_escape_text(meth))
 
         now = time.time()
         self.model.set(  iter,
@@ -1307,12 +1308,6 @@ class ShowLogs(object):
 
         return iter
 
-    def quote(self, text):
-        """quote string from undesired chars in pango markup"""
-        #text = re.sub('([<\'>])', r'\\\1', text)
-        text = re.sub('([<\'>])', '', text)
-        return text
-    
     def ret(self, iter, txt):
         self.model.set(iter, 5, txt[0:100])
         return iter
@@ -1326,11 +1321,6 @@ try:
             self.model = model
             TreeViewTooltips.__init__(self)
 
-
-        def quote(self, text):
-            """quote string from undesired chars in pango markup"""
-            text = re.sub('([<\'>])', '', str(text))
-            return text
 
         def get_tooltip(self, view, column, path):
             meth, args, ret, caller, line, time = self.model.get(
