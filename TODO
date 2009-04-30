@@ -1,12 +1,3 @@
-CheckBox 
-=========
-
-per boolean: deve esistere anche tri-state come quello per TreeView
-deve esseere possibile scegliere il CheckBox tri-state o quello
-normale a seconda che il campo nel db sia nullable o meno
-(widget.mask.miniwidget.BooleanNullWidget)
-
-
 SqlTable
 ===========
  

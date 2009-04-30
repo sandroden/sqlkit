@@ -298,10 +298,15 @@ class BooleanWidget(Widget):
     def get_value(self, shown=False):
         return self.gtkwidget.get_active( )
         
-class BooleanNullWidget(Widget):
+class BooleanNullWidget(BooleanWidget):
     """
     This gtkwidget is placed in inconsinstent state to represent NULL
     """
+    def __init__(self, *args):
+        Widget.__init__(self, *args)
+        self.gtkwidget.connect('clicked', self.on_clicked_cb)
+        self.gtkwidget.connect_after('toggled', self.on_toggled_cb)
+
     def set_value(self, value):
         if value == None:
             self.gtkwidget.set_inconsistent(True)
@@ -315,6 +320,27 @@ class BooleanNullWidget(Widget):
         else:
             return self.gtkwidget.get_active( )
             
+    def on_clicked_cb(self, button):
+        """
+        a toggle function that loops through inconsinstent state also
+        """
+        active = not button.get_active()
+        null = button.get_inconsistent()
+
+        ## -   -> True  -> False
+        if null:  # - next is True
+            button.set_active(True)
+            button.set_inconsistent(False)
+        else:
+            if active == True:
+                button.set_inconsistent(False)
+                button.active = False
+            else:
+                button.active = True
+                button.set_inconsistent(True)
+
+        return True
+
 class ForeignKeyComboboxWidget(Widget):
     """a ComboBoxEntry with 2 columns
 
