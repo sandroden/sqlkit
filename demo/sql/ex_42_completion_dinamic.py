@@ -11,9 +11,12 @@ lay = """
    nation
 """
 
+import gobject
 t = SqlMask(class_=model.Director, dbproxy=db, layout=lay)
 
 t.completions.last_name.filter(nation='$nation')
-t.set_value('nation', 'IT')
+
+gobject.idle_add(t.set_value,'nation', 'IT')
 
 t2 = SqlMask(class_=model.Director, dbproxy=db, layout=lay)
+
