@@ -49,23 +49,29 @@
 >>> djs.django2components(Address.__mapper__, {'date_created__gte' : 'm'})
 ([], '>=', 'gte', 'm', Column('date_created', Date(), table=<address>))
 
->>> q = djs.django2query(User.__mapper__, query, first_name='ed')
+## query + class
+>>> q = djs.django2query(query, User,  first_name='ed')
 >>> compare(q, query.filter(User.first_name == 'ed'))
 True
 
->>> q = djs.django2query(User.__mapper__, query, first_name='ed',
+## query + mapper
+>>> q = djs.django2query(query, User.__mapper__,  first_name='ed')
+>>> compare(q, query.filter(User.first_name == 'ed'))
+True
+
+>>> q = djs.django2query(query, User.__mapper__, first_name='ed',
 ...                      addresses__email='me@google.com')
 >>> compare(q, query.filter(and_(User.first_name.op('=')('ed'),
 ...                              Address.email.op('=')('me@google.com'))).join(Address))
 True
 
->>> q = djs.django2query(User.__mapper__,  query, first_name='ed',
+>>> q = djs.django2query(query, User.__mapper__, first_name='ed',
 ...                      addresses__provider__provider__icontains='google', OR=True)
 >>> compare(q, query.filter(or_(User.first_name.op('=')('ed'),
 ...                              Provider.provider.ilike('%google.com%'))).join(['addresses','provider']))
 True
 
->>> q = djs.django2query(User.__mapper__,  query, first_name='ed',
+>>> q = djs.django2query(query, User.__mapper__, first_name='ed',
 ...                      addresses__provider__country__country__icontains='ITA')
 >>> compare(q, query.filter(and_(User.first_name.op('=')('ed'),
 ...           Country.country.ilike('%ITA%'))).join(['addresses','provider','country']))

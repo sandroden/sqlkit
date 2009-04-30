@@ -324,7 +324,7 @@ class SqlWidget(gobject.GObject):
         if multiple conditions are passed, they will be ANDed unless 'or_=True'
         """
         from sqlkit.db.django_syntax import django2query
-        self.query = django2query(self.mapper, self.query, OR=OR, *args, **kwargs)
+        self.query = django2query(self.query, self.mapper, OR=OR, *args, **kwargs)
         
     def add_filter_cb(self, event=None, visible=True):
         """

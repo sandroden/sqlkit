@@ -816,8 +816,10 @@ class ForeignKeyField(Field):
         if input_is_fkey:
             return value
         
-        sql = self.widget.completion.compose_select_statement('=', value)
-        ret = self.master.metadata.bind.execute(sql).fetchone()
+        query = self.widget.completion.compose_select_statement(
+            self.widget.completion.query, '=', value)
+        ret = query.all()
+        #ret = self.master.metadata.bind.execute(sql).fetchone()
         return ret and ret[0]
 
     def validate(self, value, clean=False):

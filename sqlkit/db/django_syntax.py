@@ -53,7 +53,7 @@ supported lookup
 conjunctions
 ------------
 
-``django2sqlakchemy`` and ``django2query`` connect all arguments with AND operator
+``django2sqlalchemy`` and ``django2query`` connect all arguments with AND operator
 by default. It's possible to use ``OR`` operator adding ``OR=True``  argument.
 
 
@@ -237,11 +237,22 @@ def get_foreign_column(mapper, path=None, attr=None):
     return get_column(prop, attr)
 
 
-def django2query(mapper, query, OR=False, **kw):
+def django2query(query, mapper_or_class, OR=False, **kw):
     """
     return a new query with new constraints expressed in  'django-style'
-    
+
+    :param query:     the query to which filters will be applied
+    :param mapper_or_class: a mapper or a class from which the class will be devised
     """
+
+    from sqlalchemy.orm import class_mapper, Mapper
+
+    mapper = mapper_or_class
+    if isinstance(mapper_or_class, Mapper):
+        mapper = mapper_or_class
+    else:
+        mapper = class_mapper(mapper_or_class)
+        
     parser = DjangoParser(mapper, query, OR=OR)
 
     for key,val in kw.iteritems():
