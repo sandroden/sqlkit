@@ -66,3 +66,4 @@ class LookupValueMultipleValues(LookupValueError): pass
 class MissingDescriptorField(Exception): pass
 class UnhandledMultipleForeignKeys(Exception): pass
 
+class ParseFilterError(Exception): pass

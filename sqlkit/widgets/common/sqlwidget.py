@@ -1046,19 +1046,24 @@ class SqlWidget(gobject.GObject):
 #         if reload_constraint == True:
 #             self.sql = (sql_str, params)
 
-        self.session.expunge_all()
-        self.last_new_obj = None
         query = self.query.filter(sql_str)
         if params:
             query = query.params(**params)
         if self.order_by:
             query = query.order_by(self.order_by)
 
-        query = self.filter_panel.add_filter_conditions(query)
+        try:
+            query = self.filter_panel.add_filter_conditions(query)
+        except exc.ParseFilterError, e:
+            self.records = []
+            return
 
         if self.limit:
             query = query.limit(self.limit)
                 
+        self.session.expunge_all()
+        self.last_new_obj = None
+
         if self.is_mask():
             self.current = None
             self.clear(check=False)

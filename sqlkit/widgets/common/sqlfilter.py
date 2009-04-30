@@ -24,7 +24,7 @@ from sqlalchemy.sql import select, Join
 from sqlkit.db import minspect
 from datetime import *
 from sqlkit.db.django_syntax import django2components
-from sqlkit.misc.datetools import string2dates
+from sqlkit.misc import datetools 
 from sqlkit import _, exc
 import warnings
 
@@ -535,7 +535,12 @@ class FilterDateTool(FilterTool):
 
         """
 
-        start, stop = string2dates(value)
+        try:
+            start, stop = datetools.string2dates(value)
+        except datetools.WrongRelativeDateFormat:
+            msg = _("value '%s' does not seem a valid date and cannot be transformed into a date" % value)
+            self.master.dialog(type='ok', icon='gtk-dialog-error', text=msg)
+            raise exc.ParseFilterError
 
         # If 'stop' is not None it means I have a period (eg.: 'y > M')
         # and I use operators to delimit this
