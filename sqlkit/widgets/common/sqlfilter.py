@@ -146,6 +146,8 @@ class FilterPanel(object):
             path, op, op_str, value, col = django2components(self.master.mapper, {key: val})
             master = self.get_related_master(self.master, path)
             filter_widget = self.add(None, None, col.name, master, force=True)
+            if not filter_widget: 
+                return
             filter_widget.set_active(active)
             if value and not value is True:
                 filter_widget.set_value(value)
