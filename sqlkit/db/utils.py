@@ -320,7 +320,7 @@ def get_labels_and_tips_from_sqlkit(table, metadata=None):
 ###################
 
 
-def get_differences(obj, session=None):
+def get_differences(obj):
     """
     show differences between old and new version of an object
     this is a generator, you should use as in::
@@ -329,22 +329,37 @@ def get_differences(obj, session=None):
            print 'field   %s changed from %s, to %s' % (field_name, old_value, new_value)
 
     :param obj: the object to look for changes
+
+    this function uses ``sqlalchemy.orm.attributes.get_history`` but differs in 2 ways:
+
+      * it only yield *changed* values
+      * it returns the simple value (not a list) if the property is not a RelationProperty
+        with direction MANYTOMANY or ONETOMANY (i.e.a collection)
     
     """
-    from sqlalchemy.orm import attributes, class_mapper, object_session
+    from sqlalchemy.orm import attributes, class_mapper, object_session, properties
 
     session = object_session(obj)
     mapper = class_mapper(obj.__class__)
     for prop in mapper.iterate_properties:
         new = None
+        old = None
 
         try:
             new, unchanged, old =  attributes.get_history(
                 attributes.instance_state(obj), prop.key)
             if new or old:
-                yield prop.key, old, new
-
+                ## Not sure about this code. I don't want to have to cope with
+                ## a list if there is no need for that (i.e. is not a collection)
+                if isinstance(prop, properties.RelationProperty) and (
+                    prop.direction.name in ('MANYTOMANY', 'ONETOMANY')):
+                    yield prop.key, old, new
+                else:
+                    yield prop.key, old and old[0] or '', new and new[0] or ''
+                    
         except Exception, e:
+            ## FIXME: why should we have an error?
+            print "DEBUG (%s): %s --> %s ## %s" % ( prop.key, old, new, e)
             pass
 
 def get_history(obj, field_name, session=None):
@@ -355,7 +370,7 @@ def get_history(obj, field_name, session=None):
     :param field_name: the field name of which we want to know the history
     :return: new, unchanged, old
     """
-    from sqlalchemy.orm import attributes, class_mapper
+    from sqlalchemy.orm import attributes, class_mapper, properties
 
     mapper = class_mapper(obj.__class__)
     for prop in mapper.iterate_properties:
@@ -365,14 +380,15 @@ def get_history(obj, field_name, session=None):
             try:
                 new, unchanged, old =  attributes.get_history(
                     attributes.instance_state(obj), prop.key)
-                return new, unchanged, old
+                if isinstance(prop, properties.RelationProperty) and (
+                    prop.direction.name in ('MANYTOMANY', 'ONETOMANY')):
+                    return new, unchanged, old
+                else:
+                    return new and new[0] or '',  unchanged and unchanged[0] or '', old and old[0] or ''
 
             except Exception, e:
                 pass
             
-
-    
-
 def clean_for_markup(text):
     """
     quote string from undesired chars in pango markup
@@ -380,7 +396,7 @@ def clean_for_markup(text):
     from gobject import markup_escape_text
     
     if isinstance(text, (tuple, list)):
-        text = [markup_escape_text(item) for item in text]
+        text = [markup_escape_text(str(item)) for item in text]
     else:
         text = markup_escape_text(str(text))
     return str(text)
