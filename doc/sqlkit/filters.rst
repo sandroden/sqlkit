@@ -70,6 +70,34 @@ on join too see how it works::
 Here the field *nation* of table *director* is referenced as
 ``director_nation``
 
+Expressions
+===========
+
+Filter work just in the same way for real column as for expressions. 
+Example 30 in the demo shows how to create a mapper that have a column with
+the number of film  of a director, and you can verify that constraints and
+filter work on that table just as any normal column::
+
+  class Director2(object): pass
+
+  ## create the mapper as suggested in the SqlAlchemy tutorial...
+  m = mapper(Director2, model.Director.__table__,
+     properties={
+      'film_number': column_property(
+	      select(
+		  [func.count(model.Movie.__table__.c.id)],
+		  model.Director.__table__.c.id == model.Movie.__table__.c.director_id
+	      ).label('film_number')
+	  )
+    }
+  )
+
+  field_list = "last_name, first_name, nation, film_number"
+  t = SqlTable(mapper=m, field_list=field_list, dbproxy=db)
+  t.add_filter(film_number=3)
+  t.add_constraint(film_number__lt = 5)
+
+
 Date filters
 =============
 

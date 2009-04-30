@@ -25,11 +25,16 @@ framework) but a way to:
   * make it easy to add filters and constraints
   * make it easy to store queries (that need to store filters and constraints)
 
-These function are used in sqlfilter and in completion beside add_constrint method
-of sqlwidget. 
+These function are used in sqlfilter and in completion beside ``.add_constraint(...)``
+method of sqlwidget. 
+
+You never *need* to use these functions. If you prefere you can changed the query
+directly with SQLAlchemy syntax, and surely there are situations where that's
+necesssary, nevertheless there are situations where this syntax allows to obtain the
+same result in less and more readeable code, probably just one line.
 
 All of these functions act on a mapper becouse it has info on PropertyLoaders. In completion,
-the mapper is used to follow the join_path even if the query (a ``sqlalchemy.select``),
+the mapper is used to follow the *join_path* even if the query (a ``sqlalchemy.select``),
 will not be issued on a ``session.query`` object
 
 .. _`django's site`: http://docs.djangoproject.com/en/dev/topics/db/queries/#field-lookups-intro
@@ -186,7 +191,10 @@ def django2components(mapper_or_table, kw=None):
     if len(tokens) == 1:  # field_name='abc'
         op_str = 'eq'
         attr = tokens[0]
-        col = getattr(table.columns, attr)
+        try:
+            col = getattr(table.columns, attr)
+        except AttributeError, e:
+            col = getattr(mapper.c, attr)
         value = kw[attr]
 
     else:  # data_gte=today() -- address__city__country__in=['Italy','France']
@@ -199,7 +207,11 @@ def django2components(mapper_or_table, kw=None):
             joins = deepcopy(tokens)
             col = get_foreign_column(mapper, path=tokens, attr=attr)
         else:
-            col = table.columns[attr]
+            try:
+                col = getattr(table.columns, attr)
+            except AttributeError, e:
+                col = getattr(mapper.c, attr)
+            #col = table.columns[attr]
 
     op = OPERATORS[op_str]
     if op_str in ('regexp', 'iregexp'):

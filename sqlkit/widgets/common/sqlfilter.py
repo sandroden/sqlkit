@@ -385,7 +385,10 @@ class FilterTool(object):
         self.master = master
         self.field_name = field_name
         self.db_spec = self.master.mapper_info.fields[field_name]
-        if self.master.relationship_path:
+
+        ## db_spec['table'] may not be defined if the column correspond to an expression
+        
+        if self.db_spec['table'] and self.master.relationship_path:
             ## use an alias in case we have another filter to the same table
             self.table = self.db_spec['table'].alias()
         else:
@@ -403,7 +406,12 @@ class FilterTool(object):
             ## FIXME: no aliasing in this case
             self.col = cols[0]
         else:
-            self.col = self.table.c[self.field_name]
+            ## Note: here self.table can be the alias of self.master.mapper_info.field[field_name].table
+            if self.table:
+                self.col = self.table.c[self.field_name]
+            else:
+                ## no aliasing here: is any possible to alias a _Label/expression?
+                self.col = self.db_spec['col']
 
         self.bind_name = self.master.metadata.bind.name
         self.widget = FilterWidget(self)

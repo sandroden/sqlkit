@@ -35,6 +35,7 @@ Main features of sqlkit:
    * each field can be used to filter visible records
    * date filtering possible also on relative basis (good for saved
      queries)
+   * works on expressions too
 
  - :ref:`completion` both on normal fields and foreign key fields
  - very easy way to draw a layout for mask views
@@ -43,8 +44,8 @@ Main features of sqlkit:
  - very easy way to set :ref:`defaults`
  - possibility to display :ref:`totals` in numeric fields
  - :ref:`constraints`: any possible sql constraint can be attached to a Mask 
-   or a Table. It can be expressed a s a normal sqlalchemy query or with
-   django-like syntax
+   or a Table. It can be expressed as a normal sqlalchemy query or with
+   django-like syntax. Works on expressions too.
  - :ref:`signals`
  - :ref:`hooks` for a very easy customization of behaviour and for validation
  - more than 50 snippets of code to test each feature

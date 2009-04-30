@@ -8,6 +8,7 @@ import re
 from  sqlalchemy.orm import properties
 import sqlalchemy.orm.properties 
 from sqlkit.misc.utils import Container
+from sqlalchemy.sql import expression
 
 SA_TYPE_MAP =  {
     sqlalchemy.types.String : str,
@@ -28,12 +29,12 @@ SA_TYPE_MAP =  {
 
 PROPERTIES = properties
 class MissingPrimaryKeyError(Exception): pass
-def is_serial (c):
-    if hasattr (c.default, 'arg') and hasattr (c.default.arg, 'text'):
-        if "nextval" in c.default.arg.text:
-            return True
-    else:
-        return False
+# def is_serial (c):
+#     if hasattr (c.default, 'arg') and hasattr (c.default.arg, 'text'):
+#         if "nextval" in c.default.arg.text:
+#             return True
+#     else:
+#         return False
 
 
 class InspectMapper(Container):
@@ -46,7 +47,6 @@ class InspectMapper(Container):
     db_type     (db type)
     type        (python-type) (not yet)
     col_spec    (string) eg: INTEGER, STRING
-    is_serial   bool
     length      None or a Number
     property    the property used to access these data
     """
@@ -119,38 +119,40 @@ class InspectMapper(Container):
         except NotImplementedError,e:
             col_spec = None
         d = Container({
-#            'table_name'  :  mapper.local_table.name ,
-            'table_name'  :  col.table.name ,
             'name'        :  str(field_name),
-            'table'       :  mapper.local_table ,
             'col'         :  mapper.c[field_name] ,
             'db_type'     :  type(mapper.c[field_name].type), 
             'type'        :  self.get_py_type(type(mapper.c[field_name].type), field_name),
             'col_spec'    :  col_spec,
-            'is_serial'   :  is_serial(mapper.c[field_name]),
             'property'    :  property,
             'fkey'        :  False,
-            'default'     :  mapper.c[field_name].default,
-            'pkey'        :  mapper.c[field_name].primary_key,
-            'nullable'    :  mapper.c[field_name].nullable,
             'mapper'      :  mapper,
-            'editable'        :  self.set_noup(field_name, col.name, col)
-#            'direction'   :  mapper.props[field_name].direction
             })
         try:
             d['length'] = mapper.c[field_name].type.length
         except:
             d['length'] = None
 
-        if col.table.name not in self.table_mappers:
+        if isinstance(mapper.c[field_name], expression._Label):
+            d['table'] =   None
+            d['table_name'] =   None
+            d['default']     =  None
+            d['pkey']        =  False
+            d['nullable']    =  True
+            d['editable']    =  False            
+        else:
+            d['table']       =  col.table
+            d['table_name']  =  col.table.name 
+            d['default']     =  mapper.c[field_name].default
+            d['pkey']        =  mapper.c[field_name].primary_key
+            d['nullable']    =  mapper.c[field_name].nullable
+            d['editable']    =  self.set_noup(field_name, col.name, col)
+
+
+        if d['table'] and col.table.name not in self.table_mappers:
             #dbg.write("%s %s" % (mapper.local_table.name, self.table_mappers))
             self.table_mappers[col.table.name] = (self.mapper.class_, self.mapper)
             self.pkeys[col.table.name] = []
-
-#         if mapper.local_table.name not in self.table_mappers:
-#             #dbg.write("%s %s" % (mapper.local_table.name, self.table_mappers))
-#             self.table_mappers[mapper.local_table.name] = (mapper.class_, mapper)
-#             self.pkeys[mapper.local_table.name] = []
 
         if d['pkey']:
             #dbg.write("si %s -> %s" % (field_name, mapper.local_table.name ))
@@ -158,9 +160,6 @@ class InspectMapper(Container):
 
         d['fkey'] = mapper.c[field_name].foreign_keys
 
-#         if mapper.c[field_name].foreign_keys:
-#              d['fkey'] = (mapper.c[field_name].foreign_key.column.table.name,
-#                         mapper.c[field_name].foreign_key.column.name)
         self.fields.add_element(field_name, d)
         #setattr(self.fields, field_name,  d)
 
@@ -191,7 +190,7 @@ class InspectMapper(Container):
             'db_type'     :  None,   ## FIXME: this is used tor table 
             'type'        :  str,  # FIXME
             'col_spec'    :  None,
-            'is_serial'   :  False,
+#            'is_serial'   :  False,
             'property'    :  property,
             'fkey'        :  False,
             'default'     :  None,
@@ -209,8 +208,8 @@ class InspectMapper(Container):
             d['length'] = None
 
 
-        table_name = mapper.local_table.name
-        if table_name not in self.table_mappers:
+        table_name = getattr(mapper.local_table, 'name', None)
+        if table_name and table_name not in self.table_mappers:
             self.table_mappers[table_name] = (mapper.class_, mapper)
             self.pkeys[table_name] = []
 
@@ -221,7 +220,7 @@ class InspectMapper(Container):
         """Return all the field_names in the mapper but not loaders
         """
         ret = []
-        for m in self.tables(mode='mapper' ):
+        for m in self._tables(mode='mapper' ):
             ret += m.c.keys()
         return ret
 
@@ -248,7 +247,7 @@ class InspectMapper(Container):
     def __len__(self):
         return len(self.field_list)
     
-    def tables(self, mode='name'):
+    def _tables(self, mode='name'):
         """return the table_names of the tables in the mapper
         if mode='mapper', returns the mappers
         the main table will be in position '0'
@@ -323,7 +322,7 @@ class InspectMapper(Container):
         return editable
         
     def get_join_cnd(self):
-        tables = self.tables(mode='mapper')
+        tables = self._tables(mode='mapper')
         return get_join_cnd(tables)
 
     def get_primary_table(self, name=True):

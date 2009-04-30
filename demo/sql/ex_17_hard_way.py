@@ -3,7 +3,7 @@
 you can pass a mapper that already has the join as you prefere
 
 It you explicitely define mapping for attribute 'id', it
-will prevent SA from complaining about 2 classes with same name
+will prevent SA from complaining about 2 columns with same name
 
 """
 
