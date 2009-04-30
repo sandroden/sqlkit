@@ -1076,13 +1076,25 @@ class SqlWidget(gobject.GObject):
         self.session.rollback()
         return length
 
-    def set_records(self, records):
+    def set_records(self, records=None, pk=None):
         """set 'records' as the list of record to manage
         """
+        if not records and pk:
+            records = self.get_by_pk(pk)
+            
         self.records = records
         self.last_new_obj = None
         self.record_refresh()
 
+    def get_by_pk(self, pk):
+        """
+        Return an object of self.class_ filtered by pk
+        """
+
+        query = self.query.autoflush(False)
+        record = query.filter_by(**{str(self.get_pk()[0]) : pk}).all()
+        return record
+    
     def record_refresh(self):
         """to be overloaded: 
         """
@@ -1864,6 +1876,8 @@ class ValidationWarningDialog(ValidationErrorDialog):
             raise exc.DialogValidationError
         else:
             pass
+
+
 
 
 

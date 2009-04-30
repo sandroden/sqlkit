@@ -132,11 +132,15 @@ class SqlMask(sqlwidget.SqlWidget):
         self.ui_manager.get_action('/Main/Go/Forward').set_sensitive(display_idx+1 < len(self.records))
         self.ui_manager.get_action('/Main/Go/Back').set_sensitive(display_idx > 0)
 
-    def set_records(self, records, index=0):
+    def set_records(self, records=None, index=0, pk=None):
         """
         set records to browse, and display number idx
         """
         self.clear_mask()
+
+        if not records and pk:
+            records = self.get_by_pk(pk)
+            
         self.records = records
         # it's handy to set set_records([table.current])
         # that may also be empty
