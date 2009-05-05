@@ -698,7 +698,7 @@ class SimpleCompletion(object):
             kwargs.pop(key)
 
         if kwargs:
-            if main_:
+            if main_query:
                 self.query = django2query(self.query, self.mapper, OR=OR, **kwargs)
             else:
                 self.filtered_query = django2query(self.filtered_query or self.query,
