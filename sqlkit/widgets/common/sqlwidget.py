@@ -527,7 +527,7 @@ class SqlWidget(gobject.GObject):
         """
         from sqlkit.db.utils import get_labels_and_tips_from_sqlkit
         if self.tables:
-            for table in self.tables.split():
+            for table in [t.name for t in self.mapper.tables]:
                 self.label_map.update( get_labels_and_tips_from_sqlkit(table, metadata=self.metadata))
             
     def resize(self, width, height):
