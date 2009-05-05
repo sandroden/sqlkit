@@ -908,7 +908,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return True
         
         if interactive:
-            text = _("Delete this record?\n(%s)" % self.current)
+            text = _("Delete this record?\n(%s)") % self.current
             response = self.dialog(type='ok-cancel', text=text)
             if response == gtk.RESPONSE_CANCEL:
                 return

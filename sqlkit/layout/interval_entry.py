@@ -7,6 +7,7 @@ should work out a bettere widget an possibly contribute it...
 """
 import gobject
 import gtk
+import re
 from datetime import timedelta
 from sqlkit import debug as dbg
 
@@ -78,12 +79,23 @@ class IntervalEdit(gtk.Alignment):
             days = self.days.get_text() or 0
             hours = self.hours.get_text() or '0:0:0'
         
-            assert len(hours.split(':')) == 3
 
-            hours, minutes, seconds = hours.split(':')
+            sep = "[:.]"
+            H = "(?P<hours>\d+)"
+            M = "(?:[:.](?P<minutes>\d+))?"
+            S = "(?:[:.](?P<seconds>\d+))?"
 
-            value = timedelta(days=int(days), hours=int(hours),
-                                      minutes=int(minutes), seconds=int(seconds))
+            try:
+                m = re.match(H+M+S, hours)
+                hours, minutes, seconds = m.groups()
+            except:
+                ## FIXME: I should propagate an error
+                hours, minutes, seconds = [0,0,0]
+                
+            value = timedelta(days=int(days),
+                              hours=int(hours or 0),
+                              minutes=int(minutes or 0),
+                              seconds=int(seconds or 0))
             return value
             
 
