@@ -532,11 +532,18 @@ class SqlWidget(gobject.GObject):
             
     def resize(self, width, height):
         """
-        Resize the parent window
+        Resize the parent window, accepts -1
         """
-        if width < 0 or height < 0:
-            return
-        gobject.idle_add(self.widgets['Window'].resize, width, height)
+        Window = self.widgets['Window']
+        w, h = Window.get_size()
+
+        if width <- 0:
+            width = w
+
+        if height  <= 0:
+            height = h
+            
+        gobject.idle_add(Window.resize, width, height)
         
     def gquit(self, *args):
         gtk.main_quit()

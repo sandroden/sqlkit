@@ -199,7 +199,8 @@ completeness:
 
 .. method:: resize()
 
-    a resize on the window. 
+    a resize on the window. It accepts also -1 as value in which case sets
+    the current value, so it can be used to change just one dimention.
 
 .. method:: set_records([list_of_instances])
 
