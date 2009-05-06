@@ -408,7 +408,7 @@ class SimpleCompletion(object):
             val = self.master.get_value(self.field_name, shown=True) or ''
         assert isinstance(val, basestring)
         self.autostart_last_length = len(val)
-        return self.add_for_LIKE(val)
+        return self.add_for_LIKE_and_REGEXP(val)
 
     def get_match_operator(self):
         
@@ -422,17 +422,23 @@ class SimpleCompletion(object):
 
         return oper
 
-    def add_for_LIKE(self, value):
+    def add_for_LIKE_and_REGEXP(self, value):
         """add a % simbol to get expansion if completion is attempted in LIKE mode""" 
 
         if self.MATCH_OPERATOR in ('LIKE', 'ILIKE'):
             if self.mode == 'start':
-                if not value.startswith('%'):
+                if not value.endswith('%'):
                     value += '%'
                 
             if self.mode == 'regexp':
                 if not value.startswith('%'):
                     value = '%' + value + '%'
+
+        elif self.MATCH_OPERATOR in ('~*',):
+            if self.mode == 'start':
+                if not value.startswith('^'):
+                    value = '^' + value
+
         return value
     
     def add_dynamic_filters(self, query):
