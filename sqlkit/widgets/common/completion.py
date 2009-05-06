@@ -130,7 +130,12 @@ class SimpleCompletion(object):
         """
         if not field_name in self.attrs:
             self.attrs += [field_name]
-            self.columns += [self.table.columns[field_name]]
+            group_column = self.table.columns[field_name]
+            self.columns += [group_column]
+            self.query = self.query.add_column(group_column)
+            if self.filtered_query:
+                self.filtered_query = self.filtered_query.add_column(grup_column)
+
         self._group_by = field_name
         self._order_by = [self.table.columns[f] for f in [field_name, self.description]]
         
