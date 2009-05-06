@@ -306,7 +306,7 @@ class SimpleCompletion(object):
         """
         m_iter = self.model.append(None)
         self.model.set(m_iter,
-                       self.VALUE_COL, getattr(obj, self.field_name),
+                       self.VALUE_COL, markup_escape_text(getattr(obj, self.field_name)),
 #                       self.VALUE_COL, self.format % DictLike(obj),
                        self.MATCH_COL, True)
 
@@ -1000,3 +1000,5 @@ def get_foreign_info(master, field_name, names=True):
 
     foreign_keys = master.mapper_info.fields[field_name]['fkey']
     return get_foreign_info(foreign_keys, names=names)
+
+
