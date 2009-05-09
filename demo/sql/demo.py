@@ -9,13 +9,14 @@ opens the demo console or directly an example defined by its number:
 
 usage: %prog [opts] ex_number
    -N, --no-gtk-debug: gtk debug
-
+   -g, --gtk: gtk debug in window
 """
 
 
 import gtk
 import sys
 import os
+import gobject
 
 pdir = os.path.dirname(os.getcwd())
 ppdir = os.path.dirname(pdir)
@@ -30,8 +31,8 @@ if not opts.no_gtk_debug:
     dbg.debug(True)
     dbg.debug(True, gtk=True)
     dbg.trace_class(ok='SqlTable|SqlWidget|SqlMask|Completion')
-    but = 'set_fkey_descr|(lookup|get)_value|[el]ne_cb|match_func' + \
-        '|cell_.*_cb|lookup_value|is_fkey|instance2'
+    but = 'set_fkey_descr|(lookup|get)_value' + \
+        '|lookup_value|is_fkey'
     dbg.trace_function(exclude=but)
 
 from demo_tour import Demo
@@ -83,7 +84,11 @@ d = DemoSql(xml=False, debug=True)
 
 if len(sys.argv) > 1:
     d.iconify()
-    d.load_module_by_idx(sys.argv[1])
+    d.load_module_by_idx(args[0])
+
+if opts.gtk:
+    l =d.execute_clicked_cb(None)
+    gobject.idle_add(l.model_clear, None)
 
 gtk.main()
 

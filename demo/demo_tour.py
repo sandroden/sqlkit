@@ -142,6 +142,7 @@ class Demo(object):
                 logger.hide()
             else:
                 logger.show()
+            return logger
         except:
             pass
 
