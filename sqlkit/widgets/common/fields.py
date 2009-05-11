@@ -861,6 +861,10 @@ class ForeignKeyField(Field):
         self.widget.set_value(value, shown=shown)
 
     def has_changed(self):
+        ## special case, when is empty
+        if self.initial_value is None and self.widget.get_value(shown=True) == '':
+            return False
+        
         if hasattr(self.widget, 'real_value') and self.widget.real_value == False:
             return True
         else:

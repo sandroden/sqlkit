@@ -45,7 +45,7 @@ class InspectMapper(Container):
     name        (string)
     table       (sqlalchemy Table obj)
     db_type     (db type)
-    type        (python-type) (not yet)
+    type        (python-type) 
     col_spec    (string) eg: INTEGER, STRING
     length      None or a Number
     property    the property used to access these data
