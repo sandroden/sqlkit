@@ -436,7 +436,7 @@ class SqlTable(sqlwidget.SqlWidget):
         # 6. selected existent record -> new record
         # 7. selected existent record -> delete
         # 8. selected existent LAST record -> delete
-        
+
         if self.edited_row_model_path is None:
             self.emit('record-selected')
             if self.get_selected_obj() or len(self.records):
@@ -495,6 +495,7 @@ class SqlTable(sqlwidget.SqlWidget):
             if isinstance(obj, self.totals.total_class):
                 obj = None
             field_name = column.get_data('field_name')
+            self._enforce_first_click_just_selects(path, column, field_name)
         except TypeError, e:
             obj = None
             field_name = None
@@ -523,6 +524,27 @@ class SqlTable(sqlwidget.SqlWidget):
         self.emit('button-press-event', event, obj, field_name, menu )
         
         return False
+
+    def _enforce_first_click_just_selects(self, path, column, field_name):
+        """
+        if selection has changed with a click on a toggle cell, turn that
+        cell into insensitive to prevent changeing the value
+        """
+        
+        ## I want the first click on the table to just change the selection, not the value
+        ## the problem is that toggled signal happens *before* change in selection, so that
+        ## all normal checks based on selection_changed are not yet at work
+        selection = self.treeview.get_selection()
+        model, rows = selection.get_selected_rows()
+        if rows:
+            selected_path = rows[0]
+        else:
+            selected_path = None
+
+        if not path == selected_path and self.gui_fields[field_name].type == bool:
+            if column.get_data('cell').get_property('mode') == gtk.CELL_RENDERER_MODE_ACTIVATABLE:
+                column.get_data('cell').set_property('mode', gtk.CELL_RENDERER_MODE_INERT)
+                gobject.idle_add(column.get_data('cell').set_property, 'mode', gtk.CELL_RENDERER_MODE_ACTIVATABLE)
         
 #### event handling & accelerators
     def keyrelease_event_cb(self, wdg, event, data=None):

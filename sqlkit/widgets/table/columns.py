@@ -266,6 +266,7 @@ class BooleanColumn(GenericColumn):
         self.cell_set_property(cell)
 
         self.column.pack_start(cell, True)
+        self.column.set_data('cell', cell)
         
         ## connect
         cell.connect('editing-canceled', self.editing_canceled_cb) # ???
@@ -278,13 +279,13 @@ class BooleanColumn(GenericColumn):
         
     def cell_set_property(self, cell):
 
-        cell.set_property('activatable', True)
+        if self.master.is_editable(self.field_name):
+            cell.set_property('activatable', True)
 
     def toggled_signal_cb(self, cell, path, model):
         """
         callback that cicle into True/False/(inconsistent if nullable)
         """
-
         self.master.currently_edited_field_name = self.field_name
         self.master.initialize_record_editing(path)
 
