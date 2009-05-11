@@ -124,6 +124,7 @@ class SimpleCompletion(object):
 #        self.query = self.master.session.query(getattr(self.master.mapper.class_, self.field_name)).autoflush(False)
         self.query = self.master.session.query(*self.columns).autoflush(False)
         self.filtered_query = None
+        self.match_dict = {}
         
     def set_group_by(self, field_name):
         """if group_by is not already in table.attrs, add it runtime
@@ -214,14 +215,18 @@ class SimpleCompletion(object):
             # TIP: status bar 
             self.master.sb(_("search mode: %s") % mode)
         self.model.clear()
+        self._prev_gruop_by_value = None
 
         result = self.select_values(self.field_name, mode, return_sql=return_sql, value=value)
+        self._needs_recalculating = True
         if return_sql:
             return debug_inline_params(result, bind=None)
-        
+
+        self.completion.set_model(None)
         for obj in result:
             self.append_to_model(obj)
-
+        self.completion.set_model(self.model)
+        
         if pop:
             self.make_completion_to_pop(self.get_entry())
         else: # doctest purpose
@@ -249,36 +254,35 @@ class SimpleCompletion(object):
         if self.mode == 'enum':
             return True
 
-        if key != prev:
+        if key != prev or self._needs_recalculating:
+            self.match_dict = {}
             self._prev_match_value = key
-            self.model_set_match_col(key)
+            ## recalculate if the text (key) in the entry was changed
+            self.model_set_match_col(key, )
+            self._needs_recalculating = False
 
-        return self.model.get_value(iter, self.MATCH_COL)
+        return self.match_dict.get(self.model.get_path(iter), False)
+
 
     def model_set_match_col(self, key):
         """
         set MATCH_COL to be returned by match_func in a 2 pass process:
         
         """
-
         miter_dict = {}
-
+        i = 0
         for row in self.model:
-
             value = self.model.get_value(row.iter, self.VALUE_COL)
             text  = self.model.get_value(row.iter, self.SEARCH_COL)
             obj   = self.model.get_value(row.iter, self.OBJ_COL)
+            descr   = self.model.get_value(row.iter, self.DESCRIPTION_COL)
 
-            if text is None:
-                ## it's not clear to me why there's a pass here with incomplete model
-                ## all is working but ...
-                continue
-
+            path = self.model.get_path(row.iter)
             if value is None:
                 ## it's a group_by field
-                self.model.set_value(row.iter, self.MATCH_COL, False)
+                #self.model.set_value(row.iter, self.MATCH_COL, False)
                 # store it's iter but set to false for the moment (will not match)
-                miter_dict[text] = [row.iter, False]
+                miter_dict[descr] = [path, False]
 
             else:
                 match = False
@@ -299,11 +303,10 @@ class SimpleCompletion(object):
                         # I get here when -after accepting a completion- I go back and delete some chars
                         pass
                     
-                self.model.set_value(row.iter, self.MATCH_COL, match)
+                self.match_dict[path] = match
 
-
-        for iter, val in miter_dict.values():
-            self.model.set_value(iter, self.MATCH_COL, val)
+        for path, val in miter_dict.values():
+            self.match_dict[path] = val
 
     def append_to_model(self, obj):
         """
@@ -324,7 +327,7 @@ class SimpleCompletion(object):
         entry.emit('changed')
         ## we don't want selection to prevent autocompletion from deleting already written text
         entry.select_region(-1,-1)
-
+        
 ### Call back
     def match_selected_cb(self, wdg, model, iter, field_name):
         """
@@ -381,23 +384,6 @@ class SimpleCompletion(object):
         
         return query.all()
 
-#     def compose_select_statement(self, oper, value):
-
-
-#         if oper:
-#             where = self.column.op(oper)(value)
-#             where = self.add_filters(where)
-#         else:
-#             ## this should come from mode == 'enum'
-#             if self._filter:
-#                 where = self.add_filters(self.column)
-#             else:
-#                 where = None
-            
-#         sql = select(self.columns, where, from_obj=self.from_obj)
-
-#         return sql.order_by(self.column).distinct()
-    
     def compose_select_statement(self, query, oper, value):
 
         if oper:
@@ -575,7 +561,7 @@ class SimpleCompletion(object):
         
         if when == 'release':
             self.autostart_completion()
-#        print ksym
+            return
         if ksym in dir(self):
             return getattr(self, ksym)(wdg, event, data)
         return False
@@ -616,7 +602,6 @@ class SimpleCompletion(object):
         # waiting for a complete handling of validation
         return False
         check = self.check_existance(wdg)
-        #print check
         return check
 
     def check_existance(self, entry):
@@ -820,9 +805,8 @@ class FkeyCompletion(SimpleCompletion):
 
     def append_to_model(self, obj):
         """
-        add to the model that has 5 cols
+        add to the model that has 6 cols
         """
-
         obj_list = []
 
         ## FIXME what if we have a multiple pkey?
@@ -854,16 +838,18 @@ class FkeyCompletion(SimpleCompletion):
             new_value = getattr(obj, self._group_by)
 
             self._prev_group_by_value = new_value
+            ## the row is NOT a ??
             if new_value is not None and  new_value == prev:
                 return self.model.append(self._prev_group_by_iter)
 
             else:
+                ## add to completion's model
                 m_iter = self.model.append(None)
                 self._prev_group_by_iter = None
                 self.model.set(m_iter,
                                self.DESCRIPTION_COL, new_value,
-                               self.MARKUP_COL,      "<b><i>%s</i></b>" % markup_escape_text(new_value),
-                               self.MATCH_COL,       True
+                               self.MARKUP_COL,   "<b><i>%s</i></b>" % markup_escape_text(new_value),
+                               self.MATCH_COL,       True,
                                )
                 m_iter = self.model.append(None)
             return m_iter
