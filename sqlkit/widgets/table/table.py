@@ -99,7 +99,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.treeview.connect('button-press-event', self.button_press_event_cb)
 
         self.setup_treeview_columns()
-        self.fill_menu_hide_fields()
+        self.menu.fill_menu_hide_fields()
         ## let tree use all the available space... 
         if not self.naked:
             self.lay_obj.prop('A.external','yscale',1)
@@ -199,6 +199,7 @@ class SqlTable(sqlwidget.SqlWidget):
             if field_name in self.hidden_fields:
                 col.column.set_visible(False)
             
+        self.menu = columns.ColumnMenuProxy(self)
         self.treeview.columns_autosize()
         self.fix_expandable_columns()
 
@@ -242,7 +243,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return
 
         for field_name in field_name_list:
-            self.menu_add_toggle_column(field_name)
+            self.menu.menu_add_toggle_column(field_name)
 
     def set_field_list(self, field_list):
         """
@@ -310,162 +311,6 @@ class SqlTable(sqlwidget.SqlWidget):
         self.ui_manager.get_action('/Main/Go/Forward').set_visible(False)
         self.ui_manager.get_action('/Main/Go/Back').set_visible(False)
 
-#### column menu
-    def popup_col_menu(self, ev, field_name):
-
-        from sqlkit.layout.misc import StockMenuItem
-        try:
-            self.widgets['M=popup'].destroy()
-        except:
-            pass
-
-        menu = self.widgets['M=popup'] = gtk.Menu()
-
-        ## add to filter
-        ## TIP: menu entry to add a filter in the filter panel
-        field_name_localized = get_label(field_name, layout=self.lay_obj).replace('_', '__')
-        label_str = _("Add a filter on '%s'") % field_name_localized
-        item = StockMenuItem(label=label_str, stock='gtk-find')
-#        item.connect('activate', self.filter_panel.add, ev, field_name )
-        item.connect('activate', self.filter_panel.add, ev, field_name, self )
-        menu.append(item)
-
-        ## sort
-        if not self.relationship_leader:
-            item = gtk.ImageMenuItem('gtk-sort-ascending')
-            item.connect('activate', self.reload_sort_cb, field_name, 'ASC' )
-            menu.append(item)
-
-            item = gtk.ImageMenuItem('gtk-sort-descending')
-            item.connect('activate', self.reload_sort_cb, field_name, 'DESC' )
-            menu.append(item)
-
-        ## hide
-        # TIP: column menu opt
-        item = StockMenuItem(label=_("Hide this column"), stock='gtk-close')
-        item.connect('activate', self.hide_fields_cb, field_name )
-        menu.append(item)
-
-        ## totals
-        if self.get_field_type(field_name) in sqlwidget.NUMBERS and not self.is_fkey(field_name):
-            # TIP: column menu opt
-            item = gtk.MenuItem(label=_("Create total"))
-            item.connect('activate', self.add_total_cb, field_name )
-            menu.append(item)
-
-        menu.append(gtk.SeparatorMenuItem())
-        ## subtotals
-        if self.is_date(field_name):
-            self.menu_add_date_total_break(menu, field_name)
-        else:
-            # TIP: column menu total
-            item = gtk.MenuItem(label=_("Subtotal on %s") % (field_name_localized))
-            item.connect('activate', self.add_subtotal_cb, field_name )
-            menu.append(item)
-        
-        ## info
-        # TIP: column menu opt
-        item = gtk.ImageMenuItem('gtk-info')
-        item.connect('activate', self.show_field_info, field_name )
-        menu.append(item)
-
-        menu.show_all()
-        menu.popup(None, None, None, ev.button, ev.time)
-        #menu.popup(None, None, None, 1, 1)
-
-    def fill_menu_hide_fields(self):
-        """
-        Add menu for showing/hiding field columns
-        """
-        if not 'M=modify' in self.widgets:
-            return
-        menu = self.widgets['M=modify']
-        # TIP: modify menu entry
-        item_show = gtk.MenuItem(label=_("Show field"))
-        item_hide = gtk.MenuItem(label=_("Hide field"))
-        menu.append(item_show)
-        menu.append(item_hide)
-        
-        self.menu_show = gtk.Menu()
-        self.menu_hide = gtk.Menu()
-
-        item_show.set_submenu(self.menu_show)
-        item_hide.set_submenu(self.menu_hide)
-
-        for field_name in self.field_list:
-            field_name_localized = get_label(field_name, layout=self.lay_obj).replace('_', '__')
-            m = gtk.MenuItem(field_name_localized)
-            m.connect('activate', self.hide_fields_cb, field_name)
-            self.menu_hide.append(m)
-            
-        item_hide.set_submenu(self.menu_hide)
-        menu.show_all()
-
-        
-
-    def hide_fields_cb(self, menuItem, field_name):
-        self.hide_fields(field_name)
-        
-    def menu_add_date_total_break(self, menu, field_name):
-
-        def add_break_date_cb(menu_item, field_name, period):
-            self.totals.add_date_break(field_name, period)
-
-        periods = [('day',_('day')), ('week',_('week')), ('month',_('month')),
-                   ('quarter',_('quarter')), ('year',_('year'))]
-
-        for period, trad in periods:
-            item = gtk.MenuItem(label=_("Subtotals by %s") % trad)
-            item.connect('activate', add_break_date_cb, field_name, period)
-            menu.append(item)
-        
-    def add_total_cb(self, menu_item, field_name):
-        self.totals.add_total(field_name)
-        
-    def add_subtotal_cb(self, menu_item, field_name):
-        self.totals.add_break(field_name)
-
-    def menu_add_toggle_column(self, field_name):
-        """
-        Add a menu entry to show columns in the menu 'modify' or change it's
-        visibility according to real state of the column
-        """
-
-        action_name = 'field_%s' % field_name
-        action = self.ui_manager.get_action('/Main/Modify/ShowColumns/%s' % action_name)
-        if not action:
-            self.actiongroup_table.add_actions([
-                (action_name, None, self.get_label(field_name), None, None, self.show_column,),
-                ], field_name)
-
-            menu_def = '''
-              <menubar name="Main">
-                 <menu action="Modify">
-                    <menu action="ShowColumns" >
-                         <menuitem action="%s" />
-                    </menu>
-                 </menu>
-               </menubar>
-            ''' % action_name
-
-            self.ui_manager.add_ui_from_string(menu_def)
-
-        else:
-            action.set_visible(not action.get_visible())
-            
-        self.tvcolumns[field_name].set_property('visible', False)
-        
-    def reload_sort_cb(self, widget, field_name, direction):
-        
-        col = self.gui_fields[field_name].column
-        if direction == 'ASC':
-            self.order_by = col
-        else:
-            self.order_by = col.desc()
-            
-        #self.order_by = ("%s %s" % (field_name, direction))
-        self.reload_cb(None)
-        
 #### callbacks treeview
     def selection_changed_cb(self, treeselection):
         """
@@ -520,7 +365,7 @@ class SqlTable(sqlwidget.SqlWidget):
         
     def show_column(self, menuItem, field_name,):
 
-        self.menu_add_toggle_column(field_name)
+        self.menu.menu_add_toggle_column(field_name)
         self.tvcolumns[field_name].set_property('visible', True)
 
     def button_press_event_cb(self, widget, event):
