@@ -77,6 +77,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.edited_row_model_path = None
         sqlwidget.SqlWidget.__init__(self, *args, **kwargs)
         self.run_hook('on_init')
+        self._new_record = None
         
     def _get_layout(self, lay, naked):
 
@@ -746,6 +747,7 @@ class SqlTable(sqlwidget.SqlWidget):
                     self.commit_inhibited = False
                     self.session.expunge(obj)
                     self.records.remove(obj)
+                    self._new_record = False
                 del obj
                 self.last_new_obj = None
                 self.edited_row_model_path = None
@@ -772,6 +774,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.totals.compute()
         self.last_new_obj = None
+        self._new_record = False
         
         if hasattr(obj, '_sqlkit_mode'):
             del obj._sqlkit_mode
@@ -785,7 +788,7 @@ class SqlTable(sqlwidget.SqlWidget):
         ## beyond the lower row)
         if not self.record_has_changed():
             #if self.last_new_obj:
-            if self.current and self.current in self.session.new:
+            if (self.current and self.current in self.session.new) or self._new_record:
                 self.sb(_("Already at new record"))
                 return
         self.record_save()
@@ -817,7 +820,7 @@ class SqlTable(sqlwidget.SqlWidget):
                                              ## case this table is a M2M of M2O
 
         self.commit_inhibited = False
-
+        self._new_record = True
         return True
 
     def unsaved_changes_exist(self, skip_check=False):
@@ -1039,7 +1042,8 @@ class SqlTable(sqlwidget.SqlWidget):
         self.session.rollback()
         if self.get_selected_obj() or len(self.records):
             self.emit('context-changed', self.get_selected_obj() or self.records[0])
-        
+
+        self._new_record = False
         return ret
                                          
     def record_refresh(self):
@@ -1056,7 +1060,7 @@ class SqlTable(sqlwidget.SqlWidget):
         sqlwidget.SqlWidget.record_refresh(self)
         if self.get_selected_obj() or len(self.records):
             self.emit('context-changed', self.get_selected_obj() or self.records[0])
-
+        self._new_record = False
 
     def record_in_mask(self, widget):
         """
