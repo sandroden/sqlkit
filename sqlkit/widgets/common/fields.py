@@ -226,7 +226,7 @@ class FieldChooser(object):
             else:
                 return DateTimeField(*args)
 
-        if self.master.is_text(field_name):
+        if self.master.is_text(field_name) and not (def_str or '').startswith('e='):
             return TextField(*args)
         
         if self.master.is_string(field_name):
@@ -899,6 +899,8 @@ class CollectionField(Field):
         if value is None:
             value = []
         self.widget.set_value(value)
+
+
 
 
 

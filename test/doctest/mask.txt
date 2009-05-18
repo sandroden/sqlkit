@@ -12,6 +12,7 @@
 >>> from movies import Movie, Director, AllTypes, db
 >>> from sqlkit.widgets import SqlMask, SqlTable
 
+## entry with dimenstions: uses entry + alignement
 >>> lay = "title"
 >>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> sm.lay_obj.lay
@@ -19,17 +20,35 @@
 >>> sm.laygen.fields_in_layout
 {'title': 'e=title'}
 
->>> lay = "TXS==description"
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
->>> sm.lay_obj.lay
-'TXS=description'
+## TEXT: widget is a text TextWidget
+>>> lay = "text"
+>>> sm = SqlMask(class_=AllTypes, dbproxy=db, layout=lay, naked=True, show=False)
+>>> print sm.lay_obj.lay.strip()
+L=text TXS=text
 >>> sm.laygen.fields_in_layout
-{'description': 'TX=description'}
+{'text': 'TX=text'}
 
+## TEXT: casting the text widget to entry
+>>> lay = "e=text"
+>>> sm = SqlMask(class_=AllTypes, dbproxy=db, layout=lay, naked=True, show=False)
+>>> print sm.lay_obj.lay.strip()
+L=text e=text
+>>> sm.laygen.fields_in_layout
+{'text': 'e=text'}
+
+## TEXT: casting the entry widget to text
 >>> lay = "TXS=description"
 >>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> sm.lay_obj.lay
 'L=description TXS=description:50-'
+>>> sm.laygen.fields_in_layout
+{'description': 'TX=description'}
+
+## TEXT  no label
+>>> lay = "TXS==description"
+>>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm.lay_obj.lay
+'TXS=description'
 >>> sm.laygen.fields_in_layout
 {'description': 'TX=description'}
 
