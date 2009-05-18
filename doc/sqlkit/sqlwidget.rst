@@ -497,7 +497,11 @@ The following hooks are defined:
 
     The callback has the same signature as for ``on_after_flush``
 
+:on_post_commit: run after commit
+    post_commit session extension method
         
+    The callback has the same signature as for ``on_after_flush``
+
 If you need to add hooks for related sqlwidgets (those that display related
 records as explained in :ref:`relationships`) you need to add the
 relationship_path in the method name, i.e. the value you have used in the
