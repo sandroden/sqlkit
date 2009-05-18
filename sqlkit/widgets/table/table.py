@@ -1236,8 +1236,7 @@ class SqlTable(sqlwidget.SqlWidget):
         second_choice = []
         for field_name in self.field_list:
             if self.tvcolumns[field_name].get_visible() and self.is_editable(field_name):
-                if self.gui_fields[field_name].get_default() or (
-                    self.is_date(field_name) or self.is_datetime(field_name)):
+                if self.gui_fields[field_name].get_default():
                     second_choice += [self.tvcolumns[field_name]]
                 else:
                     return self.tvcolumns[field_name]
