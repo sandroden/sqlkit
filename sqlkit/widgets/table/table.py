@@ -42,6 +42,7 @@ class SqlTable(sqlwidget.SqlWidget):
     implementation with a listore with a single column that holds the
     sqlalchemy obj
     """
+#### Signals
     __gsignals__ = {
         'button-press-event' : (gobject.SIGNAL_RUN_LAST,
                            gobject.TYPE_BOOLEAN,
@@ -62,8 +63,9 @@ class SqlTable(sqlwidget.SqlWidget):
     cell_entry = None
     cell_renderers = None
 #    commit_allowed = dbg.TraceIt(True, name='commit_allowed', mode='rw')
-         
+#### Init & Layout         
     def __init__(self, *args, **kwargs):
+
         self.treeview = None
         self.liststore = None
         self.tvcolumns = None
@@ -77,6 +79,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.run_hook('on_init')
         
     def _get_layout(self, lay, naked):
+
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
         self.liststore = gtk.ListStore(object)
         ## layout
@@ -135,58 +138,10 @@ class SqlTable(sqlwidget.SqlWidget):
                 label.set_text('')
 
         
-    def prepare_actions(self):
-        """
-        Prepare action needed by UIManager
-        """
-        sqlwidget.SqlWidget.prepare_actions(self)
-
-        self.actiongroup_table   = gtk.ActionGroup('Table')
-
-        self.actiongroup_edit.add_actions([
-            ('New', gtk.STOCK_NEW,   None, '', None, self.record_new_cb),
-            ('Delete', gtk.STOCK_DELETE, None, '', None, self.record_delete),
-            ('RecordDelete', gtk.STOCK_DELETE, None, '<Control>k', None, self.record_delete),
-            ])
-
-        self.actiongroup_table.add_actions([
-            ('Zoom-fit', gtk.STOCK_ZOOM_FIT, None, None, None, self.on_zoom_fit),
-            ('ShowColumns', None, _('Show field')),  # menuitem
-            ('HideColumns', None, _('Hide field')),  # menuitem
-#            ('VisibleColumns', None, None),          # menu
-#            ('HiddenColumns', None, None),           # menu
-            ('Records', None, 'Records'),
-            ('Export', None, _('Export'), None, None, self.export),
-            ('MaskView', gtk.STOCK_ZOOM_IN, _('View this record in a Mask'), None, None, self.record_in_mask),
-            ('MaskViewFKey', gtk.STOCK_ZOOM_IN, _('View this ForeignKey in a Mask'), None, None, self.fkey_record_in_mask),
-            ])
-
-    def prepare_uimanager(self):
-
-        from sqlkit.widgets.common import uidescription
-        
-        sqlwidget.SqlWidget.prepare_uimanager(self)
-        self.ui_manager.insert_action_group(self.actiongroup_table, 0)
-
-        self.ui_manager.add_ui_from_string(uidescription.TABLE_UI)
-
-        self.ui_manager.get_action('/Main/Go/Forward').set_visible(False)
-        self.ui_manager.get_action('/Main/Go/Back').set_visible(False)
-
     def on_zoom_fit(self, widget, *args):
+
         tv_utils.zoom_to_fit(self.treeview, resize=True)
 
-    def reload_cb(self, widget, *args):
-        """
-        this is the real callback: C-r and toolbutton 
-        """
-        self.grab_focus(widget)
-        
-        if hasattr(self, 'filter_panel'):
-            self.filter_panel.reload_cb(None)
-        else:
-            self.reload()
-    
     def setup_field_validation(self):
         from sqlkit.widgets.common.fields import FieldChooser
         field_chooser = FieldChooser(self)
@@ -263,6 +218,98 @@ class SqlTable(sqlwidget.SqlWidget):
                 col.set_property('expand', True)
             
             
+    def set_rows(self):
+        """
+        set number of treeview visible rows to "rows"
+        """
+        dbg.write("setting rows:", self.rows)
+        tv_utils.set_height_request(self.treeview, self.rows)
+
+    def hide_fields(self, field_name_list='', force=False, ):
+        """
+        Hide a column and add the entry in the menu to make it show up again
+        field_name_list may be a list or a string (in which case it is split with, and spaces)
+        """
+
+        if len(field_name_list) == 0:
+            field_name_list = self.hidden_fields
+
+        if isinstance(field_name_list, basestring):
+            field_name_list = re.split("[ ,]+", field_name_list)
+            self.hidden_fields = field_name_list
+
+        if not self.tvcolumns:
+            return
+
+        for field_name in field_name_list:
+            self.menu_add_toggle_column(field_name)
+
+    def set_field_list(self, field_list):
+        """
+        Set field of visible columns. Accepts both a list or a string (space or comma separated)
+        """
+        from copy import copy
+
+        if isinstance(field_list, (str, unicode)):
+            field_list = re.split('[ ,]+', field_list)
+        orig_field_list = copy(self.field_list)
+        for field_name in field_list:
+            if field_name in self.mapper_info.fields:
+                ## is already known, just make it visible
+                self.tvcolumns[field_name].set_property('visible', True)
+            else:
+                raise NotImplementedError("Column %s is not kown in self.mapper_info.fields" % field_name)
+        for field_name in orig_field_list:
+            if field_name not in field_list:
+                self.tvcolumns[field_name].set_property('visible', False)
+            
+        prev = None
+        for field_name in field_list:
+            self.treeview.move_column_after(self.tvcolumns[field_name], prev)
+            prev = self.tvcolumns[field_name]
+            
+        self.field_list = field_list
+        
+
+###### Actions/UiManager
+    def prepare_actions(self):
+        """
+        Prepare action needed by UIManager
+        """
+        sqlwidget.SqlWidget.prepare_actions(self)
+
+        self.actiongroup_table   = gtk.ActionGroup('Table')
+
+        self.actiongroup_edit.add_actions([
+            ('New', gtk.STOCK_NEW,   None, '', None, self.record_new_cb),
+            ('Delete', gtk.STOCK_DELETE, None, '', None, self.record_delete),
+            ('RecordDelete', gtk.STOCK_DELETE, None, '<Control>k', None, self.record_delete),
+            ])
+
+        self.actiongroup_table.add_actions([
+            ('Zoom-fit', gtk.STOCK_ZOOM_FIT, None, None, None, self.on_zoom_fit),
+            ('ShowColumns', None, _('Show field')),  # menuitem
+            ('HideColumns', None, _('Hide field')),  # menuitem
+#            ('VisibleColumns', None, None),          # menu
+#            ('HiddenColumns', None, None),           # menu
+            ('Records', None, 'Records'),
+            ('Export', None, _('Export'), None, None, self.export),
+            ('MaskView', gtk.STOCK_ZOOM_IN, _('View this record in a Mask'), None, None, self.record_in_mask),
+            ('MaskViewFKey', gtk.STOCK_ZOOM_IN, _('View this ForeignKey in a Mask'), None, None, self.fkey_record_in_mask),
+            ])
+
+    def prepare_uimanager(self):
+
+        from sqlkit.widgets.common import uidescription
+        
+        sqlwidget.SqlWidget.prepare_uimanager(self)
+        self.ui_manager.insert_action_group(self.actiongroup_table, 0)
+
+        self.ui_manager.add_ui_from_string(uidescription.TABLE_UI)
+
+        self.ui_manager.get_action('/Main/Go/Forward').set_visible(False)
+        self.ui_manager.get_action('/Main/Go/Back').set_visible(False)
+
 #### column menu
     def popup_col_menu(self, ev, field_name):
 
@@ -272,7 +319,6 @@ class SqlTable(sqlwidget.SqlWidget):
         except:
             pass
 
-        
         menu = self.widgets['M=popup'] = gtk.Menu()
 
         ## add to filter
@@ -546,7 +592,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 column.get_data('cell').set_property('mode', gtk.CELL_RENDERER_MODE_INERT)
                 gobject.idle_add(column.get_data('cell').set_property, 'mode', gtk.CELL_RENDERER_MODE_ACTIVATABLE)
         
-#### event handling & accelerators
+#### event handling 
     def keyrelease_event_cb(self, wdg, event, data=None):
         return self.length_control(wdg, data)
     
@@ -703,20 +749,6 @@ class SqlTable(sqlwidget.SqlWidget):
                 if not self.cell_validate():
                     return True
 
-    def length_control(self, wdg, field_name):
-        if self.mapper_info.fields[field_name]['type'] is not str:
-            return False
-        length = self.mapper_info.fields[field_name]['length']
-        text = wdg.get_text()
-        lstr = len(text)
-        if length:
-            if lstr > length :
-                wdg.set_text(re.sub('.$', '', text))
-                # TIP: check in input field length %s %s -> field_name length
-                self.sb(_("Input exceeded max %s length (%s)") % (field_name,length))
-                return True
-        return False
-
     def get_direct_edit(self, field_name):
         """
         return the next column and if browsing must enter in edit mode
@@ -742,86 +774,75 @@ class SqlTable(sqlwidget.SqlWidget):
                 if not self.cell_validate():
                     return True
 
-#### model handling & sqlwidget override
-    def initialize_record_editing(self, path, force=False, obj=None):
+###### Saving
+    def set_value(self, field_name, value, path=None, fkvalue=None, initial=False, shown=False):
         """
-        register the path of the editing and initialize all validation fields
-        called when entering a new row or when a new record is added in m2m
+        called from within edited signal and completion.
+        Validation should live here?
+        If path, is not passed (as when used from completion)
+        it is deduced from selection
+        fkey: if True the value is handled as a primary key.
+        Used from completion and from gui_fields/tablewidget
         """
-        # in Masks this is done when set_field is used on record_display
-        # here the display is automatic via set_cell_data_func so we have to set
-        # initial value when starting editing a record
+        ## note: self.current cannot be used. We don't want the currently selected obj
+        ##       but the one that is to be saved. This operation can be triggered
+        ##       by a change in selection in which case self.current already points
+        ##       to the new selection
+        obj = self.get_current_obj(path=path)
         
-        if not self.edited_row_model_path or force:
-            if not obj:
-                obj = self.get_selected_obj()
-            if obj:
-                for field in self.gui_fields:
-                    value = getattr(obj, field.field_name)
-                    dbg.write("initialize %s" % field.field_name)
-                    self.gui_fields[field.field_name].set_value(value, initial=True)
-
-        self.edited_row_model_path = path
+        if not obj:
+            return
         
-    def record_new(self, widget=None, *args):
-        """prepare for 
+        ## casting of value
+        if self.is_fkey(field_name):
+            value = self.gui_fields[field_name].clean_value(value, input_is_fkey=True)
+        else:
+            value = self.gui_fields[field_name].clean_value(value)
+        setattr(obj, field_name, value)
+
+        ## text would come up automatically but only after
+        ## loosing the focus...
+        if fkvalue:
+            self.cell_entry.entry.set_text(fkvalue)
+            self.cell_entry.valid = True
+            self.cell_entry.text = fkvalue
+            self.fkey_value = fkvalue
+        else:
+            if value is not None and not self.is_fkey(field_name):
+                ## editable, if any, points to the last used editable
+                ## that may not be the one that belogs to field_name...
+                if self.cell_entry and field_name == self.cell_entry.field_name:
+                    #self.cell_entry.entry.set_text(str(value))
+                    self.cell_entry.entry.set_text(self.gui_fields[field_name].format_value(value))
+
+        if not initial:
+            self.run_hook('on_change_value', value, fkvalue, field_name=field_name)
+
+    def get_value(self, field_name, shown=True):
         """
+        return the value of the cell **currently edited***
+        The name is possibly misleading due to parallelism with
+        mask. 
 
-        ## I want to avoid generating a new obj if an object was created 
-        ## and not modified (as when you press Down Arrow several times
-        ## beyond the lower row)
-        if not self.record_has_changed():
-            #if self.last_new_obj:
-            if self.current and self.current in self.session.new:
-                self.sb(_("Already at new record"))
-                return
-        self.record_save()
-        self.treeview.get_toplevel().set_focus(None)
-
-        self.last_new_obj = self.get_new_object()
-        # focus the row & start editing
-
-        ## scroll_to_cell will trigger selection_changed_cb
-        ## when the new_obj has been added but not yet edited.
-        ## we inhibit this 
-        #commit_allowed_status = self.commit_allowed
-        self.commit_inhibited = True
-
-        #treeiter = self.liststore.append([self.last_new_obj])
-        treeiter = self.get_next_iter(self.last_new_obj)
-        path = self.liststore.get_path(treeiter)
-        col = self.get_first_editable_col()
-
-        self.treeview.scroll_to_cell(path, col)
-        self.treeview.set_cursor(path = path,
-                                 focus_column = col,
-                                 start_editing = True)
-        ## set defaults
-        for field_name in self.field_list:
-            self.gui_fields[field_name].set_default()
-
-        self.records += [self.last_new_obj]  ## adding to records is vital to get fk correctly, in
-                                             ## case this table is a M2M of M2O
-
-        self.commit_inhibited = False
-
-        return True
-
-    def get_next_iter(self, new_obj):
+        shown: compatibility with mask version
         """
-        get a new iter inserting a row just before last (sub)/total - if any-
-        """
-        if not len(self.liststore):
-            return self.liststore.append([new_obj])
+        
+        obj = self.get_current_obj()
+        assert obj is not None, _("no current obj: maybe no record has yet been edited")
 
-        for i in range(-1, -5, -1):
-            obj = self.liststore.get_value( self.liststore[i].iter, 0)
-            if isinstance(obj, self.totals.total_class):
-                continue
-            row = self.liststore[i]
-            break
-
-        return self.liststore.insert_after(row.iter, [new_obj])
+        if field_name == self.currently_edited_field_name:
+            if self.cell_entry:
+                text = self.cell_entry.get_text()
+                if self.is_fkey(field_name):
+                    if shown:
+                    ## we can be here becouse a clean_value triggered it. So don't pass there a
+                    ## second time. If you ask for 'shown' I give you shown.
+                        return text
+                    else:
+                        return self.gui_fields[field_name].clean_value(text, input_is_fkey=False)
+                else:
+                    return self.gui_fields[field_name].clean_value(text)
+        return getattr(obj, field_name)
 
     def record_display(self, index=None, check=False):
         """
@@ -910,6 +931,50 @@ class SqlTable(sqlwidget.SqlWidget):
         if hasattr(obj, '_sqlkit_mode'):
             del obj._sqlkit_mode
 
+    def record_new(self, widget=None, *args):
+        """prepare for 
+        """
+
+        ## I want to avoid generating a new obj if an object was created 
+        ## and not modified (as when you press Down Arrow several times
+        ## beyond the lower row)
+        if not self.record_has_changed():
+            #if self.last_new_obj:
+            if self.current and self.current in self.session.new:
+                self.sb(_("Already at new record"))
+                return
+        self.record_save()
+        self.treeview.get_toplevel().set_focus(None)
+
+        self.last_new_obj = self.get_new_object()
+        # focus the row & start editing
+
+        ## scroll_to_cell will trigger selection_changed_cb
+        ## when the new_obj has been added but not yet edited.
+        ## we inhibit this 
+        #commit_allowed_status = self.commit_allowed
+        self.commit_inhibited = True
+
+        #treeiter = self.liststore.append([self.last_new_obj])
+        treeiter = self._get_next_iter(self.last_new_obj)
+        path = self.liststore.get_path(treeiter)
+        col = self.get_first_editable_col()
+
+        self.treeview.scroll_to_cell(path, col)
+        self.treeview.set_cursor(path = path,
+                                 focus_column = col,
+                                 start_editing = True)
+        ## set defaults
+        for field_name in self.field_list:
+            self.gui_fields[field_name].set_default()
+
+        self.records += [self.last_new_obj]  ## adding to records is vital to get fk correctly, in
+                                             ## case this table is a M2M of M2O
+
+        self.commit_inhibited = False
+
+        return True
+
     def unsaved_changes_exist(self, skip_check=False):
         """collect possible changes and test if save is needed
         """
@@ -982,45 +1047,23 @@ class SqlTable(sqlwidget.SqlWidget):
         self.sb(_("Total N. of records: %s") % len(self.liststore), seconds=None)
         return True
     
-    def clear(self, *args, **kwargs):
-        self.liststore.clear()
-    
-    def reload(self, *args, **kwargs):
-
-        try:
-            self.record_save(discard_unchanged=True)
-        except exc.ValidationError:
-            return
-        
-#        self.session.clear()
-        self.commit_inhibited = True
-        self.clear()
-        ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
-        self.edited_row_model_path = None
-        self.commit_inhibited = False
-        self.totals.compute()
-        self.cell_entry = None
-        self.session.rollback()
-        if self.get_selected_obj() or len(self.records):
-            self.emit('context-changed', self.get_selected_obj() or self.records[0])
-        
-        return ret
-                                         
-    def record_refresh(self):
+    def _get_next_iter(self, new_obj):
         """
-        when self.refresh is called other programs have selected the records
+        get a new iter inserting a row just before last (sub)/total - if any-
         """
-        self.edited_row_model_path = None  # must be set *before* clear()
-                                # to inhibit selection_changed_cp
-        self.liststore.clear()
-        for i in self.records:
-            self.liststore.append([i])
-        self.totals.compute()
-        self.treeview.columns_autosize()
-        sqlwidget.SqlWidget.record_refresh(self)
-        if self.get_selected_obj() or len(self.records):
-            self.emit('context-changed', self.get_selected_obj() or self.records[0])
+        if not len(self.liststore):
+            return self.liststore.append([new_obj])
 
+        for i in range(-1, -5, -1):
+            obj = self.liststore.get_value( self.liststore[i].iter, 0)
+            if isinstance(obj, self.totals.total_class):
+                continue
+            row = self.liststore[i]
+            break
+
+        return self.liststore.insert_after(row.iter, [new_obj])
+
+###### Validation
     def cell_validate(self):
         """
         validate cell value, return True if ok
@@ -1074,49 +1117,168 @@ class SqlTable(sqlwidget.SqlWidget):
                     return False
         
         
-    def set_value(self, field_name, value, path=None, fkvalue=None, initial=False, shown=False):
+    def length_control(self, wdg, field_name):
+        if self.mapper_info.fields[field_name]['type'] is not str:
+            return False
+        length = self.mapper_info.fields[field_name]['length']
+        text = wdg.get_text()
+        lstr = len(text)
+        if length:
+            if lstr > length :
+                wdg.set_text(re.sub('.$', '', text))
+                # TIP: check in input field length %s %s -> field_name length
+                self.sb(_("Input exceeded max %s length (%s)") % (field_name,length))
+                return True
+        return False
+
+    def fkey_is_valid(self, field_name):
         """
-        called from within edited signal and completion.
-        Validation should live here?
-        If path, is not passed (as when used from completion)
-        it is deduced from selection
-        fkey: if True the value is handled as a primary key.
-        Used from completion and from gui_fields/tablewidget
+        return True if current editable -if exists- has a value that does not need validation
         """
-        ## note: self.current cannot be used. We don't want the currently selected obj
-        ##       but the one that is to be saved. This operation can be triggered
-        ##       by a change in selection in which case self.current already points
-        ##       to the new selection
-        obj = self.get_current_obj(path=path)
+        if self.cell_entry and self.cell_entry.is_valid():
+            return True
+        return False
+    
+
+###### Record browsing 
+    def initialize_record_editing(self, path, force=False, obj=None):
+        """
+        register the path of the editing and initialize all validation fields
+        called when entering a new row or when a new record is added in m2m
+        """
+        # in Masks this is done when set_field is used on record_display
+        # here the display is automatic via set_cell_data_func so we have to set
+        # initial value when starting editing a record
         
-        if not obj:
+        if not self.edited_row_model_path or force:
+            if not obj:
+                obj = self.get_selected_obj()
+            if obj:
+                for field in self.gui_fields:
+                    value = getattr(obj, field.field_name)
+                    dbg.write("initialize %s" % field.field_name)
+                    self.gui_fields[field.field_name].set_value(value, initial=True)
+
+        self.edited_row_model_path = path
+        
+    def clear(self, *args, **kwargs):
+        self.liststore.clear()
+    
+    def reload_cb(self, widget, *args):
+        """
+        this is the real callback: C-r and toolbutton 
+        """
+
+        self.grab_focus(widget)
+        
+        if hasattr(self, 'filter_panel'):
+            self.filter_panel.reload_cb(None)
+        else:
+            self.reload()
+    
+    def reload(self, *args, **kwargs):
+
+        try:
+            self.record_save(discard_unchanged=True)
+        except exc.ValidationError:
             return
         
-        ## casting of value
-        if self.is_fkey(field_name):
-            value = self.gui_fields[field_name].clean_value(value, input_is_fkey=True)
-        else:
-            value = self.gui_fields[field_name].clean_value(value)
-        setattr(obj, field_name, value)
+#        self.session.clear()
+        self.commit_inhibited = True
+        self.clear()
+        ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
+        self.edited_row_model_path = None
+        self.commit_inhibited = False
+        self.totals.compute()
+        self.cell_entry = None
+        self.session.rollback()
+        if self.get_selected_obj() or len(self.records):
+            self.emit('context-changed', self.get_selected_obj() or self.records[0])
+        
+        return ret
+                                         
+    def record_refresh(self):
+        """
+        when self.refresh is called other programs have selected the records
+        """
+        self.edited_row_model_path = None  # must be set *before* clear()
+                                # to inhibit selection_changed_cp
+        self.liststore.clear()
+        for i in self.records:
+            self.liststore.append([i])
+        self.totals.compute()
+        self.treeview.columns_autosize()
+        sqlwidget.SqlWidget.record_refresh(self)
+        if self.get_selected_obj() or len(self.records):
+            self.emit('context-changed', self.get_selected_obj() or self.records[0])
 
-        ## text would come up automatically but only after
-        ## loosing the focus...
-        if fkvalue:
-            self.cell_entry.entry.set_text(fkvalue)
-            self.cell_entry.valid = True
-            self.cell_entry.text = fkvalue
-            self.fkey_value = fkvalue
-        else:
-            if value is not None and not self.is_fkey(field_name):
-                ## editable, if any, points to the last used editable
-                ## that may not be the one that belogs to field_name...
-                if self.cell_entry and field_name == self.cell_entry.field_name:
-                    #self.cell_entry.entry.set_text(str(value))
-                    self.cell_entry.entry.set_text(self.gui_fields[field_name].format_value(value))
 
-        if not initial:
-            self.run_hook('on_change_value', value, fkvalue, field_name=field_name)
+    def record_in_mask(self, widget):
+        """
+        Open a SqlMask to show self.current.
+        Hooks are set on the newly created mask so that validation is retained
+        Remember to set any possible configuration of the table in an 'on_init'
+        hook so that it will be propagated
 
+        """
+
+        from sqlkit.widgets import SqlMask, SqlTable
+
+        mask = SqlMask(mapper=self.mapper, session=self.session, layout=self.layout,
+                       relationship_mode='FIXED', metadata=self.metadata, hooks=self.hooks)
+        mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
+        mask.set_records([self.current])
+
+        ## signals to keep selection in sync 
+        def follow_selection(table, obj, mask):
+            mask.set_records([obj])
+
+#        handler_id = self.connect('record-selected', follow_selection, mask)
+        handler_id = self.connect('context-changed', follow_selection, mask)
+
+        def disconnect(mask, id):
+            self.disconnect(id)
+
+        mask.connect('delete-event', disconnect, handler_id)
+
+        self._mask = mask
+
+    def fkey_record_in_mask(self, widget):
+        """
+        Open a SqlMask to show the fkey of this field
+
+        """
+        if not hasattr(self, '_field_name'):
+            return
+
+        field_name = self._field_name
+        del self._field_name
+        
+        from sqlkit.widgets import SqlMask, SqlTable
+
+        ftable = self.completions[field_name].table
+
+        mask = SqlMask(table=ftable.name, session=self.session, dbproxy=self.dbproxy, 
+                       relationship_mode='FIXED', metadata=self.metadata)
+        mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
+        mask.set_records(pk=getattr(self.current, field_name))
+
+        ## signals to keep selection in sync 
+        def follow_selection(table, obj, mask):
+            if obj and self.current:
+                mask.set_records(pk=getattr(self.current, field_name))
+
+#        handler_id = self.connect('record-selected', follow_selection, mask)
+        handler_id = self.connect('context-changed', follow_selection, mask)
+
+        def disconnect(mask, id):
+            self.disconnect(id)
+
+        mask.connect('delete-event', disconnect, handler_id)
+
+        self._fmask = mask  # just for debug
+
+###### Misc
     def get_selected_row(self):
         """Return the path of the selected row or None
 
@@ -1220,13 +1382,6 @@ class SqlTable(sqlwidget.SqlWidget):
             obj = query.filter_by(**filter_by).one()
         return obj
         
-    def set_rows(self):
-        """
-        set number of treeview visible rows to "rows"
-        """
-        dbg.write("setting rows:", self.rows)
-        tv_utils.set_height_request(self.treeview, self.rows)
-
     def get_first_editable_col(self):
         """
         return the first visible col to position the cursor on
@@ -1244,16 +1399,6 @@ class SqlTable(sqlwidget.SqlWidget):
         if second_choice:
             return second_choice[0]
 
-    def fkey_is_valid(self, field_name):
-        """
-        return True if current editable -if exists- has a value that does not need validation
-        """
-        if self.cell_entry and self.cell_entry.is_valid():
-            return True
-        return False
-    
-
-### misc
     def set_opts(self, icons=True, scroll='xy', expand=True, width=None):
         """
         Modify default appearance of some features:
@@ -1324,117 +1469,6 @@ class SqlTable(sqlwidget.SqlWidget):
         dialog.destroy()
         return 
 
-    def hide_fields(self, field_name_list='', force=False, ):
-        """
-        Hide a column and add the entry in the menu to make it show up again
-        field_name_list may be a list or a string (in which case it is split with, and spaces)
-        """
-
-        if len(field_name_list) == 0:
-            field_name_list = self.hidden_fields
-
-        if isinstance(field_name_list, basestring):
-            field_name_list = re.split("[ ,]+", field_name_list)
-            self.hidden_fields = field_name_list
-
-        if not self.tvcolumns:
-            return
-
-        for field_name in field_name_list:
-            self.menu_add_toggle_column(field_name)
-
-    def set_field_list(self, field_list):
-        """
-        Set field of visible columns. Accepts both a list or a string (space or comma separated)
-        """
-        from copy import copy
-
-        if isinstance(field_list, (str, unicode)):
-            field_list = re.split('[ ,]+', field_list)
-        orig_field_list = copy(self.field_list)
-        for field_name in field_list:
-            if field_name in self.mapper_info.fields:
-                ## is already known, just make it visible
-                self.tvcolumns[field_name].set_property('visible', True)
-            else:
-                raise NotImplementedError("Column %s is not kown in self.mapper_info.fields" % field_name)
-        for field_name in orig_field_list:
-            if field_name not in field_list:
-                self.tvcolumns[field_name].set_property('visible', False)
-            
-        prev = None
-        for field_name in field_list:
-            self.treeview.move_column_after(self.tvcolumns[field_name], prev)
-            prev = self.tvcolumns[field_name]
-            
-        self.field_list = field_list
-        
-
-    def record_in_mask(self, widget):
-        """
-        Open a SqlMask to show self.current.
-        Hooks are set on the newly created mask so that validation is retained
-        Remember to set any possible configuration of the table in an 'on_init'
-        hook so that it will be propagated
-
-        """
-
-        from sqlkit.widgets import SqlMask, SqlTable
-
-        mask = SqlMask(mapper=self.mapper, session=self.session, layout=self.layout,
-                       relationship_mode='FIXED', metadata=self.metadata, hooks=self.hooks)
-        mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
-        mask.set_records([self.current])
-
-        ## signals to keep selection in sync 
-        def follow_selection(table, obj, mask):
-            mask.set_records([obj])
-
-#        handler_id = self.connect('record-selected', follow_selection, mask)
-        handler_id = self.connect('context-changed', follow_selection, mask)
-
-        def disconnect(mask, id):
-            self.disconnect(id)
-
-        mask.connect('delete-event', disconnect, handler_id)
-
-        self._mask = mask
-
-    def fkey_record_in_mask(self, widget):
-        """
-        Open a SqlMask to show the fkey of this field
-
-        """
-        if not hasattr(self, '_field_name'):
-            return
-
-        field_name = self._field_name
-        del self._field_name
-        
-        from sqlkit.widgets import SqlMask, SqlTable
-
-        ftable = self.completions[field_name].table
-
-        mask = SqlMask(table=ftable.name, session=self.session, dbproxy=self.dbproxy, 
-                       relationship_mode='FIXED', metadata=self.metadata)
-        mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
-        mask.set_records(pk=getattr(self.current, field_name))
-
-        ## signals to keep selection in sync 
-        def follow_selection(table, obj, mask):
-            if obj and self.current:
-                mask.set_records(pk=getattr(self.current, field_name))
-
-#        handler_id = self.connect('record-selected', follow_selection, mask)
-        handler_id = self.connect('context-changed', follow_selection, mask)
-
-        def disconnect(mask, id):
-            self.disconnect(id)
-
-        mask.connect('delete-event', disconnect, handler_id)
-
-        self._fmask = mask  # just for debug
-
     def select_path(self, path=None, obj=None):
         """
         Select path ``path``. If path is null and obj is not null try finding path at which is obj
@@ -1449,32 +1483,6 @@ class SqlTable(sqlwidget.SqlWidget):
             self.treeview.get_selection().select_path(path)
             
 #### completion
-
-    def get_value(self, field_name, shown=True):
-        """
-        return the value of the cell **currently edited***
-        The name is possibly misleading due to parallelism with
-        mask. 
-
-        shown: compatibility with mask version
-        """
-        
-        obj = self.get_current_obj()
-        assert obj is not None, _("no current obj: maybe no record has yet been edited")
-
-        if field_name == self.currently_edited_field_name:
-            if self.cell_entry:
-                text = self.cell_entry.get_text()
-                if self.is_fkey(field_name):
-                    if shown:
-                    ## we can be here becouse a clean_value triggered it. So don't pass there a
-                    ## second time. If you ask for 'shown' I give you shown.
-                        return text
-                    else:
-                        return self.gui_fields[field_name].clean_value(text, input_is_fkey=False)
-                else:
-                    return self.gui_fields[field_name].clean_value(text)
-        return getattr(obj, field_name)
 
     def set_editable(self, editable=True):
         """
