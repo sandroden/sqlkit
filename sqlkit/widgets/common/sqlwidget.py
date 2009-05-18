@@ -1792,8 +1792,8 @@ class UnsavedDataDialog(object):
             for item in self.master.session.deleted:
                 iter = self.model.append(None)
                 self.model.set(iter,
-                               0, "<i>%s</i>" % item.__class__.__name__,
-                               2, "%s" % item)
+                               0, "<i>%s</i>" % utils.clean_for_markup(item.__class__.__name__),
+                               2, "%s" % utils.clean_for_markup(item))
                 
                 
         if self.master.session.new:
@@ -1802,8 +1802,8 @@ class UnsavedDataDialog(object):
             for item in self.master.session.new:
                 iter = self.model.append(None)
                 self.model.set(iter,
-                               0, "<i>%s</i>" % item.__class__.__name__,
-                               3, "%s" % item)
+                               0, "<i>%s</i>" % utils.clean_for_markup(item.__class__.__name__),
+                               3, "%s" % utils.clean_for_markup(item))
                 
                 
 
@@ -1888,9 +1888,6 @@ class ValidationWarningDialog(ValidationErrorDialog):
             raise exc.DialogValidationError
         else:
             pass
-
-
-
 
 
 
