@@ -879,10 +879,18 @@ class CollectionField(Field):
     """
     Widget = CollectionWidget
 
-    def __init__(self, *args, **kw):
-        Field.__init__(self, *args, **kw)
+    def __init__(self, field_name, db_spec, master, gtkwidget, def_str, test):
+        Field.__init__(self, field_name, db_spec, master, gtkwidget, def_str, test)
+        if not test:
+            self.widget.table.connect('after_commit', self.set_initial_value)
         self.initial_value = []
         
+    def set_initial_value(self, widget, obj, session):
+        """
+        after_commit the 'new' initial value is the new value...
+        """
+        self.initial_value = widget.records
+
     def get_default(self):
         ## FIXME: is this always correct?
         return None
