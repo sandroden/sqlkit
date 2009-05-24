@@ -57,7 +57,12 @@ class SqlWidget(gobject.GObject):
                            ),
         'after-flush' :    (gobject.SIGNAL_RUN_LAST,
                            gobject.TYPE_BOOLEAN,
-                            # object, new, dirty, deleted
+                            # object, session
+                           (gobject.TYPE_PYOBJECT , gobject.TYPE_PYOBJECT ),
+                            ),
+        'after-commit' :    (gobject.SIGNAL_RUN_LAST,
+                           gobject.TYPE_BOOLEAN,
+                            # object, session
                            (gobject.TYPE_PYOBJECT , gobject.TYPE_PYOBJECT ),
                             ),
         'delete-event' : (gobject.SIGNAL_RUN_LAST,
@@ -649,6 +654,7 @@ class SqlWidget(gobject.GObject):
         raise NotImplementedError
 
     def commit(self, message=_('Saved')):
+        print "Commit for", self
         from sqlkit.db.proxy import SKSessionExtension
         
         if self.ro:

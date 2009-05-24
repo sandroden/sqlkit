@@ -359,6 +359,11 @@ Signals
 	  and ``session.deleted`` and find which attributes have been changed
 	  (you may want to use `get_differences`)
 
+:after-commit:
+
+   run from within after-commit SessionExtension. Callback signature is
+   identical to after_flush_callback.
+   
 :delete-event:
 
    emitted when the sqlwidget is destroyed

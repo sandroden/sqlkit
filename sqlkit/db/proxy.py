@@ -201,6 +201,7 @@ class SKSessionExtension(SessionExtension):
 
         if sqlwidget and current:
             sqlwidget.run_hook('on_after_commit', current, session)
+            sqlwidget.emit('after-commit', current, session)
         
 def table2mapper(table):
     """
