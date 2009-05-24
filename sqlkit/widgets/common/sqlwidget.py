@@ -679,6 +679,7 @@ class SqlWidget(gobject.GObject):
         except (exceptions.DBAPIError, exceptions.FlushError), e:
             if not self.commit_error_handler(e):
                 self.session.rollback()
+                raise exc.HandledRollback(e.message)
 
     def commit_error_handler(self, e):
         """

@@ -390,7 +390,11 @@ class SqlMask(sqlwidget.SqlWidget):
                 
         self.record_validate(obj, single_fields=False)
             
-        self.commit()
+        try:
+            self.commit()
+        except exc.HandledRollback, e:
+            return
+            
         self.last_new_obj = None
         
         self.record_display(check=False)
@@ -438,7 +442,11 @@ class SqlMask(sqlwidget.SqlWidget):
             self.session.delete(obj)
         self.last_new_obj = None
         
-        self.commit(_('Deleted'))
+        try:
+            self.commit(_('Deleted'))
+        except exc.HandledRollback, e:
+            return
+            
         self.records.pop(self.current_idx)
 
         self.clear_mask(check=False)

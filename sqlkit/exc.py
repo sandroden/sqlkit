@@ -55,6 +55,7 @@ class InvalidValue(ValidationError):
             self.field_name, value)
     
 class CommitError(ValidationError): pass
+class HandledRollback(CommitError): pass
 
 
 class CancelledAction(Exception): pass
