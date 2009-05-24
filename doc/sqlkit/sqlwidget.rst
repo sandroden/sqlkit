@@ -478,6 +478,20 @@ The following hooks are defined:
     Open a mask right clicking on a record, change something and
     save. You'll see that on_after_flush is called eather.
 
+
+    From the sqlalchemy documentation: "Note that the session's state is
+    still in pre-flush, i.e. *new*, *dirty*, and *deleted* lists still
+    show pre-flush state as well as the history settings on instance
+    attributes". This is true for *post_commit* hook as well , is not true
+    for *after_flush_postexec*, that on the other had has already setup
+    relation.
+
+    I end up in some circumtancies to split the callback in two phases: one
+    that detects if an action is needed from whithin the
+    after_flush/after_commit phase, the second (may me a mail, or any other
+    action) from within the after_flush_postexec, so that I can use the
+    relations.
+
    .. function:: on_after_flush_callback(sqlwidget, object, session)
 
       :param sqlwidget: the sqlwidget that emitted the signal
@@ -525,6 +539,43 @@ This example show how to use hooks to play a sound on completion::
 	        play('horror.wav')
 
   MovieMask(class=models.Movie, hooks=Hook(), ...)
+
+
+Registered hooks and SessionEtensions
+-------------------------------------
+
+When hooks are :ref:`registered <register_utils>` they're customizations are
+enforced each time the model for which they're register is called. That adds
+some complecations you should be sure to understand if using one of these
+hooks:
+
+ * on_after_flush
+ * on_after_commit
+ * on_after_flush_postexec
+
+These hooks are called within a SessionExtension that calls hooks on any
+sqlwidget that may be using the same session. An m2m, m2o relation table
+share the same session as the Mask that holds them so that it's pretty
+normal to have several different tables within the same session.
+
+From the SessionExtension hooks are searched for in any of these so that you
+should write the hooks keeping in mind it can be called from another
+sqlwiget's commit.
+
+As an example, suppose you have a Mask with the following layout::
+
+   first_name
+   last_name
+   m2m=genres   m2m=actors
+
+suppose *movies*, *genres* and *actors* have registered ``on_after_commit``
+hooks. They will all be called on any commit. Adding a genre object will
+trigger *on_after_commit* on the Actor's table and viceversa.
+
+
+
+
+
 
 
 .. _diff:

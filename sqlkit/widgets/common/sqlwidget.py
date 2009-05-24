@@ -214,11 +214,17 @@ class SqlWidget(gobject.GObject):
         """
         return a session suitable for this widget
         """
-        if session:
-            return session
-        else:
-            return self.dbproxy.get_session()
-    
+        from sqlkit.db.proxy import SKSessionExtension
+
+        if not session:
+            session = self.dbproxy.get_session()
+
+        for extension in session.extensions:
+            if isinstance(extension, SKSessionExtension): 
+                extension.sk_widgets = getattr(extension, 'sk_widgets', []) + [self]
+
+        return session
+
     def _get_mapper(self, mapper, tables, class_=None):
 
         from sqlkit.db.utils import get_class
@@ -654,25 +660,18 @@ class SqlWidget(gobject.GObject):
         raise NotImplementedError
 
     def commit(self, message=_('Saved')):
-        print "Commit for", self
-        from sqlkit.db.proxy import SKSessionExtension
-        
+        """
+        run session.commit() and take care of possible exceptions
+
+        :param message: a message to be written in the status bar (default: Saved)
+        """
         if self.ro:
             return
         try:
-            ## when session.autocomit = False, a transaction is automatically started
-            obj = self.get_current_obj()
-
-            ## this is needed for after-flush signal emission that is implemented inside
-            ## SKSessionExtension
-            for extension in self.session.extensions:
-                if isinstance(extension, SKSessionExtension): 
-                    extension.sk_sqlwidget = self
-                    extension.sk_current = obj
-
+            ## when session.autocommit = False, a transaction is automatically started
             if self.session.autocommit:
                 self.session.begin()
-                
+
             self.session.commit()
                 
             self.sb(message, seconds=3)
@@ -966,23 +965,27 @@ class SqlWidget(gobject.GObject):
         look for a possible hook and call it.
         mode: the hook type (eg.: set_value, completion...)
         """
-        if not self.relationship_leader or (self.relationship_leader is self):
-            hook_name = "%s" % (mode)
-        else:
-            hook_name = "%s__%s" % (mode, '__'.join(self.relationship_path))
+        # climb: it a flag that determines if I must climb the relationship and find
+        # others possible hooks in relationship_leaders
+        climb = kw.pop('climb', True)
 
-        sqlwidget = self.relationship_leader or self
+        if self.relationship_leader in (None, self) or climb == False:
+            hook_name = "%s" % (mode)
+            sqlwidget = self
+        else:
+            self.run_hook(mode, climb=False, *args, **kw)  # hooks defined for the related table
+            hook_name = "%s__%s" % (mode, '__'.join(self.relationship_path))
+            sqlwidget = self.relationship_leader 
 
         if 'field_name' in kw:
             hook_name += "__%(field_name)s" % kw
-            
+
         if hasattr(sqlwidget.hooks, hook_name):
             if 'field_name' in kw:
                 return getattr(sqlwidget.hooks, hook_name)(self, kw['field_name'], *args)
             else:
                 return getattr(sqlwidget.hooks, hook_name)(self, *args)
     
-        
 ###### Callback
     def clear_cb(self, *args):
         self.clear()

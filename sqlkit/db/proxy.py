@@ -56,21 +56,22 @@ class DbProxy(object):
                                             expire_on_commit=expire_on_commit,
                                             autoflush=autoflush,
                                             autocommit=autocommit,
-                                            extension=SKSessionExtension(),
                                             )
                 self.Session() # test if expire_on_commit is accepted
             except:
                 self.Session = sessionmaker(bind=self.metadata.bind,
                                             autoflush=autoflush,
                                             autocommit=autocommit,
-                                            extension=SKSessionExtension(),
                                             )
         else:
             self.Session = Session
         self.engine = self.metadata.bind
             
     def get_session(self):
-        return self.Session()
+        sess = self.Session()
+        extension = SKSessionExtension()
+        sess.extensions += [extension]
+        return sess
 
     def get_table(self, name):
         """return a sqlalchemy.Table object from a table_name.
@@ -167,42 +168,38 @@ class DbProxy(object):
             return T1.join(T2)
 
 class SKSessionExtension(SessionExtension):
+
     def after_flush(self, session, flush_context):
         """
         implement the after-flush signal
         """
-        
-        sqlwidget= getattr(self, 'sk_sqlwidget', None)
-        current= getattr(self, 'sk_current', None)
-
-        if sqlwidget and current:
-            sqlwidget.run_hook('on_after_flush', current, session)
-            sqlwidget.emit('after-flush', current, session)
+        loop_run_hooks_over_widgets(self, session, 'on_after_flush', 'after-flush')
         
     def after_flush_postexec(self, session, flush_context):
         """
         implement the after-flush-postexec signal
         """
-        
-        sqlwidget= getattr(self, 'sk_sqlwidget', None)
-        current= getattr(self, 'sk_current', None)
-
-        if sqlwidget and current:
-            sqlwidget.run_hook('on_after_flush_postexec', current, session)
-            #sqlwidget.emit('after-flush-postexec', current, session)
+        loop_run_hooks_over_widgets(self, session, 'on_after_flush_postexec')
         
     def after_commit(self, session):
         """
         implement the after-commit hook
         """
+        loop_run_hooks_over_widgets(self, session, 'on_after_commit', 'after-commit')
         
-        sqlwidget= getattr(self, 'sk_sqlwidget', None)
-        current= getattr(self, 'sk_current', None)
+def loop_run_hooks_over_widgets(ext, session, hook_name, signal_name=None):
 
-        if sqlwidget and current:
-            sqlwidget.run_hook('on_after_commit', current, session)
-            sqlwidget.emit('after-commit', current, session)
+    widgets = getattr(ext, 'sk_widgets', [])
+    for sqlwidget in widgets:
+        current= sqlwidget.get_current_obj()
         
+        if sqlwidget:
+            sqlwidget.run_hook(hook_name, current, session)
+            if signal_name:
+                sqlwidget.emit(signal_name, current, session)
+        
+        
+
 def table2mapper(table):
     """
     return a mapper for a class created on the fly. table is a sqlalchemy.Table obj
