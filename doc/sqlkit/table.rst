@@ -53,7 +53,13 @@ Methods
    :param path:  the path to be selected or None
    :param obj:  if path is None, the object to be searched for and selected
 
+.. method:: set_fk_layout(field_name, layout_nick)
    
+   :param field_name:  the field_name to set a foreign layout for
+   :param layout_nick:  the nick to use
+
+   used to set a layout to be used if opening a mask to edit the foreign key
+
 Column headers
 ==============
 
@@ -161,5 +167,8 @@ will show an entry to edit the referenced record in a mask.
 
 To be sure it will have the customization you want you can 
 :ref:`register <utils>` Layout, Hooks and Class.
+
+In the case you have several possible layout for the same fk, and you want
+to use a layout that is not the default one, you can use ``set_fk_layout``
 
 

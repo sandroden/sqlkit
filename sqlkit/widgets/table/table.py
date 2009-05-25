@@ -78,6 +78,7 @@ class SqlTable(sqlwidget.SqlWidget):
         sqlwidget.SqlWidget.__init__(self, *args, **kwargs)
         self.run_hook('on_init')
         self._new_record = None
+        self._fk_layout_nick = {}
         
     def _get_layout(self, lay, naked):
 
@@ -1112,6 +1113,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return
 
         field_name = self._field_name
+
         del self._field_name
         
         from sqlkit.widgets import SqlMask, SqlTable
@@ -1119,7 +1121,9 @@ class SqlTable(sqlwidget.SqlWidget):
         ftable = self.completions[field_name].table
 
         mask = SqlMask(table=ftable.name, session=self.session, dbproxy=self.dbproxy, 
-                       relationship_mode='FIXED', metadata=self.metadata)
+                       relationship_mode='FIXED', metadata=self.metadata,
+                       layout_nick=self._fk_layout_nick.get(field_name, None),
+                       )
         mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
         mask.set_records(pk=getattr(self.current, field_name))
 
@@ -1138,6 +1142,14 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self._fmask = mask  # just for debug
 
+    def set_fk_layout(self, field_name, layout_nick):
+        """
+        set a layout_nick to be used for a column
+        :param field_name: the field_nme of the column
+        :param layout_nick: the nick name of the layout to be used a 'layout_nick'
+        """
+        self._fk_layout_nick[field_name] = layout_nick
+            
 ###### Misc
     def get_selected_row(self):
         """Return the path of the selected row or None
