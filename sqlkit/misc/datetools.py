@@ -126,13 +126,15 @@ def string2date(string):
     PAT_ADD_SPACES = '(?<=[^ ])([-+])'
     data = re.split(' +', re.sub(PAT_ADD_SPACES, r' \1', string).strip())
     ## 
-    #print "DATA", data
-    computed, last_period = transform(data[0])
+    try:
+        computed, last_period = transform(data[0])
+
+        for token in data[1:]:
+            computed, last_period = transform(
+                token, start=computed, last_period=last_period)
+    except Exception, e:
+        raise WrongRelativeDateFormat(e.message)
     
-    for token in data[1:]:
-        computed, last_period = transform(
-            token, start=computed, last_period=last_period)
-        
     return computed
     
 
