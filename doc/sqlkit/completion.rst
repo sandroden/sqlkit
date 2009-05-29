@@ -244,6 +244,18 @@ Remember that :ref:`validation` is a completely different mechanism than
 completion even if it's not possible to add a field that cannot come from a
 completion. 
 
+customizing description
+-----------------------
+
+The ``query`` attribute of the completion determines which fields will be
+present in the completions list, the ``format`` attribute decides how it
+will be represented. Default value is determined as describe 
+:ref:`above <description>`, but you can customize it as you prefere, as far
+as you use fields present in the query. As an example::
+
+  t.completions.director_id = '%(first_name)s %(last_name)s -- %(nation)'
+
+
 Behaviour on completion with m2m/m2o relationship
 =================================================
 
