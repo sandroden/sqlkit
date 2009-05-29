@@ -377,7 +377,7 @@ def get_differences(obj):
                     prop.direction.name in ('MANYTOMANY', 'ONETOMANY')):
                     yield prop.key, old, new
                 else:
-                    yield prop.key, old and old[0] or '', new and new[0] or ''
+                    yield prop.key, old and old[0], new and new[0]
                     
         except Exception, e:
             ## FIXME: why should we have an error?

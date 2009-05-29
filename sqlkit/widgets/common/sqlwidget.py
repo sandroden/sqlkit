@@ -1792,8 +1792,8 @@ class UnsavedDataDialog(object):
                                    0, "<i>%s</i>" % (utils.clean_for_markup(repr(item))[:25] or
                                                      utils.clean_for_markup(item)[:25]),
                                    1, "%s" % self.master.get_label(field_name),
-                                   2, old_value,
-                                   3, new_value,
+                                   2, str(old_value),
+                                   3, str(new_value),
                                    )
 
         if self.master.session.deleted:
