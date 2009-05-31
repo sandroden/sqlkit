@@ -1,3 +1,5 @@
+import sqlalchemy
+
 class Container(object):
     """
     a container for other object that allows iteration and dict-like access
@@ -53,6 +55,41 @@ class Container(object):
             return getattr(self, key)
         except KeyError:
             return defalut
+
+
+def check_sqlalchemy_version(req):
+    """
+    It only works if pkg_resources is present
+    """
+    SA_VER = sqlalchemy.__version__
+
+    def fatal_exit():
+        import sys
+        msg = "Sqlkit requires at least version %s, found %s"
+        print msg % (req, SA_VER)
+        sys.exit(1)
+
+    def warning():
+        import warnings
+        msg = ("You have %s version of sqlalchemy. Sqlkit is tested with " +
+              "version newer that %s. You shouldn't have problems " +
+              "but we're not sure" )
+        warnings.warn(msg % (SA_VER, req))
+    
+    try:
+        from pkg_resources import parse_version as pv
+        if pv(sqlalchemy.__version__) >= pv(req):
+            return  
+        elif pv(sqlalchemy.__version__) < pv('0.5'):
+            return fatal_exit()
+        else:
+            warning()
+    except ImportError, e:
+        ## don't quit just becouse they don't have pkg_resources
+        return True
+
+
+
 
 if __name__ == '__main__' :
 
