@@ -7,11 +7,37 @@ import gtk
 import re
 from sqlkit.widgets.table import utils
 
+GENERAL_UI = '''
+  <menubar name="Main">
+     <menu action="Database">
+        <menuitem action="EditFields"/>
+        <separator name="sep1"/>
+        <menuitem action="Quit"/>
+     </menu>
+     <menu action="Modify">
+        <menuitem action="Reload"/> 
+        <menuitem action="Dev"/>
+    </menu>
+     <menu action="Help">
+        <menuitem action="About"/>
+     </menu>
+  </menubar>
+  <toolbar name="TbMain">
+    <toolitem  action="Quit" />
+    <toolitem  action="Dev" />
+    <toolitem  action="Reload" />
+  </toolbar>
+'''
+
 class TableBrowser(object):
     def __init__(self, dbproxy, title=None, opts=None, x=None):
-        lay = """ {O tb=gtk-quit  }
-                   {- b=filter_tables e=filter}
-                   TVS=tree"""
+
+        lay = """
+             {V.menu }
+             {- b=filter_tables e=filter}
+             TVS=tree
+
+        """
         self.tables = {}
         self.x = x
         if opts:
@@ -38,7 +64,7 @@ class TableBrowser(object):
         #self.configure_treeview(self.tv)
         self.tv.connect('button-press-event', self.popup_col_menu)
         self.l.connect(
-            ('tb=gtk-quit', 'clicked', self.on_quit),
+#            ('tb=gtk-quit', 'clicked', self.quit_cb),
 #            ('tb=gtk-refresh', 'clicked', self.reload),
             ('b=filter_tables', 'clicked', self.fill_model),
             ('e=filter', 'activate', self.fill_model),
@@ -46,14 +72,54 @@ class TableBrowser(object):
         self.fill_model()
         self.lay_obj = self.l
         self.widgets = self.w
+        self.set_actions()
+        self.prepare_uimanager()
         self.add_accelerators()
         utils.set_height_request(self.tv, rows=min(30, len(self.model)))
 
+    def set_actions(self):
+        self.actiongroup  = gtk.ActionGroup('Main')
+        self.actiongroup.add_actions([
+            ('Database', None, _('Database')),
+            ('Modify', None, _('Modify')),
+            ('Help', None, _('Help')),
+            ('Quit', gtk.STOCK_QUIT, None, '<Ctrl>q', None, self.quit_cb),
+            ('About', gtk.STOCK_ABOUT, None, None, None, self.about_dialog_cb),
+            ])
+        tooltip = """Configure the fields: \nlabels, tooltip, completion, search field"""
+
+        self.actiongroup.add_actions([
+            ('EditFields', None, 'Edit Sqlkit Fields', '<Ctrl>e', tooltip, sqlkit_model),
+            ], self.dbproxy)
+        self.actiongroup.add_toggle_actions([
+            ('Dev', None, 'Primary Key', None, 'Show/Hide primary key if the key is numeric',
+             self.toggle_dev_cb),
+            ('Reload', None, 'Load', None, 'Load the data as well', self.toggle_reload_cb),
+            ])
+
+    def toggle_reload_cb(self, item):
+        pass
+
+    def toggle_dev_cb(self, item):
+        pass
+            
+    def prepare_uimanager(self):
+
+        self.ui_manager = gtk.UIManager()
+        self.accel_group = self.ui_manager.get_accel_group()
+        self.ui_manager.add_ui_from_string(GENERAL_UI)
+        self.w['Window'].add_accel_group(self.accel_group)
+        self.ui_manager.insert_action_group(self.actiongroup, 0)
+        header = self.w['V.menu']
+        menu    = self.ui_manager.get_widget('/Main')
+        tools    = self.ui_manager.get_widget('/TbMain')
+        header.add(menu)
+        header.add(tools)
+        
     def add_accelerators(self):
         """Add accelerators: now Ctrl-l"""
 
         # key accelerators
-        self.accel_group = gtk.AccelGroup()
         self.accel_group.connect_group(ord('l'), 
                                        gtk.gdk.CONTROL_MASK, 
                                        gtk.ACCEL_LOCKED, 
@@ -62,12 +128,11 @@ class TableBrowser(object):
                                        gtk.gdk.CONTROL_MASK, 
                                        gtk.ACCEL_LOCKED, 
                                        self.focus_filter)
-        self.widgets['Window'].add_accel_group(self.accel_group)
             
     def focus_filter(self, *args):
         self.widgets['e=filter'].grab_focus()
 
-    def on_quit(self, widget):
+    def quit_cb(self, widget):
         if self.x == 'quit':
             gtk.main_quit()
         else:
@@ -118,8 +183,9 @@ class TableBrowser(object):
     def activate_cb(self, wdg, data):
 
         mode, table = data
+        dev = self.ui_manager.get_action('/Main/Modify/Dev').get_active()
         options ={'table' : table,
-               'dev' : self.opts.dev,
+               'dev' : dev,
                'single' : False,
                'nick' : "%s_%s" % (table, mode),
                'dbproxy' : self.dbproxy,
@@ -131,6 +197,8 @@ class TableBrowser(object):
 
         try:
             self.t = SqlWid(**options)
+            if self.ui_manager.get_action('/Main/Modify/Reload').get_active():
+                self.t.reload()
         except sqlkit.exc.MissingDescriptorField:
             pass
         except sqlkit.exc.MissingPrimaryKey, e:
@@ -202,3 +270,92 @@ class TableBrowser(object):
                 
 
         
+    def about_dialog_cb(self, menuItem):
+        """
+        The about dialog
+        """
+        dialog = create_about_dialog()
+        dialog.run()
+        dialog.destroy()
+        
+
+def sqlkit_model(item=None, dbproxy=None):
+    lay = """
+       name
+       search_field
+       format
+       o2m=attributes -
+
+    """
+    global tbl
+    if dbproxy:
+        db = dbproxy
+    try:
+        from sqlkit.db.sqlkit_model import SqlkitTable, Base
+        Base.metadata.bind = db.metadata.bind
+        if not db.metadata.bind.has_table('_sqlkit_table'):
+            response = dialog_create_continue()
+            if response == gtk.RESPONSE_CANCEL:
+                sys.exit(0)
+            else:    
+                Base.metadata.create_all()
+        tbl = SqlMask(class_=SqlkitTable, dbproxy=db, single=not bool(dbproxy), layout=lay)
+    except Exception, e:
+        print e
+        raise
+        
+def dialog_create_continue():
+    dialog = gtk.Dialog("Creating sqlkit tables", None,
+                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                        (gtk.STOCK_OK, gtk.RESPONSE_OK,
+                         gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL))
+    label = gtk.Label("No sqlkit tables are present: I'll proceed creating them")
+    dialog.vbox.add(label)
+    dialog.show_all()
+    response = dialog.run()
+    dialog.destroy()
+    return response
+
+
+def create_about_dialog():
+    """
+    Create a default AboutDialog
+    """
+    def func(dialog, link, user_data):
+        import webbrowser
+        webbrowser.open(link)
+
+    about_dialog = gtk.AboutDialog()
+    gtk.about_dialog_set_url_hook(func, None)
+    about_dialog.set_authors(["Sandro Dentella <sandro@e-den.it>"])
+    about_dialog.set_license("GPL v.3")
+    about_dialog.set_version(sqlkit.__version__)
+    about_dialog.set_name("sqlkit")
+    about_dialog.set_website("http://sqlkit.argolinux.org")
+    about_dialog.set_website_label("http://sqlkit.argolinux.org")
+    return about_dialog
+
+def open_sqlwidget(table, single, opts, db):
+
+    options ={'table' : table,
+              'dev' : opts.dev,
+              'single' : single,
+              'nick' : table,
+              'dbproxy' : db,
+              'sql' : opts.sql,
+              'field_list' : opts.field_list,
+              'order_by' : opts.order_by,
+           }
+    if opts.mask:
+        try:
+            SqlMask(**options)
+        except sqlkit.exc.MissingDescriptorField:
+            pass
+
+    else:
+        try:
+            SqlTable(**options)
+        except sqlkit.exc.MissingDescriptorField:
+            pass
+            
+

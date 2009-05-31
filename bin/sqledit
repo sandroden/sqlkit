@@ -72,72 +72,9 @@ def read_conf(nick):
     else:
         raise MissingNickDefinition
         
-def sqlkit_model():
-    lay = """
-       name
-       search_field
-       format
-       o2m=attributes -
-
-    """
-    global tbl
-    try:
-        from sqlkit.db.sqlkit_model import SqlkitTable, Base
-        Base.metadata.bind = db.metadata.bind
-        if not db.metadata.bind.has_table('_sqlkit_table'):
-            response = dialog_create_continue()
-            if response == gtk.RESPONSE_CANCEL:
-                sys.exit(0)
-            else:    
-                Base.metadata.create_all()
-        tbl = SqlMask(Class=SqlkitTable, dbproxy=db, single=True, layout=lay)
-    except Exception, e:
-        print e
-        raise
-        
-def dialog_create_continue():
-    dialog = gtk.Dialog("Creating sqlkit tables", None,
-                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                        (gtk.STOCK_OK, gtk.RESPONSE_OK,
-                         gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL))
-    label = gtk.Label("No sqlkit tables are present: I'll proceed creating them")
-    dialog.vbox.add(label)
-    dialog.show_all()
-    response = dialog.run()
-    dialog.destroy()
-    return response
-
-
-def open_sqlwidget(table, single):
-    global opts
-    options ={'table' : table,
-              'dev' : opts.dev,
-              'single' : single,
-              'nick' : table,
-              'dbproxy' : db,
-              'sql' : opts.sql,
-              'field_list' : opts.field_list,
-              'order_by' : opts.order_by,
-           }
-    if opts.mask:
-        try:
-            SqlMask(**options)
-        except sqlkit.exc.MissingDescriptorField:
-            pass
-
-    else:
-        try:
-            SqlTable(**options)
-        except sqlkit.exc.MissingDescriptorField:
-            pass
-            
-
 ###### Program
 
-#table_name = None
-
 opts, args = optionparse.parse(__doc__)
-#print opts
 
 if not args and not opts: optionparse.exit()
 
@@ -199,9 +136,9 @@ try:
                  single = False
              else:
                  single = True
-             open_sqlwidget(t, single)
+             table_browser.open_sqlwidget(t, single, opts, db)
      elif opts.configure:
-         sqlkit_model()
+         table_browser.sqlkit_model(dbproxy=db)
          
      else:
          title = session.bind.url.database
