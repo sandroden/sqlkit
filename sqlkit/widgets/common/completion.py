@@ -33,7 +33,7 @@ import re
 import gtk
 from sqlkit import debug as dbg, _
 import sqlkit
-from sqlalchemy import text, select, Table
+from sqlalchemy import text, select, Table, exceptions
 from sqlalchemy.sql import and_, or_, not_
 from sqlalchemy.orm import class_mapper, mapper
 from sqlkit.db.proxy import table2mapper
@@ -771,6 +771,9 @@ class FkeyCompletion(SimpleCompletion):
     def lookup_value(self, field_value):
         """
         retrieve the value in a lookup table in case of foreign_key
+        Since field_value may be incorrectly casted (is used in completion)
+        errors are catched and None is returned (rather than raising an Error)
+
         """
         if field_value is None:
             return ''
@@ -782,7 +785,11 @@ class FkeyCompletion(SimpleCompletion):
             fields = [self.table_lookup.columns[f_name] for f_name in descr_fields]
 
             sql = select(fields, self.column_lookup == field_value)
-            all = self.master.metadata.bind.execute(sql).fetchall()
+            try:
+                all = self.master.metadata.bind.execute(sql).fetchall()
+            except (exceptions.DBAPIError), e:
+                self.master.sb(e.message)
+                return None
 
             if len(all) == 0:
                 raise exc.LookupValueMissingValue("%s returns no values for %s/%s" % (
@@ -811,7 +818,7 @@ class FkeyCompletion(SimpleCompletion):
 
         ## FIXME what if we have a multiple pkey?
         fvalue  = getattr(obj, self.attrs[0])
-        fdescr  = getattr(obj, self.description)
+#        fdescr  = getattr(obj, self.description)
         fsearch = getattr(obj, self.search_field)
         
         Obj = DictLike(obj)

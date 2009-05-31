@@ -956,6 +956,9 @@ class SqlTable(sqlwidget.SqlWidget):
                 show = self.gui_fields[field_name].widget.completion.show_possible_completion
                 show(self.cell_entry.entry, 'start')
                 return True
+            except (sqlalchemy.exceptions.DBAPIError), e:
+                self.sb(e.message)
+                return True
         else:
             ## 
             if self.is_fkey(field_name):
