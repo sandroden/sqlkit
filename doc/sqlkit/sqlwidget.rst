@@ -98,7 +98,8 @@ slower. Previous 0.5 rel called it ``autoflush``
      also a string space or comma separated
 
   :param order_by=None: 
-     order by column to be used when selecting 
+     order by column to be used when selecting. Can be a string as would be
+     set in ordinary SQL statements or a list of sqlalchemy order_by clause elements
 
   :param limit=200:
      limit attribute to be used selecting
@@ -295,7 +296,7 @@ Attributes
 
 .. attribute:: order_by
 
-   a string that will be passed as is to query i.e. to SQL. (eg: ``last_name DESC, first_name``)
+   an order_by string or clause element. Same as parameter passed to the class.
 
 .. attribute:: session
 

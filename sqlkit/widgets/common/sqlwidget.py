@@ -173,7 +173,6 @@ class SqlWidget(gobject.GObject):
         self.dbproxy = dbproxy
 #        self.engine = self.get_engine(engine, mapper)
         self.session = self._get_session(session)
-        self.order_by = order_by
         self.mapper = self._get_mapper(mapper, table or tables, class_)
         self.metadata = self._get_metadata(metadata, self.mapper)
         ## we can use singular or plural as an option, plural in the code
@@ -209,7 +208,8 @@ class SqlWidget(gobject.GObject):
         self.set_format(format)
         self.query = self.session.query(self.mapper)
         self.defaults = defaults.Defaults(self.tables, metadata=self.metadata, local=True)
-            
+        self.order_by = order_by
+
     def _get_session(self, session):
         """
         return a session suitable for this widget
@@ -1067,7 +1067,7 @@ class SqlWidget(gobject.GObject):
         if params:
             query = query.params(**params)
         if self.order_by:
-            query = query.order_by(self.order_by)
+            query = query.order_by(*self.order_by)
 
         try:
             query = self.filter_panel.add_filter_conditions(query)
@@ -1141,6 +1141,37 @@ class SqlWidget(gobject.GObject):
             self.session.add(new_obj)
         return new_obj
 
+    def _set_order_by(self, order_by):
+        """
+        May be an order_by clause element or a string, with comma separated fields + ASC|DESC
+        """
+        from sqlalchemy.sql.expression import desc
+
+        if isinstance(order_by, basestring):
+            order = []
+            for tocken in order_by.split(','):
+                order_list = tocken.split()
+                field_name = order_list[0]
+                col = getattr(self.mapper.class_, field_name)
+                    
+                if len(order_list) > 1:
+                    direction = order_list[1]
+                    if direction.upper() == 'DESC':
+                        col = desc(col)
+                order += [col]
+            self._order_by = order
+        else:
+            # assume its already a column
+            if isinstance(order_by, list):
+                self._order_by = order_by
+            else:
+                self._order_by = [order_by]
+
+    def _get_order_by(self):
+        return self._order_by
+
+    order_by = property(_get_order_by, _set_order_by)
+    
 ####### Dialog
     def dialog(self, type='ok-cancel', text='', title='', layout=None, icon='gtk-dialog-question'):
         """
