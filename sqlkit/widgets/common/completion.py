@@ -470,7 +470,7 @@ class SimpleCompletion(object):
                    or (length + 1 < self.autostart_last_length):
                 autostart = self.autostart
                 self.autostart = False
-                self.show_possible_completion(self.widget.entry, 'regexp')
+                self.show_possible_completion(self.widget.get_entry(), 'regexp')
                 self.autostart = autostart
         return True
     
