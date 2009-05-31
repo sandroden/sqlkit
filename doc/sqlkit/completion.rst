@@ -197,8 +197,8 @@ In case you have a related table you can go back to the main table::
   t.related.movie.completions.title.filter(director_id='$main.director_id)
 
 
-enum mode
----------
+enum mode with foreign keys
+---------------------------
 
 Enum mode is the way you can mimic a standard enumeration field: you see all
 fields independently from what you have in your entry. This is more natural
@@ -211,6 +211,29 @@ of the table you can programmatically choose to serve completion *only* via
 this way setting ``force_enum = True`` on the completion::
 
    t.completions.director_id.force_enum = True
+
+enum mode w/o foreign key
+---------------------------
+
+There is another way that mimics enum mode, i.e. setting directly the
+possible completion values via the method ``set_values``::
+
+
+  t.completions.status(['open', 'closed', 'waiting for input'])
+
+or::
+
+  t.completions.status(a_function_that_returns_possible_values)
+
+the signature of this function must be:
+
+.. function:: my_values(value)
+
+   :param value: the value that may have been written in the entry, used to
+        filter values, as usual
+
+
+
 
 more customization
 -------------------

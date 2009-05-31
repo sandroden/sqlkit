@@ -217,7 +217,7 @@ class SimpleCompletion(object):
         self.model.clear()
         self._prev_gruop_by_value = None
 
-        result = self.select_values(self.field_name, mode, return_sql=return_sql, value=value)
+        result = self.select_values(mode, return_sql=return_sql, value=value)
         self._needs_recalculating = True
         if return_sql:
             return debug_inline_params(result, bind=None)
@@ -313,9 +313,12 @@ class SimpleCompletion(object):
         How each selected record gets to the model
         """
         m_iter = self.model.append(None)
+        if hasattr(self, 'possible_values'):
+            value = obj
+        else:
+            value = markup_escape_text(getattr(obj, self.field_name))
         self.model.set(m_iter,
-                       self.VALUE_COL, markup_escape_text(getattr(obj, self.field_name)),
-#                       self.VALUE_COL, self.format % DictLike(obj),
+                       self.VALUE_COL, value,
                        self.MATCH_COL, True)
 
     def make_completion_to_pop(self, entry):
@@ -360,11 +363,14 @@ class SimpleCompletion(object):
         return True
 
 ### Sql SELECT
-    def select_values(self, field_name, mode, return_sql=False, value=None):
+    def select_values(self, mode, return_sql=False, value=None):
         """
         execute the SELECT DISTINCT and return values
         """
         oper = self.get_match_operator()
+
+        if hasattr(self, 'possible_values'):
+            return self.get_values(mode, value)
 
         if self._apply_filter:
             query = self.filtered_query or self.query
@@ -384,6 +390,34 @@ class SimpleCompletion(object):
         
         return query.all()
 
+    def get_values(self, mode, value):
+        """
+        return all completion values when a list was supplied explicitey
+        using set_values
+        """
+        if isinstance(self.possible_values, (list, tuple)):
+            if not value or mode == 'enum':
+                return self.possible_values
+            else:
+                if mode == 'regexp':
+                    return [v for v in self.possible_values if re.search(value, v)]
+                else:
+                    return [v for v in self.possible_values if re.match(value, v)]
+        else:
+            return self.possible_values(value)
+
+    def set_values(self, values):
+        """
+        Set explicitely the possible completion values.
+        Can be a list or a callable that will be called to get the
+        real list of values passing the (possible) text in the entry
+        as parameter
+        """
+        if not callable(values):
+            sorted(values)
+
+        self.possible_values = values
+        
     def compose_select_statement(self, query, oper, value):
 
         if oper:
