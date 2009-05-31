@@ -1,11 +1,11 @@
 from sqlkit import debug as dbg, _
 from sqlkit.widgets import SqlTable, SqlMask
 from sqlkit import layout
+from sqlkit.db import utils
 import sqlkit
 import sqlalchemy as sa
 import gtk
 import re
-from sqlkit.widgets.table import utils
 
 GENERAL_UI = '''
   <menubar name="Main">
@@ -75,7 +75,9 @@ class TableBrowser(object):
         self.set_actions()
         self.prepare_uimanager()
         self.add_accelerators()
-        utils.set_height_request(self.tv, rows=min(30, len(self.model)))
+
+        from sqlkit.widgets.table.utils import set_height_request
+        set_height_request(self.tv, rows=min(30, len(self.model)))
 
     def set_actions(self):
         self.actiongroup  = gtk.ActionGroup('Main')
@@ -299,11 +301,14 @@ def sqlkit_model(item=None, dbproxy=None):
                 sys.exit(0)
             else:    
                 Base.metadata.create_all()
-        tbl = SqlMask(class_=SqlkitTable, dbproxy=db, single=not bool(dbproxy), layout=lay)
+                
+        tbl = SqlMask(class_=SqlkitTable, dbproxy=db, single=not bool(dbproxy),
+                      hooks=ConfigHook(), layout=lay)
+        
     except Exception, e:
         print e
         raise
-        
+
 def dialog_create_continue():
     dialog = gtk.Dialog("Creating sqlkit tables", None,
                         gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
@@ -358,4 +363,33 @@ def open_sqlwidget(table, single, opts, db):
         except sqlkit.exc.MissingDescriptorField:
             pass
             
+
+class ConfigHook(object):
+
+    def on_init(self, m):
+        self.m = m
+        self.db = m.dbproxy
+        m.completions.name.set_values(self.db.metadata.bind.table_names())
+        m.completions.name.autostart = 1
+
+        
+        m.completions.search_field.set_values(self.get_names)
+        m.completions.search_field.autostart = 1
+        m.related.attributes.completions.name.set_values(self.get_all_names)
+        m.related.attributes.completions.name.autostart = 1
+
+    def get_names(self, values = None):
+        table = self.m.get_value('name')
+        if table:
+            cols = utils.get_fields(table, metadata=self.db.metadata, name=False)
+            return [c.name for c in cols if isinstance(c.type, (sa.String, sa.Text))]
+        else:
+            return []
+
+    def get_all_names(self, values = None):
+        table = self.m.get_value('name')
+        if table:
+            return utils.get_fields(table, metadata=self.db.metadata, name=True)
+        else:
+            return []
 
