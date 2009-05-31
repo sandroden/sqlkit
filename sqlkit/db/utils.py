@@ -81,7 +81,7 @@ database editing (``sqledit -c url``)
 """
 
 import re
-from sqlalchemy import Table
+from sqlalchemy import Table, orm
 from sqlalchemy.exc import OperationalError, ProgrammingError
 from defaults import register_hook, get_hook, register_layout, get_layout, register_class, get_class
 
@@ -359,21 +359,20 @@ def get_differences(obj):
         with direction MANYTOMANY or ONETOMANY (i.e.a collection)
     
     """
-    from sqlalchemy.orm import attributes, class_mapper, object_session, properties
 
-    session = object_session(obj)
-    mapper = class_mapper(obj.__class__)
+    session = orm.object_session(obj)
+    mapper = orm.class_mapper(obj.__class__)
     for prop in mapper.iterate_properties:
         new = None
         old = None
 
         try:
-            new, unchanged, old =  attributes.get_history(
-                attributes.instance_state(obj), prop.key)
+            new, unchanged, old =  orm.attributes.get_history(
+                orm.attributes.instance_state(obj), prop.key)
             if new or old:
                 ## Not sure about this code. I don't want to have to cope with
                 ## a list if there is no need for that (i.e. is not a collection)
-                if isinstance(prop, properties.RelationProperty) and (
+                if isinstance(prop, orm.properties.RelationProperty) and (
                     prop.direction.name in ('MANYTOMANY', 'ONETOMANY')):
                     yield prop.key, old, new
                 else:
@@ -392,17 +391,16 @@ def get_history(obj, field_name, session=None):
     :param field_name: the field name of which we want to know the history
     :return: new, unchanged, old
     """
-    from sqlalchemy.orm import attributes, class_mapper, properties
 
-    mapper = class_mapper(obj.__class__)
+    mapper = orm.class_mapper(obj.__class__)
     for prop in mapper.iterate_properties:
 
         if prop.key == field_name:
 
             try:
-                new, unchanged, old =  attributes.get_history(
-                    attributes.instance_state(obj), prop.key)
-                if isinstance(prop, properties.RelationProperty) and (
+                new, unchanged, old =  orm.attributes.get_history(
+                    orm.attributes.instance_state(obj), prop.key)
+                if isinstance(prop, orm.properties.RelationProperty) and (
                     prop.direction.name in ('MANYTOMANY', 'ONETOMANY')):
                     return new, unchanged, old
                 else:
@@ -424,6 +422,37 @@ def clean_for_markup(text):
     return str(text)
 
 
+def get_fields(table, metadata=None, name=True):
+    """
+    return all field_names for this table
+    table may be a sqlalchemy.Table or a table_name in which case a metadata
+    must be provided as well.
+
+    If a registered class is found, all properties are returned, i.e. also
+    relation properties (PropertyLoaders). This may change...?
+    """
+    # first try if a registered class exists
+    class_ = get_class(table)
+
+    if class_:
+        mapper = orm.class_mapper(class_)
+        if name:
+            return mapper.c.keys()
+        else:
+            return [c for c in mapper.c]
+    else:
+        if not isinstance(table, Table):
+            if not metadata:
+                raise MissingMetadata("A metadata must be provided as autoload is needed")
+            try:
+                table = Table(table, metadata, autoload=True)
+            except Exception, e:
+                e.message = "Missing table: %s" % table
+                raise e
+        if name:
+            return table.c.keys()
+        else:
+            return [c for c in table.c]
 
 
 if __name__ == '__main__':
