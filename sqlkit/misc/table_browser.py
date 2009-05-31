@@ -1,5 +1,6 @@
 from sqlkit import debug as dbg, _
 from sqlkit.widgets import SqlTable, SqlMask
+from sqlkit.widgets.common import fields
 from sqlkit import layout
 from sqlkit.db import utils
 import sqlkit
@@ -17,6 +18,7 @@ GENERAL_UI = '''
      <menu action="Modify">
         <menuitem action="Reload"/> 
         <menuitem action="Dev"/>
+        <menuitem action="Blank"/>
     </menu>
      <menu action="Help">
         <menuitem action="About"/>
@@ -26,6 +28,7 @@ GENERAL_UI = '''
     <toolitem  action="Quit" />
     <toolitem  action="Dev" />
     <toolitem  action="Reload" />
+    <toolitem  action="Blank" />
   </toolbar>
 '''
 
@@ -61,11 +64,9 @@ class TableBrowser(object):
         cols = ['table', 'def', 'pkey', 'fkey', 'nullable', 'indexes']
         self.stv = layout.misc.EasyTreeView(cols, tv=self.tv)
         self.model = self.tv.get_model()
-        #self.configure_treeview(self.tv)
+
         self.tv.connect('button-press-event', self.popup_col_menu)
         self.l.connect(
-#            ('tb=gtk-quit', 'clicked', self.quit_cb),
-#            ('tb=gtk-refresh', 'clicked', self.reload),
             ('b=filter_tables', 'clicked', self.fill_model),
             ('e=filter', 'activate', self.fill_model),
             )
@@ -75,6 +76,7 @@ class TableBrowser(object):
         self.set_actions()
         self.prepare_uimanager()
         self.add_accelerators()
+        self.ui_manager.get_action('/Main/Modify/Blank').set_active(not fields.BLANK_OK)
 
         from sqlkit.widgets.table.utils import set_height_request
         set_height_request(self.tv, rows=min(30, len(self.model)))
@@ -97,6 +99,7 @@ class TableBrowser(object):
             ('Dev', None, 'Primary Key', None, 'Show/Hide primary key if the key is numeric',
              self.toggle_dev_cb),
             ('Reload', None, 'Load', None, 'Load the data as well', self.toggle_reload_cb),
+            ('Blank', None, 'Blank', None, 'Cast blank into NULL', self.toggle_blank_cb),
             ])
 
     def toggle_reload_cb(self, item):
@@ -104,6 +107,10 @@ class TableBrowser(object):
 
     def toggle_dev_cb(self, item):
         pass
+            
+    def toggle_blank_cb(self, item):
+
+        fields.BLANK_OK = not self.ui_manager.get_action('/Main/Modify/Blank').get_active()
             
     def prepare_uimanager(self):
 
@@ -281,7 +288,7 @@ class TableBrowser(object):
         dialog.destroy()
         
 
-def sqlkit_model(item=None, dbproxy=None):
+def sqlkit_model(item=None, dbproxy=None, single=False):
     lay = """
        name
        search_field
@@ -302,7 +309,7 @@ def sqlkit_model(item=None, dbproxy=None):
             else:    
                 Base.metadata.create_all()
                 
-        tbl = SqlMask(class_=SqlkitTable, dbproxy=db, single=not bool(dbproxy),
+        tbl = SqlMask(class_=SqlkitTable, dbproxy=db, single=single,
                       hooks=ConfigHook(), layout=lay)
         
     except Exception, e:

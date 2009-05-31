@@ -21,10 +21,10 @@ usage: %prog files [options] [[url|nick] table]
 import sys, re, datetime
 import os
 import user
+from sqlkit.widgets.common import fields
 from ConfigParser import ConfigParser, NoSectionError
 import pdb
 
-#sys.path.insert(0,'/usr/src/sqlalchemy/lib/')
 Dir = os.path.abspath(os.path.dirname(__file__))
 
 from sqlkit import debug as dbg
@@ -34,8 +34,8 @@ import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exceptions import OperationalError
 import gtk
+from sqlkit.widgets.common import fields
 from sqlkit.misc import optionparse, table_browser
-
 
 class MissingNickDefinition(Exception): pass
 
@@ -120,13 +120,7 @@ except ImportError, e:
     sys.exit(1)
     
 session = db.get_session()
-
-#engine = sa.create_engine(opts.url)
-#metadata = sa.MetaData(bind=opts.url)
-#session = sessionmaker(bind=engine,transactional=True)()
-#sa.global_connect(opts.url)
-#engine = sa.default_metadata.engine
-
+fields.BLANK_OK = True
 
 try:
      if opts.table:
@@ -138,7 +132,7 @@ try:
                  single = True
              table_browser.open_sqlwidget(t, single, opts, db)
      elif opts.configure:
-         table_browser.sqlkit_model(dbproxy=db)
+         table_browser.sqlkit_model(dbproxy=db, single=True)
          
      else:
          title = session.bind.url.database
