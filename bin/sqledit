@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-usage: %prog files [options] [[url|nick] table]
+usage: %prog [options] [[url|nick] table]
    -u, --url = URL: an url to open (eg postgres://user:pass@host/dbname)
    -n, --nick = nick: a nick in ~/.sqleditdb
    -t, --table = table: open table 'table'
@@ -29,7 +29,7 @@ Dir = os.path.abspath(os.path.dirname(__file__))
 
 from sqlkit import debug as dbg
 import sqlkit
-from sqlkit import layout
+from sqlkit import layout, _
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exceptions import OperationalError
@@ -39,6 +39,56 @@ from sqlkit.misc import optionparse, table_browser
 
 class MissingNickDefinition(Exception): pass
 
+class ConnectionDialog(object):
+    TITLE = _('Connection setup')
+    TYPE = 'ok-cancel'
+    GENERAL_MSG = _("""
+    You can indicate the database you want to connect to
+    using an URI in the form as:
+    <b>postgres://localhost/dbname</b>
+    <b>sqlite:///dbname</b>
+    or using password and username:
+    <b>mysql://sandro:pass@host/dbname</b>
+    """)
+
+    def __init__(self):
+        """
+        represent the errors in self.validation_errors and raise ValidationError
+        to correctly propagate the error upwards
+        """
+
+        lay = """
+            l=general
+            { lb=backend_help lb=sqledit } 
+            e=url:30 
+        """
+        from sqlkit.layout import layout
+        self.dialog, self.l = layout.dialog(layout=lay, type=self.TYPE, title=self.TITLE)
+        self.l.widgets['l=general'].set_markup(self.GENERAL_MSG)
+        #l.widgets['a=url'].set
+        self.dialog.show_all()
+        self.l.widgets['e=url'].grab_focus()
+        self.l.widgets['lb=backend_help'].set_uri('http://www.sqlalchemy.org/trac/wiki/DatabaseNotes')
+        self.l.widgets['lb=sqledit'].set_uri('http://sqlkit.argolinux.org/sqlkit/sqledit.html')
+        self.l.connect(
+            ('lb=backend_help', 'clicked', self.clicked_cb),
+            ('lb=sqledit', 'clicked', self.clicked_cb),
+            )
+
+    def clicked_cb(self, widget):
+        import webbrowser
+        webbrowser.open(widget.get_uri())
+        
+    def run(self):
+        global opts
+        response = self.dialog.run()
+        if response == gtk.RESPONSE_CANCEL:
+            sys.exit()
+        else:
+            opts.url = self.l.widgets['e=url'].get_text()
+            self.dialog.destroy()
+        return opts.url
+        
 def read_conf(nick):
     from copy import deepcopy
 
@@ -76,7 +126,9 @@ def read_conf(nick):
 
 opts, args = optionparse.parse(__doc__)
 
-if not args and not opts: optionparse.exit()
+if not args and not opts:
+    dialog = ConnectionDialog()
+    response = dialog.run()
 
 if opts.gtk_debug:
     dbg.trace_class(ok='SqlTable|SqlMask|Completion')
@@ -109,7 +161,7 @@ if opts.nick:
     except NoSectionError:
         print "No nick named '%s'" % opts.nick
         sys.exit(1)
-
+        
 
 try:
     db = proxy.DbProxy(engine=opts.url)

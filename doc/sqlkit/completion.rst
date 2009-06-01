@@ -95,6 +95,8 @@ table. A table called ``_sqlkit_table`` is searched for.
 :format: 
    the value of this field is used to represent the record
 
+You can easily edit this table using :ref:`sqledit`
+
 format and __str__
 -------------------
 
@@ -102,6 +104,7 @@ When SqlWidget creates a class on the fly it looks for the 'format' field to
 add a __str__ method to the class, so that this representation is used
 whenever suitable (eg.: when a filter action is performed in a Mask)
 
+.. _autostart:
 
 Autocompletion
 ==============
