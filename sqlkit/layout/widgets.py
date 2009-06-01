@@ -632,6 +632,25 @@ class CheckButton(Button):
     def _class_specific(self):
         self.properties['label'] = ''
 
+class LinkButton(LWidget):
+    gtkClass = 'GtkLinkButton'
+#     transpose = {
+#         'w' : 'width_chars',
+#         }
+    class_pack_properties = {
+        'expand' : False,
+        'fill'   : True,
+        }
+
+    def _class_specific(self):
+        self.properties.update({
+            'xalign' : '0',
+            'label'  : _(re.sub('\..+','',self.val))
+            })        
+        
+        self.pack_properties.update({'y_options': ""})
+
+
 class ComboBox(Entry):
     gtkClass = 'GtkComboBox'
 
@@ -1043,7 +1062,7 @@ class ColorSelection(LWidget):
 class ColorButton(LWidget):
     gtkClass = 'GtkColorButton'
 
-
+##### Widgets list
 _W = {
     'l'   : Label,
     'lf'  : LabelFill,
@@ -1058,6 +1077,7 @@ _W = {
     'da'  : DrawingArea,
     'i'   : Image,
     'b'   : Button,
+    'lb'   : LinkButton,
     'r'   : RadioButton,
     't'   : ToggleButton,
     'ti'  : ToolItem,
