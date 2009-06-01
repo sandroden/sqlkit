@@ -135,7 +135,7 @@ Signals
 :context-changed:
 
    Records have been displayed or selection was changed. 
-   This is use to track any change in the records both selected or displayed
+   This is used to track any change in the records both selected or displayed
    and was added to be used by RecordInMask below
    
    .. function:: records_displayed_cb(sqlwidget, current):

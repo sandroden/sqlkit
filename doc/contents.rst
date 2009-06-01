@@ -16,6 +16,10 @@ Contents:
    :maxdepth: 3
 
    sqlkit/contents
+
+.. toctree::
+   :maxdepth: 2
+
    layout/contents
    debug/contents
    internals/contents

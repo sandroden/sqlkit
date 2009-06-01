@@ -1,3 +1,58 @@
+sqlkit 0.8.6 -
+
+	* sqledit: 
+	         - gui improved
+	         - possibility to edit directly the configuration tables
+	         - improved the editing mode of the configuration
+	           tables via completion
+	         - added toggle of casting of blank fields to NULL
+	         - improved documentation
+	         - added dialog to interactively write backend uri
+	
+	* completion: 
+	         - added dynamic filters for Foreign Key
+	         - added set_values 
+                 - fix fixed group_by
+	         - fixed completion + postgres inn start mode (was always
+	           regexp)
+	         - corrected markup excape for completion
+	         - fix autocompletion on SimpleCompletion
+	
+	* sqlwidget: 
+	         - now resize accepts also -1 to let the present value
+	         - improved has_changed for FKey field and Collection (m2m)
+	         - added post-commit signal
+	         - deleting a record without having the privileges now 
+	           correctly handles the (not) deletion of the row from
+	           the gtk table. Similarly when adding a record.
+	         - differences dialog: db NULL values will show up as None
+	           (rather than '')
+	         - order_by: improved, now several columns can be
+	           addressed, and will be translated in column object
+	           behind the scene to ensure good behaviour even in
+	           joins.
+	
+	* table: 
+	         - now clicking on a non selected table wwill not toggle a
+	           boolean field. Everithing behaves better...
+	         - fix in totals. Subtotal by year raise exception if missing
+	         - fix in the way a new record is detected in m2m
+	         - added possibility to set the layout nick for foreign
+	           key columns; this is the nick of the registered layout 
+	           we want to use in a mask used to edit a foreign key
+	           starting from the menu of the cell
+	         - improved cell validation. Two more bugs fixed
+	
+	* filters: a wrong relative-date string will pop a dialog box
+  	           rather than an unhadled exception
+
+	* db.utils:   added get_fields
+	
+	* many bug fixes:
+	         - typo in completion that prevented filters
+	         - improved parsing in timedelta ugly widget
+	         - label maps now works as expected
+	         
 sqlkit 0.8.6-rc4 - 
 
 	* completion: deep rewrite that enable many fetures: 
