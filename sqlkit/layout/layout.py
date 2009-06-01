@@ -785,47 +785,14 @@ class Layout(object):
         if 'widgets' in dir(self):
             raise NotImplementedError("pack must be used *before* layout.show()")
 
-    def dialog(self, lay=None, title='', butts=None, type=None,
-               text=None, show=True):
-
-        if butts is None and type is None:
-            butts = 'ok'
-
-        if type == 'yes-no':
-            butts = (gtk.STOCK_YES, gtk.RESPONSE_YES,
-                     gtk.STOCK_NO, gtk.RESPONSE_NO)
-
-        if type == 'yes-no-cancel':
-            butts = (gtk.STOCK_YES, gtk.RESPONSE_YES,
-                     gtk.STOCK_NO, gtk.RESPONSE_NO,
-                     gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)                     
-
-        elif type == 'ok-cancel':
-            butts = (gtk.STOCK_OK, gtk.RESPONSE_OK,
-                     gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
-
-        elif type == 'ok-apply-cancel':
-            butts = (gtk.STOCK_OK, gtk.RESPONSE_OK,
-                     gtk.STOCK_APPLY, gtk.RESPONSE_APPLY,
-                     gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
-
-        elif type == 'ok':
-            butts = (gtk.STOCK_OK, gtk.RESPONSE_OK)
-
-
-        window = self.widgets.values()[0].get_toplevel()
-        dialog = gtk.Dialog(title, window,
-                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                        butts)
-        lay = Layout(lay, addto=dialog.vbox)
-        if text:
-            lay.prop(('l=msg', 'label', text))
-        lay.show()
-        if show:
-            dialog.show_all()
-        return (dialog, lay)
+    def dialog(self, *args, **kw):
+        """
+        create a dialog modal that will be destroyed with parent
+        """
         
-
+        toplevel = self.widgets.values()[0].get_toplevel()
+        return dialog(toplevel, *args, **kw)
+    
     def message(self, type=None, text=None, show=True):
 
         if type is None:
@@ -933,3 +900,56 @@ def get_tip(name, layout=None):
     except TypeError, e:
         return None
     
+def dialog(toplevel = None, layout=None, title='', butts=None, type=None,
+           text=None, show=True, mode=None):
+    """
+    A simple way to create a dialog nd possibly to setup a layout
+    :param toplevel: a toplevel to be bound to (optional)
+    :param layout: the layout of the internal widgets
+    :param title: a title
+    :param butts: a possible tuple of (images/response)
+    :param type: the type of dialog: ok, yes-no, yes-no-cancel, ok-cancel,
+                 ok-apply-cancel
+    :param text: a simple text to be displayed
+    :param mode: the mode (defaults to gtk.DIALOG_MODA
+    """
+    
+    if butts is None and type is None:
+        butts = 'ok'
+
+    if type == 'yes-no':
+        butts = (gtk.STOCK_YES, gtk.RESPONSE_YES,
+                 gtk.STOCK_NO, gtk.RESPONSE_NO)
+
+    if type == 'yes-no-cancel':
+        butts = (gtk.STOCK_YES, gtk.RESPONSE_YES,
+                 gtk.STOCK_NO, gtk.RESPONSE_NO,
+                 gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)                     
+
+    elif type == 'ok-cancel':
+        butts = (gtk.STOCK_OK, gtk.RESPONSE_OK,
+                 gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+
+    elif type == 'ok-apply-cancel':
+        butts = (gtk.STOCK_OK, gtk.RESPONSE_OK,
+                 gtk.STOCK_APPLY, gtk.RESPONSE_APPLY,
+                 gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+
+    elif type == 'ok':
+        butts = (gtk.STOCK_OK, gtk.RESPONSE_OK)
+
+    if toplevel:
+        mode = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
+    else:
+        mode = gtk.DIALOG_MODAL
+        
+    dialog = gtk.Dialog(title, toplevel, mode, butts)
+    lay = Layout(layout, addto=dialog.vbox)
+    if text:
+        lay.prop(('l=msg', 'label', text))
+    lay.show()
+    if show:
+        dialog.show_all()
+    return (dialog, lay)
+
+

@@ -1183,7 +1183,7 @@ class SqlWidget(gobject.GObject):
             layout = 'i=%s:6 l=message' % icon
             
 
-        dialog, l = self.lay_obj.dialog(lay=layout, title=title,
+        dialog, l = self.lay_obj.dialog(layout=layout, title=title,
                                         type=type, show=False)
         if 'l=message' in l.widgets:
             l.prop(('l=message', 'use_markup', True))
@@ -1501,7 +1501,7 @@ class SqlWidget(gobject.GObject):
         Pop a dialog to give info on the selected field
         """
 
-        dialog, lay = self.lay_obj.dialog(lay="TVS=info", type='ok', title="Info on %s" % field_name)
+        dialog, lay = self.lay_obj.dialog(layout="TVS=info", type='ok', title="Info on %s" % field_name)
 
         tv = lay.widgets['TV=info']
         model = gtk.ListStore(str, str)
@@ -1753,7 +1753,7 @@ class UnsavedDataDialog(object):
         layout = "{v { i=gtk-dialog-question:6 l=msg}  {>.details TVS=details} }"
         
         self.dialog, l = master.lay_obj.dialog(title=_("Unsave data"),
-            type='yes-no-cancel', text="\n".join(general_msg),  lay=layout)
+            type='yes-no-cancel', text="\n".join(general_msg),  layout=layout)
 
         tv = l.widgets['TV=details']
         expander = l.widgets['X.details']
@@ -1870,7 +1870,7 @@ class ValidationErrorDialog(object):
         layout = """i=%s:6 l=general:<
                     TVS=details -""" % self.IMAGE
         
-        self.dialog, lay = master.lay_obj.dialog(lay=layout, type=self.TYPE, title=self.TITLE)
+        self.dialog, lay = master.lay_obj.dialog(layout=layout, type=self.TYPE, title=self.TITLE)
         lay.widgets['l=general'].set_text(self.GENERAL_MSG)
         
         tv = lay.widgets['TV=details']
