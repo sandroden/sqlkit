@@ -901,7 +901,7 @@ def get_tip(name, layout=None):
         return None
     
 def dialog(toplevel = None, layout=None, title='', butts=None, type=None,
-           text=None, show=True, mode=None, wdict=False):
+           text=None, show=True, mode='', wdict=False):
     """
     A simple way to create a dialog and possibly to setup a layout
 
@@ -912,7 +912,9 @@ def dialog(toplevel = None, layout=None, title='', butts=None, type=None,
     :param type: the type of dialog: ok, yes-no, yes-no-cancel, ok-cancel,
                  ok-apply-cancel
     :param text: a simple text to be displayed
-    :param mode: the mode (defaults to gtk.DIALOG_MODA
+    :param mode: the mode (defaults to gtk.DIALOG_MODAL if no toplevel,
+          gtk.MODAL|gtk.DIALOG_DESTROY_WITH_PARENT, is toplevel is not None)
+          use None to prevent settng the mode.
     :param wdict: if True a dict with the reposnse_id as key and the widet as value is added to the
                   reurned values
     returns a (gtk.dialog, Layout object)
@@ -942,10 +944,11 @@ def dialog(toplevel = None, layout=None, title='', butts=None, type=None,
     elif type == 'ok':
         butts = (gtk.STOCK_OK, gtk.RESPONSE_OK)
 
-    if toplevel:
-        mode = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
-    else:
-        mode = gtk.DIALOG_MODAL
+    if mode == '':
+        if toplevel:
+            mode = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
+        else:
+            mode = gtk.DIALOG_MODAL
         
     dialog = gtk.Dialog(title, toplevel, mode, )
     bdict = {}
