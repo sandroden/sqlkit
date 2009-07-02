@@ -143,7 +143,7 @@ class FilterPanel(object):
 
         """
         for key, val in kwargs.iteritems():
-            path, op, op_str, value, col = django2components(self.master.mapper, {key: val})
+            path, op, op_str, value, col, join_args = django2components(self.master.mapper, {key: val})
             master = self.get_related_master(self.master, path)
             filter_widget = self.add(None, None, col.name, master, force=True)
             if not filter_widget: 

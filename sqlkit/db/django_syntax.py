@@ -118,9 +118,9 @@ class DjangoParser(object):
         parse a django-like condition
         """
         if self.mapper:
-            join_path, op, op_str, value, col = django2components(self.mapper, kw=kw)
+            join_path, op, op_str, value, col, join_args = django2components(self.mapper, kw=kw)
         else:
-            join_path, op, op_str, value, col = django2components(self.table, kw=kw)
+            join_path, op, op_str, value, col, join_args = django2components(self.table, kw=kw)
             
         self.joins += [join_path]
 
@@ -175,10 +175,13 @@ def django2components(mapper_or_table, kw=None):
     Split a single argument/value into a tuple of 5 components:
 
       :path:    what should be used in a join to reach the column of the expression
-      :str_op:  string version of the operator (eg: lte)
-      :col:     sqlalchemy column on which the expression will operate 
       :op:      simbolic version of the operator (eg: <=)
+      :str_op:  string version of the operator (eg: lte)
       :value:   value of the argument
+      :col:     sqlalchemy column on which the expression will operate 
+      :join_args: args for a query.join. At present is only returned for first_step joins and is
+                a tuple (Table, join_condition). Is None when no join is needed and is False
+                if the len(path) > 1 (as in address__city__country__in=...)
       
     return: path, str_op, col, op, value
     """
@@ -194,6 +197,7 @@ def django2components(mapper_or_table, kw=None):
     value = kw[name]
     tokens = name.split('__')
     joins = []
+    join_args = None
     
     if len(tokens) == 1:  # field_name='abc'
         op_str = 'eq'
@@ -213,7 +217,20 @@ def django2components(mapper_or_table, kw=None):
         if tokens: # may be consumed by now...
             joins = deepcopy(tokens)
             col = get_foreign_column(mapper, path=tokens, attr=attr)
+
+            if len(joins) > 1:
+            ## I'm not going to calculate join conditions for longer path... too complex now
+                join_args = False
+            else:
+                ## this is used in 2 cases: the join on a foreign key, so that order_by can work
+                ## correctly, and possibly filter can avoid a subselect
+                col0 = getattr(table.columns, joins[0], None)
+                if col0:
+                    join_args = (col.table, col0 == col0.foreign_keys[0].column)
+                else:
+                    join_args = False
         else:
+            join_args = None
             try:
                 col = getattr(table.columns, attr)
             except AttributeError, e:
@@ -223,12 +240,14 @@ def django2components(mapper_or_table, kw=None):
     op = OPERATORS[op_str]
     if op_str in ('regexp', 'iregexp'):
         op, value = get_regexp_op(table.metadata.bind.name, op_str, value)
-    return joins, op, op_str, value, col
+
+    return joins, op, op_str, value, col, join_args
 
 def get_foreign_column(mapper, path=None, attr=None):
     """
     follow PropertyLoaders chain to get the last referenced column
     """
+    path = deepcopy(path)
     if not mapper:
         raise NotImplementedError("Can't cross relationship if you don't provide a mapper")
 
@@ -320,4 +339,8 @@ def get_regexp_op(bind_name, op_str, value):
     else:
         return 'like', '%' + value + '%'
     
+
+
+
+
 

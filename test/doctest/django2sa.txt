@@ -22,32 +22,43 @@
 
 #### components: path, str_op, col, op, value
 >>> djs.django2components(User.__mapper__, {'first_name' : 'ed'})
-([], '=', 'eq', 'ed', Column('first_name', String(length=50, convert_unicode=False, assert_unicode=None), table=<user>))
+([], '=', 'eq', 'ed', Column('first_name', String(length=50, convert_unicode=False, assert_unicode=None), table=<user>), None)
 
 >>> djs.django2components(User.__mapper__, {'first_name__icontains' : 'ed'})
-([], 'icontains', 'icontains', 'ed', Column('first_name', String(length=50, convert_unicode=False, assert_unicode=None), table=<user>))
+([], 'icontains', 'icontains', 'ed', Column('first_name', String(length=50, convert_unicode=False, assert_unicode=None), table=<user>), None)
 
 >>> djs.django2components(User.__mapper__, {'addresses__email__icontains' : 'e-den.it'})
-(['addresses'], 'icontains', 'icontains', 'e-den.it', Column('email', String(length=50, convert_unicode=False, assert_unicode=None), table=<address>))
+(['addresses'], 'icontains', 'icontains', 'e-den.it', Column('email', String(length=50, convert_unicode=False, assert_unicode=None), table=<address>), False)
 
 >>> djs.django2components(User.__mapper__, {'addresses__email__in' : ['abc', 'def']})
-(['addresses'], 'IN', 'in', ['abc', 'def'], Column('email', String(length=50, convert_unicode=False, assert_unicode=None), table=<address>))
+(['addresses'], 'IN', 'in', ['abc', 'def'], Column('email', String(length=50, convert_unicode=False, assert_unicode=None), table=<address>), False)
 
 >>> djs.django2components(User.__mapper__, {'addresses__date_created__gte' : 'm'})
-(['addresses'], '>=', 'gte', 'm', Column('date_created', Date(), table=<address>))
+(['addresses'], '>=', 'gte', 'm', Column('date_created', Date(), table=<address>), False)
 
 >>> djs.django2components(User.__mapper__, {'addresses__provider__provider' : 'e-den.it'})
-(['addresses', 'provider'], '=', 'eq', 'e-den.it', Column('provider', String(length=50, convert_unicode=False, assert_unicode=None), table=<provider>))
+(['addresses', 'provider'], '=', 'eq', 'e-den.it', Column('provider', String(length=50, convert_unicode=False, assert_unicode=None), table=<provider>), False)
 
 >>> djs.django2components(User.__mapper__, {'addresses__provider__provider__icontains' : 'e-den.it'})
-(['addresses', 'provider'], 'icontains', 'icontains', 'e-den.it', Column('provider', String(length=50, convert_unicode=False, assert_unicode=None), table=<provider>))
+(['addresses', 'provider'], 'icontains', 'icontains', 'e-den.it', Column('provider', String(length=50, convert_unicode=False, assert_unicode=None), table=<provider>), False)
 
 >>> djs.django2components(User.__mapper__, {'addresses__provider__country__country' : 'IT'})
-(['addresses', 'provider', 'country'], '=', 'eq', 'IT', Column('country', String(length=50, convert_unicode=False, assert_unicode=None), table=<country>))
+(['addresses', 'provider', 'country'], '=', 'eq', 'IT', Column('country', String(length=50, convert_unicode=False, assert_unicode=None), table=<country>), False)
+
+## Foreign keys
+>>> djs.django2components(Address.__mapper__, {'user_id__first_name' : 'ed'})[:-1]
+(['user_id'], '=', 'eq', 'ed', Column('first_name', String(length=50, convert_unicode=False, assert_unicode=None), table=<user>))
+
+>>> djs.django2components(Address.__mapper__, {'user_id__first_name' : 'ed'})[-1][0] == User.__table__
+True
+
+>>> binary_expr = Address.__table__.c['user_id'] == User.__table__.c['id']
+>>> print djs.django2components(Address.__mapper__, {'user_id__first_name' : 'ed'})[-1][1]
+address.user_id = user.id
 
 ## shift one step ahead in the mapper chain
 >>> djs.django2components(Address.__mapper__, {'date_created__gte' : 'm'})
-([], '>=', 'gte', 'm', Column('date_created', Date(), table=<address>))
+([], '>=', 'gte', 'm', Column('date_created', Date(), table=<address>), None)
 
 ## query + class
 >>> q = djs.django2query(query, User,  first_name='ed')
