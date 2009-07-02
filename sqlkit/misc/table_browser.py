@@ -56,6 +56,7 @@ class TableBrowser(object):
         lay = """
              {V.menu }
              {- b=filter_tables e=filter}
+             prg=count
              TVS=tree
 
         """
@@ -79,6 +80,7 @@ class TableBrowser(object):
             )
         self.model = gtk.TreeStore(*[str] + [int] + [str] * 5 + [bool] )
         self.w = self.l.show()
+        self.w['prg=count'].hide()
         self.tv = self.w['TV=tree']
         cols = ['Table', 'N.rows', 'Default', 'Prim. Key', 'Foreign Key', 'Nullable', 'Indexes']
                 
@@ -157,12 +159,22 @@ class TableBrowser(object):
         """
         Count the records in all tables
         """
+        progress = self.widgets['prg=count']
+        progress.show()
+        
+        n_tables = len(self.model)
         sess = self.dbproxy.get_session()
         meta = self.dbproxy.metadata
 
+        i = 0
         for row in self.model:
             if not self.model.get(row.iter, self.COUNT_COLUMN)[0]:
                 table_name = self.model.get(row.iter, 0)[0]
+                i += 1
+                progress.props.text = table_name
+                progress.props.fraction = (1.0/n_tables * i)
+                while gtk.events_pending():
+                    gtk.main_iteration()
                 reflected_table = meta.tables.get(table_name, None)
 
                 if not reflected_table:
@@ -172,7 +184,10 @@ class TableBrowser(object):
                 self.model.set(row.iter,
                                self.COUNT_COLUMN, count,
                                self.COUNT_VISIBILITY_COLUMN, True
-                               ) 
+                               )
+        progress.props.fraction = 1.0
+        progress.hide()
+
 
     def add_accelerators(self):
         """Add accelerators: now Ctrl-l"""
