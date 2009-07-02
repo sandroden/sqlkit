@@ -36,12 +36,15 @@ from sqlalchemy.exceptions import OperationalError
 import gtk
 from sqlkit.widgets.common import fields
 from sqlkit.misc import optionparse, table_browser
+from sqlalchemy.engine import url
 
 class MissingNickDefinition(Exception): pass
 
 class ConnectionDialog(object):
     TITLE = _('Connection setup')
     TYPE = 'ok-cancel'
+    URL_DB_BACKEND='http://www.sqlalchemy.org/trac/wiki/DatabaseNotes'
+    URL_SQLKIT='http://sqlkit.argolinux.org/sqlkit/sqledit.html'
     GENERAL_MSG = _("""
     You can indicate the database you want to connect to
     using an URI in the form as:
@@ -58,23 +61,66 @@ class ConnectionDialog(object):
         """
 
         lay = """
-            l=general
+            l=general:<
             { lb=backend_help lb=sqledit } 
-            e=url:30 
+            e=url:30
+            l=errors:<
         """
         from sqlkit.layout import layout
-        self.dialog, self.l = layout.dialog(layout=lay, type=self.TYPE, title=self.TITLE)
+        self.dialog, self.l, self.wdict = layout.dialog(
+            layout=lay, type=self.TYPE, title=self.TITLE, wdict=True)
+        
+        self.wdict[gtk.RESPONSE_OK].props.sensitive = False
+        
+        self.dialog.set_default_response(gtk.RESPONSE_OK)
+
         self.l.widgets['l=general'].set_markup(self.GENERAL_MSG)
         #l.widgets['a=url'].set
         self.dialog.show_all()
         self.l.widgets['e=url'].grab_focus()
-        self.l.widgets['lb=backend_help'].set_uri('http://www.sqlalchemy.org/trac/wiki/DatabaseNotes')
-        self.l.widgets['lb=sqledit'].set_uri('http://sqlkit.argolinux.org/sqlkit/sqledit.html')
+        self.l.widgets['lb=backend_help'].set_uri(self.URL_DB_BACKEND)
+        self.l.widgets['lb=sqledit'].set_uri(self.URL_SQLKIT)
         self.l.connect(
             ('lb=backend_help', 'clicked', self.clicked_cb),
             ('lb=sqledit', 'clicked', self.clicked_cb),
             )
+        self.l.widgets['e=url'].connect('changed', self.changed_cb)
+        self.l.widgets['e=url'].connect('activate', self.activate_cb)
+        self.set_error_msg('')
 
+    def changed_cb(self, entry):
+        
+        global opts
+        url_text = entry.get_text()
+        try:
+            URL = url.make_url(url_text)
+        except Exception, e:
+            self.wdict[gtk.RESPONSE_OK].props.sensitive = False
+            return
+        self.set_error_msg(_("Attempting to connect to %s") % url_text)
+        if URL.drivername and URL.host and URL.database:
+            opts.url = url_text
+            try:
+                open_db(exc=True)
+                self.set_error_msg(_("Connected to %s") % url_text, 'sea green')
+                self.wdict[gtk.RESPONSE_OK].props.sensitive = True
+            except Exception, e:
+                self.set_error_msg(e.message, 'red')
+                self.wdict[gtk.RESPONSE_OK].props.sensitive = False
+                
+            return 
+        else:
+            self.wdict[gtk.RESPONSE_OK].props.sensitive = False
+            opts.url = None
+        
+    def activate_cb(self, entry):
+        try:
+            open_db(exc=True)
+            self.dialog.response(gtk.RESPONSE_OK)
+        except Exception, e:
+            self.set_error_msg(e.message, 'red')
+            print e.message
+        
     def clicked_cb(self, widget):
         import webbrowser
         webbrowser.open(widget.get_uri())
@@ -86,8 +132,17 @@ class ConnectionDialog(object):
             sys.exit()
         else:
             opts.url = self.l.widgets['e=url'].get_text()
-            self.dialog.destroy()
+            if open_db():
+                self.dialog.destroy()
+            else:
+                pass
         return opts.url
+
+    def set_error_msg(self, text, color='black'):
+        from gobject import markup_escape_text
+
+        markup = '<span foreground="%s">%s</span>' % (color, markup_escape_text(text))
+        self.l.widgets['l=errors'].set_markup(markup)
         
 def read_conf(nick):
     from copy import deepcopy
@@ -121,14 +176,25 @@ def read_conf(nick):
         loop_on_opts(c, opts, nick)
     else:
         raise MissingNickDefinition
-        
+
+def open_db(exc=False):
+    global db
+    try:
+        db = proxy.DbProxy(engine=opts.url)
+        db.metadata.bind.connect()
+        return True
+    except Exception, e:
+        if exc:
+            raise e
+        else:
+            if e.message == 'No module named MySQLdb':
+                print "You need to install mysql driver (python-mysqldb under debian)"
+            sys.exit(1)
+        return False
+
 ###### Program
 
 opts, args = optionparse.parse(__doc__)
-
-if not args and not opts:
-    dialog = ConnectionDialog()
-    response = dialog.run()
 
 if opts.gtk_debug:
     dbg.trace_class(ok='SqlTable|SqlMask|Completion')
@@ -162,15 +228,12 @@ if opts.nick:
         print "No nick named '%s'" % opts.nick
         sys.exit(1)
         
+if not args and not opts:
+    dialog = ConnectionDialog()
+    response = dialog.run()
+else:
+    open_db()
 
-try:
-    db = proxy.DbProxy(engine=opts.url)
-except ImportError, e:
-    print e.message
-    if e.message == 'No module named MySQLdb':
-        print "You need to install mysql driver (python-mysqldb under debian)"
-    sys.exit(1)
-    
 session = db.get_session()
 fields.BLANK_OK = True
 
