@@ -71,8 +71,16 @@ DATE_PATTERN = re.compile("""
     (?P<math2>[+-][0-9]*)?
     $""",    re.VERBOSE)
 CHARS = re.compile('[-+dimMwWyY>]')
+TEST = False
 TODAY = date.today()
 
+def today():
+    ## in tests wee need to force computation on a different day
+    if TEST == True:
+        return TODAY
+    else:
+        return date.today()
+    
 def string2dates(string):
     """
     string is returned as is if no [-+dimMwWyY>] are found otherwise
@@ -145,7 +153,7 @@ def transform(token, start=None, last_period=None):
     is used.   This allows to write: m-1 meaning 'beginning of last month'
     """
     if not start:
-        start = TODAY
+        start = today()
     #print "token", token, start, last_period
 
     m = re.match(DATE_PATTERN, token)

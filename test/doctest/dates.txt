@@ -2,6 +2,7 @@
 
 >>> from sqlkit.misc import datetools as dt
 >>> from datetime import *
+>>> dt.TEST = True
 
 >>> dt.TODAY = date(2007, 5, 15)
 >>> dt.string2date('d')
