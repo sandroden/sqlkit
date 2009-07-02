@@ -22,14 +22,16 @@ import sys, re, datetime
 import os
 import user
 import locale
-if not os.environ['LANG']:
+
+
+if not 'LANG' in os.environ:
     my_locale, my_code = locale.getdefaultlocale()
     os.environ['LANG'] = "%s.%s" % (my_locale, my_code)
 
 from sqlkit.widgets.common import fields
 from ConfigParser import ConfigParser, NoSectionError
 
-Dir = os.path.abspath(os.path.dirname(__file__))
+#Dir = os.path.abspath(os.path.dirname(__file__))
 
 from sqlkit import debug as dbg
 import sqlkit
@@ -45,15 +47,22 @@ from sqlalchemy.engine import url
 class MissingNickDefinition(Exception): pass
 
 RESPONSE_DEMO = 1
-DEMO_DIRS = (
+DEMO_DIRS = [
     os.path.join('demo', 'sql'),
     os.path.join( os.path.dirname(os.getcwd()), 'demo', 'sql'),
-    os.path.join( os.path.dirname(__file__), 'demo', 'sql'),
-    os.path.join( os.path.dirname(os.path.dirname(__file__)), 'demo', 'sql'),
-    )
+    ]
+try:
+    ## this is needed so that this file can be 'execfile-ed' in the 'docusage'
+    ## directive of the documentation. In that context __file__ is not defined
+    DEMO_DIRS += [
+        os.path.join( os.path.dirname(__file__), 'demo', 'sql'),
+        os.path.join( os.path.dirname(os.path.dirname(__file__)), 'demo', 'sql'),]
+except:
+    pass
+
 
 class ConnectionDialog(object):
-    TITLE = _('Connection setup')
+    TITLE = _('Connection setup') + "(sqlkit %s)" % sqlkit.__version__
     URL_DB_BACKEND='http://www.sqlalchemy.org/trac/wiki/DatabaseNotes'
     URL_SQLKIT='http://sqlkit.argolinux.org/sqlkit/sqledit.html'
     GENERAL_MSG = _("""
@@ -277,79 +286,84 @@ def open_db(exc=False):
             sys.exit(1)
         return False
 
-###### Program
-
-opts, args = optionparse.parse(__doc__)
-
-if opts.gtk_debug:
-    dbg.trace_class(ok='SqlTable|SqlMask|Completion')
-    but = 'set_fkey_descr|(lookup|set|get)_value|[el]ne_cb|match_func' + \
-       '|cell_default_cb|cell_bool_cb|_lookup_value|is_fkey'
-    dbg.trace_function(exclude=but)
-    dbg.debug(True)
-    lgm = dbg.ShowLogs(show=True)
-
-import sqlkit
-from sqlkit.widgets import SqlTable, SqlMask
-from sqlkit.db import proxy
-from sqlkit.layout import misc
-
-if args:
-    if re.search('://', args[0]):
-        opts.url = args[0]
-    else:
-        opts.nick = args[0]
-    
-if len(args) >1:
-    opts.table = args[1]
-    
-if opts.debug:
-    dbg.debug(True)
-
-if opts.nick:
-    try:
-        read_conf(opts.nick)
-    except NoSectionError:
-        print "No nick named '%s'" % opts.nick
-        sys.exit(1)
-        
-if not args and not opts:
-    dialog = ConnectionDialog()
-    dialog.set_error_msg(os.environ['LANG'])
-    response = dialog.run()
-else:
-    response = None
-    open_db()
-
-fields.BLANK_OK = True
-if not response == RESPONSE_DEMO:
-    session = db.get_session()
-
-
-    try:
-         if opts.table:
-             tables = re.split('[ ,]+', opts.table)
-             for t in tables:
-                 if len(tables) > 1:
-                     single = False
-                 else:
-                     single = True
-                 table_browser.open_sqlwidget(t, single, opts, db)
-         elif opts.configure:
-             table_browser.sqlkit_model(dbproxy=db, single=True)
-
-         else:
-             title = session.bind.url.database
-             C = table_browser.TableBrowser(db, title=title, opts=opts, x='quit')    
-
-    except OperationalError, e:
-        if opts.debug:
-            raise e
+def main():
+    if args:
+        if re.search('://', args[0]):
+            opts.url = args[0]
         else:
-            print e.orig
+            opts.nick = args[0]
+
+    if len(args) >1:
+        opts.table = args[1]
+
+    if opts.debug:
+        dbg.debug(True)
+
+    if opts.nick:
+        try:
+            read_conf(opts.nick)
+        except NoSectionError:
+            print "No nick named '%s'" % opts.nick
             sys.exit(1)
 
-try:
-    gtk.main()
-except KeyboardInterrupt:
-    pass
+    if not args and not opts:
+        dialog = ConnectionDialog()
+        dialog.set_error_msg(os.environ['LANG'])
+        response = dialog.run()
+    else:
+        response = None
+        open_db()
+
+    fields.BLANK_OK = True
+    if not response == RESPONSE_DEMO:
+        session = db.get_session()
+
+
+        try:
+             if opts.table:
+                 tables = re.split('[ ,]+', opts.table)
+                 for t in tables:
+                     if len(tables) > 1:
+                         single = False
+                     else:
+                         single = True
+                     table_browser.open_sqlwidget(t, single, opts, db)
+             elif opts.configure:
+                 table_browser.sqlkit_model(dbproxy=db, single=True)
+
+             else:
+                 title = session.bind.url.database
+                 C = table_browser.TableBrowser(db, title=title, opts=opts, x='quit')    
+
+        except OperationalError, e:
+            if opts.debug:
+                raise e
+            else:
+                print e.orig
+                sys.exit(1)
+
+    
+
+###### Program
+
+if __name__ == '__main__':
+    opts, args = optionparse.parse(__doc__)
+
+    if opts.gtk_debug:
+        dbg.trace_class(ok='SqlTable|SqlMask|Completion')
+        but = 'set_fkey_descr|(lookup|set|get)_value|[el]ne_cb|match_func' + \
+           '|cell_default_cb|cell_bool_cb|_lookup_value|is_fkey'
+        dbg.trace_function(exclude=but)
+        dbg.debug(True)
+        lgm = dbg.ShowLogs(show=True)
+
+    import sqlkit
+    from sqlkit.widgets import SqlTable, SqlMask
+    from sqlkit.db import proxy
+    from sqlkit.layout import misc
+
+    main()
+    try:
+        gtk.main()
+    except KeyboardInterrupt:
+        pass
