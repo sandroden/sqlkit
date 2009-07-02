@@ -85,6 +85,10 @@ d = DemoSql(xml=False, debug=True)
 if len(sys.argv) > 1:
     d.iconify()
     d.load_module_by_idx(args[0])
+    def quit(widget):
+        gtk.main_quit()
+
+    d.t.connect('delete-event', quit)
 
 if opts.gtk:
     l =d.execute_clicked_cb(None)
