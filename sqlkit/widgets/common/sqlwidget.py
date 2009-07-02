@@ -1759,7 +1759,7 @@ class UnsavedDataDialog(object):
         self.master = master
         general_msg = [_("Save unsaved data?")]
         layout = "{v { i=gtk-dialog-question:6 l=msg}  {>.details TVS=details} }"
-        
+
         self.dialog, l = master.lay_obj.dialog(title=_("Unsave data"),
             type='yes-no-cancel', text="\n".join(general_msg),  layout=layout)
 
@@ -1823,16 +1823,18 @@ class UnsavedDataDialog(object):
                         new_value = new and utils.clean_for_markup(field.get_human_value(new)) 
                     else:
                         ## FIXME: we could also look for better representation in related widgets
-                        old_value = old
-                        new_value = new
+                        old_value = utils.clean_for_markup(old)
+                        new_value = utils.clean_for_markup(new)
+#                         old_value = old
+#                         new_value = new
 
                     iter = self.model.append(None)
                     self.model.set(iter,
                                    0, "<i>%s</i>" % (utils.clean_for_markup(repr(item))[:25] or
                                                      utils.clean_for_markup(item)[:25]),
                                    1, "%s" % self.master.get_label(field_name),
-                                   2, str(old_value),
-                                   3, str(new_value),
+                                   2, old_value,
+                                   3, new_value,
                                    )
 
         if self.master.session.deleted:

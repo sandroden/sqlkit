@@ -90,5 +90,6 @@ if opts.gtk:
     l =d.execute_clicked_cb(None)
     gobject.idle_add(l.model_clear, None)
 
-gtk.main()
+if __name__ == '__main__':
+    gtk.main()
 
