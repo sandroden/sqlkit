@@ -872,8 +872,6 @@ class SqlTable(sqlwidget.SqlWidget):
                 #self.session.flush([obj])
                 try:
                     self.commit()
-                    if obj in self.records:
-                        self.records.remove(obj)
                 except exc.HandledRollback, e:
                     deleted = False
                         
@@ -887,6 +885,8 @@ class SqlTable(sqlwidget.SqlWidget):
             if deleted:
                 self.edited_row_model_path = None
                 model.remove(iter)
+                if obj in self.records:
+                    self.records.remove(obj)
         
         sel = self.treeview.get_selection()
         model, paths = sel.get_selected_rows()
