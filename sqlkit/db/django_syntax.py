@@ -91,10 +91,11 @@ class DjangoParser(object):
     parses a django-like argument to compose a sqlalchemy
     ColumnList/ColumnElement object to be used in queries
     """
-    def __init__(self, mapper_or_table=None, query=None, OR=False):
+    def __init__(self, mapper_or_table=None, query=None, OR=False, aliased=False):
         """
         A sqlalchemy.Table object
         """
+        self.aliased=aliased
         if isinstance(mapper_or_table, Table):
             self.mapper = None
             self.table = mapper_or_table
@@ -163,7 +164,7 @@ class DjangoParser(object):
     def compose(self):
         for path in self.joins:
             if path:
-                self.query = self.query.join(*path).reset_joinpoint()
+                self.query = self.query.join(aliased=self.aliased, *path).reset_joinpoint()
 
         return self.query.filter(self.sql() )
 
@@ -237,7 +238,7 @@ def get_foreign_column(mapper, path=None, attr=None):
     return get_column(prop, attr)
 
 
-def django2query(query, mapper_or_class, OR=False, **kw):
+def django2query(query, mapper_or_class, OR=False, aliased=False, **kw):
     """
     return a new query with new constraints expressed in  'django-style'
 
@@ -253,7 +254,7 @@ def django2query(query, mapper_or_class, OR=False, **kw):
     else:
         mapper = class_mapper(mapper_or_class)
         
-    parser = DjangoParser(mapper, query, OR=OR)
+    parser = DjangoParser(mapper, query, OR=OR, aliased=aliased)
 
     for key,val in kw.iteritems():
         parser.parse( {key:val})

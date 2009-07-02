@@ -119,3 +119,32 @@ At the moment of this writing it's not possible to write::
 
 as the foreign key relation is not followed in this context.
 
+aliased constraints
+--------------------
+
+Sometimes you need to have aliased constraints in order to ha sqlalchemy
+build an aliased join to related classes on which you may want to set 
+constraints. This may be necessary if you want to use constraints along with
+order_by and possiby filters on foreign keys.
+
+example
++++++++
+
+Suppose you have an 'address' table with a ``user_id`` field that is a
+ForeignKey to a ``user.id`` column. Suppose you want to open a SqlTable on
+table addresses, ordered on ``user_id`` (well... surely you don't want to
+order by the `ìd`` value, you probaly have a ``first_name`` field that is
+much more appropriate for sorting).  
+
+Now suppose you also have an ``active`` field on the user_table. You can
+achieve this (simple) in the following way::
+
+  t = SqlTable(table='address', order_by='user_id__first_name', ...)
+  t.add_constraint(user_id__active=True, aliased=True)
+
+the order_by argument implicitely have built a join with the user table, the
+same stands for the constraint ``user_id__active``. Sqlalchemy woud have
+complained that the table 'user' was already present, so you need to alias
+it. I'll probably make this the default in a future version.
+
+
