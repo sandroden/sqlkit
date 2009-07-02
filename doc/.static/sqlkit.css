@@ -158,6 +158,9 @@ div.documentwrapper {
 div.clearer {
     clear: both
     }
+div.related { 
+    background-color: #fff
+ }
 div.related h3 {
     display: none
     }
