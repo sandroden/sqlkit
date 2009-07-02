@@ -83,7 +83,7 @@ class ConnectionDialog(object):
         lay = """
             l=general:<
             { lb=backend_help lb=sqledit } 
-            e=url:30
+            { e=url:30 c=auto}
             l=errors:<
         """
         from sqlkit.layout import layout
@@ -121,7 +121,12 @@ class ConnectionDialog(object):
         self.l.widgets['lb=sqledit'].set_tooltip_text(info2)
         self.l.widgets['lb=sqledit'].set_uri(self.URL_SQLKIT)
         self.l.widgets['l=errors'].props.wrap = True
-
+        info_auto_try = _("""Try continuosly to connect.
+        Nice and usefull but may cause temporary blocks
+        if you write an inexistent hostname
+        """)
+        self.l.widgets['c=auto'].set_tooltip_text(info_auto_try)
+        self.l.widgets['c=auto'].set_active(True)
         self.l.connect(
             ('lb=backend_help', 'clicked', self.clicked_cb),
             ('lb=sqledit', 'clicked', self.clicked_cb),
@@ -131,7 +136,7 @@ class ConnectionDialog(object):
         self.set_error_msg('')
         self.add_demo()
         tip = _('If you write a wrong hostname\nthe application may hang some seconds ' + \
-                'till the natural network timeout')
+                'till the natural network timeout. \nUncheck the flag on the right ti disable this feature')
         self.l.widgets['e=url'].set_tooltip_text(tip)
 
     def changed_cb(self, entry):
@@ -146,27 +151,26 @@ class ConnectionDialog(object):
         self.set_error_msg("" )
         if URL.drivername and URL.host and URL.database:
             opts.url = url_text
-            self.set_error_msg(_("Attempting to connect to %s") % url_text)
-            try:
-                open_db(exc=True)
-                self.set_error_msg(_("Connected to %s") % url_text, 'sea green')
-                self.wdict[gtk.RESPONSE_OK].props.sensitive = True
-            except Exception, e:
-                self.set_error_msg(e.message, 'red')
-                self.wdict[gtk.RESPONSE_OK].props.sensitive = False
-                
-            return 
+            ## a checkbox determines if we try continuosly
+            auto = self.l.widgets['c=auto'].get_active()
+            if auto:
+                self.activate_cb(entry)
         else:
             self.wdict[gtk.RESPONSE_OK].props.sensitive = False
             opts.url = None
         
     def activate_cb(self, entry):
+        url_text = entry.get_text()
+        self.set_error_msg(_("Attempting to connect to %s") % url_text)
         try:
             open_db(exc=True)
-            self.dialog.response(gtk.RESPONSE_OK)
+            self.set_error_msg(_("Connected to %s") % url_text, 'sea green')
+            self.wdict[gtk.RESPONSE_OK].props.sensitive = True
         except Exception, e:
             self.set_error_msg(e.message, 'red')
-            print e.message
+            self.wdict[gtk.RESPONSE_OK].props.sensitive = False
+
+        return 
         
     def clicked_cb(self, widget):
         import webbrowser
