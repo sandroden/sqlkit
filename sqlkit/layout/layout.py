@@ -901,9 +901,10 @@ def get_tip(name, layout=None):
         return None
     
 def dialog(toplevel = None, layout=None, title='', butts=None, type=None,
-           text=None, show=True, mode=None):
+           text=None, show=True, mode=None, wdict=False):
     """
-    A simple way to create a dialog nd possibly to setup a layout
+    A simple way to create a dialog and possibly to setup a layout
+
     :param toplevel: a toplevel to be bound to (optional)
     :param layout: the layout of the internal widgets
     :param title: a title
@@ -912,10 +913,13 @@ def dialog(toplevel = None, layout=None, title='', butts=None, type=None,
                  ok-apply-cancel
     :param text: a simple text to be displayed
     :param mode: the mode (defaults to gtk.DIALOG_MODA
+    :param wdict: if True a dict with the reposnse_id as key and the widet as value is added to the
+                  reurned values
+    returns a (gtk.dialog, Layout object)
     """
     
     if butts is None and type is None:
-        butts = 'ok'
+        type = 'ok'
 
     if type == 'yes-no':
         butts = (gtk.STOCK_YES, gtk.RESPONSE_YES,
@@ -943,13 +947,26 @@ def dialog(toplevel = None, layout=None, title='', butts=None, type=None,
     else:
         mode = gtk.DIALOG_MODAL
         
-    dialog = gtk.Dialog(title, toplevel, mode, butts)
+    dialog = gtk.Dialog(title, toplevel, mode, )
+    bdict = {}
+    if butts:
+        for i in range(0, len(butts), 2):
+            icon = butts[i]
+            response = butts[i+1]
+            bdict[response] = dialog.add_button(icon, response)
+
     lay = Layout(layout, addto=dialog.vbox)
+
     if text:
         lay.prop(('l=msg', 'label', text))
     lay.show()
     if show:
         dialog.show_all()
-    return (dialog, lay)
+
+    if wdict:
+        return (dialog, lay, bdict)
+    else:
+        return (dialog, lay)
+        
 
 
