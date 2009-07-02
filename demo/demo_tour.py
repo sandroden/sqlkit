@@ -39,7 +39,7 @@ class InputStream(object):
 
 
 class Demo(object):
-    def __init__(self, pattern=".+.py$", xml=True, debug=False):
+    def __init__(self, pattern=".+.py$", xml=True, debug=False, exclude="demo.py"):
 
         lay = """
            { {B m=_File  } {O tb=gtk-execute } }
@@ -70,7 +70,7 @@ class Demo(object):
         self.ts_pack = self.prepare_treeview_tree(self.w['TV=pack'])
 
 
-        demos, child_demos = self.create_demos(pattern)
+        demos, child_demos = self.create_demos(pattern, exclude)
 
         self.tv = self.w['TV=a']
         ex = self.configure_treeview(self.tv, demos, self.src, self.note)
@@ -142,7 +142,6 @@ class Demo(object):
                 logger.hide()
             else:
                 logger.show()
-            return logger
         except:
             pass
 
@@ -278,9 +277,9 @@ class Demo(object):
     def pop_inspect(self, *args):
         dbg.gtk_dbg.show_widgets()
 
-    def create_demos(self, pattern=None):
+    def create_demos(self, pattern=None, exclude=None):
         ### taken from __init__.py demos dir 
-        file_list = [x for x in os.listdir('.') if re.match(pattern, x)]
+        file_list = [x for x in os.listdir('.') if re.match(pattern, x) and not re.match(exclude, x)]
 
         demo_list = []
         file_list.sort()
