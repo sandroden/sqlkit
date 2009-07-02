@@ -332,8 +332,9 @@ class SqlTable(sqlwidget.SqlWidget):
 
         if self.edited_row_model_path is None:
             self.emit('record-selected')
-            if self.get_selected_obj() or len(self.records):
-                self.emit('context-changed', self.get_selected_obj() or self.records[0])
+            obj = self.get_selected_obj()
+            if obj or len(self.records):
+                self.emit('context-changed', obj or self.records[0])
             return False
         
         ## commit_allowed is a flag that prevents .commit() if a new object
