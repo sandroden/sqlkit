@@ -69,7 +69,7 @@ rel:	deb tgz lenny rsync
 
 extract:
 	#	 python setup.py extract_messages 
-	pybabel extract -o sqlkit/locale/sqlkit.pot -c TIP bin sqlkit:
+	pybabel extract -o sqlkit/locale/sqlkit.pot -c TIP bin sqlkit
 
 update:
 	python setup.py update_catalog
