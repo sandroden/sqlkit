@@ -33,9 +33,9 @@ GENERAL_UI = '''
   </menubar>
   <toolbar name="TbMain">
     <toolitem  action="Quit" />
-    <toolitem  action="Dev" />
     <toolitem  action="Reload" />
     <toolitem  action="Blank" />
+    <toolitem  action="Dev" />
   </toolbar>
 '''
 
@@ -118,16 +118,16 @@ class TableBrowser(object):
             ('Count', None, _('Count records'), None, _('Count records in all tables'),
              self.count_records),
             ])
-        tooltip = """Configure the fields: \nlabels, tooltip, completion, search field"""
+        tooltip = _("""Configure the fields: \nlabels, tooltip, completion, search field""")
 
         self.actiongroup.add_actions([
-            ('EditFields', None, 'Edit Sqlkit Fields', '<Ctrl>e', tooltip, sqlkit_model),
+            ('EditFields', None, _('Edit Sqlkit Fields'), '<Ctrl>e', tooltip, sqlkit_model),
             ], self.dbproxy)
         self.actiongroup.add_toggle_actions([
-            ('Dev', None, 'Primary Key', None, 'Show/Hide primary key if the key is numeric',
+            ('Dev', None, _('Primary Key'), None, _('Show/Hide primary key if the key is numeric'),
              self.toggle_dev_cb),
-            ('Reload', None, 'Load', None, 'Load the data as well', self.toggle_reload_cb),
-            ('Blank', None, 'Blank', None, 'Cast blank into NULL', self.toggle_blank_cb),
+            ('Reload', None, _('Load data'), None, _('Load the data as well'), self.toggle_reload_cb),
+            ('Blank', None, _('Blank'), None, _('Cast blank into NULL'), self.toggle_blank_cb),
             ])
 
     def toggle_reload_cb(self, item):
