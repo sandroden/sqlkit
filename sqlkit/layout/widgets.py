@@ -651,6 +651,9 @@ class LinkButton(LWidget):
         self.pack_properties.update({'y_options': ""})
 
 
+class ProgressBar(LWidget):
+    gtkClass = 'GtkProgressBar'
+
 class ComboBox(Entry):
     gtkClass = 'GtkComboBox'
 
@@ -1085,6 +1088,7 @@ _W = {
     'c'   : CheckButton,
     's'   : SpinButton,
     'ts'  : ToolSpinButton,
+    'prg'   : ProgressBar,
     'C'   : ComboBox,
     'Ce'  : ComboBoxEntry,
     'TV'  : GreedyTreeView,
