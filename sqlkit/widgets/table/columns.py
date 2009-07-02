@@ -729,14 +729,20 @@ class ColumnMenuProxy(object):
         self.master.tvcolumns[field_name].set_property('visible', False)
         
     def reload_sort_cb(self, widget, field_name, direction):
-        
-        col = self.master.gui_fields[field_name].column
-        if direction == 'ASC':
-            self.master.order_by = col
-        else:
-            self.master.order_by = col.desc()
+
+        from sqlkit.db.utils import tables, get_description
+
+        order_by = field_name
+        if self.master.is_fkey(field_name):
+            ftable = getattr(self.master.mapper.c, field_name).foreign_keys[0].column.table
+            fdescr = get_description(ftable, attr='description')
+            order_by = "%s__%s" % (field_name, fdescr)
             
-        #self.order_by = ("%s %s" % (field_name, direction))
+            
+        if direction == 'DESC':
+            order_by += ' DESC'
+
+        self.master.order_by = order_by
         self.master.reload_cb(None)
         
     

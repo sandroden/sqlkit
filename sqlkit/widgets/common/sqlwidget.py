@@ -1045,14 +1045,8 @@ class SqlWidget(gobject.GObject):
         if limit:
             self.limit = limit
 
-        if order_by:
-            self.order_by = order_by
-            
         if constraint:
             self.constraint=constraint
-
-#         if sql is None:
-#             sql = self.sql
 
         if isinstance(sql, tuple) and len(sql) == 2:
             sql_str, params = sql
@@ -1060,15 +1054,20 @@ class SqlWidget(gobject.GObject):
             sql_str = sql
             params = None
 
-#         if reload_constraint == True:
-#             self.sql = (sql_str, params)
-
         query = self.query.filter(sql_str)
         if params:
             query = query.params(**params)
+
+        ## order_by
+        if order_by:
+            self.order_by = order_by
+            
         if self.order_by:
+            if self._order_by_join_args:
+                query = query.reset_joinpoint().join(self._order_by_join_args)
             query = query.order_by(*self.order_by)
 
+        ## filters
         try:
             query = self.filter_panel.add_filter_conditions(query)
         except exc.ParseFilterError, e:
@@ -1146,14 +1145,23 @@ class SqlWidget(gobject.GObject):
         May be an order_by clause element or a string, with comma separated fields + ASC|DESC
         """
         from sqlalchemy.sql.expression import desc
+        from sqlkit.db.django_syntax import django2components
 
+        self._order_by_join_args = None
         if isinstance(order_by, basestring):
             order = []
             for tocken in order_by.split(','):
                 order_list = tocken.split()
                 field_name = order_list[0]
-                col = getattr(self.mapper.class_, field_name)
-                    
+
+                #col0 = getattr(self.mapper.class_, field_name)
+                ## try to add a join for an order by on a field in a related table
+                joins, op, op_str, value, col, join_args = django2components(self.mapper, { field_name: None})
+                #assert col0 == col, "django2components does not lead to the same result as getattr"
+                if join_args:
+                    ## it will be evaluated at reload-time
+                    self._order_by_join_args = join_args
+
                 if len(order_list) > 1:
                     direction = order_list[1]
                     if direction.upper() == 'DESC':

@@ -98,8 +98,14 @@ slower. Previous 0.5 rel called it ``autoflush``
      also a string space or comma separated
 
   :param order_by=None: 
-     order by column to be used when selecting. Can be a string as would be
-     set in ordinary SQL statements or a list of sqlalchemy order_by clause elements
+     order by column to be used when selecting. Can be 
+
+      * a list of sqlalchemy order_by clause elements
+      * a string as would be  set in ordinary SQL statements
+      * a string of fields as would be used in filters:
+        ``user_id__username`` (note the double_underscore). If you also have
+        a relation ``user`` that points to the same table you can use 
+	``user__username`` with the same effect.
 
   :param limit=200:
      limit attribute to be used selecting
@@ -133,8 +139,6 @@ slower. Previous 0.5 rel called it ``autoflush``
      case if you have a relation with attribute 'address' you may use: 
      {'address.zip_code': 6}
    
-
-
   :param title:
      the title for the gtk.Window. 
 
@@ -296,7 +300,9 @@ Attributes
 
 .. attribute:: order_by
 
-   an order_by string or clause element. Same as parameter passed to the class.
+   an order_by string or clause element. Same as parameter passed to the
+   class. It's a property, can be set in any moment.
+
 
 .. attribute:: session
 
