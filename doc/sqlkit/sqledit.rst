@@ -20,6 +20,14 @@ If called without argument it will present a connection dialog:
 
 .. image:: ../img/sqledit_setup.png
 
+If sqledit can find a demo in your systems, it will give you the chance to
+start it. If you want to type the URL of your db you can directly attempt a
+connection or disable it via a checkbox on the right of the entry.
+
+The autoconnect mode is really nice but you may experiment hangs till a
+connection timeout if you write a wong host name.
+
+
 .sqleditdb
 ==========
 
