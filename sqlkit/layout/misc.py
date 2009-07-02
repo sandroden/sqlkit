@@ -1,5 +1,6 @@
 import gtk
 import layout
+from sqlkit import _
 
 class StockMenuItem(gtk.ImageMenuItem):
     
@@ -48,9 +49,9 @@ class EasyTreeView(object):
             cell = gtk.CellRendererText
             if self.columns[i] == bool:
                 cell = gtk.CellRendererToggle
-                self.tvc[col] = gtk.TreeViewColumn(col, cell(), active=i)
+                self.tvc[col] = gtk.TreeViewColumn(_(col), cell(), active=i)
             else:
-                self.tvc[col] = gtk.TreeViewColumn(col, cell(), text=i)
+                self.tvc[col] = gtk.TreeViewColumn(_(col), cell(), text=i)
             if sort == True:
                 self.tvc[col].set_sort_column_id(i)
             self.tvc[col].set_resizable(resize)

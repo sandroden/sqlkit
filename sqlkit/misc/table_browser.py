@@ -20,9 +20,16 @@ GENERAL_UI = '''
         <menuitem action="Dev"/>
         <menuitem action="Blank"/>
     </menu>
+
+    <menu action="Tools">
+        <menuitem action="Count" />
+    </menu>
+
      <menu action="Help">
         <menuitem action="About"/>
      </menu>
+     
+
   </menubar>
   <toolbar name="TbMain">
     <toolitem  action="Quit" />
@@ -33,8 +40,19 @@ GENERAL_UI = '''
 '''
 
 class TableBrowser(object):
-    def __init__(self, dbproxy, title=None, opts=None, x=None):
 
+    NAME_COLUMN = 0
+    COUNT_COLUMN = 1
+    DEFAULT_COLUMN = 2
+    PKEY_COLUMN = 3
+    FKEY_COLUMN = 4
+    NULL_COLUMN = 5
+    INDEX_COLUMN = 6
+    COUNT_VISIBILITY_COLUMN = 7
+    
+    
+    def __init__(self, dbproxy, title=None, opts=None, x=None):
+        
         lay = """
              {V.menu }
              {- b=filter_tables e=filter}
@@ -59,11 +77,18 @@ class TableBrowser(object):
             ('T.0',             'y-options', 'fill'),
             ('b=filter_tables', 'x-options', 'fill'),
             )
+        self.model = gtk.TreeStore(*[str] + [int] + [str] * 5 + [bool] )
         self.w = self.l.show()
         self.tv = self.w['TV=tree']
-        cols = ['table', 'def', 'pkey', 'fkey', 'nullable', 'indexes']
-        self.stv = layout.misc.EasyTreeView(cols, tv=self.tv)
-        self.model = self.tv.get_model()
+        cols = ['Table', 'N.rows', 'Default', 'Prim. Key', 'Foreign Key', 'Nullable', 'Indexes']
+                
+#         cols = [_('Table'), _('N. rows'), _('Default'), _('Prim. Key'), _('Foreign Key'),
+#                 _('Nullable'), _('Indexes')]
+        self.stv = layout.misc.EasyTreeView(cols, model=self.model, tv=self.tv)
+        count_column = self.stv.tvc['N.rows']
+        count_cell = count_column.get_cell_renderers()[0]
+        count_cell.set_property('xalign', 1.0)
+        count_column.add_attribute(count_cell, 'visible', self.COUNT_VISIBILITY_COLUMN)
 
         self.tv.connect('button-press-event', self.popup_col_menu)
         self.l.connect(
@@ -86,9 +111,12 @@ class TableBrowser(object):
         self.actiongroup.add_actions([
             ('Database', None, _('Database')),
             ('Modify', None, _('Modify')),
+            ('Tools', None, _('Tool')),
             ('Help', None, _('Help')),
             ('Quit', gtk.STOCK_QUIT, None, '<Ctrl>q', None, self.quit_cb),
             ('About', gtk.STOCK_ABOUT, None, None, None, self.about_dialog_cb),
+            ('Count', None, _('Count records'), None, _('Count records in all tables'),
+             self.count_records),
             ])
         tooltip = """Configure the fields: \nlabels, tooltip, completion, search field"""
 
@@ -125,6 +153,27 @@ class TableBrowser(object):
         header.add(menu)
         header.add(tools)
         
+    def count_records(self, item):
+        """
+        Count the records in all tables
+        """
+        sess = self.dbproxy.get_session()
+        meta = self.dbproxy.metadata
+
+        for row in self.model:
+            if not self.model.get(row.iter, self.COUNT_COLUMN)[0]:
+                table_name = self.model.get(row.iter, 0)[0]
+                reflected_table = meta.tables.get(table_name, None)
+
+                if not reflected_table:
+                    reflected_table = sa.Table(table_name, meta, autoload=True)
+
+                count = sess.query(reflected_table).count()
+                self.model.set(row.iter,
+                               self.COUNT_COLUMN, count,
+                               self.COUNT_VISIBILITY_COLUMN, True
+                               ) 
+
     def add_accelerators(self):
         """Add accelerators: now Ctrl-l"""
 
@@ -259,21 +308,24 @@ class TableBrowser(object):
                     index_dict[col.name] = []
                 index_dict[col.name] += [index.unique and 'UNIQUE_%s.%s' % (i, j) or 'IDX_%s.%s' % (i,j)]
 
-        self.model.set(iter, 2, ",".join(pks))
+        self.model.set(iter,
+                       self.DEFAULT_COLUMN, ",".join(pks),
+                       self.COUNT_VISIBILITY_COLUMN, False, 
+                       )
             
         for c in tbl.c:
-            col = self.model.append(iter)
-            self.model.set(col, 0, c.name )
-            self.model.set(col, 1, c.type.get_col_spec())
+            iter2 = self.model.append(iter)
+            self.model.set(iter2, self.NAME_COLUMN, c.name )
+            self.model.set(iter2, self.DEFAULT_COLUMN, c.type.get_col_spec())
             if c.primary_key:
-                self.model.set(col, 2, 'X' )
+                self.model.set(iter2, self.PKEY_COLUMN, 'X' )
             if c.foreign_keys:
-                self.model.set(col, 3, repr(c.foreign_keys) )
+                self.model.set(iter2, self.FKEY_COLUMN, repr(c.foreign_keys) )
             if not c.nullable:
-                self.model.set(col, 4, "NOT NULL")
+                self.model.set(iter2, self.NULL_COLUMN, "NOT NULL")
             if c.name in index_dict:
-                self.model.set(col, 5, " ".join(index_dict[c.name]))
-
+                self.model.set(iter2, self.INDEX_COLUMN, " ".join(index_dict[c.name]))
+            
         path = self.model.get_path(iter)
         self.tv.expand_row(path, True)
                 
