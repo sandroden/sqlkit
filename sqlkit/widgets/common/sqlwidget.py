@@ -1760,7 +1760,7 @@ class UnsavedDataDialog(object):
         general_msg = [_("Save unsaved data?")]
         layout = "{v { i=gtk-dialog-question:6 l=msg}  {>.details TVS=details} }"
 
-        self.dialog, l = master.lay_obj.dialog(title=_("Unsave data"),
+        self.dialog, l = master.lay_obj.dialog(title=_("Unsaved data"),
             type='yes-no-cancel', text="\n".join(general_msg),  layout=layout)
 
         tv = l.widgets['TV=details']
