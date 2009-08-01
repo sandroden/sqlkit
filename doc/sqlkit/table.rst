@@ -68,7 +68,7 @@ Each column is clickable. Clicking on the column pops up a menu that enables:
  - to add a filter on this field (see :ref:`filters`)
  - to sort on this field (database sorting). Note that sorting on a
    ForeignKey will trigger a join with the referenced table and an attempt
-   to sort on the :ref:`description`` (In general you don't want to
+   to sort on the :ref:`description` (In general you don't want to
    sort on the ``id``). 
  - to add a total on this column (if the column is numeric)
  - to add a brake on this column (see docs for :ref:`totals`)

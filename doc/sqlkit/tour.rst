@@ -155,15 +155,26 @@ will allow spanning from one table to a related (provided a relation was
 established at sqlalchemy level) and from attribute name to operator to e
 used.  
 
+.. _basic_limitations:
 
-Basic assumptions
-=================
+Basic assumptions and limitations
+=================================
 
 1. You use PrimaryKeys and ForeignKeys throughout the db.
    If you don't use ForeignKeys sqlkit will just work w/o any special
-   behaviour. If you don't use PrimaryKeys sqlkit will not even open the table.
+   behaviour. If you don't use PrimaryKeys sqlkit will not even open the
+   table.
 
-2. You are using one single metadata. This is a limit but it's my normal
+2. ForeignKeys are *simple*. Compound ForeignKeys are not yet supported,
+   that means that you can't use::
+
+      class MyTable(Base):
+         ...
+	 ForeignKeyConstraint('first_field, second_field], [referenced1, referenced2])
+
+   This will be adressed in a future release 
+
+3. You are using one single metadata. This is a limit but it's my normal
    environment. There's not really anything that cannot be changed easily
    about this, simply I didn't have need for this, nor working cases.  (While
    I was plenty of ideas on other features...)

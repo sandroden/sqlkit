@@ -73,6 +73,9 @@ When completing a foreign key the completion puts in the EntryCompletion a
 description of the foreign reference that can be customized via normal
 python format strings. 
 
+Make sure you understood the limitation on ForeignKey expressed in
+:ref:`basic_limitations` 
+
 sqlkit.db.utils
 ----------------
 You would use module sqlkit.db.utils and create an object TableDescr::
