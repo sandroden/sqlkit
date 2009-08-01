@@ -43,12 +43,13 @@ class TableBrowser(object):
 
     NAME_COLUMN = 0
     COUNT_COLUMN = 1
-    DEFAULT_COLUMN = 2
-    PKEY_COLUMN = 3
-    FKEY_COLUMN = 4
-    NULL_COLUMN = 5
-    INDEX_COLUMN = 6
-    COUNT_VISIBILITY_COLUMN = 7
+    TYPE_COLUMN = 2
+    DEFAULT_COLUMN = 3
+    PKEY_COLUMN = 4
+    FKEY_COLUMN = 5
+    NULL_COLUMN = 6
+    INDEX_COLUMN = 7
+    COUNT_VISIBILITY_COLUMN = 8
     
     
     def __init__(self, dbproxy, title=None, opts=None, x=None):
@@ -78,11 +79,11 @@ class TableBrowser(object):
             ('T.0',             'y-options', 'fill'),
             ('b=filter_tables', 'x-options', 'fill'),
             )
-        self.model = gtk.TreeStore(*[str] + [int] + [str] * 5 + [bool] )
+        self.model = gtk.TreeStore(*[str] + [int] + [str] * 6 + [bool] )
         self.w = self.l.show()
         self.w['prg=count'].hide()
         self.tv = self.w['TV=tree']
-        cols = ['Table', 'N.rows', 'Default', 'Prim. Key', 'Foreign Key', 'Nullable', 'Indexes']
+        cols = ['Table', 'N.rows', 'Type', 'Default', 'Prim. Key', 'Foreign Key', 'Nullable', 'Indexes']
                 
 #         cols = [_('Table'), _('N. rows'), _('Default'), _('Prim. Key'), _('Foreign Key'),
 #                 _('Nullable'), _('Indexes')]
@@ -289,7 +290,9 @@ class TableBrowser(object):
             return True
 
     def fill_model(self, *args):
-        """called by button filter_table and filter entry"""
+        """
+        called by button filter_table and filter entry
+        """
         global TABLE_MATCH
         self.model.clear()
         TABLE_MATCH = self.w['e=filter'].get_text() or ".*"
@@ -299,7 +302,7 @@ class TableBrowser(object):
             if self.skip_table(table):
                 continue
             iter = self.model.append(None)
-            self.model.set(iter, 0, table)
+            self.model.set(iter, self.NAME_COLUMN, table)
             if self.opts.all_tables:
                 self.get_table_info_in_model(None, (table, iter))
 
@@ -315,7 +318,7 @@ class TableBrowser(object):
         for pk in tbl.primary_key:
             pks += [pk.name]
 
-        ## 
+        ## Indexes
         for i, index in enumerate(tbl.indexes):
             for j, col in enumerate(index.columns):
                 # show order of column in index
@@ -323,15 +326,17 @@ class TableBrowser(object):
                     index_dict[col.name] = []
                 index_dict[col.name] += [index.unique and 'UNIQUE_%s.%s' % (i, j) or 'IDX_%s.%s' % (i,j)]
 
+        ## pkey and count visibility
         self.model.set(iter,
-                       self.DEFAULT_COLUMN, ",".join(pks),
-                       self.COUNT_VISIBILITY_COLUMN, False, 
+                       self.PKEY_COLUMN,               ",".join(pks),
+                       self.COUNT_VISIBILITY_COLUMN,   False, 
                        )
             
+        ## loop on columns
         for c in tbl.c:
             iter2 = self.model.append(iter)
             self.model.set(iter2, self.NAME_COLUMN, c.name )
-            self.model.set(iter2, self.DEFAULT_COLUMN, c.type.get_col_spec())
+            self.model.set(iter2, self.TYPE_COLUMN, c.type.get_col_spec())
             if c.primary_key:
                 self.model.set(iter2, self.PKEY_COLUMN, 'X' )
             if c.foreign_keys:
