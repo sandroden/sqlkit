@@ -887,6 +887,7 @@ class SqlTable(sqlwidget.SqlWidget):
             if deleted:
                 self.edited_row_model_path = None
                 model.remove(iter)
+                self._new_record = None
                 if obj in self.records:
                     self.records.remove(obj)
         
