@@ -82,7 +82,7 @@ class DemoSql(Demo):
 
 d = DemoSql(xml=False, debug=True)
 
-if len(sys.argv) > 1:
+if args:
     d.iconify()
     d.load_module_by_idx(args[0])
     def quit(widget):
