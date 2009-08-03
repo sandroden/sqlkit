@@ -1,6 +1,7 @@
 # -*- mode: python -*-
 
 >>> import os
+>>> import gtk
 
 #>>> os.environ['LANG'] = 'en_US.utf8'
 >>> os.environ['LANG'] = 'en_US.utf8'
@@ -178,6 +179,14 @@ L=title ae=title:50-       L=year ae=year:5<
             
 # :50 is wrong for dates and numbers
 >>> sm = SqlMask(class_=Movie, dbproxy=db, naked=True, show=True)
+
+# sm.current is added with gobject.idle_add...
+>>> while gtk.events_pending():  
+...   a=gtk.main_iteration()    
+
+>>> sm.current
+<Movie: None>
+
 >>> sm.get_value('title')
 
 >>> sm.set_value('director_id', 'f', shown=True)
@@ -189,6 +198,13 @@ Fellini
 Faenza
 Fellini
 Truffaut
+
+# check for the need of the generation of an object to satisfy delete-orphan in backref
+# namely: relation director has a backref 'movies' that has cascade.delete_orphan set
+# that would prevent setting director_id if the references object is not present in the session
+>>> for p in sm.gui_fields.director_id._props_for_delete_orphan: str(p)
+'Movie.director'
+
 >>> sm = SqlMask(class_=AllTypes, dbproxy=db, naked=True, show=False)
 >>> n = sm.reload()
 >>> t = SqlTable(class_=AllTypes, dbproxy=db, naked=True, show=False)

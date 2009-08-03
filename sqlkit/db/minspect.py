@@ -10,6 +10,7 @@ import sqlalchemy.orm.properties
 from sqlkit.misc.utils import Container
 from sqlalchemy.sql import expression
 
+
 SA_TYPE_MAP =  {
     sqlalchemy.types.String : str,
     sqlalchemy.types.Unicode : str,
@@ -371,145 +372,40 @@ def get_foreign_info(ForeignKey, names=True):
         else:
             return (fkcol.column.table, fkcol.column)
     
-# def get_join_cnd(tables, mode='sa'):
-#     """return a join condition of the sqlobj.Tables in tables
-#     mode: sa (sqlalchemy objects) or 'str' (string)
-#     """
-#     #dbg.show_caller()
-#     #dbg.write()
-#     if len(tables) == 1:
-#         return []
-#     cnd = []
-#     #dbg.write("tables:", tables)
-# #    tbls = [col.table for col in t.c for t in tables]
 
-#     tbls = {}  # which tables are used in these table that can really be joins
-#     for t in tables:
-#         dbg.write(t, type(t))
-#         for col in t.c:
-#             tbls[col.table] = col.table.name
-#     #dbg.write(tbls.values())
+def get_props_for_delete_orphan(mapper, field_name):
+    """
+    discover if field_name setting needs to set an object to fullfill the request
+    for a delete_orphan cascading on a possible relation
+    returns the generator for the properties or ()
+    """
+    ## eg. Movies.__mapper__, director_id
+    # when setting director_id you neeed to set also director so that
+    # the backref relation from Director to Movie (that has delete_orphan set)
+    # will not complain that Movie has no parent
 
+    # find out if director_id is implied in some relation (director for us)
+    # look in local_remote_pairs
 
+    prop = mapper.get_property(field_name)
+    assert isinstance(prop, properties.ColumnProperty)
+    assert len(prop.columns) == 1  # I don't handle mapper with two columns in a property
+    column = prop.columns[0]
 
-#     for t in tables:
-#         #dbg.write(t)
-#         for col in t.c:
-#             fkey = col.foreign_keys
-#             if fkey and fkey.column.table in tbls:
-#                 #dbg.write("col:", col, " -- fk:", col.foreign_key.column)
-#                 cnd += [ col == fkey.column ]
-#                 cnd_str = "%s.%s = %s.%s" % (col.table.name, col.name,
-#                                              fkey.column.table.name,
-#                                              fkey.column.name)
-#                 #dbg.write(cnd_str)
-#     if mode == 'sa':
-#         return cnd
-#     else:
-#         return cnd_str
+    props = []
+    for p in mapper.iterate_properties:
+        if isinstance(p, properties.RelationProperty):
+            if p.direction.name in ('MANYTOONE',):
+                for col in p.local_remote_pairs[0]:
+                    # I can't use col in p.local_remote_pairs
+                    # as it uses 'col == p.local_remote_pairs' that evaluates
+                    # to a BinaryExpression
+                    if column is col:
+                        try:
+                            if p.backref.prop.cascade.delete_orphan:
+                                props += [p]
+                        except AttributeError, e:
+                            pass
+    return tuple(props)
 
-
-# def list_tables(eng=None, schema=None):
-#     if not eng:
-#         eng = schema.default_metadata.engine
-
-#     if eng.name == 'sqlite':
-#         sql = """
-#         SELECT name FROM sqlite_master
-#         WHERE type='table'
-#         ORDER BY name;"""
-#     elif eng.name == 'postgres':
-#         if schema == None:
-#             schema_constraint = ''
-#         else:
-#             schema_constraint = "AND n.nspname = :schema"
-#         sql = """
-#            SELECT c.relname as name, 
-#              n.nspname as schema,c.relkind,
-#              u.usename as owner
-#            FROM pg_catalog.pg_class c
-#                 LEFT JOIN pg_catalog.pg_user u ON u.usesysid = c.relowner
-#                 LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-#            WHERE c.relkind IN ('r')
-#                  %s
-#                  AND pg_catalog.pg_table_is_visible(c.oid)
-#            ORDER BY 1,2;
-#            """ % (schema_constraint)
-#         # sequences and views can be found in postgres just changind this:
-#         # c.relkind IN ('r') 'v','S'
-#     elif eng.name in ( 'mysql'):
-#         sql = "SHOW TABLES"
-        
-#     ret = eng.text(sql).execute(schema=schema)
-#     tables = [R[0] for R in ret]
-#     return tables
-
-
-
-
-
-        
-#     def get(self, record, field_name, n=0):
-#         at = getattr(self, field_name)
-#         if not at['property']:
-#             return getattr(record, field_name)
-#         else:
-#             print at['property'], type(at['property'])
-#             data = getattr(record, at['property'][0])
-#             return getattr(data, field_name)
-
-# class InspectJoinMapper(InspectMapper):
-#     def _add_field_(self, col):
-#         if col.key in self:
-#             dbg.write("%s precedentemente definito, cerchi guai..." % col.key)
-#             return
-        
-#         self.field_list += [ col.key ]
-#         d = {
-#             'table_name'  :  col.table.name ,
-#             'name'        :  col.name,
-#             'table'       :  col.table ,
-#             'col'         :  col,
-#             'db_type'     :  type(col.type), 
-#             'type'        :  self.pytype[type(col.type)],
-#             'col_spec'    :  col.type.get_col_spec(),
-#             'is_serial'   :  is_serial(col),
-#             'property'    :  '',   # no property for a join
-#             'fkey'        :  False,
-#             'pkey'        :  col.primary_key,
-#             'nullable'    :  col.nullable,
-#             'mapper'      :  self.mapper,
-#             'editable'        :  self.set_noup(col.key, col.table.name, col)
-# #            'direction'   :  mapper.props[field_name].direction
-#             }
-#         try:
-#             d['length'] = col.type.length
-#         except:
-#             d['length'] = None
-
-#         if col.table.name not in self.table_mappers:
-#             #dbg.write("%s %s" % (mapper.local_table.name, self.table_mappers))
-#             self.table_mappers[col.table.name] = (self.mapper.class_, self.mapper)
-#             self.pkeys[col.table.name] = []
-
-#         if d['pkey']:
-#             #dbg.write("si %s -> %s" % (field_name, mapper.local_table.name ))
-#             self.pkeys[col.table.name] += [col.name]
-
-#         if col.foreign_key:
-#              d['fkey'] = (col.foreign_key.column.table.name,
-#                         col.foreign_key.column.name)
-#         setattr(self, col.name,  d)
     
-#     def get_primary_table(self):
-#         #dbg.show_caller()
-#         primarytable = self.mapper.local_table
-#         while isinstance(primarytable, sqlalchemy.sql.Join):
-#             primarytable = primarytable.left
-#         table = primarytable.name
-#         return table
-#         #dbg.write('primarytable', table)
-
-
-
-

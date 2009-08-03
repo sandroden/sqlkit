@@ -143,6 +143,7 @@ from decimal import Decimal
 from sqlkit.misc.babel_support import numbers, dates
 from sqlkit import exc, _
 import babel
+from sqlkit.db import minspect
 
 from sqlkit.exc import ValidationError, NotHandledField, NotHandledDefault
 BLANK_OK = False
@@ -808,6 +809,11 @@ class ForeignKeyField(Field):
     """
     Widget = ForeignKeyWidget
 
+    def __init__(self, *args, **kwargs):
+        Field.__init__(self, *args, **kwargs)
+        self._props_for_delete_orphan = minspect.get_props_for_delete_orphan(
+            self.master.mapper, self.field_name)
+        
     def clean_value(self, value, input_is_fkey=False):
         """
         return a cleaned value (i.e.: the foreign key)
@@ -859,6 +865,9 @@ class ForeignKeyField(Field):
         if initial:
             self.initial_value = value
         self.widget.set_value(value, shown=shown)
+        if value:
+            for prop in self._props_for_delete_orphan:
+                self.add_related_object(prop, value)
 
     def has_changed(self):
         ## special case, when is empty
@@ -869,7 +878,20 @@ class ForeignKeyField(Field):
             return True
         else:
             return Field.has_changed(self)
-    
+
+    def add_related_object(self, prop, key):
+        """
+        Add an object to fullfill the  constraint on delete-orphan 
+        """
+        if not prop:
+            return
+        # if the backref that requires this is composed, probably things get more difficoult...
+        assert len(prop.mapper.primary_key) ==1, "Sorry, sqlkit doesn't cope with composed primary key in relations with delete-orphan"
+
+        q = self.master.session.query(prop.mapper).autoflush(False)
+        obj = q.get(key)
+        setattr(self.master.current, prop.key, obj)
+        
 class CollectionField(Field):
     """
     A field that uses a SqlTable to show and edit a collection
