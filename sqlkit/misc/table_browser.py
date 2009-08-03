@@ -108,6 +108,7 @@ class TableBrowser(object):
 
         from sqlkit.widgets.table.utils import set_height_request
         set_height_request(self.tv, rows=min(30, len(self.model)))
+        self.ui_manager.get_action('/Main/Modify/Reload').set_active(bool(opts.load))   
 
     def set_actions(self):
         self.actiongroup  = gtk.ActionGroup('Main')
@@ -432,16 +433,18 @@ def open_sqlwidget(table, single, opts, db):
            }
     if opts.mask:
         try:
-            SqlMask(**options)
+            t = SqlMask(**options)
         except sqlkit.exc.MissingDescriptorField:
             pass
 
     else:
         try:
-            SqlTable(**options)
+            t = SqlTable(**options)
         except sqlkit.exc.MissingDescriptorField:
             pass
-            
+
+    if opts.load:
+        t.reload()
 
 class ConfigHook(object):
 
