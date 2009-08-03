@@ -1,5 +1,6 @@
 # Makefile for Sphinx documentation
 #
+VER           = 0.8.6-rc5
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
@@ -30,6 +31,7 @@ html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) .build/html
 	@echo
 	@echo "Build finished. The HTML pages are in .build/html."
+	perl -i -p -e 's/xxxx/$(VER)/g' .build/html/sqlkit/download.html
 
 pickle:
 	mkdir -p .build/pickle .build/doctrees

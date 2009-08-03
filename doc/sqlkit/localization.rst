@@ -8,7 +8,8 @@ localization support comprizes:
 
   * localization of number (decimal separators and thosand grouping)
   * localization of date/datetime fields
-  * library messages translation
+  * library messages translation (we need help bu translators, there is a
+    project in launchpad_)
   * translation of field_name (see below)
 
 Numbers and dates localization is provided by babel_
@@ -134,5 +135,4 @@ relationships (eg.: author) just for the sake of translation and tooltip.
 .. _`Number Format Pattern Syntax`: http://java.sun.com/docs/books/tutorial/i18n/format/decimalFormat.html#numberpattern
 .. _`Date Format Pattern Syntax`: http://java.sun.com/docs/books/tutorial/i18n/format/dateFormat.html
 .. _babel: http://babel.edgewall.org
-
-
+.. _launchpad: https://launchpad.net/sqlkit

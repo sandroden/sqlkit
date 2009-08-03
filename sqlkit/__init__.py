@@ -4,7 +4,7 @@ import os
 import gettext
 from .misc import utils
 
-__version__ = '0.8.6-rc4'
+__version__ = '0.8.6-rc5'
 
 
 cwd = os.path.abspath(os.path.dirname(__file__))
