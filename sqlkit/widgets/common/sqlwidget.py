@@ -871,8 +871,11 @@ class SqlWidget(gobject.GObject):
                            single_fields determines if check for single fields is done
         returns the validation_error dict to propagate the error info upward
         """
-        if not hasattr(self, 'validation_errors') or related:
-            self.validation_errors = {}
+        # if not hasattr(self, 'validation_errors') or related:
+        # masks pass throught mask2obj that creates self.validation_errors. I must not discard it
+        # in the other cases I neeed to start from zero
+        if single_fields or related:
+            self.validation_errors   = {}
             self.validation_warnings = {}
 
         if obj is None:
