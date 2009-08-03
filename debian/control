@@ -7,6 +7,7 @@ Standards-Version: 3.7.2
 
 Package: python-sqlkit
 Architecture: all
+Suggests: python-sqlkit
 Depends: ${shlibs:Depends}, ${misc:Depends}, python, python-dateutil,
   python-gtk2, python-glade2
 Description: GUI library to edit data of databases
@@ -31,3 +32,9 @@ Description: GUI library to edit data of databases
    django-like syntax
  - completely localized
  - easy way to add hooks and validation
+
+Package: sqlkit-doc
+Architecture: all
+Depends: 
+Description: Documentation for sqlkit 
+  Pdf and html docs for sqlkit package
