@@ -366,22 +366,16 @@ def get_differences(obj):
         new = None
         old = None
 
-        try:
-            new, unchanged, old =  orm.attributes.get_history(
-                orm.attributes.instance_state(obj), prop.key)
-            if new or old:
-                ## Not sure about this code. I don't want to have to cope with
-                ## a list if there is no need for that (i.e. is not a collection)
-                if isinstance(prop, orm.properties.RelationProperty) and (
-                    prop.direction.name in ('MANYTOMANY', 'ONETOMANY')):
-                    yield prop.key, old, new
-                else:
-                    yield prop.key, old and old[0], new and new[0]
-                    
-        except Exception, e:
-            ## FIXME: why should we have an error?
-            print "DEBUG (%s): %s --> %s ## %s" % ( prop.key, old, new, e)
-            pass
+        new, unchanged, old =  orm.attributes.get_history(
+            orm.attributes.instance_state(obj), prop.key)
+        if new or old:
+            ## Not sure about this code. I don't want to have to cope with
+            ## a list if there is no need for that (i.e. is not a collection)
+            if isinstance(prop, orm.properties.RelationProperty) and (
+                prop.direction.name in ('MANYTOMANY', 'ONETOMANY')):
+                yield prop.key, old, new
+            else:
+                yield prop.key, old and old[0], new and new[0]
 
 def get_history(obj, field_name, session=None):
     """
