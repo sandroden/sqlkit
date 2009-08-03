@@ -708,10 +708,11 @@ class SqlTable(sqlwidget.SqlWidget):
         self.sb(_("Total N. of records: %s") % (len(self.liststore)), seconds=None)
         
     def record_has_changed(self):
+        
         if self.edited_row_model_path is None:
             return False
         return sqlwidget.SqlWidget.record_has_changed(self)
-
+    
     def record_save_new(self, ev):
         ## the problem here is to prevent changes in the already used record
         raise NotImplementedError
@@ -1242,8 +1243,9 @@ class SqlTable(sqlwidget.SqlWidget):
         self.cell_entry.valid = True
         self.liststore[row][0] = obj
         
-        path = self.edited_row_model_path
-        self.initialize_record_editing(path, force=True, obj=obj)
+        if not (self.relationship_mode == 'm2m' and not self.m2m_editable):
+            path = self.edited_row_model_path
+            self.initialize_record_editing(path, force=True, obj=obj)
 
         self.records += [obj]
 
