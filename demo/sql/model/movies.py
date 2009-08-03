@@ -43,7 +43,7 @@ class Movie(Base):
     description    = Column(String(512))
     year           = Column(Integer())
     date_release   = Column(Date())
-    director_id    = Column(Integer, ForeignKey('director.id'))
+    director_id    = Column(Integer, ForeignKey('director.id'), nullable=False)
 
     ## relations
 #    director       = relation('Director', backref='movies', cascade='all, delete-orphan',)
