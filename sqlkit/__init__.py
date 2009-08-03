@@ -9,7 +9,9 @@ __version__ = '0.8.6-rc5'
 
 cwd = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(cwd, 'locale')
-
+if not os.path.exists(path):
+    # this is tru when we are in the pyinstaller executable
+    path = os.path.join(os.path.dirname(sys.executable), 'sqlkit', 'locale')
 
 # t = gettext.translation('sqlkit', path)
 # _ = t.lgettext
