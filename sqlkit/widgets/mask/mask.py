@@ -329,6 +329,7 @@ class SqlMask(sqlwidget.SqlWidget):
     def record_mask2obj(self, obj=None, force=False):
         """
         collect data from the mask and set into the object if record_has_changed())
+        force is used when saving a new obj as in record_new
         """
         if not obj:
             return obj
@@ -336,9 +337,13 @@ class SqlMask(sqlwidget.SqlWidget):
         if obj not in self.session: ## it should never happen, really... why do we need?
             self.session.add(obj)
 
+        # mask2obj ensures that the object used for validation is updated from the mask
+        # record_valildate that is run just after mask2object requires validation_errors/warnings
+        # be present
+        self.validation_errors = {}
+        self.validation_warnings = {}
+
         if force or self.record_has_changed():
-            self.validation_errors = {}
-            self.validation_warnings = {}
 
             for field in self.gui_fields:
                 field_name = field.field_name
@@ -371,7 +376,6 @@ class SqlMask(sqlwidget.SqlWidget):
         ask:  ask if save is required
         new_obj:   the record is new. It forces mask2obj to skip check and save all fields
         """
-
         if not new_obj and not self.record_has_changed() and not (
             self.unsaved_changes_exist(skip_new=self.current)):
             self.sb(_('Nothing to save'), seconds=4)
