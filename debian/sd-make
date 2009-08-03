@@ -48,6 +48,7 @@ install:
 #	rm -Rf $(DESTDIR)
 	mkdir -p $(DESTDIR)/usr/share/doc/python-sqlkit
 	cp -a demo $(DESTDIR)/usr/share/doc/python-sqlkit
+	cp -a doc/.build/html $(DESTDIR)/usr/share/doc/python-sqlkit/html
 #	cp -a usr/* $(DESTDIR)/usr
 #	find $(DESTDIR) -name .backups -exec rm -Rf {} \;
 

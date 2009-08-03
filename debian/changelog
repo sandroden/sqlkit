@@ -1,3 +1,9 @@
+python-sqlkit (0.8.6) hardy; urgency=low
+
+  * versione stabile
+
+ -- Sandro Dentella <sandro@e-den.it>  Mon, 20 Jul 2009 19:15:31 +0200
+
 python-sqlkit (0.8.6-rc4) hardy; urgency=low
 
   * rel candidate 4 for 0.8.6
