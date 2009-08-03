@@ -1,0 +1,5 @@
+#!/bin/bash
+
+FILE="$(pwd)/$1"
+cd /misc/src/svn/pyinstaller-hg
+./Build.py $FILE

@@ -1,0 +1,56 @@
+===========
+Pyinstaller
+===========
+
+Main goals in building this installer are:
+ 
+  * make it easy to test the software and run the demo
+  * make it possible to use the command sqledit with an asy installation
+    process 
+
+If you just want to use the installer you should simply install it and run
+it. If you want to prepare a different installer to add some feature (eg:
+more database drivers), you should follow the following steps. Configuration
+is inside file pyinstaller-sqledit.spec
+
+install pyinstaller
+===================
+
+install pyinstaller (http://www.pyinstaller.org/) from the last
+devel and follow instruction in the manual [1]
+
+
+  Getting Started
+
+      * Installing PyInstaller
+      * Building the runtime executables
+      * Configuring your PyInstaller setup
+
+
+Hooks customization
+-------------------
+
+Add the file 'hooks/hook-psycopg2.py' with content::
+
+   hiddenimports = ['mx.DateTime']
+
+And the file 'hooks/hook-babel.py' with content
+
+   hiddenimpors = ['parser']
+
+Create the installer
+====================
+
+Modify the script build/make-installer to reflect the real position
+of the script Build.py of pyinstaller distro and run::
+
+  ./build/make-installer sqledit.spec
+
+This will create a directory build and a directory pyinstaller. Inside the
+latter one you'll find directory sqlkit
+
+
+
+
+
+[1] http://www.pyinstaller.org/static/docs/Manual_v1.1.html

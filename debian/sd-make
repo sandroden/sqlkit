@@ -67,7 +67,7 @@ rsync:
 	ssh apt@www2 'cd $(DIR) && ln -s $(TGZ) sqlkit-latest.tar.gz'
 	rsync Changelog $(WWW)/
 
-rel:	deb tgz lenny rsync
+rel:	deb tgz lenny rsync mkinstaller
 
 extract:
 	#	 python setup.py extract_messages 
@@ -80,3 +80,9 @@ update:
 
 compile:
 	python setup.py compile_catalog
+
+mkinstaller:
+	pyinstaller/make-installer pyinstaller-sqledit.spec
+	tar -C pyinstaller -czvf ../sqledit-binary-$(VER).tar.gz sqlkit
+
+

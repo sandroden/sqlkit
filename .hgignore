@@ -14,3 +14,4 @@ debian/python-sqlkit-intrepid
 debian/python-sqlkit-lenny
 debian/sqlkit-doc
 doc/sqlkit.2.pdf
+pyinstaller
