@@ -745,7 +745,8 @@ class SqlWidget(gobject.GObject):
         ## eg: a new item is added to the session, no editing is done. A reload is issued
         ## I want to avoid the dialog: do you want to save?
         ## session.dirty would (correctly) say a commit is needed
-
+        from sqlkit.widgets.common import fields
+        
         if not self.current:
             return False
 
@@ -759,10 +760,13 @@ class SqlWidget(gobject.GObject):
             try:
                 if self.is_mask():
                     ## this part is needed only for mask as in table the cell-renderer does it
-                    ## as soon as you leace the cell
+                    ## as soon as you leave the cell
                     ## if we setattr now the value in the entry cannot reach the object
                     ## My doubt is that we should probably firstly run the validation
-                    setattr(obj, field.field_name, field.get_value())
+                    if not isinstance(field, fields.CollectionField):
+                        # CollectionField does not need to be set, it's already set to the list
+                        # and we need not keep the list to the related.records list
+                        setattr(obj, field.field_name, field.get_value())
 
                 if self.has_changed(field.field_name):
                     return True
