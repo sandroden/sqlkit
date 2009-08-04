@@ -11,17 +11,13 @@ locale = Tree(ROOT + 'sqlkit/locale', prefix='sqlkit/locale')
 demo = Tree(ROOT + 'demo', prefix='demo',
             excludes= ROOT + 'demo/layout')
 
-import babel
-babel = Tree(babel.__path__[0], prefix='babel')
-
-
 a = Analysis([os.path.join(HOMEPATH,'support/_mountzlib.py'),
               os.path.join(HOMEPATH,'support/useUnicode.py'),
               ROOT + '/bin/sqledit'],
              pathex=[os.path.abspath(os.path.dirname(sys.argv[0]))]
              )
 
-pyz = PYZ(a.pure - babel)
+pyz = PYZ(a.pure )
 exe = EXE(pyz,
           a.scripts,
           exclude_binaries=1,
@@ -35,12 +31,10 @@ coll = COLLECT( exe,
                 a.binaries,
                 a.zipfiles,
                 a.datas,
-                babel,
                 demo,
                 locale,
                 #sqlkit,
                 strip=False,
                 upx=True,
-#                name=os.path.join('dist', 'sqledit')
-                name=os.path.join('pyinstaller', 'sqlkit')
+                name=os.path.join('pyinstaller', 'sqledit')
                 )

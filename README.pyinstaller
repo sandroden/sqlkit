@@ -17,37 +17,31 @@ install pyinstaller
 ===================
 
 install pyinstaller (http://www.pyinstaller.org/) from the last
-devel and follow instruction in the manual [1]
+devel (at least rev 698)::
 
+  svn co http://svn.pyinstaller.org/trunk pyinstaller
+
+and follow instruction in the manual [1]
 
   Getting Started
 
       * Installing PyInstaller
       * Building the runtime executables
+          just under linux: 
+	       sudo apt-get install build-essential python-dev
+  	       python Make.py; make
       * Configuring your PyInstaller setup
 
-
-Hooks customization
--------------------
-
-Add the file 'hooks/hook-psycopg2.py' with content::
-
-   hiddenimports = ['mx.DateTime']
-
-And the file 'hooks/hook-babel.py' with content
-
-   hiddenimpors = ['parser']
 
 Create the installer
 ====================
 
-Modify the script build/make-installer to reflect the real position
-of the script Build.py of pyinstaller distro and run::
+run::
 
-  ./build/make-installer sqledit.spec
+  ./build/make-installer path_to_Build.py pyinstaller-sqledit.spec
 
 This will create a directory build and a directory pyinstaller. Inside the
-latter one you'll find directory sqlkit
+latter one you'll find directory sqledit
 
 
 

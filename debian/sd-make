@@ -1,4 +1,6 @@
 # -*- mode: makefile -*-
+# this is meant for me (sandro) to create distribution and releases
+
 # $pkg
 .PHONY: install clean
 DEB=$(shell cat debian/files |cut -f 1 -d " ")
@@ -8,6 +10,7 @@ PKG=$(shell echo $(shell pwd)| sed 's/.*\///')
 DIR=/home/www/sandro/apt/download.argolinux.org/sqlkit
 WWW=apt@www2:$(DIR)
 TGZ=sqlkit-$(VER).tar.gz
+PYI=/misc/src/svn/pyinstaller-hg/
 
 deb:
 	dpkg-buildpackage -rfakeroot -us -uc -b | tee log
@@ -82,7 +85,6 @@ compile:
 	python setup.py compile_catalog
 
 mkinstaller:
-	pyinstaller/make-installer pyinstaller-sqledit.spec
-	tar -C pyinstaller -czvf ../sqledit-binary-$(VER).tar.gz sqlkit
-
-
+	pyinstaller/make-installer $(PYI)/Build.py pyinstaller-sqledit.spec $(VER)
+	tar -C pyinstaller -chzf ../sqledit-binary-$(VER).tar.gz sqledit-$(VER)
+	echo ../sqledit-binary-$(VER).tar.gz
