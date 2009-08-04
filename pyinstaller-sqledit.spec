@@ -7,6 +7,7 @@ import sys
 ROOT = os.path.dirname(sys.argv[1]) + '/'
 
 #sqlkit = Tree(ROOT + 'sqlkit', prefix='sqlkit')
+icon = Tree(ROOT + 'sqlkit/layout', excludes='*.py')
 locale = Tree(ROOT + 'sqlkit/locale', prefix='sqlkit/locale')
 demo = Tree(ROOT + 'demo', prefix='demo',
             excludes= ROOT + 'demo/layout')
@@ -32,6 +33,7 @@ coll = COLLECT( exe,
                 a.zipfiles,
                 a.datas,
                 demo,
+                icon,
                 locale,
                 #sqlkit,
                 strip=False,

@@ -141,7 +141,10 @@ class DateEdit(gtk.HBox):
         self._date_button = gtk.Button()
         #pixmap = gtk.gdk.pixbuf_new_from_file('cal32.png')
         image = gtk.Image()
-        image.set_from_file(os.path.join(os.path.dirname(__file__),'cal15.png'))
+        F = os.path.join(os.path.dirname(__file__),'cal15.png')
+        if not os.path.exists(F):
+            F = os.path.join(os.path.dirname(sys.executable),'cal15.png')
+        image.set_from_file(F)
         self._date_button.set_image(image)
         self._align_arrow = gtk.Alignment(0,0,0,0)
         self._align_arrow.show()
