@@ -32,17 +32,21 @@ The code is available under an hg repository::
 You can download sqlkit package xxxx from here_ in tar or deb format. 
 
 
-+-----------------------------------+----------------------------------------------------+
-|Python package                     |sqlkit-xxxx.tar.gz_                                 |
-+-----------------------------------+----------------------------------------------------+
-|Debian package                     |python-sqlkit-xxxx_all.deb_                         |       
-+-----------------------------------+----------------------------------------------------+
-|Debian documentation package       |sqlkit-doc_xxxx_all.deb_                            |       
-+-----------------------------------+----------------------------------------------------+
-|Linux executable (pyinstaller)     |sqledit-binary-xxxx.tar.gz_ (not yet ready)         |
-+-----------------------------------+----------------------------------------------------+
-|Windows executable (pyinstaller)   |sqledit-binary-xxxx.exe_ (not yet ready)            |
-+-----------------------------------+----------------------------------------------------+
++------------------------------------+-----------------------------------------------------+
+|Python package                      |sqlkit-xxxx.tar.gz_                                  |
++------------------------------------+-----------------------------------------------------+
+|Debian package (read below! you are |python-sqlkit-xxxx_all.deb_                          |       
+|supposed to install sqlalchemy >=   |                                                     |
+|0.5.3 and babel)                    |                                                     |
++------------------------------------+-----------------------------------------------------+
+|Linux executable (pyinstaller)      |sqledit-binary-xxxx.tar.gz_                          |
++------------------------------------+-----------------------------------------------------+
+|Windows executable (pyinstaller)    |sqledit-binary-xxxx.exe_ (not yet ready)             |
++------------------------------------+-----------------------------------------------------+
+
+.. +-----------------------------------+----------------------------------------------------+
+.. Debian documentation package       |sqlkit-doc_xxxx_all.deb_                            |       
+
 
 Sqlkit is used in a production environment and great care is put in fixing
 any bug as soon as possible. The first stable version will be 0.8.6. Present
@@ -124,8 +128,8 @@ Sqlkit is developed by `Alessandro Dentella`_
   
 .. _sqlkit-xxxx.tar.gz: http://sqlkit.argolinux.org/download/sqlkit-xxxx.tar.gz
 .. _python-sqlkit-xxxx_all.deb: http://sqlkit.argolinux.org/download/python-sqlkit-xxxx_all.deb
-.. _sqledit-binary-xxxx.tar.gz: http://sqlkit.argolinux.org/download/sqlkit-pyinstaller-xxxx.bin_
-.. _sqledit-binary-xxxx.exe: http://sqlkit.argolinux.org/download/sqlkit-pyinstaller-xxxx.exe_
+.. _sqledit-binary-xxxx.tar.gz: http://sqlkit.argolinux.org/download/sqlkit-pyinstaller-xxxx.tar.gz
+.. _sqledit-binary-xxxx.exe: http://sqlkit.argolinux.org/download/sqlkit-pyinstaller-xxxx.exe
 .. _sqlkit-doc_xxxx_all.deb: http://sqlkit.argolinux.org/download/sqlkit-doc_xxxx_all.deb
 .. _`Alessandro Dentella`: mailto:sandro@e-den.it
 .. _launchpad: https://launchpad.net/sqlkit
