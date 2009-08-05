@@ -11,13 +11,16 @@ Main goals in building this installer are:
 If you just want to use the installer you should simply install it and run
 it. If you want to prepare a different installer to add some feature (eg:
 more database drivers), you should follow the following steps. Configuration
-is inside file pyinstaller-sqledit.spec
+is inside file pyinstaller-sqledit.spec.
+
+Thanks to Giovanni Bajo -author of pyinstaller- for assisting me in writing
+the specs and fixing pyinstaller when needed.
 
 install pyinstaller
 ===================
 
 install pyinstaller (http://www.pyinstaller.org/) from the last
-devel (at least rev 698)::
+devel (at least rev 700)::
 
   svn co http://svn.pyinstaller.org/trunk pyinstaller
 
@@ -29,7 +32,10 @@ and follow instruction in the manual [1]
       * Building the runtime executables
           just under linux: 
 	       sudo apt-get install build-essential python-dev
+	       cd source/linux
   	       python Make.py; make
+	       cd ../../
+	       python ./Configure.py
       * Configuring your PyInstaller setup
 
 
