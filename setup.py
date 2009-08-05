@@ -34,19 +34,29 @@ Topic :: Software Development :: Libraries :: Python Modules"""
 from setuptools import setup
 import os
 import sys
-sys.path.insert(0, '.')
-from sqlkit import __version__
 
+f = open('sqlkit/__init__.py')
+for line in f:
+   if line.startswith('__version__'):
+       version = line.split()[2].strip("'")
+
+try:
+   import pygtk
+   pygtk.require('2.0')
+except:
+   print "You need to install also pygtk and I was not able to work out"
+   print "  a correct dependency in setup.py"
+   sys.exit(1)
+   
 setup(name='sqlkit',
-      version=__version__,
+      version=version,
       description="""GUI to edit databases. Many backend supported (Postgres, Sqlite, MySql,...).
 Based on python, GTK, sqlalchemy. It's split into a GUI and a very rich package to create
 database interfaces""",
       author='Alessandro Dentella',
       author_email='sandro@e-den.it',
       url='http://sqlkit.argolinux.org/',
-      install_requires=['sqlalchemy >= 0.5', 'Babel', 'dateutil', 'pygtk >= 2.10'],
-      package_dir={'sqlkit':'sqlkit'},
+      install_requires=['sqlalchemy >= 0.5', 'Babel', 'dateutil'],
       packages = ['sqlkit'],
       scripts=['bin/sqledit'],
 #      package_dir = {'' : 'sqlkit'},
