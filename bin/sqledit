@@ -1,4 +1,18 @@
 #!/usr/bin/python
+# Copyright (C) 2005-2006-2007-2008, Sandro Dentella <sandro@e-den.it>
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 usage: %prog [options] [[url|nick] table]
@@ -34,8 +48,6 @@ if not 'LANG' in os.environ:
 from sqlkit.widgets.common import fields
 from ConfigParser import ConfigParser, NoSectionError
 
-#Dir = os.path.abspath(os.path.dirname(__file__))
-
 from sqlkit import debug as dbg
 import sqlkit
 from sqlkit import layout, _
@@ -47,6 +59,11 @@ from sqlkit.widgets.common import fields
 from sqlkit.misc import optionparse, table_browser
 from sqlalchemy.engine import url
 
+# if 'LD_LIBRARY_PATH' in os.environ:
+#     print os.environ['LD_LIBRARY_PATH']
+# else:
+#     print "NO LD_LIBRARY_PATH"
+    
 class MissingNickDefinition(Exception): pass
 
 RESPONSE_DEMO = 1
