@@ -15,6 +15,7 @@ usage: %prog [options] [[url|nick] table]
    -f, --field_list=fields: comma (or space) separated field list 
    -o, --order_by=fields: comma separated field list
    -c, --configure: open SqlMasq on _sqlkit_table or create it
+   -v, --version: prin version and exit
    -l, --load: load data when opening a table (if no table is directly opened, set LoadData)
 """
 
@@ -355,6 +356,10 @@ def main():
 
 if __name__ == '__main__':
     opts, args = optionparse.parse(__doc__)
+
+    if opts.version:
+        print sqlkit.__version__
+        sys.exit(0)
 
     if opts.gtk_debug:
         dbg.trace_class(ok='SqlTable|SqlMask|Completion')
