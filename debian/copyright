@@ -1,17 +1,18 @@
-This package was debianized by Sandro Dentella <sandro@e-den.it> on
+This package was debianized by Sandro Dentella <sandro@e-den.it> 
 Tue, 28 Oct 2008 09:55:36 +0100.
 
-It was downloaded from <url://example.com>
+It was downloaded from <http://hg.argolinux.org/py/sqlkit>
 
-Upstream Author(s): 
+Upstream Author: 
 
-    <put author's name and email here>
-    <likewise for another author>
+    Alessandro Dentella
 
 Copyright: 
 
-    <Copyright (C) YYYY Name OfAuthor>
-    <likewise for another author>
+    Copyright (C) 2005-2006-2007-2008-2009, Sandro Dentella <sandro@e-den.it>
+
+
+sqlkit is released under GPLv3 license
 
 License:
 
@@ -36,5 +37,3 @@ The Debian packaging is (C) 2008, Sandro Dentella <sandro@e-den.it> and
 is licensed under the GPL, see above.
 
 
-# Please also look if there are files or directories which have a
-# different copyright/license attached and list them here.

@@ -12,28 +12,23 @@ Depends: python, python-dateutil,  python-gtk2, python-glade2
 Description: GUI library to edit data of databases
  Main features of sqlkit:
  .
- - editor of databases in 2 modes: table & mask
- - based on sqlalchemy: can cope with many different databases
- - very powerfull filtering capabilities:
+  - editor of databases in 2 modes: table & mask
+  - based on sqlalchemy: can cope with many different databases
+  - very powerful filtering capabilities:
  .
    * each field can be used to filter visible records
    * date filtering possible also on relative basis (good for saved
      queries)
  .
- - completion both on local same field and foreign key fields
- - very easy way to draw a layout for mask views
- - sqledit: python script to edit db
- - completely effortless editing of relationships
- - very easy way to set defaults
- - possibility to display totals in numeric fields
- - constraints: any possible sql constraint can be attached to a Mask 
-   or a Table. It can be expressed as a normal sqlalchemy query or with
-   django-like syntax
- - completely localized
- - easy way to add hooks and validation
-
-Package: sqlkit-doc
-Architecture: all
-Depends: 
-Description: Documentation for sqlkit 
-  Pdf and html docs for sqlkit package
+  - completion both on local same field and foreign key fields
+  - very easy way to draw a layout for mask views
+  - sqledit: Python script to edit db
+  - completely effortless editing of relationships
+  - very easy way to set defaults
+  - possibility to display totals in numeric fields
+  - constraints: any possible sql constraint can be attached to a Mask 
+    or a Table. It can be expressed as a normal sqlalchemy query or with
+    django-like syntax
+  - completely localized
+  - easy way to add hooks and validation
+ .

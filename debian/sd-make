@@ -12,7 +12,7 @@ WWW=apt@www2:$(DIR)
 TGZ=sqlkit-$(VER).tar.gz
 PYI=/misc/src/svn/pyinstaller-hg/
 
-deb:
+deb:    clean
 	dpkg-buildpackage -rfakeroot -us -uc -b | tee log
 	echo pkg=$(PKG)  deb=$(DEB)
 	hg status
@@ -46,18 +46,22 @@ check:  lcheck
 
 install:
 	find -name \*~ -exec rm {} \;
+	find -name \*~ -exec rm {} \;
 	find -name \#\*  -exec rm {} \;
 	find -name .\#\* -exec rm {} \;
 #	rm -Rf $(DESTDIR)
-	mkdir -p $(DESTDIR)/usr/share/doc/python-sqlkit
-	cp -a demo $(DESTDIR)/usr/share/doc/python-sqlkit
-	cp -a bin/sqledit $(DESTDIR)/usr/bin
+#	mkdir -p $(DESTDIR)/usr/share/doc/python-sqlkit
+#	cp -a demo $(DESTDIR)/usr/share/doc/python-sqlkit
+#	cp -a bin/sqledit $(DESTDIR)/usr/bin
 #	cp -a doc/.build/html $(DESTDIR)/usr/share/doc/python-sqlkit/html
 #	cp -a usr/* $(DESTDIR)/usr
 #	find $(DESTDIR) -name .backups -exec rm -Rf {} \;
 
 clean:
-	echo
+	find -name \*~ -exec rm {} \;
+	find -name \*~ -exec rm {} \;
+	find -name \#\*  -exec rm {} \;
+	find -name .backups -exec rm -Rf {} \; || true
 
 tgz:
 	hg archive -t tgz ../sqlkit-$(VER).tar.gz

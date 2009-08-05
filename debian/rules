@@ -7,11 +7,11 @@ include /usr/share/cdbs/1/class/python-distutils.mk
 
 #HGDIR=usr/share/python-support/python-sqlkit/sqlkit
 
-binary-install/python-sqlkit::
-	make DESTDIR=$(CURDIR)/debian/python-sqlkit install
+# binary-install/python-sqlkit::
+# 	make DESTDIR=$(CURDIR)/debian/python-sqlkit install
 
 ## this is not working...
-binary-arch/python-sqlkit::
-	dh_compress -X demo_tour.py
-	dh_fixperms -X demo.py
-
+install/python-sqlkit::
+	dh_installdocs
+	dh_fixperms -ppython-sqlkit -Xdemo.py
+	dh_fixperms -ppython-sqlkit -Xdb.sqlite
