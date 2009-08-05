@@ -128,8 +128,8 @@ Sqlkit is developed by `Alessandro Dentella`_
   
 .. _sqlkit-xxxx.tar.gz: http://sqlkit.argolinux.org/download/sqlkit-xxxx.tar.gz
 .. _python-sqlkit-xxxx_all.deb: http://sqlkit.argolinux.org/download/python-sqlkit-xxxx_all.deb
-.. _sqledit-binary-xxxx.tar.gz: http://sqlkit.argolinux.org/download/sqlkit-pyinstaller-xxxx.tar.gz
-.. _sqledit-binary-xxxx.exe: http://sqlkit.argolinux.org/download/sqlkit-pyinstaller-xxxx.exe
-.. _sqlkit-doc_xxxx_all.deb: http://sqlkit.argolinux.org/download/sqlkit-doc_xxxx_all.deb
+.. _sqledit-binary-xxxx.tar.gz: http://sqlkit.argolinux.org/download/sqledit-binary-xxxx.tar.gz
+.. _sqledit-binary-xxxx.exe: http://sqlkit.argolinux.org/download/sqledit-binary-xxxx.exe
+.. _sqlkit-doc_xxxx_all.deb: http://sqlkit.argolinux.org/download/sqlkiy-doc_xxxx_all.deb
 .. _`Alessandro Dentella`: mailto:sandro@e-den.it
 .. _launchpad: https://launchpad.net/sqlkit
