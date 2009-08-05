@@ -52,6 +52,7 @@ RESPONSE_DEMO = 1
 DEMO_DIRS = [
     os.path.join('demo', 'sql'),
     os.path.join( os.path.dirname(os.getcwd()), 'demo', 'sql'),
+    '/usr/share/doc/python-sqlkit/demo/sql',
     ]
 try:
     ## this is needed so that this file can be 'execfile-ed' in the 'docusage'
