@@ -8,8 +8,7 @@ Standards-Version: 3.7.2
 Package: python-sqlkit
 Architecture: all
 Suggests: python-sqlkit
-Depends: ${shlibs:Depends}, ${misc:Depends}, python, python-dateutil,
-  python-gtk2, python-glade2
+Depends: python, python-dateutil,  python-gtk2, python-glade2
 Description: GUI library to edit data of databases
  Main features of sqlkit:
  .
