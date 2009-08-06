@@ -46,9 +46,9 @@ if not 'LANG' in os.environ:
     locale.setlocale(locale.LC_ALL, '')
 
 from sqlkit.widgets.common import fields
-from ConfigParser import ConfigParser, NoSectionError
 
 from sqlkit import debug as dbg
+from sqlkit.misc import conf
 import sqlkit
 from sqlkit import layout, _
 import sqlalchemy as sa
@@ -64,7 +64,6 @@ from sqlalchemy.engine import url
 # else:
 #     print "NO LD_LIBRARY_PATH"
     
-class MissingNickDefinition(Exception): pass
 
 RESPONSE_DEMO = 1
 DEMO_DIRS = [
@@ -263,39 +262,6 @@ def start_demo():
         sys.path.insert(0, os.getcwd())
         execfile('demo.py', {})
 
-def read_conf(nick):
-    from copy import deepcopy
-
-    global opts
-    global lopts
-
-    dbconf='.sqleditdb'
-    dbconf = os.path.join(os.getenv('HOME'), dbconf)
-    lopts = deepcopy(opts)
-
-    def loop_on_opts(c, opts, nick=nick):
-        """
-        implements "copy" option in .sqleditdb
-        """
-
-        for key, val in c.items(nick):
-            if key == 'copy':
-                loop_on_opts(c, opts, nick=val)
-        
-        for key, val in c.items(nick):
-            if key == 'copy':
-                continue
-            if getattr(lopts, key, None) is None:
-                setattr(opts, key, val)
-        
-
-    if os.path.exists(dbconf):
-        c = ConfigParser()
-        c.read(dbconf)
-        loop_on_opts(c, opts, nick)
-    else:
-        raise MissingNickDefinition
-
 def open_db(exc=False):
     global db
     try:
@@ -312,6 +278,7 @@ def open_db(exc=False):
         return False
 
 def main():
+    global opts
     if args:
         if re.search('://', args[0]):
             opts.url = args[0]
@@ -326,8 +293,8 @@ def main():
 
     if opts.nick:
         try:
-            read_conf(opts.nick)
-        except NoSectionError:
+            opts = conf.read_conf(opts.nick, opts)
+        except conf.NoSectionError:
             print "No nick named '%s'" % opts.nick
             sys.exit(1)
 
@@ -389,7 +356,6 @@ if __name__ == '__main__':
     import sqlkit
     from sqlkit.widgets import SqlTable, SqlMask
     from sqlkit.db import proxy
-    from sqlkit.layout import misc
 
     main()
     try:

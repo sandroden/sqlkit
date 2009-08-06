@@ -28,10 +28,10 @@ The autoconnect mode is really nice but you may experiment hangs till a
 connection timeout if you write a wong host name.
 
 
-.sqleditdb
+.sqledit
 ==========
 
-You can write configurations in a file in your home calle ``.sqleditdb`` and
+You can write configurations in a file in your home called ``.sqledit/nicks`` and
 start sqledit on that configuration using a nickname::
 
    [invitati]

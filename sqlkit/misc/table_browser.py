@@ -68,6 +68,7 @@ class TableBrowser(object):
         else:
             class Opts: pass
             opts = Opts()
+            opts.load = True
             opts.dev = False
             opts.all_tables = None
             self.opts = opts
