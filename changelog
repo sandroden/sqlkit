@@ -1,5 +1,8 @@
-sqlkit 0.8.6 -
+sqlkit 0.8.6 rc5-
 
+	* package: improved setup.py and debian package
+	           added binary version via pyinstaller
+	
 	* sqledit: 
 	         - gui improved
 	         - possibility to edit directly the configuration tables
@@ -7,7 +10,16 @@ sqlkit 0.8.6 -
 	           tables via completion
 	         - added toggle of casting of blank fields to NULL
 	         - improved documentation
-	         - added dialog to interactively write backend uri
+	         - added dialog to interactively write backend uri: it may 
+	           attempt connection immediately
+	         - added possibility to run the demo from the starting
+	           dialog
+	         - added possibility to count records in a table
+	         - modified to be used inside pyinstaller
+	         - added workaround when LANG is not defined
+	         - bug fixes: sometime was not possible to add new records
+	         - now delete-orpahn is correctly handles at least in
+	           simple cases
 	
 	* completion: 
 	         - added dynamic filters for Foreign Key
@@ -42,11 +54,17 @@ sqlkit 0.8.6 -
 	           we want to use in a mask used to edit a foreign key
 	           starting from the menu of the cell
 	         - improved cell validation. Two more bugs fixed
+	         - fixed the delete record function that removed the
+	           object even when eletion was aborted by backend
+	         - fixed case in m2m relation in which no more that one
+	           row could be added
 	
 	* filters: a wrong relative-date string will pop a dialog box
   	           rather than an unhadled exception
 
-	* db.utils:   added get_fields
+	* db.utils: - added get_fields
+ 	           - fixed dateutils that evaluated TODAY at import time
+	           - added get_create_statement for single tables
 	
 	* many bug fixes:
 	         - typo in completion that prevented filters
