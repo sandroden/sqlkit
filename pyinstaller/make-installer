@@ -16,3 +16,4 @@ cd -
 cd pyinstaller
 rm -f sqledit-*
 ln -s sqledit sqledit-$VER
+cp README sqledit

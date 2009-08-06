@@ -8,13 +8,13 @@ Requirements
 
 Sqlkit depends on:
 
-    * Python
-      * Pygtk
-      * sqlalchemy (>=0.5.3)
-      * glade2
-    * dateutils 
-    * the correct driver for your database of choice
-    * babel (localization)
+     * Python
+        * Pygtk
+        * sqlalchemy (>=0.5.3)
+        * glade2
+     * dateutils 
+     * the correct driver for your database of choice
+     * babel (localization)
 
 Changelog
 ===========
@@ -32,17 +32,17 @@ The code is available under an hg repository::
 You can download sqlkit package xxxx from here_ in tar or deb format. 
 
 
-+------------------------------------+-----------------------------------------------------+
-|Python package                      |sqlkit-xxxx.tar.gz_                                  |
-+------------------------------------+-----------------------------------------------------+
-|Debian package (read below! you are |python-sqlkit-xxxx_all.deb_                          |       
-|supposed to install sqlalchemy >=   |                                                     |
-|0.5.3 and babel)                    |                                                     |
-+------------------------------------+-----------------------------------------------------+
-|Linux executable (pyinstaller)      |sqledit-binary-xxxx.tar.gz_                          |
-+------------------------------------+-----------------------------------------------------+
-|Windows executable (pyinstaller)    |sqledit-binary-xxxx.exe_ (not yet ready)             |
-+------------------------------------+-----------------------------------------------------+
++-------------------------------------+-----------------------------------------------------+
+|Python package                       |sqlkit-xxxx.tar.gz_                                  |
++-------------------------------------+-----------------------------------------------------+
+|Debian/Ubuntu package (read below!   |python-sqlkit-xxxx_all.deb_                          |       
+|you are supposed to install          |                                                     |
+|sqlalchemy >= 0.5.3 and babel)       |                                                     |
++-------------------------------------+-----------------------------------------------------+
+|Linux executable (pyinstaller)       |sqledit-binary-xxxx.tar.gz_                          |
++-------------------------------------+-----------------------------------------------------+
+|Windows executable (pyinstaller)     |sqledit-binary-xxxx.exe_ (not yet ready)             |
++-------------------------------------+-----------------------------------------------------+
 
 .. +-----------------------------------+----------------------------------------------------+
 .. Debian documentation package       |sqlkit-doc_xxxx_all.deb_                            |       
