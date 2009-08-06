@@ -10,6 +10,7 @@ PKG=$(shell echo $(shell pwd)| sed 's/.*\///')
 DIR=/home/www/sandro/apt/download.argolinux.org/sqlkit
 WWW=apt@www2:$(DIR)
 TGZ=sqlkit-$(VER).tar.gz
+PTGZ=sqledit-binary-$(VER).tar.gz
 PYI=/misc/src/svn/pyinstaller-hg/
 
 deb:    clean
@@ -67,14 +68,15 @@ tgz:
 	hg archive -t tgz ../sqlkit-$(VER).tar.gz
 
 rsync:
-	ssh apt@www2 'cd $(DIR) && rm -f sqlkit-latest.tar.gz && mv *sqlkit* OLD'
+	ssh apt@www2 'cd $(DIR) && rm -f sqlkit-latest.tar.gz && mv *sqlkit* OLD' || true
 	rsync --progress ../$(TGZ) $(WWW)/
+	rsync --progress ../$(PTGZ) $(WWW)/
 	for file in $(DEB); do rsync --progress ../$${file} $(WWW)/; done
 	#rsync --progress ../$(DEB) $(WWW)/
 	ssh apt@www2 'cd $(DIR) && ln -s $(TGZ) sqlkit-latest.tar.gz'
-	rsync Changelog $(WWW)/
+	rsync changelog $(WWW)/Changelog
 
-rel:	deb tgz lenny rsync mkinstaller
+rel:	deb tgz lenny mkinstaller rsync 
 
 extract:
 	#	 python setup.py extract_messages 
