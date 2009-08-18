@@ -31,9 +31,14 @@ Topic :: Software Development :: Libraries
 Topic :: Software Development :: Libraries :: Application Frameworks
 Topic :: Software Development :: Libraries :: Python Modules"""
 
-from setuptools import setup
 import os
 import sys
+try:
+   from setuptools import setup, find_packages
+except ImportError, e:
+   print "You need to install setuptools to use this setup.py script"
+   sys.exit(1)
+
 
 f = open('sqlkit/__init__.py')
 for line in f:
@@ -56,8 +61,8 @@ database interfaces""",
       author='Alessandro Dentella',
       author_email='sandro@e-den.it',
       url='http://sqlkit.argolinux.org/',
-      install_requires=['sqlalchemy >= 0.5', 'Babel', 'dateutil'],
-      packages = ['sqlkit'],
+      install_requires=['sqlalchemy >= 0.5', 'Babel', 'python-dateutil'],
+      packages = find_packages('.'),
       scripts=['bin/sqledit'],
 #      package_dir = {'' : 'sqlkit'},
 #      package_data = {'sqlkit' : ['locale']},

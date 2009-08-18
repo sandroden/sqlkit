@@ -12,7 +12,7 @@ Sqlkit depends on:
         * Pygtk
         * sqlalchemy (>=0.5.3)
         * glade2
-     * dateutils 
+     * python-dateutils 
      * the correct driver for your database of choice
      * babel (localization)
 
