@@ -24,6 +24,12 @@ Contents:
    debug/contents
    internals/contents
 
+.. toctree::
+   :maxdepth: 1
+
+   sqlkit/tutorial
+
+
 Indices and tables
 ==================
 

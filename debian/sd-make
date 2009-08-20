@@ -8,7 +8,7 @@ DEB=$(shell cat debian/files |cut -f 1 -d " ")
 VER=$(shell grep __version__ sqlkit/__init__.py|cut -f 2 -d = |tr -d " '")
 PKG=$(shell echo $(shell pwd)| sed 's/.*\///')
 DIR=/home/www/sandro/apt/download.argolinux.org/sqlkit
-WWW=apt@www2:$(DIR)
+WWW=apt@www3:$(DIR)
 TGZ=sqlkit-$(VER).tar.gz
 PTGZ=sqledit-binary-$(VER).tar.gz
 PYI=/misc/src/svn/pyinstaller-hg/

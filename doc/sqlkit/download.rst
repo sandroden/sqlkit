@@ -63,7 +63,7 @@ Since sqlkit depends on several different packages we also provide a boundle
 with an installer that you can use to run the demo and the command sqledit
 for sqlite, mysql and postgres databases. 
 
-It does not have any dependacies.
+It does not have any dependancies.
 
 You cannot use it to build other executables. If all you want to do is using
 the command sqledit, that's a good choice (probably a little slower to open).
@@ -75,9 +75,10 @@ You can also add the source::
 
   deb http://apt.argolinux.org/ lenny sqlkit
 
-you will probably want to add the key:
+by issuing the followin command::
 
-  sudo wget -q http://deb.argolinux.org/apt.key -O- | sudo apt-key add - 
+  wget http://apt.argolinux.org/sqlkit.list --output-document=/etc/apt/sources.list.d/sqlkit.list
+  wget -O-  http://apt.argolinux.org/dists/lenny/public.key| sudo apt-key add -
   sudo apt-get update
 
 and install it via::
