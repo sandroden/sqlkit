@@ -169,7 +169,8 @@ class ConnectionDialog(object):
             self.wdict[gtk.RESPONSE_OK].props.sensitive = False
             return
         self.set_error_msg("" )
-        if URL.drivername and URL.host and URL.database:
+        if URL.drivername and URL.database and (URL.host or (
+            URL.drivername == 'sqlite' and os.path.exists(URL.database))):
             opts.url = url_text
             ## a checkbox determines if we try continuosly
             auto = self.l.widgets['c=auto'].get_active()
@@ -269,6 +270,7 @@ def open_db(exc=False):
         db.metadata.bind.connect()
         return True
     except Exception, e:
+        raise e
         if exc:
             raise e
         else:
