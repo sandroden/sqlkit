@@ -1,18 +1,8 @@
 #!/usr/bin/python
 
-"""
-Name: sqlkit
-Author: Sandro Dentella
-Author-email: sandro at e-den it
-Home-page: sqlkit.argolinux.org
-Download-url: http://sqlkit.argolinux.org/download/
-License: GPL v3
-Keywords: database gui gtk package
-Platform: Linux, Windows, Mac
-Requires: babel
-Requires: dateutils
-Requires: sqlalchemy (>= 0.5)
-Provides: sqlkit
+"""GUI to edit databases. Many backend supported (Postgres, Sqlite, MySql,...).
+Based on python, GTK, sqlalchemy. It's split into a GUI and a very rich package to create
+database interfaces
 """
 
 classifiers = """\
@@ -52,21 +42,36 @@ except:
    print "You need to install also pygtk and I was not able to work out"
    print "  a correct dependency in setup.py"
    sys.exit(1)
+
+# setuptools really fails in understanding which packages are already installed
+REQUIRES = ['sqlalchemy >= 0.5', ]
+
+try:
+   import babel
+except ImportError:
+   REQUIRES += ['Babel']
+
+try:
+   import dateutil
+except ImportError:
+   REQUIRES += ['python-dateutil']
+
+
+
    
 setup(name='sqlkit',
       version=version,
-      description="""GUI to edit databases. Many backend supported (Postgres, Sqlite, MySql,...).
-Based on python, GTK, sqlalchemy. It's split into a GUI and a very rich package to create
-database interfaces""",
+      description=__doc__,
       author='Alessandro Dentella',
       author_email='sandro@e-den.it',
       url='http://sqlkit.argolinux.org/',
-      install_requires=['sqlalchemy >= 0.5', 'Babel', 'python-dateutil'],
+      install_requires=REQUIRES,
       packages = find_packages('.'),
       scripts=['bin/sqledit'],
 #      package_dir = {'' : 'sqlkit'},
 #      package_data = {'sqlkit' : ['locale']},
       classifiers= __doc__.split('\n'),
       include_package_data=True,      
+      zip_safe=False,
      )
 
