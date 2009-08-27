@@ -36,6 +36,9 @@ etch:
 lenny:
 	upload-deb lenny/sqlkit $(DEB) 
 
+lenny-force:
+	upload-deb -F lenny/sqlkit $(DEB) 
+
 sarge:
 	upload-deb sarge/main $(DEB) 
 
