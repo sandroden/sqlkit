@@ -8,22 +8,19 @@ Sqlkit depends on:
   * sqlalchemy (>=0.5)
   * glade2
   * dateutils 
+  * setuptools
   * the correct driver for your database of choice
 
 
 Installation
 ============
 
-debian/ubuntu
--------------
+please read detail instructions on the web:
 
-I suggest using the deb package using this source:
-
-   deb http://apt.argolinux.org lenny sqlkit
+  http://sqlkit.argolinux.org/sqlkit/download.html
 
 
+you may also find interesting information on the installation part of the
+tutorial:
 
-
-You can install it with 
-
-    python setup.py install
+  http://sqlkit.argolinux.org/sqlkit/tutorial.html
