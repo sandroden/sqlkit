@@ -17,14 +17,22 @@ body {
     margin: 0px 80px 0px 80px;
     min-width: 740px
     }
-section h1 {
+.section h1, h1 {
     background-color: #FDFAF3;
-    font-size: 180%;
+    font-size: 220%;
     font-weight: bold
     }
 .section h2, h2 {
-    font-size: 150%;
-    font-weight: normal
+    font-size: 180%;
+    font-weight: bold
+    }
+.section h3, h3 {
+    font-size: 130%;
+    font-weight: normal;
+    font-style: italic
+    }
+.section h4, h4 {
+    font-size: 110%;
     }
 .section h1, .section h2, h1, h2 {
     font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
@@ -32,7 +40,7 @@ section h1 {
     border-style: solid;
     border-width: 0pt 0pt 1px
     }
-.section h1, .section h2, .section h3, h1, h2, h3 {
+.section h1, .section h2, .section h3, h1, h2, h3, h4 {
     color: #940000
     }
 a {

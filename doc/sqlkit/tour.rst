@@ -127,6 +127,9 @@ the last is a very minimal db present in ``doc/db/movies.sqlite``
 Relationships
 -------------
 
+.. image:: ../img/o2m.png
+   :align: right
+
 :many2one: are just recognized automatically with simple introspection
 :many2many: is very simply added to SqlMask declaring in the layout and
             attribute with that name

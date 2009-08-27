@@ -2,16 +2,16 @@
  Sqledit Tutorial
 ==================
 
-Intro
-=====
+Intended audience
+===================
 
-This is meant as a tutorial for the sqledit command that is part of
+This is meant as a tutorial for the :command:`sqledit` command that is part of
 sqlkit. It's intended audience is anybody who is interested in editing data
 in a database (as opposed to editing the *structure* of the database).
 
 No programming skill is required, but if you are supopsed to install it
 yourself, you may need to understand at least a little bit of your operating
-system.
+system (but that may be as simpe as a double clik if you use boundles).
 
 
 Installation
@@ -35,7 +35,15 @@ boundle, or you need more backend drivers, you need to do the following steps.
 Dependencies
 ------------
 
-:pygtk:  any Linux desktop distribution already has it installed, in case
+Sqlkit depends on several packages:
+
+:python: sqledit it's a pyton script. It should work with python 2.4 and
+         following. But if you used 2.4 be sure to add the driver for sqlite
+         that was added to the main distribution only starting from 2.5.
+
+	 If you use python 2.6 you may have some warning but should just work.
+
+:pygtk:  any Linux desktop distribution has it already installed, in case
          it does not have it, it should be trivial to do. In debian like
          systems (eg.: Ubuntu), you simply run::
 
@@ -50,11 +58,13 @@ Dependencies
          0.5.4 would be much better. 
 
 :python-dateutil: needed for computation on dates, used in filters (eg: date
-         >= 'm-1', means date >= starting of last month), see doc page_
+         >= 'm-1', means date >= starting of last month), see :ref:`date_filters`.
 
 
 :babel:   needed for localization of numbers and dates
           
+:setuptools: needed for the installation and to check version of sqlalchemy
+
 :drivers: don't forget to add the driver for the backend of your choice, the
           only driver included is for ``sqlite``, that is the database of
           the demo and is included in the python distribution since python
@@ -71,12 +81,19 @@ and probably you'd have better results using ``pip``::
    easy_install pip
    pip install sqlkit
 
+remeber to install the backend driver, these are the examples for postgresql
+and mysql::
+
+   pip install psycopg2
+   pip install MySQL-python
+
 
 Installing under Debian/Ubuntu
 -------------------------------
 
 If you have a debian like distro I suggest you install sqlalchemy from
-source or via easy_install or pip and then install the debian package::
+source or via ``easy_install`` or ``pip`` (preferred) and then install the
+debian package::
 
   sudo wget http://apt.argolinux.org/sqlkit.list --output-document=/etc/apt/sources.list.d/sqlkit.list
   sudo wget -O-  http://apt.argolinux.org/dists/lenny/public.key| sudo apt-key add -
@@ -98,9 +115,9 @@ with is ``sqledit`` that is based on a library named ``sqlkit``. If you are
 a programmer and are interested in the sqlkit package you can find extensive
 documentation in the `web site`_
 
-Programming with sqlkit is a pretty simple experience that allows to use
-much more features than available with ``sqledit``, nevertheless you can do
-a lot of simple tasks by usng ``sqledit`` alone.
+Programming with sqlkit is a pretty simple experience that allows yut to use
+many more features than available with ``sqledit``, nevertheless you can do
+a lot of simple tasks by using ``sqledit`` alone.
 
 
 Sqledit can be used:
@@ -108,7 +125,7 @@ Sqledit can be used:
 * from command line, possibly adding arguments and options
 * from a menu entry interactively writing the URL of the database you want to edit.
 
-It yo start it with no arguments you are presented a dialog with and entry
+If you start it with no arguments you are presented a dialog with an entry
 and 3 buttons:
 
 * you can write the url of a database of yours in the entry, eg.::
@@ -123,42 +140,217 @@ and 3 buttons:
 
 * start the demo tour
 
-the demo tour
-=============
+Sqledit table listing
+=====================
 
 
 The demo tour is meant for developers, so that it shows source code as well,
 but it's also suitable for our introduction and is a living database, so we
 will use that in this tutorial.
 
-the demo presents you with some examples on the left. Let's start with...
-the last one! We start with the last one becouse it's the tipe of thisn you
-will see when you start sqledit with an address of a real database (the demo
-one in this case).
+The demo presents you some examples on the left. Let's start with...  the
+last one! We start with the last one becouse it's the window you will
+see when you start sqledit with an address of a real database (the demo one
+in this case).
 
 
 
 The table listing
 -----------------
 
-of the database is as shown above: clicking on a table name pops a menu that
-lets you choose between:
+The table listing of the database is shown above: clicking on a table
+name pops a menu that lets you choose between:
 
 * table view: representation of the table in a spreadsheet fasion
 * mask view:  a form with each field is displayed
 * table reflection: sqledit reads the definition for that table
 
-Let's choose a table view:
+Tables
+=======
+
+Let's choose a table view: 
+
+.. image:: ../img/table.png
+
+each field of the table is represented in a column, each type has different
+representations:
+
+:text: a simple cell will rendere the text
+
+:numbers: each number is adjusted to the right
+
+:dates: dates are represented in yout preferred locale that is argued from
+    LANG variable or from locale module information
+
+:boolean: a checkbox is used. It the NULL value is accepted, clicking the
+    checkbox will loop between True, False and undefined
+
+:intervals: intervals are really poorely rendered at the moment...
+
+:foreign keys: foreign keys are represented via the value they point to in
+    the remote table. At present only simple (not coumpound keys) are
+    allowed. To help you detect that that's a ForeignKey it's drawn in blue.
+    Just to be pedantic: you won't see the real value (that may happen to be
+    an id, normally not very interesting), you will rather see the value it
+    points to... 
+
+    As you can realize there is not real *value* where is points. An id
+    points to a record of a table (eg.: director id 1 may point to the record
+    in director table where ``last_name`` is *Fellini*), but *Fellini* is not
+    the value of the id: it's rather a representation of the record that in
+    many circumstacies may be enought (and in many other is not).
+
+    So I introduced a rule: I represent it with the value of the first
+    character field of the line. Clearly this ruls is doomed to fail in some
+    cases and you can correct it forcing a representation of the line we
+    will call a format field. You can go in the main window of sqledit,
+    select databases and 'edit sqlkit field' and you will be presented a
+    mask to edit the value you prefere.
+
+    .. image:: sqledit_config.png
 
 
-No time left. I'll finish later...
+filtering
+----------
+
+you may have a lot of data and what sqlkit will help you at is to
+:ref:`filter <filters>` in a simple way. Each column has a clickable header
+that pops a menu entry. The first menu entry pops a filter widget:
+
+.. image:: img/filter-panel.png
+
+in the image we have clicked on three column's header: te filter on each
+column is composed of 4 parts: the label with the name, the operator for the
+filter, the checkbox to disable the filter and the entry for a value.
+
+Some operators have pretty intuitive operators ('>' as bigger than or later
+that for dates) text have also regular expression (normally much more
+usefull so that it's the default) or ``like``.
+
+.. note::
+  
+   you can select more filter for column, click on the label in the filter
+   panel. You can for example say that you want all the films produced
+   between 2000 and 2005, that means having 2 filter on the field year.
+
+
+Pressing ``Enter`` on a field or the reload button will run the query and
+present the selected records in the TableView. 
+
+Dates are special in that you oftn have to filter with dates relative to the
+moment you do the query (today, this month,...) so that i added some
+shortcuts to accomplish this task (eg: 'm' means the beginning of the
+month). You can read more on this feature in :ref:`date_filters`.
+
+totals
+------
+
+.. image:: ../img/totals.png
+
+One more feature of sqlkit that comes very handy is the ability to make
+totals in the fasion of a spreadsheet. This only works on numbers of course,
+and you can trigger this feature from the column menu. Since our test
+database does not have numbers other than for *year* of production, in the
+example I joked and totalled the column of the year of production. In real
+cases you will do sum with more interesting data...
+
+Subtotals are a very usefull feature of any total, so you can ask sqlkit to
+create subtotals when some value change (eg: date, month, year,
+director...).
+
+completions
+-----------
+
+When you enter data in a text entr or in a foreign key, you may happen to
+find yourself typing something that is already in the database. In this cases
+you can have sqledit to search that text for you. Really that's a must for
+Foreign Keys where you can only pick the data among those proposed. 
+
+Since the possible values may be a lot and we don't want to wast time
+waiting to retrieve data that would only confuse us, we will require sqledit
+to show possible vallues pressing enter in the entry. In this case the text
+that we may ave already entered will be used to filter the possible values
+and to be more precise:
+
+:Shift Enter: will trigger a search using the text at the beginning of the
+   field
+
+:Control Enter: will trigger a search using a *regexp*. If you don't know what
+   a regexp is, consider that as a minimum it will do a search of the string
+   in any position, but can do much more and really also depends on the
+   database backend. 
+
+:Control Shift: will diregard what you have already written and do a search
+   on all possible values, thus emulating an ``enum`` field.
+
+
+changing view
+-------------
+
+
+When in a table view you may want to jump on a mask view or even keep the
+two open simultaneously. That can be simply done clicking with right button
+n a row: the menu that appears lets you edit the row with a mask. It that's
+a ForeignKey column you can even edit the value the foreign key point to.
+
+Mask
+=====
+
+.. image:: ../img/mask.png
+   :align: right
+
+The other view we can use is the mask view. The record are presented by
+default in a form with the labels on the right and the forms on the left. 
+
+.. note:: 
+
+  This is just a default and the only one possible at the moment, but
+  programmatically you can choose any fancy layout you want, but I won't
+  digress as I want to limit the information for non developers in his
+  context.
+
+completion
+------------
+In this mask you can see that foreign keys use a combo with a completion
+element popdown. Same shortcut as for the table one are used to complete. A
+double click on the arrow let you use it as an enum field.
+
+filters
+--------
+
+Filters can be activated clicking on the label. the filter panel will be
+presented as usual.
+
+The difference is that when the query is issued the result is presented in a
+tab of the filter panel and you browse the results clicking in the output
+tab or clicking the forward and backword arrows of the mask.
+
+
+layout
+-------
+
+If the table has many fields, you may get a layout that is not very
+usable. This is a limit of the interfaces at the moment, not of the sqlkit
+package that can handle any fancy layout as you can see looking at the
+examples of the demo.
+
+The library also allows you to edit related tables (i.e.: director and
+movies) with no effort, but there is no yet a way to do that other that
+programmatically.
+
+
+Feedbak
+========
+
+I hope you found this tutorial usefull.
+
+If you like this piece of software, have suggestion on how to improve it or
+improve the tutorial I'd be `happy to know`_
+
 
 cheers
 sandro
-*:-)
-
-
-
+\*:-)
 
 
 
@@ -168,3 +360,4 @@ sandro
 .. _`sqlalchemy site`: http://www.sqlalchemy.org
 .. _page: http://sqlkit.argolinux.org/sqlkit/filters.html#module-sqlkit.misc.datetools
 .. _`web site`: http://sqlkit.argolinux.org
+.. _`happy to know`: mailto:sandro@e-den.it

@@ -1,5 +1,5 @@
 =======================================
- Download & requirements & googlegroup
+ Download, requirements & googlegroup
 =======================================
   
 
@@ -13,6 +13,7 @@ Sqlkit depends on:
         * sqlalchemy (>=0.5.3)
         * glade2
      * python-dateutils 
+     * setuptools
      * the correct driver for your database of choice
      * babel (localization)
 
@@ -104,6 +105,30 @@ Even if the source states ``lenny`` it can safely be used for ubuntu.
    hand!::
 
       easy_install babel
+
+This way you'll also install backend drivers for postgres, mysql and clearly sqlite.
+
+Other platforms
+===============
+
+Sqlkit is now available via Pypi, so -if you have already installed
+setuptools that provides the command easy_install- you can install it via
+``easy_install`` or better ``pip``::
+
+  easy_install pip
+  pip install sqlkit
+
+You can also install directly with easy_install that often will fail
+understanding already installed packages. Should you have problems with pip
+you can revert to::
+
+  easy_install sqlkit
+
+
+No one of these command will install the backend driver (psycopg2 for
+postgres, MySQLdb for mysql -MySQL-python,...) that you are supposed to
+install by yourself. Sqlite is included in any 
+
 
 Mailing list
 ============

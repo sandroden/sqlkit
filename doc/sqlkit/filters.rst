@@ -97,6 +97,7 @@ filter work on that table just as any normal column::
   t.add_filter(film_number=3)
   t.add_constraint(film_number__lt = 5)
 
+.. _date_filters:
 
 Date filters
 =============

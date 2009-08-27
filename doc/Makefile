@@ -72,7 +72,7 @@ linkcheck:
 	      "or in .build/linkcheck/output.txt."
 
 rsync:	html
-	rsync -r --delete --progress --stats .build/html/ www2:docs/sqlkit/
+	rsync -r --delete --progress --stats .build/html/ www3:docs/sqlkit/
 
 pdf:    latex
 	cd .build/latex; make all-pdf
