@@ -1,8 +1,14 @@
+sqlkit 0.8.6 -
+
+	* package: 
+	          - improved setup.py: install_requires is now handled by
+  	            the script rather than by setuptools since often
+	            setuptools fails detecting already present packages
+	          - debian package now depends on psycopg & mysql also
+	          - added binary version via pyinstaller
+	
 sqlkit 0.8.6 rc5-
 
-	* package: improved setup.py and debian package
-	           added binary version via pyinstaller
-	
 	* sqledit: 
 	         - gui improved
 	         - possibility to edit directly the configuration tables
@@ -65,6 +71,8 @@ sqlkit 0.8.6 rc5-
 	* db.utils: - added get_fields
  	           - fixed dateutils that evaluated TODAY at import time
 	           - added get_create_statement for single tables
+	           - added undocumented sqlkit.misc.conf with reader of the 
+	             configuration (.sqledit)
 	
 	* many bug fixes:
 	         - typo in completion that prevented filters
