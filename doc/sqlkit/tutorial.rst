@@ -207,7 +207,7 @@ representations:
     select databases and 'edit sqlkit field' and you will be presented a
     mask to edit the value you prefere.
 
-    .. image:: sqledit_config.png
+    .. image:: ../img/sqledit_config.png
 
 
 filtering
@@ -217,7 +217,7 @@ you may have a lot of data and what sqlkit will help you at is to
 :ref:`filter <filters>` in a simple way. Each column has a clickable header
 that pops a menu entry. The first menu entry pops a filter widget:
 
-.. image:: img/filter-panel.png
+.. image:: ../img/filter-panel.png
 
 in the image we have clicked on three column's header: te filter on each
 column is composed of 4 parts: the label with the name, the operator for the

@@ -4,7 +4,7 @@ import os
 import gettext
 from .misc import utils
 
-__version__ = '0.8.6-rc5'
+__version__ = '0.8.6'
 
 
 cwd = os.path.abspath(os.path.dirname(__file__))
@@ -24,4 +24,4 @@ from db.proxy import DbProxy
 import exc
 
 
-utils.check_sqlalchemy_version('0.5.3')
+utils.check_sqlalchemy_version('0.5.0')

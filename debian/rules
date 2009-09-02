@@ -5,13 +5,3 @@ DEB_PYTHON_SYSTEM = pysupport
 DEB_COMPRESS_EXCLUDE := .py .sqlite
 include /usr/share/cdbs/1/class/python-distutils.mk
 
-#HGDIR=usr/share/python-support/python-sqlkit/sqlkit
-
-# binary-install/python-sqlkit::
-# 	make DESTDIR=$(CURDIR)/debian/python-sqlkit install
-
-## this is not working...
-install/python-sqlkit::
-	dh_installdocs
-	dh_fixperms -ppython-sqlkit -Xdemo.py
-	dh_fixperms -ppython-sqlkit -Xdb.sqlite

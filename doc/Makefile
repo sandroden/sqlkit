@@ -1,6 +1,6 @@
 # Makefile for Sphinx documentation
 #
-VER           = 0.8.6-rc5
+VER           = 0.8.6
 
 # You can set these variables from the command line.
 SPHINXOPTS    =

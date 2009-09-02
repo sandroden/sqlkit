@@ -1,4 +1,4 @@
-Source: python-sqlkit
+Source: sqlkit
 Section: python
 Priority: extra
 Maintainer: Sandro Dentella <sandro@e-den.it>

@@ -9,12 +9,23 @@ VER=$(shell grep __version__ sqlkit/__init__.py|cut -f 2 -d = |tr -d " '")
 PKG=$(shell echo $(shell pwd)| sed 's/.*\///')
 DIR=/home/www/sandro/apt/download.argolinux.org/sqlkit
 WWW=apt@www3:$(DIR)
-TGZ=sqlkit-$(VER).tar.gz
+TGZ=sqlkit_$(VER).tar.gz
 PTGZ=sqledit-binary-$(VER).tar.gz
 PYI=/misc/src/svn/pyinstaller-hg/
 
-deb:    clean
-	dpkg-buildpackage -rfakeroot -us -uc -b | tee log
+mknew: 
+	mkdir -p ../build
+	tar -C ../build -xzf ../sqlkit_$(VER).tar.gz
+
+deb:    clean mknew
+	# no signature!
+	cd ../build/sqlkit_$(VER); dpkg-buildpackage -rfakeroot -us -uc | tee log	
+	find ../build -maxdepth 1  -type f -exec mv {} .. \;
+	echo pkg=$(PKG)  deb=$(DEB)
+	hg status
+
+debs:   clean mknew
+	cd ../build/sqlkit_$(VER); dpkg-buildpackage -rfakeroot | tee log	
 	echo pkg=$(PKG)  deb=$(DEB)
 	hg status
 
@@ -66,9 +77,16 @@ clean:
 	find -name \*~ -exec rm {} \;
 	find -name \#\*  -exec rm {} \;
 	find -name .backups -exec rm -Rf {} \; || true
+	rm -Rf ../build/sqlkit*
 
 tgz:
-	hg archive -t tgz ../sqlkit-$(VER).tar.gz
+	#hg archive -t tar ../sqlkit-$(VER).tar.gz
+	#	hg archive -X debian -t tgz ../sqlkit-$(VER).tar.gz
+	hg archive -t tgz ../sqlkit_$(VER).tar.gz
+	tar xzf ../sqlkit_$(VER).tar.gz
+	cp -a doc/.build/html sqlkit_$(VER)/doc/
+	tar czf ../sqlkit_$(VER).tar.gz sqlkit_$(VER)
+	rm -Rf sqlkit_$(VER)
 
 rsync:
 	ssh apt@www2 'cd $(DIR) && rm -f sqlkit-latest.tar.gz && mv *sqlkit* OLD' || true
@@ -79,7 +97,7 @@ rsync:
 	ssh apt@www2 'cd $(DIR) && ln -s $(TGZ) sqlkit-latest.tar.gz'
 	rsync changelog $(WWW)/Changelog
 
-rel:	deb tgz lenny mkinstaller rsync 
+rel:	tgz deb lenny mkinstaller rsync 
 
 extract:
 	#	 python setup.py extract_messages 

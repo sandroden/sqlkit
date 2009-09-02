@@ -35,7 +35,6 @@ and follow instruction in the manual [1]
 	       cd source/linux
   	       python Make.py; make
 	       cd ../../
-	       python ./Configure.py
       * Configuring your PyInstaller setup
 
 
@@ -44,7 +43,7 @@ Create the installer
 
 run::
 
-  ./build/make-installer path_to_Build.py pyinstaller-sqledit.spec
+  ./pynstaller/make-installer path_to_Build.py pyinstaller-sqledit.spec
 
 This will create a directory build and a directory pyinstaller. Inside the
 latter one you'll find directory sqledit
