@@ -18,11 +18,11 @@ mknew:
 	tar -C ../build -xzf ../sqlkit_$(VER).tar.gz
 
 deb:    clean mknew
-	# no signature!
+#	no signature!
 	cd ../build/sqlkit_$(VER); dpkg-buildpackage -rfakeroot -us -uc | tee log	
 	find ../build -maxdepth 1  -type f -exec mv {} .. \;
 	echo pkg=$(PKG)  deb=$(DEB)
-	hg status
+#	hg status
 
 debs:   clean mknew
 	cd ../build/sqlkit_$(VER); dpkg-buildpackage -rfakeroot | tee log	
