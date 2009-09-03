@@ -36,8 +36,7 @@ for line in f:
        version = line.split()[2].strip("'")
 
 try:
-   import pygtk
-   pygtk.require('2.0')
+   import gtk
 except:
    print "You need to install also pygtk and I was not able to work out"
    print "  a correct dependency in setup.py"
