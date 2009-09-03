@@ -1,14 +1,15 @@
 Source: sqlkit
 Section: python
-Priority: extra
+Priority: optional
 Maintainer: Sandro Dentella <sandro@e-den.it>
-Build-Depends: cdbs, debhelper (>= 5)
+Build-Depends: cdbs, debhelper (>= 5), python, python-support
 Standards-Version: 3.7.2
 
 Package: python-sqlkit
 Architecture: all
-Depends: python, python-dateutil,  python-gtk2, python-glade2,
-         python-setuptools, python-psycopg2, python-mysqldb
+Depends: ${misc:Depends}, python, python-dateutil,  python-gtk2, python-glade2,
+         python-setuptools, python-psycopg2, python-mysqldb,
+         python-sqlalchemy
 Description: GUI library to edit data of databases
  Main features of sqlkit:
  .
