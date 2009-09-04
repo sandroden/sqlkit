@@ -35,12 +35,13 @@ for line in f:
    if line.startswith('__version__'):
        version = line.split()[2].strip("'")
 
-try:
-   import gtk
-except:
-   print "You need to install also pygtk and I was not able to work out"
-   print "  a correct dependency in setup.py"
-   sys.exit(1)
+if sys.argv[1] == 'install':
+   try:
+      import gtk
+   except:
+      print "You need to install also pygtk and I was not able to work out"
+      print "  a correct dependency in setup.py"
+      sys.exit(1)
 
 # setuptools really fails in understanding which packages are already installed
 REQUIRES = ['sqlalchemy >= 0.5', ]
