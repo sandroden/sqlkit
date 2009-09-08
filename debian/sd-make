@@ -45,6 +45,7 @@ mknew:  clean tgz
 	tar -C ../build -xzf ../sqlkit-$(VER).tar.gz
 	mkdir ../build/sqlkit-$(VER)/debian 
 	find debian  -maxdepth 1 -type f -exec cp {} ../build/sqlkit-$(VER)/debian \;
+	cp -a debian/patches ../build/sqlkit-$(VER)/debian
 	cp ../sqlkit-$(VER).tar.gz ../build/sqlkit_$(VER).orig.tar.gz
 
 deb:    mknew

@@ -4,4 +4,5 @@ include /usr/share/cdbs/1/rules/debhelper.mk
 DEB_PYTHON_SYSTEM = pysupport
 DEB_COMPRESS_EXCLUDE := .py .sqlite .js
 include /usr/share/cdbs/1/class/python-distutils.mk
+include /usr/share/cdbs/1/rules/simple-patchsys.mk
 

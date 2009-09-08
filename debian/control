@@ -9,7 +9,7 @@ Package: python-sqlkit
 Architecture: all
 Depends: ${misc:Depends}, python, python-dateutil,  python-gtk2, python-glade2,
          python-setuptools, python-psycopg2, python-mysqldb,
-         python-sqlalchemy
+         python-sqlalchemy, libjs-jquery
 Description: GUI library to edit data of databases
  Main features of sqlkit:
  .
