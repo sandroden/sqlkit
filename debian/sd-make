@@ -13,18 +13,48 @@ TGZ=sqlkit_$(VER).tar.gz
 PTGZ=sqledit-binary-$(VER).tar.gz
 PYI=/misc/src/svn/pyinstaller-hg/
 
-mknew: 
-	mkdir -p ../build
-	tar -C ../build -xzf ../sqlkit_$(VER).tar.gz
+clean:
+	find -name \*~ -exec rm {} \;
+	find -name \*~ -exec rm {} \;
+	find -name \#\*  -exec rm {} \;
+	find -name .backups -exec rm -Rf {} \; || true
+	rm -Rf ../build/*sqlkit*
 
-deb:    clean mknew
+source: mknew
+	cd ../build/; dpkg-source -b sqlkit-$(VER)
+
+orig:   source
+	cd ../build/; mkdir sqlkit-$(VER).orig; cd sqlkit-$(VER).orig; tar --strip 1 -xzf ../sqlkit_$(VER).orig.tar.gz
+
+diff:  
+	diff -u  sqlkit-$(VER).orig/setup.py sqlkit-$(VER)> ../sqlkit/debian/patches/00_setup.diff
+	diff -u  sqlkit-$(VER).orig/sqlkit/__init__.py sqlkit-$(VER)/sqlkit/ > ../sqlkit/debian/patches/01_locale.diff
+	diff -u  sqlkit-$(VER).orig/MANIFEST.in sqlkit-$(VER) > ../sqlkit/debian/patches/03_manifest.diff
+tgz:
+	#hg archive -t tar ../sqlkit-$(VER).tar.gz
+	#	hg archive -X debian -t tgz ../sqlkit-$(VER).tar.gz
+	hg archive -X debian -t tgz ../sqlkit-$(VER).tar.gz
+	tar xzf ../sqlkit-$(VER).tar.gz
+	cp -a doc/.build/html sqlkit-$(VER)/doc/
+	rm -Rf sqlkit-$(VER)/.hg*
+	tar czf ../sqlkit-$(VER).tar.gz sqlkit-$(VER)
+	rm -Rf sqlkit-$(VER)
+
+mknew:  clean tgz
+	mkdir -p ../build
+	tar -C ../build -xzf ../sqlkit-$(VER).tar.gz
+	mkdir ../build/sqlkit-$(VER)/debian 
+	find debian  -maxdepth 1 -type f -exec cp {} ../build/sqlkit-$(VER)/debian \;
+	cp ../sqlkit-$(VER).tar.gz ../build/sqlkit_$(VER).orig.tar.gz
+
+deb:    mknew
 #	no signature!
-	cd ../build/sqlkit_$(VER); dpkg-buildpackage -rfakeroot -us -uc | tee log	
-	find ../build -maxdepth 1  -type f -exec mv {} .. \;
+	cd ../build/sqlkit-$(VER); dpkg-buildpackage -rfakeroot -us -uc | tee log	
+#	find ../build -maxdepth 1  -type f -exec mv {} .. \;
 	echo pkg=$(PKG)  deb=$(DEB)
 #	hg status
 
-debs:   clean mknew
+debs:   mknew
 	cd ../build/sqlkit_$(VER); dpkg-buildpackage -rfakeroot | tee log	
 	echo pkg=$(PKG)  deb=$(DEB)
 	hg status
@@ -64,29 +94,6 @@ install:
 	find -name \*~ -exec rm {} \;
 	find -name \#\*  -exec rm {} \;
 	find -name .\#\* -exec rm {} \;
-#	rm -Rf $(DESTDIR)
-#	mkdir -p $(DESTDIR)/usr/share/doc/python-sqlkit
-#	cp -a demo $(DESTDIR)/usr/share/doc/python-sqlkit
-#	cp -a bin/sqledit $(DESTDIR)/usr/bin
-#	cp -a doc/.build/html $(DESTDIR)/usr/share/doc/python-sqlkit/html
-#	cp -a usr/* $(DESTDIR)/usr
-#	find $(DESTDIR) -name .backups -exec rm -Rf {} \;
-
-clean:
-	find -name \*~ -exec rm {} \;
-	find -name \*~ -exec rm {} \;
-	find -name \#\*  -exec rm {} \;
-	find -name .backups -exec rm -Rf {} \; || true
-	rm -Rf ../build/sqlkit*
-
-tgz:
-	#hg archive -t tar ../sqlkit-$(VER).tar.gz
-	#	hg archive -X debian -t tgz ../sqlkit-$(VER).tar.gz
-	hg archive -t tgz ../sqlkit_$(VER).tar.gz
-	tar xzf ../sqlkit_$(VER).tar.gz
-	cp -a doc/.build/html sqlkit_$(VER)/doc/
-	tar czf ../sqlkit_$(VER).tar.gz sqlkit_$(VER)
-	rm -Rf sqlkit_$(VER)
 
 rsync:
 	ssh apt@www2 'cd $(DIR) && rm -f sqlkit-latest.tar.gz && mv *sqlkit* OLD' || true
