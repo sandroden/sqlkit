@@ -24,3 +24,11 @@ you may also find interesting information on the installation part of the
 tutorial:
 
   http://sqlkit.argolinux.org/sqlkit/tutorial.html
+
+Completion
+==========
+
+If you use sqledit from command line under linux you may find usefull the
+sqledit.competion file that you should install under /etc/bash_completion.d
+
+It lets you complete the arguments reading the nicks defined in .sqledit/nicks

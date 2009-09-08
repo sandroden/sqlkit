@@ -6,3 +6,5 @@ DEB_COMPRESS_EXCLUDE := .py .sqlite .js
 include /usr/share/cdbs/1/class/python-distutils.mk
 include /usr/share/cdbs/1/rules/simple-patchsys.mk
 
+install/python-sqlkit::
+	dh_bash-completion

@@ -14,7 +14,8 @@ Sqlkit depends on:
           * glade2
       * python-dateutils 
       * setuptools
-      * the correct driver for your database of choice
+      * the correct driver for your database of choice among the backend
+        `supored by sqlkachemy`_
       * babel (localization)
 
 Changelog
@@ -154,3 +155,4 @@ Sqlkit is developed by `Alessandro Dentella`_
 .. _sqlkit-doc_xxxx_all.deb: http://sqlkit.argolinux.org/download/sqlkiy-doc_xxxx_all.deb
 .. _`Alessandro Dentella`: mailto:sandro@e-den.it
 .. _launchpad: https://launchpad.net/sqlkit
+.. _`supored by sqlkachemy`: http://www.sqlalchemy.org/trac/wiki/DatabaseNotes

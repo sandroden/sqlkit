@@ -62,6 +62,11 @@ indexes.
 Options
 =======
 
+Calling `sqledit` from a command line under a linux system with bash
+completion you can benefit from the completion that will look for completion
+in the .sqledit/nicks file and will suggest some common url (postgres://,
+sqlite://...) 
+
 When primary keys are numeric you probably don't want/need to see them, you
 can switch off the visualization with the ``primary key`` togle button
 
