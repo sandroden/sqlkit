@@ -2,7 +2,8 @@ Source: sqlkit
 Section: python
 Priority: optional
 Maintainer: Sandro Dentella <sandro@e-den.it>
-Build-Depends: cdbs, debhelper (>= 5), python, python-support
+Build-Depends: cdbs, debhelper (>= 5), python, python-support,
+  python-setuptools
 Standards-Version: 3.8.3
 
 Package: python-sqlkit
