@@ -8,14 +8,14 @@ Requirements
 
 Sqlkit depends on:
 
-     * Python
-        * Pygtk
-        * sqlalchemy (>=0.5.3)
-        * glade2
-     * python-dateutils 
-     * setuptools
-     * the correct driver for your database of choice
-     * babel (localization)
+      * Python
+          * Pygtk
+          * sqlalchemy (>=0.5.3)
+          * glade2
+      * python-dateutils 
+      * setuptools
+      * the correct driver for your database of choice
+      * babel (localization)
 
 Changelog
 ===========
@@ -42,17 +42,12 @@ You can download sqlkit package xxxx from here_ in tar or deb format.
 +-------------------------------------+-----------------------------------------------------+
 |Linux executable (pyinstaller)       |sqledit-binary-xxxx.tar.gz_                          |
 +-------------------------------------+-----------------------------------------------------+
-|Windows executable (pyinstaller)     |sqledit-binary-xxxx.exe_ (not yet ready)             |
+|Windows executable (pyinstaller)     |sqledit-setup-xxxx.exe_                              |
 +-------------------------------------+-----------------------------------------------------+
-
-.. +-----------------------------------+----------------------------------------------------+
-.. Debian documentation package       |sqlkit-doc_xxxx_all.deb_                            |       
 
 
 Sqlkit is used in a production environment and great care is put in fixing
-any bug as soon as possible. The first stable version will be 0.8.6. Present
-version 0.8.6-rc5 should be almost ready. When 0.8.6 will be release new
-features will be instroduced in a development branch.
+any bug as soon as possible. The first stable version will be 0.8.6. 
 
 I really appreciate any bug report particularly if based on a repeatable
 example, possibily starting from the demo.
@@ -155,7 +150,7 @@ Sqlkit is developed by `Alessandro Dentella`_
 .. _sqlkit-xxxx.tar.gz: http://sqlkit.argolinux.org/download/sqlkit-xxxx.tar.gz
 .. _python-sqlkit-xxxx_all.deb: http://sqlkit.argolinux.org/download/python-sqlkit-xxxx_all.deb
 .. _sqledit-binary-xxxx.tar.gz: http://sqlkit.argolinux.org/download/sqledit-binary-xxxx.tar.gz
-.. _sqledit-binary-xxxx.exe: http://sqlkit.argolinux.org/download/sqledit-binary-xxxx.exe
+.. _sqledit-setup-xxxx.exe: http://sqlkit.argolinux.org/download/sqledit-binary-xxxx.exe
 .. _sqlkit-doc_xxxx_all.deb: http://sqlkit.argolinux.org/download/sqlkiy-doc_xxxx_all.deb
 .. _`Alessandro Dentella`: mailto:sandro@e-den.it
 .. _launchpad: https://launchpad.net/sqlkit
