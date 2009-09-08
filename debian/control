@@ -2,6 +2,7 @@ Source: sqlkit
 Section: python
 Priority: optional
 Maintainer: Sandro Dentella <sandro@e-den.it>
+Homepage: http://sqlkit.argolinux.org
 Build-Depends: cdbs, debhelper (>= 5), python, python-support,
   python-setuptools
 Standards-Version: 3.8.3
@@ -9,8 +10,9 @@ Standards-Version: 3.8.3
 Package: python-sqlkit
 Architecture: all
 Depends: ${misc:Depends}, python, python-dateutil,  python-gtk2, python-glade2,
-         python-setuptools, python-psycopg2, python-mysqldb,
-         python-sqlalchemy, libjs-jquery
+         python-setuptools, python-sqlalchemy (>=0.5.4), libjs-jquery,
+	 python-pybabel
+Recommends: python-psycopg2, python-mysqldb
 Description: GUI library to edit data of databases
  Main features of sqlkit:
  .
