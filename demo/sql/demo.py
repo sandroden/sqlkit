@@ -41,8 +41,6 @@ from sqlkit.widgets import SqlMask, SqlTable
 from sqlkit.db import proxy, defaults, utils
 import model
 
-db = proxy.DbProxy(engine="sqlite:///model/db.sqlite")
-
 class DemoSql(Demo):
     def load_module(self, name):
         # set last_layout_object
@@ -59,7 +57,7 @@ class DemoSql(Demo):
             'SqlMask': SqlMask,
             'SqlTable': SqlTable,
             'gtk': gtk,
-            'db': db,
+            'db': model.db,
             'model': model,
 
             }
