@@ -23,8 +23,11 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-import dry.sphinx.docusage
-extensions = ['sphinx.ext.autodoc', 'dry.sphinx.docusage']
+cur_dir = os.path.dirname(__file__)
+sys.path += [cur_dir]
+sys.path += [os.path.dirname(cur_dir)]
+import docusage
+extensions = ['sphinx.ext.autodoc', 'docusage']
 #extensions = ['sphinx.ext.autodoc']
 
 # Add any paths that contain templates here, relative to this directory.
