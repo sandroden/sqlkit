@@ -30,6 +30,8 @@ diff:
 	diff -u  sqlkit-$(VER).orig/setup.py sqlkit-$(VER)> ../sqlkit/debian/patches/00_setup.diff
 	diff -u  sqlkit-$(VER).orig/sqlkit/__init__.py sqlkit-$(VER)/sqlkit/ > ../sqlkit/debian/patches/01_locale.diff
 	diff -u  sqlkit-$(VER).orig/MANIFEST.in sqlkit-$(VER) > ../sqlkit/debian/patches/03_manifest.diff
+	diff -u  sqlkit-$(VER).orig/MANIFEST.in sqlkit-$(VER) > ../sqlkit/debian/patches/03_manifest.diff
+	diff -u  sqlkit-$(VER).orig/demo/sql sqlkit-$(VER)/demo/sql/ > ../sqlkit/debian/patches/04_demo_in_tmp.diff
 tgz:
 	#hg archive -t tar ../sqlkit-$(VER).tar.gz
 	#	hg archive -X debian -t tgz ../sqlkit-$(VER).tar.gz
