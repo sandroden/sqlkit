@@ -20,7 +20,6 @@ set -e
 
 case "$1" in
     configure)
-	chmod 666 /usr/share/doc/python-sqlkit/demo/sql/model/db.sqlite
 	chmod 777 /usr/share/doc/python-sqlkit/demo/sql/demo.py
 	chmod 777 /usr/share/doc/python-sqlkit/demo/layout/demo.py
     ;;
