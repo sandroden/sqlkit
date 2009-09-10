@@ -1,6 +1,7 @@
 # Makefile for Sphinx documentation
 #
 VER           = 0.8.6
+DEBVER           = $(VER)-2
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
@@ -31,6 +32,7 @@ html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) .build/html
 	@echo
 	@echo "Build finished. The HTML pages are in .build/html."
+	perl -i -p -e 's/yyyy/$(DEBVER)/g' .build/html/sqlkit/download.html
 	perl -i -p -e 's/xxxx/$(VER)/g' .build/html/sqlkit/download.html
 
 pickle:

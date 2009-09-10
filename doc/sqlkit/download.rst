@@ -15,7 +15,7 @@ Sqlkit depends on:
       * python-dateutils 
       * setuptools
       * the correct driver for your database of choice among the backend
-        `supored by sqlkachemy`_
+        `suppored by sqlkachemy`_
       * babel (localization)
 
 Changelog
@@ -37,7 +37,7 @@ You can download sqlkit package xxxx from here_ in tar or deb format.
 +-------------------------------------+-----------------------------------------------------+
 |Python package                       |sqlkit-xxxx.tar.gz_                                  |
 +-------------------------------------+-----------------------------------------------------+
-|Debian/Ubuntu package (read below!   |python-sqlkit-xxxx_all.deb_                          |       
+|Debian/Ubuntu package (read below!   |python-sqlkit_yyyy_all.deb_                          |       
 |you are supposed to install          |                                                     |
 |sqlalchemy >= 0.5.3 and babel)       |                                                     |
 +-------------------------------------+-----------------------------------------------------+
@@ -149,10 +149,10 @@ Sqlkit is developed by `Alessandro Dentella`_
 .. _Experimental: http://packages.debian.org/experimental/python-sqlalchemy
   
 .. _sqlkit-xxxx.tar.gz: http://sqlkit.argolinux.org/download/sqlkit-xxxx.tar.gz
-.. _python-sqlkit-xxxx_all.deb: http://sqlkit.argolinux.org/download/python-sqlkit-xxxx_all.deb
+.. _python-sqlkit_yyyy_all.deb: http://sqlkit.argolinux.org/download/python-sqlkit_yyyy_all.deb
 .. _sqledit-binary-xxxx.tar.gz: http://sqlkit.argolinux.org/download/sqledit-binary-xxxx.tar.gz
-.. _sqledit-setup-xxxx.exe: http://sqlkit.argolinux.org/download/sqledit-binary-xxxx.exe
+.. _sqledit-setup-xxxx.exe: http://sqlkit.argolinux.org/download/sqledit-setup-xxxx.exe
 .. _sqlkit-doc_xxxx_all.deb: http://sqlkit.argolinux.org/download/sqlkiy-doc_xxxx_all.deb
 .. _`Alessandro Dentella`: mailto:sandro@e-den.it
 .. _launchpad: https://launchpad.net/sqlkit
-.. _`supored by sqlkachemy`: http://www.sqlalchemy.org/trac/wiki/DatabaseNotes
+.. _`suppored by sqlkachemy`: http://www.sqlalchemy.org/trac/wiki/DatabaseNotes
