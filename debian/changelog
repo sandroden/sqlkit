@@ -1,3 +1,11 @@
+sqlkit (0.8.6-2) unstable; urgency=low
+
+  * separated documetation in a different package
+  * added generation of documentation via sphinx
+  * fixed demo so that i always run on a fresh db
+	
+ -- Sandro Dentella <sandro@e-den.it>  Thu, 10 Sep 2009 09:10:02 +0200
+
 sqlkit (0.8.6-1) unstable; urgency=low
 
   * stable version 0.8.6

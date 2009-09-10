@@ -1,3 +1,4 @@
 bin/sqledit usr/bin
-sqlkit.desktop /usr/share/applications
-sqlkit/locale/it/LC_MESSAGES/sqlkit.mo /usr/share/locale/LC_MESSAGES
+sqlkit.desktop usr/share/applications
+sqlkit/locale/it/LC_MESSAGES/sqlkit.mo usr/share/locale/LC_MESSAGES
+debian/tmp/usr /

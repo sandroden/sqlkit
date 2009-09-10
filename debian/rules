@@ -1,8 +1,9 @@
 #!/usr/bin/make -f
 
-include /usr/share/cdbs/1/rules/debhelper.mk
 DEB_PYTHON_SYSTEM = pysupport
 DEB_COMPRESS_EXCLUDE := .py .sqlite .js
+DEB_MAKE_INSTALL_TARGET  := install INSTALL_PREFIX=$(CURDIR)/debian/python-sqlkit
+include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/python-distutils.mk
 include /usr/share/cdbs/1/rules/simple-patchsys.mk
 
@@ -11,8 +12,8 @@ VER=0.8.6
 
 install/python-sqlkit::
 	dh_bash-completion
+
+install/python-sqlkit-doc::
 	mkdir -p doc/html doc/.doctrees
 	sphinx-build doc doc/html
-	@echo
-	@echo "Build finished. The HTML pages are in html."
 	perl -i -p -e 's/xxxx/$(VER)/g' doc/html/sqlkit/download.html
