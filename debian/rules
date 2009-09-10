@@ -6,5 +6,13 @@ DEB_COMPRESS_EXCLUDE := .py .sqlite .js
 include /usr/share/cdbs/1/class/python-distutils.mk
 include /usr/share/cdbs/1/rules/simple-patchsys.mk
 
+VER=0.8.6
+
+
 install/python-sqlkit::
 	dh_bash-completion
+	mkdir -p doc/html doc/.doctrees
+	sphinx-build doc doc/html
+	@echo
+	@echo "Build finished. The HTML pages are in html."
+	perl -i -p -e 's/xxxx/$(VER)/g' doc/html/sqlkit/download.html

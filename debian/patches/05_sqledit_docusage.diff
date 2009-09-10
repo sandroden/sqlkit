@@ -1,0 +1,16 @@
+Solo in sqlkit-0.8.6/doc/sqlkit/: .backups
+diff -u sqlkit-0.8.6.orig/doc/sqlkit/sqledit.rst sqlkit-0.8.6/doc/sqlkit/sqledit.rst
+--- sqlkit-0.8.6.orig/doc/sqlkit/sqledit.rst	2009-09-09 23:09:42.000000000 +0200
++++ sqlkit-0.8.6/doc/sqlkit/sqledit.rst	2009-09-09 23:20:42.000000000 +0200
+@@ -11,10 +11,8 @@
+ present a list of all tables that can be selected for editing (choosing 
+ :ref:`mask` or :ref:`table`) or for introspection.
+ 
+-It has several options:
++It has several options that you can see with the command *sqledit -h*
+ 
+-.. docusage:: ../../bin/sqledit.py
+-   :verbatim:
+ 
+ If called without argument it will present a connection dialog:
+ 

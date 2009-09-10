@@ -4,7 +4,8 @@ Priority: optional
 Maintainer: Sandro Dentella <sandro@e-den.it>
 Homepage: http://sqlkit.argolinux.org
 Build-Depends: cdbs, debhelper (>= 5), python, python-support,
-  python-setuptools
+  python-setuptools, python-sphinx, python-sqlalchemy,
+  , python-dateutil, python-pybabel
 XS-Python-Version: >= 2.5
 Standards-Version: 3.8.3
 
