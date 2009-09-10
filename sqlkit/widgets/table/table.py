@@ -486,6 +486,8 @@ class SqlTable(sqlwidget.SqlWidget):
     
     def key_tree_Tab(self, treeview, event, data):
         path, col = self.treeview.get_cursor()
+        if not path:
+            return False
         ## only visible columns!!
         columns = [c for c in self.treeview.get_columns() if c.get_visible()]
         colnum = columns.index(col)
