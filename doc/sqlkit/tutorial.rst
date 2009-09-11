@@ -338,6 +338,40 @@ The library also allows you to edit related tables (i.e.: director and
 movies) with no effort, but there is no yet a way to do that other that
 programmatically.
 
+The Demo
+========
+
+The demo is a pretty simple way to be introduced to more advanced features
+that you would only have with a little of programming. I hope it will
+encourage you to do it and possibly to approach Python.
+
+The very important thing to understand when reading the snippets of the demo
+is that each time you write the table as a string (e.g: table='movies') you
+will trigger an inspection of the database, but no assumption is made on the
+relationships between tables. When you pass a mapper or a class
+(e.g. class_=model.Movie) you are passing possibly more information. 
+
+The model in fact (you can go and see in :file:`demo/sql/model/movies.py`)
+has lines as::
+
+  class Director(Base):
+      __tablename__ = 'director'
+      id             = Column(Integer, primary_key=True)
+      last_name   = Column(String(60), nullable=False)
+      first_name  = Column(String(60))
+      nation      = Column(String(6))
+
+      movies      = relation('Movie', backref='director', cascade='all, delete-orphan',)
+
+where the last line instructs sqlalchemy of the relation existent between
+the tables, and more: it adds an attribute on the class ``Director`` that
+holds all the movies produces by that director (and viceversa thanks to the
+argument ``backref``).
+
+Adding these information makes it possible to used the layout in a mask to
+produce a mask with director and all the movies, if you are interested in
+this part... let me knwo and I will add more info. For the moment I suggest
+you to go and read more about :ref:`relatonships`
 
 Feedbak
 ========
