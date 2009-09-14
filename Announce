@@ -1,20 +1,29 @@
-                      ANNOUNCE: sqlkit 0.8.6-rc4
+                      ANNOUNCE: sqlkit 0.8.6
 
-                        April, 30 - 2009
+                        September, 12 - 2009
 
 
-I'm happy to announce release 0.8.6-rc4 of sqlkit package for python.
+I'm happy to announce release 0.8.6 of sqlkit package for python.
 
   http://sqlkit.argolinux.org/
 
 This release
 ------------
 
-The completion machinery underwent a big refactor to add many features.
-Browsing data is more friendly due to the new contextual menu that allow to
-pop Mask Widgets with a right click even in Tables. 
+This is the first stable release. It features a new interface for the
+standalone command (sqledit), many improvements and functions added.
+
+We have used pyinstaller to create standalone executable for Linux and Mac,
+you can download them to use the application and to run the demo.
+
+It's now registered in pypi so you can 'easy_install' it.
+I'm currently looking for a debian sponsor to upload the package in sqeeze.
+
+A new tutorial is available here:
+http://sqlkit.argolinux.org/sqlkit/tutorial.html
 
 Refer to http://sqlkit.argolinux.org/download/Changelog for details
+
 
 The package
 -----------
@@ -24,11 +33,18 @@ data. It's meant as a base for database desktop applications.
 The application
 ---------------
 It also provides 'sqledit' a PyGTK application based on sqlkit that can be
-used from command line to browse and edit data.
+used from command line to browse and edit data. 
 
 The package has 2 very rich demo suites for sql widgets (the main one in
 sqlkit/demo/sql/demo.py) and for layout creation
   
+Translations
+------------
+
+If you like sqlkit and want to help translating, you may find the project on:
+  
+  https://launchpad.net/sqlkit
+
 Main features of sqlkit:
 ------------------------
 
@@ -52,18 +68,23 @@ Main features of sqlkit:
 
 Sqlkit is based on:
 -------------------
-  * python (>= 2.4)	
+  * python (>= 2.4 - but developed on 2.5) 	
   * PyGtk	
   * Sqlalchemy (>= 0.5)
   * glade
-  * dateutils
+  * python-dateutil
   * babel (localization)
-
+  * you db driver of choice
 
 Dowload & more:
 ---------------
 
-  * http://sqlkit.argolinux.org/sqlkit/download.html
-  * hg clone http://hg.argolinux.org/py/sqlkit
-  * google group: http://groups.google.it/group/sqlkit/
-  * License: GNU GPL
+  * Download:     http://sqlkit.argolinux.org/sqlkit/download.html
+                  easy_install sqlkit
+  * Source:       hg clone http://hg.argolinux.org/py/sqlkit
+  * Google Group: http://groups.google.it/group/sqlkit/
+  * Translation:  https://launchpad.net/sqlkit
+  * Tutorial:     http://sqlkit.argolinux.org/sqlkit/tutorial.html
+  * Changelog:    http://sqlkit.argolinux.org/download/Changelog
+  * License:      GNU GPL
+  
