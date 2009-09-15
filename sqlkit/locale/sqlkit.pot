@@ -480,7 +480,7 @@ msgid ""
 msgstr ""
 
 #: sqlkit/widgets/common/sqlwidget.py:834
-msgid "Disreguarding new obj"
+msgid "Ignoring new obj"
 msgstr ""
 
 #: sqlkit/widgets/common/sqlwidget.py:863
