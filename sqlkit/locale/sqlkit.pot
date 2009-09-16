@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2009-07-02 12:34+0200\n"
+"POT-Creation-Date: 2009-09-16 23:46+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 0.9.1\n"
 
-#: bin/sqledit.py:65
+#: bin/sqledit.py:85
 msgid "Connection setup"
 msgstr ""
 
-#: bin/sqledit.py:68
+#: bin/sqledit.py:88
 msgid ""
 "\n"
 "    You can indicate the database you want to connect to\n"
@@ -33,21 +33,21 @@ msgid ""
 "    "
 msgstr ""
 
-#: bin/sqledit.py:95
+#: bin/sqledit.py:115
 msgid "Run Demo"
 msgstr ""
 
-#: bin/sqledit.py:118
+#: bin/sqledit.py:138
 msgid ""
 "Info on available backend:\n"
 "postgres, mysql..."
 msgstr ""
 
-#: bin/sqledit.py:119
+#: bin/sqledit.py:139
 msgid "Sqledit manual page"
 msgstr ""
 
-#: bin/sqledit.py:124
+#: bin/sqledit.py:144
 msgid ""
 "Try continuosly to connect.\n"
 "        Nice and usefull but may cause temporary blocks\n"
@@ -55,28 +55,28 @@ msgid ""
 "        "
 msgstr ""
 
-#: bin/sqledit.py:138
+#: bin/sqledit.py:158
 msgid ""
 "If you write a wrong hostname\n"
 "the application may hang some seconds till the natural network timeout. \n"
 "Uncheck the flag on the right ti disable this feature"
 msgstr ""
 
-#: bin/sqledit.py:164
+#: bin/sqledit.py:185
 #, python-format
 msgid "Attempting to connect to %s"
 msgstr ""
 
-#: bin/sqledit.py:167
+#: bin/sqledit.py:188
 #, python-format
 msgid "Connected to %s"
 msgstr ""
 
-#: bin/sqledit.py:198
+#: bin/sqledit.py:219
 msgid "A complete demo of all the features of the sqlkit package"
 msgstr ""
 
-#: bin/sqledit.py:199
+#: bin/sqledit.py:220
 msgid ""
 "The demo was not found, if you know where it is,\n"
 "run it manually: python demo.py"
@@ -97,77 +97,77 @@ msgstr ""
 msgid "Table %s doesn't not have a primary key, editing not possible"
 msgstr ""
 
-#: sqlkit/misc/table_browser.py:114
+#: sqlkit/misc/table_browser.py:117
 msgid "Database"
 msgstr ""
 
 #. : menu entry
-#: sqlkit/misc/table_browser.py:115 sqlkit/misc/words.py:13
+#: sqlkit/misc/table_browser.py:118 sqlkit/misc/words.py:13
 #: sqlkit/widgets/common/sqlwidget.py:575
 msgid "Modify"
 msgstr ""
 
-#: sqlkit/misc/table_browser.py:116
+#: sqlkit/misc/table_browser.py:119
 msgid "Tool"
 msgstr ""
 
 #. : menu entry
-#: sqlkit/misc/table_browser.py:117 sqlkit/misc/words.py:15
+#: sqlkit/misc/table_browser.py:120 sqlkit/misc/words.py:15
 #: sqlkit/widgets/common/sqlwidget.py:578
 msgid "Help"
 msgstr ""
 
-#: sqlkit/misc/table_browser.py:120
+#: sqlkit/misc/table_browser.py:123
 msgid "Count records"
 msgstr ""
 
-#: sqlkit/misc/table_browser.py:120
+#: sqlkit/misc/table_browser.py:123
 msgid "Count records in all tables"
 msgstr ""
 
-#: sqlkit/misc/table_browser.py:123
+#: sqlkit/misc/table_browser.py:126
 msgid ""
 "Configure the fields: \n"
 "labels, tooltip, completion, search field"
 msgstr ""
 
-#: sqlkit/misc/table_browser.py:126
+#: sqlkit/misc/table_browser.py:129
 msgid "Edit Sqlkit Fields"
 msgstr ""
 
-#: sqlkit/misc/table_browser.py:129
+#: sqlkit/misc/table_browser.py:132
 msgid "Primary Key"
 msgstr ""
 
-#: sqlkit/misc/table_browser.py:129
+#: sqlkit/misc/table_browser.py:132
 msgid "Show/Hide primary key if the key is numeric"
 msgstr ""
 
-#: sqlkit/misc/table_browser.py:131
+#: sqlkit/misc/table_browser.py:134
 msgid "Load data"
 msgstr ""
 
-#: sqlkit/misc/table_browser.py:131
+#: sqlkit/misc/table_browser.py:134
 msgid "Load the data as well"
 msgstr ""
 
-#: sqlkit/misc/table_browser.py:132
+#: sqlkit/misc/table_browser.py:135
 msgid "Blank"
 msgstr ""
 
-#: sqlkit/misc/table_browser.py:132
+#: sqlkit/misc/table_browser.py:135
 msgid "Cast blank into NULL"
 msgstr ""
 
-#: sqlkit/misc/table_browser.py:238
+#: sqlkit/misc/table_browser.py:241
 msgid "Mask"
 msgstr ""
 
-#: sqlkit/misc/table_browser.py:243
+#: sqlkit/misc/table_browser.py:246
 msgid "Table"
 msgstr ""
 
-#: sqlkit/misc/table_browser.py:249
+#: sqlkit/misc/table_browser.py:252
 msgid "Table reflection"
 msgstr ""
 
@@ -293,22 +293,22 @@ msgstr ""
 msgid "No exact match, trying regexp completion"
 msgstr ""
 
-#: sqlkit/widgets/common/fields.py:523
+#: sqlkit/widgets/common/fields.py:524
 #, python-format
 msgid "value is not Decimal nor string: %s"
 msgstr ""
 
-#: sqlkit/widgets/common/fields.py:564
+#: sqlkit/widgets/common/fields.py:565
 #, python-format
 msgid "value is not date nor string: %s"
 msgstr ""
 
-#: sqlkit/widgets/common/fields.py:682 sqlkit/widgets/mask/miniwidgets.py:209
+#: sqlkit/widgets/common/fields.py:683 sqlkit/widgets/mask/miniwidgets.py:209
 #, python-format
 msgid "Wrong date format: %s"
 msgstr ""
 
-#: sqlkit/widgets/common/fields.py:692
+#: sqlkit/widgets/common/fields.py:693
 msgid "Wrong time format"
 msgstr ""
 
@@ -405,8 +405,8 @@ msgid "Result page for your query"
 msgstr ""
 
 #. : status bar message
-#: sqlkit/widgets/common/sqlfilter.py:238 sqlkit/widgets/table/table.py:708
-#: sqlkit/widgets/table/table.py:908
+#: sqlkit/widgets/common/sqlfilter.py:238 sqlkit/widgets/table/table.py:710
+#: sqlkit/widgets/table/table.py:912
 #, python-format
 msgid "Total N. of records: %s"
 msgstr ""
@@ -479,98 +479,98 @@ msgid ""
 "%s"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:834
-msgid "Ignoring new obj"
+#: sqlkit/widgets/common/sqlwidget.py:838
+msgid "Discarding new obj"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:863
+#: sqlkit/widgets/common/sqlwidget.py:867
 #, python-format
 msgid "Char %s is not accepted in numeric context"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:918
+#: sqlkit/widgets/common/sqlwidget.py:925
 msgid "record validation"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1245
+#: sqlkit/widgets/common/sqlwidget.py:1252
 msgid "Sorry, export is implemented only for table view"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1523
+#: sqlkit/widgets/common/sqlwidget.py:1530
 msgid "Property"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1524
+#: sqlkit/widgets/common/sqlwidget.py:1531
 msgid "Value"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1716
+#: sqlkit/widgets/common/sqlwidget.py:1723
 msgid "Missing data"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1760
+#: sqlkit/widgets/common/sqlwidget.py:1767
 msgid "Save unsaved data?"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1763
+#: sqlkit/widgets/common/sqlwidget.py:1770
 msgid "Unsaved data"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1778
+#: sqlkit/widgets/common/sqlwidget.py:1785
 msgid "State"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1779
-#: sqlkit/widgets/common/sqlwidget.py:1895
+#: sqlkit/widgets/common/sqlwidget.py:1786
+#: sqlkit/widgets/common/sqlwidget.py:1902
 msgid "Field name"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1780
+#: sqlkit/widgets/common/sqlwidget.py:1787
 msgid "Original value"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1781
+#: sqlkit/widgets/common/sqlwidget.py:1788
 msgid "Present value"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1813
+#: sqlkit/widgets/common/sqlwidget.py:1820
 msgid "Modified"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1842 sqlkit/widgets/mask/mask.py:446
+#: sqlkit/widgets/common/sqlwidget.py:1849 sqlkit/widgets/mask/mask.py:450
 msgid "Deleted"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1852
+#: sqlkit/widgets/common/sqlwidget.py:1859
 msgid "New"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1866
+#: sqlkit/widgets/common/sqlwidget.py:1873
 msgid ""
 "Errors are present in the record. \n"
 "Correct them now, to continue \n"
 "or delete the record"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1867
+#: sqlkit/widgets/common/sqlwidget.py:1874
 msgid "Validation errors"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1896
+#: sqlkit/widgets/common/sqlwidget.py:1903
 msgid "Error"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1927
+#: sqlkit/widgets/common/sqlwidget.py:1934
 msgid ""
 "You can continue or go back editing. \n"
 "Read the following warnings to decide"
 msgstr ""
 
-#: sqlkit/widgets/common/sqlwidget.py:1928
+#: sqlkit/widgets/common/sqlwidget.py:1935
 msgid "Validation Warnings"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:290 sqlkit/widgets/table/table.py:799
+#: sqlkit/widgets/mask/mask.py:290 sqlkit/widgets/table/table.py:802
 msgid "Already at new record"
 msgstr ""
 
@@ -579,31 +579,31 @@ msgstr ""
 msgid "New record %s"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:377 sqlkit/widgets/table/table.py:741
+#: sqlkit/widgets/mask/mask.py:381 sqlkit/widgets/table/table.py:744
 msgid "Nothing to save"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:415
+#: sqlkit/widgets/mask/mask.py:419
 #, python-format
 msgid "Primary key (%s) didn't change. Refusing to save as new"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:434 sqlkit/widgets/table/table.py:853
+#: sqlkit/widgets/mask/mask.py:438 sqlkit/widgets/table/table.py:856
 #, python-format
 msgid ""
 "Delete this record?\n"
 "(%s)"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:494
+#: sqlkit/widgets/mask/mask.py:498
 msgid "No record present"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:517
+#: sqlkit/widgets/mask/mask.py:521
 msgid "Already last record"
 msgstr ""
 
-#: sqlkit/widgets/mask/mask.py:519
+#: sqlkit/widgets/mask/mask.py:523
 msgid "Already first record"
 msgstr ""
 
@@ -689,38 +689,38 @@ msgstr ""
 msgid "View '%s' in a Mask"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:679
+#: sqlkit/widgets/table/table.py:681
 msgid "no current obj: maybe no record has yet been edited"
 msgstr ""
 
 #. : when saving m2m, we delay till leader record will be saved
-#: sqlkit/widgets/table/table.py:772
+#: sqlkit/widgets/table/table.py:775
 msgid "delaying saving when main record will be saved"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:781
+#: sqlkit/widgets/table/table.py:784
 msgid "Record has NOT been saved"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:969
+#: sqlkit/widgets/table/table.py:973
 msgid "Value is not valid, trying completion"
 msgstr ""
 
 #. : check in input field length %s %s -> field_name length
-#: sqlkit/widgets/table/table.py:994
+#: sqlkit/widgets/table/table.py:998
 #, python-format
 msgid "Input exceeded max %s length (%s)"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1180
+#: sqlkit/widgets/table/table.py:1184
 msgid "INSERT mode"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1182
+#: sqlkit/widgets/table/table.py:1186
 msgid "UPDATE mode"
 msgstr ""
 
-#: sqlkit/widgets/table/table.py:1319
+#: sqlkit/widgets/table/table.py:1324
 msgid "Export in csv file"
 msgstr ""
 

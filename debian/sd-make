@@ -4,7 +4,7 @@
 # $pkg
 .PHONY: install clean
 DEB=$(shell cat debian/files |cut -f 1 -d " ")
-#VER=$(shell head -n1 debian/files|cut -f 2 -d _)
+DEBVER=$(shell head -n1 debian/files|cut -f 2 -d _)
 VER=$(shell grep __version__ sqlkit/__init__.py|cut -f 2 -d = |tr -d " '")
 PKG=$(shell echo $(shell pwd)| sed 's/.*\///')
 DIR=/home/www/sandro/apt/download.argolinux.org/sqlkit
@@ -13,6 +13,7 @@ TGZ=sqlkit-$(VER).tar.gz
 PTGZ=sqledit-binary-$(VER).tar.gz
 PYI=/misc/src/svn/pyinstaller-hg/
 WEXE=sqledit-setup-$(VER).exe
+SID=sid
 
 clean:
 	find -name \*~ -exec rm {} \;
@@ -127,3 +128,9 @@ mkinstaller:
 	pyinstaller/make-installer $(PYI)/Build.py pyinstaller-sqledit.spec $(VER)
 	tar -C pyinstaller -chzf ../sqledit-binary-$(VER).tar.gz sqledit-$(VER)
 	echo ../sqledit-binary-$(VER).tar.gz
+
+rbuild:
+	ssh -l root $(SID) rm -Rf /usr/src/build/*
+	ssh -l root $(SID) mkdir -p /usr/src/build
+	rsync ../build/* root@$(SID):/usr/src/build
+	ssh -l root $(SID) 'cd /usr/src/build && dpkg-source -x sqlkit_$(DEBVER).dsc'

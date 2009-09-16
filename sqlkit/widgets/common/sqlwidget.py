@@ -835,7 +835,7 @@ class SqlWidget(gobject.GObject):
         if self.session.new:
             for obj in self.session.new:
                 if obj is skip_new:
-                    self.sb(_("Disreguarding new obj"), seconds=3)
+                    self.sb(_("Discarding new obj"), seconds=3)
                     continue
                 if self.session.is_modified(obj, passive=True):
                     return True
