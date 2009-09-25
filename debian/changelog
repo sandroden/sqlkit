@@ -1,3 +1,12 @@
+sqlkit (0.8.6-3) unstable; urgency=low
+
+  * New Mantainer Juan Fernando Jaramillo Botero
+    <juanf.jaramillo@miginternacional.com>
+  * Initial release. (Closes: #544798: ITP: sqlkit - python GUI app &
+    public package to edit data in databases)
+
+ -- Juan Fernando Jaramillo Botero <juanf.jaramillo@miginternacional.com>  Fri, 25 Sep 2009 10:29:53 -0500
+
 sqlkit (0.8.6-2) unstable; urgency=low
 
   * separated documetation in a different package
