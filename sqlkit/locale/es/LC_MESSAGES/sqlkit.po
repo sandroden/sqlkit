@@ -5,12 +5,11 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version:  1.0\n"
+"Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2009-07-02 12:34+0200\n"
-"PO-Revision-Date: 2009-09-16 23:46+0200\n"
-"Last-Translator: Juan Fernando Jaramillo Botero "
-"<juanf.jaramillo@miginternacional.com>\n"
+"PO-Revision-Date: 2009-09-16 17:23-0500\n"
+"Last-Translator: Juan Fernando Jaramillo Botero <juanf.jaramillo@miginternacional.com>\n"
 "Language-Team: Español <juanf.jaramillo@miginternacional.com>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "MIME-Version: 1.0\n"
@@ -77,8 +76,7 @@ msgid ""
 "Uncheck the flag on the right ti disable this feature"
 msgstr ""
 "Si escribe un nombre de host errado\n"
-"la aplicación puede colgarse algunos segundos hasta el timeout natural de"
-" la red. \n"
+"la aplicación puede colgarse algunos segundos hasta el timeout natural de la red. \n"
 "Des selecciones la bandera a la derecha eso inhabilitará esta propiedad"
 
 #: bin/sqledit.py:185
@@ -123,7 +121,8 @@ msgid "Database"
 msgstr "Base de Datos"
 
 #. : menu entry
-#: sqlkit/misc/table_browser.py:118 sqlkit/misc/words.py:13
+#: sqlkit/misc/table_browser.py:118
+#: sqlkit/misc/words.py:13
 #: sqlkit/widgets/common/sqlwidget.py:575
 msgid "Modify"
 msgstr "Modificar"
@@ -133,7 +132,8 @@ msgid "Tool"
 msgstr "Herramienta"
 
 #. : menu entry
-#: sqlkit/misc/table_browser.py:120 sqlkit/misc/words.py:15
+#: sqlkit/misc/table_browser.py:120
+#: sqlkit/misc/words.py:15
 #: sqlkit/widgets/common/sqlwidget.py:578
 msgid "Help"
 msgstr "Ayuda"
@@ -210,7 +210,8 @@ msgid "File"
 msgstr "Archivo"
 
 #. : menu entry
-#: sqlkit/misc/words.py:17 sqlkit/widgets/common/sqlwidget.py:576
+#: sqlkit/misc/words.py:17
+#: sqlkit/widgets/common/sqlwidget.py:576
 msgid "Go"
 msgstr "Ir"
 
@@ -220,7 +221,8 @@ msgid "opts"
 msgstr "opts"
 
 #. : opts in filetr panel
-#: sqlkit/misc/words.py:21 sqlkit/widgets/common/sqlwidget.py:577
+#: sqlkit/misc/words.py:21
+#: sqlkit/widgets/common/sqlwidget.py:577
 msgid "Tools"
 msgstr "Herramientas"
 
@@ -305,9 +307,7 @@ msgstr "Edite la tabla en referencia en el modo 'mascara'"
 
 #: sqlkit/widgets/common/completion.py:561
 msgid "Edit the table from which admitted values are taken in 'mask' mode"
-msgstr ""
-"Edite la tabla para la cual ha admitido valores tomados en el modo "
-"'mascara'"
+msgstr "Edite la tabla para la cual ha admitido valores tomados en el modo 'mascara'"
 
 #: sqlkit/widgets/common/completion.py:659
 msgid "Good match"
@@ -328,7 +328,8 @@ msgstr "el valor no es Decimal ni cadena: %s"
 msgid "value is not date nor string: %s"
 msgstr "el valor no es fecha ni cadena: %s"
 
-#: sqlkit/widgets/common/fields.py:683 sqlkit/widgets/mask/miniwidgets.py:209
+#: sqlkit/widgets/common/fields.py:683
+#: sqlkit/widgets/mask/miniwidgets.py:209
 #, python-format
 msgid "Wrong date format: %s"
 msgstr "Formato de fecha errado %s"
@@ -337,7 +338,8 @@ msgstr "Formato de fecha errado %s"
 msgid "Wrong time format"
 msgstr "Formato de hora errado"
 
-#: sqlkit/widgets/common/sqlfilter.py:34 sqlkit/widgets/common/sqlfilter.py:37
+#: sqlkit/widgets/common/sqlfilter.py:34
+#: sqlkit/widgets/common/sqlfilter.py:37
 msgid "Match as regexp"
 msgstr "Coincidencia como regexp"
 
@@ -430,7 +432,8 @@ msgid "Result page for your query"
 msgstr "Página resultado para su consulta"
 
 #. : status bar message
-#: sqlkit/widgets/common/sqlfilter.py:238 sqlkit/widgets/table/table.py:710
+#: sqlkit/widgets/common/sqlfilter.py:238
+#: sqlkit/widgets/table/table.py:710
 #: sqlkit/widgets/table/table.py:912
 #, python-format
 msgid "Total N. of records: %s"
@@ -438,12 +441,8 @@ msgstr "Total N. de registros: %s"
 
 #: sqlkit/widgets/common/sqlfilter.py:541
 #, python-format
-msgid ""
-"value '%s' does not seem a valid date and cannot be transformed into a "
-"date"
-msgstr ""
-"valor '%s' no parece una fecha valida y no puede ser transformada en una "
-"fecha"
+msgid "value '%s' does not seem a valid date and cannot be transformed into a date"
+msgstr "valor '%s' no parece una fecha valida y no puede ser transformada en una fecha"
 
 #. : appears in the menu in the filter panel to add a second entry of the same
 #. field
@@ -485,14 +484,12 @@ msgstr "Salvado"
 #, python-format
 msgid ""
 "Error while writing to the database. Possible causes: you are saving \n"
-"an already existent record or deleting a record that is referenced by "
-"other records. \n"
+"an already existent record or deleting a record that is referenced by other records. \n"
 "Original error was: \n"
 "%s"
 msgstr ""
 "Error mientras escribe la base de datos. Posible causa: está salvando\n"
-"un registro existente o borrando un registro que está en referencia por "
-"otro registro. \n"
+"un registro existente o borrando un registro que está en referencia por otro registro. \n"
 "Error original fue: \n"
 "%s"
 
@@ -516,9 +513,8 @@ msgstr ""
 "%s"
 
 #: sqlkit/widgets/common/sqlwidget.py:838
-#, fuzzy
 msgid "Discarding new obj"
-msgstr ""
+msgstr "Eliminar nuevo obj"
 
 #: sqlkit/widgets/common/sqlwidget.py:867
 #, python-format
@@ -574,7 +570,8 @@ msgstr "Valor presente"
 msgid "Modified"
 msgstr "Modificado"
 
-#: sqlkit/widgets/common/sqlwidget.py:1849 sqlkit/widgets/mask/mask.py:450
+#: sqlkit/widgets/common/sqlwidget.py:1849
+#: sqlkit/widgets/mask/mask.py:450
 msgid "Deleted"
 msgstr "Borrado"
 
@@ -612,7 +609,8 @@ msgstr ""
 msgid "Validation Warnings"
 msgstr "Validación de advertencias"
 
-#: sqlkit/widgets/mask/mask.py:290 sqlkit/widgets/table/table.py:802
+#: sqlkit/widgets/mask/mask.py:290
+#: sqlkit/widgets/table/table.py:802
 msgid "Already at new record"
 msgstr "Ya está en el nuevo registro"
 
@@ -621,7 +619,8 @@ msgstr "Ya está en el nuevo registro"
 msgid "New record %s"
 msgstr "Nuevo registro %s"
 
-#: sqlkit/widgets/mask/mask.py:381 sqlkit/widgets/table/table.py:744
+#: sqlkit/widgets/mask/mask.py:381
+#: sqlkit/widgets/table/table.py:744
 msgid "Nothing to save"
 msgstr "Nada para salvar"
 
@@ -630,7 +629,8 @@ msgstr "Nada para salvar"
 msgid "Primary key (%s) didn't change. Refusing to save as new"
 msgstr "Llave primaria (%s) no cambia. Se niega salvarla como nueva"
 
-#: sqlkit/widgets/mask/mask.py:438 sqlkit/widgets/table/table.py:856
+#: sqlkit/widgets/mask/mask.py:438
+#: sqlkit/widgets/table/table.py:856
 #, python-format
 msgid ""
 "Delete this record?\n"
@@ -683,11 +683,13 @@ msgstr "Subtotal en %s"
 
 #. : column menu opt
 #. : modify menu entry
-#: sqlkit/widgets/table/columns.py:659 sqlkit/widgets/table/table.py:294
+#: sqlkit/widgets/table/columns.py:659
+#: sqlkit/widgets/table/table.py:294
 msgid "Show field"
 msgstr "Mostrar campo"
 
-#: sqlkit/widgets/table/columns.py:660 sqlkit/widgets/table/table.py:295
+#: sqlkit/widgets/table/columns.py:660
+#: sqlkit/widgets/table/table.py:295
 msgid "Hide field"
 msgstr "Ocultar campo"
 
