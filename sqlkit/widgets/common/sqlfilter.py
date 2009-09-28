@@ -26,6 +26,7 @@ from datetime import *
 from sqlkit.db.django_syntax import django2components
 from sqlkit.misc import datetools 
 from sqlkit import _, exc
+from babel.dates import format_date
 import warnings
 
 class SqlDataFixNeeded(Exception): pass
@@ -664,6 +665,8 @@ class FilterWidget(object):
 
         self.field_widget = gtk.Entry()
         self.field_widget.connect('activate', self.tool.panel.reload_cb)
+        if isinstance(self.tool, FilterDateTool):
+            self.field_widget.connect('changed', self.date_changed_cb)
 
         Tbl = self.tool.panel.w['T.fld']
         r = self.tool.panel.row
@@ -750,7 +753,24 @@ class FilterWidget(object):
         set string for FilterWidget
         """
         self.field_widget.set_text(str(value)) 
-    
+
+    def date_changed_cb(self, entry, ):
+        """
+        date changed: show the new date and set a tooltip
+        """
+        try:
+            dates = datetools.string2dates(entry.get_text())
+        except:
+            entry.set_tooltip_text('')
+            self.tool.panel.l.sb(_('incomplete date format'))
+            return
+            
+        dates = [format_date(d) for d in dates if d]
+        text = " - ".join(dates)
+        entry.set_tooltip_text(text)
+        self.tool.panel.l.sb(text)
+
+
 #     def pop_menu(self, wdg, ev, num_button):
 #         print "POP_MENU", self, self.menu
 #         if ev.button == num_button:
