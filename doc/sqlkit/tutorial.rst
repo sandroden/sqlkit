@@ -371,7 +371,7 @@ argument ``backref``).
 Adding these information makes it possible to used the layout in a mask to
 produce a mask with director and all the movies, if you are interested in
 this part... let me knwo and I will add more info. For the moment I suggest
-you to go and read more about :ref:`relatonships`
+you to go and read more about :ref:`relationships`
 
 Feedbak
 ========

@@ -458,3 +458,7 @@ div.sidebar {
     border: 1px solid #dfdfdf;    
     background-color: #fbfbfb;
  }
+
+.versionmodified { 
+    font-style: italic
+ }

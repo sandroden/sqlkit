@@ -1,7 +1,7 @@
 # Makefile for Sphinx documentation
 #
-VER           = 0.8.6
-DEBVER           = $(VER)-2
+VER           = 0.8.6.1
+DEBVER           = $(VER)-1
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
