@@ -102,6 +102,9 @@ datetime.date(2007, 10, 31)
 >>> dt.string2date('Y -1m')
 datetime.date(2007, 11, 30)
 
+>>> dt.string2date('Y -m')
+datetime.date(2007, 11, 30)
+
 # periods
 >>> dt.string2dates('y > Y')
 (datetime.date(2007, 1, 1), datetime.date(2007, 12, 31))

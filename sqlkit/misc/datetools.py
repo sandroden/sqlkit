@@ -37,6 +37,8 @@ period of time. When used this way the following letter refers to a period::
 
 is the 15th day of the month (beginning of month + 14 days)
 
+.. versionadded:: 0.8.6.1
+
 If the first token is the end of the month, we try to stick to the end as much as
 possible, till another period is used, so that order is significant, note what follows that
 is extracted from the doctests, assuming the current day is June 2th::
@@ -67,6 +69,8 @@ Periods
   @m == m > M
   @m-1  == m-1 > M-1
 
+.. versionadded:: 0.8.6.1
+
 @ accepts also a quantity::
 
   @2m-1 = m-1 > M-1 +1m
@@ -85,6 +89,7 @@ import re
 from dateutil.relativedelta import relativedelta
 from datetime import date, timedelta
 from babel.dates import parse_date
+from sqlkit import _
 
 class WrongRelativeDateFormat(Exception): pass
 
@@ -107,7 +112,10 @@ def today():
     
 def string2dates(string):
     """
-    string is returned as is if no [-+dimMwWyY>] are found otherwise
+    return a tuple of date values (start, end) that translates 'string'
+    end may be None if 'string' does not imply a period.
+    
+    Firstly a babel.dated.parse_date is attempted, if it fails
     math as described in the doctring of the module is applied
 
     Since a string definition can split into two dates, a tuple is return
@@ -124,9 +132,9 @@ def string2dates(string):
     except:
         pass
     
-    m = re.search(CHARS, string)
-    if not m:
-        return string, None
+#     m = re.search(CHARS, string)
+#     if not m:
+#         return string, None
 
     if '@' in string:
         m = re.match('@(\d?)(([ymdw]).*)', string)
@@ -135,13 +143,16 @@ def string2dates(string):
         if n:
             string += " +%s%s" % (int(n)-1, period)
 
-    data = string.split('>')
+    data = string.strip().split('>')
 
     if len(data) == 1:
         return (string2date(data[0]), None)
     else:
-        return ( string2date(data[0]), string2date(data[1]  ))
+        if not data[1]:
+            raise WrongRelativeDateFormat(_('Incomplete date format'))
 
+        return ( string2date(data[0]), string2date(data[1] or None))
+        
 def string2date(string):
     """
     return a date represented by a string applying math syntax as described
@@ -153,16 +164,13 @@ def string2date(string):
         return parse_date(string)
     except:
         pass
-    m = re.search(CHARS, string)
-    if not m:
-        return string
+
     ## add spaces to math simbols, not in starting position, only if not
     ## preceded by spaces
     PAT_ADD_SPACES = '(?<=[^ ])([-+])'
     data = re.split(' +', re.sub(PAT_ADD_SPACES, r' \1', string).strip())
     ##
     end_month = 'M' in data[0]
-    end_year = 'Y' in data[0]
     
     try:
         computed, last_period = transform(data[0])
@@ -178,7 +186,6 @@ def string2date(string):
                     computed = get_end_of_month(computed)
                 elif last_period in 'dw':
                     end_month = False
-                    
 
     except Exception, e:
         raise WrongRelativeDateFormat(e.message)
@@ -194,7 +201,6 @@ def transform(token, start=None, last_period=None, further=False):
     """
     if not start:
         start = today()
-    #print "token", token, start, last_period
 
     m = re.match(DATE_PATTERN, token)
 
@@ -215,6 +221,8 @@ def transform(token, start=None, last_period=None, further=False):
     else:
         math = m.group('math2')
     
+    if math == '-':
+        math = -1
     try:
         math = int(math)
     except TypeError:
