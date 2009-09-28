@@ -5,14 +5,21 @@ Simple relative date algebra
 a function that implements simple relative date algebra so that we can use it
 in bookmarks and queries.
 
+Differently from what other packages do (as the very usefull relativedelta that
+is used in this module) datetools tries to use the term month as a period of length
+that depends on the 'current' month.  End of february + 1month will be end of march,
+not 28th of march!
+
 Allowed chars are::
 
   [-+ diwWmMyY @>]
 
-letters refer to a moment of time or period according to use:
+letters refer to a moment of time (start/end of month, year, week) or period
+according to use: the forst token is a moment of time, the further ones are
+periods.
 
   :d: today
-  :i: yesterday (ieri in italian, 'y' was already used by year)
+  :i: yesterday ('ieri' in italian, 'y' was already used by year)
 
   :w: beginning of week
   :W: end of week
@@ -24,11 +31,23 @@ letters refer to a moment of time or period according to use:
   :Y: end of year
 
 Math signs ``+`` and ``-`` work as you would expect they add and subtract
-period of time. Whe used this way the following letter refers to a period::
+period of time. When used this way the following letter refers to a period::
 
   m+14d
 
-is the 15rd day of the month (beginning of month + 2 days)
+is the 15th day of the month (beginning of month + 14 days)
+
+If the first token is the end of the month, we try to stick to the end as much as
+possible, till another period is used, so that order is significant, note what follows that
+is extracted from the doctests, assuming the current day is June 2th::
+
+  >>> dt.string2date('M-1m-2d')
+  datetime.date(2007, 5, 29)
+
+  >>> dt.string2date('M-2d-1m')
+  datetime.date(2007, 5, 28)
+
+
 You can also use a short form (compatible with previous syntax)::
 
   m-1 == m-1m
@@ -41,7 +60,7 @@ as already stated::
 means a 3 months period, starting from beginnig of last month to end of next
 month
 
-Persiods
+Periods
 -------------------
 @ is a compact way to set a period::
 
@@ -133,20 +152,33 @@ def string2date(string):
     ## preceded by spaces
     PAT_ADD_SPACES = '(?<=[^ ])([-+])'
     data = re.split(' +', re.sub(PAT_ADD_SPACES, r' \1', string).strip())
-    ## 
+    ##
+    end_month = 'M' in data[0]
+    end_year = 'Y' in data[0]
+    
     try:
         computed, last_period = transform(data[0])
 
         for token in data[1:]:
-            computed, last_period = transform(
-                token, start=computed, last_period=last_period)
+            computed, last_period = transform(token, start=computed,
+                                              last_period=last_period, further=True)
+            
+            ## I want to stick to end of month as much as possible: if we're in june, 2nd
+            #  M-1m must return end of may: 31 NOT 30!!!
+            if end_month:
+                if last_period == 'm':
+                    computed = get_end_of_month(computed)
+                elif last_period in 'dw':
+                    end_month = False
+                    
+
     except Exception, e:
         raise WrongRelativeDateFormat(e.message)
     
     return computed
     
 
-def transform(token, start=None, last_period=None):
+def transform(token, start=None, last_period=None, further=False):
     """transform token into a date
     Token is the very simple information: m +1m 2d
     if last_period is not none, the period can be missing and 'last_period'
@@ -167,7 +199,7 @@ def transform(token, start=None, last_period=None):
     if not period and last_period:
         period = last_period
         
-    last_period = period
+    last_period = period.lower()
     
 
     if m.group('math'):
@@ -189,7 +221,10 @@ def transform(token, start=None, last_period=None):
         computed = start - timedelta(days=1)
 
     if period in ('w', 'W'):
-        computed = start - timedelta(days=start.isoweekday()-1)
+        if not further:
+            computed = start - timedelta(days=start.isoweekday()-1)
+        else:
+            computed = start
         if math is not None:
             computed = computed + relativedelta(weeks=+math)
         if period == 'W':
@@ -197,7 +232,10 @@ def transform(token, start=None, last_period=None):
             
 
     if period in ('m', 'M'):
-        computed =  start.replace(day=1)
+        if not further:
+            computed =  start.replace(day=1)
+        else:
+            computed = start
         if math is not None:
             computed = computed + relativedelta(months=+math)
 
@@ -206,7 +244,10 @@ def transform(token, start=None, last_period=None):
             
     if period in ('y', 'Y'):
         j = int(start.strftime('%j'))
-        computed = start - timedelta(days=j-1)
+        if not further:
+            computed = start - timedelta(days=j-1)
+        else:
+            computed = start
         if math is not None:
             computed = computed + relativedelta(years=+math)
         if period == 'Y':
@@ -215,13 +256,6 @@ def transform(token, start=None, last_period=None):
 
     return (computed, last_period)
 
-
-if __name__ == '__main__':
-
-    
-    string = 'd'
-#    NOV=date(2007,11,1)
-
-    r = string2dates(string)
-    print r, type(r)
-#    print transform('y', start=NOV)
+def get_end_of_month(date):
+    date = date.replace(day=1)
+    return date + relativedelta(months=+1, days=-1)
