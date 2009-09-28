@@ -214,7 +214,7 @@ def table2mapper(table):
             m = mapper(X, table, primary_key=primary_key)
         else:
             ## TIP: when assembling a mapper that does not have primary key
-            msg = _("Table %s doesn't not have a primary key, editing not possible" % table.name)
+            msg = _("Table %s doesn't have a primary key, editing is not possible") % table.name
             raise MissingPrimaryKey(msg)
     return m
 
