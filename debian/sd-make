@@ -55,7 +55,7 @@ mknew:  clean tgz
 
 deb:    mknew
 #	no signature!
-	cd ../build/sqlkit-$(VER); dpkg-buildpackage -rfakeroot -us -uc | tee log	
+	cd ../build/sqlkit-$(VER); dpkg-buildpackage -rfakeroot -us -uc -d | tee log	
 #	find ../build -maxdepth 1  -type f -exec mv {} .. \;
 	echo pkg=$(PKG)  deb=$(DEB)
 #	hg status

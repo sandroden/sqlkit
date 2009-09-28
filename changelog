@@ -1,3 +1,9 @@
+sqlkit 0.8.6.1
+
+	* translation: added spanish translation
+
+	* datetools: added @2m syntax and added Y-1m capability
+	
 sqlkit 0.8.6 -
 
 	* package: 

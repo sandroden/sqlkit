@@ -1,3 +1,9 @@
+sqlkit (0.8.6.1) unstable; urgency=low
+
+  * release 0.8.6.1 with spanish translation by Juan Fernando Jaramillo Botero
+
+ -- Sandro Dentella <sandro@e-den.it>  Mon, 28 Sep 2009 11:08:03 +0200
+
 sqlkit (0.8.6-3) unstable; urgency=low
 
   * New Mantainer Juan Fernando Jaramillo Botero
