@@ -67,6 +67,11 @@ Periods
   @m == m > M
   @m-1  == m-1 > M-1
 
+@ accepts also a quantity::
+
+  @2m-1 = m-1 > M-1 +1m
+
+that means a period of 2 months starting from beginning of last month.
 
 Other examples
 --------------
@@ -124,8 +129,11 @@ def string2dates(string):
         return string, None
 
     if '@' in string:
-        base = string.replace('@','')
+        m = re.match('@(\d?)(([ymdw]).*)', string)
+        n, base, period  = m.groups()
         string = "%s > %s" % (base.lower(), base.upper())
+        if n:
+            string += " +%s%s" % (int(n)-1, period)
 
     data = string.split('>')
 

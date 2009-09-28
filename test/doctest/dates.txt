@@ -113,6 +113,12 @@ datetime.date(2007, 11, 30)
 >>> dt.string2dates('@m')
 (datetime.date(2007, 6, 1), datetime.date(2007, 6, 30))
 
+>>> dt.string2dates('@2m')
+(datetime.date(2007, 6, 1), datetime.date(2007, 7, 31))
+
+>>> dt.string2dates('@2m-1')
+(datetime.date(2007, 5, 1), datetime.date(2007, 6, 30))
+
 >>> dt.string2dates('@w')
 (datetime.date(2007, 5, 28), datetime.date(2007, 6, 3))
 
