@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: sqlkit 0.8.5-pre\n"
 "Report-Msgid-Bugs-To: sandro@e-den.it\n"
 "POT-Creation-Date: 2009-01-07 19:38+0100\n"
-"PO-Revision-Date: 2009-09-16 23:48+0200\n"
+"PO-Revision-Date: 2009-09-28 13:45+0200\n"
 "Last-Translator: Sandro Dentella <sandro@e-den.it>\n"
 "Language-Team: <sphinx-dev@googlegroups.com>\n"
 "MIME-Version: 1.0\n"
@@ -115,8 +115,12 @@ msgstr "il campo %s non può avere valore %s"
 
 #: sqlkit/db/proxy.py:217
 #, python-format
-msgid "Table %s doesn't not have a primary key, editing not possible"
+msgid "Table %s doesn't have a primary key, editing is not possible"
 msgstr "La tabella %s non ha una chiave primaria. Non è possibile editarla."
+
+#: sqlkit/misc/datetools.py:148
+msgid "Incomplete date format"
+msgstr "Formato di data incompleto: %s"
 
 #: sqlkit/misc/table_browser.py:117
 msgid "Database"
@@ -333,112 +337,112 @@ msgstr "il valore fornito non è né una data né una stringa: %s"
 #: sqlkit/widgets/common/fields.py:683 sqlkit/widgets/mask/miniwidgets.py:209
 #, python-format
 msgid "Wrong date format: %s"
-msgstr "Formato i data errato: %s"
+msgstr "Formato data errato: %s"
 
 #: sqlkit/widgets/common/fields.py:693
 msgid "Wrong time format"
 msgstr "Formato di tempo errato"
 
-#: sqlkit/widgets/common/sqlfilter.py:34 sqlkit/widgets/common/sqlfilter.py:37
+#: sqlkit/widgets/common/sqlfilter.py:35 sqlkit/widgets/common/sqlfilter.py:38
 msgid "Match as regexp"
 msgstr "Corrispondenza su espressione regolare"
 
-#: sqlkit/widgets/common/sqlfilter.py:35
+#: sqlkit/widgets/common/sqlfilter.py:36
 msgid "Match as LIKE, \"%\" automatically added"
 msgstr "Come LIKE, '%' viene aggiunto automaticamente"
 
-#: sqlkit/widgets/common/sqlfilter.py:36
+#: sqlkit/widgets/common/sqlfilter.py:37
 msgid "Match as LIKE case insensitive, \"%\" automatically added"
 msgstr "Come LIKE, ignora differenze maiuscole"
 
-#: sqlkit/widgets/common/sqlfilter.py:38
+#: sqlkit/widgets/common/sqlfilter.py:39
 msgid "Match as regexp, case insensitive"
 msgstr "Corrispondenza su espressione regolare, ignora differenza maiuscole "
 
-#: sqlkit/widgets/common/sqlfilter.py:39
+#: sqlkit/widgets/common/sqlfilter.py:40
 msgid "Negation of match as regexp"
 msgstr "Negazione di espressione regolare"
 
-#: sqlkit/widgets/common/sqlfilter.py:40
+#: sqlkit/widgets/common/sqlfilter.py:41
 msgid "Negation of match case insensitive"
 msgstr "Negazione espressione regolare, ignora maiuscole"
 
-#: sqlkit/widgets/common/sqlfilter.py:41
+#: sqlkit/widgets/common/sqlfilter.py:42
 msgid "Equal"
 msgstr "Uguale"
 
-#: sqlkit/widgets/common/sqlfilter.py:42
+#: sqlkit/widgets/common/sqlfilter.py:43
 msgid "Not equal"
 msgstr "Non uguale"
 
-#: sqlkit/widgets/common/sqlfilter.py:43
+#: sqlkit/widgets/common/sqlfilter.py:44
 msgid "Greater then (after than)"
 msgstr "Più grande di (o dopo di)"
 
-#: sqlkit/widgets/common/sqlfilter.py:44
+#: sqlkit/widgets/common/sqlfilter.py:45
 msgid "Greater or equal"
 msgstr "Maggiore o uguale"
 
-#: sqlkit/widgets/common/sqlfilter.py:45
+#: sqlkit/widgets/common/sqlfilter.py:46
 msgid "Less than (before then)"
 msgstr "Minore di (o prima di)"
 
-#: sqlkit/widgets/common/sqlfilter.py:46
+#: sqlkit/widgets/common/sqlfilter.py:47
 msgid "Less than or equal"
 msgstr "Minore o uguale"
 
-#: sqlkit/widgets/common/sqlfilter.py:47
+#: sqlkit/widgets/common/sqlfilter.py:48
 msgid "LIKE: a \"%\" means any char - case sensitive"
 msgstr "LIKE: un '%'  significa qualunque carattere"
 
-#: sqlkit/widgets/common/sqlfilter.py:48
+#: sqlkit/widgets/common/sqlfilter.py:49
 msgid "Negation of LIKE"
 msgstr "Negazione di LIKE"
 
-#: sqlkit/widgets/common/sqlfilter.py:49
+#: sqlkit/widgets/common/sqlfilter.py:50
 msgid "As LIKE but case insensitive"
 msgstr "Come LIKE ma ignora diferenza maiuscole minuscole"
 
-#: sqlkit/widgets/common/sqlfilter.py:50
+#: sqlkit/widgets/common/sqlfilter.py:51
 msgid "Negation of ILIKE"
 msgstr "Negazione di ILIKE"
 
-#: sqlkit/widgets/common/sqlfilter.py:51
+#: sqlkit/widgets/common/sqlfilter.py:52
 msgid "The boolean is True"
 msgstr "È vero"
 
-#: sqlkit/widgets/common/sqlfilter.py:52
+#: sqlkit/widgets/common/sqlfilter.py:53
 msgid "The boolean is False"
 msgstr "È Falso"
 
-#: sqlkit/widgets/common/sqlfilter.py:53
+#: sqlkit/widgets/common/sqlfilter.py:54
 msgid "The value is not set"
 msgstr "Il valore non è impostato"
 
-#: sqlkit/widgets/common/sqlfilter.py:54
+#: sqlkit/widgets/common/sqlfilter.py:55
 msgid "The value is set"
 msgstr "Il valore è impostato"
 
-#: sqlkit/widgets/common/sqlfilter.py:105
+#: sqlkit/widgets/common/sqlfilter.py:106
 msgid "Filter Panel"
 msgstr "Pannello dei filtri"
 
-#: sqlkit/widgets/common/sqlfilter.py:114
+#: sqlkit/widgets/common/sqlfilter.py:115
 msgid "Add filters for your query"
 msgstr "Aggiungi filtri per la tua ricerca"
 
-#: sqlkit/widgets/common/sqlfilter.py:116
+#: sqlkit/widgets/common/sqlfilter.py:117
 msgid "Result page for your query"
 msgstr "Risultati della ricerca"
 
 #. : status bar message
-#: sqlkit/widgets/common/sqlfilter.py:238 sqlkit/widgets/table/table.py:710
+#: sqlkit/widgets/common/sqlfilter.py:239 sqlkit/widgets/table/table.py:710
 #: sqlkit/widgets/table/table.py:912
 #, python-format
 msgid "Total N. of records: %s"
 msgstr "N. totale di record: %s"
 
-#: sqlkit/widgets/common/sqlfilter.py:541
+#: sqlkit/widgets/common/sqlfilter.py:542
 #, python-format
 msgid ""
 "value '%s' does not seem a valid date and cannot be transformed into a "
@@ -447,18 +451,22 @@ msgstr "Il valore '%s' non è una data e non può essere trasformato in una data
 
 #. : appears in the menu in the filter panel to add a second entry of the same
 #. field
-#: sqlkit/widgets/common/sqlfilter.py:648
+#: sqlkit/widgets/common/sqlfilter.py:649
 #, python-format
 msgid "Add a new filter on this field '%s'"
 msgstr "Aggiungi un filtro per il campo '%s'"
 
-#: sqlkit/widgets/common/sqlfilter.py:653
+#: sqlkit/widgets/common/sqlfilter.py:654
 msgid "Use this filter"
 msgstr "Abilita filtro"
 
-#: sqlkit/widgets/common/sqlfilter.py:693
+#: sqlkit/widgets/common/sqlfilter.py:696
 msgid "Click here to select an operator"
 msgstr "Clicca per selezionare un operatore"
+
+#: sqlkit/widgets/common/sqlfilter.py:765
+msgid "incomplete date format"
+msgstr "formato data incompleto"
 
 #: sqlkit/widgets/common/sqlwidget.py:452
 msgid "Hiding field is only supported for Tables"
