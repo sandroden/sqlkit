@@ -114,7 +114,9 @@ rel:	tgz deb lenny mkinstaller rsync
 
 extract:
 	#	 python setup.py extract_messages 
+	cp bin/sqledit bin/sqledit.py
 	pybabel extract -o sqlkit/locale/sqlkit.pot -c TIP bin sqlkit
+	rm bin/sqledit.py
 
 update:
 	python setup.py update_catalog
