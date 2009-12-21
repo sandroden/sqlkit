@@ -343,6 +343,20 @@ Signals
       
       :param sqlwidget: the widget the emitted the signal
 
+:record-saved:
+   A record has been saved. This signal is *not* emitted from within session
+   extension. That means you are sure there will be just one signal for each
+   button press on "save" button. This is issued from within the commit()
+   method indipendently from the fact that a real modification occurred, so
+   you are not garanteed any modification took place. Was originally added
+   to implement a destroy of the widget when the save operation was performed.
+
+   The callback will just receive the widget as argument.
+
+   .. function:: records_selected_cb(sqlwidget):
+      
+      :param sqlwidget: the widget the emitted the signal
+
 :records-displayed:
    Records have been displayed. This may be after .reload() or .set_records([])
    The callback will just receive the widget as argument.
@@ -378,7 +392,7 @@ Signals
 :after-commit:
 
    run from within after-commit SessionExtension. Callback signature is
-   identical to after_flush_callback.
+   identical to ``after_flush_callback`` above.
    
 :delete-event:
 

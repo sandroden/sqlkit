@@ -51,6 +51,10 @@ class SqlWidget(gobject.GObject):
                            gobject.TYPE_BOOLEAN,
                            (),
                            ),
+        'record-saved'   : (gobject.SIGNAL_RUN_LAST,
+                           gobject.TYPE_BOOLEAN,
+                           (),
+                           ),
         'records-displayed' : (gobject.SIGNAL_RUN_LAST,
                            gobject.TYPE_BOOLEAN,
                            (),
@@ -373,8 +377,8 @@ class SqlWidget(gobject.GObject):
         self.lay_obj = layout.Layout(lay, addto=self.addto,label_map=self.label_map,
                                      title=self._title, opts='T-')
 
-        #if self.xml:
-        #    self.lay_obj.xml('/tmp/m_%s.glade' % self.nick)
+        if self.xml:
+            self.lay_obj.xml('/tmp/m_%s.glade' % self.nick)
 
         if 'Window' in self.lay_obj.elements:
             self.lay_obj.prop('Window', 'visible', False)
@@ -672,7 +676,7 @@ class SqlWidget(gobject.GObject):
                 self.session.begin()
 
             self.session.commit()
-                
+            self.emit('record-saved', )
             self.sb(message, seconds=3)
 
         except (exceptions.DBAPIError, exceptions.FlushError), e:
