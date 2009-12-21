@@ -29,6 +29,7 @@ import cell_renderers
 from sqlkit import debug as dbg, _
 from sqlkit.layout import widgets
 
+LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
 class GenericColumn(object):
     RENDERER = gtk.CellRendererText
     RESIZE = True
@@ -193,6 +194,15 @@ class GenericColumn(object):
         """
         Add a header that accepts tooltips and bold labels for mandatory columns
         """
+        def ene_cb(eb, event):
+            eb.get_child().set_state(gtk.STATE_PRELIGHT)
+            #eb.window.set_cursor(gtk.gdk.HAND)
+            return True
+
+        def lne_cb(eb, event):
+            eb.get_child().set_state(gtk.STATE_NORMAL)
+            return True
+
         # Label
         label_text, help_text = self.master.label_map.get(self.field_name, (None, None))
         label_text = self.master.get_label(label_text or self.field_name)
@@ -209,6 +219,12 @@ class GenericColumn(object):
         event_box.add(label)
         event_box.show_all()
 
+        event_box.connect('enter-notify-event', ene_cb)
+        event_box.connect('leave-notify-event', lne_cb)
+        label.modify_fg(gtk.STATE_PRELIGHT, LBL_HOOVER_STYLE)
+        
+        event_box.connect("realize", self.realize_cb)        
+
         # Tooltip
         if help_text:
             event_box.set_tooltip_text(help_text)
@@ -217,6 +233,9 @@ class GenericColumn(object):
         column.set_widget(event_box)
         event_box.connect('button-press-event', self.button_press_cb, column)
 
+    def realize_cb(self, widget):
+        watch = gtk.gdk.Cursor(gtk.gdk.HAND2)
+        widget.window.set_cursor(watch)
 
     def is_expandable(self):
         """
