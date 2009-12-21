@@ -466,7 +466,7 @@ trigger *on_after_commit* on the Actor's table and viceversa.
 get_differences
 ---------------
 
-Module sqlkit.db.utils provides a simple function that yealds all modified
+Module sqlkit.db.utils provides a simple function that yields all modified
 attributes of an object, along with their old and new values
 
 .. function:: get_differences(obj)
