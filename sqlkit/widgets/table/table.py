@@ -802,7 +802,7 @@ class SqlTable(sqlwidget.SqlWidget):
         ## beyond the lower row)
         if not self.record_has_changed():
             #if self.last_new_obj:
-            if (self.current and self.current in self.session.new) or self._new_record:
+            if (self.current and self.current in self.session.new) and self._new_record:
                 self.sb(_("Already at new record"))
                 return
         self.record_save()
