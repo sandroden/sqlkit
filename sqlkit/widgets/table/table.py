@@ -298,7 +298,7 @@ class SqlTable(sqlwidget.SqlWidget):
 #            ('HiddenColumns', None, None),           # menu
             ('Records', None, 'Records'),
             ('Export', None, _('Export'), None, None, self.export),
-            ('MaskView', gtk.STOCK_ZOOM_IN, _('View this record in a Mask'), None, None, self.record_in_mask),
+            ('MaskView', gtk.STOCK_ZOOM_IN, _('View this record in a Mask'), '<Control>m', None, self.record_in_mask),
             ('MaskViewFKey', gtk.STOCK_LEAVE_FULLSCREEN, _('View this ForeignKey in a Mask'), None, None, self.fkey_record_in_mask),
             ])
 
