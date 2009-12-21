@@ -666,7 +666,8 @@ class SimpleCompletion(object):
                     if not clean_value:
                         raise exc.NoResultFound
 
-                    self.master.set_value(self.field_name, clean_value, fkvalue=text)
+                    self.master.set_value(self.field_name, getattr(clean_value, self.column_lookup.name),
+                                          fkvalue=text)
                     return True
 
                 else:
