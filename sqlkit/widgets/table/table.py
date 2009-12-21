@@ -585,7 +585,7 @@ class SqlTable(sqlwidget.SqlWidget):
     
     def key_tree_Down(self, treeview, event, data):
 
-        row = self.get_selected_row() 
+        row = self.get_selected_row()[0]
         if row is None:
             row = -1
         if row + 1 == len(self.modelstore):
@@ -1227,7 +1227,7 @@ class SqlTable(sqlwidget.SqlWidget):
         #  (<gtk.Modelstore object at 0x8dd61bc (GtkModelstore at 0x8da6090)>, [(1,)])
 
         if rows:
-            return rows[0][0]
+            return rows[0]
         else:
             return None
     
@@ -1440,3 +1440,5 @@ class SqlTable(sqlwidget.SqlWidget):
         for field in self.gui_fields:
             field.widget.add_completion(editable=editable)
         
+
+
