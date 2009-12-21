@@ -248,6 +248,10 @@ completeness:
 Attributes
 ===========
 
+.. attribute:: filter_panel
+
+   The :ref:`filter_panel` widget
+
 .. attribute:: related
 
    a container for all related sqlwidgets (i.e.: SqlWidgets that have a

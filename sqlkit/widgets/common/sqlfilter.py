@@ -12,7 +12,28 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 
+.. _filter_panel:
+
+================
+FilterPanel
+================
+
+The filter panel is the panel where all filter conditions can be written (remeber that
+constraints are different in the sense that are filters applied w/o possibility to remove
+them). It opens as a window separate from the main window so that it's esay to hide or keep
+it at hand.
+
+Each sqlwidget has a FilterPanel even if it doesn't show it
+
+.. autoclass:: FilterPanel
+   :members: hide, show, get_tools, reload, set_tab
+
+.. autoclass:: FilterTool
+   :members: set_value, get_value, set_operator, get_operator
+
+"""
 import re
 import gtk
 import completion
@@ -58,10 +79,8 @@ OP_MSGID = {
 
 
 class FilterPanel(object):
-    """A filter panel has 'entry|operator|string' rows
-
-    the user must be able to enter filter conditions on each operator or add
-    filter on the same field 
+    """A panel that manages filter conditions of a query: number of records,
+    field names and output to point & click in case of a panel of a SqlMask
     """
 
     def __init__(self, master, visible=True):
@@ -142,6 +161,12 @@ class FilterPanel(object):
         """
         add a filter using django-like syntax
 
+        :param active: make the filter active (default True). This hides the possibility to
+            add a filter on a field named ``hide``. In this case you can use the longer version
+            that is ``active__eq=True``
+        :param kwargs: any paramenter allowed per sytax of the django_like syntax as explained
+            in the :ref:`chapter on constraints <constraints>`
+        
         """
         for key, val in kwargs.iteritems():
             path, op, op_str, value, col, join_args = django2components(self.master.mapper, {key: val})
@@ -181,8 +206,7 @@ class FilterPanel(object):
             self.search_filter_widgets += [ widget]
             self.search_filter_field_names  += [search_path]
 
-        if 'N.0' in self.w:
-            self.w['N.0'].set_current_page(0)
+        self.set_tab('filter')
 
         if show:
             self.w['Window'].show_all()
@@ -192,20 +216,54 @@ class FilterPanel(object):
         except:
             return None
 
-    def hide(self, widget=None, ev=None):
+    def set_tab(self, name):
         """
-        hide FilterPanel
+        set the tab in the filter. Tab name can be 'filter' or 'output'.
+        Sqlmasks only have 'filter'.
+
+        :param name: name of the tab in the filter widget: *filter* or *output*
+        """
+
+        if 'N.0' in self.w:
+            if name == 'filter':
+                self.w['N.0'].set_current_page(0)
+
+            if name == 'output' and self.master.is_mask():
+                self.w['N.0'].set_current_page(1)
+        
+        
+    def hide(self, widget=None, event=None):
+        """
+        Hide the Filterpanel
+
+        :param widget: not neeeded: it' here to allow using it in callback
+        :param event: not needed: see above
         """
 
         self.w['Window'].set_property('visible', False)
         return True  # stops further processing...
     
+    def show(self):
+        """
+        Present the filter panel
+        """
+        self.w['Window'].present()
+        
+    def get_tools(self, field_name):
+        """
+        return a list of FilterTool for *field_name*
+
+        :param field_name: name of the field
+        
+        """
+        return [w for w in self.search_filter_widgets if w.field_name == field_name]
+
     def destroy(self):
         self.w['Window'].destroy()
     
 ##### reload & TreeView
     def reload(self):
-        """issue a reload operation on master. Call back of reload button"""
+        """issue a reload operation on master. Callback of reload button"""
 
         length = 0
         if 'TV=out' in self.w:
@@ -231,7 +289,7 @@ class FilterPanel(object):
         if 'TV=out' in self.w:
             if length:
                 self.fill_model()
-                self.w['N.0'].set_current_page(1)
+                self.set_tab('output')
                 self.master.record_display(0)
             else:
                 self.model.clear()
@@ -376,6 +434,14 @@ class FilterPanel(object):
         
 
 class FilterTool(object):
+    """
+    A tool that handles the the filter and provides a mean to modify the query of the
+    master (sqlwidget). With the FilterTool you can programmatically set the filter
+    active/inactive, change the operator and the filter values.
+
+    You will normally do all this with the ``.add_filter`` method of sqlwidget, but
+    you may occasionally need to fine tune the filter in a second time
+    """
     STR_STD_OPERATORS = [ 'LIKE', 'NOT LIKE', 'ILIKE', 'NOT ILIKE']
     NULL_OPERATORS = [ 'IS NULL', 'IS NOT NULL' ]
     STD_OPERATORS = [ '>=','<=', '=', '!=', '>', '<', ] + NULL_OPERATORS
@@ -419,27 +485,42 @@ class FilterTool(object):
 
 ##### handling
     def set_value(self, value):
+        """
+        set the value of the filter. It can be a string or an object (eg. a date())
+        """
         self.widget.set_value(value)
 
     def get_value(self):
+        """
+        return the current value of the filter
+        """
         
         value = self.widget.get_value() 
         f = self.master.gui_fields[self.field_name]
         return f.clean_value(value)
 
     def set_active(self, active):
+        """make the filter active"""
+
         self.widget.set_active(active)
 
     def get_active(self):
+        """set the filter inactive"""
+        
         return self.widget.get_active()
 
     def set_operator(self, op, value):
         """
         Set the active operator entry in ComboBox/OptionMenu for operator choice
+        :param op: the operator
+        :param value: the value of the operator 
         """
         self.widget.set_operator(op, value)
 
     def get_operator(self):
+        """
+        return the active operator entry in ComboBox/OptionMenu 
+        """
         return self.widget.get_operator()
 
     def get_suitable_operators(self):

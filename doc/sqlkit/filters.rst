@@ -110,3 +110,4 @@ will behave the same all the time.
 .. automodule:: sqlkit.misc.datetools
 
 
+.. automodule:: sqlkit.widgets.common.sqlfilter

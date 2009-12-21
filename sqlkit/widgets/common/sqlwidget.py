@@ -341,7 +341,7 @@ class SqlWidget(gobject.GObject):
         """
         Pop a Filter Panel, called from menu item
         """
-        self.filter_panel.w['Window'].present()
+        self.filter_panel.show()
 
     def add_filter(self, **kw):
         self.filter_panel.add_filter(**kw)

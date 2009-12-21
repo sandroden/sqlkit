@@ -90,8 +90,8 @@ Django2sqlalchemy returns a tuple: (clause_list, join_path):
 	   query.join(path).reset_joinpoint()
 
 
-API
-----
+Filter simplifield syntax
+-------------------------
 
 .. automodule:: sqlkit.db.django_syntax
 
