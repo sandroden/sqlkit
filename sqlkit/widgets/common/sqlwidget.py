@@ -1814,6 +1814,7 @@ class UnsavedDataDialog(object):
             except Exception, e:
                 exc.ValidationError(e.message)
 
+#        import ipdb; ipdb.set_trace()
         if self.master.session.dirty or (
             self.master.record_has_changed() and self.master.current not in self.master.session.new):
             dirty_iter = self.model.append(None)
@@ -1832,16 +1833,14 @@ class UnsavedDataDialog(object):
                         ## FIXME: we could also look for better representation in related widgets
                         old_value = utils.clean_for_markup(old)
                         new_value = utils.clean_for_markup(new)
-#                         old_value = old
-#                         new_value = new
-
+                        
                     iter = self.model.append(None)
                     self.model.set(iter,
                                    0, "<i>%s</i>" % (utils.clean_for_markup(repr(item))[:25] or
                                                      utils.clean_for_markup(item)[:25]),
                                    1, "%s" % self.master.get_label(field_name),
-                                   2, old_value,
-                                   3, new_value,
+                                   2, self.clearer(old_value),
+                                   3, self.clearer(new_value),
                                    )
 
         if self.master.session.deleted:
@@ -1863,9 +1862,17 @@ class UnsavedDataDialog(object):
                                0, "<i>%s</i>" % utils.clean_for_markup(item.__class__.__name__),
                                3, "%s" % utils.clean_for_markup(item))
                 
-                
-
-
+    def clearer(self, value):
+        """
+        return a string representation of '' vs. None so that user
+        understands what is changing when just a 
+        """
+        from sqlkit.db import utils 
+        if value == '':
+            return utils.clean_for_markup('<%s>' % _("empty string: ''"))
+        if value is None:
+            return utils.clean_for_markup('<%s>' % _('NULL value'))
+        return value
 
 
 class ValidationErrorDialog(object):
