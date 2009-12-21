@@ -512,6 +512,8 @@ class SimpleCompletion(object):
               - regexp
               - start
         """
+        from sqlkit.widgets.table.tablewidgets import CellWidget
+        
         if not ev.button == num_button:
             return False
 
@@ -533,7 +535,8 @@ class SimpleCompletion(object):
         ## possible values regexp
         # TIP: menu enty in menu on right click on down arro in fkey completion widget
         item = gtk.MenuItem(label=_("Show possible values: regexp  - Ctrl-Enter"))
-        item.connect('activate', self.show_possible_completion, 'regexp')
+        if not isinstance(self.widget, CellWidget):
+            item.connect('activate', self.show_possible_completion, 'regexp')
         # TIP: yellow tip to menu entry in down arrow in completion widget
         label = _("Show all values in the db that match your string")
         item.set_tooltip_text(label)
@@ -541,7 +544,8 @@ class SimpleCompletion(object):
 
         ## possible values starting
         item = gtk.MenuItem(label=_("Show possible values, starting - Shift-Enter"))
-        item.connect('activate', self.show_possible_completion, 'start')
+        if not isinstance(self.widget, CellWidget):
+            item.connect('activate', self.show_possible_completion, 'start')
         label = _("Show all values in the database starting with your string")
         item.set_tooltip_text(label)
         menu.append(item)
