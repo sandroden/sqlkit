@@ -401,6 +401,9 @@ The following hooks are defined:
         
     The callback has the same signature as for ``on_after_flush``
 
+Hooks for related widgets
+-------------------------
+
 If you need to add hooks for related sqlwidgets (those that display related
 records as explained in :ref:`relationships`) you need to add the
 relationship_path in the method name, i.e. the value you have used in the
@@ -409,7 +412,7 @@ table definition for the relation (and in the layout as in m2m=actors)
 .. _wav_example:
 
 example
--------
++++++++
 
 This example show how to use hooks to play a sound on completion::
 

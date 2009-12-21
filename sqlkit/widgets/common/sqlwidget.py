@@ -1243,9 +1243,9 @@ class SqlWidget(gobject.GObject):
 
         if hasattr(sqlwidget.hooks, hook_name):
             if 'field_name' in kw:
-                return getattr(sqlwidget.hooks, hook_name)(self, kw['field_name'], *args)
+                return getattr(sqlwidget.hooks, hook_name)(sqlwidget, kw['field_name'], *args)
             else:
-                return getattr(sqlwidget.hooks, hook_name)(self, *args)
+                return getattr(sqlwidget.hooks, hook_name)(sqlwidget, *args)
     
 ###### Callback
     def clear_cb(self, *args):
