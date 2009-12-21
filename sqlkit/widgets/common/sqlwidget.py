@@ -409,8 +409,7 @@ class SqlWidget(gobject.GObject):
         from sqlkit.db import get_layout
 
         ## FIXME: self.master.tables is not really defined. Mau be a string or a list 
-        
-        return get_layout(self.tables, nick=nick)
+        return get_layout(self.tables, nick=nick or 'default')
 
     def show(self, show):
         """
