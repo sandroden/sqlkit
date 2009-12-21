@@ -97,11 +97,14 @@ class DjangoParser(object):
     parses a django-like argument to compose a sqlalchemy
     ColumnList/ColumnElement object to be used in queries
     """
-    def __init__(self, mapper_or_table=None, query=None, OR=False, aliased=False):
+    def __init__(self, mapper_or_table=None, query=None, OR=False, aliased=False, outer=False):
         """
         A sqlalchemy.Table object
+
+        :param outer: the join will be an OUTER JOIN
         """
-        self.aliased=aliased
+        self.aliased = aliased
+        self.outer = outer
         if isinstance(mapper_or_table, Table):
             self.mapper = None
             self.table = mapper_or_table
@@ -173,7 +176,10 @@ class DjangoParser(object):
     def compose(self):
         for path in self.joins:
             if path:
-                self.query = self.query.join(aliased=self.aliased, *path).reset_joinpoint()
+                if self.outer:
+                    self.query = self.query.outerjoin(aliased=self.aliased, *path).reset_joinpoint()
+                else:
+                    self.query = self.query.join(aliased=self.aliased, *path).reset_joinpoint()
 
         return self.query.filter(self.sql() )
 
@@ -282,12 +288,13 @@ def get_foreign_column(mapper, path=None, attr=None):
     return get_column(prop, attr)
 
 
-def django2query(query, mapper_or_class, OR=False, aliased=False, **kw):
+def django2query(query, mapper_or_class, OR=False, aliased=False, OUTER=False, **kw):
     """
     return a new query with new constraints expressed in  'django-style'
 
     :param query:     the query to which filters will be applied
     :param mapper_or_class: a mapper or a class from which the class will be devised
+    :param OUTER: DjangoParse will be instantiated as an OUTER join
     """
 
     from sqlalchemy.orm import class_mapper, Mapper
@@ -298,7 +305,7 @@ def django2query(query, mapper_or_class, OR=False, aliased=False, **kw):
     else:
         mapper = class_mapper(mapper_or_class)
         
-    parser = DjangoParser(mapper, query, OR=OR, aliased=aliased)
+    parser = DjangoParser(mapper, query, OR=OR, aliased=aliased, outer=OUTER)
 
     for key,val in kw.iteritems():
         parser.parse( {key:val})
