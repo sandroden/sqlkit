@@ -84,6 +84,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
         self.liststore = gtk.ListStore(object)
+#        self.liststore = gtk.TreeStore(object)
         ## layout
         self.treeview = self.widgets["TV=tree"]
         self.treeview.set_enable_search(False)
@@ -704,7 +705,10 @@ class SqlTable(sqlwidget.SqlWidget):
             self.liststore.clear()
 
             for record in self.records:
-                self.liststore.append([record])
+                try:
+                    self.liststore.append([record])
+                except TypeError:
+                    self.liststore.append(None, [record])
 
         # TIP: status bar message
         self.sb(_("Total N. of records: %s") % (len(self.liststore)), seconds=None)
@@ -917,7 +921,10 @@ class SqlTable(sqlwidget.SqlWidget):
         get a new iter inserting a row just before last (sub)/total - if any-
         """
         if not len(self.liststore):
-            return self.liststore.append([new_obj])
+            try:
+                return self.liststore.append([new_obj])
+            except TypeError:
+                return self.liststore.append(None, [new_obj])
 
         for i in range(-1, -5, -1):
             obj = self.liststore.get_value( self.liststore[i].iter, 0)
@@ -926,7 +933,10 @@ class SqlTable(sqlwidget.SqlWidget):
             row = self.liststore[i]
             break
 
-        return self.liststore.insert_after(row.iter, [new_obj])
+        try:
+            return self.liststore.insert_after(row.iter, [new_obj])
+        except TypeError:
+            return self.liststore.insert_after(None, row.iter, [new_obj])
 
 ###### Validation
     def cell_validate(self):
@@ -1073,8 +1083,13 @@ class SqlTable(sqlwidget.SqlWidget):
         self.edited_row_model_path = None  # must be set *before* clear()
                                 # to inhibit selection_changed_cp
         self.liststore.clear()
-        for i in self.records:
-            self.liststore.append([i])
+        if isinstance(self.liststore, gtk.ListStore):
+            for i in self.records:
+                self.liststore.append([i])
+        else:
+            for i in self.records:
+                self.liststore.append(None, [i])
+                
         self.totals.compute()
         self.treeview.columns_autosize()
         sqlwidget.SqlWidget.record_refresh(self)

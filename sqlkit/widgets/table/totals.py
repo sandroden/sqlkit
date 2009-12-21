@@ -129,9 +129,16 @@ class Totals(object):
     def insert(self, row, after=None, sub=False):
         tot = self.total_class(self.table.field_list, sub=sub)
         if after:
-            piter = self.table.liststore.insert_after(row.iter)
+            try:
+                piter = self.table.liststore.insert_after(row.iter)
+            except TypeError:
+                piter = self.table.liststore.insert_after(None, row.iter)
+                
         else:
-            piter = self.table.liststore.insert_before(row.iter)            
+            try:
+                piter = self.table.liststore.insert_before(row.iter)            
+            except TypeError:
+                piter = self.table.liststore.insert_before(None, row.iter)
 
         self.table.liststore.set_value(piter, 0, tot)
 
