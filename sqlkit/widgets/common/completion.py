@@ -826,10 +826,10 @@ class FkeyCompletion(SimpleCompletion):
                 return None
 
             if len(all) == 0:
-                raise exc.LookupValueMissingValue("%s returns no values for %s/%s" % (
+                raise exc.LookupValueMissingValue("%s returns no values for '%s': '%s'" % (
                     sql, self.field_name, field_value))
             elif len(all) > 1:
-                raise exc.LookupValueMultipleValues("%s returns multiple values for %s/%s" % (
+                raise exc.LookupValueMultipleValues("%s returns multiple values for '%s': '%s'" % (
                     sql, self.field_name, field_value))
             else:
                 value = format % all[0]
