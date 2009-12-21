@@ -447,6 +447,13 @@ class FilterTool(object):
         """
         return self.STD_OPERATORS
 
+    def string_representation(self, value):
+        """
+        return a string representation suitable for filter entry
+        """
+        field = self.master.gui_fields[self.field_name]
+        return field.get_human_value(value)
+    
     def add_filter_condition(self, query):
         if not self.get_active():
             return query
@@ -562,6 +569,16 @@ class FilterDateTool(FilterTool):
         # no cleaning of value until in _compose_field_whereclause
         return self.widget.get_value() 
 
+    def string_representation(self, value):
+        """
+        when date algebra is used we dont need to do anything
+        """
+        if isinstance(value, date): 
+            return FilterTool.string_representation(self, value)
+        else:
+            return value
+        
+        
 class FilterFKeyTool(FilterTool):
 
     def __init__(self, field_name, panel, master):
@@ -585,6 +602,12 @@ class FilterFKeyTool(FilterTool):
     def get_value(self):
         # no need to clean this value
         return self.widget.get_value()
+    
+    def string_representation(self, value):
+        """
+        a boolean must be always a string
+        """
+        return str(value)
     
     def _compose_field_whereclause(self, query, value, op_value):
         """return a sql whereclause for field
@@ -753,7 +776,9 @@ class FilterWidget(object):
         """
         set string for FilterWidget
         """
-        self.field_widget.set_text(str(value)) 
+        
+        self.field_widget.set_text(self.tool.string_representation(value))
+
 
     def date_changed_cb(self, entry, ):
         """
