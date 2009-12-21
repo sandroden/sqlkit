@@ -493,7 +493,7 @@ The following hooks are defined:
     From the sqlalchemy documentation: "Note that the session's state is
     still in pre-flush, i.e. *new*, *dirty*, and *deleted* lists still
     show pre-flush state as well as the history settings on instance
-    attributes". This is true for *post_commit* hook as well, it is not true
+    attributes". This is true for *after_commit* hook as well, it is not true
     for *after_flush_postexec*, that on the other had has already setup
     relation.
 
@@ -502,7 +502,7 @@ The following hooks are defined:
     after_flush/after_commit phase, the second (may be a mail, or any other
     action) from within the after_flush_postexec, so that I can use the
     relations. Beware that you may have one call to ``on_after_flush`` and
-    more different calls to ``on_post_commit``
+    more different calls to ``on_after_commit``
 
     .. function:: on_after_flush_callback(sqlwidget, object, session)
 
@@ -528,8 +528,8 @@ The following hooks are defined:
 
     The callback has the same signature as for ``on_after_flush``
 
-:on_post_commit: run after commit
-    post_commit session extension method
+:on_after_commit: run after commit
+    after_commit session extension method
         
     The callback has the same signature as for ``on_after_flush``
 

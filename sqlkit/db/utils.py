@@ -125,12 +125,13 @@ class Descr(object):
 class DictLike(object):
     """
     simple way to enable %(field_name)s lookup in classes
-    used to allow correct use of 'format'
+    used to allow correct use of 'format'. None is casted to empty string
     """
     def __init__(self, obj):
         self.obj = obj
+        
     def __getitem__(self, key):
-        return getattr(self.obj, key) or ''
+        return getattr(self.obj, key, '')
 
 class Tables(Container):
     def __getitem__(self, key):
