@@ -33,7 +33,6 @@ lay = """
 t = SqlMask(class_=model.AllTypes, layout=lay, dbproxy=db )
 t.reload()
 
-t1 = SqlTable(class_=model.AllTypes, dbproxy=db )
 
 for label in ('text','date','numbers','boolean'):
     frame = t.widgets['F.%s' % label]
@@ -42,5 +41,8 @@ for label in ('text','date','numbers','boolean'):
         '<b><i>%s</i></b>' % label)
 
 
-t1.reload()
+t = SqlTable(class_=model.AllTypes, dbproxy=db )
+t.reload()
+
+
 

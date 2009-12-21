@@ -71,7 +71,8 @@ slower. Previous 0.5 rel called it ``autoflush``
 
 .. autoclass:: sqlkit.widgets.common.sqlwidget.SqlWidget(see_below)
    :members: __init__, add_constraint, add_filter, resize, set_records,
-             set_format, is_mask, is_table, sb, get_value, set_value, get_current_obj
+             set_format, is_mask, is_table, sb, get_value, set_value,
+	     get_current_obj, set_mode
 
 
 Attributes
@@ -157,6 +158,19 @@ Attributes
 .. attribute:: title
 
    the title of the Window.
+
+.. attribute:: mode
+
+    the mode describing permissions of the widget. See :ref:`set_mode <set_mode>`
+
+.. attribute:: noup
+
+    noup can be a set of field_name or a comma separated string with possible +- sign
+    to add/remove field_names to the set of field_names that will not be possible to update
+
+    Note that to add a non editable field_name you must used '+field_name'. Using simply 'field_name'
+    will reset the list to only  that field_name
+
 
 .. _sqlalchemy: http://www.sqlalchemy.org
 

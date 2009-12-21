@@ -55,13 +55,12 @@ class InspectMapper(Container):
     props  = None  # dict of properties 
     pkeys  = None  # dict table:[pkey1,...]
 
-    def __init__(self, mapper, noup=None, ro=False):
+    def __init__(self, mapper, noup=None):
         """
-        noup: list of fields that will get a rw=False field
+        noup: set of fields that will get a rw=False field
         ro:   bool. if True no update/insert/delete will be possible
            """
         global SA_TYPE_MAP
-        self.ro = ro
         
         try:
             # these type so no have a correspondence a base in a SA Type
@@ -75,7 +74,7 @@ class InspectMapper(Container):
         self.field_list = []
         self.fields = Container()
         self.primarytable = self.get_primary_table
-        self.noup = self.parse_noup(noup)
+        self.noup = noup or set()
         self.mapper = mapper
         self.props = []
         self.pkeys = {}
@@ -147,7 +146,7 @@ class InspectMapper(Container):
             d['default']     =  mapper.c[field_name].default
             d['pkey']        =  mapper.c[field_name].primary_key
             d['nullable']    =  mapper.c[field_name].nullable
-            d['editable']    =  self.set_noup(field_name, col.name, col)
+            d['editable']    =  field_name not in self.noup
 
 
         if d['table'] and col.table.name not in self.table_mappers:
@@ -296,31 +295,6 @@ class InspectMapper(Container):
         except KeyError:
             raise MissingPrimaryKeyError("%s does not seem to have a PKey" %
                                          table_name)
-        
-    def parse_noup(self, noup):
-        """parse noup to set fields that are not updateable
-        """
-        if noup == None:
-            return []
-        if isinstance(noup, str):
-            noup = re.split('[ ,]+', noup)
-        return noup
-        
-    def set_noup(self, field_name, table_name, col):
-        if self.ro:
-            return False
-        
-        editable = True
-        ## if this field is not in the main (primary) table, don't editable it
-#         if table_name != self.primarytable():
-#             #dbg.write("%s: %s != %s" % (field_name, table_name, self.primarytable()))
-#             editable = False
-
-        if field_name in self.noup:
-            #dbg.write("2", field_name, 'noup')
-            editable = False
-            
-        return editable
         
     def get_join_cnd(self):
         tables = self._tables(mode='mapper')

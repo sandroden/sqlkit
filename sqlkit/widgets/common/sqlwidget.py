@@ -565,6 +565,36 @@ class SqlWidget(gobject.GObject):
         """
         self.dialog(type="ok", text=_("Hiding field is only supported for Tables"))
         
+    def _get_noup(self, noup=None):
+        """return noup set of field_name that are not updateable"""
+
+        return self._noup or set()
+
+    def _set_noup(self, noup):
+
+        if isinstance(noup, (tuple, list, set, frozenset)):
+            self._noup = set(noup)
+        else:
+            if not hasattr(self, '_noup'):
+                self._noup = set()
+            for x in re.split('[ ,]+', noup or ''):
+                if x.startswith('-'):
+                    x = x.replace('-', '')
+                    if x in self._noup:
+                        self._noup.remove(x)
+                elif x.startswith('-'):
+                    x = x.replace('+', '')
+                    self._noup.add(x)
+                else:
+                    self._noup.add(x)
+                    
+        try:
+            self.set_mode() # forces tables to reset editable on columns
+        except AttributeError:
+            ## actiongroup is not yet ready, but mode will be forced later anyhow
+            pass
+
+    noup = property(_get_noup, _set_noup)
     def get_nick(self, nick):
         if not nick:
             if self.tables:
@@ -1337,7 +1367,7 @@ class SqlWidget(gobject.GObject):
         set 'records' as the list of record to manage
 
         :param records: use 'records'  as the list of records
-        :param pk: use primary key pk as te pk to show (TODO make it work with compisite pks)
+        :param pk: use primary key pk as te pk to show (TODO make it work with composite pks)
         """
         if not records and pk:
             records = self.get_by_pk(pk)
@@ -1687,7 +1717,20 @@ class SqlWidget(gobject.GObject):
         """
         Return true if this field is  date
         """
-        return self.mapper_info.fields[field_name]['editable']
+        edit = self.mapper_info.fields[field_name]['editable']
+        if not edit:
+            # you probably explicitely set it (via noup?)
+            return False
+
+        ## now if the field is editable, it depends on mode of the widget
+        ## and state of self.current
+
+        if self.current in self.session.new:
+            return 'i' in self._mode
+        elif 'u' in self._mode:
+            return 'u' in self._mode
+            
+        return False
 
     def is_number(self, field_name):
         """
