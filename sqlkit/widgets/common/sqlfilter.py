@@ -165,6 +165,12 @@ class FilterPanel(object):
             self.model = self.easytv.tv.get_model()
             self.easytv.tvc['id'].set_property('visible', False)
 
+    def sb(self, message, seconds=None):
+        """
+        Write messag on the status bar
+        """
+        self.l.sb(message, seconds=seconds)
+        
     def add_filter(self, active=True, **kwargs):
         """
         add a filter using django-like syntax
@@ -282,7 +288,7 @@ class FilterPanel(object):
         if self.default_reload:
             try:
                 length = self.master.reload(limit=self.get_limit(), display=display )
-            except exc.DialogValidationError, e:
+            except (exc.DialogValidationError, exc.ValidationError), e:
                 return
 
         else:
@@ -522,6 +528,13 @@ class FilterTool(object):
         f = self.master.gui_fields[self.field_name]
         return f.clean_value(value)
 
+    def get_row_value(self):
+        """
+        return the current value of the filter
+        """
+        
+        return self.widget.get_value() 
+
     def set_active(self, active):
         """make the filter active"""
 
@@ -591,7 +604,14 @@ class FilterTool(object):
                 return query.filter(self.col == False)
 
         else:
-            value = self.get_value()
+            try:
+                value = self.get_value()
+            except exc.ValidationError, e:
+                msg = _("value '%s' cannot be used for field '%s'") % (self.get_row_value(), self.field_name)
+                self.master.sb(msg)
+                self.panel.sb(msg)
+                raise e
+            
             if value:
                 if self.bind_name == "sqlite" and op_value in ('ICONTAINS', 'MATCH'):
                     op_value = 'ILIKE'
