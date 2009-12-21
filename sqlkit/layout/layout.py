@@ -471,7 +471,7 @@ class Layout(object):
                         W.connect("delete_event", gtk.main_quit)
                     else:
                         W.connect("delete_event", x)
-            self.tooltips = gtk.Tooltips()
+#            self.tooltips = gtk.Tooltips()
 
             if action == 'gtk.main':
                 gtk.main()
@@ -504,7 +504,7 @@ class Layout(object):
                         W.connect("delete_event", gtk.main_quit)
                     else:
                         W.connect("delete_event", x)
-            self.tooltips = gtk.Tooltips()
+#            self.tooltips = gtk.Tooltips()
 
             if action == 'gtk.main':
                 gtk.main()
@@ -538,7 +538,7 @@ class Layout(object):
                     W.connect("delete_event", gtk.main_quit)
                 else:
                     W.connect("delete_event", x)
-        self.tooltips = gtk.Tooltips()
+#        self.tooltips = gtk.Tooltips()
         
         if action == 'gtk.main':
             gtk.main()
@@ -551,9 +551,9 @@ class Layout(object):
     def tip(self, el_def, text):
         if self.shown:
             if isinstance(self.widgets[el_def], gtk.ToolItem):
-                self.widgets[el_def].set_tooltip(self.tooltips, text)
+                self.widgets[el_def].set_tooltip_text(text)
             else:
-                self.tooltips.set_tip(self.widgets[el_def],text)
+                widgets[el_def].set_tooltip_text(text)
         else:
             self.elements[el_def].properties['tooltip'] = text
 
@@ -662,7 +662,12 @@ class Layout(object):
 
         ## delete the message
         def del_text(idx, msg_id):
-            sb.remove(idx, msg_id)
+            try:
+                sb.remove_message(idx, msg_id)
+            except AttributeError:
+                # deprecated in PyGTK 2.2.16
+                sb.remove(idx, msg_id)
+                    
             return False
 
         if seconds:

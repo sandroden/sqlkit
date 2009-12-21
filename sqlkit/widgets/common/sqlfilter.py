@@ -651,7 +651,8 @@ class FilterWidget(object):
         self.check_button         = gtk.CheckButton()
 
         self.check_button.set_active(True)
-        self.tool.panel.l.tooltips.set_tip(self.check_button, _("Use this filter"))
+        #self.tool.panel.l.tooltips.set_tip(self.check_button, _("Use this filter"))
+        self.check_button.set_tooltip_text( _("Use this filter"))
         
         self.field_name_event_box.add(self.field_label)
         self.field_label.set_property('xalign', 0)

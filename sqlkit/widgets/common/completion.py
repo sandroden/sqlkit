@@ -91,7 +91,6 @@ class SimpleCompletion(object):
         (actually SqlMask or SqlTable?)
         self.master.mapper_info.fields: an InspectMapper Object
         self.master.engine
-        self.master.lay_obj a Layout object (for the tooltips method)
         self.master.mapper
         self.master.values in case of an id, completion will substitute it
              with a description field, for the user benefit. The real value
@@ -528,7 +527,7 @@ class SimpleCompletion(object):
         item = gtk.MenuItem(label="info on %s" % field_name.replace('_','__'))
         item.connect('activate', self.master.show_field_info, field_name)
         label = _("Show all info on this field, db type & Co.")
-        self.master.lay_obj.tooltips.set_tip(item,label)
+        item.set_tooltip_text(label)
         menu.append(item)
         
         ## possible values regexp
@@ -537,14 +536,14 @@ class SimpleCompletion(object):
         item.connect('activate', self.show_possible_completion, 'regexp')
         # TIP: yellow tip to menu entry in down arrow in completion widget
         label = _("Show all values in the db that match your string")
-        self.master.lay_obj.tooltips.set_tip(item,label)
+        item.set_tooltip_text(label)
         menu.append(item)
 
         ## possible values starting
         item = gtk.MenuItem(label=_("Show possible values, starting - Shift-Enter"))
         item.connect('activate', self.show_possible_completion, 'start')
         label = _("Show all values in the database starting with your string")
-        self.master.lay_obj.tooltips.set_tip(item,label)
+        item.set_tooltip_text(label)
         menu.append(item)
 
         ## edit table referenced as foreign key
@@ -552,14 +551,14 @@ class SimpleCompletion(object):
             item = gtk.MenuItem(label=_("Edit the referenced table in 'table' mode"))
             item.connect('activate', edit_foreign_key_table, (self.master, field_name, 'table'))
             label = _("Edit the table from which admitted values are taken in 'table' mode")
-            self.master.lay_obj.tooltips.set_tip(item, label)
+            item.set_tooltip_text(label)
             menu.append(item)
 
         if self.master.is_fkey(field_name):
             item = gtk.MenuItem(label=_("Edit the referenced table in 'mask' mode"))
             item.connect('activate', edit_foreign_key_table, (self.master, field_name, 'mask'))
             label = _("Edit the table from which admitted values are taken in 'mask' mode")
-            self.master.lay_obj.tooltips.set_tip(item, label)
+            item.set_tooltip_text(label)
             menu.append(item)
 
         menu.show_all()
