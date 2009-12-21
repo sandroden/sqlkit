@@ -843,7 +843,7 @@ class ForeignKeyField(Field):
         if value is None and not self.nullable:
             raise exc.NotNullableFieldError(self.field_name, master=self.master)
 
-        self.master.run_hook('on_field_validation', value, field_name=self.field_name)
+        self.master.run_hook('on_field_validation', value, self, field_name=self.field_name)
 
         return value
         
