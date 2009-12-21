@@ -197,10 +197,14 @@ completeness:
 
     see :ref:`filters`
 
-.. method:: reload()
+.. method:: reload(limit=None, order_by=None)
 
     reload the data from the database taking all filter/constraints into
     consideration 
+
+    :param limit: add a LIMIT clause (integer) to limit number of returned
+        records. Permanent effect
+    :param order_by: reset order_by and apply when reloading. Permanent effect.
 
 .. method:: resize()
 
