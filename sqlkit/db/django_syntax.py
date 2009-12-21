@@ -18,7 +18,9 @@ Django syntax utilities
 =======================
 
 This module provides some functions to allow use of django syntax in filters.
-You can look an introduction on lookup filters on `django's site`_
+You can look an introduction on lookup filters on `django's site`_ but mind that
+we don't even share the same syntax. We just borrowed the idea that the operator
+and possibly the join can be wired in the keyword *name*.
 The aim is not at all compatibility with django (that has nothing to do with this
 framework) but a way to:
 
@@ -42,13 +44,14 @@ will not be issued on a ``session.query`` object
 supported lookup
 ----------------
 
-  :like/ilike: use like operator, ilike if available
-  :regexp/iregexp: now ~/~* for postgres and REGEX for mysql like again for the rest
-  :lt/gt:  less than / grater than (<, >)
-  :lte/gte:  less than equal/ grater than equal(<=, >=)
-  :eq/neq:  equal / not equal ( = , !=)
-  :in:  IN (argument must be a list)
-  :null: IS NULL / IS NOT NULL (depending if arg is True/False)
+:like/ilike:        use like operator, ilike if available
+:notlike/notilike:  negate like operator, ilike if available
+:regexp/iregexp:    now ~/~* for postgres and REGEX for mysql like again for the rest
+:lt/gt:             less than / grater than (<, >)
+:lte/gte:           less than equal/ grater than equal(<=, >=)
+:eq/neq:            equal / not equal ( = , !=)
+:in/notin:          IN (argument must be a list)/ negated
+:null:              IS NULL / IS NOT NULL (depending if arg is True/False)
 
 conjunctions
 ------------
@@ -71,19 +74,22 @@ from sqlkit.db import utils
 
 OPERATORS = {
     'icontains'  : 'icontains',
-    'like'  : 'like',
-    'ilike' : 'ilike',
-    'iregexp' : '~*',
-    'regexp' : '~',
-    'lt'   : '<',
-    'gt'   :  '>',
-    'lte'  : '<=',
-    'gte'  : '>=',
-    'eq'   : '=',
-    'neq'   : '!=',
-    'equal': '=',
-    'in'   : 'IN',
-    'null' : 'IS NULL',
+    'notlike'    : 'not like',
+    'like'       : 'like',
+    'ilike'      : 'ilike',
+    'notilike'   : 'not ilike',
+    'iregexp'    : '~*',
+    'regexp'     : '~',
+    'lt'         : '<',
+    'gt'         :  '>',
+    'lte'        : '<=',
+    'gte'        : '>=',
+    'eq'         : '=',
+    'neq'        : '!=',
+    'equal'      : '=',
+    'in'         : 'IN',
+    'notin'      : 'NOT IN',
+    'null'       : 'IS NULL',
     }
 
 class DjangoParser(object):

@@ -36,20 +36,28 @@ operators
 
 these operators are recognized::
 
-  OPERATORS = {
-    'like' : 'like',
-    'lt'   : '<',
-    'gt'   :  '>',
-    'lte'  : '<=',
-    'gte'  : '>=',
-    'eq'   : '=',
-    'neq'   : '!=',
-    'equal': '=',
-    'in'   : 'IN',
-  }
+ OPERATORS = {
+     'notlike'    : 'not like',
+     'like'       : 'like',
+     'ilike'      : 'ilike',
+     'notilike'   : 'not ilike',
+     'iregexp'    : '~*',
+     'regexp'     : '~',
+     'lt'         : '<',
+     'gt'         :  '>',
+     'lte'        : '<=',
+     'gte'        : '>=',
+     'eq'         : '=',
+     'neq'        : '!=',
+     'equal'      : '=',
+     'in'         : 'IN',
+     'notin'      : 'NOT IN',
+     'null'       : 'IS NULL',
+     'notnull'    : 'IS NOT NULL',
+     }
 
-and ``icontains`` that at the moment map to ``match`` sqlalchemy operators
-that in turn map to database specific info.
+and ``icontains`` that at the moment map to regexp operators if they exist
+or like with % on both sides.
 
 conjunctions
 ------------
