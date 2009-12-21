@@ -11,7 +11,7 @@ t = SqlTable(table='movie',
              order_by='director_id',
              noup='year, description',
          )
-
+t.noup = '+director_id' # alternative way
 
 t.reload()
 

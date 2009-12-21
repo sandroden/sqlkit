@@ -129,6 +129,7 @@ class SqlWidget(gobject.GObject):
                  format=None,
                  label_map = None,
                  hooks = None,
+                 mode='biud',
                  ):
 
         """
@@ -155,7 +156,10 @@ class SqlWidget(gobject.GObject):
            is required
 
         :param ro=False:
-           if set to True the table is not updateable
+           if set to True the table is not updateable. Old way to set mode='b'
+
+        :param mode:
+           mode for the widget. See :ref:`set_mode <set_mode>` for more explanations
 
         :param noup=[]:
            a list of field names that will not be allowed to update. The list may be
@@ -240,8 +244,8 @@ class SqlWidget(gobject.GObject):
            be registered under a nick via ``sqlkit.db.utils.register_layout``
            function (see :ref:`utils <utils>`)
 
-        :param relationship_mode: SINGLE, FIXED, m2m, m2o, o2m
-                FIXED: any filter/reload is inibited
+        :param relationship_mode: SINGLE, m2m, m2o, o2m
+              
         :param relationship_path: the path needed to join two tables. See sqlalchemy on 'quering
                   with joins'. Used by filter_panel to setup join condition when filtering
                   when relationship_mode is not SINGLE. May be a list or a string:
@@ -277,7 +281,10 @@ class SqlWidget(gobject.GObject):
         self.tables = self._get_table(tables)
         self.hooks = hooks or defaults.get_hook(self.tables, instance=True, nick=layout_nick)
         self.nick= self.get_nick(nick)
+        self.set_mode(mode, delay=True)
         self.ro = ro
+        if ro:
+            self.set_mode('b', delay=True)
         self.noup = noup
         self.rows = rows
         self.hidden_fields = hide_fields or []
@@ -510,7 +517,8 @@ class SqlWidget(gobject.GObject):
         self.setup_field_validation()
         self.prepare_actions()
         self.prepare_uimanager()
-
+        self.set_mode()
+        
         return (self.lay_obj, self.widgets)
     
     def _get_layout_from_nick(self, nick):
@@ -535,10 +543,6 @@ class SqlWidget(gobject.GObject):
         if show:
             self.widgets[el_def].show()
 
-        if self.relationship_mode == 'FIXED':
-            self.actiongroup_edit.set_sensitive(True)
-            self.actiongroup_browse.set_sensitive(False)
-            
     def _set_ignored_fields(self, ignored_list):
         """
         Ignored fields will not even be in self.field_list
@@ -573,7 +577,7 @@ class SqlWidget(gobject.GObject):
         """Fields is a dictionary with info on the fields derived from the
         db via the mapper (inspecting it)
         """
-        info = minspect.InspectMapper(self.mapper, noup=self.noup, ro=self.ro)
+        info = minspect.InspectMapper(self.mapper, noup=self.noup)
         ## fix column_width that may have been passed
         if self.col_width:
             for field_name, value in self.col_width.items():
@@ -682,7 +686,10 @@ class SqlWidget(gobject.GObject):
         Prepare action needed by UIManager
         """
         self.actiongroup_general = gtk.ActionGroup('General')
-        self.actiongroup_edit  = gtk.ActionGroup('Edit')
+        self.actiongroup_update  = gtk.ActionGroup('Update')
+        self.actiongroup_insert  = gtk.ActionGroup('Insert')
+        self.actiongroup_delete  = gtk.ActionGroup('Delete')
+        self.actiongroup_select  = gtk.ActionGroup('Select')
         self.actiongroup_browse  = gtk.ActionGroup('Browse')
         self.actiongroup_print   = gtk.ActionGroup('Print')    
         self.actiongroup_debug   = gtk.ActionGroup('Debug')    
@@ -698,15 +705,15 @@ class SqlWidget(gobject.GObject):
             ('About', gtk.STOCK_ABOUT, None, None, None, self.about_dialog_cb),
             ])
 
-        self.actiongroup_edit.add_actions([
+        self.actiongroup_update.add_actions([
             ('Save', gtk.STOCK_SAVE, None, '<Ctrl>s', None, self.record_save_cb),
             ])
-        if self.ro:
-            self.actiongroup_edit.set_sensitive(False)
             
         self.actiongroup_browse.add_actions([
             ('Filters', gtk.STOCK_FIND, _('Filter panel'), None, None, self.add_filter_cb),
             ('Reload', gtk.STOCK_REFRESH, _("Reload"), '<Ctrl>r', None, self.reload_cb),
+            ])
+        self.actiongroup_select.add_actions([
             ('Forward', gtk.STOCK_GO_FORWARD, None, '<Alt>f', None, self.record_forward_cb),
             ('Back',   gtk.STOCK_GO_BACK, None, '<Alt>b', None, self.record_back_cb),
             ])
@@ -736,8 +743,11 @@ class SqlWidget(gobject.GObject):
         self.ui_debug_id = self.ui_manager.add_ui_from_string(uidescription.DEBUG_UI)
 
         self.ui_manager.insert_action_group(self.actiongroup_general, 0)
-        self.ui_manager.insert_action_group(self.actiongroup_edit, 1)
+        self.ui_manager.insert_action_group(self.actiongroup_insert, 1)
+        self.ui_manager.insert_action_group(self.actiongroup_delete, 1)
+        self.ui_manager.insert_action_group(self.actiongroup_update, 1)
         self.ui_manager.insert_action_group(self.actiongroup_browse, 2)
+        self.ui_manager.insert_action_group(self.actiongroup_select, 2)
         self.ui_manager.insert_action_group(self.actiongroup_print, 3)
         self.ui_manager.insert_action_group(self.actiongroup_debug, 4)
 
@@ -749,6 +759,82 @@ class SqlWidget(gobject.GObject):
             header.add(menu)
             header.add(toolbar)
 
+    def set_mode(self, mode=None, reset=False, delay=False):
+        """
+        .. _set_mode:
+
+        Set mode for this widget. Mode can be a string composed with the following letters that
+        correspond to permissions
+
+         :s: SELECT. The user can view the records *already selected*
+             (i.e. use Forward/Backward) or set by ``set_records``. This is *always* granted and
+             as such it's pointless to set it (or revoke it)
+         :i: INSERT. The user can insert new records
+         :u: UPDATE. The user can update records
+         :d: DELETE. The user can delete records
+         :b: browse. The user can use the filter panel
+
+        If mode start with + or - the following permissions are granted/revoked for the widget
+
+        ``mode`` is a property, you can set it directly: self.mode = 'b'
+
+        The mode influences permission by setting menu entries active or not. It's not acting on
+        the session. If an object has been inserted in the session a simple update operation
+        can let it be inserted. This is by design.
+
+        Related table inheritate the same mode but you can programmatically reset and make it
+        independent from the master using opt reset=True. 
+
+        :param mode: the mode as explained above. If None, mode will be refreshed to last *declared*
+           state (i.e.: reguardless of what you may have changed by hand acting on actiongroups).
+        :param reset: is True the mode will be completely reset. Needed to make the mode
+            of a related table independent from the mode of the master
+        :param delay: it True, the mode is set but interface is not immediately updated
+
+
+        .. note::
+
+           at present it's not possible to insert a record in a table that is not updatable
+        """
+        known_modes = 'iudbD'
+
+        if not hasattr(self, '_mode'):
+            self._mode = set([x for x in known_modes])
+
+        if mode:
+            if isinstance(mode, set):
+                if reset:
+                    self._mode = set([x for x in mode])
+                else:
+                    self._mode = mode
+
+            elif mode.startswith('+'):
+                for x in mode.replace('+', ''):
+                    self._mode.add(x)
+            elif mode.startswith('-'):
+                for x in mode.replace('-', ''):
+                    if x in self._mode:
+                        self._mode.remove(x)
+            else:
+                for x in known_modes:
+                    if x in mode:
+                        self._mode.add(x)
+                    else:
+                        if x in self._mode:
+                            self._mode.remove(x)
+
+        if not delay:
+            self.actiongroup_insert.set_sensitive('i' in self._mode)
+            self.actiongroup_update.set_sensitive('u' in self._mode)
+            self.actiongroup_delete.set_sensitive('d' in self._mode)
+            self.actiongroup_browse.set_sensitive('b' in self._mode)
+            self.actiongroup_debug.set_sensitive('D' in self._mode)
+
+    def get_mode(self):
+        return self._mode
+    
+    mode = property(get_mode, set_mode)
+                
 ###### Saving
     def record_delete(self, widget=None):
         """invokes the validator before DELETing a record"""
@@ -1243,6 +1329,7 @@ class SqlWidget(gobject.GObject):
         ## and I don't understand where...
         ## nice info here: http://wiki.dspace.org/index.php/Idle_In_Transaction_Problem
         self.session.rollback()
+        self.set_mode()
         return length
 
     def set_records(self, records=None, pk=None):

@@ -174,20 +174,25 @@ class GenericColumn(object):
         return True
     
 #### auxiliary
+    def set_editable(self, editable):
+        """
+        set cells of this column editable or not
+
+        :param editable: boolean
+        """
+        for cell in self.column.get_cell_renderers():
+            cell.set_property('editable', editable)
+
     def cell_set_property(self, cell):
         """
         set cell properties
         """
         
-        if self.master.is_editable(self.field_name):
-            cell.set_property('editable', True)
+        if self.master.is_editable(self.field_name) and 'u' in self.master.mode:
+            self.set_editable(True)
             cell.set_property('editable-set', True)
-            cell.set_property('mode', gtk.CELL_RENDERER_MODE_EDITABLE)
         else:
-            try:
-                cell.set_property('editable', False)
-            except:
-                cell.set_property('sensitive', False)
+            cell.set_property('editable', False)
                 
         
     def add_header_widget(self, column):
@@ -277,6 +282,15 @@ class BooleanColumn(GenericColumn):
     RESIZE = False
     EXPAND = False
 
+    def set_editable(self, editable):
+        """
+        set cells of this column editable or not
+
+        :param editable: boolean
+        """
+        for cell in self.column.get_cell_renderers():
+            cell.set_property('activatable', editable)
+
     def setup_cell_renderers(self, cell_renderer=None):
         """
         setup different cell_cb according to nullable value
@@ -300,7 +314,9 @@ class BooleanColumn(GenericColumn):
     def cell_set_property(self, cell):
 
         if self.master.is_editable(self.field_name):
-            cell.set_property('activatable', True)
+            self.set_editable(True)
+        else:
+            self.set_editable(False)
 
     def toggled_signal_cb(self, cell, path, model):
         """

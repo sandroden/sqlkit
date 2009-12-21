@@ -208,13 +208,14 @@ class SqlMask(sqlwidget.SqlWidget):
         """
         sqlwidget.SqlWidget.prepare_actions(self)
 
-        self.actiongroup_edit.add_actions([
+        self.actiongroup_insert.add_actions([
             ('New', gtk.STOCK_NEW,   None, '', None, self.record_new_cb),
             ('Save-as', gtk.STOCK_SAVE_AS, None, None, None, self.record_save_new),
+            ])
+        self.actiongroup_select.add_actions([
             ('Undo', gtk.STOCK_UNDO, None, None, None, self.record_undo_cb),
             ])
-
-        self.actiongroup_edit.add_actions([
+        self.actiongroup_delete.add_actions([
             ('Delete', gtk.STOCK_DELETE, None, '', None, self.record_delete),
             ])
 
@@ -308,6 +309,8 @@ class SqlMask(sqlwidget.SqlWidget):
         self.records += [self.current]
         self.current_idx = len(self.records) -1
         self.sb(_("New record %s") % (self.current_idx +1))
+        if 'i' in self._mode:
+            self.actiongroup_update.set_sensitive(True)
         self.current_mode = 'INSERT'
         
     def record_new_idle(self):
@@ -482,6 +485,7 @@ class SqlMask(sqlwidget.SqlWidget):
         length = sqlwidget.SqlWidget.reload(self, **kw)
         if not length:
             self.record_new()
+        self.set_mode()
         return length
 
     def record_display(self, record=None, incr=0, index=None, check=True, delay_message=0):

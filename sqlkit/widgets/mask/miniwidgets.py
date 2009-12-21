@@ -544,6 +544,7 @@ class CollectionWidget(Widget):
             metadata=self.master.metadata,
             dbproxy=self.master.dbproxy,
             naked=True,
+            mode=self.master.mode,
             col_width = filter_related(self.master.col_width, self.field_name),
             field_list = loader_spec.get('field_list', None),
             addto=self.gtkwidget,

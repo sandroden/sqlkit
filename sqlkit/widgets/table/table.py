@@ -114,6 +114,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.treeview.hide()
         self.treeview.show()
         gobject.idle_add(tv_utils.set_optimal_width, self.treeview)
+        self.set_mode()
         return (self.lay_obj, self.widgets)
 
     def icon_setup(self):
@@ -161,6 +162,7 @@ class SqlTable(sqlwidget.SqlWidget):
         import columns
 
         self.tvcolumns = {}
+        self.columns = {}
         for field_name in self.field_list:
             
             if field_name in widgets.info:
@@ -197,6 +199,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 col = columns.VarcharColumn(self, field_name, label)
 
             self.tvcolumns[field_name] = col.column
+            self.columns[field_name] = col
             self.treeview.append_column(col.column)
 
             if field_name in self.hidden_fields:
@@ -284,8 +287,10 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.actiongroup_table   = gtk.ActionGroup('Table')
 
-        self.actiongroup_edit.add_actions([
+        self.actiongroup_insert.add_actions([
             ('New', gtk.STOCK_NEW,   None, '', None, self.record_new_cb),
+            ])
+        self.actiongroup_delete.add_actions([
             ('Delete', gtk.STOCK_DELETE, None, '', None, self.record_delete),
             ('RecordDelete', gtk.STOCK_DELETE, None, '<Control>k', None, self.record_delete),
             ])
@@ -314,6 +319,19 @@ class SqlTable(sqlwidget.SqlWidget):
         self.ui_manager.get_action('/Main/Go/Forward').set_visible(False)
         self.ui_manager.get_action('/Main/Go/Back').set_visible(False)
 
+    def set_mode(self, mode=None, refresh=False, delay=False):
+
+        #import ipdb; ipdb.set_trace()
+        sqlwidget.SqlWidget.set_mode(self, mode, refresh, delay)
+
+        if not delay and hasattr(self, 'columns'):
+            for field_name, col in self.columns.iteritems():
+                if field_name not in self.noup:
+                    col.set_editable(True and 'u' in self.mode)
+                else:
+                    col.set_editable(False)
+    mode = property(sqlwidget.SqlWidget.get_mode, set_mode)
+        
 #### callbacks treeview
     def selection_changed_cb(self, treeselection):
         """
@@ -516,6 +534,10 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
     
     def key_tree_ctrl_n(self, treeview, event, data):
+
+        if not 'i' in self.mode:
+            self.sb(_("Insertion of new records is disabled. Sorry"))
+            return
         try:
             self.record_new(treeview)
         except exc.ValidationError:
@@ -523,17 +545,16 @@ class SqlTable(sqlwidget.SqlWidget):
 
         return False
         
-    def key_tree_ctrl_shift_N(self, treeview, event, data):
-
-        self.record_new(treeview)
-        return False
-        
-    def key_tree_alt_n(self, treeview, event, data):
-
-        self.record_new(treeview)
-        return False
-        
     def key_tree_ctrl_s(self, treeview, event, data):
+
+        if self.current in self.session.new and 'i' not in self.mode:
+            self.sb(_("Insertion of new records is disabled. Sorry"))
+            return
+
+        if self.current in self.session.dirty and 'u' not in self.mode:
+            self.sb(_("Update of records is disabled. Sorry"))
+            return
+
         try:
             self.record_save(treeview)
         except exc.ValidationError:
@@ -542,15 +563,23 @@ class SqlTable(sqlwidget.SqlWidget):
         
     def key_tree_ctrl_k(self, treeview, event, data):
         
+        if self.current not in self.session.new and 'd' not in self.mode:
+            self.sb(_("Deletion of records is disabled. Sorry"))
+            return
+
         self.record_delete(treeview)
         return False
     
     def key_tree_ctrl_x(self, treeview, event, data):
         
-        self.record_delete(treeview)
-        return False
+        return key_tree_ctrl_k(treeview, event, data)
     
     def key_tree_ctrl_r(self, treeview, event, data):
+
+        if  'b' not in self.mode:
+            self.sb(_("browsing of new records is disabled. Sorry"))
+            return
+
         self.reload_cb(treeview)
         return True
     
@@ -1116,8 +1145,10 @@ class SqlTable(sqlwidget.SqlWidget):
         from sqlkit.widgets import SqlMask, SqlTable
 
         mask = SqlMask(mapper=self.mapper, session=self.session, layout=self.layout,
-                       relationship_mode='FIXED', metadata=self.metadata, hooks=self.hooks)
-        mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
+                       metadata=self.metadata, hooks=self.hooks)
+#        mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
+        mask.mode = self.mode
+        mask.mode = '-b'
         mask.set_records([self.get_selected_obj()])
 
         ## signals to keep selection in sync 
@@ -1151,10 +1182,11 @@ class SqlTable(sqlwidget.SqlWidget):
         ftable = self.completions[field_name].table
 
         mask = SqlMask(table=ftable.name, session=self.session, dbproxy=self.dbproxy, 
-                       relationship_mode='FIXED', metadata=self.metadata,
+                       metadata=self.metadata, mode=self.mode,
                        layout_nick=self._fk_layout_nick.get(field_name, None),
                        )
-        mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
+        mask.mode = '-b'
+        #mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
         mask.set_records(pk=getattr(self.get_selected_obj(), field_name))
 
         ## signals to keep selection in sync 
