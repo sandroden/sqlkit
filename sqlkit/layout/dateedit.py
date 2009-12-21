@@ -96,7 +96,7 @@ class DateEdit(gtk.HBox):
         self.date_format = '%x'
 
     def locale_setup(self):
-        if os.name == 'nt':
+        if os.name == 'nt' or sys.platform == 'darwin':
             # Todo: fix this for windows
             self.__use_24h_format = False
         else:

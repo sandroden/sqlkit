@@ -133,7 +133,8 @@ def get_screen_width(effective = True):
     """
     root = gtk.gdk.get_default_root_window()
     prop = gtk.gdk.atom_intern('_NET_WORKAREA')
-    if sys.platform.startswith('win'):
+    fields = root.property_get(prop)
+    if sys.platform.startswith('win') or not fields:
         # Notice Windows will fallback here and assume there are no lateral panels.
         screen = root.get_screen()
         return screen.get_width()
