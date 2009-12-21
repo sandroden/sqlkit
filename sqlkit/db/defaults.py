@@ -1,3 +1,23 @@
+# Copyright (C) 2005-2006-2007-2008, Sandro Dentella <sandro@e-den.it>
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
+=========
+Defaults
+=========
+"""
 import datetime
 import sqlalchemy
 
@@ -21,6 +41,11 @@ def set_default(table_name, tbl_dict):
 class Defaults(object):
 
     def __init__(self, table_name, metadata=None, local=False):
+        """
+        :param table_name:  the name of the table for which we set default values 
+        :param metadata: the metadata in which the table lives
+        :param local: boolean: if the default is global (False) or local to a single widget
+        """
         self.table_name = table_name
         self.metadata = metadata
         self.local = local
@@ -36,13 +61,9 @@ class Defaults(object):
     def set_defaults(self, tbl_dict):
         """
         set defaults using a dict as input
+        :param tbl_dict: a dict of field_name:default_value. Default value can be a callable
         """
-        if self.table_name in tables:
-            self.tdict = tables[self.table_name]
-            self.tdict.update(tbl_dict)
-
-        else:
-            tables[self.table_name] = tbl_dict
+        self.tdict.update(tbl_dict)
 
     def set_default(self, **kw):
         """
@@ -53,6 +74,14 @@ class Defaults(object):
             self.set_defaults(tbl_dict)
 
     def fk(self, field_name, attr, value):
+        """
+        Set a default and find at runtime (when setting default) which is the
+        correct value (pk) based on attr and value
+        
+        :param field_name: the field_name for wich we set the default
+        :param attr: the attribute to look for in the foreign table
+        :param value: the value in the foreign key 
+        """
         ## when we define defaults, metadata may not yet have loaded the table
         ## let's delay the moment...
         def get_by_description():
@@ -69,10 +98,12 @@ class Defaults(object):
             result = conn.execute(s)
             row = result.fetchone()
             if row:
-                tables[self.table_name][field_name] = row[fk_col.name]
+                #tables[self.table_name][field_name] = row[fk_col.name]
+                self.tdict[field_name] = row[fk_col.name]
             else:
-                tables[self.table_name][field_name] = None
-            return tables[self.table_name][field_name]
+                #tables[self.table_name][field_name] = None
+                self.tdict[field_name] = None
+            return self.tdict[field_name]
         
         self.set_defaults( {field_name : get_by_description})
     
@@ -94,6 +125,7 @@ class Defaults(object):
 
         except KeyError, e:
             return get_default(self.table_name, field_name)
+
 
 def get_default(table_name, field_name):
     """
