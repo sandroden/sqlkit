@@ -33,6 +33,7 @@ GENERAL_UI = '''
      </menu>
 
      <menu action="Tools">
+     <menuitem action="PendingDifferences"/>
      </menu>
 
      <menu action="Help">

@@ -726,6 +726,7 @@ class SqlWidget(gobject.GObject):
         self.actiongroup_print   = gtk.ActionGroup('Print')    
         self.actiongroup_debug   = gtk.ActionGroup('Debug')    
 
+        tip = _('Show all the differences that should be saved to database')
         self.actiongroup_general.add_actions([
             ('File', None, 'File' ),
             ('Modify', None, _('Modify') ),
@@ -735,6 +736,7 @@ class SqlWidget(gobject.GObject):
 
             ('Quit', gtk.STOCK_QUIT, None, '<Ctrl>q', None, self.delete_event_cb),
             ('About', gtk.STOCK_ABOUT, None, None, None, self.about_dialog_cb),
+            ('PendingDifferences', None, _('Pending Differences'), None, tip, self.pending_differences_cb),
             ])
 
         self.actiongroup_update.add_actions([
@@ -1292,6 +1294,11 @@ class SqlWidget(gobject.GObject):
             self.gquit()
         del self
 
+    def pending_differences_cb(self, menu=None):
+
+        dialog = UnsavedDataDialog(self, type_='ok', msg=_('Unsaved differences'), expanded=True)
+        response = dialog.run()
+        
 ###### Record browsing 
     def clear(self, widget=None):
         """clear the mask for a new record"""
@@ -2060,13 +2067,13 @@ class UnsavedDataDialog(object):
     """
     A dialog that allows to see which data have been modifiedx
     """
-    def __init__(self, master):
+    def __init__(self, master, type_="yes-no-cancel", msg=None, expanded=False):
         self.master = master
-        general_msg = [_("Save unsaved data?")]
-        layout = "{v { i=gtk-dialog-question:6 l=msg}  {>.details TVS=details} }"
+        general_msg = msg or _("Save unsaved data?")
+        layout = "{v { i=gtk-dialog-question:6 l=msg}  {>%s.details TVS=details} }"
 
         self.dialog, l = master.lay_obj.dialog(title=_("Unsaved data"),
-            type='yes-no-cancel', text="\n".join(general_msg),  layout=layout)
+            type=type_, text=general_msg,  layout=layout %  (expanded and '>' or ''))
 
         tv = l.widgets['TV=details']
         expander = l.widgets['X.details']
@@ -2136,7 +2143,7 @@ class UnsavedDataDialog(object):
                     self.model.set(iter,
                                    0, "<i>%s</i>" % (utils.clean_for_markup(repr(item))[:25] or
                                                      utils.clean_for_markup(item)[:25]),
-                                   1, "%s" % self.master.get_label(field_name),
+                                   1, self.clearer("%s" % self.master.get_label(field_name)),
                                    2, self.clearer(old_value),
                                    3, self.clearer(new_value),
                                    )

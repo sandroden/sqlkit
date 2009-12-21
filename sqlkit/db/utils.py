@@ -352,7 +352,7 @@ def get_differences(obj):
     show differences between old and new version of an object
     this is a generator, you should use as in::
 
-       for fiel_name, old_value, new_value:
+       for fiel_name, old_value, new_value in get_differences(obj):
            print 'field   %s changed from %s, to %s' % (field_name, old_value, new_value)
 
     :param obj: the object to look for changes
@@ -380,7 +380,17 @@ def get_differences(obj):
                 prop.direction.name in ('MANYTOMANY', 'ONETOMANY')):
                 yield prop.key, old, new
             else:
-                yield prop.key, old and old[0], new and new[0]
+                try:
+                    old = old[0]
+                except (TypeError, IndexError):
+                    old = None
+                    
+                try:
+                    new = new[0]
+                except (TypeError, IndexError):
+                    new = None
+                    
+                yield prop.key, old, new
 
 def get_history(obj, field_name, session=None):
     """
