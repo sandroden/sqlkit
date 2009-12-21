@@ -639,7 +639,10 @@ class SqlTable(sqlwidget.SqlWidget):
         ##       but the one that is to be saved. This operation can be triggered
         ##       by a change in selection in which case self.current already points
         ##       to the new selection
-        obj = self.get_current_obj(path=path)
+        if path is None:
+            obj = self.get_current_obj()
+        else:
+            obj = self.get_obj_at_path(path=path)
         
         if not obj:
             return
@@ -1202,17 +1205,15 @@ class SqlTable(sqlwidget.SqlWidget):
         except:
             pass  # no selection...
         
-    def get_current_obj(self, path=None):
+    def get_current_obj(self):
         """
-        Returns the corrently edited (not just selected!!) obj or obj at path.
+        Return the corrently edited (not just selected!!) obj or obj at path.
         Selection can already be elsewehre (as in on_selection_change)
         Read comment in set_value
         Return None if no selection
         """
 
-        if not path:
-            #path = self.get_selected_row()
-            path = self.edited_row_model_path
+        path = self.edited_row_model_path
 
         if path is None:
             return None
@@ -1220,11 +1221,10 @@ class SqlTable(sqlwidget.SqlWidget):
             obj = self.modelstore[path][0]
             return obj
 
-    def get_selected_obj(self, path=None):
-        """returns the corrently selected obj or obj at path. Return None if no selection"""
+    def get_selected_obj(self):
+        """Return the corrently selected obj. Return None if no selection"""
 
-        if not path:
-            path = self.get_selected_row()
+        path = self.get_selected_row()
 
         if path is None:
             return None
@@ -1234,7 +1234,23 @@ class SqlTable(sqlwidget.SqlWidget):
                 return None
             return obj
 
+    def get_obj_at_path(self, path, all=False):
+        """
+        Return the object at path. Return None if no selection.
+        If the object at path is a total object (see :ref:`total`) it
+        will be discarder unless you use param all=True
+
+        :param path: the modelstore path
+        :param all: boolean: only return object of the main class (no totals)
+        """
+
+        obj = self.modelstore[path][0]
+        if isinstance(obj, self.totals.total_class):
+            return None
+        return obj
+
     current = property(get_selected_obj)
+
     def set_current(self, pk=None, filter_by=None):
         """
         retrieve object with primary key pk and set it as current object

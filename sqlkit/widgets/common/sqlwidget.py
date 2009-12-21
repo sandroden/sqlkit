@@ -994,7 +994,7 @@ class SqlWidget(gobject.GObject):
         
     def record_validate_fields(self, obj):
         """
-        validate any fields in self.gui_fields
+        Validate any fields in self.gui_fields
         """
         for field in self.gui_fields:
             field_name = field.field_name
@@ -1544,7 +1544,18 @@ class SqlWidget(gobject.GObject):
         """
         return True if current editable -if exists- has a value that does not need validation
         """
-        pass
+        ## Overridden by SqlMask/SqlTable
+        raise NotImplementedError
+    
+    def get_current_obj(self):
+        """
+        Return the corrently edited (not just selected!!) obj.  In Table
+        widgets, selection can already be elsewhere (as in
+        on_selection_change). Read comment in set_value
+
+        """
+        ## Overridden by SqlMask/SqlTable
+        raise NotImplementedError
     
 ###### debug
     def show_mapper_info(self, *args):
@@ -1813,6 +1824,7 @@ class SqlWidget(gobject.GObject):
 
     def __str__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.tables)
+
 
 
 def set_template_dir(dir):

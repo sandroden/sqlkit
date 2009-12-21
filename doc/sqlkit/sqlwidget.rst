@@ -210,6 +210,8 @@ completeness:
 
 .. automethod:: sqlkit.widgets.common.sqlwidget.SqlWidget.set_value
 
+.. automethod:: sqlkit.widgets.common.sqlwidget.SqlWidget.get_current_obj
+
 Attributes
 ===========
 
@@ -263,7 +265,10 @@ Attributes
 .. attribute:: current
 
    the object represented by a mask or a possible selected record in a
-   table or None. 
+   table or None. In the transient in which you are saving a record in a
+   table (when selection changes) ``self.current`` will not already point to
+   the wright obj. Use get_current_obj() instead. This may change as I do
+   found it counterintuitive...
 
 .. attribute:: field_list
 
