@@ -91,7 +91,7 @@ class GenericColumn(object):
         
         """
 
-        ## NOTE: liststore.clear will trigger text_edited_cb!!!
+        ## NOTE: modelstore.clear will trigger text_edited_cb!!!
         if self.master.deleting_row:
             return True
 
@@ -136,7 +136,7 @@ class GenericColumn(object):
         """
 
         if self.master.cell_entry and self.master.cell_entry.substitute:
-            # assigning a value to liststore, triggers 'editing-canceled'
+            # assigning a value to modelstore, triggers 'editing-canceled'
             self.master.cell_entry.substitute = False
             return
         
@@ -290,7 +290,7 @@ class BooleanColumn(GenericColumn):
         
         ## connect
         cell.connect('editing-canceled', self.editing_canceled_cb) # ???
-        cell.connect('toggled', self.toggled_signal_cb, self.master.liststore)
+        cell.connect('toggled', self.toggled_signal_cb, self.master.modelstore)
             
         self.column.set_cell_data_func(cell, self.cell_data_func_cb)
         self.column.cells_data_func = [(cell, self.cell_data_func_cb)]
@@ -309,7 +309,7 @@ class BooleanColumn(GenericColumn):
         self.master.currently_edited_field_name = self.field_name
         self.master.initialize_record_editing(path)
 
-        obj = self.master.liststore[path][0]
+        obj = self.master.modelstore[path][0]
         status = getattr(obj, self.field_name)
 
         if self.master.is_nullable(self.field_name):

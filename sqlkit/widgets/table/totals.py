@@ -130,19 +130,19 @@ class Totals(object):
         tot = self.total_class(self.table.field_list, sub=sub)
         if after:
             try:
-                piter = self.table.liststore.insert_after(row.iter)
+                piter = self.table.modelstore.insert_after(row.iter)
             except TypeError:
-                piter = self.table.liststore.insert_after(None, row.iter)
+                piter = self.table.modelstore.insert_after(None, row.iter)
                 
         else:
             try:
-                piter = self.table.liststore.insert_before(row.iter)            
+                piter = self.table.modelstore.insert_before(row.iter)            
             except TypeError:
-                piter = self.table.liststore.insert_before(None, row.iter)
+                piter = self.table.modelstore.insert_before(None, row.iter)
 
-        self.table.liststore.set_value(piter, 0, tot)
+        self.table.modelstore.set_value(piter, 0, tot)
 
-        newrow = self.table.liststore[piter]
+        newrow = self.table.modelstore[piter]
         return newrow, tot
 
     def insert_subtotal(self, row, after=False):
@@ -153,14 +153,14 @@ class Totals(object):
     
     def insert_total(self, row, after=False):
         if not row:
-            row = self.table.liststore[-1]
+            row = self.table.modelstore[-1]
         row, tot = self.insert(row, after=after, sub=False)
         for field_name in self.totals:
             setattr(tot, field_name, self.totals[field_name])
         return row
     
     def remove(self, row):
-        self.table.liststore.remove(row.iter)
+        self.table.modelstore.remove(row.iter)
         
     def preserve_selection(func):
         def new_func(self):
@@ -169,7 +169,7 @@ class Totals(object):
             model, rows = selection.get_selected_rows()
             if rows:
                 path = rows[0]
-                #remember = gtk.TreeRowReference(self.table.liststore, path)
+                #remember = gtk.TreeRowReference(self.table.modelstore, path)
             func(self)
             if rows:
                 #selection.select_path(remember.get_path())
@@ -189,8 +189,8 @@ class Totals(object):
             return
         
         self.initialize()
-        for row in self.table.liststore:
-            obj = self.table.liststore[row.path][0]
+        for row in self.table.modelstore:
+            obj = self.table.modelstore[row.path][0]
             if isinstance(obj, self.total_class):
                 self.remove(row)
             else:

@@ -67,7 +67,7 @@ class SqlTable(sqlwidget.SqlWidget):
     def __init__(self, *args, **kwargs):
 
         self.treeview = None
-        self.liststore = None
+        self.modelstore = None
         self.tvcolumns = None
         self.commit_inhibited = False
         self.deleting_row = False
@@ -83,13 +83,13 @@ class SqlTable(sqlwidget.SqlWidget):
     def _get_layout(self, lay, naked):
 
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
-        self.liststore = gtk.ListStore(object)
-#        self.liststore = gtk.TreeStore(object)
+        self.modelstore = gtk.ListStore(object)
+#        self.modelstore = gtk.TreeStore(object)
         ## layout
         self.treeview = self.widgets["TV=tree"]
         self.treeview.set_enable_search(False)
         self.treeview.show_all()
-        self.treeview.set_model(self.liststore)
+        self.treeview.set_model(self.modelstore)
         
         self.treeview.set_rules_hint(True)
         # set selection mode
@@ -385,8 +385,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
         try:
             path, column, x_in_cell, y_in_cell = widget.get_path_at_pos(int(event.x),int(event.y))
-            iter = self.liststore.get_iter(path)
-            obj = self.liststore.get_value(iter,0)
+            iter = self.modelstore.get_iter(path)
+            obj = self.modelstore.get_value(iter,0)
             if isinstance(obj, self.totals.total_class):
                 obj = None
             field_name = column.get_data('field_name')
@@ -559,7 +559,7 @@ class SqlTable(sqlwidget.SqlWidget):
         row = self.get_selected_row() 
         if row is None:
             row = -1
-        if row + 1 == len(self.liststore):
+        if row + 1 == len(self.modelstore):
             try:
                 self.record_new(treeview)
             except exc.CommitError, e:
@@ -697,21 +697,21 @@ class SqlTable(sqlwidget.SqlWidget):
 
     def record_display(self, index=None, check=False):
         """
-        Display all records (appending them to liststore)
+        Display all records (appending them to modelstore)
         check=False  - not used here but present becouse is used in Mask
         """
 
         if index == None:
-            self.liststore.clear()
+            self.modelstore.clear()
 
             for record in self.records:
                 try:
-                    self.liststore.append([record])
+                    self.modelstore.append([record])
                 except TypeError:
-                    self.liststore.append(None, [record])
+                    self.modelstore.append(None, [record])
 
         # TIP: status bar message
-        self.sb(_("Total N. of records: %s") % (len(self.liststore)), seconds=None)
+        self.sb(_("Total N. of records: %s") % (len(self.modelstore)), seconds=None)
         
     def record_has_changed(self):
         
@@ -748,11 +748,11 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.sb(_('Nothing to save'))
                 if obj in self.session.new:
                     self.commit_inhibited = True
-                    ## removing the liststore element triggers edited_cb
+                    ## removing the modelstore element triggers edited_cb
                     ## so I need to set the path to None to prevent errors
                     path = self.edited_row_model_path
                     self.edited_row_model_path = None
-                    self.liststore.remove(self.liststore.get_iter(path))
+                    self.modelstore.remove(self.modelstore.get_iter(path))
                     self.commit_inhibited = False
                     self.session.expunge(obj)
                     self.records.remove(obj)
@@ -782,9 +782,9 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.commit()
                 self.totals.compute()
             except exc.HandledRollback, e:
-                iter = self.liststore.get_iter(self.edited_row_model_path)
+                iter = self.modelstore.get_iter(self.edited_row_model_path)
                 self.edited_row_model_path = None
-                self.liststore.remove(iter)
+                self.modelstore.remove(iter)
                 self.sb(_("Record has NOT been saved"), seconds=100)
 
         self.last_new_obj = None
@@ -817,9 +817,9 @@ class SqlTable(sqlwidget.SqlWidget):
         #commit_allowed_status = self.commit_allowed
         self.commit_inhibited = True
 
-        #treeiter = self.liststore.append([self.last_new_obj])
+        #treeiter = self.modelstore.append([self.last_new_obj])
         treeiter = self._get_next_iter(self.last_new_obj)
-        path = self.liststore.get_path(treeiter)
+        path = self.modelstore.get_path(treeiter)
         col = self.get_first_editable_col()
 
         self.treeview.scroll_to_cell(path, col)
@@ -913,30 +913,30 @@ class SqlTable(sqlwidget.SqlWidget):
         self.deleting_row = False
         self.totals.compute()
         
-        self.sb(_("Total N. of records: %s") % len(self.liststore), seconds=None)
+        self.sb(_("Total N. of records: %s") % len(self.modelstore), seconds=None)
         return True
     
     def _get_next_iter(self, new_obj):
         """
         get a new iter inserting a row just before last (sub)/total - if any-
         """
-        if not len(self.liststore):
+        if not len(self.modelstore):
             try:
-                return self.liststore.append([new_obj])
+                return self.modelstore.append([new_obj])
             except TypeError:
-                return self.liststore.append(None, [new_obj])
+                return self.modelstore.append(None, [new_obj])
 
         for i in range(-1, -5, -1):
-            obj = self.liststore.get_value( self.liststore[i].iter, 0)
+            obj = self.modelstore.get_value( self.modelstore[i].iter, 0)
             if isinstance(obj, self.totals.total_class):
                 continue
-            row = self.liststore[i]
+            row = self.modelstore[i]
             break
 
         try:
-            return self.liststore.insert_after(row.iter, [new_obj])
+            return self.modelstore.insert_after(row.iter, [new_obj])
         except TypeError:
-            return self.liststore.insert_after(None, row.iter, [new_obj])
+            return self.modelstore.insert_after(None, row.iter, [new_obj])
 
 ###### Validation
     def cell_validate(self):
@@ -1040,7 +1040,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.edited_row_model_path = path
         
     def clear(self, *args, **kwargs):
-        self.liststore.clear()
+        self.modelstore.clear()
     
     def reload_cb(self, widget, *args):
         """
@@ -1082,13 +1082,13 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         self.edited_row_model_path = None  # must be set *before* clear()
                                 # to inhibit selection_changed_cp
-        self.liststore.clear()
-        if isinstance(self.liststore, gtk.ListStore):
+        self.modelstore.clear()
+        if isinstance(self.modelstore, gtk.ListStore):
             for i in self.records:
-                self.liststore.append([i])
+                self.modelstore.append([i])
         else:
             for i in self.records:
-                self.liststore.append(None, [i])
+                self.modelstore.append(None, [i])
                 
         self.totals.compute()
         self.treeview.columns_autosize()
@@ -1185,7 +1185,7 @@ class SqlTable(sqlwidget.SqlWidget):
         model, rows = selection.get_selected_rows()
         ## we use just the first selected
         #  >>> sel.get_selected_rows()
-        #  (<gtk.ListStore object at 0x8dd61bc (GtkListStore at 0x8da6090)>, [(1,)])
+        #  (<gtk.Modelstore object at 0x8dd61bc (GtkModelstore at 0x8da6090)>, [(1,)])
 
         if rows:
             return rows[0][0]
@@ -1195,7 +1195,7 @@ class SqlTable(sqlwidget.SqlWidget):
     def write_info(self):
         path = self.get_selected_row()
         try:
-            if self.liststore[path][0] is None:
+            if self.modelstore[path][0] is None:
                 self.sb(_('INSERT mode'))
             else:
                 self.sb(_('UPDATE mode'))
@@ -1217,7 +1217,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if path is None:
             return None
         else:
-            obj = self.liststore[path][0]
+            obj = self.modelstore[path][0]
             return obj
 
     def get_selected_obj(self, path=None):
@@ -1229,7 +1229,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if path is None:
             return None
         else:
-            obj = self.liststore[path][0]
+            obj = self.modelstore[path][0]
             if isinstance(obj, self.totals.total_class):
                 return None
             return obj
@@ -1251,15 +1251,15 @@ class SqlTable(sqlwidget.SqlWidget):
         
         obj = self.get_record_no_flush(pk=pk, filter_by=filter_by)
 
-        expired_obj = self.liststore[row][0]
+        expired_obj = self.modelstore[row][0]
         if expired_obj in self.session:
             self.session.expunge(expired_obj)
         self.records.remove(expired_obj)
 
-        ## assigning liststore value will trigger 'editing-canceled'
+        ## assigning modelstore value will trigger 'editing-canceled'
         self.cell_entry.substitute = True
         self.cell_entry.valid = True
-        self.liststore[row][0] = obj
+        self.modelstore[row][0] = obj
         
         if not (self.relationship_mode == 'm2m' and not self.m2m_editable):
             path = self.edited_row_model_path
@@ -1331,7 +1331,7 @@ class SqlTable(sqlwidget.SqlWidget):
         import csv
         
         def next_row():
-            for row in self.liststore:
+            for row in self.modelstore:
                 line = [self.gui_fields[f].get_human_value(getattr(row[0], f)) for f in self.field_list
                         if self.tvcolumns[f].get_property('visible')]
                 yield line
