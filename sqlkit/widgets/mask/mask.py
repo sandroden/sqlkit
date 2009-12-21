@@ -401,7 +401,7 @@ class SqlMask(sqlwidget.SqlWidget):
             
         self.last_new_obj = None
         
-        self.record_display(check=False)
+        self.record_display(check=False, delay_message=2)
         
     def record_save_new(self, wdg, constraint={}):
         """
@@ -484,7 +484,7 @@ class SqlMask(sqlwidget.SqlWidget):
             self.record_new()
         return length
 
-    def record_display(self, record=None, incr=0, index=None, check=True):
+    def record_display(self, record=None, incr=0, index=None, check=True, delay_message=0):
         """
         display an object record in the mask. Defaults to self.records[self.current + incr]
 
@@ -492,6 +492,8 @@ class SqlMask(sqlwidget.SqlWidget):
         :param index:  the index in self.records to be displayed
         :param incr:   increment to current index
         :param check:  boolean. If False prevent checking if saving is needed
+        :param delay_message: int. Number of seconds to wait before writing in the sttus bar.
+               This is needed to prevent normal display message from hiding "Saved" message.
         """
         if not self.records:
             ## TIP: message in the statis bar
@@ -524,7 +526,7 @@ class SqlMask(sqlwidget.SqlWidget):
             return None
 
 
-        self.sb(msg_info)
+        gobject.timeout_add(delay_message * 1000, self.sb, msg_info)
 
         for field in self.gui_fields:
             value = getattr(obj, field.field_name)
