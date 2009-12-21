@@ -3,4 +3,4 @@
 #from common import sqlwidget
 
 from mask import SqlMask
-from table import  SqlTable, SqlTreeTable, Header
+from table import  SqlTable, Header, ModelProxy

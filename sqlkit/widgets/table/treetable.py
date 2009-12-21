@@ -22,21 +22,6 @@ import gtk
 from sqlkit import _
 from table import SqlTable
 
-class Header(object):
-
-    def __init__(self, master, field_name, value):
-
-        self.master = master
-        value = self.master.gui_fields[field_name].get_human_value(value)
-        setattr(self, field_name, value)
-        
-    def __getattribute__(self, name):
-
-        try:
-            return object.__getattribute__(self, name)
-        except AttributeError:
-            return None
-
 class SqlTreeTable(SqlTable):
 
     def __init__(self, tree_field_name=None, *args, **kwargs):

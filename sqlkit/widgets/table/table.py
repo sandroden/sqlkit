@@ -37,6 +37,7 @@ from sqlkit.widgets.common import sqlwidget
 import gtk
 import pango
 import datetime
+from modelproxy import ModelProxy
 
 class SqlTable(sqlwidget.SqlWidget):
     """
@@ -68,7 +69,6 @@ class SqlTable(sqlwidget.SqlWidget):
     def __init__(self, *args, **kwargs):
 
         self.treeview = None
-        self.modelstore = None
         self.tvcolumns = None
         self.commit_inhibited = False
         self.deleting_row = False
@@ -76,7 +76,9 @@ class SqlTable(sqlwidget.SqlWidget):
         self.totals = totals.Totals(self)
         #self.edited_row_model_path = dbg.TraceIt(True, name='edited_row_model_path', mode='rw')
         self.edited_row_model_path = None
+        self.modelproxy = ModelProxy(self, treeview=False)
         sqlwidget.SqlWidget.__init__(self, *args, **kwargs)
+        self.modelproxy.update()
         self.run_hook('on_init')
         self._new_record = None
         self._fk_layout_nick = {}
@@ -84,13 +86,10 @@ class SqlTable(sqlwidget.SqlWidget):
     def _get_layout(self, lay, naked):
 
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
-        self.modelstore = gtk.ListStore(object)
-#        self.modelstore = gtk.TreeStore(object)
         ## layout
         self.treeview = self.widgets["TV=tree"]
         self.treeview.set_enable_search(False)
         self.treeview.show_all()
-        self.treeview.set_model(self.modelstore)
         
         self.treeview.set_rules_hint(True)
         # set selection mode
@@ -405,8 +404,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
         try:
             path, column, x_in_cell, y_in_cell = widget.get_path_at_pos(int(event.x),int(event.y))
-            iter = self.modelstore.get_iter(path)
-            obj = self.modelstore.get_value(iter,0)
+            iter = self.modelproxy.modelstore.get_iter(path)
+            obj = self.modelproxy.modelstore.get_value(iter,0)
             if isinstance(obj, self.totals.total_class):
                 obj = None
             field_name = column.get_data('field_name')
@@ -587,18 +586,21 @@ class SqlTable(sqlwidget.SqlWidget):
     
     def key_tree_Down(self, treeview, event, data):
 
-        row = self.get_selected_row()[0]
-        if row is None:
-            row = -1
-        if row + 1 == len(self.records):
-            try:
-                self.record_new(treeview)
-            except exc.CommitError, e:
-                return False
-            except exc.ValidationError:
-                return True
+        if self.modelproxy.tree_field_name:
+            return False
+        else:
+            row = self.get_selected_row()[0]
+            if row is None:
+                row = -1
+            if row + 1 == len(self.records):
+                try:
+                    self.record_new(treeview)
+                except exc.CommitError, e:
+                    return False
+                except exc.ValidationError:
+                    return True
 
-        return False
+            return False
 
     def key_entry_ctrl_n(self, widget, event, data):
 
@@ -735,16 +737,14 @@ class SqlTable(sqlwidget.SqlWidget):
 
     def record_display(self, index=None, check=False):
         """
-        Display all records (appending them to modelstore)
+        Display all records (appending them to modelproxy.modelstore)
         check=False  - not used here but present becouse is used in Mask
         """
 
         if index == None:
             self.treeview.set_model(None)
-            self.modelstore.clear()
-
-            self.fill_model()
-            self.treeview.set_model(self.modelstore)
+            self.modelproxy.fill_model(clear=True)
+            self.treeview.set_model(self.modelproxy.modelstore)
         # TIP: status bar message
         self.sb(_("Total N. of records: %s") % (len(self.records)), seconds=None)
 
@@ -783,11 +783,11 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.sb(_('Nothing to save'))
                 if obj in self.session.new:
                     self.commit_inhibited = True
-                    ## removing the modelstore element triggers edited_cb
+                    ## removing the modelproxy.modelstore element triggers edited_cb
                     ## so I need to set the path to None to prevent errors
                     path = self.edited_row_model_path
                     self.edited_row_model_path = None
-                    self.modelstore.remove(self.modelstore.get_iter(path))
+                    self.modelproxy.modelstore.remove(self.modelproxy.modelstore.get_iter(path))
                     self.commit_inhibited = False
                     self.session.expunge(obj)
                     self.records.remove(obj)
@@ -817,9 +817,9 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.commit()
                 self.totals.compute()
             except exc.HandledRollback, e:
-                iter = self.modelstore.get_iter(self.edited_row_model_path)
+                iter = self.modelproxy.modelstore.get_iter(self.edited_row_model_path)
                 self.edited_row_model_path = None
-                self.modelstore.remove(iter)
+                self.modelproxy.modelstore.remove(iter)
                 self.sb(_("Record has NOT been saved"), seconds=100)
 
         self.last_new_obj = None
@@ -852,9 +852,9 @@ class SqlTable(sqlwidget.SqlWidget):
         #commit_allowed_status = self.commit_allowed
         self.commit_inhibited = True
 
-        #treeiter = self.modelstore.append([self.last_new_obj])
+        #treeiter = self.modelproxy.modelstore.append([self.last_new_obj])
         treeiter = self._get_next_iter(self.last_new_obj)
-        path = self.modelstore.get_path(treeiter)
+        path = self.modelproxy.modelstore.get_path(treeiter)
         col = self.get_first_editable_col()
 
         self.treeview.scroll_to_cell(path, col)
@@ -957,21 +957,21 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         if not len(self.records):
             try:
-                return self.modelstore.append([new_obj])
+                return self.modelproxy.modelstore.append([new_obj])
             except TypeError:
-                return self.modelstore.append(None, [new_obj])
+                return self.modelproxy.modelstore.append(None, [new_obj])
 
         for i in range(-1, -5, -1):
-            obj = self.modelstore.get_value( self.modelstore[i].iter, 0)
+            obj = self.modelproxy.modelstore.get_value( self.modelproxy.modelstore[i].iter, 0)
             if isinstance(obj, self.totals.total_class):
                 continue
-            row = self.modelstore[i]
+            row = self.modelproxy.modelstore[i]
             break
 
         try:
-            return self.modelstore.insert_after(row.iter, [new_obj])
+            return self.modelproxy.modelstore.insert_after(row.iter, [new_obj])
         except TypeError:
-            return self.modelstore.insert_after(None, row.iter, [new_obj])
+            return self.modelproxy.modelstore.insert_after(None, row.iter, [new_obj])
 
     def _get_next_iter(self, new_obj):
         """
@@ -984,19 +984,19 @@ class SqlTable(sqlwidget.SqlWidget):
         path = self.get_selected_row()
         if not path:
             try:
-                return self.modelstore.append([new_obj])
+                return self.modelproxy.modelstore.append([new_obj])
             except TypeError:
-                return self.modelstore.append(None, [new_obj])
+                return self.modelproxy.modelstore.append(None, [new_obj])
         else:
-            current_iter = self.modelstore.get_iter(path)
-            parent_iter = self.modelstore.iter_parent(current_iter)
+            current_iter = self.modelproxy.modelstore.get_iter(path)
+            parent_iter = self.modelproxy.modelstore.iter_parent(current_iter)
             if parent_iter:
-                new_iter = self.modelstore.insert_after(parent_iter, current_iter, [new_obj])
+                new_iter = self.modelproxy.modelstore.insert_after(parent_iter, current_iter, [new_obj])
             else:
                 try:
-                    return self.modelstore.insert_after(current_iter, [new_obj])
+                    return self.modelproxy.modelstore.insert_after(current_iter, [new_obj])
                 except TypeError:
-                    return self.modelstore.insert_after(None, current_iter, [new_obj])
+                    return self.modelproxy.modelstore.insert_after(None, current_iter, [new_obj])
 
         return new_iter
     
@@ -1102,7 +1102,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.edited_row_model_path = path
         
     def clear(self, *args, **kwargs):
-        self.modelstore.clear()
+        self.modelproxy.modelstore.clear()
     
     def reload_cb(self, widget, *args):
         """
@@ -1150,13 +1150,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         self.edited_row_model_path = None  # must be set *before* clear()
                                 # to inhibit selection_changed_cp
-        self.modelstore.clear()
-        if isinstance(self.modelstore, gtk.ListStore):
-            for i in self.records:
-                self.modelstore.append([i])
-        else:
-            for i in self.records:
-                self.modelstore.append(None, [i])
+        self.modelproxy.fill_model(clear=True)
                 
         self.totals.compute()
         self.treeview.columns_autosize()
@@ -1164,31 +1158,6 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.get_selected_obj() or len(self.records):
             self.emit('context-changed', self.get_selected_obj() or self.records[0])
         self._new_record = False
-
-    def fill_model(self):
-        """
-        fill the models starting from self.records. It behaves differently according to
-        presence of self.tree_field_name
-        """
-        if not hasattr(self, 'tree_field_name') or not self.tree_field_name:
-            for record in self.records:
-                self.modelstore.append([record])
-            return
-
-        ##  this is just for trees with self.tree_field_name defined
-        parents = {}
-        for record in self.records:
-            field_value = getattr(record, self.tree_field_name)
-            parent = parents.get(field_value, None)
-            if not parent:
-                try:
-                    header = self.tree_make_header(field_value)
-                    parent = parents[field_value] = self.modelstore.append(parent, [header])
-                except AttributeError:
-                    pass
-            iter = self.modelstore.append(parent, [record])
-            if field_value not in parents:
-                parents[field_value] = iter
 
 
     def record_in_mask(self, widget):
@@ -1282,7 +1251,7 @@ class SqlTable(sqlwidget.SqlWidget):
         model, rows = selection.get_selected_rows()
         ## we use just the first selected
         #  >>> sel.get_selected_rows()
-        #  (<gtk.Modelstore object at 0x8dd61bc (GtkModelstore at 0x8da6090)>, [(1,)])
+        #  (<gtk.Modelproxy.Modelstore object at 0x8dd61bc (GtkModelproxy.Modelstore at 0x8da6090)>, [(1,)])
 
         if rows:
             return rows[0]
@@ -1292,7 +1261,7 @@ class SqlTable(sqlwidget.SqlWidget):
     def write_info(self):
         path = self.get_selected_row()
         try:
-            if self.modelstore[path][0] is None:
+            if self.modelproxy.modelstore[path][0] is None:
                 self.sb(_('INSERT mode'))
             else:
                 self.sb(_('UPDATE mode'))
@@ -1312,7 +1281,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if path is None:
             return None
         else:
-            obj = self.modelstore[path][0]
+            obj = self.modelproxy.modelstore[path][0]
             return obj
 
     def get_selected_obj(self):
@@ -1323,7 +1292,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if path is None:
             return None
         else:
-            obj = self.modelstore[path][0]
+            obj = self.modelproxy.modelstore[path][0]
             if isinstance(obj, self.totals.total_class):
                 return None
             return obj
@@ -1334,11 +1303,11 @@ class SqlTable(sqlwidget.SqlWidget):
         If the object at path is a total object (see :ref:`total`) it
         will be discarder unless you use param all=True
 
-        :param path: the modelstore path
+        :param path: the modelproxy.modelstore path
         :param all: boolean: only return object of the main class (no totals)
         """
 
-        obj = self.modelstore[path][0]
+        obj = self.modelproxy.modelstore[path][0]
         if isinstance(obj, self.totals.total_class):
             return None
         return obj
@@ -1361,15 +1330,15 @@ class SqlTable(sqlwidget.SqlWidget):
         
         obj = self.get_record_no_flush(pk=pk, filter_by=filter_by)
 
-        expired_obj = self.modelstore[row][0]
+        expired_obj = self.modelproxy.modelstore[row][0]
         if expired_obj in self.session:
             self.session.expunge(expired_obj)
         self.records.remove(expired_obj)
 
-        ## assigning modelstore value will trigger 'editing-canceled'
+        ## assigning modelproxy.modelstore value will trigger 'editing-canceled'
         self.cell_entry.substitute = True
         self.cell_entry.valid = True
-        self.modelstore[row][0] = obj
+        self.modelproxy.modelstore[row][0] = obj
         
         if not (self.relationship_mode == 'm2m' and not self.m2m_editable):
             path = self.edited_row_model_path
@@ -1447,7 +1416,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         def get_all_rows():
             ret = []
-            self.modelstore.foreach(foreach_handler, ret)
+            self.modelproxy.modelstore.foreach(foreach_handler, ret)
             return ret
 
         dialog = ExportDialog(get_all_rows, default_filename="%s-export.csv" % self.nick)
@@ -1467,44 +1436,6 @@ class SqlTable(sqlwidget.SqlWidget):
         if path is not None:
             self.treeview.get_selection().select_path(path)
             
-    def set_treemodel(self, tree_field_name, tree_order=None):
-        """
-        change the mode of the Table to a TreeTable, possibly converting the model itself
-        (if switching from listmodel or simply changing the tree_field_name).
-
-        For the time being, only TreeTables can b reorderable
-
-        :param tree_field_name: the field_name of the field that will be used to group records
-        :param tree_order_field: the field_name where each change in order must be saved
-        """
-        if isinstance(self.modelstore, gtk.ListStore):
-            self.modelstore = gtk.TreeStore(*[self.modelstore.get_column_type(i)
-                                             for i in range(self.modelstore.get_n_columns())])
-
-        self.tree_field_name = tree_field_name
-        self.treeview.set_reorderable(True)
-        self.treeview.set_model(self.modelstore)
-        self.record_display()
-        
-    def set_listmodel(self, tree_order=None):
-        """
-        change the mode of the Table to a TreeTable, possibly converting the model itself
-        (if switching from listmodel or simply changing the tree_field_name).
-
-        For the time being, only TreeTables can b reorderable
-
-        :param tree_field_name: the field_name of the field that will be used to group records
-        :param tree_order_field: the field_name where each change in order must be saved
-        """
-        if isinstance(self.modelstore, gtk.TreeStore):
-            self.modelstore = gtk.ListStore(*[self.modelstore.get_column_type(i)
-                                             for i in range(self.modelstore.get_n_columns())])
-
-        self.tree_field_name = None
-        self.treeview.set_reorderable(False)
-        self.treeview.set_model(self.modelstore)
-        self.record_display()
-        
 #### completion
 
     def set_editable(self, editable=True):
@@ -1583,4 +1514,6 @@ class ExportDialog(object):
                             quoting=self.QUOTE or csv.QUOTE_MINIMAL)
         writer.writerows(self.get_rows_func())
         f.close()
+
+
 

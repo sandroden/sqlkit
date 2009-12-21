@@ -306,7 +306,7 @@ class BooleanColumn(GenericColumn):
         
         ## connect
         cell.connect('editing-canceled', self.editing_canceled_cb) # ???
-        cell.connect('toggled', self.toggled_signal_cb, self.master.modelstore)
+        cell.connect('toggled', self.toggled_signal_cb, self.master.modelproxy.modelstore)
             
         self.column.set_cell_data_func(cell, self.cell_data_func_cb)
         self.column.cells_data_func = [(cell, self.cell_data_func_cb)]
@@ -327,7 +327,7 @@ class BooleanColumn(GenericColumn):
         self.master.currently_edited_field_name = self.field_name
         self.master.initialize_record_editing(path)
 
-        obj = self.master.modelstore[path][0]
+        obj = self.master.modelproxy.modelstore[path][0]
         status = getattr(obj, self.field_name)
 
         if self.master.is_nullable(self.field_name):

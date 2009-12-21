@@ -1,6 +1,7 @@
 # module sqltreelist
-__all__ = ['SqlTable', 'SqlTreeTable', 'Header']
+__all__ = ['SqlTable', 'SqlTreeTable', 'Header', 'ModelProxy']
 
+from modelproxy import ModelProxy, Header
 from table import SqlTable
-from treetable import SqlTreeTable, Header
+#from treetable import SqlTreeTable, Header
 

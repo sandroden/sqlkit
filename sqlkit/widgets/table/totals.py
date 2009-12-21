@@ -126,41 +126,45 @@ class Totals(object):
         for field_name in self.totals:
             self.subtotals[field_name] = 0
 
-    def insert(self, row, after=None, sub=False):
+    def insert(self, iter, after=None, sub=False):
+
         tot = self.total_class(self.table.field_list, sub=sub)
         if after:
             try:
-                piter = self.table.modelstore.insert_after(row.iter)
+                piter = self.table.modelproxy.modelstore.insert_after(iter)
             except TypeError:
-                piter = self.table.modelstore.insert_after(None, row.iter)
+                piter = self.table.modelproxy.modelstore.insert_after(None, iter)
                 
         else:
             try:
-                piter = self.table.modelstore.insert_before(row.iter)            
+                piter = self.table.modelproxy.modelstore.insert_before(iter)            
             except TypeError:
-                piter = self.table.modelstore.insert_before(None, row.iter)
+                piter = self.table.modelproxy.modelstore.insert_before(None, iter)
 
-        self.table.modelstore.set_value(piter, 0, tot)
+        self.table.modelproxy.modelstore.set_value(piter, 0, tot)
 
-        newrow = self.table.modelstore[piter]
+        newrow = self.table.modelproxy.modelstore[piter]
         return newrow, tot
 
-    def insert_subtotal(self, row, after=False):
-        row, tot = self.insert(row, after=after, sub=True)
+    def insert_subtotal(self, iter, after=False):
+
+        row, tot = self.insert(iter, after=after, sub=True)
         for field_name in self.totals:
             setattr(tot, field_name, self.subtotals[field_name])
         return row, tot
     
     def insert_total(self, row, after=False):
+
         if not row:
-            row = self.table.modelstore[-1]
-        row, tot = self.insert(row, after=after, sub=False)
+            row = self.table.modelproxy.modelstore[-1]
+
+        row, tot = self.insert(row.iter, after=after, sub=False)
         for field_name in self.totals:
             setattr(tot, field_name, self.totals[field_name])
         return row
     
-    def remove(self, row):
-        self.table.modelstore.remove(row.iter)
+    def remove(self, iter):
+        self.table.modelproxy.modelstore.remove(iter)
         
     def preserve_selection(func):
         def new_func(self):
@@ -169,7 +173,7 @@ class Totals(object):
             model, rows = selection.get_selected_rows()
             if rows:
                 path = rows[0]
-                #remember = gtk.TreeRowReference(self.table.modelstore, path)
+                #remember = gtk.TreeRowReference(self.table.modelproxy.modelstore, path)
             func(self)
             if rows:
                 #selection.select_path(remember.get_path())
@@ -189,8 +193,8 @@ class Totals(object):
             return
         
         self.initialize()
-        for row in self.table.modelstore:
-            obj = self.table.modelstore[row.path][0]
+        for row in self.table.modelproxy.modelstore:
+            obj = self.table.modelproxy.modelstore[row.path][0]
             if isinstance(obj, self.total_class):
                 self.remove(row)
             else:
@@ -202,7 +206,40 @@ class Totals(object):
 
         row = self.insert_total(row=None, after=True)
         if self.break_func:
-            self.insert_subtotal(row, after=False)
+            self.insert_subtotal(row.iter, after=False)
+        
+    @preserve_selection
+    def compute(self):
+        """
+        Go, add subtotals and total
+        """
+        if not self.totals.keys():
+            return
+        if not self.table.records:
+            return
+        
+        self.initialize()
+        self.table.modelproxy.modelstore.foreach(self.foreach_func)
+
+        row = self.insert_total(row=None, after=True)
+        if self.break_func:
+            self.insert_subtotal(row.iter, after=False)
+
+    def foreach_func(self, model, path,  iter):
+        """
+        
+        """
+
+        obj = self.table.modelproxy.modelstore.get_value(iter, 0)
+        if isinstance(obj, self.total_class):
+            self.remove(iter)
+        else:
+            if self.break_func and self.is_different(obj):
+                self.insert_subtotal(iter)
+                self.prev = self.break_func(obj)
+                self.reset_subtotals()
+            self.sum(obj)
+
         
 def func_date_same_day(obj, field_name):
     date = getattr(obj, field_name)
