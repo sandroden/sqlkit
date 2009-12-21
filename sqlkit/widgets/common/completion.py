@@ -513,6 +513,7 @@ class SimpleCompletion(object):
               - start
         """
         from sqlkit.widgets.table.tablewidgets import CellWidget
+        from sqlkit.layout.misc import StockMenuItem
         
         if not ev.button == num_button:
             return False
@@ -526,7 +527,9 @@ class SimpleCompletion(object):
         self.master.widgets['M=popup'] = gtk.Menu()
         menu = self.master.widgets['M=popup']
         ## info on field
-        item = gtk.MenuItem(label="info on %s" % field_name.replace('_','__'))
+        
+        item = StockMenuItem(label="info on %s" % field_name.replace('_','__'), stock='gtk-info')
+        gtk.MenuItem(label="info on %s" % field_name.replace('_','__'))
         item.connect('activate', self.master.show_field_info, field_name)
         label = _("Show all info on this field, db type & Co.")
         item.set_tooltip_text(label)
@@ -552,14 +555,14 @@ class SimpleCompletion(object):
 
         ## edit table referenced as foreign key
         if self.master.is_fkey(field_name):
-            item = gtk.MenuItem(label=_("Edit the referenced table in 'table' mode"))
+            item = StockMenuItem(label=_("Edit the referenced table in 'table' mode"), stock='gtk-leave-fullscreen')
             item.connect('activate', edit_foreign_key_table, (self.master, field_name, 'table'))
             label = _("Edit the table from which admitted values are taken in 'table' mode")
             item.set_tooltip_text(label)
             menu.append(item)
 
         if self.master.is_fkey(field_name):
-            item = gtk.MenuItem(label=_("Edit the referenced table in 'mask' mode"))
+            item = StockMenuItem(label=_("Edit the referenced table in 'mask' mode"), stock='gtk-leave-fullscreen')
             item.connect('activate', edit_foreign_key_table, (self.master, field_name, 'mask'))
             label = _("Edit the table from which admitted values are taken in 'mask' mode")
             item.set_tooltip_text(label)
@@ -835,7 +838,7 @@ class FkeyCompletion(SimpleCompletion):
                 raise exc.LookupValueMultipleValues("%s returns multiple values for '%s': '%s'" % (
                     sql, self.field_name, field_value))
             else:
-                value = format % all[0]
+                value = format % DictLike(all[0])
                 try:
                     self.lookup_values[self.field_name][field_value] = value
                     return value
@@ -1031,7 +1034,12 @@ def edit_foreign_key_table(wdg, (master, field_name, mode)):
     
     ftable, fkey = get_foreign_info(master, field_name)
     if mode == 'mask':
-        SqlMask(table=ftable, dbproxy=master.dbproxy)
+        m = SqlMask(table=ftable, dbproxy=master.dbproxy)
+        try:
+            fkvalue = master.get_value(field_name, shown=False)
+            m.set_records(pk=fkvalue)
+        except exc.ValidationError, e:
+            pass
     else:
         SqlTable(table=ftable, dbproxy=master.dbproxy)
     
