@@ -1183,7 +1183,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         mask = SqlMask(table=ftable.name, session=self.session, dbproxy=self.dbproxy, 
                        metadata=self.metadata, mode=self.mode,
-                       layout_nick=self._fk_layout_nick.get(field_name, None),
+                       layout_nick=self._fk_layout_nick.get(field_name, 'default'),
                        )
         mask.mode = '-b'
         #mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
