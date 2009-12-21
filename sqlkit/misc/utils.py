@@ -50,6 +50,9 @@ class Container(object):
     def __repr__(self):
         return "%s" % self._attrs
 
+    def keys(self):
+        return self._attrs
+
     def get(self, key, default=None):
         try:
             return getattr(self, key)
