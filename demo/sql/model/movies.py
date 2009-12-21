@@ -1,7 +1,7 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Table, Column, ForeignKey
 from sqlalchemy.types import *
-from sqlalchemy.orm import relation
+from sqlalchemy.orm import relation, backref
 
 from sqlkit.db.utils import Descr
 from sqlkit.db import proxy
@@ -46,7 +46,8 @@ class Movie(Base):
     director_id    = Column(Integer, ForeignKey('director.id'), nullable=False)
 
     ## relations
-#    director       = relation('Director', backref='movies', cascade='all, delete-orphan',)
+    # alternative way to set the relation between movies and actors
+    # director       = relation('Director', backref=backref('movies', cascade='all, delete-orphan',))
     actors         = relation('Actor', backref='movies', secondary=movie_casting)
     genres         = relation('Genre', backref='movies', secondary=movie_genre)
 
