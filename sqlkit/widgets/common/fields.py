@@ -648,7 +648,7 @@ class TimeTZField(TimeField):
             self.TZ = localtimezone.Local
             self.microsecond = 0
 
-        if not value:
+        if value is None:
             return None
         value = time(*[int(i) for i in re.split('[.:]', value)]) 
         return value.replace(tzinfo=self.TZ, microsecond=self.microsecond)
