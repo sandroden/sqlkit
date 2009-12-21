@@ -30,7 +30,8 @@ usage: %prog [options] [[url|nick] table]
    -o, --order_by=fields: comma separated field list
    -c, --configure: open SqlMasq on _sqlkit_table or create it
    -v, --version: prin version and exit
-   -l, --load: load data when opening a table (if no table is directly opened, set LoadData)
+   -L, --load: load data when opening a table (if no table is directly opened, set LoadData)
+   -l, --limit=LIMIT: limit to LIMIT rows
 """
 
 import sys, re, datetime

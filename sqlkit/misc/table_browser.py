@@ -427,6 +427,7 @@ def open_sqlwidget(table, single, opts, db):
               'dev' : opts.dev,
               'single' : single,
               'nick' : table,
+              'limit' : opts.limit and int(opts.limit) or 200,
               'dbproxy' : db,
               'sql' : opts.sql,
               'field_list' : opts.field_list,
