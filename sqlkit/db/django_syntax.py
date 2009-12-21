@@ -144,7 +144,10 @@ class DjangoParser(object):
         elif op_str == 'ilike': # SA manages difference where there is no ILIKE operator
             sql = col.ilike(value)
         elif self.is_date(col):
-            start, stop = string2dates(value)
+            if isinstance(value, basestring):
+                start, stop = string2dates(value)
+            else:
+                start, stop = value, None
             if stop:
                 sql = col.op('>=')(start)  &  col.op('<=')(stop)
             else:
