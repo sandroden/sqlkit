@@ -155,6 +155,8 @@ class SqlWidget(gobject.GObject):
         :param metadata: a metadata object needed for introspection if reflection
            is required
 
+        :param hooks: the :ref:`hooks` class to be used for this widget
+
         :param ro=False:
            if set to True the table is not updateable. Old way to set mode='b'
 

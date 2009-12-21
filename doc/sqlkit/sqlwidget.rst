@@ -261,20 +261,20 @@ the hooks (``on_validation.*``) are related to validation other are related
 to configuration (``on init``), others (``on_activate``) may be used to save
 typing.
 
-Hooks are searched for in the methods of a class declared in the optional
-``hooks`` argument.
+Hooks are searched for in the methods of the instance of a class declared in
+the optional ``hooks`` argument.
 
 Hooks can be registered using ``sqlkit.db.utils.register_hook`` (and
 ``get_hook`` from :ref:`utils <utils>` module) so that any sqlwidget built
-on that table will use those hooks. The advantage is that browsing data
-(e.g. using right click on a table row) can lead to opening table that are
-not configured: registering hooks is a way to enforce configuration (and
-possibly constraints) on any widget.
+on that table will use those hooks (unless the table is part of a join!!). The
+advantage is that browsing data (e.g. using right click on a table row) can
+lead to opening table that are not configured: registering hooks is a way to
+enforce configuration (and possibly constraints) on any widget.
 
 As layout hooks can be registered with a nick (default is ``default``) so
-that you can register different hooks for different editing flavour: you can
-have a table for people and you can decide to open it with customer or
-provider layout/hooks just registering both layout and hooks and using
+that you can register different hooks for different editing flavours. E.g/:
+you can have a table for *people* and you can decide to open it with *customer*
+or *provider* layout/hooks just registering both layout and hooks and using
 argument ``layout_nick``.
 
 Use it with care as it may lead in situation in which not all fields are
