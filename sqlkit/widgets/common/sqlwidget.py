@@ -1149,7 +1149,7 @@ class SqlWidget(gobject.GObject):
             self.record_validate_fields(obj)
 
         try:
-            self.run_hook('on_validation', )
+            self.run_hook('on_validation')
         except exc.ValidationError, e:
             self.add_validation_error(e)
 
@@ -1224,9 +1224,10 @@ class SqlWidget(gobject.GObject):
     def run_hook(self, mode, *args, **kw):
         """
         look for a possible hook and call it.
-        mode: the hook type (eg.: set_value, completion...)
+        :param mode: the hook type (eg.: set_value, completion...)
+        :param climb: boolean: should I climb relationship_path to get other sqlwidgts' hooks?
         """
-        # climb: it a flag that determines if I must climb the relationship and find
+        # climb: it's a flag that determines if I must climb the relationship and find
         # others possible hooks in relationship_leaders
         climb = kw.pop('climb', True)
 
