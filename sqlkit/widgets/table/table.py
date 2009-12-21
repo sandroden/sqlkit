@@ -628,12 +628,16 @@ class SqlTable(sqlwidget.SqlWidget):
 ###### Saving
     def set_value(self, field_name, value, path=None, fkvalue=None, initial=False, shown=False):
         """
-        called from within edited signal and completion.
-        Validation should live here?
-        If path, is not passed (as when used from completion)
-        it is deduced from selection
-        fkey: if True the value is handled as a primary key.
-        Used from completion and from gui_fields/tablewidget
+        Set ``value`` in the model for ``field_name`` at path (default self.current)
+
+        :param field_name: the name of the field we want to set
+        :param value: the value we want to set
+        :param path: the modelstor path at which we want to set a value. Default is the edited object.
+        :param fkvalue: the value is handled as a primary key.  Used from
+              completion and from gui_fields/tablewidget
+        :param initial: if initial=False, the possible ``on_change_hook`` is not called
+        
+
         """
         ## note: self.current cannot be used. We don't want the currently selected obj
         ##       but the one that is to be saved. This operation can be triggered
@@ -1114,7 +1118,7 @@ class SqlTable(sqlwidget.SqlWidget):
         mask = SqlMask(mapper=self.mapper, session=self.session, layout=self.layout,
                        relationship_mode='FIXED', metadata=self.metadata, hooks=self.hooks)
         mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
-        mask.set_records([self.current])
+        mask.set_records([self.get_selected_obj()])
 
         ## signals to keep selection in sync 
         def follow_selection(table, obj, mask):
@@ -1151,12 +1155,12 @@ class SqlTable(sqlwidget.SqlWidget):
                        layout_nick=self._fk_layout_nick.get(field_name, None),
                        )
         mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
-        mask.set_records(pk=getattr(self.current, field_name))
+        mask.set_records(pk=getattr(self.get_selected_obj(), field_name))
 
         ## signals to keep selection in sync 
         def follow_selection(table, obj, mask):
-            if obj and self.current:
-                mask.set_records(pk=getattr(self.current, field_name))
+            if obj and self.get_selected_obj():
+                mask.set_records(pk=getattr(self.get_selected_obj(), field_name))
 
 #        handler_id = self.connect('record-selected', follow_selection, mask)
         handler_id = self.connect('context-changed', follow_selection, mask)
@@ -1249,7 +1253,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return None
         return obj
 
-    current = property(get_selected_obj)
+    current = property(get_current_obj)
 
     def set_current(self, pk=None, filter_by=None):
         """

@@ -1549,9 +1549,8 @@ class SqlWidget(gobject.GObject):
     
     def get_current_obj(self):
         """
-        Return the corrently edited (not just selected!!) obj.  In Table
-        widgets, selection can already be elsewhere (as in
-        on_selection_change). Read comment in set_value
+        Return the corrently edited obj. Note that in Table widgets,
+        selection can already be elsewhere (as in on_selection_change).
 
         """
         ## Overridden by SqlMask/SqlTable
