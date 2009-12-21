@@ -60,6 +60,11 @@ Methods
 
    used to set a layout to be used if opening a mask to edit the foreign key
 
+.. method:: set_field_list(field_list)
+
+    set which field will be shown and in which order (for tables)
+
+
 Column headers
 ==============
 

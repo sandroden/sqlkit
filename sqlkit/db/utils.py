@@ -131,7 +131,11 @@ class DictLike(object):
         self.obj = obj
         
     def __getitem__(self, key):
-        return getattr(self.obj, key, '')
+        """
+        Cast all None values to '' otherwise the lookup can be scattered with 'None'
+        as %(field_name)s would render as 'None' a None value
+        """
+        return getattr(self.obj, key, '') or ''
 
 class Tables(Container):
     def __getitem__(self, key):

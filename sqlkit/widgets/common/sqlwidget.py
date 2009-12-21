@@ -327,19 +327,24 @@ class SqlWidget(gobject.GObject):
         return self.mapper_info.pkeys[self.mapper_info.get_primary_table()]
 
 ###### Filters/constraints
-    def add_constraint(self, OR=False, *args, **kwargs):
+    def add_constraint(self, OR=False, **kwargs):
         """
-        Add constraints. A constraint may be one or more ColumnElement, ColumnList
-        or django-like syntax. Eg.::
+        Add :ref:`constraints`. A constraint may be expressed via keyworks in django-like
+        syntax. Eg.::
 
            name_like='uno%'
            genres__name__regexp='sto'
            director_id__birth_date__gte='1/1/1970'
 
         if multiple conditions are passed, they will be ANDed unless 'or_=True'
+
+        A constraint may also be build directly into the self.query object.
+
+        :param OR: the condition will be ORed
+
         """
         from sqlkit.db.django_syntax import django2query
-        self.query = django2query(self.query, self.mapper, OR=OR, *args, **kwargs)
+        self.query = django2query(self.query, self.mapper, OR=OR, **kwargs)
         
     def add_filter_cb(self, event=None, visible=True):
         """
@@ -347,8 +352,18 @@ class SqlWidget(gobject.GObject):
         """
         self.filter_panel.show()
 
-    def add_filter(self, **kw):
-        self.filter_panel.add_filter(**kw)
+    def add_filter(self, active=True, **kw):
+        """
+        :param active: boolean: make the filter active/inactive
+
+        see :ref:`filters` and ``add_constraint`` above. Note that filter are always 
+        ANDed (OR arameter is not available).
+
+        If you have a field_name named 'active', the active parameter will hide it. Use
+        keyword ``active__eq`` to bypass it.
+        
+        """
+        self.filter_panel.add_filter(active, **kw)
         
 ###### Layout
 
@@ -509,6 +524,11 @@ class SqlWidget(gobject.GObject):
         """
         Write on the status bar if present in this  sqlwidget or in the ``relationship_leader``
 
+        Adds a message in the stack of messages of the status bar, and removes it
+        after seconds seconds. If delay=True it uses gobject.idle_add to give
+        more chance to be visible (not hidden by other automatic messages)
+
+
         :param text: the text to be written
         :param seconds: how may seconds the text should stay visible
         :param delay: boolean. If True message is added in an idle cicle. It means it will be shown
@@ -546,7 +566,9 @@ class SqlWidget(gobject.GObject):
             
     def resize(self, width, height):
         """
-        Resize the parent window, accepts -1
+        Resize the window. It accepts also -1 as value in which case sets
+        the current value, so it can be used to change just one dimention.
+
         """
         Window = self.widgets['Window']
         w, h = Window.get_size()
@@ -714,16 +736,34 @@ class SqlWidget(gobject.GObject):
 
         return False  # i.e.: rollback
 
-    def get_value(self, field_name):
+    def get_value(self, field_name, shown=False):
         """
-        to be overwritten by Mask & Table
+        return the value from the widget
+
+        :param field_name: the field_name
+        :param shown: boolean: in case field is a foreign key, ``True`` indicates we want the
+             dislayed value rather than the real one
+
         """
+
+        ## to be overwritten by Mask & Table
         return NotImplementedError
     
-    def set_value(self, field_name, value):
+    def set_value(self, field_name, field_value, fkvalue=None, initial=False, shown=False):
         """
-        to be overwritten by Mask & Table
+        set the value of any field present in ``gui_fields``. Uses field.set_value
+        if ``initial`` is False, run ``on_change_value``
+        
+
+        :param  field_name: the field_name to be changed
+        :param  field_value: the new value
+        :param  fkvalue: a possible foreign key value. It's here just  for compatibility with SqlTable's one
+        :param  initial: a boolean indicating if it's an initial value (passed to field)
+        :param  shown: a boolean indicating if the  value is the displayed value (passed to field)
+        
         """
+
+        #to be overwritten by Mask & Table
         return NotImplementedError
     
     def has_changed(self, field_name):
@@ -1048,7 +1088,13 @@ class SqlWidget(gobject.GObject):
     
     def reload(self, sql=None, params=None, limit=None, constraint={},
                reload_constraint=False, display=True, order_by=None):
-        """reload data from db
+        """
+        reload the data from the database taking all filter/constraints into
+        consideration 
+
+        :param limit: add a LIMIT clause (integer) to limit number of returned
+            records. Permanent effect
+        :param order_by: reset order_by and apply when reloading. Permanent effect.
 
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
         """
@@ -1108,7 +1154,11 @@ class SqlWidget(gobject.GObject):
         return length
 
     def set_records(self, records=None, pk=None):
-        """set 'records' as the list of record to manage
+        """
+        set 'records' as the list of record to manage
+
+        :param records: use 'records'  as the list of records
+        :param pk: use primary key pk as te pk to show (TODO make it work with compisite pks)
         """
         if not records and pk:
             records = self.get_by_pk(pk)
@@ -1270,14 +1320,17 @@ class SqlWidget(gobject.GObject):
         raise NotImplemented
     def set_format(self, format_dict):
         """
-        Set format for each column.
-        format_dict: a dictionary whose keys are field_names and values are format
-        according to babels numeric and dates format
+        set_format(format_dict). format_dict is a dictionary whose key is the
+        field_name and the value is the format of the column. Format_dict can
+        have keys that do not correspond to any field in the widget. That
+        makes it possible to reuse a format dict.
 
-        No error is raised if a field_name is not represented so that a format_field can be
-        reused in different contexts.
+        The format dict is passed to related widgets as well.
 
-        The dict may also hold info for related tables/masks
+        See :ref:`localization` for more info
+
+        :param format_dict: a dict of field_name/format strings
+
         """
         if not format_dict:
             return
@@ -1314,6 +1367,9 @@ class SqlWidget(gobject.GObject):
         
 ###### Checks
     def is_mask(self, obj=False):
+        """
+        Return True if the sqlwidget is a Sqlmask
+        """
         ## bad way to prevent chicken and eggs import problems 
         from sqlkit.widgets import SqlMask
         if obj == False: ## obj may be an empty str: ''
@@ -1321,6 +1377,9 @@ class SqlWidget(gobject.GObject):
         return isinstance(obj, SqlMask)
     
     def is_table(self, obj=False):
+        """
+        Return True if the sqlwidget is a SqlTable
+        """
         ## bad way to prevent chicken and eggs import problems 
         from sqlkit.widgets import SqlTable
         if obj == False: ## obj may be an empty str: ''

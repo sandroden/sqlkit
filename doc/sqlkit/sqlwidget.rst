@@ -65,6 +65,7 @@ very slow, expecially when working with a remote database.
 rel. 5.03rc) so I try it and fallback to default that would turn to be
 slower. Previous 0.5 rel called it ``autoflush``
 
+.. .. automodule:: sqlkit.widgets.common.sqlwidget
 
 .. class:: sqlkit.widgets.Sqlwidget(see_below)
 
@@ -189,61 +190,25 @@ completeness:
 ..   :set_fields:
 ..       equivalent to passing field_list
 
-.. method:: add_constraint(field_name=value[,field_name__operator=value, active=boolean,OR=boolean] )
+.. automethod:: sqlkit.widgets.common.sqlwidget.SqlWidget.add_constraint
 
-    see :ref:`constraints`
+.. automethod:: sqlkit.widgets.common.sqlwidget.SqlWidget.add_filter
 
-.. method:: add_filter(field_name=value[,field_name__operator=value, active=boolean,OR=boolean] )
+.. automethod:: sqlkit.widgets.common.sqlwidget.SqlWidget.resize
 
-    see :ref:`filters`
+.. automethod:: sqlkit.widgets.common.sqlwidget.SqlWidget.set_records
 
-.. method:: reload(limit=None, order_by=None)
+.. automethod:: sqlkit.widgets.common.sqlwidget.SqlWidget.set_format
 
-    reload the data from the database taking all filter/constraints into
-    consideration 
+.. automethod:: sqlkit.widgets.common.sqlwidget.SqlWidget.is_mask
 
-    :param limit: add a LIMIT clause (integer) to limit number of returned
-        records. Permanent effect
-    :param order_by: reset order_by and apply when reloading. Permanent effect.
+.. automethod:: sqlkit.widgets.common.sqlwidget.SqlWidget.is_table
 
-.. method:: resize()
+.. automethod:: sqlkit.widgets.common.sqlwidget.SqlWidget.sb
 
-    a resize on the window. It accepts also -1 as value in which case sets
-    the current value, so it can be used to change just one dimention.
+.. automethod:: sqlkit.widgets.common.sqlwidget.SqlWidget.get_value
 
-.. method:: set_records([list_of_instances])
-
-    set the record list to be represented
-
-.. method:: set_format(format_dict)
-
-    set_format(format_dict). format_dict is a dictionary whose key is the
-    field_name and the value is the format of the column. Format_dict can
-    have keys that do not correspond to any field in the widget. That
-    makes it possible to reuse a format dict.
-
-    The format dict is passed to related widgets as well.
-
-    See :ref:`localization` for more info
-
-.. method:: set_field_list(field_list)
-
-    set which field will be shown and in which order (for tables)
-
-.. method:: is_table()
-
-    return True if the sqlwidgget is a SqlTable
-
-.. method:: is_mask()
-
-    return True if the sqlwidgget is a SqlMask
-
-.. method:: sb(message, secodns=10, delay=False)
-
-   Adds a message in the stack of messages of the status bar, and removes it
-   after secondss seconds. If delay=True it uses gobject.idle_add to give
-   more chance to be visible (not hidden buy other automatic messages)
-
+.. automethod:: sqlkit.widgets.common.sqlwidget.SqlWidget.set_value
 
 Attributes
 ===========
