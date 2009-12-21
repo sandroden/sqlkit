@@ -553,7 +553,7 @@ class Layout(object):
             if isinstance(self.widgets[el_def], gtk.ToolItem):
                 self.widgets[el_def].set_tooltip_text(text)
             else:
-                widgets[el_def].set_tooltip_text(text)
+                self.widgets[el_def].set_tooltip_text(text)
         else:
             self.elements[el_def].properties['tooltip'] = text
 
