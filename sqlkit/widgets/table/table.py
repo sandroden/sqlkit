@@ -291,7 +291,7 @@ class SqlTable(sqlwidget.SqlWidget):
             ])
 
         self.actiongroup_table.add_actions([
-            ('Zoom-fit', gtk.STOCK_ZOOM_FIT, None, None, None, self.on_zoom_fit),
+            ('Zoom-fit', gtk.STOCK_ZOOM_FIT, None, '<Control>z', None, self.on_zoom_fit),
             ('ShowColumns', None, _('Show field')),  # menuitem
             ('HideColumns', None, _('Hide field')),  # menuitem
 #            ('VisibleColumns', None, None),          # menu
