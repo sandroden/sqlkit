@@ -170,7 +170,7 @@ slower. Previous 0.5 rel called it ``autoflush``
   :param layout: 
      string description of the layout as described in :ref:`mask`. It's used
      to generate the layout for SqlMask also for table's
-     :ref:`RecordInMask`.
+     :ref:`recordinmask`.
 
   :param layout_nick:
      nick name of a layout to be used. Defaults to ``default``. A layout can
@@ -347,11 +347,12 @@ Signals
 
 :after-flush:
    
-   flush has occurred, normally commit should not add any errors. This in
+   flush has occurred, normally commit should not add any errors. This is
    implemented with a SessionExtension: if you used the default session
-   optained via get_session() you are assured that it will be correct. If you
+   obtained via get_session() you are assured that it will be correct. If you
    create a session by yourself, be sure to add ``sqlkit.db.proxy.SKSessionExtension`` to the
-   session extensions or you won't have this signal.
+   session extensions or you won't have this signal. Read more detailed
+   explanation in :ref:`hook on_after_flush <on_after_flush>` 
 
    .. function:: after_flush_callback(sqlwidget, object, session)
 
@@ -475,31 +476,35 @@ The following hooks are defined:
 
        :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
    
-:on_after_flush: run as the signal with the same name from within
-    after_flush session extension method
+.. _on_after_flush:
 
-    This hook is completely similar to 'after-flush' signal, but is meant to
+:on_after_flush: 
+
+    run as the signal with the same name from within ``after_flush`` 
+    session extension method.
+
+    This hook is completely similar to ``after-flush`` signal, but is meant to
     be defined in a separate class so that it's easier to propagate
-    validation hooks to a spawned child (RecordInMask)
-
-    Open a mask right clicking on a record, change something and
-    save. You'll see that on_after_flush is called eather.
+    validation hooks to a spawned child (i.e.: :ref:`recordinmask`,
+    when a mask right clicking on a record, change something and
+    save). You'll see that ``on_after_flush`` is called eather.
 
 
     From the sqlalchemy documentation: "Note that the session's state is
     still in pre-flush, i.e. *new*, *dirty*, and *deleted* lists still
     show pre-flush state as well as the history settings on instance
-    attributes". This is true for *post_commit* hook as well , is not true
+    attributes". This is true for *post_commit* hook as well, it is not true
     for *after_flush_postexec*, that on the other had has already setup
     relation.
 
     I end up in some circumtancies to split the callback in two phases: one
     that detects if an action is needed from whithin the
-    after_flush/after_commit phase, the second (may me a mail, or any other
+    after_flush/after_commit phase, the second (may be a mail, or any other
     action) from within the after_flush_postexec, so that I can use the
-    relations.
+    relations. Beware that you may have one call to ``on_after_flush`` and
+    more different calls to ``on_post_commit``
 
-   .. function:: on_after_flush_callback(sqlwidget, object, session)
+    .. function:: on_after_flush_callback(sqlwidget, object, session)
 
       :param sqlwidget: the sqlwidget that emitted the signal
       :param object: the object that was *current* when session ws
@@ -516,7 +521,7 @@ The following hooks are defined:
 :on_after_flush_postexec: run as the signal with the same name from within
     after_flush_postexec session extension method
 
-    As in the precedent hook this is called exactly withing the session
+    As in the precedent hook this is called exactly within the session
     extension method by the same name. When it's run the session will have
     no longer informations on session.dirty/session.new/session.delete but
     will have all relations set-up.

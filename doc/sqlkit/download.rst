@@ -8,15 +8,15 @@ Requirements
 
 Sqlkit depends on:
 
-      * Python
-          * Pygtk
-          * sqlalchemy (>=0.5.3)
-          * glade2
-      * python-dateutils 
-      * setuptools
-      * the correct driver for your database of choice among the backend
-        `suppored by sqlkachemy`_
-      * babel (localization)
+       * Python
+           * Pygtk
+           * sqlalchemy (>=0.5.3)
+           * glade2
+       * python-dateutils 
+       * setuptools
+       * the correct driver for your database of choice among the backend
+         `supported by sqlalchemy`_
+       * babel (localization)
 
 Changelog
 ===========
@@ -31,20 +31,20 @@ The code is available under an hg repository::
 
   hg clone http://hg.argolinux.org/py/sqlkit
   
-You can download sqlkit package xxxx from here_ in tar or deb format. 
+You can download sqlkit package VER from here_ in tar or deb format. 
 
 
-+-------------------------------------+-----------------------------------------------------+
-|Python package                       |sqlkit-xxxx.tar.gz_                                  |
-+-------------------------------------+-----------------------------------------------------+
-|Debian/Ubuntu package (read below!   |python-sqlkit_yyyy_all.deb_                          |       
-|you are supposed to install          |                                                     |
-|sqlalchemy >= 0.5.3 and babel)       |                                                     |
-+-------------------------------------+-----------------------------------------------------+
-|Linux executable (pyinstaller)       |sqledit-binary-xxxx.tar.gz_                          |
-+-------------------------------------+-----------------------------------------------------+
-|Windows executable (pyinstaller)     |sqledit-setup-xxxx.exe_                              |
-+-------------------------------------+-----------------------------------------------------+
++--------------------------------------+-------------------------------------+
+| Python package                       |sqlkit-VER.tar.gz_                   |
++--------------------------------------+-------------------------------------+
+| Debian/Ubuntu package (read below!   |python-sqlkit_DEBVER_all.deb_        |
+| you are supposed to install          |                                     |
+| sqlalchemy >= 0.5.3 and babel)       |                                     |
++--------------------------------------+-------------------------------------+
+| Linux executable (pyinstaller)       |sqledit-binary-LNXVER.tar.gz_        |
++--------------------------------------+-------------------------------------+
+| Windows executable (pyinstaller)     |sqledit-setup-WINVER.exe_            |
++--------------------------------------+-------------------------------------+
 
 
 Sqlkit is used in a production environment and great care is put in fixing
@@ -148,11 +148,11 @@ Sqlkit is developed by `Alessandro Dentella`_
 .. _here: http://sqlkit.argolinux.org/download/
 .. _Experimental: http://packages.debian.org/experimental/python-sqlalchemy
   
-.. _sqlkit-xxxx.tar.gz: http://sqlkit.argolinux.org/download/sqlkit-xxxx.tar.gz
-.. _python-sqlkit_yyyy_all.deb: http://sqlkit.argolinux.org/download/python-sqlkit_yyyy_all.deb
-.. _sqledit-binary-xxxx.tar.gz: http://sqlkit.argolinux.org/download/sqledit-binary-xxxx.tar.gz
-.. _sqledit-setup-xxxx.exe: http://sqlkit.argolinux.org/download/sqledit-setup-xxxx.exe
-.. _sqlkit-doc_xxxx_all.deb: http://sqlkit.argolinux.org/download/sqlkiy-doc_xxxx_all.deb
+.. _sqlkit-VER.tar.gz: http://sqlkit.argolinux.org/download/sqlkit-VER.tar.gz
+.. _python-sqlkit_DEBVER_all.deb: http://sqlkit.argolinux.org/download/python-sqlkit_DEBVER_all.deb
+.. _sqledit-binary-LNXVER.tar.gz: http://sqlkit.argolinux.org/download/sqledit-binary-LNXVER.tar.gz
+.. _sqledit-setup-WINVER.exe: http://sqlkit.argolinux.org/download/sqledit-setup-WINVER.exe
+.. _sqlkit-doc_VER_all.deb: http://sqlkit.argolinux.org/download/sqlkiy-doc_VER_all.deb
 .. _`Alessandro Dentella`: mailto:sandro@e-den.it
 .. _launchpad: https://launchpad.net/sqlkit
-.. _`suppored by sqlkachemy`: http://www.sqlalchemy.org/trac/wiki/DatabaseNotes
+.. _`supported by sqlalchemy`: http://www.sqlalchemy.org/trac/wiki/DatabaseNotes

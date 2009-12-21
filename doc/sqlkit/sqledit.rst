@@ -13,7 +13,7 @@ present a list of all tables that can be selected for editing (choosing
 
 It has several options:
 
-.. docusage:: ../../bin/sqledit.py
+.. docusage:: ../../bin/sqledit
    :verbatim:
 
 If called without argument it will present a connection dialog:
