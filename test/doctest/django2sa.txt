@@ -21,6 +21,9 @@
 ...     print sql, join
 
 #### components: path, str_op, col, op, value
+>>> djs.django2components(User.__table__, {'first_name' : 'ed'})
+([], '=', 'eq', 'ed', Column('first_name', String(length=50, convert_unicode=False, assert_unicode=None), table=<user>), None)
+
 >>> djs.django2components(User.__mapper__, {'first_name' : 'ed'})
 ([], '=', 'eq', 'ed', Column('first_name', String(length=50, convert_unicode=False, assert_unicode=None), table=<user>), None)
 

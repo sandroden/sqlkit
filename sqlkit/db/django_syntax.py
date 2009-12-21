@@ -183,7 +183,17 @@ def django2components(mapper_or_table, kw=None):
                 a tuple (Table, join_condition). Is None when no join is needed and is False
                 if the len(path) > 1 (as in address__city__country__in=...)
       
-    return: path, str_op, col, op, value
+    return: joins, op, op_str, value, col, join_args
+    Es.::
+
+     >>>> djs.django2components(Address.__mapper__, {'date_created__gte' : 'm'})
+     ([], '>=', 'gte', 'm', Column('date_created', Date(), table=<address>), None)
+     >>>> djs.django2components(Address.__mapper__, {'user_id__first_name' : 'ed'})[:-1]
+     (['user_id'], '=', 'eq', 'ed', Column('first_name', String(length=50, convert_unicode=False, assert_unicode=None), table=<user>),
+           (Table('user', MetaData(Engine(sqlite://)), ...),
+            ,<sqlalchemy.sql.expression._BinaryExpression object at 0x8859cec>)))
+    
+
     """
     if isinstance(mapper_or_table, Table):
         mapper = None
@@ -224,7 +234,13 @@ def django2components(mapper_or_table, kw=None):
             else:
                 ## this is used in 2 cases: the join on a foreign key, so that order_by can work
                 ## correctly, and possibly filter can avoid a subselect
-                col0 = getattr(table.columns, joins[0], None)
+                try:
+                    col0 = getattr(mapper.columns, joins[0], None)
+                except AttributeError, e:
+                    # i think this is never really tested. It was here when I used to pick the
+                    # element from the table but when using mapper/table expressing joins
+                    # the name of the column changes while  mappers have the name we expect
+                    col0 = getattr(table.columns, joins[0], None)
                 if col0:
                     join_args = (col.table, col0 == col0.foreign_keys[0].column)
                 else:
