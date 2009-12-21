@@ -655,13 +655,18 @@ class Layout(object):
         Push info on Status Bar
         seconds: how many seconds it must stay displayed before being cancelled
         """
-
         sb = self.widgets['sb=StBar']
+        # we need to prevent any attempt to write on a statusbar after the toplevel
+        # windows is destroyed. Under Windows you get crashes randomly.
+        if not isinstance(sb.get_toplevel(), gtk.Window):
+            return
         idx = sb.get_context_id(txt)
         msg_id = sb.push(idx, txt)
 
         ## delete the message
         def del_text(idx, msg_id):
+            if not isinstance(sb.get_toplevel(), gtk.Window):
+                return
             try:
                 sb.remove_message(idx, msg_id)
             except AttributeError:
