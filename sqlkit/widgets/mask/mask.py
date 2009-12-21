@@ -533,6 +533,7 @@ class SqlMask(sqlwidget.SqlWidget):
             self.set_value(field.field_name, value, initial=True)
 
         self._set_arrows_sensitivness(display_idx)
+        self.emit('record-selected', )
         return True
 
     def set_records(self, records=None, index=0, pk=None):
