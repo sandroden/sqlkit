@@ -855,7 +855,7 @@ class FkeyCompletion(SimpleCompletion):
         fsearch = getattr(obj, self.search_field)
         
         Obj = DictLike(obj)
-        description = self.format % Obj
+        description = unicode((self.format % Obj)).strip()
         m_iter = self.get_iter(obj)
         ## FIXME: what if the pkey is composed?
         self.model.set(m_iter,
