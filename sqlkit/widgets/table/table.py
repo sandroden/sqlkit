@@ -36,6 +36,7 @@ import totals
 from sqlkit.widgets.common import sqlwidget
 import gtk
 import pango
+import datetime
 
 class SqlTable(sqlwidget.SqlWidget):
     """
@@ -235,7 +236,8 @@ class SqlTable(sqlwidget.SqlWidget):
     def hide_fields(self, field_name_list='', force=False, ):
         """
         Hide a column and add the entry in the menu to make it show up again
-        field_name_list may be a list or a string (in which case it is split with, and spaces)
+
+        :param field_name_list: may be a list or a string (in which case it is split with, and spaces)
         """
 
         if len(field_name_list) == 0:
@@ -588,7 +590,7 @@ class SqlTable(sqlwidget.SqlWidget):
         row = self.get_selected_row()[0]
         if row is None:
             row = -1
-        if row + 1 == len(self.modelstore):
+        if row + 1 == len(self.records):
             try:
                 self.record_new(treeview)
             except exc.CommitError, e:
@@ -738,17 +740,14 @@ class SqlTable(sqlwidget.SqlWidget):
         """
 
         if index == None:
+            self.treeview.set_model(None)
             self.modelstore.clear()
 
-            for record in self.records:
-                try:
-                    self.modelstore.append([record])
-                except TypeError:
-                    self.modelstore.append(None, [record])
-
+            self.fill_model()
+            self.treeview.set_model(self.modelstore)
         # TIP: status bar message
-        self.sb(_("Total N. of records: %s") % (len(self.modelstore)), seconds=None)
-        
+        self.sb(_("Total N. of records: %s") % (len(self.records)), seconds=None)
+
     def record_has_changed(self):
         
         if self.edited_row_model_path is None:
@@ -949,14 +948,14 @@ class SqlTable(sqlwidget.SqlWidget):
         self.deleting_row = False
         self.totals.compute()
         
-        self.sb(_("Total N. of records: %s") % len(self.modelstore), seconds=None)
+        self.sb(_("Total N. of records: %s") % len(self.records), seconds=None)
         return True
     
     def _get_next_iter(self, new_obj):
         """
         get a new iter inserting a row just before last (sub)/total - if any-
         """
-        if not len(self.modelstore):
+        if not len(self.records):
             try:
                 return self.modelstore.append([new_obj])
             except TypeError:
@@ -974,6 +973,33 @@ class SqlTable(sqlwidget.SqlWidget):
         except TypeError:
             return self.modelstore.insert_after(None, row.iter, [new_obj])
 
+    def _get_next_iter(self, new_obj):
+        """
+        create a new row in the next reasonable place:
+
+          * the next row for simple liststores
+          * the next sibling for treestores
+          
+        """
+        path = self.get_selected_row()
+        if not path:
+            try:
+                return self.modelstore.append([new_obj])
+            except TypeError:
+                return self.modelstore.append(None, [new_obj])
+        else:
+            current_iter = self.modelstore.get_iter(path)
+            parent_iter = self.modelstore.iter_parent(current_iter)
+            if parent_iter:
+                new_iter = self.modelstore.insert_after(parent_iter, current_iter, [new_obj])
+            else:
+                try:
+                    return self.modelstore.insert_after(current_iter, [new_obj])
+                except TypeError:
+                    return self.modelstore.insert_after(None, current_iter, [new_obj])
+
+        return new_iter
+    
 ###### Validation
     def cell_validate(self):
         """
@@ -1100,11 +1126,17 @@ class SqlTable(sqlwidget.SqlWidget):
 #        self.session.clear()
         self.commit_inhibited = True
         self.clear()
+        start_time=datetime.datetime.now()
+
         ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
         self.edited_row_model_path = None
         self.commit_inhibited = False
         self.totals.compute()
         self.cell_entry = None
+        end_time=datetime.datetime.now()
+        delta=end_time-start_time
+        msg = "Startup: %s,%s secondi" % (delta.seconds, delta.microseconds/100000)
+        self.sb(msg, seconds=3)
         self.session.rollback()
         if self.get_selected_obj() or len(self.records):
             self.emit('context-changed', self.get_selected_obj() or self.records[0])
@@ -1132,6 +1164,32 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.get_selected_obj() or len(self.records):
             self.emit('context-changed', self.get_selected_obj() or self.records[0])
         self._new_record = False
+
+    def fill_model(self):
+        """
+        fill the models starting from self.records. It behaves differently according to
+        presence of self.tree_field_name
+        """
+        if not hasattr(self, 'tree_field_name') or not self.tree_field_name:
+            for record in self.records:
+                self.modelstore.append([record])
+            return
+
+        ##  this is just for trees with self.tree_field_name defined
+        parents = {}
+        for record in self.records:
+            field_value = getattr(record, self.tree_field_name)
+            parent = parents.get(field_value, None)
+            if not parent:
+                try:
+                    header = self.tree_make_header(field_value)
+                    parent = parents[field_value] = self.modelstore.append(parent, [header])
+                except AttributeError:
+                    pass
+            iter = self.modelstore.append(parent, [record])
+            if field_value not in parents:
+                parents[field_value] = iter
+
 
     def record_in_mask(self, widget):
         """
@@ -1380,40 +1438,20 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         export visible data in csv format
         """
-        import csv
         
-        def next_row():
-            for row in self.modelstore:
-                line = [self.gui_fields[f].get_human_value(getattr(row[0], f)) for f in self.field_list
-                        if self.tvcolumns[f].get_property('visible')]
-                yield line
+        def foreach_handler(model, path, iter, ret):
+            ## NOTE: whe this function return a True value, iteration terminates!!!
+            obj = model.get_value(iter, 0)
+            ret += [[self.gui_fields[f].get_human_value(getattr(obj, f)) for f in self.field_list
+                    if self.tvcolumns[f].get_property('visible')]]
 
-        dialog = gtk.FileChooserDialog(_("Export in csv file"),
-                                       None,
-                                       gtk.FILE_CHOOSER_ACTION_SAVE,
-                                       (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                                        gtk.STOCK_SAVE, gtk.RESPONSE_OK))
-        dialog.set_default_response(gtk.RESPONSE_OK)
-        dialog.set_current_name("export.csv")
-        
-        filter = gtk.FileFilter()
-        filter.set_name("csv files")
-        filter.add_pattern("*.csv")
-        dialog.add_filter(filter)
-        
-        filter = gtk.FileFilter()
-        filter.set_name("all files")
-        filter.add_pattern("*.*")
-        dialog.add_filter(filter)
+        def get_all_rows():
+            ret = []
+            self.modelstore.foreach(foreach_handler, ret)
+            return ret
 
-        ret = dialog.run()
-        if ret == gtk.RESPONSE_OK:
-            filename = dialog.get_filename()
-            f = open(filename, "wb")
-            writer = csv.writer(f)
-            writer.writerows(next_row())
-            f.close()
-        dialog.destroy()
+        dialog = ExportDialog(get_all_rows, default_filename="%s-export.csv" % self.nick)
+
         return 
 
     def select_path(self, path=None, obj=None):
@@ -1429,6 +1467,44 @@ class SqlTable(sqlwidget.SqlWidget):
         if path is not None:
             self.treeview.get_selection().select_path(path)
             
+    def set_treemodel(self, tree_field_name, tree_order=None):
+        """
+        change the mode of the Table to a TreeTable, possibly converting the model itself
+        (if switching from listmodel or simply changing the tree_field_name).
+
+        For the time being, only TreeTables can b reorderable
+
+        :param tree_field_name: the field_name of the field that will be used to group records
+        :param tree_order_field: the field_name where each change in order must be saved
+        """
+        if isinstance(self.modelstore, gtk.ListStore):
+            self.modelstore = gtk.TreeStore(*[self.modelstore.get_column_type(i)
+                                             for i in range(self.modelstore.get_n_columns())])
+
+        self.tree_field_name = tree_field_name
+        self.treeview.set_reorderable(True)
+        self.treeview.set_model(self.modelstore)
+        self.record_display()
+        
+    def set_listmodel(self, tree_order=None):
+        """
+        change the mode of the Table to a TreeTable, possibly converting the model itself
+        (if switching from listmodel or simply changing the tree_field_name).
+
+        For the time being, only TreeTables can b reorderable
+
+        :param tree_field_name: the field_name of the field that will be used to group records
+        :param tree_order_field: the field_name where each change in order must be saved
+        """
+        if isinstance(self.modelstore, gtk.TreeStore):
+            self.modelstore = gtk.ListStore(*[self.modelstore.get_column_type(i)
+                                             for i in range(self.modelstore.get_n_columns())])
+
+        self.tree_field_name = None
+        self.treeview.set_reorderable(False)
+        self.treeview.set_model(self.modelstore)
+        self.record_display()
+        
 #### completion
 
     def set_editable(self, editable=True):
@@ -1441,4 +1517,70 @@ class SqlTable(sqlwidget.SqlWidget):
             field.widget.add_completion(editable=editable)
         
 
+
+
+class ExportDialog(object):
+
+    import os
+    FILTER_FILES = (
+        ( _('csv files'), '*.csv'),
+        ( _('all files'), '*.*'),
+        )
+    DELIMITER = ';'
+    QUOTE = None
+    DIALECT = 'excel'
+
+    def __init__(self,  get_rows_func, default_filename='export.csv'):
+        """
+        A dialog to export data into a csv file
+
+        :param get_rows_func: a function to be called by  csv.writer.writerows
+        :param default_filename: the default
+        """
+
+        self.get_rows_func = get_rows_func
+        
+        self.dialog = gtk.FileChooserDialog(_("Export in csv file"),
+                                       None,
+                                       gtk.FILE_CHOOSER_ACTION_SAVE,
+                                       (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                                        gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+        self.dialog.set_default_response(gtk.RESPONSE_OK)
+        self.dialog.set_current_name(default_filename)
+        self.dialog.set_current_folder(self.current_folder())
+        
+        for name, pattern in self.FILTER_FILES:
+            file_filter = gtk.FileFilter()
+            file_filter.set_name(name)
+            file_filter.add_pattern(pattern)
+            self.dialog.add_filter(file_filter)
+        
+        ret = self.dialog.run()
+        if ret == gtk.RESPONSE_OK:
+            self.write()
+        self.dialog.destroy()
+    
+    def current_folder(self):
+        import platform
+        import os
+
+        CURRENT_FOLDER = ''
+        if 'HOME' in os.environ:
+            CURRENT_FOLDER = os.environ['HOME']
+        elif platform.system() == "Windows":
+            CURRENT_FOLDER = os.path.join(os.environ['USERPROFILE'], 'Desktop')
+
+        return CURRENT_FOLDER
+        
+    def write(self):
+
+        import csv
+
+        filename = self.dialog.get_filename()
+        f = open(filename, "wb")
+        writer = csv.writer(f, dialect=self.DIALECT,
+                            delimiter=self.DELIMITER,
+                            quoting=self.QUOTE or csv.QUOTE_MINIMAL)
+        writer.writerows(self.get_rows_func())
+        f.close()
 

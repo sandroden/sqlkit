@@ -1,9 +1,6 @@
 # module sqltreelist
-#__all__ = ["SqlTreeView",
-#            "SqlLayoutTreeView",
-#             "SqlWidgetTreeView"]
+__all__ = ['SqlTable', 'SqlTreeTable', 'Header']
 
 from table import SqlTable
-#from table2 import SqlTable2
+from treetable import SqlTreeTable, Header
 
-#from SqlTreeView import SqlTable
