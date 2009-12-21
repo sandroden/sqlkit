@@ -225,11 +225,11 @@ There is another way that mimics enum mode, i.e. setting directly the
 possible completion values via the method ``set_values``::
 
 
-  t.completions.status(['open', 'closed', 'waiting for input'])
+  t.completions.status.set_values(['open', 'closed', 'waiting for input'])
 
 or::
 
-  t.completions.status(a_function_that_returns_possible_values)
+  t.completions.status.set_values(a_function_that_returns_possible_values)
 
 the signature of this function must be:
 
