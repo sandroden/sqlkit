@@ -254,35 +254,37 @@ loosen you filtering criterion momentarily. You can do that Pressing the
 These two filtering criteria are stored in two ``session.query`` objects and
 are stored in the completion with attributes:
 
- :filtered_query: the query with filters. You set filters on this query with
+:filtered_query: the query with filters. You set filters on this query with
          ``filter()`` method. If a ``filtered_query`` already_exists,
          filters are added, otherwise it's written from ``query``
 
- :query: the default query, used when no filter is desired (``Alt`` is pressed).
-         You set filters on this adding argument "main_query = True" to 
-	 ``.filter(main_query=True)``. 
+:query: the default query, used when no filter is desired (``Alt`` is pressed).
+        You set filters on this adding argument "main_query = True" to 
+        ``.filter(main_query=True)``. 
 
 Of course each one can be customized with the normal sqlalchemy syntax also.
 
 Note that if you have both filters (with and without main_query option)
-order makes difference as ``filtered_query`` is build based on ``query`` in
-*that* moment.
+order makes difference as ``filtered_query`` is built based on ``query``
+when .filter is called for the first time. If you change ``query`` after
+calling ``.filter()`` you end up with unrelated filter condition (that's
+allowed as you may really want this).
 
 
 Remember that :ref:`validation` is a completely different mechanism than
-completion even if it's not possible to add a field that cannot come from a
-completion. 
+completion even if it's not possible to add a field that doesn't come from a
+completion.
 
 customizing description
 -----------------------
 
 The ``query`` attribute of the completion determines which fields will be
 present in the completions list, the ``format`` attribute decides how it
-will be represented. Default value is determined as describe 
+will be represented. Default value is determined as described 
 :ref:`above <description>`, but you can customize it as you prefere, as far
 as you use fields present in the query. As an example::
 
-  t.completions.director_id = '%(first_name)s %(last_name)s -- %(nation)'
+  t.completions.director_id.format = '%(first_name)s %(last_name)s -- %(nation)'
 
 
 Behaviour on completion with m2m/m2o relationship
