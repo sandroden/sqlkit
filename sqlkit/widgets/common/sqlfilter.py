@@ -101,9 +101,17 @@ class FilterPanel(object):
         self.search_filter_field_names = []     ## field_names used
         self.bind_name = self.master.metadata.bind.name
         self.tree = False
+        if master.is_mask():
+            master.connect('record-selected', self.record_selected_cb)
         
     def __del__(self):
         self.destroy()
+
+    def record_selected_cb(self, mask):
+        """
+        callback on record selection
+        """
+        self.select_output_path(obj=mask.current)
         
     def get_layout(self, visible=True):
         """create the filter panel widget"""
@@ -290,12 +298,27 @@ class FilterPanel(object):
             if length:
                 self.fill_model()
                 self.set_tab('output')
-                self.master.record_display(0)
+                self.select_output_path(0)
+                self.easytv.tv.grab_focus()
             else:
                 self.model.clear()
 
         self.l.sb(_('Total N. of records: %s' % length))
 
+    def select_output_path(self, path=None, obj=None):
+        """
+        Select path ``path``. If path is null and obj is not null try finding path at which is obj
+        """
+        if path is None and obj:
+            try:
+                path = self.master.records.index(obj)
+            except ValueError:
+                pass
+
+        if path is not None and len(self.model):
+            self.easytv.tv.get_selection().select_path(path)
+            self.easytv.tv.scroll_to_cell(path)
+            
     def reload_cb(self, widget):
         """callback from reload button
         """
