@@ -124,10 +124,12 @@ class GenericColumn(object):
 
         if isinstance(obj, self.master.totals.total_class):
             obj.set_value_and_colors(cell, formatted_value, self.field_name)
-        else:
+        elif isinstance(obj, self.master.mapper.class_):
             cell.set_property(prop_name, formatted_value)        
             cell.set_property('foreground-set', False)
             cell.set_property('cell-background-set', False)
+        else:
+            cell.set_property(prop_name, formatted_value)
         
 
     def editing_canceled_cb(self, widget):
@@ -354,7 +356,7 @@ class BooleanColumn(GenericColumn):
 
         if isinstance(obj, self.master.totals.total_class):
             cell.set_property('visible', False)        
-        else:
+        elif isinstance(obj, self.master.mapper.class_):
             cell.set_property('visible', True)        
 
             if value is None:
@@ -535,7 +537,7 @@ class FKeyColumn(VarcharColumn):
         if isinstance(obj, self.master.totals.total_class):
             cell.set_property('text', '')
 
-        else:
+        elif isinstance(obj, self.master.mapper.class_):
             fkey_value = getattr(obj, self.field_name)
 
             if fkey_value is not None:
@@ -544,6 +546,8 @@ class FKeyColumn(VarcharColumn):
                 cell.set_property('text', value)
             else:
                 cell.set_property('text', '')
+        else:
+            cell.set_property('text', getattr(obj, self.field_name))
 
     
 class DateColumn(VarcharColumn):
