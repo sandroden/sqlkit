@@ -73,9 +73,9 @@ class GenericColumn(object):
         """
 
         cell = cell_renderer or self.RENDERER()
+        self.column.pack_start(cell, True)
         self.cell_set_property(cell)
 
-        self.column.pack_start(cell, True)
         
         ## connect
         cell.connect('edited', self.edited_cb)
@@ -160,7 +160,7 @@ class GenericColumn(object):
         """
         event =   gtk.gdk.Event(gtk.gdk.BUTTON_PRESS)
         event.button = 1
-        self.master.menu.popup_col_menu(event, self.field_name)
+        self.master.menu.popup_col_menu(event, treeview, self.field_name)
         
         return True
     
@@ -171,7 +171,7 @@ class GenericColumn(object):
         """
         ## this is not working at the moment.
         ## click on the label inside the eventBox don't propagate the button-press-event...
-        self.master.popup_col_menu(event, self.field_name)
+        self.master.popup_col_menu(event, column.get_parent(), self.field_name)
         
         return True
     
@@ -625,7 +625,7 @@ class ColumnMenuProxy(object):
         self.master = master
         
 #### column menu
-    def popup_col_menu(self, ev, field_name):
+    def popup_col_menu(self, ev, treeview, field_name):
 
         from sqlkit.layout.misc import StockMenuItem
         try:
@@ -737,7 +737,7 @@ class ColumnMenuProxy(object):
     def add_subtotal_cb(self, menu_item, field_name):
         self.master.totals.add_break(field_name)
 
-    def menu_add_toggle_column(self, field_name):
+    def menu_add_toggle_column(self, field_name, view):
         """
         Add a menu entry to show columns in the menu 'modify' or change it's
         visibility according to real state of the column
@@ -765,7 +765,7 @@ class ColumnMenuProxy(object):
         else:
             action.set_visible(not action.get_visible())
             
-        self.master.tvcolumns[field_name].set_property('visible', False)
+        self.master.tvcolumns[view][field_name].set_property('visible', False)
         
     def reload_sort_cb(self, widget, field_name, direction):
 

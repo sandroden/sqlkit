@@ -8,12 +8,10 @@ SqlTable is a widget that represent data in a table mode. Columns that are
 foreign keys are presented in blue and a :ref:`description <description>` of
 the foreign key is used.
 
-Options
-=======
 
-.. class:: sqlkit.widgets.SqlTable(same options as sqlwidget + listed below)
+.. autoclass:: sqlkit.widgets.SqlTable(see_below)
+   :members: create_view, set_field_list, set_editable, set_opts, add_record
 
-  :param rows:  how many rows should be initially allocated space for
 
 Attributes
 ==========
@@ -24,45 +22,6 @@ Attributes
 
 .. image:: ../img/menu.png
    :align: right
-
-Methods
-=======
-
-.. method:: set_opts(scroll=None, icons=True)
-
-   :param scroll: eliminate scrollbars (values: x|y|xy|None)
-
-   :param icons: allows to disable icons in a m2m relationship
-   :type scroll: boolean 
-   
-
-.. method:: set_editable(editable)
-
-   :param editable: Only meaningful for table that represent an
-          m2m relationship: turns the table from non editable to editable, 
-	  read the explanation in :ref:`relationships`
-   :type editable: boolean
-
-.. method:: hide_fields(field_list)
-
-   :param field_list:  hides columns, adding a row in the menu to make it
-          show up again at will 
-   
-.. method:: select_path(path=None, obj=None)
-
-   :param path:  the path to be selected or None
-   :param obj:  if path is None, the object to be searched for and selected
-
-.. method:: set_fk_layout(field_name, layout_nick)
-   
-   :param field_name:  the field_name to set a foreign layout for
-   :param layout_nick:  the nick to use
-
-   used to set a layout to be used if opening a mask to edit the foreign key
-
-.. method:: set_field_list(field_list)
-
-    set which field will be shown and in which order (for tables)
 
 
 Column headers

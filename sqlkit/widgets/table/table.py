@@ -41,8 +41,19 @@ from modelproxy import ModelProxy
 
 class SqlTable(sqlwidget.SqlWidget):
     """
-    implementation with a listore with a single column that holds the
-    sqlalchemy obj
+    Main widget to represent data of a sqlalchemy selectable (SELECT of a TABLE, e JOIN,
+    & similar).
+
+    A SqlTable can have different :ref:`views <view>` of the same data
+    represented in different Treevies.
+
+    A SqlTable can be viewed alone or as part of a composite widget, that is
+    normally a mask with :ref:`relations`. Each SqlTable (as SqlMask has a ``records``
+    attribute that holds the list of records thatit represents, while the model has
+    possibly also other objects as totals and headers.
+
+    SqlTables can have both ListStores or TreeStores. The latter allows to represent
+    rows in a hierarchy.
     """
 #### Signals
     __gsignals__ = {
@@ -69,10 +80,9 @@ class SqlTable(sqlwidget.SqlWidget):
     def __init__(self, *args, **kwargs):
 
         self.treeview = None
-        self.tvcolumns = None
+        self.tvcolumns = {'main' : {} }
         self.commit_inhibited = False
         self.deleting_row = False
-        self.tvcolumns = None
         self.totals = totals.Totals(self)
         #self.edited_row_model_path = dbg.TraceIt(True, name='edited_row_model_path', mode='rw')
         self.edited_row_model_path = None
@@ -101,7 +111,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.treeview.connect('key-press-event', self.keypress_event_cb)
         self.treeview.connect('button-press-event', self.button_press_event_cb)
 
-        self.setup_treeview_columns()
+        self.create_view(view='main')
         self.menu.fill_menu_hide_fields()
         ## let tree use all the available space... 
         if not self.naked:
@@ -155,15 +165,30 @@ class SqlTable(sqlwidget.SqlWidget):
             self.gui_fields[field_name] = field_chooser.get_field(field_name,
                                                               self.mapper_info.fields[field_name])
             
-    def setup_treeview_columns(self):
+    def create_view(self, view='main', treeview=None, field_list=None):
         """
-        Setup the presentation of columns.
+        .. views:
+        
+        Create a view, i.e.: a list of columns one for each field in self.field_list. Columns are
+        setup according to the type of the database field, introspected from the mapper. There may be
+        more than one view in a SqlTable. The first one is created mandatorily; possible further ones are
+        created by hand, passing a view name, a treeview and -normally- a field_list.
+
+        All the views of a SqlTable share the same model.
+        
+        :param view: the name of the view
+        :param treeview: the treeview
+        :param field_list: a list of field_name for which we want the view
         """
         import columns
 
-        self.tvcolumns = {}
-        self.columns = {}
-        for field_name in self.field_list:
+        treeview = treeview or self.treeview
+        treeview.set_data('view', view)
+        if view not in self.tvcolumns:
+            self.tvcolumns[view] = {}
+            
+        self.columns = {} if not hasattr(self, 'columns') else {}
+        for field_name in field_list or self.field_list:
             
             if field_name in widgets.info:
                 label = widgets.info[field_name][0]
@@ -198,30 +223,30 @@ class SqlTable(sqlwidget.SqlWidget):
             else:
                 col = columns.VarcharColumn(self, field_name, label)
 
-            self.tvcolumns[field_name] = col.column
+            self.tvcolumns[view][field_name] = col.column
             self.columns[field_name] = col
-            self.treeview.append_column(col.column)
+            treeview.append_column(col.column)
 
             if field_name in self.hidden_fields:
                 col.column.set_visible(False)
             
         self.menu = columns.ColumnMenuProxy(self)
-        self.treeview.columns_autosize()
-        self.fix_expandable_columns()
+        treeview.columns_autosize()
+        self.fix_expandable_columns(view)
 
-    def fix_expandable_columns(self):
+    def fix_expandable_columns(self, view='main'):
         """
         If no column is expandable, make all columns expandable:
         it's very ugly to see just the last one expand
         """
 
         fix_it = True
-        for key, col in self.tvcolumns.iteritems():
+        for key, col in self.tvcolumns[view].iteritems():
             if col.get_property('expand'):
                 fix_it = False
 
         if fix_it:
-            for key, col in self.tvcolumns.iteritems():
+            for key, col in self.tvcolumns[view].iteritems():
                 col.set_property('expand', True)
             
             
@@ -232,11 +257,13 @@ class SqlTable(sqlwidget.SqlWidget):
         dbg.write("setting rows:", self.rows)
         tv_utils.set_height_request(self.treeview, self.rows)
 
-    def hide_fields(self, field_name_list='', force=False, ):
+    def hide_fields(self, field_name_list='', view='main'):
         """
         Hide a column and add the entry in the menu to make it show up again
 
         :param field_name_list: may be a list or a string (in which case it is split with, and spaces)
+        :param view: the view for which we set the list of hidden fields
+
         """
 
         if len(field_name_list) == 0:
@@ -246,15 +273,18 @@ class SqlTable(sqlwidget.SqlWidget):
             field_name_list = re.split("[ ,]+", field_name_list)
             self.hidden_fields = field_name_list
 
-        if not self.tvcolumns:
+        if not self.tvcolumns[view]:
             return
 
         for field_name in field_name_list:
-            self.menu.menu_add_toggle_column(field_name)
+            self.menu.menu_add_toggle_column(field_name, view)
 
-    def set_field_list(self, field_list):
+    def set_field_list(self, field_list, view='main'):
         """
         Set field of visible columns. Accepts both a list or a string (space or comma separated)
+
+        :param field_list: the field name list
+        :param view: the view for which we set the field_list
         """
         from copy import copy
 
@@ -264,17 +294,17 @@ class SqlTable(sqlwidget.SqlWidget):
         for field_name in field_list:
             if field_name in self.mapper_info.fields:
                 ## is already known, just make it visible
-                self.tvcolumns[field_name].set_property('visible', True)
+                self.tvcolumns[view][field_name].set_property('visible', True)
             else:
                 raise NotImplementedError("Column %s is not kown in self.mapper_info.fields" % field_name)
         for field_name in orig_field_list:
             if field_name not in field_list:
-                self.tvcolumns[field_name].set_property('visible', False)
+                self.tvcolumns[view][field_name].set_property('visible', False)
             
         prev = None
         for field_name in field_list:
-            self.treeview.move_column_after(self.tvcolumns[field_name], prev)
-            prev = self.tvcolumns[field_name]
+            self.treeview.move_column_after(self.tvcolumns[view][field_name], prev)
+            prev = self.tvcolumns[view][field_name]
             
         self.field_list = field_list
         
@@ -386,10 +416,10 @@ class SqlTable(sqlwidget.SqlWidget):
     def cursor_changed_cb(self, treeview, user_data = None):
         return False
         
-    def show_column(self, menuItem, field_name,):
+    def show_column(self, menuItem, field_name, view='main'):
 
         self.menu.menu_add_toggle_column(field_name)
-        self.tvcolumns[field_name].set_property('visible', True)
+        self.tvcolumns[view][field_name].set_property('visible', True)
 
     def button_press_event_cb(self, widget, event):
         """
@@ -1232,7 +1262,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
     def set_fk_layout(self, field_name, layout_nick):
         """
-        set a layout_nick to be used for a column
+        set a layout to be used if opening a mask to edit the foreign key
+
         :param field_name: the field_nme of the column
         :param layout_nick: the nick name of the layout to be used a 'layout_nick'
         """
@@ -1356,7 +1387,7 @@ class SqlTable(sqlwidget.SqlWidget):
             obj = query.filter_by(**filter_by).one()
         return obj
         
-    def get_first_editable_col(self):
+    def get_first_editable_col(self, view='main'):
         """
         return the first visible col to position the cursor on
         """
@@ -1364,22 +1395,24 @@ class SqlTable(sqlwidget.SqlWidget):
         columns = self.treeview.get_columns()
         second_choice = []
         for field_name in self.field_list:
-            if self.tvcolumns[field_name].get_visible() and self.is_editable(field_name):
+            if self.tvcolumns[view][field_name].get_visible() and self.is_editable(field_name):
                 if self.gui_fields[field_name].get_default():
-                    second_choice += [self.tvcolumns[field_name]]
+                    second_choice += [self.tvcolumns[view][field_name]]
                 else:
-                    return self.tvcolumns[field_name]
+                    return self.tvcolumns[view][field_name]
         if second_choice:
             return second_choice[0]
 
-    def set_opts(self, icons=True, scroll='xy', expand=True, width=None):
+    def set_opts(self, icons=True, scroll='xy', width=None):
         """
         Modify default appearance of some features:
         
-        - noicons: hide the icons
-        - scroll:  (x, y, None)
-        - expand: should the parent of this table expand?
-        - width: set the maximum width of the widget
+        :param scroll: eliminate scrollbars (values: x|y|xy|None)
+        :param icons: allows to disable icons in a m2m relationship
+        :param width: set the maximum width of the widget
+
+        :type icons: boolean
+        :type scroll: boolean 
         """
         if not icons:
             self.widgets['A.icons'].hide()
@@ -1402,7 +1435,7 @@ class SqlTable(sqlwidget.SqlWidget):
             
 
 
-    def export(self, menuItem):
+    def export(self, menuItem, view='main'):
         """
         export visible data in csv format
         """
@@ -1411,7 +1444,7 @@ class SqlTable(sqlwidget.SqlWidget):
             ## NOTE: whe this function return a True value, iteration terminates!!!
             obj = model.get_value(iter, 0)
             ret += [[self.gui_fields[f].get_human_value(getattr(obj, f)) for f in self.field_list
-                    if self.tvcolumns[f].get_property('visible')]]
+                    if self.tvcolumns[view][f].get_property('visible')]]
 
         def get_all_rows():
             ret = []
@@ -1425,6 +1458,10 @@ class SqlTable(sqlwidget.SqlWidget):
     def select_path(self, path=None, obj=None):
         """
         Select path ``path``. If path is null and obj is not null try finding path at which is obj
+
+
+        :param path:  the path to be selected or None
+        :param obj:  if path is None, the object to be searched for and selected
         """
         if path is None and obj:
             try:
@@ -1435,12 +1472,31 @@ class SqlTable(sqlwidget.SqlWidget):
         if path is not None:
             self.treeview.get_selection().select_path(path)
             
+    def add_record(self, obj):
+        """
+        Add record to the model and setup all what is needed
+
+        :param obj: and object of type table.mapper.class_
+        """
+        self.records += [obj]
+        try:
+            self.modelproxy.modelstore.append([obj])
+        except:
+            self.modelproxy.modelstore.append(None, [obj])
+        self.session.add(obj)
+        self.totals.compute()
+        
 #### completion
 
     def set_editable(self, editable=True):
         """
         Turn this table into a normal editable table
         table are not normally editable table if have relationship_mode = m2m
+
+        :param editable: Only meaningful for table that represent an
+               m2m relationship: turns the table from non editable to editable, 
+               read the explanation in :ref:`relationships`
+        :type editable: boolean
         """
         self.m2m_editable = editable
         for field in self.gui_fields:
