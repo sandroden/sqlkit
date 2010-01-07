@@ -120,20 +120,20 @@ class InspectMapper(Container):
             col_spec = None
         d = Container({
             'name'        :  str(field_name),
-            'col'         :  mapper.c[field_name] ,
-            'db_type'     :  type(mapper.c[field_name].type), 
-            'type'        :  self.get_py_type(type(mapper.c[field_name].type), field_name),
+            'col'         :  col ,
+            'db_type'     :  type(col.type), 
+            'type'        :  self.get_py_type(type(col.type), field_name),
             'col_spec'    :  col_spec,
             'property'    :  property,
             'fkey'        :  False,
             'mapper'      :  mapper,
             })
         try:
-            d['length'] = mapper.c[field_name].type.length
+            d['length'] = col.type.length
         except:
             d['length'] = None
 
-        if isinstance(mapper.c[field_name], expression._Label):
+        if isinstance(col, (expression._Label, expression.Function)):
             d['table'] =   None
             d['table_name'] =   None
             d['default']     =  None
@@ -142,10 +142,10 @@ class InspectMapper(Container):
             d['editable']    =  False            
         else:
             d['table']       =  col.table
-            d['table_name']  =  col.table.name 
-            d['default']     =  mapper.c[field_name].default
-            d['pkey']        =  mapper.c[field_name].primary_key
-            d['nullable']    =  mapper.c[field_name].nullable
+            d['table_name']  =  col.table.name
+            d['default']     =  col.default
+            d['pkey']        =  col.primary_key
+            d['nullable']    =  col.nullable
             d['editable']    =  field_name not in self.noup
 
 
