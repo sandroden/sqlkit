@@ -1,3 +1,64 @@
+sqlkit 0.8.7
+
+	* docs: general improvement:
+	           - started backword incompatibilities
+                   - fix errors and missing parts on hooks
+                   - completion: fixex and integration
+	           
+	* completion: improved warning messaged on lookup
+	              lookup values that use search_filter as in '%(field_name)s', will now use
+	              DictLike to prevent empty field_name values to be
+	              filled with ugly looking 'None'
+
+	* filters:   * django syntax now has also 'notlike', 'inotlike' and 'notin'
+	             * dates now accept also date object
+	             * added reasonable message when filter values cannot
+	               be converted to usable values
+	
+	* diff dialog: 
+	           - improved representation of differences
+	           - now it's possible to open the dialog from menu (not
+ 	             only when saving)
+
+	* using generic selectable:
+	           - fixed sorting with joined selectables
+	
+	* portability: 
+	           - minor fixes to be used on MacOS!
+	           - diminished warnings when used with gtk 2.16
+	           - forced cast to unicode to prevent some mistakes in
+                     menus with diacritics under windows.
+	
+	* usability:
+	           - column header now hilight to show it's sensitive
+	           - RecordInMask and FKeyMask now use different icons 
+	           - zoom-fit for tables is bound to Control-z
+                   - sqledit has now --limit option
+	           - a right click in a ForeignKey in a Mask allows to edit the
+                	foreign Mask (as was already possible with Table)
+	           - filter panel's output treeview selection now follow
+             	     represented object in mask
+	           - completion improved: when text matches possible
+                     solution no entry-completion is used and value is accepted
+	
+	* internals: 
+	           - a modelproxy has been added to allow both liststores
+	             and treestores
+	           - rationalized get_selected_obj() and get_current_obj()
+                     and self.current
+
+	* signals & hooks:  * added record-saved
+                            * fixes in 'on_field_name_validation' when
+	                    field is fk
+	
+	* defaults: fixed several bugs in default module, added tests
+
+	* sqlwidget: introduced a new and easy way to set the mode of a
+                     sqlwidget: mode can be iudb (INSERT, UPDATE, DELETE,
+	             BROWSE and more)
+
+	* tables:   Now Table can show content as hierarchy on objects
+	
 sqlkit 0.8.6.1
 
 	* translation: added spanish translation

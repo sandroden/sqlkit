@@ -1,8 +1,8 @@
 # Makefile for Sphinx documentation
 #
-VER           = 0.8.6.1
-DEBVER        = $(VER)-1
-WINVER        = $(VER)
+VER           = 0.8.7
+DEBVER        = 0.8.6.1-1
+WINVER        = 0.8.6.1
 LNXVER        = $(VER)
 
 # You can set these variables from the command line.
