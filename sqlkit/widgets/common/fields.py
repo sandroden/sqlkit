@@ -866,6 +866,12 @@ class ForeignKeyField(Field):
             self.initial_value = value
         self.widget.set_value(value, shown=shown)
         if value:
+            ## TODO/FIXME: I believe it's not needed to call this all the time we set the value
+            # we only need to add this when initial is not True, but I'm not sure:
+            # whe  growsing records and initializing a record I loop on field_values and set_value
+            # on each field, but clearly the attributes is already there. See ex_03 (that uses class_=Movie
+            # i.e. with definition of relation with baclref with delete-orphan). this function is called
+            # all the time entere a record (not just *new* records.
             for prop in self._props_for_delete_orphan:
                 self.add_related_object(prop, value)
 
@@ -890,7 +896,11 @@ class ForeignKeyField(Field):
 
         q = self.master.session.query(prop.mapper).autoflush(False)
         obj = q.get(key)
-        setattr(self.master.current, prop.key, obj)
+        if self.master.is_mask():
+            row_obj = self.master.current
+        else:
+            row_obj = self.master.get_selected_obj()
+        setattr(row_obj, prop.key, obj)
         
 class CollectionField(Field):
     """
