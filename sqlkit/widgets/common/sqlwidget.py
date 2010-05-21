@@ -1111,9 +1111,7 @@ class SqlWidget(gobject.GObject):
         """
         import gtk
         key = gtk.gdk.keyval_name (event.keyval)
-        if (event.state | gtk.gdk.CONTROL_MASK):
-            return 
-   
+
         if key in ('KP_Decimal',) and numbers.get_decimal_symbol() == ",":
             event = gtk.gdk.Event(gtk.gdk.KEY_PRESS)
             event.keyval = gtk.keysyms.comma
@@ -1122,6 +1120,17 @@ class SqlWidget(gobject.GObject):
             widget.emit('key-press-event', event)
             return  True
 
+        if key in ('KP_Enter',):
+            event = gtk.gdk.Event(gtk.gdk.KEY_PRESS)
+            event.keyval = gtk.keysyms.Return
+            event.window = widget.window
+            
+            widget.emit('key-press-event', event)
+            return  True
+
+        if (event.state | gtk.gdk.CONTROL_MASK):
+            return 
+   
         KEYPAD_KEYS = '(KP_[0-9]|KP_Add|KP_Decimal|KP_Subtract|comma'
         ONLYDIGITS="%s|[0-9.,]|BackSpace|Left|Right|F1|period|Tab|Up|Down|Return|Esc)"
 
