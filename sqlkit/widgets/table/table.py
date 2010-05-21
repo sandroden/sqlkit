@@ -809,6 +809,17 @@ class SqlTable(sqlwidget.SqlWidget):
         self._new_record = True
         return True
 
+    def record_add(self, record):
+        """
+        Add a record to the SqlTable
+        """
+        try:
+            self.modelproxy.modelstore.append([record])
+        except Exception:
+            self.modelproxy.modelstore.append(None, [record])
+        sqlwidget.SqlWidget.record_add(self, record)
+        self.totals.compute()
+        
     def unsaved_changes_exist(self, skip_check=False, skip_new=False):
         """collect possible changes and test if save is needed
 

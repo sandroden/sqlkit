@@ -896,6 +896,13 @@ class SqlWidget(gobject.GObject):
         """
         raise NotImplementedError
 
+    def record_add(self, record):
+        """
+        Add a record to the SqlWidget
+        """
+        self.records += [record]
+        self.session.add(record)
+
     def commit(self, message=_('Saved')):
         """
         run session.commit() and take care of possible exceptions
