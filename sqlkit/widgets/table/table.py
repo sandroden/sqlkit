@@ -443,6 +443,8 @@ class SqlTable(sqlwidget.SqlWidget):
         except TypeError, e:
             obj = None
             field_name = None
+
+        self._clicked_obj = obj  # should I officially document it?
             
         ## enable/disable menu entries
         action = self.ui_manager.get_action('/TreePopup/MaskView')
@@ -1204,16 +1206,15 @@ class SqlTable(sqlwidget.SqlWidget):
 
         mask = SqlMask(mapper=self.mapper, session=self.session, layout=self.layout,
                        metadata=self.metadata, hooks=self.hooks)
-#        mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
-        mask.mode = self.mode
+        mask.set_mode(self.mode, reset=True)
         mask.mode = '-b'
-        mask.set_records([self.get_selected_obj()])
+        self.select_path(obj=self._clicked_obj)
+        mask.set_records([self._clicked_obj])
 
         ## signals to keep selection in sync 
         def follow_selection(table, obj, mask):
             mask.set_records([obj])
 
-#        handler_id = self.connect('record-selected', follow_selection, mask)
         handler_id = self.connect('context-changed', follow_selection, mask)
 
         def disconnect(mask, id):
@@ -1240,9 +1241,10 @@ class SqlTable(sqlwidget.SqlWidget):
         ftable = self.completions[field_name].table
 
         mask = SqlMask(table=ftable.name, session=self.session, dbproxy=self.dbproxy, 
-                       metadata=self.metadata, mode=self.mode,
+                       metadata=self.metadata, 
                        layout_nick=self._fk_layout_nick.get(field_name, 'default'),
                        )
+        mask.set_mode(self.mode, reset=True)
         mask.mode = '-b'
         #mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
         mask.set_records(pk=getattr(self.get_selected_obj(), field_name))
@@ -1465,10 +1467,20 @@ class SqlTable(sqlwidget.SqlWidget):
         :param path:  the path to be selected or None
         :param obj:  if path is None, the object to be searched for and selected
         """
+        def search_obj(model, path, iter, (obj, path_list)):
+            if model.get_value(iter, 0) == obj:
+                path_list += [path]
+                return True
+
+        ## let's find out the real path for the object. The object may be in a
+        ## TreeStore's deeper level or some totals may shift it 
+
         if path is None and obj:
+            path_list = []
+            self.modelproxy.modelstore.foreach(search_obj, (obj, path_list))
             try:
-                path = self.records.index(obj)
-            except ValueError:
+                path = path_list[0]
+            except IndexError:
                 pass
 
         if path is not None:
