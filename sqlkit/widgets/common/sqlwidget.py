@@ -51,6 +51,7 @@ class SqlWidget(gobject.GObject):
 
     You won't use this as such: this is just the parent of SqlTable an SqlMask.
     """
+    #### Signals
     __gsignals__ = {
         'record-selected' : (gobject.SIGNAL_RUN_LAST,
                            gobject.TYPE_BOOLEAN,

@@ -44,6 +44,14 @@ class SqlMask(sqlwidget.SqlWidget):
     current_idx = 0
     current = None
     current_mode = None
+    __gsignals__ = {
+        'pre-display' : (gobject.SIGNAL_RUN_LAST,
+                         gobject.TYPE_BOOLEAN,
+                         # 
+                         (gobject.TYPE_PYOBJECT,),
+                         ),
+        }
+
 
     def __init__(self, *args, **kw):
         """
@@ -424,11 +432,15 @@ class SqlMask(sqlwidget.SqlWidget):
             tbl = self.tables[0]
         else:
             tbl = self.tables
+        pkey_changed = False
         for key in self.mapper_info.get_pkeys(tbl):
             if key in self.gui_fields and self.is_editable(key):
-                if not self.gui_fields[key].has_changed():
-                    self.dialog(text=_("Primary key (%s) didn't change. Refusing to save as new" % key))
-                    return
+                if self.gui_fields[key].has_changed():
+                    pkey_changed = True
+                    
+        if not pkey_changed:
+            self.dialog(text=_("Primary key (%s) didn't change. Refusing to save as new" % key))
+            return
             
         ## missing handling of Primary Key:
         ## should I delete the old one? should I look for editable attribute of the
@@ -539,6 +551,8 @@ class SqlMask(sqlwidget.SqlWidget):
 
 
         gobject.timeout_add(delay_message * 1000, self.sb, msg_info)
+
+        self.emit('pre-display', obj)
 
         for field in self.gui_fields:
             value = getattr(obj, field.field_name)

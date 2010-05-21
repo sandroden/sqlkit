@@ -91,3 +91,19 @@ Shortcuts
 :Control-q:  quits the table
 :Control-n:  opens a new record
 
+Signals
+========
+
+:pre-display: 
+
+     this signal is emitted when current object has already been set but
+     field values have no been set. It can be used to configure custom
+     widgets whose appearance may depend on other values.
+
+  .. method:: pre_display_cb(mask, obj)
+ 
+     :param mask: the SqlMask that emitted the signal
+     :param obj: the object currently selected or None
+
+.. versionadded:: 8.8
+
