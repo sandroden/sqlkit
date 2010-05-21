@@ -92,9 +92,9 @@ class SqlTable(sqlwidget.SqlWidget):
         sqlwidget.SqlWidget.__init__(self, *args, **kwargs)
         self.modelproxy.update()
         self.totals = totals.Totals(self)
+        self._fk_layout_nick = {}
         self.run_hook('on_init')
         self._new_record = None
-        self._fk_layout_nick = {}
         
     def _get_layout(self, lay, naked):
 
@@ -1507,6 +1507,8 @@ class ExportDialog(dialogs.SaveDialog):
                             quoting=self.QUOTE or csv.QUOTE_MINIMAL)
         writer.writerows(self.get_rows_func())
         f.close()
+
+
 
 
 

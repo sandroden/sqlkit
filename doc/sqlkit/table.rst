@@ -10,7 +10,8 @@ the foreign key is used.
 
 
 .. autoclass:: sqlkit.widgets.SqlTable(see_below)
-   :members: create_view, set_field_list, set_editable, set_opts, add_record
+   :members: create_view, set_field_list, set_editable, set_opts,
+             add_record, set_fk_layout
 
 
 Attributes
