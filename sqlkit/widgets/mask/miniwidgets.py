@@ -139,10 +139,11 @@ class ReadOnlyWidget(Widget):
     def set_value(self, value, shown=True):
 
         self.gtkwidget.set_data('value', value)
-        if self.completion:
-            string_value = self.completion.lookup_value(value)
-        else:
-            string_value = str(self.field.format_value(value)) or ''
+        string_value = self.field.get_human_value(value)
+#         if self.completion:
+#             string_value = self.completion.lookup_value(value)
+#         else:
+#             string_value = str(self.field.format_value(value)) or ''
 
         self.set_label(string_value)
 
@@ -398,7 +399,7 @@ class ForeignKeyComboboxWidget(Widget):
         """We have a 'real_value' that is normally an id or a key and a 'display_value'
         that is the value we want to show
         """
-        display_value = self.completion.lookup_value(value)
+        display_value = self.field.lookup_value(value)
         if value == None:
             if self.field.type == str:
                 value = ''
@@ -507,7 +508,7 @@ class ForeignKeyWidget(Widget):
             self.entry.set_text(display_value)
         else:
             self.value = value
-            display_value = self.completion.lookup_value(value)
+            display_value = self.field.lookup_value(value)
             self.entry.set_text(display_value)
             self.real_value = True  # we can trust this value, has been set by procedures
             

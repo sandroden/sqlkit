@@ -557,7 +557,7 @@ class FKeyColumn(VarcharColumn):
 
             if fkey_value is not None:
                 path = model.get_path(iter)
-                value = self.master.completions[self.field_name].lookup_value(fkey_value)
+                value = self.master.gui_fields[self.field_name].lookup_value(fkey_value)
                 cell.set_property('text', value)
             else:
                 cell.set_property('text', '')

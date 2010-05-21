@@ -809,48 +809,6 @@ class FkeyCompletion(SimpleCompletion):
     
 
 ### What to show
-    def lookup_value(self, field_value):
-        """
-        retrieve the value in a lookup table in case of foreign_key
-        Since field_value may be incorrectly casted (is used in completion)
-        errors are catched and None is returned (rather than raising an Error)
-
-        """
-        if field_value is None:
-            return ''
-        try:
-            return self.lookup_values[self.field_name][field_value]
-        except Exception, e:
-            descr_fields =  get_description(self.table_lookup)
-            format =        get_description(self.table_lookup, attr='format')
-            fields = [self.table_lookup.columns[f_name] for f_name in descr_fields]
-
-            sql = select(fields, self.column_lookup == field_value)
-            try:
-                all = self.master.metadata.bind.execute(sql).fetchall()
-            except (exceptions.DBAPIError), e:
-                self.master.sb(e.message)
-                return None
-
-            if len(all) == 0:
-                raise exc.LookupValueMissingValue("%s returns no values for '%s': '%s'" % (
-                    sql, self.field_name, field_value))
-            elif len(all) > 1:
-                raise exc.LookupValueMultipleValues("%s returns multiple values for '%s': '%s'" % (
-                    sql, self.field_name, field_value))
-            else:
-                value = format % DictLike(all[0])
-                try:
-                    self.lookup_values[self.field_name][field_value] = value
-                    return value
-                except KeyError:
-                    self.lookup_values[self.field_name] = {}
-                    self.lookup_values[self.field_name][field_value] = value
-                    return value
-
-            self.lookup_values[self.field_name][field_value] = value
-        return value
-
     def append_to_model(self, obj):
         """
         add to the model that has 6 cols

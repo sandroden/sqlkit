@@ -459,14 +459,17 @@ class InspectMapper(Container):
         return "<InspectMapper for keys: %s>" % self.keys()
 
 def get_foreign_info(ForeignKey, names=True):
-
+    """
+    return a tuple (fk_table, fk_column)
+    :param names: return names instead of objects
+    """
     foreign_keys = ForeignKey
 
     if len(foreign_keys) > 1:
         raise exc.UnhandledMultipleForeignKeys(foreign_keys)
     else:
         fkcol = foreign_keys[0]
-        ## table/column name are unicode but they must be strng to be
+        ## table/column name are unicode but they must be string to be
         ##     used as key in dicts
         if names:
             return (str(fkcol.column.table.name), str(fkcol.column.name))

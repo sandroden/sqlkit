@@ -40,6 +40,15 @@
 >>> from decimal import Decimal
 >>> from datetime import date, datetime, time, timedelta
 
+# fkey
+>>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> f = sm.gui_fields['director_id']
+>>> f.lookup_value(14)
+u'Fellini'
+
+>>> f.get_human_value(14)
+u'Fellini'
+
 # integer
 >>> sm = SqlMask(class_=AllTypes, dbproxy=db, naked=True, show=False)
 >>> f = sm.gui_fields['integer']
