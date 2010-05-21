@@ -198,7 +198,6 @@ class ModelProxy(object):
         # add 1 to prevent trimming 1.000 to 1.
         float_repr = [(float(path[i]+1)/10**(i*3)) for i in range(len(path))]
         ret = reduce(lambda x, y: x+y,  float_repr)
-        print "get_order_value", path, ret, self.modelstore.get_value(iter, 0)
         return ret
 
     def persist_rows_order(self, treemodel=None, path=None, iter=None):
