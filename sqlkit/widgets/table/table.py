@@ -643,13 +643,13 @@ class SqlTable(sqlwidget.SqlWidget):
         if not initial:
             self.run_hook('on_change_value', value, fkvalue, field_name=field_name)
 
-    def get_value(self, field_name, shown=True):
+    def get_value(self, field_name, shown=False):
         """
         return the value of the cell **currently edited***
         The name is possibly misleading due to parallelism with
         mask. 
 
-        shown: compatibility with mask version
+        shown: show the lookup value instead of the eal value
         """
         
         obj = self.get_current_obj()
@@ -668,7 +668,12 @@ class SqlTable(sqlwidget.SqlWidget):
                         return self.cell_entry.value
                 else:
                     return self.gui_fields[field_name].clean_value(text)
-        return getattr(obj, field_name)
+        value = getattr(obj, field_name)
+
+        if shown == True and self.is_fkey(field_name):
+            return self.gui_fields[field_name].get_human_value(value)
+        else:
+            return value
 
     def record_display(self, index=None, check=False):
         """
