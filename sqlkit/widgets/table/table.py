@@ -34,7 +34,7 @@ import sqlkit
 import utils as tv_utils
 import cell_renderers
 import totals
-from sqlkit.widgets.common import sqlwidget
+from sqlkit.widgets.common import sqlwidget, dialogs
 import gtk
 import pango
 import datetime
@@ -1344,7 +1344,8 @@ class SqlTable(sqlwidget.SqlWidget):
             self.modelproxy.modelstore.foreach(foreach_handler, ret)
             return ret
 
-        dialog = ExportDialog(get_all_rows, default_filename="%s-export.csv" % self.nick)
+        dialog = ExportDialog(get_all_rows, title=_("Export in csv file"),
+                              default_filename="%s-export.csv" % self.nick)
 
         return 
 
@@ -1389,21 +1390,18 @@ class SqlTable(sqlwidget.SqlWidget):
         for field in self.gui_fields:
             field.widget.add_completion(editable=editable)
         
+class ExportDialog(dialogs.SaveDialog):
 
-
-
-class ExportDialog(object):
-
-    import os
     FILTER_FILES = (
-        ( _('csv files'), '*.csv'),
-        ( _('all files'), '*.*'),
+        ( _('Csv files'), '*.csv'),
+        ( _('All files'), '*.*'),
         )
-    DELIMITER = ';'
+
+    DELIMITER = ','
     QUOTE = None
     DIALECT = 'excel'
 
-    def __init__(self,  get_rows_func, default_filename='export.csv'):
+    def __init__(self, get_rows_func, *args, **kwargs):
         """
         A dialog to export data into a csv file
 
@@ -1412,38 +1410,7 @@ class ExportDialog(object):
         """
 
         self.get_rows_func = get_rows_func
-        
-        self.dialog = gtk.FileChooserDialog(_("Export in csv file"),
-                                       None,
-                                       gtk.FILE_CHOOSER_ACTION_SAVE,
-                                       (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                                        gtk.STOCK_SAVE, gtk.RESPONSE_OK))
-        self.dialog.set_default_response(gtk.RESPONSE_OK)
-        self.dialog.set_current_name(default_filename)
-        self.dialog.set_current_folder(self.current_folder())
-        
-        for name, pattern in self.FILTER_FILES:
-            file_filter = gtk.FileFilter()
-            file_filter.set_name(name)
-            file_filter.add_pattern(pattern)
-            self.dialog.add_filter(file_filter)
-        
-        ret = self.dialog.run()
-        if ret == gtk.RESPONSE_OK:
-            self.write()
-        self.dialog.destroy()
-    
-    def current_folder(self):
-        import platform
-        import os
-
-        CURRENT_FOLDER = ''
-        if 'HOME' in os.environ:
-            CURRENT_FOLDER = os.environ['HOME']
-        elif platform.system() == "Windows":
-            CURRENT_FOLDER = os.path.join(os.environ['USERPROFILE'], 'Desktop')
-
-        return CURRENT_FOLDER
+        dialogs.SaveDialog.__init__(self, *args, **kwargs)
         
     def write(self):
 
@@ -1456,9 +1423,4 @@ class ExportDialog(object):
                             quoting=self.QUOTE or csv.QUOTE_MINIMAL)
         writer.writerows(self.get_rows_func())
         f.close()
-
-
-
-
-
 
