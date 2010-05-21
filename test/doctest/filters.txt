@@ -1,8 +1,7 @@
 # -*- mode: python -*-
 
 >>> import os
-
-#>>> os.environ['LANG'] = 'en_US.utf8'
+>>> import gtk
 >>> os.environ['LANG'] = 'en_US.utf8'
 
 >>> import sys
@@ -11,6 +10,9 @@
 
 >>> from movies import Movie, Director, AllTypes, db
 >>> from sqlkit.widgets import SqlMask, SqlTable
+>>> from sqlkit.db import defaults
+>>> defaults.tables
+{}
 
 >>> lay = "title"
 >>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
@@ -22,7 +24,8 @@
 ## completions
 >>> sm = SqlMask(class_=Movie, dbproxy=db, naked=True, show=True)
 >>> sm.get_value('title')
-''
+>>> while gtk.events_pending():
+...   a=gtk.main_iteration()    
 >>> sm.set_value('director_id', 'f', shown=True)
 
 >>> sm.completions.director_id.show_possible_completion(sm.widgets['fk=director_id'].entry, 'start', pop=False) 

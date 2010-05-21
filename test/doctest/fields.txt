@@ -134,10 +134,6 @@ True
 >>> from babel import numbers, dates
 >>> os.environ['LANG'] = 'it_IT.utf8'
 
-#>>> os.environ['LANG'] = 'en_US.utf8'
->>> silent = reload(numbers)
->>> silent = reload(dates)
-
 # integer
 >>> sm = SqlMask(class_=AllTypes, dbproxy=db, naked=True, show=False)
 >>> f = sm.gui_fields['integer']
@@ -174,6 +170,8 @@ Decimal("1.2")
  
 # date
 >>> f = sm.gui_fields['date']
+>>> f.locale
+'it_IT'
 >>> f.clean_value(date(2008, 6, 2))
 datetime.date(2008, 6, 2)
 >>> f.clean_value('2/6/2008')

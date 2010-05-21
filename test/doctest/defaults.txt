@@ -2,6 +2,7 @@
 
 >>> import os
 >>> import sys
+>>> import gtk
 >>> sys.path.insert(0, '../../demo/sql/model')
 >>> sys.path.insert(0, '../../')
 
@@ -45,6 +46,8 @@ True
 'Olmi'
 
 >>> sm = SqlMask(class_=Movie, dbproxy=db, naked=True, show=False)
+>>> while gtk.events_pending():
+...   silent =  gtk.main_iteration()
 
 # default automatically generated are local
 >>> sm.defaults.local
@@ -60,7 +63,7 @@ True
 >>> sm.gui_fields.director_id.get_human_value(sm.defaults.get('director_id'))
 u'Donnersmak'
 
-## and don't change global onesx
+## and don't change global ones
 >>> defaults.get_default('movie', 'title')
 
 
@@ -75,9 +78,18 @@ u'Donnersmak'
 'Fellini'
 
 # global defaults is unchanged
-def_global_director.get('last_name')
+>>> def_global_director.get('last_name')
 'Lautrec'
 
-def_local_director.get('last_name')
+>>> def_local_director.get('last_name')
 'Olmi'
+
+
+>>> sm = SqlMask(class_=Movie, dbproxy=db, naked=True, show=False)
+>>> sm.defaults.tdict
+{}
+
+>>> defaults.tables = {}
+>>> defaults.tables 
+{}
 

@@ -5,15 +5,21 @@ import sys
 import doctest
 
 import sys
+import babel
+
 
 os.environ['LANG'] = 'C'
+os.environ['LANG'] = 'en_US.utf8'
 
 files = (
-    'mask.txt',
+    'completions.txt',
     'dates.txt',
-    'fields.txt',
-    'mapper_inspect.txt',
+    'defaults.txt',
     'django2sa.txt',
+    'fields.txt',
+    'filters.txt',
+    'mapper_inspect.txt',
+    'mask.txt',
     )
 
 if sys.argv[1:]:
@@ -21,6 +27,7 @@ if sys.argv[1:]:
 
 for filename in files:
     print filename
+    os.environ['LANG'] = 'en_US.utf8'
     doctest.testfile(filename)
 
     

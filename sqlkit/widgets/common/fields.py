@@ -1,4 +1,4 @@
-# Copyright (C) 2008, Sandro Dentella <sandro@e-den.it>
+# Copyright (C) 2008-2009-2010, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -572,7 +572,7 @@ class DateField(Field):
 
         try:
             if isinstance(value, basestring):
-                value = dates.parse_date(value)
+                value = dates.parse_date(value, locale=self.locale)
             elif isinstance(value, date):
                 pass
             else:

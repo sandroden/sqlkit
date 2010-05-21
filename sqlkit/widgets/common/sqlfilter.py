@@ -47,7 +47,7 @@ from datetime import *
 from sqlkit.db.django_syntax import django2components
 from sqlkit.misc import datetools 
 from sqlkit import _, exc
-from babel.dates import format_date
+from babel import dates
 import warnings
 
 class SqlDataFixNeeded(Exception): pass
@@ -938,14 +938,14 @@ class FilterWidget(object):
         date changed: show the new date and set a tooltip
         """
         try:
-            dates = datetools.string2dates(entry.get_text())
+            dates_ = datetools.string2dates(entry.get_text())
         except:
             entry.set_tooltip_text('')
             self.tool.panel.l.sb(_('incomplete date format'))
             return
             
-        dates = [format_date(d) for d in dates if d]
-        text = " - ".join(dates)
+        dates_ = [dates.format_date(d, locale=dates.default_locale()) for d in dates_ if d]
+        text = " - ".join(dates_)
         entry.set_tooltip_text(text)
         self.tool.panel.l.sb(text)
 

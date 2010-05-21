@@ -88,7 +88,7 @@ Other examples
 import re
 from dateutil.relativedelta import relativedelta
 from datetime import date, timedelta
-from babel.dates import parse_date
+from babel import dates 
 from sqlkit import _
 
 class WrongRelativeDateFormat(Exception): pass
@@ -128,7 +128,7 @@ def string2dates(string):
     """
     try:
         # first try a normal parsing via babel
-        return parse_date(string), None
+        return dates.parse_date(string, locale=dates.default_locale()), None
     except:
         pass
     
@@ -161,7 +161,7 @@ def string2date(string):
     """
     try:
         # first try a normal parsing via babel
-        return parse_date(string)
+        return dates.parse_date(string, locale=dates.default_locale())
     except:
         pass
 
