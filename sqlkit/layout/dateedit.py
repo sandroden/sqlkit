@@ -83,7 +83,8 @@ class DateEdit(gtk.HBox):
         self.locale_setup()
         self.build_layout()
         
-        self._date_entry.connect('focus-out-event', self.date_entry_focus_out_event_cb)
+        self._date_entry.connect('leave-notify-event', self.date_entry_focus_out_event_cb)
+#        self._date_entry.connect('focus-out-event', self.date_entry_focus_out_event_cb)
         self._date_button.connect('clicked', self.date_button_clicked_cb)
 
         self._calendar.connect('day-selected', self.day_selected_cb)
