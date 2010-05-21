@@ -475,7 +475,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return
 
         try:
-            self.record_save(treeview)
+            self.record_save()
         except exc.ValidationError:
             pass
         return False
@@ -530,13 +530,6 @@ class SqlTable(sqlwidget.SqlWidget):
         self.record_new()
         return True
 
-    def key_tree_ctrl_s(self, treeview, event):
-        try:
-            self.record_save(treeview)
-        except exc.ValidationError:
-            pass
-        return False
-       
     def key_entry_Tab(self, widget, event):
         """
         Trigger the validation when moving around the cells
@@ -676,7 +669,7 @@ class SqlTable(sqlwidget.SqlWidget):
         ## the problem here is to prevent changes in the already used record
         raise NotImplementedError
     
-    def record_save(self, discard_unchanged=False, discard_new=False):
+    def record_save(self, discard_unchanged=False, discard_new=False, ask=False):
 
         """save the record
 
@@ -694,6 +687,15 @@ class SqlTable(sqlwidget.SqlWidget):
             dbg.write('no self.edited_row_model_path, nothing to save', self.edited_row_model_path)
             return
 
+        if ask:
+            response = self.save_unsaved(skip_check=True, proceed=False)
+
+            if response == gtk.RESPONSE_CANCEL:
+                raise exc.CancelledAction
+
+            if response == gtk.RESPONSE_NO: 
+                return True  # Only used in record_in_mask, better would be a exc.NegativeAnswer
+            
         obj = self.get_current_obj()
 
         if discard_unchanged or (discard_new and obj in self.session.new):
