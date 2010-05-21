@@ -290,6 +290,15 @@ class TextWidget(Widget):
 class BooleanWidget(Widget):
     """
     Null value is not admittable
+
+    A boolean widget can be represented via CheckButton (default) or radio
+    button (just use r=field_name when setting layout). In the latter case
+    you can safely group widgets toghether with normal gtk tools ``.set.group()``
+    to gain a switch between different alternatives::
+
+      m.SqlMask(..., layout='r=male, r=female')
+      m.widgets['r=female'].set_group(m.widgets['r=male'])
+
     """
 
     def __init__(self, *args):
