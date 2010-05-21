@@ -72,6 +72,8 @@ OP_MSGID = {
     'NOT ILIKE' : _('Negation of ILIKE'),
     'IS TRUE' : _('The boolean is True'),
     'IS FALSE' : _('The boolean is False'),
+    'IS NOT TRUE' : _('The boolean is not True'),
+    'IS NOT FALSE' : _('The boolean is not False'),
     'IS NULL' : _('The value is not set'),
     'IS NOT NULL' : _('The value is set'),
 #    '' : _(''),
@@ -590,7 +592,8 @@ class FilterTool(object):
                 ## will most surely lead to no result
                 query = query.join(*self.master.relationship_path)
 
-        if op_value in ('IS NULL', 'IS NOT NULL', 'IS TRUE', 'IS FALSE'):
+        if op_value in ('IS NULL', 'IS NOT NULL',
+                        'IS TRUE', 'IS FALSE', 'IS NOT TRUE', 'IS NOT FALSE'):
             # NULL
             if op_value == 'IS NULL':
                 return query.filter(self.col == None)
@@ -602,6 +605,11 @@ class FilterTool(object):
                 return query.filter(self.col == True)
             elif op_value == 'IS FALSE':
                 return query.filter(self.col == False)
+
+            if op_value == 'IS NOT TRUE':
+                return query.filter(self.col != True)
+            elif op_value == 'IS NOT FALSE':
+                return query.filter(self.col != False)
 
         else:
             try:
@@ -656,7 +664,7 @@ class FilterStringTool(FilterTool):
 class FilterBooleanTool(FilterTool):
 
     def get_suitable_operators(self):
-        return [ 'IS TRUE', 'IS FALSE' ] + self.NULL_OPERATORS
+        return [ 'IS TRUE', 'IS FALSE', 'IS NOT TRUE', 'IS NOT FALSE' ] + self.NULL_OPERATORS
 
 class FilterDateTool(FilterTool):
 
