@@ -88,7 +88,7 @@ Signals
        menu. Look in the example to see how you can manipulate the menu.
 
 
-  .. method:: button_press_cb(table, event, obj, field_name, menu)
+  .. method:: button_press_cb(table, event, obj, field_name, menu, treeview)
  
      :param table: the SqlTable that emitted the signal
      :param event: the gtk.gdk.Event associated
@@ -96,6 +96,10 @@ Signals
      :param field_name: the field_name of the selected column
      :param menu: the default menu that il popped up by this
           button-press-event if event.button == 3 or None
+     :param treeview: the TreeView widget that was clicked. You may get the
+          view the treeview belongs to with ``treeview.get_data('view')``
+
+          .. versionadded:: 8.7
 
 .. _context_changed:     
 

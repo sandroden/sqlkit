@@ -13,8 +13,12 @@ incompatibilities:
 
 :Table:
   
-   ``self.current`` points to ``self.get_current_obj()``, no longer
-   ``get_selected_obj()``
+  *  ``self.current`` points to ``self.get_current_obj()``, no longer
+     ``get_selected_obj()``
+
+  *  button-press-event now has one more argument: treeview. This is
+     necessary due to the fact that table now have views and t.treeview only
+     points to the main view's treeview.
 
 :Hooks: 
 

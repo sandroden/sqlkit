@@ -59,9 +59,9 @@ class SqlTable(sqlwidget.SqlWidget):
     __gsignals__ = {
         'button-press-event' : (gobject.SIGNAL_RUN_LAST,
                            gobject.TYPE_BOOLEAN,
-                                # event, obj, field_name
+                                # event, obj, field_name, treeview
                            (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_STRING,
-                            gobject.TYPE_PYOBJECT),
+                            gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT),
                            ),
         'context-changed' : (gobject.SIGNAL_RUN_LAST,
                            gobject.TYPE_BOOLEAN,
@@ -465,8 +465,10 @@ class SqlTable(sqlwidget.SqlWidget):
             menu = self.ui_manager.get_widget('/TreePopup')
             menu.popup(None, None, None, event.button, event.time)
         
-        self.emit('button-press-event', event, obj, field_name, menu )
+        self.emit('button-press-event', event, obj, field_name, menu, widget )
         
+        if event.button == 3:
+            return True
         return False
 
     def _enforce_first_click_just_selects(self, path, column, field_name):
