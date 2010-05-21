@@ -111,10 +111,10 @@ Attributes
 .. attribute:: layout
 
    the layout definition for this SqlWidget. This is the used definition for
-   SqlMask while for SqlTable is only used if the record is opend in SqlMask
+   SqlMask while for SqlTable is only used if the record is opened in SqlMask
    (right click on the record in SqlTable).
 
-   You can also set in on a related table::
+   You can also set it on a related table::
 
       GUI="director @ m2m=movies"
       t = SqlMask(class_=Director, layout=GUI, ...)

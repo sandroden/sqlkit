@@ -34,10 +34,10 @@ html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) .build/html
 	@echo
 	@echo "Build finished. The HTML pages are in .build/html."
-	@perl -i -p -e 's/DEBVER/$(DEBVER)/g' .build/html/sqlkit/download.html
-	@perl -i -p -e 's/WINVER/$(WINVER)/g' .build/html/sqlkit/download.html
-	@perl -i -p -e 's/LNXVER/$(LNXVER)/g' .build/html/sqlkit/download.html
-	@perl -i -p -e 's/VER/$(VER)/g' .build/html/sqlkit/download.html
+	@perl -i -p -e 's/DEBVER/$(DEBVER)/g' .build/html/misc/download.html
+	@perl -i -p -e 's/WINVER/$(WINVER)/g' .build/html/misc/download.html
+	@perl -i -p -e 's/LNXVER/$(LNXVER)/g' .build/html/misc/download.html
+	@perl -i -p -e 's/VER/$(VER)/g' .build/html/misc/download.html
 
 pickle:
 	mkdir -p .build/pickle .build/doctrees
