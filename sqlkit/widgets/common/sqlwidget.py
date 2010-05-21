@@ -632,7 +632,7 @@ class SqlWidget(gobject.GObject):
     def _get_title(self):
         
         if self.is_toplevel():
-            return self.widgets['Window'].get_title(title)
+            return self.widgets['Window'].get_title()
         else:
             return getattr(self, '_title', None)
         
