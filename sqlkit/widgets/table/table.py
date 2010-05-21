@@ -368,6 +368,7 @@ class SqlTable(sqlwidget.SqlWidget):
             field_name = None
 
         self._clicked_obj = obj  # should I officially document it?
+        self._field_name = field_name  # should I officially document it?
             
         menu = view.pop_menu(treeview, event, obj, field_name)
         self.emit('button-press-event', event, obj, field_name, menu, treeview)
@@ -1155,14 +1156,12 @@ class SqlTable(sqlwidget.SqlWidget):
         Open a SqlMask to show the fkey of this field
 
         """
+        from sqlkit.widgets import SqlMask, SqlTable
+
         if not hasattr(self, '_field_name'):
             return
 
         field_name = self._field_name
-
-        del self._field_name
-        
-        from sqlkit.widgets import SqlMask, SqlTable
 
         ftable = self.completions[field_name].table
 
@@ -1172,15 +1171,15 @@ class SqlTable(sqlwidget.SqlWidget):
                        )
         mask.set_mode(self.mode, reset=True)
         mask.mode = '-b'
-        #mask.actiongroup_edit.set_sensitive(self.actiongroup_edit.get_sensitive())
-        mask.set_records(pk=getattr(self.get_selected_obj(), field_name))
+        obj = getattr(self, '_clicked_obj', self.get_selected_obj())
+        print getattr(obj, field_name)
+        mask.set_records(pk=getattr(obj, field_name))
 
         ## signals to keep selection in sync 
         def follow_selection(table, obj, mask):
             if obj and self.get_selected_obj():
                 mask.set_records(pk=getattr(self.get_selected_obj(), field_name))
 
-#        handler_id = self.connect('record-selected', follow_selection, mask)
         handler_id = self.connect('context-changed', follow_selection, mask)
 
         def disconnect(mask, id):
@@ -1189,6 +1188,8 @@ class SqlTable(sqlwidget.SqlWidget):
         mask.connect('delete-event', disconnect, handler_id)
 
         self._fmask = mask  # just for debug
+        del self._field_name
+        del self._clicked_obj
 
     def set_fk_layout(self, field_name, layout_nick):
         """
