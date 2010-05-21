@@ -597,17 +597,17 @@ class SqlTable(sqlwidget.SqlWidget):
         return False
         
     def key_tree_ctrl_k(self, treeview, event, data):
-        
+
         if self.current not in self.session.new and 'd' not in self.mode:
             self.sb(_("Deletion of records is disabled. Sorry"))
-            return
+            return False
 
         self.record_delete(treeview)
         return False
     
     def key_tree_ctrl_x(self, treeview, event, data):
         
-        return key_tree_ctrl_k(treeview, event, data)
+        return self.key_tree_ctrl_k(treeview, event, data)
     
     def key_tree_ctrl_r(self, treeview, event, data):
 
@@ -924,7 +924,11 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         if self.ro:
             return True
-        
+
+        if not self.get_selected_obj():
+            self.sb(_('No record selected'))
+            return True
+
         if interactive:
             text = _("Delete this record?\n(%s)") % self.current
             response = self.dialog(type='ok-cancel', text=text)
