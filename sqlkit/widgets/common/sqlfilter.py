@@ -186,9 +186,9 @@ class FilterPanel(object):
         add a filter using django-like syntax
 
         :param active: make the filter active (default True). This hides the possibility to
-            add a filter on a field named ``hide``. In this case you can use the longer version
+            add a filter on a field named ``active``. In this case you can use the longer version
             that is ``active__eq=True``
-        :param kwargs: any paramenter allowed per sytax of the django_like syntax as explained
+        :param kwargs: any paramenter allowed per syntax of the django_like syntax as explained
             in the :ref:`chapter on constraints <constraints>`
         
         """
