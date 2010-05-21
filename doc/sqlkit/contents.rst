@@ -15,7 +15,3 @@ SQLKit
    browsing
    editing
 
-   sqledit
-   download
-   missing
-
