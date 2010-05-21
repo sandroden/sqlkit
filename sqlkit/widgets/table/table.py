@@ -303,10 +303,13 @@ class SqlTable(sqlwidget.SqlWidget):
         # 6. selected existent record -> new record
         # 7. selected existent record -> delete
         # 8. selected existent LAST record -> delete
+
         if self.edited_row_model_path is None:
             self.emit('record-selected')
             obj = self.get_selected_obj()
-
+            if not isinstance(obj, self.mapper.class_):
+                # we have visited a total or something else
+                return
             
             if obj or len(self.records):
                 self.emit('context-changed', obj or self.records[0])
