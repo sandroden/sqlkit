@@ -200,7 +200,7 @@ class SimpleCompletion(object):
         
 ### Filling & popping the completion
     def show_possible_completion(self, widget, mode, apply_filter=True, pop=True, sb=True,
-                                 value=None, return_sql=False):
+                                 value=None, return_sql=False, one=False):
         """
         fill in a ListStore to use with completion, fetch data from db
         
@@ -209,11 +209,14 @@ class SimpleCompletion(object):
            :start: only matching data starting with typed text
            :regexp: typed text is a regexp (*~ or ILIKE)
            :enum: all values
+           :exact: triggers the completion machanism but just for the exact match
 
         :param apply_filter: filter added with .filter() will be applied
         :param return_sql:   boolean only the sql is returned (debug purpose)
         :param value:        value to use as "displayed value". debug purpose
         :param pop:          don't try to pop the selection (debug purpose)
+        :param one:          return the result that should be just one (used internally
+                             within check_existance)
         
         """
         self._apply_filter = apply_filter
@@ -235,7 +238,10 @@ class SimpleCompletion(object):
         for obj in result:
             self.append_to_model(obj)
         self.completion.set_model(self.model)
-        
+
+        if one and mode == 'exact':  # used by self.check_existance
+        ## just one result will be returned even if no check is done that more that one exists
+            return DictLike(obj)
         if pop:
             self.make_completion_to_pop(self.get_entry())
         else: # doctest purpose
@@ -451,6 +457,8 @@ class SimpleCompletion(object):
             oper = self.MATCH_OPERATOR
         if self.mode == 'regexp':
             oper = self.MATCH_OPERATOR
+        if self.mode == 'exact':
+            oper = '='
         else:
             oper = self.MATCH_OPERATOR
 
@@ -672,16 +680,23 @@ class SimpleCompletion(object):
             ## check if the text entered was in fact a complete and legal fkey
             ## or unique field (for m2m)
             if self.master.fkey_is_valid(self.field_name):
+                ## see note below on 'on_completion'
+                obj = self.show_possible_completion(None, 'exact', one=True)
+                self.master.run_hook('on_completion', obj, field_name=self.field_name)
                 return True
             try:
                 if self.master.is_fkey(self.field_name):
                     clean_value = self.master.gui_fields[self.field_name].clean_value(text, input_is_fkey=False)
-                    self.master.sb(_("Good match"), seconds=4)
                     if not clean_value:
                         raise exc.NoResultFound
 
+                    self.master.sb(_("Good match"), seconds=4)
                     self.master.set_value(self.field_name, getattr(clean_value, self.column_lookup.name),
                                           fkvalue=text)
+                    ## since on_completion needs an onj that must have all attributes defined in
+                    ## self.attrs we trigger the complete tour
+                    obj = self.show_possible_completion(None, 'exact', one=True)
+                    self.master.run_hook('on_completion', obj, field_name=self.field_name)
                     return True
 
                 else:
