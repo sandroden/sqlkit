@@ -46,12 +46,12 @@ class SqlTable(sqlwidget.SqlWidget):
     Main widget to represent data of a sqlalchemy selectable (SELECT of a TABLE, e JOIN,
     & similar).
 
-    A SqlTable can have different :ref:`views <view>` of the same data
-    represented in different Treevies.
+    A SqlTable can have different :ref:`views <views>` of the same data
+    represented in different TreeVies.
 
     A SqlTable can be viewed alone or as part of a composite widget, that is
-    normally a mask with :ref:`relations`. Each SqlTable (as SqlMask has a ``records``
-    attribute that holds the list of records thatit represents, while the model has
+    normally a mask with :ref:`relationships`. Each SqlTable (as SqlMask has a ``records``
+    attribute that holds the list of records that it represents, while the model has
     possibly also other objects as totals and headers.
 
     SqlTables can have both ListStores or TreeStores. The latter allows to represent
@@ -184,18 +184,27 @@ class SqlTable(sqlwidget.SqlWidget):
 
         view = View(master=self, name=name, treeview=treeview, field_list=field_list)
         view.treeview.set_model(self.modelproxy.modelstore)
+        self.set_rows(view=view)
         self.views[name] = view
         return view
 
-    def set_rows(self, rows=None, view=None):
+    def set_rows(self, rows=None, view=None, view_name=None):
         """
         set number of treeview visible rows to "rows"
 
         :param rows: number of rows (defaults to self.rows)
+        :param view: the view. Defaults to None (all views)
         :param view_name: the name of the view. Defaults to None (all views)
         """
+        if rows:
+            self.rows = rows
+        views = self.views
+        if view:
+            views = (view,)
+        if view_name:
+            views = (self.views[view_name])
         if not view:
-            for v in self.views:
+            for v in views:
                 tv_utils.set_height_request(v.treeview, self.rows)
 
     def hide_fields(self, field_name_list='', view_name='main'):

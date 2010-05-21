@@ -5,7 +5,7 @@
 ===========
 
 SqlTable is a widget that represent data in a table mode. Columns that are
-foreign keys are presented in blue and a :ref:`description <description>` of
+foreign keys are presented in blue and a :ref:`description` of
 the foreign key is used.
 
 
@@ -143,3 +143,15 @@ In the case you have several possible layout for the same fk, and you want
 to use a layout that is not the default one, you can use ``set_fk_layout``
 
 
+.. _views:
+
+Views
+=====
+
+Views (added in rel 0.8.8) are a way to view the same data in two different
+TreeViews.  This way you can split a very large table into different chunks
+(vertically), leaving some columns to a view and others to a different
+view. The same column may be repeated in different view.
+
+.. image:: ../img/table-views.png
+   :align: right 
