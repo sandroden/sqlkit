@@ -433,7 +433,7 @@ class VarcharColumn(GenericColumn):
         self.editable_connects(editable)
         
         self.master.fkey_value = editable.get_text()
-        
+
         if hasattr(self.master.field_widgets[self.field_name], 'completion'):
             completion = self.master.field_widgets[self.field_name].completion
             if completion and not self.master.is_text(self.field_name):
@@ -565,7 +565,14 @@ class FKeyColumn(VarcharColumn):
         else:
             cell.set_property('text', getattr(obj, self.field_name))
 
-    
+    def editing_started_cb(self, cell, editable, path):
+        
+        VarcharColumn.editing_started_cb(self, cell, editable, path)
+        model = self.column.get_tree_view().get_model()
+        obj = model.get_value(model.get_iter(path), 0)
+        ## I trust this value as it comes from the obj
+        self.master.cell_entry.value = getattr(obj, self.field_name)
+
 class DateColumn(VarcharColumn):
 
     """
