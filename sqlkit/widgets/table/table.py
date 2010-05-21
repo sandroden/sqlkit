@@ -225,8 +225,8 @@ class SqlTable(sqlwidget.SqlWidget):
             ('New', gtk.STOCK_NEW,   None, '', None, self.record_new_cb),
             ])
         self.actiongroup_delete.add_actions([
-            ('Delete', gtk.STOCK_DELETE, None, '', None, self.record_delete),
-            ('RecordDelete', gtk.STOCK_DELETE, None, '<Control>k', None, self.record_delete),
+            ('Delete', gtk.STOCK_DELETE, None, '<Control>k', None, self.record_delete),
+            ('RecordDelete', gtk.STOCK_DELETE, None, None, None, self.record_delete3),
             ])
 
         self.actiongroup_table.add_actions([
@@ -330,7 +330,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.cell_entry and not self.cell_entry.is_valid():
             if not self.cell_validate():
                 return True
-
+            
         ## emit button-press-event of the sqlwidget: event, field_name, value
         #  this happens before the selection gets changed so we cannot use get_selected_obj()
 
@@ -891,6 +891,15 @@ class SqlTable(sqlwidget.SqlWidget):
 #             return self.modelproxy.modelstore.insert_after(row.iter, [new_obj])
 #         except TypeError:
 #             return self.modelproxy.modelstore.insert_after(None, row.iter, [new_obj])
+
+    def record_delete3(self, item):
+        """
+        Delete a record clicked with left click from menu item. In this case
+        self._clicked_obj is used rather than selected one.
+        """
+        
+        self.select_path(obj=self._clicked_obj)
+        self.record_delete()
 
     def _get_next_iter(self, new_obj):
         """
