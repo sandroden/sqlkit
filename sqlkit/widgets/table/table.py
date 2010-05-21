@@ -396,7 +396,7 @@ class SqlTable(sqlwidget.SqlWidget):
     def keyrelease_event_cb(self, wdg, event, data=None):
         return self.length_control(wdg, data)
     
-    def keypress_event_cb(self, wdg, event, view):
+    def keypress_event_cb(self, wdg, event, view=None):
 
         if isinstance(wdg, gtk.TreeView):
             pre = 'tree'
@@ -418,7 +418,7 @@ class SqlTable(sqlwidget.SqlWidget):
         ksym = '_'.join(mods + [ksym])
 
         if ksym in dir(self):
-            return getattr(self, ksym)(wdg, event, data)
+            return getattr(self, ksym)(wdg, event)
         else:
             self.write_info()
     
@@ -436,7 +436,7 @@ class SqlTable(sqlwidget.SqlWidget):
             gobject.idle_add(self.treeview.set_cursor, path, columns[-1], True)
         return True
     
-    def key_tree_Tab(self, treeview, event, data):
+    def key_tree_Tab(self, treeview, event):
         path, col = self.treeview.get_cursor()
         if not path:
             return False
@@ -466,7 +466,7 @@ class SqlTable(sqlwidget.SqlWidget):
                              self.get_direct_edit(next_field_name) )
         return False
     
-    def key_tree_ctrl_n(self, treeview, event, data):
+    def key_tree_ctrl_n(self, treeview, event):
 
         if not 'i' in self.mode:
             self.sb(_("Insertion of new records is disabled. Sorry"))
@@ -478,7 +478,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         return False
         
-    def key_tree_ctrl_s(self, treeview, event, data):
+    def key_tree_ctrl_s(self, treeview, event):
 
         if self.current in self.session.new and 'i' not in self.mode:
             self.sb(_("Insertion of new records is disabled. Sorry"))
@@ -494,7 +494,7 @@ class SqlTable(sqlwidget.SqlWidget):
             pass
         return False
         
-    def key_tree_ctrl_k(self, treeview, event, data):
+    def key_tree_ctrl_k(self, treeview, event):
 
         if self.current not in self.session.new and 'd' not in self.mode:
             self.sb(_("Deletion of records is disabled. Sorry"))
@@ -503,11 +503,11 @@ class SqlTable(sqlwidget.SqlWidget):
         self.record_delete(treeview)
         return False
     
-    def key_tree_ctrl_x(self, treeview, event, data):
+    def key_tree_ctrl_x(self, treeview, event):
         
-        return self.key_tree_ctrl_k(treeview, event, data)
+        return self.key_tree_ctrl_k(treeview, event)
     
-    def key_tree_ctrl_r(self, treeview, event, data):
+    def key_tree_ctrl_r(self, treeview, event):
 
         if  'b' not in self.mode:
             self.sb(_("browsing of new records is disabled. Sorry"))
@@ -516,7 +516,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.reload_cb(treeview)
         return True
     
-    def key_tree_Down(self, treeview, event, data):
+    def key_tree_Down(self, treeview, event):
 
         if self.modelproxy.tree_field_name:
             return False
@@ -534,7 +534,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
             return False
 
-    def key_entry_ctrl_n(self, widget, event, data):
+    def key_entry_ctrl_n(self, widget, event):
 
         try:
             widget.emit('activate')
@@ -544,14 +544,14 @@ class SqlTable(sqlwidget.SqlWidget):
         self.record_new()
         return True
 
-    def key_tree_ctrl_s(self, treeview, event, data):
+    def key_tree_ctrl_s(self, treeview, event):
         try:
             self.record_save(treeview)
         except exc.ValidationError:
             pass
         return False
        
-    def key_entry_Tab(self, widget, event, data):
+    def key_entry_Tab(self, widget, event):
         """
         Trigger the validation when moving around the cells
         """
