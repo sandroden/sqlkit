@@ -418,7 +418,7 @@ class Demo(object):
         txt = idf.read()
         idf.close()
         pat = re.compile(r'''
-        ^"""(?:(?P<doc>[^"]*)""")\s*(?P<body>(.*))
+        ^"""(?:(?P<doc>.*)""")\s*(?P<body>(.*))
         ''', re.MULTILINE| re.DOTALL|re.VERBOSE)
         m = pat.search(txt)
         if m:
