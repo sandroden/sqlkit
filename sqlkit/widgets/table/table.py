@@ -787,8 +787,13 @@ class SqlTable(sqlwidget.SqlWidget):
         self._new_record = True
         return True
 
-    def unsaved_changes_exist(self, skip_check=False):
+    def unsaved_changes_exist(self, skip_check=False, skip_new=False):
         """collect possible changes and test if save is needed
+
+        :param skip_check: we already know it needs saving. Passed to unsaved_changes_exists
+        :param skip_new: skip_new may be an object whose changes we disregard (see unsaved_changes_exist)
+        Return False if cancel is pressed
+        
         """
 
         if not skip_check and not self.record_has_changed():
@@ -797,7 +802,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 del self.last_new_obj
                 self.last_new_obj = None
                 
-        return sqlwidget.SqlWidget.unsaved_changes_exist(self)
+        return sqlwidget.SqlWidget.unsaved_changes_exist(self, skip_new=skip_new)
         
     def record_delete(self, widget=None, interactive=True):
         """
@@ -1092,12 +1097,21 @@ class SqlTable(sqlwidget.SqlWidget):
         Open a SqlMask to show self.current.
         Hooks are set on the newly created mask so that validation is retained
         Remember to set any possible configuration of the table in an 'on_init'
-        hook so that it will be propagated
+        hook so that it will be propagated.
+
+        If there are pending modification, a save dialog is opened.
 
         """
 
         from sqlkit.widgets import SqlMask, SqlTable
-
+        try:
+            quit = self.record_save(ask=True)
+        except exc.CancelledAction:
+            quit = True
+        if quit: 
+            self.sb(_('Unsaved data prevent opening a Mask to show the (unsaved) record'))
+            return
+        
         mask = SqlMask(mapper=self.mapper, session=self.session, layout=self.layout,
                        metadata=self.metadata, hooks=self.hooks)
         mask.set_mode(self.mode, reset=True)
@@ -1433,6 +1447,8 @@ class ExportDialog(object):
                             quoting=self.QUOTE or csv.QUOTE_MINIMAL)
         writer.writerows(self.get_rows_func())
         f.close()
+
+
 
 
 
