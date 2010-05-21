@@ -1032,8 +1032,8 @@ class SqlWidget(gobject.GObject):
         This triggers both session changes *AND* changes to the current mask that
         may not be in the session.
 
-        skip_check: we already know it needs saving. Passed to unsaved_changes_exists
-        skip_new: skip_new may be an object whose changes we disregard (see unsaved_changes_exist)
+        :param skip_check: we already know it needs saving. Passed to unsaved_changes_exists
+        :param skip_new: skip_new may be an object whose changes we disregard (see unsaved_changes_exist)
         Return False if cancel is pressed
         """
         response = True
