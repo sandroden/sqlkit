@@ -612,7 +612,7 @@ class FilterTool(object):
                 self.panel.sb(msg)
                 raise e
             
-            if value:
+            if value not in (None, ''):
                 if self.bind_name == "sqlite" and op_value in ('ICONTAINS', 'MATCH'):
                     op_value = 'ILIKE'
                     value = '%' + value + '%'
