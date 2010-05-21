@@ -28,7 +28,7 @@ it at hand.
 Each sqlwidget has a FilterPanel even if it doesn't show it
 
 .. autoclass:: FilterPanel
-   :members: hide, show, get_tools, reload, set_tab
+   :members: hide, show, get_tools, reload, set_tab, tree
 
 .. autoclass:: FilterTool
    :members: set_value, get_value, set_operator, get_operator
@@ -83,6 +83,13 @@ OP_MSGID = {
 class FilterPanel(object):
     """A panel that manages filter conditions of a query: number of records,
     field names and output to point & click in case of a panel of a SqlMask
+    """
+
+    tree = None
+    """The name of an attribute that will work as grouping attribute.
+    the output TreeView will show records grouped by the same attribute as parent/child.
+    It should be improved as the parent is a the record and not a row with the only
+    grouping attribute.
     """
 
     def __init__(self, master, visible=True):
@@ -159,12 +166,13 @@ class FilterPanel(object):
                         )
         self.w['label-cursor'] = gtk.gdk.Cursor(gtk.gdk.HAND1)
         #self.l.xml('/tmp/f.glade')
-        if 'TV=out' in self.w: 
+        if 'TV=out' in self.w:
+            self.model = gtk.TreeStore(str, str, object)
             self.easytv = misc.EasyTreeView(
-                ['id', 'output'], tv=self.w['TV=out'], )
+                ['id', 'output', ], tv=self.w['TV=out'], model=self.model )
             self.selection = self.easytv.tv.get_selection()
             self.selection.connect('changed',self.on_selection_changed)
-            self.model = self.easytv.tv.get_model()
+#            self.model = self.easytv.tv.get_model()
             self.easytv.tvc['id'].set_property('visible', False)
 
     def sb(self, message, seconds=None):
@@ -318,15 +326,26 @@ class FilterPanel(object):
         Select path ``path``. If path is null and obj is not null try finding path at which is obj
         """
         if path is None and obj:
-            try:
-                path = self.master.records.index(obj)
-            except ValueError:
-                pass
+            path = self.get_path_for_obj(obj)
 
         if path is not None and len(self.model):
             self.easytv.tv.get_selection().select_path(path)
             self.easytv.tv.scroll_to_cell(path)
             
+    def get_path_for_obj(self, obj):
+        """
+        return 
+        """
+        path_list = [0]
+        def compare(model, path, iter):
+            if self.model.get_value(iter, 2) == obj:
+                
+                path_list[0] = path
+                return True
+        
+        self.model.foreach(compare)
+        return path_list[0]
+
     def reload_cb(self, widget):
         """callback from reload button
         """
@@ -390,6 +409,7 @@ class FilterPanel(object):
                                0, i,
 #                               1, format_string % vars(obj),
                                1, str(obj),
+                               2, obj,
                                )
                 iter[attr_value] = iterR
             else:
@@ -398,6 +418,7 @@ class FilterPanel(object):
                                0, i,
 #                               1, format_string % vars(obj),
                                1, str(obj),
+                               2, obj,
                                )
             i += 1
 
