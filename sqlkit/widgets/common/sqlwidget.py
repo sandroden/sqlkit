@@ -1426,11 +1426,14 @@ class SqlWidget(gobject.GObject):
         
 #         self.reload(  (sql, bind_parameters)  )
     
-    def get_new_object(self, session=True):
-        """create a new object from the class of the mapper and 
-        place it in the session
+    def get_new_object(self, session=True, obj=None):
+        """create a new object from the class of the mapper and  place it in the session
+
+        :param session: (boolean) if True, add to session
+        :param obj: the new obj (default None: it will be created an empty self.mapper.class_ instance)
+        
         """
-        new_obj = self.mapper.class_()
+        new_obj = obj or self.mapper.class_()
 
         if session:
             self.session.add(new_obj)

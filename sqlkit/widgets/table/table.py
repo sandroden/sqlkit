@@ -777,7 +777,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if hasattr(obj, '_sqlkit_mode'):
             del obj._sqlkit_mode
 
-    def record_new(self, widget=None, view_name='main', *args):
+    def record_new(self, widget=None, view_name='main', start=True, obj=None, *args):
         """prepare for 
         """
         ## I want to avoid generating a new obj if an object was created 
@@ -791,7 +791,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.record_save()
         self.treeview.get_toplevel().set_focus(None)
 
-        self.last_new_obj = self.get_new_object()
+        self.last_new_obj = self.get_new_object(obj=obj)
         # focus the row & start editing
 
         ## scroll_to_cell will trigger selection_changed_cb
@@ -803,27 +803,33 @@ class SqlTable(sqlwidget.SqlWidget):
         #treeiter = self.modelproxy.modelstore.append([self.last_new_obj])
         treeiter = self._get_next_iter(self.last_new_obj)
         path = self.modelproxy.modelstore.get_path(treeiter)
-        self.views[view_name].start_editing(path)
+        if start:
+            self.views[view_name].start_editing(path)
         ## set defaults
-        for field_name in self.field_list:
-            self.gui_fields[field_name].set_default()
+        if not obj:
+            for field_name in self.field_list:
+                self.gui_fields[field_name].set_default()
 
         self.records += [self.last_new_obj]  ## adding to records is vital to get fk correctly, in
                                              ## case this table is a M2M of M2O
 
         self.commit_inhibited = False
         self._new_record = True
-        return True
+        return path
 
     def record_add(self, record):
         """
         Add a record to the SqlTable
         """
-        try:
-            self.modelproxy.modelstore.append([record])
-        except Exception:
-            self.modelproxy.modelstore.append(None, [record])
+#         try:
+#             self.modelproxy.modelstore.append([record])
+#         except Exception:
+#             self.modelproxy.modelstore.append(None, [record])
         sqlwidget.SqlWidget.record_add(self, record)
+        path = self.record_new(obj=record, start=False)
+        self.edited_row_model_path  =  path
+        self.select_path(path)
+        self.record_save()
         self.totals.compute()
         
     def unsaved_changes_exist(self, skip_check=False, skip_new=False):
@@ -1386,6 +1392,7 @@ class SqlTable(sqlwidget.SqlWidget):
         except:
             self.modelproxy.modelstore.append(None, [obj])
         self.session.add(obj)
+        self._record_new
         self.totals.compute()
 
     def len_model(self, model=None):
@@ -1450,4 +1457,6 @@ class ExportDialog(dialogs.SaveDialog):
                             quoting=self.QUOTE or csv.QUOTE_MINIMAL)
         writer.writerows(self.get_rows_func())
         f.close()
+
+
 
