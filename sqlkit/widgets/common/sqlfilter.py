@@ -195,13 +195,14 @@ class FilterPanel(object):
         for key, val in kwargs.iteritems():
             path, op, op_str, value, col, join_args = django2components(self.master.mapper, {key: val})
             master = self.get_related_master(self.master, path)
-            filter_widget = self.add(None, None, col.name, master, force=True)
-            if not filter_widget: 
+            filter_tool = self.add(None, None, col.name, master, force=True)
+            if not filter_tool: 
                 return
-            filter_widget.set_active(active)
-            if value and not value is True:
-                filter_widget.set_value(value)
-            filter_widget.set_operator(op, value)
+            filter_tool.set_active(active)
+
+            if filter_tool.is_filter_value(value):
+                filter_tool.set_value(value)
+            filter_tool.set_operator(op, value)
 
     def get_related_master(self, master, path=None):
         """
@@ -536,6 +537,17 @@ class FilterTool(object):
         self.widget = FilterWidget(self)
 
 ##### handling
+    def is_filter_value(self, value):
+        """
+        return True if this value can be written
+        This may be dependant on the FilterTool but for the moment is not.
+        """
+        ## NOTE!!! value in (False, True) is WRONG as '0 == False' is True
+        # and so 0 in (False,) is True!...
+        if value is False or value is True:
+            return False
+        return True
+    
     def set_value(self, value):
         """
         set the value of the filter. It can be a string or an object (eg. a date())
