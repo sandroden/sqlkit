@@ -29,13 +29,27 @@ Column headers
 
 Each column is clickable. Clicking on the column pops up a menu that enables:
 
- - to add a filter on this field (see :ref:`filters`)
+ - to add a filter on this field (see :ref:`filters`). This same action can
+   be done by pressing ``f`` on the column w/o opening the column menu.
+
  - to sort on this field (database sorting). Note that sorting on a
    ForeignKey will trigger a join with the referenced table and an attempt
    to sort on the :ref:`description` (In general you don't want to
    sort on the ``id``). 
- - to add a total on this column (if the column is numeric)
- - to add a brake on this column (see docs for :ref:`totals`)
+
+   A "local sort", i.e. a sort done without hitting the database is
+   performed when you sort a related table (e.g.: as explained in
+   :ref:`relationships`) or when you press ``s`` on a column after clicking
+   the table (to set the *focus* on the table)
+
+ - to add a total on this column (if the column is numeric). This same action can
+   be done by pressing ``t`` on the column w/o opening the column menu.
+
+ - to add a brake on this column (see docs for :ref:`totals`). This same action can
+   be done by pressing ``b`` on the column w/o opening the column menu.
+
+ - to hide a column. This same action can
+   be done by pressing ``h`` on the column w/o opening the column menu.
 
 
 Cell renderers
@@ -71,6 +85,12 @@ in the treeeview
 :Control-s:  saves the record
 :Control-q:  quits the table
 :Control-n:  opens a new record
+:s:  sorts the table locally (toggle between scending and descending)
+:f:  open a filter for this column
+:t:  create a total if the column is numeric
+:b:  add a break for totals on this column. In addition to this operation it
+     also sort on the column as it often happens you want a subtotal after
+     having ordered. Adding a break from the column menu does not order.
 
 in the editable cell
 --------------------
@@ -153,5 +173,49 @@ TreeViews.  This way you can split a very large table into different chunks
 (vertically), leaving some columns to a view and others to a different
 view. The same column may be repeated in different view.
 
-.. image:: ../img/table-views.png
+.. figure:: ../img/table-views.png
    :align: right 
+
+   An example of a table with views: *numbers* and *dates* are really fields
+   of the same table
+
+Sorting columns
+===============
+
+Sorting columns can be done in 2 different ways:
+
+#. using :attr:`sqlkit.widgets.common.SqlWidget.order_by` attribute of sqlwidget, that triggers an
+   ``ORDER BY`` clause on the database
+
+#. using ``order_by`` clause of ``modelproxy``, that triggers a function
+   locally. This option is faster since you don't need to reload data
+
+   This is the only method you can use to order related table, apart from
+   playing with relation's order_by attribute in the model
+
+   Currently it can be done:
+
+   :programmatically: 
+      by ``modelproxy.order_by`` with argument a string with field_names possibly
+      prefixed by + or - to define the order::
+
+	t = SqlTable(...)
+	t.modelproxy.order_by('status -description')
+
+      it can also be used to order a related table::
+
+        lay = """
+             director
+             o2m=movies
+        """
+	m = SqlMask(..., layout=layout)
+	m.related.movies.modelproxy.order_by('-year title')
+
+      when sorting a field that represent a foreign key, the value of the
+      lookup (i.e.: the value shown) is used rather than the value of the key
+
+    :interactively: currently limited to just one column at a time pressing
+        ``s`` when **focus in in the treeview** (i.e. you ave already
+        clicked the treeview). Sorting will toggle ascending and descending.
+
+

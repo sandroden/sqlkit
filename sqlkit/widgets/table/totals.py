@@ -56,14 +56,20 @@ class Totals(object):
         self.subtotals = {}
         self.break_func = None
         self.prev = None
+        self.table.modelproxy.connect('model-sorted', lambda proxy, model: self.compute())
 
-    def add_total(self, *field_names):
+    def add_total(self,  field_names, quiet=False, ):
         """
         Add a total object each time subtotal changes
+        
+        :param field_names: a space separated string of field_names for which we want a total
+        :param quiet: boolean. If True silently fail if the field is not a number
         """
-        for field_name in field_names:
+        for field_name in field_names.split():
             if not self.table.get_field_type(field_name) in sqlwidget.NUMBERS:
-                raise NotImplementedError("%s is not a number" % field_name)
+                if not quiet:
+                    raise NotImplementedError("%s is not a number" % field_name)
+                return
             self.totals[field_name] = 0
             self.subtotals[field_name] = 0
         self.compute()
@@ -194,32 +200,7 @@ class Totals(object):
             return
         
         self.initialize()
-        for row in self.table.modelproxy.modelstore:
-            obj = self.table.modelproxy.modelstore[row.path][0]
-            if isinstance(obj, self.total_class):
-                self.remove(row)
-            else:
-                if self.break_func and self.is_different(obj):
-                    self.insert_subtotal(row)
-                    self.prev = self.break_func(obj)
-                    self.reset_subtotals()
-                self.sum(obj)
 
-        row = self.insert_total(row=None, after=True)
-        if self.break_func:
-            self.insert_subtotal(row.iter, after=False)
-        
-    @preserve_selection
-    def compute(self):
-        """
-        Go, add subtotals and total
-        """
-        if not self.totals.keys():
-            return
-        if not self.table.records:
-            return
-        
-        self.initialize()
         self.delete_total_rows()
         self.table.modelproxy.modelstore.foreach(self.foreach_ins_func)
 
@@ -228,7 +209,6 @@ class Totals(object):
             self.insert_subtotal(row.iter, after=False)
 
     def delete_total_rows(self):
-
         iter_del_list = []
         self.table.modelproxy.modelstore.foreach(self.foreach_del_func, iter_del_list)
         for iter in iter_del_list:

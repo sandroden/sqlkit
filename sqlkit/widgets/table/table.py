@@ -86,12 +86,12 @@ class SqlTable(sqlwidget.SqlWidget):
         #self.treeview = None
         self.commit_inhibited = False
         self.deleting_row = False
-        self.totals = totals.Totals(self)
         #self.edited_row_model_path = dbg.TraceIt(True, name='edited_row_model_path', mode='rw')
         self.edited_row_model_path = None
         self.modelproxy = ModelProxy(self, treeview=False)
         sqlwidget.SqlWidget.__init__(self, *args, **kwargs)
         self.modelproxy.update()
+        self.totals = totals.Totals(self)
         self.run_hook('on_init')
         self._new_record = None
         self._fk_layout_nick = {}
@@ -490,6 +490,37 @@ class SqlTable(sqlwidget.SqlWidget):
 
         return False
         
+    def key_tree_b(self, treeview, event):
+        "sort: sort the treeview on this column"
+        field_name = self.get_field_name_from_pointer(treeview)
+        if self.modelproxy._order_list == [(field_name, True)]:
+            field_name = "-" + field_name
+        self.modelproxy.order_by(field_name)
+        self.totals.add_break(field_name)
+        
+    def key_tree_s(self, treeview, event):
+        "sort: sort the treeview on this column"
+        field_name = self.get_field_name_from_pointer(treeview)
+
+        if self.modelproxy.get_order() == (field_name, True):
+            field_name = "-" + field_name
+        self.modelproxy.order_by(field_name)
+        
+    def key_tree_f(self, treeview, event):
+        "filter: add a filter for this column"
+        field_name = self.get_field_name_from_pointer(treeview)
+        self.filter_panel.add(None, None, field_name, self)
+        
+    def key_tree_h(self, treeview, event):
+        "hide: hide this column"
+        field_name = self.get_field_name_from_pointer(treeview)
+        self.views['main'].hide_fields(field_name)
+        
+    def key_tree_t(self, treeview, event):
+        "totals: add total to the column"
+        field_name = self.get_field_name_from_pointer(treeview)
+        self.totals.add_total(field_name, quiet=True)
+        
     def key_tree_ctrl_s(self, treeview, event):
 
         if self.current in self.session.new and 'i' not in self.mode:
@@ -872,6 +903,9 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.deleting_row = True
 
+        sel = self.treeview.get_selection()
+        model, paths = sel.get_selected_rows()
+
         def do_del(model, path, iter):
             """
             potentially can delete a selection of many rows
@@ -905,8 +939,6 @@ class SqlTable(sqlwidget.SqlWidget):
                 if obj in self.records:
                     self.records.remove(obj)
         
-        sel = self.treeview.get_selection()
-        model, paths = sel.get_selected_rows()
         sel.selected_foreach(do_del)
 
         ## select the same row or the preceding
@@ -1063,6 +1095,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.edited_row_model_path = path
         
     def clear(self, *args, **kwargs):
+
         self.modelproxy.modelstore.clear()
     
     def reload_cb(self, widget, *args):
@@ -1412,6 +1445,20 @@ class SqlTable(sqlwidget.SqlWidget):
 
         return a[0]
                 
+    def get_field_name_from_pointer(self, treeview=None):
+
+        if not treeview:
+            treeview = self.views['main'].treeview
+
+        x, y, modifier_state = treeview.window.get_pointer()
+        try:
+            path, column, x_in_cell, y_in_cell = treeview.get_path_at_pos(x,y)
+            iter = self.modelproxy.modelstore.get_iter(path)
+            field_name = column.get_data('field_name')
+            return field_name
+        except TypeError:
+            return
+        
 #### completion
 
     def set_editable(self, editable=True):
@@ -1461,6 +1508,8 @@ class ExportDialog(dialogs.SaveDialog):
                             quoting=self.QUOTE or csv.QUOTE_MINIMAL)
         writer.writerows(self.get_rows_func())
         f.close()
+
+
 
 
 

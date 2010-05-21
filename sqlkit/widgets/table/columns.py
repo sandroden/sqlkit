@@ -669,14 +669,13 @@ class ColumnMenuProxy(object):
         menu.append(item)
 
         ## sort
-        if not self.master.relationship_leader:
-            item = gtk.ImageMenuItem('gtk-sort-ascending')
-            item.connect('activate', self.reload_sort_cb, field_name, 'ASC' )
-            menu.append(item)
+        item = gtk.ImageMenuItem('gtk-sort-ascending')
+        item.connect('activate', self.reload_sort_cb, field_name, 'ASC' )
+        menu.append(item)
 
-            item = gtk.ImageMenuItem('gtk-sort-descending')
-            item.connect('activate', self.reload_sort_cb, field_name, 'DESC' )
-            menu.append(item)
+        item = gtk.ImageMenuItem('gtk-sort-descending')
+        item.connect('activate', self.reload_sort_cb, field_name, 'DESC' )
+        menu.append(item)
 
         ## hide
         # TIP: column menu opt
@@ -794,18 +793,27 @@ class ColumnMenuProxy(object):
 
         from sqlkit.db.utils import tables, get_description
 
-        order_by = field_name
-        if self.master.is_fkey(field_name):
-            ftable = getattr(self.master.mapper.c, field_name).foreign_keys[0].column.table
-            fdescr = get_description(ftable, attr='description')
-            order_by = "%s__%s" % (field_name, fdescr)
-            
-            
-        if direction == 'DESC':
-            order_by += ' DESC'
+        if self.master.relationship_leader:
+            ## related table are ordered locally via modelproxy.order_by
+            if direction == "DESC":
+                field_name = "-" + field_name
+            self.master.modelproxy.order_by(field_name)
+        else:
+            ## main tables are ordered in the db, a local order can be obtained
+            ## via 's' (sort) key press
+            self.master.modelproxy.order_by(None)
+            order_by = field_name
+            if self.master.is_fkey(field_name):
+                ftable = getattr(self.master.mapper.c, field_name).foreign_keys[0].column.table
+                fdescr = get_description(ftable, attr='description')
+                order_by = "%s__%s" % (field_name, fdescr)
 
-        self.master.order_by = order_by
-        self.master.reload_cb(None)
+
+            if direction == 'DESC':
+                order_by += ' DESC'
+
+            self.master.order_by = order_by
+            self.master.reload_cb(None)
         
     
 class View(object):
