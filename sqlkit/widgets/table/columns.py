@@ -440,8 +440,9 @@ class VarcharColumn(GenericColumn):
                 completion.add_completion(editable)
                 completion.add_callbacks(editable)
             
-        ## MAX LENGTH
-        self.master.field_widgets[self.field_name].field.widget.set_max_length()
+        ## MAX LENGTH: not enforce for fkey as the field is not the real value but the shown one
+        if not self.master.is_fkey(self.field_name):
+            self.master.field_widgets[self.field_name].field.widget.set_max_length()
                 
         self.master.initialize_record_editing(path)
         self.master.commit_inhibited = False
@@ -1128,3 +1129,5 @@ class View(object):
         if path is not None:
             self.treeview.get_selection().select_path(path)
             
+
+
