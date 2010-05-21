@@ -85,7 +85,10 @@ class VarcharWidget(Widget):
         Widget.__init__(self, *args)
         self.add_completion()
         self.gtkwidget.connect('key-press-event', self.on_key_press)
-
+        
+        if self.field.length:
+            self.set_max_length(self.field.length)
+ 
     def on_key_press(self, widget, event):
         ksym = gtk.gdk.keyval_name(event.keyval)
         
@@ -114,7 +117,10 @@ class VarcharWidget(Widget):
         ## don't change from None to '' 
         return value
 
-    def set_max_length(self, length):
+    def set_max_length(self, length=None):
+
+        if length is None:
+            length = self.field.length
         self.gtkwidget.set_max_length(length)
         
 class ReadOnlyWidget(Widget):

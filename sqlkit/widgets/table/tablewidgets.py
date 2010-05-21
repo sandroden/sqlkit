@@ -52,7 +52,10 @@ class CellWidget(object):
     def get_value(self, shown=False):
         return self.master.get_value(self.field_name)
 
-    def set_max_length(self, length):
+    def set_max_length(self, length=None):
+        if length is None:
+            length = self.field.length
+            
         try:
             self.entry.set_max_length(length)
         except:

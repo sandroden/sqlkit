@@ -18,23 +18,23 @@
 >>> field_chooser = FieldChooser(sm, sm.widgets)
 >>> field_name, key = 'title', 'title'
 >>> print field_chooser.get_field(field_name, sm.mapper_info.fields[field_name], key)
-<VarcharField - title >
+<class 'sqlkit.widgets.common.fields.VarcharField'>
 
 >>> field_name, key = 'year', 'year'
 >>> print field_chooser.get_field(field_name, sm.mapper_info.fields[field_name], key)
-<IntegerField - year >
+<class 'sqlkit.widgets.common.fields.IntegerField'>
 
 >>> field_name, key = 'director_id', 'fk=director_id'
 >>> print field_chooser.get_field(field_name, sm.mapper_info.fields[field_name], key)
-<ForeignKeyField - director_id >
+<class 'sqlkit.widgets.common.fields.ForeignKeyField'>
 
 >>> field_name, key = 'genres', 'm2m=genres'
 >>> print field_chooser.get_field(field_name, sm.mapper_info.fields[field_name], key, test=True)
-<CollectionField - genres >
+<class 'sqlkit.widgets.common.fields.CollectionField'>
 
 >>> field_name, key = 'date_release', 'date_release'
 >>> print field_chooser.get_field(field_name, sm.mapper_info.fields[field_name], key)
-<DateField - date_release >
+<class 'sqlkit.widgets.common.fields.DateField'>
 
 ### clean_value
 >>> from decimal import Decimal

@@ -153,12 +153,19 @@ class SqlTable(sqlwidget.SqlWidget):
 
         from sqlkit.widgets.common.fields import FieldChooser
         
-        field_chooser = FieldChooser(self)
+        field_chooser = FieldChooser(self.mapper_info)
         for field_name in field_list or self.field_list:
             if field_name not in self.gui_fields:
-                self.gui_fields[field_name] = field_chooser.get_field(field_name,
-                                                                      self.mapper_info.fields[field_name])
-            
+                db_spec = self.mapper_info.fields[field_name]
+                Field = field_chooser.get_field(field_name, db_spec)
+                field = Field(field_name, db_spec)
+
+                field.set_master(self)
+                field.set_widget()
+
+                self.field_widgets[field_name] = field.widget
+                self.gui_fields[field_name] = field
+
     def create_view(self, name='main', treeview=None, field_list=None):
         """
         .. views:

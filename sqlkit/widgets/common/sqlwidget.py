@@ -20,7 +20,6 @@ import os
 import inspect 
 from sqlkit import layout
 from sqlkit.layout import map_labels, get_label
-import sqlalchemy.types as sqltypes
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy import Table
 
@@ -420,6 +419,12 @@ class SqlWidget(gobject.GObject):
         """
         return self.mapper_info.pkeys[self.mapper_info.get_primary_table()]
 
+    def setup_field_validation(self):
+        """
+        fill self.gui_fields with fileds.Field objects
+        """
+        raise NotImplementedError
+    
 ###### Filters/constraints
     def add_constraint(self, OR=False, **kwargs):
         """
@@ -1604,119 +1609,79 @@ class SqlWidget(gobject.GObject):
         """
         return True if this field is a foreign key
         """
-        return bool(self.mapper_info.fields[field_name]['fkey'])
+        return self.mapper_info.is_fkey(field_name)
 
     def is_primary(self, field_name):
         """
         return True if this field is a Primary Key
         """
-        return bool(self.mapper_info.fields[field_name]['pkey'])
+        return self.mapper_info.is_primary(field_name)
 
     def is_loader(self, field_name):
         """
         True if field_name is a loader for a related table
         """
-        if field_name not in self.mapper_info.field_list:
-            return False
-        from  sqlalchemy.orm import properties
-        prop = self.mapper_info.fields[field_name]['property']
-        if isinstance(prop, properties.PropertyLoader):
-            return True
-        return False
-
+        return self.mapper_info.is_loader(field_name)
 
     def is_string(self, field_name):
         """
         Return true if this field is a String type
         """
-        db_type = self.mapper_info.fields[field_name]['db_type']
-        if db_type:
-            return issubclass(db_type, (sqltypes.String))
-        return False
+        return self.mapper_info.is_string(field_name)
 
     def is_date(self, field_name):
         """
         Return true if this field is  date
         """
-        db_type = self.mapper_info.fields[field_name]['db_type']
-        if db_type:
-            return issubclass(db_type, (sqltypes.Date))
-        return False
+        return self.mapper_info.is_date(field_name)
 
     def is_datetime(self, field_name):
         """
         Return true if this field is  datetime
         """
-        db_type = self.mapper_info.fields[field_name]['db_type']
-        if db_type:
-            return issubclass(db_type, (sqltypes.DateTime))
-        return False
+        return self.mapper_info.is_datetime(field_name)
 
     def is_time(self, field_name):
         """
         Return true if this field is time
         """
-        db_type = self.mapper_info.fields[field_name]['db_type']
-        if db_type:
-            return issubclass(db_type, (sqltypes.Time))
-        return False
+        return self.mapper_info.is_time(field_name)
 
     def is_interval(self, field_name):
         """
         Return true if this field is time
         """
-        db_type = self.mapper_info.fields[field_name]['db_type']
-        if db_type:
-            if issubclass(db_type, (sqltypes.Interval)):
-                return True
-            elif self.mapper_info.fields[field_name]['type'] is datetime.timedelta:
-                return True
-        return False
+        return self.mapper_info.is_interval(field_name)
 
     def is_integer(self, field_name):
         """
         Return true if this field is integer
         """
-        db_type = self.mapper_info.fields[field_name]['db_type']
-        if db_type:
-            return issubclass(db_type, (sqltypes.Integer))
-        return False
+        return self.mapper_info.is_integer(field_name)
 
     def is_float(self, field_name):
         """
         Return true if this field is float
         """
-        db_type = self.mapper_info.fields[field_name]['db_type']
-        if db_type:
-            return issubclass(db_type, (sqltypes.Float))
-        return False
+        return self.mapper_info.is_float(field_name)
 
     def is_numeric(self, field_name):
         """
         Return true if this field is numeric
         """
-        db_type = self.mapper_info.fields[field_name]['db_type']
-        if db_type:
-            return issubclass(db_type, (sqltypes.Numeric))
-        return False
-
-
+        return self.mapper_info.is_numeric(field_name)
 
     def is_boolean(self, field_name):
         """
         Return true if this field is  date
         """
-        db_type = self.mapper_info.fields[field_name]['db_type']
-        if db_type:
-            return issubclass(db_type, sqltypes.Boolean)
-        else:
-            return False
+        return self.mapper_info.is_boolean(field_name)
 
     def is_nullable(self, field_name):
         """
         Return true if this field is  date
         """
-        return self.mapper_info.fields[field_name]['nullable']
+        return self.mapper_info.is_nullable(field_name)
 
     def is_editable(self, field_name):
         """
@@ -1751,15 +1716,14 @@ class SqlWidget(gobject.GObject):
         """
         Return true if this field is Text or was forced gtk.Text
         """
+        import sqlalchemy.types as sqltypes
+        
         try:
             if self.laygen.fields_in_layout[field_name].startswith('TX'):
                 return True
         except:
             pass
-        db_type = self.mapper_info.fields[field_name]['db_type']
-        if db_type:
-            return issubclass(db_type, (sqltypes.Text))
-        return False
+        return self.mapper_info.is_text(field_name)
 
     def is_toplevel(self):
         """

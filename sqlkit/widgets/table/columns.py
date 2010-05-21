@@ -441,7 +441,7 @@ class VarcharColumn(GenericColumn):
                 completion.add_callbacks(editable)
             
         ## MAX LENGTH
-        self.master.field_widgets[self.field_name].field.set_max_length()
+        self.master.field_widgets[self.field_name].field.widget.set_max_length()
                 
         self.master.initialize_record_editing(path)
         self.master.commit_inhibited = False

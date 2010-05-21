@@ -169,7 +169,7 @@ class SqlMask(sqlwidget.SqlWidget):
 
     def setup_field_validation(self):
         """
-        fill variables from layout
+        create fields.Field objects 
 
         gui_fields: validation fields
         --------------------------
@@ -184,12 +184,20 @@ class SqlMask(sqlwidget.SqlWidget):
         if not self.gui_fields:
             self.gui_fields = {}
 
-        field_chooser = FieldChooser(self, self.widgets)
+        field_chooser = FieldChooser(self.mapper_info, self.widgets)
 
         for field_name, widget_key in self.laygen.fields_in_layout.iteritems():
             widget = self.widgets[widget_key]
-            field = field_chooser.get_field(field_name, self.mapper_info.fields[field_name], widget_key)
+            db_spec = self.mapper_info.fields[field_name]
+            Field = field_chooser.get_field(field_name, db_spec, widget_key)
+            field = Field(field_name, db_spec)
+
+            field.set_master(self)
+            # the widget may already be created (by layout.Layout)
+            gtk_widget = self.widgets.get(widget_key, None)
+            field.set_widget(gtkwidget=gtk_widget, def_str=widget_key)
             
+            self.field_widgets[field_name] = field.widget
             self.gui_fields[field_name] = field
             
     def button_press_event_cb(self, widget, event, field_name):

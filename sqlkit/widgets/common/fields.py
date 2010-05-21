@@ -38,6 +38,21 @@ It provides functions to
    - clean value according to it's logic: i.e. return a value of the correct type
    - validate values (possibly according to other criteria)
 
+Relation with the master sqlwidget
+----------------------------------
+
+Currently there are a number of operation that require that the field know wich
+is the sqlwidget it is acting for. I'd like to loosen this connection in future
+but at present it's used in the following situations:
+
+* to keep updated the list of field_widgets
+* to get default values (that can be local to a sqlwidget)
+* for validation purposes: to issue master.run_hooks and NonNullableException
+* FKey: to handle addition of related_obj when cascading policy requires it
+
+In the meanwhile I add master to the Field via set_master() and add a widget
+to the Field via set_widget()
+
 
 Db attributes
 -------------
@@ -159,12 +174,12 @@ class FieldChooser(object):
         
     """
 
-    def __init__(self, master, widgets=None):
+    def __init__(self, info, widgets=None):
         """    
         widgets:     the widget dictionary retuned by Layout
-        master:      the sqlkit widget (SqlMask)
+        info:        a InspectMapper objet
         """
-        self.master = master
+        self.info = info
         self.widgets = widgets or {}
 
     def get_field(self, field_name, db_spec=None, def_str=None, test=False):
@@ -178,63 +193,60 @@ class FieldChooser(object):
                      as extracted by layoutgen and set in laygen.fields_in_layout dictionary
         """        
 
-        gtk_widget = self.widgets.get(def_str, None)
-        args = (field_name, db_spec, self.master, gtk_widget, def_str, test)
+#         if field_name in self.master.gui_fields:
+#             return self.master.gui_fields.get(field_name)(*args)
+        def_str = def_str or ''
 
-        if field_name in self.master.gui_fields:
-            return self.master.gui_fields.get(field_name)(*args)
+        if self.info.is_fkey(field_name):
+            return ForeignKeyField
 
-
-        if self.master.is_fkey(field_name):
-            return ForeignKeyField(*args)
-
-        if self.master.is_loader(field_name):
-            return CollectionField(*args)
+        if self.info.is_loader(field_name):
+            return CollectionField
         
-        if self.master.is_integer(field_name):
-            return IntegerField(*args)
+        if self.info.is_integer(field_name):
+            return IntegerField
 
-        if self.master.is_float(field_name):
-            return FloatField(*args)
+        if self.info.is_float(field_name):
+            return FloatField
 
-        if self.master.is_numeric(field_name):
-            return DecimalField(*args)
+        if self.info.is_numeric(field_name):
+            return DecimalField
 
-        if self.master.is_integer(field_name):
-            return IntegerField(*args)
+        if self.info.is_integer(field_name):
+            return IntegerField
 
-        if self.master.is_date(field_name):
-            return DateField(*args)
+        if self.info.is_date(field_name):
+            return DateField
 
-        if self.master.is_boolean(field_name):
-            if self.master.is_nullable(field_name):
-                return BooleanNullField(*args)
+        if self.info.is_boolean(field_name):
+            if self.info.is_nullable(field_name):
+                return BooleanNullField
             else:
-                return BooleanField(*args)
+                return BooleanField
             
-        if self.master.is_interval(field_name):
-            return IntervalField(*args)
+        if self.info.is_interval(field_name):
+            return IntervalField
 
-        if self.master.is_time(field_name):
+        if self.info.is_time(field_name):
             if db_spec['col'].type.timezone:
-                return TimeField(*args)
+                return TimeField
             else:
-                return TimeField(*args)
+                return TimeField
 
-        if self.master.is_datetime(field_name):
+        if self.info.is_datetime(field_name):
             if db_spec['col'].type.timezone:
-                return DateTimeTZField(*args)
+                return DateTimeTZField
             else:
-                return DateTimeField(*args)
+                return DateTimeField
 
-        if self.master.is_text(field_name) and not (def_str or '').startswith('e='):
-            return TextField(*args)
+        if (self.info.is_text(field_name) and not def_str.startswith('e=')) or (def_str.startswith('TX') ):
+            return TextField
         
-        if self.master.is_string(field_name):
-            return VarcharField(*args)
+        if self.info.is_string(field_name):
+            return VarcharField
 
         else:
-            return VarcharField(*args)
+            return VarcharField
 
 #         raise NotHandledField("Field '%s' is not handled in any way: COL_SPEC: %s" %
 #                               (field_name, db_spec['col_spec']))
@@ -243,27 +255,29 @@ class Field(object):
     Widget = None
     default_def_string = 'ae'
 
-    def __init__(self, field_name, db_spec, master, gtkwidget, def_str=None, test=False, widget=None):
+    def __init__(self, field_name, db_spec):
+        
         """
         field_name:  the name of the field in the db
         db_spec:     the dict as worked out by InspectMapper
         def_str:     the definition string in the layout that determined
                      the gtk.Widget (eg.: c=married, e=first_name)
         master:      the sqlkit widget: an instance of SqlMask or SqlTable
-        widget:      the miniwidget to be used. Defaults to class-define self.Widget
-        gtkwidget:   the gtk widget to be used
         """
 
         self.field_name = field_name
-        #self.db_spec = db_spec
         self._add_info(db_spec)
-#        self.def_str = def_str
-        self.master = master
         self.initial_value = None
 
-        if test:  # in test I don't want conplaints on already prensent widgets
-            return
-
+    def set_widget(self, gtkwidget=None, def_str=None, widget=None):
+        """
+        :param def_str:     the definition string in the layout that determined
+                     the gtk.Widget (eg.: c=married, e=first_name)
+        :param widget:      the miniwidget to be used. Defaults to class-define self.Widget
+        :param gtkwidget:   the gtk widget to be used (already craeted by Layout)
+        
+        """
+        
         if def_str and  def_str.startswith('ro='):
             widget = ReadOnlyWidget
             
@@ -274,9 +288,17 @@ class Field(object):
         else:
             ### used in SqlTable
             self.widget = CellWidget(self)
-        self.master.field_widgets[field_name] = self.widget
-        self.set_max_length()
 
+    def set_master(self, master):
+        """
+        add a sqlwidget as master of this field. A master may be needed to
+
+          * get defaults
+          * validate
+          * add related objects
+        """
+        self.master = master
+        
     def set_nullable(self, value):
         self._nullable = value
         self.widget.set_not_null_style()
@@ -386,12 +408,6 @@ class Field(object):
 
         return True
 
-    def set_max_length(self, editable=None):
-        """
-        Set max length of the entry used, based on the info from the database
-        """
-        pass
-
     def get_human_value(self, value):
         """
         return the value or a translation in human readable for foreign key
@@ -425,9 +441,6 @@ class VarcharField(Field):
             return None
         return value
 
-    def set_max_length(self):
-        if self.length:
-            self.widget.set_max_length(self.length)
 
 ##### Numbers
 class IntegerField(Field):
@@ -809,10 +822,10 @@ class ForeignKeyField(Field):
     """
     Widget = ForeignKeyWidget
 
-    def __init__(self, *args, **kwargs):
-        Field.__init__(self, *args, **kwargs)
+    def set_master(self, master):
+        self.master = master
         self._props_for_delete_orphan = minspect.get_props_for_delete_orphan(
-            self.master.mapper, self.field_name)
+            master.mapper, self.field_name)
         
     def clean_value(self, value, input_is_fkey=False):
         """
@@ -911,11 +924,14 @@ class CollectionField(Field):
     """
     Widget = CollectionWidget
 
-    def __init__(self, field_name, db_spec, master, gtkwidget, def_str, test):
-        Field.__init__(self, field_name, db_spec, master, gtkwidget, def_str, test)
-        if not test:
-            self.widget.table.connect('after_commit', self.set_initial_value)
+    def __init__(self, *args, **kwargs):
+        Field.__init__(self, *args, **kwargs)
         self.initial_value = []
+
+    def set_widget(self,  gtkwidget=None, def_str=None, widget=None):
+
+        Field.set_widget(self,  gtkwidget=gtkwidget, def_str=def_str, widget=widget)
+        self.widget.table.connect('after_commit', self.set_initial_value)
         
     def set_initial_value(self, widget, obj, session):
         """

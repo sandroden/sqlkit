@@ -7,6 +7,7 @@ import decimal
 import re
 from  sqlalchemy.orm import properties
 import sqlalchemy.orm.properties 
+import sqlalchemy.types as sqltypes
 from sqlkit.misc.utils import Container
 from sqlalchemy.sql import expression
 
@@ -324,6 +325,132 @@ class InspectMapper(Container):
         if not r:
             raise StopIteration
         return r
+
+    def is_fkey(self, field_name):
+        """
+        return True if this field is a foreign key
+        """
+        return bool(self.fields[field_name]['fkey'])
+
+    def is_primary(self, field_name):
+        """
+        return True if this field is a Primary Key
+        """
+        return bool(self.fields[field_name]['pkey'])
+
+    def is_loader(self, field_name):
+        """
+        True if field_name is a loader for a related table
+        """
+        if field_name not in self.field_list:
+            return False
+
+        prop = self.fields[field_name]['property']
+        if isinstance(prop, properties.PropertyLoader):
+            return True
+        return False
+
+    def is_string(self, field_name):
+        """
+        Return true if this field is a String type
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.String))
+        return False
+
+    def is_date(self, field_name):
+        """
+        Return true if this field is  date
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.Date))
+        return False
+
+    def is_datetime(self, field_name):
+        """
+        Return true if this field is  datetime
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.DateTime))
+        return False
+
+    def is_time(self, field_name):
+        """
+        Return true if this field is time
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.Time))
+        return False
+
+    def is_interval(self, field_name):
+        """
+        Return true if this field is time
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            if issubclass(db_type, (sqltypes.Interval)):
+                return True
+            elif self.fields[field_name]['type'] is datetime.timedelta:
+                return True
+        return False
+
+    def is_integer(self, field_name):
+        """
+        Return true if this field is integer
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.Integer))
+        return False
+
+    def is_float(self, field_name):
+        """
+        Return true if this field is float
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.Float))
+        return False
+
+    def is_numeric(self, field_name):
+        """
+        Return true if this field is numeric
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.Numeric))
+        return False
+
+
+
+    def is_boolean(self, field_name):
+        """
+        Return true if this field is  date
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, sqltypes.Boolean)
+        else:
+            return False
+
+    def is_text(self, field_name):
+        """
+        Return true if this field is  date
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.Text))
+        return False
+
+    def is_nullable(self, field_name):
+        """
+        Return true if this field is  date
+        """
+        return self.fields[field_name]['nullable']
 
     def __str__(self):
         return "InspectMapper for keys: %s" % self.keys()
