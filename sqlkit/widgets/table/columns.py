@@ -28,6 +28,18 @@ import pango
 import cell_renderers
 from sqlkit import debug as dbg, _
 from sqlkit.layout import widgets
+from sqlkit.misc.utils import str2list
+
+COLUMN_MENU = '''
+<popup name="TreePopup">
+  <placeholder name="Columns">
+    <separator name="sep_cols" />
+    <menuitem action="Zoom-fit" />
+    <menu action="ShowColumns" />
+    <menu action="HideColumns" />
+  </placeholder>
+</popup>
+'''
 
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
 class GenericColumn(object):
@@ -38,7 +50,7 @@ class GenericColumn(object):
     EXPAND = True
     MIN_DEFAULT_WIDTH = 4
     MAX_DEFAULT_WIDTH = 30
-
+    
     def __init__(self, master, field_name, title):
         """
         Generic column with cell render setup
@@ -154,13 +166,15 @@ class GenericColumn(object):
         """
         pass
         
-    def clicked_cb(self, treeview):
+    def clicked_cb(self, column):
         """
         popup the menu on the header of the column
         """
         event =   gtk.gdk.Event(gtk.gdk.BUTTON_PRESS)
         event.button = 1
-        self.master.menu.popup_col_menu(event, treeview, self.field_name)
+        treeview = column.get_tree_view()
+        view = treeview.get_data('view')
+        view.menu.popup_col_menu(event, treeview, self.field_name)
         
         return True
     
@@ -621,8 +635,9 @@ class CellEntry(object):
         return "<CellEntry: (%s) %s>" % (self.valid, self.get_text())
 
 class ColumnMenuProxy(object):
-    def __init__(self, master):
+    def __init__(self, master, view):
         self.master = master
+        self.view = view
         
 #### column menu
     def popup_col_menu(self, ev, treeview, field_name):
@@ -634,7 +649,7 @@ class ColumnMenuProxy(object):
             pass
 
         menu = self.master.widgets['M=popup'] = gtk.Menu()
-
+        
         ## add to filter
         ## TIP: menu entry to add a filter in the filter panel
         field_name_localized = self.master.get_label(field_name)
@@ -657,7 +672,7 @@ class ColumnMenuProxy(object):
         ## hide
         # TIP: column menu opt
         item = StockMenuItem(label=_("Hide this column"), stock='gtk-close')
-        item.connect('activate', self.hide_fields_cb, field_name )
+        item.connect('activate', self.hide_fields_cb, field_name, self.view )
         menu.append(item)
 
         ## totals
@@ -715,8 +730,8 @@ class ColumnMenuProxy(object):
         item_hide.set_submenu(self.menu_hide)
         menu.show_all()
 
-    def hide_fields_cb(self, menuItem, field_name):
-        self.master.hide_fields(field_name)
+    def hide_fields_cb(self, menuItem, field_name, view):
+        view.hide_fields(field_name)
         
     def menu_add_date_total_break(self, menu, field_name):
 
@@ -744,28 +759,27 @@ class ColumnMenuProxy(object):
         """
 
         action_name = 'field_%s' % field_name
-        action = self.master.ui_manager.get_action('/Main/Modify/ShowColumns/%s' % action_name)
+        action = view.ui_manager.get_action('/TreePopup/Columns/ShowColumns/%s' % action_name)
         if not action:
-            self.master.actiongroup_table.add_actions([
-                (action_name, None, self.master.get_label(field_name), None, None, self.master.show_column,),
+            view.actiongroup_view.add_actions([
+                (action_name, None, self.master.get_label(field_name), None, None, view.show_column,),
                 ], field_name)
 
             menu_def = '''
-              <menubar name="Main">
-                 <menu action="Modify">
+              <popup name="TreePopup">
+                 <placeholder action="Columns" >
                     <menu action="ShowColumns" >
                          <menuitem action="%s" />
                     </menu>
-                 </menu>
-               </menubar>
+                 </placeholder>
+               </popup>
             ''' % action_name
 
-            self.master.ui_manager.add_ui_from_string(menu_def)
-
+            view.ui_manager.add_ui_from_string(menu_def)
         else:
             action.set_visible(not action.get_visible())
             
-        self.master.tvcolumns[view][field_name].set_property('visible', False)
+        view.hide_column(field_name)
         
     def reload_sort_cb(self, widget, field_name, direction):
 
@@ -785,3 +799,235 @@ class ColumnMenuProxy(object):
         self.master.reload_cb(None)
         
     
+class View(object):
+
+    """
+    A View is a particular view of the SqlTable's model, i.e. a choice of columns to
+    be shown (or hidden). Each SqlTable has one mandatory view named 'main' and possibly
+    other views. Attribute ``views`` (a sqlkit.utils.Container) stores them.
+
+    It can be used to provide different way to look at the same data
+    (e.g. different cell-renderers) or different columns for long ones
+    """
+    def __init__(self, master, name, treeview=None, field_list=None, cell_renderers=None):
+        """
+        :param master: the SqlTable this view belongs to
+        :param treeview: the treeview where the columns live
+        :param cell_renderers: a dict of cell_renderers for each column
+        """
+        assert field_list is not None, "Field_list cannot be None"
+        assert treeview is not None, "You need to set the Treeview"
+        self.master = master
+        self.name = name
+        self.treeview = treeview
+        treeview.set_data('view', self)
+
+        self.field_list = str2list(field_list)
+        self.tvcolumns = {}
+        self.columns = {}
+        self.cell_renderers = {}
+        self.master.setup_field_validation(self.field_list)
+        self.setup_columns()
+        self.create_column_menu()
+
+        self.treeview.connect('cursor-changed', self.master.cursor_changed_cb, self)
+        self.treeview.connect('key-press-event', self.master.keypress_event_cb, self)
+        self.treeview.connect('button-press-event', self.master.button_press_event_cb, self)
+
+    def set_field_list(self, field_list, ):
+        """
+        Set field of visible columns. Accepts both a list or a string (space or comma separated)
+
+        :param field_list: the field name list
+        :param view: the view for which we set the field_list
+        """
+        from copy import copy
+
+        field_list = str2list(field_list)
+        orig_field_list = copy(self.field_list)
+        for field_name in field_list:
+            if field_name in self.master.mapper_info.fields:
+                ## is already known, just make it visible
+                self.tvcolumns[field_name].set_property('visible', True)
+            else:
+                raise NotImplementedError("Column %s is not kown in self.mapper_info.fields" % field_name)
+        for field_name in orig_field_list:
+            if field_name not in field_list:
+                self.tvcolumns[field_name].set_property('visible', False)
+            
+        prev = None
+        for field_name in field_list:
+            self.treeview.move_column_after(self.tvcolumns[field_name], prev)
+            prev = self.tvcolumns[field_name]
+            
+        self.field_list = field_list
+        
+
+    def hide_fields(self, field_name_list):
+        """
+        Hide a column and add the entry in the menu to make it show up again
+
+        :param field_name_list: may be a list or a string (in which case it is split with, and spaces)
+        :param view: the view for which we set the list of hidden fields
+
+        """
+
+        field_name_list = str2list(field_name_list)
+        
+        if len(field_name_list) == 0:
+            field_name_list = self.hidden_fields
+
+        self.hidden_fields = field_name_list
+
+        if not self.tvcolumns:
+            return
+
+        for field_name in field_name_list:
+            self.menu.menu_add_toggle_column(field_name, self)
+
+
+    def on_zoom_fit(self, widget, *args):
+
+        tv_utils.zoom_to_fit(self.treeview, resize=True)
+
+    def fix_expandable_columns(self):
+        """
+        If no column is expandable, make all columns expandable:
+        it's very ugly to see just the last one expand
+        """
+
+        fix_it = True
+        for key, col in self.tvcolumns.iteritems():
+            if col.get_property('expand'):
+                fix_it = False
+
+        if fix_it:
+            for key, col in self.tvcolumns.iteritems():
+                col.set_property('expand', True)
+            
+    def hide_column(self, field_name):
+
+        self.tvcolumns[field_name].set_property('visible', False)
+        
+    def show_column(self, item, field_name):
+        
+        self.menu.menu_add_toggle_column(field_name, self)
+        self.tvcolumns[field_name].set_property('visible', True)
+        
+    def create_column_menu(self):
+
+        from sqlkit.widgets.common import uidescription
+
+        self.ui_manager = gtk.UIManager()
+        self.actiongroup_view = gtk.ActionGroup('View')
+
+        self.ui_manager.insert_action_group(self.master.actiongroup_table, 0)
+        self.ui_manager.insert_action_group(self.master.actiongroup_general, 0)
+        self.ui_manager.insert_action_group(self.master.actiongroup_insert, 1)
+        self.ui_manager.insert_action_group(self.master.actiongroup_delete, 1)
+        self.ui_manager.insert_action_group(self.actiongroup_view, 1)
+#        self.ui_manager.insert_action_group(self.actiongroup_update, 1)
+
+
+        self.ui_manager.add_ui_from_string(uidescription.TREEPOPUP)
+        self.ui_manager.add_ui_from_string(COLUMN_MENU)
+        self.menu = ColumnMenuProxy(self.master, self)
+
+
+    def pop_menu(self, treeview, event, obj, field_name):
+
+        ## enable/disable menu entries
+        action = self.ui_manager.get_action('/TreePopup/MaskView')
+        action.set_sensitive(obj and True or False)
+            
+        action_fk = self.ui_manager.get_action('/TreePopup/MaskViewFKey')
+        if field_name and self.master.is_fkey(field_name):
+            action_fk.set_visible(True)
+            label = self.master.get_label(field_name).replace('_', '__')
+            action_fk.set_property('label', _("View '%s' in a Mask") % label)
+        else:
+            action_fk.set_visible(False)
+            
+        action_delete = self.ui_manager.get_action('/TreePopup/RecordDelete')
+        action_delete.set_sensitive(obj and True or False)
+
+        menu = None
+        if event.button == 3:
+            self._field_name = field_name
+            menu = self.ui_manager.get_widget('/TreePopup')
+            menu.popup(None, None, None, event.button, event.time)
+        
+        return menu
+
+    def setup_columns(self):
+        """
+        :param field_list: list of field_names or string to be splitted (comma or space separated)
+        """
+
+        for field_name in self.field_list:
+            
+            if field_name in widgets.info:
+                label = widgets.info[field_name][0]
+            else:
+                label = field_name
+
+            ## first check if you have a Custom Renderer
+            if self.cell_renderers and field_name in self.cell_renderers:
+                col = self.cell_renderers.get(field_name)(field_name, label)
+
+            elif self.master.is_fkey(field_name) :   ## FKey
+                col = FKeyColumn(self.master, field_name, label)
+
+            elif self.master.is_boolean(field_name):  ## boolean
+                col = BooleanColumn(self.master, field_name, label)
+
+            elif self.master.is_date(field_name):   ## Dates
+                col = DateColumn(self.master, field_name, label)
+
+            elif self.master.is_datetime(field_name):  ## Datetime
+                col = DateTimeColumn(self.master, field_name, label)
+
+            elif self.master.is_number(field_name):  ## Number
+                col = NumericColumn(self.master, field_name, label)
+
+            elif self.master.is_text(field_name):  ## Multiline
+                col = MultilineColumn(self.master, field_name, label)
+
+            elif self.master.is_string(field_name):  ## Varchar
+                col = VarcharColumn(self.master, field_name, label)
+
+            else:
+                col = VarcharColumn(self.master, field_name, label)
+
+            self.tvcolumns[field_name] = col.column
+            self.columns[field_name] = col
+            self.treeview.append_column(col.column)
+
+#             if field_name in self.hidden_fields:
+#                 col.column.set_visible(False)
+            
+        self.treeview.columns_autosize()
+        self.fix_expandable_columns()
+            
+    def get_first_editable_col(self):
+        """
+        return the first visible col to position the cursor on
+        """
+        
+        columns = self.treeview.get_columns()
+        second_choice = []
+        for field_name in self.field_list:
+            if self.tvcolumns[field_name].get_visible() and self.master.is_editable(field_name):
+                if self.master.gui_fields[field_name].get_default():
+                    second_choice += [self.tvcolumns[field_name]]
+                else:
+                    return self.tvcolumns[field_name]
+        if second_choice:
+            return second_choice[0]
+
+    def start_editing(self, path):
+
+        col = self.get_first_editable_col()
+        self.treeview.scroll_to_cell(path, col)
+        self.treeview.set_cursor(path = path, focus_column = col,  start_editing = True)
+        

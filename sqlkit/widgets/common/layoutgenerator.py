@@ -148,7 +148,7 @@ class LayoutGenerator (object):
             self.layout = self._parse_and_complete(lay)
             
         else:
-            self.layout = self.create_for_table()
+            self.layout = lay or self.create_for_table()
 
         if not naked:
             self._add_default_buttons()

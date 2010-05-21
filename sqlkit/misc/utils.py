@@ -1,4 +1,5 @@
 import sqlalchemy
+import re
 
 class Container(object):
     """
@@ -92,6 +93,15 @@ def check_sqlalchemy_version(req):
         return True
 
 
+def str2list(list_or_string):
+    """
+    input parsing common func
+    """
+    
+    if isinstance(list_or_string, basestring):
+        return re.split('[ ,]*', list_or_string)
+    return list_or_string
+
 
 
 if __name__ == '__main__' :
@@ -111,3 +121,7 @@ if __name__ == '__main__' :
         
     for x in c:
         print x
+
+    print str2list('uno,due, tre')
+    print str2list(['uno','due', 'tre'])
+    

@@ -38,7 +38,7 @@ import sqlfilter
 from sqlkit.db import minspect, defaults
 from sqlkit.widgets.common import completion
 from sqlalchemy.orm import attributes
-from sqlkit.misc.utils import Container
+from sqlkit.misc.utils import Container, str2list
 import sqlkit
 from sqlkit import _, exc
 from babel import numbers
@@ -395,12 +395,8 @@ class SqlWidget(gobject.GObject):
                 new_field_list = [f for f in get_the_keys()
                           if not f == 'id' or self.mapper_info.fields[f]['fkey'] ]
 
-            
         else:
-            if isinstance(field_list, str):
-                new_field_list = [f for f in re.split('[ ,]+',field_list) if f]
-            else:
-                new_field_list = field_list
+            new_field_list = str2list(field_list) 
         return new_field_list
     
     def _get_relationship_path(self, path):
@@ -416,10 +412,7 @@ class SqlWidget(gobject.GObject):
         if not path:
             return []
         
-        if isinstance(path, (tuple, list)):
-            return path
-        else:
-            return re.split("[ ,]+", path)
+        return str2list(path)
         
     def get_pk(self):
         """
@@ -527,6 +520,9 @@ class SqlWidget(gobject.GObject):
         """
         return a layout for table/nick nick
         """
+        if self.is_table():
+            # No way at the moment to register a layout for Tables
+            return
         from sqlkit.db import get_layout
 
         ## FIXME: self.master.tables is not really defined. Mau be a string or a list 
@@ -549,9 +545,8 @@ class SqlWidget(gobject.GObject):
         """
         Ignored fields will not even be in self.field_list
         """
-
-        if isinstance(ignored_list, str):
-            ignored_list = re.split('[ ,]+', ignored_list)
+        ## TODO: verify if I'm really using this. I don;t think I ever documented it...
+        ignored_list = str2list(ignored_list)
 
         if not ignored_list:
             return None
@@ -579,7 +574,7 @@ class SqlWidget(gobject.GObject):
         else:
             if not hasattr(self, '_noup'):
                 self._noup = set()
-            for x in re.split('[ ,]+', noup or ''):
+            for x in str2list(noup or ''):
                 if x.startswith('-'):
                     x = x.replace('-', '')
                     if x in self._noup:
@@ -2258,6 +2253,7 @@ class ValidationWarningDialog(ValidationErrorDialog):
             raise exc.DialogValidationError
         else:
             pass
+
 
 
 

@@ -64,11 +64,15 @@ TABLE_UI = '''
      </menu>
   </menubar>
 
+'''
+TREEPOPUP = '''
   <popup name="TreePopup">
         <separator name="sep_1" />
         <menuitem action="MaskView" />
         <menuitem action="MaskViewFKey" />
         <menuitem action="New" />
+        <separator name="sep_cols" />
+        <placeholder name="Columns"/>
         <separator name="sep_del" />
         <menuitem action="RecordDelete" />
   </popup>

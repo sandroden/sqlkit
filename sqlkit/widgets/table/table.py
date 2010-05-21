@@ -26,6 +26,7 @@ from sqlkit import exc
 import sqlalchemy
 from sqlkit import debug as dbg, _
 from sqlkit.layout import widgets, get_label
+from sqlkit.misc.utils import Container, str2list
 import re
 import gobject
 import gtk
@@ -38,6 +39,7 @@ import gtk
 import pango
 import datetime
 from modelproxy import ModelProxy
+from sqlkit.widgets.table.columns import View
 
 class SqlTable(sqlwidget.SqlWidget):
     """
@@ -79,8 +81,9 @@ class SqlTable(sqlwidget.SqlWidget):
 #### Init & Layout         
     def __init__(self, *args, **kwargs):
 
-        self.treeview = None
-        self.tvcolumns = {'main' : {} }
+        self.views = Container()
+        #self.views['main'] = View(self, 'main', )
+        #self.treeview = None
         self.commit_inhibited = False
         self.deleting_row = False
         self.totals = totals.Totals(self)
@@ -107,12 +110,10 @@ class SqlTable(sqlwidget.SqlWidget):
         treeselection.set_mode(gtk.SELECTION_SINGLE)
         # callback for selection changes
         treeselection.connect('changed', self.selection_changed_cb)
-        self.treeview.connect('cursor-changed', self.cursor_changed_cb)
-        self.treeview.connect('key-press-event', self.keypress_event_cb)
-        self.treeview.connect('button-press-event', self.button_press_event_cb)
 
-        self.create_view(view='main')
-        self.menu.fill_menu_hide_fields()
+        ## from now on, the real field_list is the one in the View
+        self.views['main'] = self.create_view(name='main', field_list = self.field_list, treeview=self.treeview)
+        self.views['main'].menu.fill_menu_hide_fields()
         ## let tree use all the available space... 
         if not self.naked:
             self.lay_obj.prop('A.external','yscale',1)
@@ -131,7 +132,9 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         setup icons at the botton of the table if any 'icons' was passed to sqlwidget
         """
-
+        if 'A.icons' not in self.widgets:
+            return
+        
         self.lay_obj.prop(
             ('A.icons', 'xscale', 0),
             ('A.icons', 'xalign', 0),
@@ -152,20 +155,22 @@ class SqlTable(sqlwidget.SqlWidget):
                 label.set_text('')
 
         
-    def on_zoom_fit(self, widget, *args):
+    def setup_field_validation(self, field_list=None):
+        """
+        Create sqlkit.widgets.common.fields.Field object: one for each handled field
+        """
+        if not field_list:
+            return
 
-        tv_utils.zoom_to_fit(self.treeview, resize=True)
-
-    def setup_field_validation(self):
         from sqlkit.widgets.common.fields import FieldChooser
+        
         field_chooser = FieldChooser(self)
-        for field_name in self.field_list:
-            ## vfield as validation...
+        for field_name in field_list or self.field_list:
+            if field_name not in self.gui_fields:
+                self.gui_fields[field_name] = field_chooser.get_field(field_name,
+                                                                      self.mapper_info.fields[field_name])
             
-            self.gui_fields[field_name] = field_chooser.get_field(field_name,
-                                                              self.mapper_info.fields[field_name])
-            
-    def create_view(self, view='main', treeview=None, field_list=None):
+    def create_view(self, name='main', treeview=None, field_list=None):
         """
         .. views:
         
@@ -180,84 +185,24 @@ class SqlTable(sqlwidget.SqlWidget):
         :param treeview: the treeview
         :param field_list: a list of field_name for which we want the view
         """
-        import columns
 
-        treeview = treeview or self.treeview
-        treeview.set_data('view', view)
-        if view not in self.tvcolumns:
-            self.tvcolumns[view] = {}
-            
-        self.columns = {} if not hasattr(self, 'columns') else {}
-        for field_name in field_list or self.field_list:
-            
-            if field_name in widgets.info:
-                label = widgets.info[field_name][0]
-            else:
-                label = field_name
+        view = View(master=self, name=name, treeview=treeview, field_list=field_list)
+        view.treeview.set_model(self.modelproxy.modelstore)
+        self.views[name] = view
+        return view
 
-            ## first check if you have a Custom Renderer
-            if self.cell_renderers and field_name in self.cell_renderers:
-                col = self.cell_renderers.get(field_name)(field_name, label)
-
-            elif self.is_fkey(field_name) :   ## FKey
-                col = columns.FKeyColumn(self, field_name, label)
-
-            elif self.is_boolean(field_name):  ## boolean
-                col = columns.BooleanColumn(self, field_name, label)
-
-            elif self.is_date(field_name):   ## Dates
-                col = columns.DateColumn(self, field_name, label)
-
-            elif self.is_datetime(field_name):  ## Datetime
-                col = columns.DateTimeColumn(self, field_name, label)
-
-            elif self.is_number(field_name):  ## Number
-                col = columns.NumericColumn(self, field_name, label)
-
-            elif self.is_text(field_name):  ## Multiline
-                col = columns.MultilineColumn(self, field_name, label)
-
-            elif self.is_string(field_name):  ## Varchar
-                col = columns.VarcharColumn(self, field_name, label)
-
-            else:
-                col = columns.VarcharColumn(self, field_name, label)
-
-            self.tvcolumns[view][field_name] = col.column
-            self.columns[field_name] = col
-            treeview.append_column(col.column)
-
-            if field_name in self.hidden_fields:
-                col.column.set_visible(False)
-            
-        self.menu = columns.ColumnMenuProxy(self)
-        treeview.columns_autosize()
-        self.fix_expandable_columns(view)
-
-    def fix_expandable_columns(self, view='main'):
-        """
-        If no column is expandable, make all columns expandable:
-        it's very ugly to see just the last one expand
-        """
-
-        fix_it = True
-        for key, col in self.tvcolumns[view].iteritems():
-            if col.get_property('expand'):
-                fix_it = False
-
-        if fix_it:
-            for key, col in self.tvcolumns[view].iteritems():
-                col.set_property('expand', True)
-            
-            
-    def set_rows(self):
+    def set_rows(self, rows=None, view=None):
         """
         set number of treeview visible rows to "rows"
-        """
-        dbg.write("setting rows:", self.rows)
-        tv_utils.set_height_request(self.treeview, self.rows)
 
-    def hide_fields(self, field_name_list='', view='main'):
+        :param rows: number of rows (defaults to self.rows)
+        :param view_name: the name of the view. Defaults to None (all views)
+        """
+        if not view:
+            for v in self.views:
+                tv_utils.set_height_request(v.treeview, self.rows)
+
+    def hide_fields(self, field_name_list='', view_name='main'):
         """
         Hide a column and add the entry in the menu to make it show up again
 
@@ -265,49 +210,18 @@ class SqlTable(sqlwidget.SqlWidget):
         :param view: the view for which we set the list of hidden fields
 
         """
-
-        if len(field_name_list) == 0:
-            field_name_list = self.hidden_fields
-
-        if isinstance(field_name_list, basestring):
-            field_name_list = re.split("[ ,]+", field_name_list)
-            self.hidden_fields = field_name_list
-
-        if not self.tvcolumns[view]:
-            return
-
-        for field_name in field_name_list:
-            self.menu.menu_add_toggle_column(field_name, view)
-
-    def set_field_list(self, field_list, view='main'):
+        assert view_name in self.views, "Missing view_name: %s" % view_name
+        self.views[view_name].hide_fields(field_list)
+        
+    def set_field_list(self, field_list, view_name='main'):
         """
         Set field of visible columns. Accepts both a list or a string (space or comma separated)
 
         :param field_list: the field name list
         :param view: the view for which we set the field_list
         """
-        from copy import copy
-
-        if isinstance(field_list, (str, unicode)):
-            field_list = re.split('[ ,]+', field_list)
-        orig_field_list = copy(self.field_list)
-        for field_name in field_list:
-            if field_name in self.mapper_info.fields:
-                ## is already known, just make it visible
-                self.tvcolumns[view][field_name].set_property('visible', True)
-            else:
-                raise NotImplementedError("Column %s is not kown in self.mapper_info.fields" % field_name)
-        for field_name in orig_field_list:
-            if field_name not in field_list:
-                self.tvcolumns[view][field_name].set_property('visible', False)
-            
-        prev = None
-        for field_name in field_list:
-            self.treeview.move_column_after(self.tvcolumns[view][field_name], prev)
-            prev = self.tvcolumns[view][field_name]
-            
-        self.field_list = field_list
-        
+        assert view_name in self.views, "Missing view_name: %s" % view_name
+        self.views[view_name].set_field_list(field_list)
 
 ###### Actions/UiManager
     def prepare_actions(self):
@@ -413,15 +327,15 @@ class SqlTable(sqlwidget.SqlWidget):
     def select_cursor_row_cb(self, treeview, start_editing, user_data):
         return False
     
-    def cursor_changed_cb(self, treeview, user_data = None):
+    def cursor_changed_cb(self, treeview, view):
         return False
         
-    def show_column(self, menuItem, field_name, view='main'):
+    def show_column(self, menuItem, field_name, view_name='main'):
 
-        self.menu.menu_add_toggle_column(field_name)
-        self.tvcolumns[view][field_name].set_property('visible', True)
+        view = self.views[view_name]
+        view.show_column(field_name)
 
-    def button_press_event_cb(self, widget, event):
+    def button_press_event_cb(self, treeview, event, view):
         """
         Block browsing if last edited cell didn't validate
         """
@@ -433,7 +347,7 @@ class SqlTable(sqlwidget.SqlWidget):
         #  this happens before the selection gets changed so we cannot use get_selected_obj()
 
         try:
-            path, column, x_in_cell, y_in_cell = widget.get_path_at_pos(int(event.x),int(event.y))
+            path, column, x_in_cell, y_in_cell = treeview.get_path_at_pos(int(event.x),int(event.y))
             iter = self.modelproxy.modelstore.get_iter(path)
             obj = self.modelproxy.modelstore.get_value(iter,0)
             if isinstance(obj, self.totals.total_class):
@@ -446,28 +360,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self._clicked_obj = obj  # should I officially document it?
             
-        ## enable/disable menu entries
-        action = self.ui_manager.get_action('/TreePopup/MaskView')
-        action.set_sensitive(obj and True or False)
-            
-        action_fk = self.ui_manager.get_action('/TreePopup/MaskViewFKey')
-        if field_name and self.is_fkey(field_name):
-            action_fk.set_visible(True)
-            label = self.get_label(field_name).replace('_', '__')
-            action_fk.set_property('label', _("View '%s' in a Mask") % label)
-        else:
-            action_fk.set_visible(False)
-            
-        action_delete = self.ui_manager.get_action('/TreePopup/RecordDelete')
-        action_delete.set_sensitive(obj and True or False)
-
-        menu = None
-        if event.button == 3:
-            self._field_name = field_name
-            menu = self.ui_manager.get_widget('/TreePopup')
-            menu.popup(None, None, None, event.button, event.time)
-        
-        self.emit('button-press-event', event, obj, field_name, menu, widget )
+        menu = view.pop_menu(treeview, event, obj, field_name)
+        self.emit('button-press-event', event, obj, field_name, menu, treeview)
         
         if event.button == 3:
             return True
@@ -494,11 +388,15 @@ class SqlTable(sqlwidget.SqlWidget):
                 column.get_data('cell').set_property('mode', gtk.CELL_RENDERER_MODE_INERT)
                 gobject.idle_add(column.get_data('cell').set_property, 'mode', gtk.CELL_RENDERER_MODE_ACTIVATABLE)
         
+    def on_zoom_fit(self, widget, *args):
+
+        tv_utils.zoom_to_fit(self.treeview, resize=True)
+
 #### event handling 
     def keyrelease_event_cb(self, wdg, event, data=None):
         return self.length_control(wdg, data)
     
-    def keypress_event_cb(self, wdg, event, data=None):
+    def keypress_event_cb(self, wdg, event, view):
 
         if isinstance(wdg, gtk.TreeView):
             pre = 'tree'
@@ -862,7 +760,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if hasattr(obj, '_sqlkit_mode'):
             del obj._sqlkit_mode
 
-    def record_new(self, widget=None, *args):
+    def record_new(self, widget=None, view_name='main', *args):
         """prepare for 
         """
 
@@ -889,12 +787,7 @@ class SqlTable(sqlwidget.SqlWidget):
         #treeiter = self.modelproxy.modelstore.append([self.last_new_obj])
         treeiter = self._get_next_iter(self.last_new_obj)
         path = self.modelproxy.modelstore.get_path(treeiter)
-        col = self.get_first_editable_col()
-
-        self.treeview.scroll_to_cell(path, col)
-        self.treeview.set_cursor(path = path,
-                                 focus_column = col,
-                                 start_editing = True)
+        self.views[view_name].start_editing(path)
         ## set defaults
         for field_name in self.field_list:
             self.gui_fields[field_name].set_default()
@@ -1395,22 +1288,6 @@ class SqlTable(sqlwidget.SqlWidget):
             obj = query.filter_by(**filter_by).one()
         return obj
         
-    def get_first_editable_col(self, view='main'):
-        """
-        return the first visible col to position the cursor on
-        """
-        
-        columns = self.treeview.get_columns()
-        second_choice = []
-        for field_name in self.field_list:
-            if self.tvcolumns[view][field_name].get_visible() and self.is_editable(field_name):
-                if self.gui_fields[field_name].get_default():
-                    second_choice += [self.tvcolumns[view][field_name]]
-                else:
-                    return self.tvcolumns[view][field_name]
-        if second_choice:
-            return second_choice[0]
-
     def set_opts(self, icons=True, scroll='xy', width=None):
         """
         Modify default appearance of some features:
@@ -1443,7 +1320,7 @@ class SqlTable(sqlwidget.SqlWidget):
             
 
 
-    def export(self, menuItem, view='main'):
+    def export(self, menuItem, view_name='main'):
         """
         export visible data in csv format
         """
@@ -1587,6 +1464,7 @@ class ExportDialog(object):
                             quoting=self.QUOTE or csv.QUOTE_MINIMAL)
         writer.writerows(self.get_rows_func())
         f.close()
+
 
 
 
