@@ -961,7 +961,8 @@ class View(object):
         self.ui_manager = gtk.UIManager()
 
         self.accel_group = self.ui_manager.get_accel_group()
-        self.master.widgets['Window'].add_accel_group(self.accel_group)
+        if self.master.is_toplevel():
+            self.master.widgets['Window'].add_accel_group(self.accel_group)
 
 
         self.actiongroup_view = gtk.ActionGroup('View')
