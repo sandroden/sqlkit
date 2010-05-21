@@ -1126,7 +1126,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return
         
         mask = SqlMask(mapper=self.mapper, session=self.session, layout=self.layout,
-                       metadata=self.metadata, hooks=self.hooks)
+                       metadata=self.metadata, dbproxy=self.dbproxy, hooks=self.hooks)
         mask.set_mode(self.mode, reset=True)
         mask.mode = '-b'
         obj = getattr(self, '_clicked_obj', self.get_selected_obj())
