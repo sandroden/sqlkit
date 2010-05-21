@@ -619,6 +619,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if fkvalue:
             self.cell_entry.entry.set_text(fkvalue)
             self.cell_entry.valid = True
+            self.cell_entry.value = value
             self.cell_entry.text = fkvalue
             self.fkey_value = fkvalue
         else:
@@ -653,7 +654,8 @@ class SqlTable(sqlwidget.SqlWidget):
                     ## second time. If you ask for 'shown' I give you shown.
                         return text
                     else:
-                        return self.gui_fields[field_name].clean_value(text, input_is_fkey=False)
+                        #return self.gui_fields[field_name].clean_value(text, input_is_fkey=False)
+                        return self.cell_entry.value
                 else:
                     return self.gui_fields[field_name].clean_value(text)
         return getattr(obj, field_name)
@@ -961,6 +963,8 @@ class SqlTable(sqlwidget.SqlWidget):
         else:
             ## 
             if self.is_fkey(field_name):
+                if self.cell_entry and self.cell_entry.is_valid():
+                    return True
                 if not new_text:
                     self.gui_fields[field_name].set_value(None, initial=False)                    
                     return True
