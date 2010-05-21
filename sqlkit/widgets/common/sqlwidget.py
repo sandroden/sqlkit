@@ -1306,6 +1306,11 @@ class SqlWidget(gobject.GObject):
             return True
         
         self.emit('delete-event')
+        ## get rid of records automatically created by record_new if they're 
+        ## not yet persisted 
+        if self.current and self.current in self.session.new:
+            self.session.expunge(self.current)
+
         self.widgets['Window'].destroy()
         self.filter_panel.destroy()
         if self.single:
