@@ -38,8 +38,8 @@ class TotalObj(object):
         # set color only if we have a value
         if getattr(self, field_name):
             cell.set_property('foreground', self._fg_color)
-        
 
+    
 class Totals(object):
     """
     An object whose 'compute' method adds TotalObjets to show
@@ -102,6 +102,7 @@ class Totals(object):
         self.add_break(field_name, func)
 
     def is_different(self, obj):
+
         if self.prev is None:
             self.prev = self.break_func(obj)
             return False
@@ -219,26 +220,38 @@ class Totals(object):
             return
         
         self.initialize()
-        self.table.modelproxy.modelstore.foreach(self.foreach_func)
+        self.delete_total_rows()
+        self.table.modelproxy.modelstore.foreach(self.foreach_ins_func)
 
         row = self.insert_total(row=None, after=True)
         if self.break_func:
             self.insert_subtotal(row.iter, after=False)
 
-    def foreach_func(self, model, path,  iter):
+    def delete_total_rows(self):
+
+        iter_del_list = []
+        self.table.modelproxy.modelstore.foreach(self.foreach_del_func, iter_del_list)
+        for iter in iter_del_list:
+            self.remove(iter)
+        
+    def foreach_del_func(self, model, path,  iter, iter_del_list):
         """
         
         """
-
         obj = self.table.modelproxy.modelstore.get_value(iter, 0)
         if isinstance(obj, self.total_class):
-            self.remove(iter)
-        else:
-            if self.break_func and self.is_different(obj):
-                self.insert_subtotal(iter)
-                self.prev = self.break_func(obj)
-                self.reset_subtotals()
-            self.sum(obj)
+            iter_del_list += [iter]
+        
+    def foreach_ins_func(self, model, path,  iter):
+        """
+        
+        """
+        obj = self.table.modelproxy.modelstore.get_value(iter, 0)
+        if self.break_func and self.is_different(obj):
+            self.insert_subtotal(iter)
+            self.prev = self.break_func(obj)
+            self.reset_subtotals()
+        self.sum(obj)
 
         
 def func_date_same_day(obj, field_name):
