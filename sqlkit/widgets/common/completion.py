@@ -110,7 +110,7 @@ class SimpleCompletion(object):
         self.table = self.column.table
         self.format = get_description(self.table, attr='format')
         self.description = tables[self.table.name].description
-        self.attrs = tables[self.table.name].attrs
+        self._attrs = tables[self.table.name].attrs
 #        self.columns = [self.master.mapper_info.fields[field_name]['col'] for field_name in self.attrs]
         self.columns = [self.master.mapper_info.fields[self.field_name]['col']]
 #        self.attrs = tables[self.table.name].attrs
@@ -148,6 +148,16 @@ class SimpleCompletion(object):
 
     group_by = property(get_group_by, set_group_by)
     entry    = property(get_entry)
+
+    def _get_attrs(self):
+        return self._attrs
+    
+    def _set_attrs(self, attrs):
+        self._attrs = attrs
+        self.columns = [getattr(self.mapper.class_, field_name) for field_name in attrs]
+        self.query = self.master.session.query(*self.columns).autoflush(False)
+        
+    attrs = property(_get_attrs, _set_attrs)
 
     def prepare_completion(self):
         """
@@ -783,7 +793,7 @@ class FkeyCompletion(SimpleCompletion):
         self.table_lookup, self.column_lookup = self.table, self.column
         self.description = get_description(self.table, attr='description')
         self.search_field = self.description
-        self.attrs = get_description(self.table, attr='attrs', metadata=self.master.metadata)
+        self._attrs = get_description(self.table, attr='attrs', metadata=self.master.metadata)
         self.format    = get_description(self.table, attr='format', metadata=self.master.metadata)
         self._order_by = [self.table_lookup.c[self.description]]
         self.widget = widget
@@ -796,7 +806,6 @@ class FkeyCompletion(SimpleCompletion):
         self.columns = [getattr(self.mapper.class_, field_name) for field_name in self.attrs]
         self.query = self.master.session.query(*self.columns).autoflush(False)
 
-        
     def get_entry(self):
         return self.widget.entry
 
