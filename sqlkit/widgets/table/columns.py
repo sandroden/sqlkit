@@ -24,6 +24,7 @@ in editing_started_cb and  edited_cb to set state variables on SqlWidget
 
 
 import gtk
+import gobject
 import pango
 import cell_renderers
 from sqlkit import debug as dbg, _
@@ -834,6 +835,45 @@ class View(object):
         self.treeview.connect('key-press-event', self.master.keypress_event_cb, self)
         self.treeview.connect('button-press-event', self.master.button_press_event_cb, self)
 
+        self.treeview.set_enable_search(False)
+        self.treeview.show_all()
+        
+        self.treeview.set_rules_hint(True)
+        # set selection mode
+        treeselection = self.treeview.get_selection()
+        treeselection.set_mode(gtk.SELECTION_SINGLE)
+        # callback for selection changes
+        if name == 'main':
+            treeselection.connect('changed', self.master.selection_changed_cb)
+        ## sync the different selections
+        treeselection.connect('changed', self.selection_changed_cb, self)
+        treeview.connect('row-collapsed', self.row_collapsed_cb, self)
+        treeview.connect('row-expanded', self.row_expanded_cb, self)
+
+    def selection_changed_cb(self, treeview, view):
+        """
+        used to keep selections in sync
+        """
+        for view in self.master.views:
+            if view != self:
+                view.select_path(self.get_selected_path())
+
+    def row_expanded_cb(self, treeview, iter, path, view):
+        """
+        used to keep selections in sync
+        """
+        for view in self.master.views:
+            if view != self:
+                view.treeview.expand_row(path, True)
+
+    def row_collapsed_cb(self, treeview, iter, path, view):
+        """
+        used to keep selections in sync
+        """
+        for view in self.master.views:
+            if view != self:
+                view.treeview.collapse_row(path)
+
     def set_field_list(self, field_list, ):
         """
         Set field of visible columns. Accepts both a list or a string (space or comma separated)
@@ -1031,3 +1071,54 @@ class View(object):
         self.treeview.scroll_to_cell(path, col)
         self.treeview.set_cursor(path = path, focus_column = col,  start_editing = True)
         
+    def get_selected_path(self):
+        """Return the path of the selected row or None
+
+        NOTE: treeselection 'changed' signal arrives when the selection changed has
+              alreadu occurred
+
+        """
+        selection = self.treeview.get_selection()
+        model, rows = selection.get_selected_rows()
+        ## we use just the first selected
+        #  >>> sel.get_selected_rows()
+        #  (<gtk.Modelproxy.Modelstore object at 0x8dd61bc (GtkModelproxy.Modelstore at 0x8da6090)>, [(1,)])
+
+        if rows:
+            return rows[0]
+        else:
+            return None
+    
+    def __str__(self):
+        return "<View: %s>" % self.name
+
+    
+    def select_path(self, path=None, obj=None, sync=True):
+        """
+        Select path ``path``. If path is null and obj is not null try finding path at which is obj
+
+
+        :param path:  the path to be selected or None
+        :param obj:  if path is None, the object to be searched for and selected
+        :param sync: syncronize all views but run just one selection_cb
+        :type sync: boolean
+        """
+        def search_obj(model, path, iter, (obj, path_list)):
+            if model.get_value(iter, 0) == obj:
+                path_list += [path]
+                return True
+
+        ## let's find out the real path for the object. The object may be in a
+        ## TreeStore's deeper level or some totals may shift it 
+
+        if path is None and obj:
+            path_list = []
+            self.master.modelproxy.modelstore.foreach(search_obj, (obj, path_list))
+            try:
+                path = path_list[0]
+            except IndexError:
+                pass
+
+        if path is not None:
+            self.treeview.get_selection().select_path(path)
+            

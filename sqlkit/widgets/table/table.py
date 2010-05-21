@@ -99,18 +99,7 @@ class SqlTable(sqlwidget.SqlWidget):
     def _get_layout(self, lay, naked):
 
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
-        ## layout
         self.treeview = self.widgets["TV=tree"]
-        self.treeview.set_enable_search(False)
-        self.treeview.show_all()
-        
-        self.treeview.set_rules_hint(True)
-        # set selection mode
-        treeselection = self.treeview.get_selection()
-        treeselection.set_mode(gtk.SELECTION_SINGLE)
-        # callback for selection changes
-        treeselection.connect('changed', self.selection_changed_cb)
-
         ## from now on, the real field_list is the one in the View
         self.views['main'] = self.create_view(name='main', field_list = self.field_list, treeview=self.treeview)
         self.views['main'].menu.fill_menu_hide_fields()
@@ -211,7 +200,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         """
         assert view_name in self.views, "Missing view_name: %s" % view_name
-        self.views[view_name].hide_fields(field_list)
+        self.views[view_name].hide_fields(field_name_list)
         
     def set_field_list(self, field_list, view_name='main'):
         """
@@ -293,14 +282,13 @@ class SqlTable(sqlwidget.SqlWidget):
         # 6. selected existent record -> new record
         # 7. selected existent record -> delete
         # 8. selected existent LAST record -> delete
-
         if self.edited_row_model_path is None:
             self.emit('record-selected')
             obj = self.get_selected_obj()
+
+            
             if obj or len(self.records):
                 self.emit('context-changed', obj or self.records[0])
-            return False
-        
         ## commit_allowed is a flag that prevents .commit() if a new object
         ## has been created but not yet filled: it wouldn't validate
         if not self.commit_inhibited:
@@ -419,9 +407,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         if ksym in dir(self):
             return getattr(self, ksym)(wdg, event)
-        else:
-            self.write_info()
-    
+
     def key_tree_shift_ISO_Left_Tab(self, treeview, event, data):
 
         path, col = self.treeview.get_cursor()
@@ -882,27 +868,27 @@ class SqlTable(sqlwidget.SqlWidget):
         self.sb(_("Total N. of records: %s") % len(self.records), seconds=None)
         return True
     
-    def _get_next_iter(self, new_obj):
-        """
-        get a new iter inserting a row just before last (sub)/total - if any-
-        """
-        if not len(self.records):
-            try:
-                return self.modelproxy.modelstore.append([new_obj])
-            except TypeError:
-                return self.modelproxy.modelstore.append(None, [new_obj])
+#     def _get_next_iter(self, new_obj):
+#         """
+#         get a new iter inserting a row just before last (sub)/total - if any-
+#         """
+#         if not len(self.records):
+#             try:
+#                 return self.modelproxy.modelstore.append([new_obj])
+#             except TypeError:
+#                 return self.modelproxy.modelstore.append(None, [new_obj])
 
-        for i in range(-1, -5, -1):
-            obj = self.modelproxy.modelstore.get_value( self.modelproxy.modelstore[i].iter, 0)
-            if isinstance(obj, self.totals.total_class):
-                continue
-            row = self.modelproxy.modelstore[i]
-            break
+#         for i in range(-1, -5, -1):
+#             obj = self.modelproxy.modelstore.get_value( self.modelproxy.modelstore[i].iter, 0)
+#             if isinstance(obj, self.totals.total_class):
+#                 continue
+#             row = self.modelproxy.modelstore[i]
+#             break
 
-        try:
-            return self.modelproxy.modelstore.insert_after(row.iter, [new_obj])
-        except TypeError:
-            return self.modelproxy.modelstore.insert_after(None, row.iter, [new_obj])
+#         try:
+#             return self.modelproxy.modelstore.insert_after(row.iter, [new_obj])
+#         except TypeError:
+#             return self.modelproxy.modelstore.insert_after(None, row.iter, [new_obj])
 
     def _get_next_iter(self, new_obj):
         """
@@ -1189,16 +1175,6 @@ class SqlTable(sqlwidget.SqlWidget):
         else:
             return None
     
-    def write_info(self):
-        path = self.get_selected_row()
-        try:
-            if self.modelproxy.modelstore[path][0] is None:
-                self.sb(_('INSERT mode'))
-            else:
-                self.sb(_('UPDATE mode'))
-        except:
-            pass  # no selection...
-        
     def get_current_obj(self):
         """
         Return the corrently edited (not just selected!!) obj or obj at path.
@@ -1206,7 +1182,6 @@ class SqlTable(sqlwidget.SqlWidget):
         Read comment in set_value
         Return None if no selection
         """
-
         path = self.edited_row_model_path
 
         if path is None:
@@ -1217,14 +1192,13 @@ class SqlTable(sqlwidget.SqlWidget):
 
     def get_selected_obj(self):
         """Return the corrently selected obj. Return None if no selection"""
-
         path = self.get_selected_row()
 
         if path is None:
             return None
         else:
             obj = self.modelproxy.modelstore[path][0]
-            if isinstance(obj, self.totals.total_class):
+            if not isinstance(obj, self.mapper.class_):
                 return None
             return obj
 
@@ -1348,24 +1322,8 @@ class SqlTable(sqlwidget.SqlWidget):
         :param path:  the path to be selected or None
         :param obj:  if path is None, the object to be searched for and selected
         """
-        def search_obj(model, path, iter, (obj, path_list)):
-            if model.get_value(iter, 0) == obj:
-                path_list += [path]
-                return True
 
-        ## let's find out the real path for the object. The object may be in a
-        ## TreeStore's deeper level or some totals may shift it 
-
-        if path is None and obj:
-            path_list = []
-            self.modelproxy.modelstore.foreach(search_obj, (obj, path_list))
-            try:
-                path = path_list[0]
-            except IndexError:
-                pass
-
-        if path is not None:
-            self.treeview.get_selection().select_path(path)
+        self.views['main'].select_path(path=path, obj=obj)
             
     def add_record(self, obj):
         """
