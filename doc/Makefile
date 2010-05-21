@@ -3,7 +3,7 @@
 VER           = 0.8.7
 DEBVER        = 0.8.6.1-1
 WINVER        = 0.8.6.1
-LNXVER        = $(VER)
+LNXVER        = 0.8.6
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
