@@ -262,7 +262,7 @@ class SqlTable(sqlwidget.SqlWidget):
         from sqlkit.widgets.common import uidescription
         
         sqlwidget.SqlWidget.prepare_uimanager(self)
-        self.ui_manager.insert_action_group(self.actiongroup_table, 0)
+        self.ui_manager.insert_action_group(self.actiongroup_table, 1)
 
         self.ui_manager.add_ui_from_string(uidescription.TABLE_UI)
 
@@ -1219,7 +1219,7 @@ class SqlTable(sqlwidget.SqlWidget):
         mask.set_mode(self.mode, reset=True)
         mask.mode = '-b'
         obj = getattr(self, '_clicked_obj', self.get_selected_obj())
-        print getattr(obj, field_name)
+
         mask.set_records(pk=getattr(obj, field_name))
 
         ## signals to keep selection in sync 

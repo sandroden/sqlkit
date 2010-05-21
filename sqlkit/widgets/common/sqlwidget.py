@@ -777,14 +777,14 @@ class SqlWidget(gobject.GObject):
         self.ui_browse_id = self.ui_manager.add_ui_from_string(uidescription.BROWSE_UI)
         self.ui_debug_id = self.ui_manager.add_ui_from_string(uidescription.DEBUG_UI)
 
-        self.ui_manager.insert_action_group(self.actiongroup_general, 0)
-        self.ui_manager.insert_action_group(self.actiongroup_insert, 1)
-        self.ui_manager.insert_action_group(self.actiongroup_delete, 1)
-        self.ui_manager.insert_action_group(self.actiongroup_update, 1)
-        self.ui_manager.insert_action_group(self.actiongroup_browse, 2)
-        self.ui_manager.insert_action_group(self.actiongroup_select, 2)
-        self.ui_manager.insert_action_group(self.actiongroup_print, 3)
-        self.ui_manager.insert_action_group(self.actiongroup_debug, 4)
+        self.ui_manager.insert_action_group(self.actiongroup_general, 10)
+        self.ui_manager.insert_action_group(self.actiongroup_insert, 11)
+        self.ui_manager.insert_action_group(self.actiongroup_delete, 12)
+        self.ui_manager.insert_action_group(self.actiongroup_update, 13)
+        self.ui_manager.insert_action_group(self.actiongroup_browse, 14)
+        self.ui_manager.insert_action_group(self.actiongroup_select, 15)
+        self.ui_manager.insert_action_group(self.actiongroup_print, 16)
+        self.ui_manager.insert_action_group(self.actiongroup_debug, 17)
 
         ## pack menu and toolbar if it's a toplevel
         if 'V.header' in self.widgets:
@@ -797,6 +797,13 @@ class SqlWidget(gobject.GObject):
     def set_mode(self, mode=None, reset=False, delay=False):
         """
         .. _set_mode:
+
+        :param mode: the mode as explained below. If None, mode will be refreshed to last *declared*
+           state (i.e.: reguardless of what you may have changed by hand acting on actiongroups).
+        :param reset: if True the mode will be completely reset. Needed to make the mode
+            of a related table independent from the mode of the master
+        :param delay: if True, the mode is set but interface is not immediately updated
+
 
         Set mode for this widget. Mode can be a string composed with the following letters that
         correspond to permissions possibly preceded by ``+`` or ``-``.
@@ -819,14 +826,11 @@ class SqlWidget(gobject.GObject):
         can let it be inserted. This is by design.
 
         Related table inheritate the same mode but you can programmatically reset it and make it
-        independent from the master using opt reset=True. 
+        independent from the master using option reset=True. 
 
-        :param mode: the mode as explained above. If None, mode will be refreshed to last *declared*
-           state (i.e.: reguardless of what you may have changed by hand acting on actiongroups).
-        :param reset: if True the mode will be completely reset. Needed to make the mode
-            of a related table independent from the mode of the master
-        :param delay: if True, the mode is set but interface is not immediately updated
+        *Implementation*
 
+        Mode are implemented acting on uimanager/actionsgroup. You may read :ref:`uimanager`
 
         .. note::
 
@@ -1610,9 +1614,14 @@ class SqlWidget(gobject.GObject):
         
     def add_temporary_item(self, item, menu, position=0, separator=False):
         """
+        .. _add_temporary_item:
+          
         Adds an action to a menu and removes it with 'selection-done'
-        position: the position where to insert the item (default: 0)
-        separator: boolean: add a separator (not implemented)
+
+        :param item: the gtk.MenuItem that must be added
+        :param menu: the menu where the item needs to be added
+        :param position: the position where to insert the item (default: 0)
+        :param separator: boolean: add a separator (not implemented)
         """
         if not menu:
             return

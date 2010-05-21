@@ -72,7 +72,7 @@ slower. Previous 0.5 rel called it ``autoflush``
 .. autoclass:: sqlkit.widgets.common.sqlwidget.SqlWidget(see_below)
    :members: __init__, add_constraint, add_filter, resize, set_records,
              set_format, is_mask, is_table, sb, get_value, set_value,
-	     get_current_obj, set_mode
+	     get_current_obj, set_mode, add_temporary_item
 
 
 Attributes
@@ -171,6 +171,13 @@ Attributes
     Note that to add a non editable field_name you must used '+field_name'. Using simply 'field_name'
     will reset the list to only  that field_name
 
+.. attribute:: actiongroup_* 
+
+    see :ref:`uimanager`
+
+.. attribute:: ui_manager
+
+    see :ref:`uimanager`
 
 .. _sqlalchemy: http://www.sqlalchemy.org
 
@@ -504,3 +511,91 @@ Utils
 
 .. automodule:: sqlkit.db.utils
 
+.. _uimanager:
+
+UiManager: menu and actions
+===========================
+
+Menu entries are handled via standard gtk.UiManager interface. One interface
+is created for each toplevel Window and for each :ref:`view <views>` in a SqlTable
+widget. You can see some examples in the demo (70-72).
+
+Standard actions are divided into the following categories::
+
+  General (self.actiongroup_general)
+       PendingDifferences
+       Quit
+       Go
+       Modify
+       Tools
+       File
+       Help
+       About
+  Table (self.actiongroup_table)
+       HideColumns
+       ShowColumns
+       Records
+       MaskViewFKey
+       Export
+       MaskView
+       Zoom-fit
+  Insert (self.actiongroup_insert)
+       New
+       Save-as (just for SqlMask)
+  Delete (self.actiongroup_delete)
+       Delete
+       RecordDelete
+  Update (self.actiongroup_update)
+       Save
+       Undo  (just for SqlMask)
+  Browse (self.actiongroup_browse)
+       Filters
+       Reload
+  Select (self.actiongroup_select)
+       Back
+       Forward
+  Print (self.actiongroup_print)
+       Print
+  Debug (self.actiongroup_debug)
+       Gtk-tree
+
+
+While for each table'view you have::
+
+  Table
+       HideColumns
+       ShowColumns
+       Records
+       MaskViewFKey
+       Export
+       MaskView
+       Zoom-fit
+  Insert
+       New
+  Delete
+       Delete
+       RecordDelete
+
+Changeing an entry
+------------------
+
+To change an entry you can: 
+
+#. add an actiongroup in which you have defined an  action with the same
+   name 
+#. insert this actiongroup *before* it's relevant one (posizion 0 is
+   normally a good choice
+
+Eample #72 in the demo shows how to do it
+
+Adding an entry
+---------------
+
+the standard way is shown in demo snippet #70:
+
+#. create an xml definition and add it to ui_manager
+#. create an action and add it to an actiongroup
+
+You can also use a SqlTable method :ref:`add_temporary_item <add_temporary_item>` that will add a
+temporary entry, so that it can be contextually changed. This way is
+demostrated in demo snippet #71

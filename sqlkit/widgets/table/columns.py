@@ -986,11 +986,11 @@ class View(object):
 
         self.actiongroup_view = gtk.ActionGroup('View')
 
-        self.ui_manager.insert_action_group(self.master.actiongroup_table, 0)
-        self.ui_manager.insert_action_group(self.master.actiongroup_general, 0)
-        self.ui_manager.insert_action_group(self.master.actiongroup_insert, 1)
-        self.ui_manager.insert_action_group(self.master.actiongroup_delete, 1)
-        self.ui_manager.insert_action_group(self.actiongroup_view, 1)
+        self.ui_manager.insert_action_group(self.master.actiongroup_table, 10)
+#        self.ui_manager.insert_action_group(self.master.actiongroup_general, 11)
+        self.ui_manager.insert_action_group(self.master.actiongroup_insert, 12)
+        self.ui_manager.insert_action_group(self.master.actiongroup_delete, 13)
+        self.ui_manager.insert_action_group(self.actiongroup_view, 14)
 #        self.ui_manager.insert_action_group(self.actiongroup_update, 1)
 
 
