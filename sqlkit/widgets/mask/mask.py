@@ -395,6 +395,11 @@ class SqlMask(sqlwidget.SqlWidget):
         ask:  ask if save is required
         new_obj:   the record is new. It forces mask2obj to skip check and save all fields
         """
+        focus_widget = self.get_toplevel().get_focus()
+        if focus_widget and isinstance(focus_widget, gtk.Entry):
+            focus_widget.activate()
+        self.get_toplevel().set_focus(None)
+
         if not new_obj and not self.record_has_changed() and not (
             self.unsaved_changes_exist(skip_new=self.current)):
             self.sb(_('Nothing to save'), seconds=4)

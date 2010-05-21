@@ -878,6 +878,7 @@ class SqlWidget(gobject.GObject):
     def record_save_cb(self, widget, event=None):
         """Save the record and invokes the validator before UPDATE/INSERT a record
         """
+        self.get_toplevel().set_focus(None)
         try:
             self.record_save()
         except (exc.DialogValidationError, exc.CancelledAction), e:
@@ -1751,6 +1752,18 @@ class SqlWidget(gobject.GObject):
         """
         return 'Window' in self.widgets
     
+    def get_toplevel(self):
+        """
+        return the toplevel for this SqlWidget
+        """
+        try:
+            return self.widgets['Window']
+        except KeyError, e:
+            try:
+                return self.relationship_leader.get_toplevel()
+            except AttributeError, e:
+                return None
+        
     def fkey_is_valid(self):
         """
         return True if current editable -if exists- has a value that does not need validation
