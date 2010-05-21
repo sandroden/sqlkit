@@ -58,14 +58,15 @@ class Totals(object):
         self.prev = None
         self.table.modelproxy.connect('model-sorted', lambda proxy, model: self.compute())
 
-    def add_total(self,  field_names, quiet=False, ):
+    def add_total(self,  *field_names, **kw):
         """
         Add a total object each time subtotal changes
         
-        :param field_names: a space separated string of field_names for which we want a total
+        :param field_names: a list of field_names for which we want a total
         :param quiet: boolean. If True silently fail if the field is not a number
         """
-        for field_name in field_names.split():
+        quiet = kw.get('quiet', False)
+        for field_name in field_names:
             if not self.table.get_field_type(field_name) in sqlwidget.NUMBERS:
                 if not quiet:
                     raise NotImplementedError("%s is not a number" % field_name)
