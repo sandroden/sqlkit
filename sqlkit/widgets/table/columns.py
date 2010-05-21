@@ -959,6 +959,11 @@ class View(object):
         from sqlkit.widgets.common import uidescription
 
         self.ui_manager = gtk.UIManager()
+
+        self.accel_group = self.ui_manager.get_accel_group()
+        self.master.widgets['Window'].add_accel_group(self.accel_group)
+
+
         self.actiongroup_view = gtk.ActionGroup('View')
 
         self.ui_manager.insert_action_group(self.master.actiongroup_table, 0)

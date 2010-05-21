@@ -272,6 +272,11 @@ class SqlTable(sqlwidget.SqlWidget):
         Main callback triggered when the TreeSelection changes. When run
         this function tries to record_save()
         """
+        try:
+            del self._clicked_obj
+        except AttributeError:
+            pass
+        
         # selection changes in several different ways:
 
         # 1. no selection -> selection of existing row
@@ -1102,7 +1107,6 @@ class SqlTable(sqlwidget.SqlWidget):
         If there are pending modification, a save dialog is opened.
 
         """
-
         from sqlkit.widgets import SqlMask, SqlTable
         try:
             quit = self.record_save(ask=True)
@@ -1116,8 +1120,14 @@ class SqlTable(sqlwidget.SqlWidget):
                        metadata=self.metadata, hooks=self.hooks)
         mask.set_mode(self.mode, reset=True)
         mask.mode = '-b'
-        self.select_path(obj=self._clicked_obj)
-        mask.set_records([self._clicked_obj])
+        obj = getattr(self, '_clicked_obj', self.get_selected_obj())
+        try:
+            del self._clecked_obj
+        except AttributeError:
+            pass
+        
+        self.select_path(obj=obj)
+        mask.set_records([obj])
 
         ## signals to keep selection in sync 
         def follow_selection(table, obj, mask):
