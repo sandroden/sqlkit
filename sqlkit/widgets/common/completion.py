@@ -471,6 +471,8 @@ class SimpleCompletion(object):
         """
         if not self._dynamic_filters  or not self._apply_filter:
             return query
+#        import ipdb; ipdb.set_trace()
+
 
         ## substitute values
         kw = {}
@@ -586,10 +588,12 @@ class SimpleCompletion(object):
         ksym = gtk.gdk.keyval_name(event.keyval)
 
         mods = ['key_' + pre]
+        ## mod2 gets in the way when you press the NumLock: I don't want
+        ## to depend on that, as I'm not usng it!!!
         for prefix, mask in [('ctrl', gtk.gdk.CONTROL_MASK),
                              ('shift', gtk.gdk.SHIFT_MASK),
                              ('alt', gtk.gdk.MOD1_MASK),
-                             ('mod2', gtk.gdk.MOD2_MASK),
+                             #('mod2', gtk.gdk.MOD2_MASK),
                              ('mod3', gtk.gdk.MOD3_MASK),
                              ('mod4', gtk.gdk.MOD4_MASK),
                              ('mod5', gtk.gdk.MOD5_MASK),]:
