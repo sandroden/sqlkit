@@ -79,6 +79,12 @@ True
 ...                              Address.email.op('=')('me@google.com'))).join(Address))
 True
 
+# TODO  query + mapper + fk: it doesn't follow the relation (yet)  
+>>> q = djs.django2query(query, Address.__mapper__, user_id__first_name='ed')
+Traceback (most recent call last):
+    ...
+KeyError: 'user_id'
+
 >>> q = djs.django2query(query, User.__mapper__, first_name='ed',
 ...                      addresses__provider__provider__icontains='google', OR=True)
 >>> compare(q, query.filter(or_(User.first_name.op('=')('ed'),
