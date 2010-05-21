@@ -1327,8 +1327,6 @@ class SqlTable(sqlwidget.SqlWidget):
         if width:
             self.treeview.set_property('width_request', width)
             
-
-
     def export(self, menuItem, view_name='main'):
         """
         export visible data in csv format
@@ -1337,8 +1335,9 @@ class SqlTable(sqlwidget.SqlWidget):
         def foreach_handler(model, path, iter, ret):
             ## NOTE: whe this function return a True value, iteration terminates!!!
             obj = model.get_value(iter, 0)
-            ret += [[self.gui_fields[f].get_human_value(getattr(obj, f)) for f in self.field_list
-                    if self.tvcolumns[view][f].get_property('visible')]]
+            view = self.views[view_name]
+            ret += [[self.gui_fields[f].get_human_value(getattr(obj, f)) for f in view.field_list
+                    if view.tvcolumns[f].get_property('visible')]]
 
         def get_all_rows():
             ret = []
