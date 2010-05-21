@@ -515,7 +515,7 @@ class SqlTable(sqlwidget.SqlWidget):
             row = self.get_selected_row()[0]
             if row is None:
                 row = -1
-            if row + 1 == len(self.records):
+            if row + 1 == self.len_model():
                 try:
                     self.record_new(treeview)
                 except exc.CommitError, e:
@@ -756,7 +756,6 @@ class SqlTable(sqlwidget.SqlWidget):
     def record_new(self, widget=None, view_name='main', *args):
         """prepare for 
         """
-
         ## I want to avoid generating a new obj if an object was created 
         ## and not modified (as when you press Down Arrow several times
         ## beyond the lower row)
@@ -880,28 +879,6 @@ class SqlTable(sqlwidget.SqlWidget):
         self.sb(_("Total N. of records: %s") % len(self.records), seconds=None)
         return True
     
-#     def _get_next_iter(self, new_obj):
-#         """
-#         get a new iter inserting a row just before last (sub)/total - if any-
-#         """
-#         if not len(self.records):
-#             try:
-#                 return self.modelproxy.modelstore.append([new_obj])
-#             except TypeError:
-#                 return self.modelproxy.modelstore.append(None, [new_obj])
-
-#         for i in range(-1, -5, -1):
-#             obj = self.modelproxy.modelstore.get_value( self.modelproxy.modelstore[i].iter, 0)
-#             if isinstance(obj, self.totals.total_class):
-#                 continue
-#             row = self.modelproxy.modelstore[i]
-#             break
-
-#         try:
-#             return self.modelproxy.modelstore.insert_after(row.iter, [new_obj])
-#         except TypeError:
-#             return self.modelproxy.modelstore.insert_after(None, row.iter, [new_obj])
-
     def record_delete3(self, item):
         """
         Delete a record clicked with left click from menu item. In this case
@@ -1373,7 +1350,20 @@ class SqlTable(sqlwidget.SqlWidget):
             self.modelproxy.modelstore.append(None, [obj])
         self.session.add(obj)
         self.totals.compute()
-        
+
+    def len_model(self, model=None):
+
+        a = [0]
+        if not model:
+            model = self.modelproxy.modelstore
+
+        def count(model, path, iter, counter):
+            counter[0] += 1
+
+        model.foreach(count, a)
+
+        return a[0]
+                
 #### completion
 
     def set_editable(self, editable=True):
