@@ -1552,11 +1552,15 @@ class SqlWidget(gobject.GObject):
     def get_field_type(self, field_name):
         return self.mapper_info.fields[field_name]['type']
 
-    def get_label(self, field_name):
+    def get_label(self, field_name, gtk_label=False):
         """
         return field_name translated according to map_label + gettext
+
+        :param gtk_label: double any occurrence of '_'  as gtk labels 'eat' them
         """
         label = get_label(field_name, layout=self.lay_obj)
+        if gtk_label:
+            return _(label).replace('_', '__')
         return _(label)
 
     def set_current(self, pk=None):

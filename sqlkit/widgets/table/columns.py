@@ -661,7 +661,7 @@ class ColumnMenuProxy(object):
         
         ## add to filter
         ## TIP: menu entry to add a filter in the filter panel
-        field_name_localized = self.master.get_label(field_name)
+        field_name_localized = self.master.get_label(field_name, gtk_label=True)
         label_str = _("Add a filter on '%s'") % field_name_localized
         item = StockMenuItem(label=label_str, stock='gtk-find')
 #        item.connect('activate', self.filter_panel.add, ev, field_name )
@@ -730,7 +730,7 @@ class ColumnMenuProxy(object):
         item_hide.set_submenu(self.menu_hide)
 
         for field_name in self.master.field_list:
-            field_name_localized = get_label(field_name, layout=self.lay_obj).replace('_', '__')
+            field_name_localized = self.master.get_label(field_name, gtk_label=True)
             m = gtk.MenuItem(field_name_localized)
             m.connect('activate', self.hide_fields_cb, field_name)
             self.menu_hide.append(m)
@@ -763,14 +763,16 @@ class ColumnMenuProxy(object):
     def menu_add_toggle_column(self, field_name, view):
         """
         Add a menu entry to show columns in the menu 'modify' or change it's
-        visibility according to real state of the column
+        visibility according to real state of the column. A column can be toggled back
+        using the view menu (left click on the TreeView)
         """
 
         action_name = 'field_%s' % field_name
         action = view.ui_manager.get_action('/TreePopup/Columns/ShowColumns/%s' % action_name)
         if not action:
             view.actiongroup_view.add_actions([
-                (action_name, None, self.master.get_label(field_name), None, None, view.show_column,),
+                (action_name, None, self.master.get_label(field_name, gtk_label=True),
+                 None, None, view.show_column,),
                 ], field_name)
 
             menu_def = '''
@@ -964,6 +966,7 @@ class View(object):
     def hide_column(self, field_name):
 
         self.tvcolumns[field_name].set_property('visible', False)
+        self.master.sb(_("Right click on this table to show the column again"), seconds=10)
         
     def show_column(self, item, field_name):
         
@@ -1005,7 +1008,7 @@ class View(object):
         action_fk = self.ui_manager.get_action('/TreePopup/MaskViewFKey')
         if field_name and self.master.is_fkey(field_name):
             action_fk.set_visible(True)
-            label = self.master.get_label(field_name).replace('_', '__')
+            label = self.master.get_label(field_name, gtk_label=True)
             action_fk.set_property('label', _("View '%s' in a Mask") % label)
         else:
             action_fk.set_visible(False)
