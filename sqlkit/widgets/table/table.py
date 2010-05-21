@@ -269,10 +269,9 @@ class SqlTable(sqlwidget.SqlWidget):
         self.ui_manager.get_action('/Main/Go/Forward').set_visible(False)
         self.ui_manager.get_action('/Main/Go/Back').set_visible(False)
 
-    def set_mode(self, mode=None, refresh=False, delay=False):
+    def set_mode(self, mode=None, reset=False, delay=False):
 
-        #import ipdb; ipdb.set_trace()
-        sqlwidget.SqlWidget.set_mode(self, mode, refresh, delay)
+        sqlwidget.SqlWidget.set_mode(self, mode, reset=reset, delay=delay)
 
         if not delay and hasattr(self, 'columns'):
             for field_name, col in self.columns.iteritems():

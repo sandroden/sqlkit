@@ -799,7 +799,7 @@ class SqlWidget(gobject.GObject):
         .. _set_mode:
 
         Set mode for this widget. Mode can be a string composed with the following letters that
-        correspond to permissions
+        correspond to permissions possibly preceded by ``+`` or ``-``.
 
          :s: SELECT. The user can view the records *already selected*
              (i.e. use Forward/Backward) or set by ``set_records``. This is *always* granted and
@@ -810,21 +810,22 @@ class SqlWidget(gobject.GObject):
          :b: browse. The user can use the filter panel
 
         If mode start with + or - the following permissions are granted/revoked for the widget
+        by adding or removing from the modes already present. If no sign is used the mode is set.
 
-        ``mode`` is a property, you can set it directly: self.mode = 'b'
+        ``mode`` is a property, you can set it directly: ``self.mode = b``
 
         The mode influences permission by setting menu entries active or not. It's not acting on
         the session. If an object has been inserted in the session a simple update operation
         can let it be inserted. This is by design.
 
-        Related table inheritate the same mode but you can programmatically reset and make it
+        Related table inheritate the same mode but you can programmatically reset it and make it
         independent from the master using opt reset=True. 
 
         :param mode: the mode as explained above. If None, mode will be refreshed to last *declared*
            state (i.e.: reguardless of what you may have changed by hand acting on actiongroups).
-        :param reset: is True the mode will be completely reset. Needed to make the mode
+        :param reset: if True the mode will be completely reset. Needed to make the mode
             of a related table independent from the mode of the master
-        :param delay: it True, the mode is set but interface is not immediately updated
+        :param delay: if True, the mode is set but interface is not immediately updated
 
 
         .. note::
@@ -836,21 +837,31 @@ class SqlWidget(gobject.GObject):
         if not hasattr(self, '_mode'):
             self._mode = set([x for x in known_modes])
 
+        if reset:
+            if isinstance(mode, basestring) and not re.match('[-+]', mode): 
+                # setting a mode passed as string, we take mode into account
+                self._mode = set(x for x in mode)
+            else:
+                if mode:
+                    self._mode = set(x for x in mode)
+                else:
+                    self._mode = set(x for x in self._mode)
+
         if mode:
             if isinstance(mode, set):
-                if reset:
-                    self._mode = set([x for x in mode])
-                else:
-                    self._mode = mode
-
+                if not reset:
+                    self._mode = mode 
             elif mode.startswith('+'):
+                ## add a permission
                 for x in mode.replace('+', ''):
                     self._mode.add(x)
             elif mode.startswith('-'):
+                ## deletes a permission
                 for x in mode.replace('-', ''):
                     if x in self._mode:
                         self._mode.remove(x)
             else:
+                ## entirely resets the permission
                 for x in known_modes:
                     if x in mode:
                         self._mode.add(x)
@@ -1392,6 +1403,7 @@ class SqlWidget(gobject.GObject):
         ## and I don't understand where...
         ## nice info here: http://wiki.dspace.org/index.php/Idle_In_Transaction_Problem
         self.session.rollback()
+
         self.set_mode()
         return length
 
