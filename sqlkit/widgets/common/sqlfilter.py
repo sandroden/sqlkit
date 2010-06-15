@@ -510,8 +510,8 @@ class FilterTool(object):
 
         self.panel = panel
         self.master = master
-        self.master.connect('delete-event', self.destroy)
         self.field_name = field_name
+        self.master.connect('delete-event', self.destroy)
         self.db_spec = self.master.mapper_info.fields[field_name]
 
         ## db_spec['table'] may not be defined if the column correspond to an expression
