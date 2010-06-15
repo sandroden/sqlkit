@@ -30,8 +30,14 @@ of the cell.
 dates
 ------
 
-Since date breaks are probably very common a function make it easy to
+Since date breaks are probably very common a function makes it easy to
 brake on dates.
+
+totals... with no totals!
+--------------------------
+
+If you only need subtotals and not totals you can prevent totals using
+option ``hide_total`` when declaring the column to sum.
 
 API
 ---

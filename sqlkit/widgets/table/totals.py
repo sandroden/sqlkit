@@ -64,8 +64,10 @@ class Totals(object):
         
         :param field_names: a list of field_names for which we want a total
         :param quiet: boolean. If True silently fail if the field is not a number
+        :param hide_total: boolean. If True gran total will not be shown (only subtotals)
         """
         quiet = kw.get('quiet', False)
+        self.hide_total = kw.get('hide_total', False)
         for field_name in field_names:
             if not self.table.get_field_type(field_name) in sqlwidget.NUMBERS:
                 if not quiet:
@@ -166,6 +168,9 @@ class Totals(object):
         if not row:
             row = self.table.modelproxy.modelstore[-1]
 
+        if self.hide_total:
+            return row
+
         row, tot = self.insert(row.iter, after=after, sub=False)
         for field_name in self.totals:
             setattr(tot, field_name, self.totals[field_name])
@@ -207,7 +212,7 @@ class Totals(object):
 
         row = self.insert_total(row=None, after=True)
         if self.break_func:
-            self.insert_subtotal(row.iter, after=False)
+            self.insert_subtotal(row.iter, after=True if self.hide_total else False)
 
     def delete_total_rows(self):
         iter_del_list = []
