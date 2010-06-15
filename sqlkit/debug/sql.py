@@ -46,7 +46,7 @@ def debug_inline_params(stmt, bind=None):
 
 def get_table_definition(table_name, sql=None, meta=None, dialect=None):
     """
-    Return the table definition that would be isseed by a metadata.create
+    Return the table definition that would be issued by a metadata.create
     statement
 
     :param table: the table_name
