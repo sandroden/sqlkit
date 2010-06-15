@@ -46,6 +46,7 @@ class Widget(object):
         self.master = field.master
         self.field_name = field.field_name
         self.set_not_null_style()
+        self.gtkwidget.connect('destroy', self.destroy)
         gtkwidget.set_property('sensitive', self.field.editable) 
 
     def set_not_null_style(self):
@@ -72,6 +73,13 @@ class Widget(object):
         """
         return self.gtkwidget
 
+    def destroy(self, widget=None):
+        for attr in ('field', 'master', 'completion',):
+            try:
+                delattr(self, attr)
+            except AttributeError:
+                pass
+        
     def __repr__(self):
         return "< %s - %s >" % (self.__class__.__name__, self.field_name)
 

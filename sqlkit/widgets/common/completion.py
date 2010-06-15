@@ -101,6 +101,7 @@ class SimpleCompletion(object):
 
 
         self.master = master
+        self.master.connect('delete-event', self.destroy)
         self.lookup_values = {}
         self.MATCH_OPERATOR = OP[self.master.metadata.bind.name] or 'LIKE'
         self.widget = widget
@@ -124,6 +125,10 @@ class SimpleCompletion(object):
         self.query = self.master.session.query(*self.columns).autoflush(False)
         self.filtered_query = None
         self.match_dict = {}
+        
+    def destroy(self, sqlwidget):
+        for attr in ('master', 'query', 'mapper', 'filtered_query', 'widget',):
+            delattr(self, attr)
         
     def set_group_by(self, field_name):
         """if group_by is not already in table.attrs, add it runtime

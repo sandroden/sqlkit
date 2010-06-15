@@ -285,10 +285,19 @@ class Field(object):
         if gtkwidget:
             ## used in SqlMask
             self.widget = Widget(gtkwidget, self)
+            gtkwidget.connect('destroy', self.destroy)
         else:
             ### used in SqlTable
             self.widget = CellWidget(self)
 
+    def destroy(self, widget):
+
+        try:
+            del self.widget
+            del self.master
+        except AttributeError:
+            pass
+            
     def set_master(self, master):
         """
         add a sqlwidget as master of this field. A master may be needed to

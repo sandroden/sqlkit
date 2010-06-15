@@ -15,32 +15,27 @@
 
 import sys
 import re
-import datetime
 import os
-import inspect 
-from sqlkit import layout
-from sqlkit.layout import map_labels, get_label
-from sqlalchemy.exc import InvalidRequestError
-from sqlalchemy import Table
-
-from layoutgenerator import LayoutGenerator
-import gtk, pango
+import datetime
 import decimal
-from sqlalchemy import exceptions
-from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper
-#from sqlalchemy import *
-from sqlkit import debug as  dbg
+import inspect
+import gc
 
+import gtk
+import pango
 import gobject
-import sqlfilter
-#from sqlkit.widgets.common import sqlfilter2 as sqlfilter
+from babel import numbers
+from sqlalchemy import exceptions, Table
+from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper, attributes
+from sqlalchemy.exc import InvalidRequestError
+
+from sqlkit import layout, debug as  dbg
+from sqlkit.layout import map_labels, get_label
 from sqlkit.db import minspect, defaults
-from sqlkit.widgets.common import completion
-from sqlalchemy.orm import attributes
+from sqlkit.widgets.common import completion, sqlfilter, layoutgenerator
 from sqlkit.misc.utils import Container, str2list
 import sqlkit
 from sqlkit import _, exc
-from babel import numbers
 
 NUMBERS = (int, float, decimal.Decimal)
 
@@ -496,7 +491,7 @@ class SqlWidget(gobject.GObject):
             self.values = lay.values
             return (lay.lay_obj, lay.widgets)
         
-        self.laygen = LayoutGenerator(self, naked=naked, lay=lay)
+        self.laygen = layoutgenerator.LayoutGenerator(self, naked=naked, lay=lay)
         lay = self.laygen.layout
         self.lay_obj = layout.Layout(lay, addto=self.addto,label_map=self.label_map,
                                      title=self._title, opts='T-')
@@ -1336,10 +1331,81 @@ class SqlWidget(gobject.GObject):
             self.session.expunge(self.current)
 
         self.widgets['Window'].destroy()
-        self.filter_panel.destroy()
         if self.single:
             self.gquit()
-        del self
+        attrs = [
+            'about_dialog',
+            'accel_group',
+            'actiongroup_browse',
+            'actiongroup_debug',
+            'actiongroup_delete',
+            'actiongroup_general',
+            'actiongroup_insert',
+            'actiongroup_print',
+            'actiongroup_select',
+            'actiongroup_update',
+            'addto',
+            'col_width',
+            'completions',
+            'constraint',
+            'current',
+            'current_idx',
+            'dbproxy',
+            'defaults',
+            'dev',
+            'field_list',
+            'field_widgets',
+            'filter_panel',
+            'geom',
+            'gui_fields',
+            'hidden_fields',
+            'hooks',
+            'icons',
+            'ignored_fields',
+            'label_map',
+            'labels',
+            'laygen',
+            'lay_obj',
+            'layout',
+            'limit',
+            'm2m_editable'
+            'mapper',
+            'mapper_info',
+            'metadata',
+            '_mode',
+            'naked',
+            'nick',
+            '_noup',
+            '_order_by',
+            '_order_by_join_args',
+            'printing',
+            'query',
+            'records',
+            'related',
+            'relationship_leader',
+            'relationship_mode',
+            'relationship_path',
+            'reloading',
+            'ro',
+            'rows',
+            'session',
+            'single',
+            'sql',
+#             'tables',
+            '_title',
+            'ui_browse_id',
+            'ui_debug_id',
+            'ui_manager',
+            'ui_print_id',
+            'widgets',
+            'xml',
+            ]
+        for at in attrs:
+            try:
+                delattr(self, at)
+            except (NameError, AttributeError), e:
+                pass
+        gc.collect()
 
     def pending_differences_cb(self, menu=None):
 

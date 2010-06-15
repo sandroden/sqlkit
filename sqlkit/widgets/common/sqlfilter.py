@@ -102,6 +102,7 @@ class FilterPanel(object):
 
         """
         self.master = master
+        self.master.connect('delete-event', self.destroy)
         self.get_layout(visible=visible)
         self.row = 0  # counter for position of fields
         self.default_reload = True
@@ -113,8 +114,8 @@ class FilterPanel(object):
         if master.is_mask():
             master.connect('record-selected', self.record_selected_cb)
         
-    def __del__(self):
-        self.destroy()
+#     def __del__(self):
+#         self.destroy()
 
     def record_selected_cb(self, mask):
         """
@@ -283,9 +284,15 @@ class FilterPanel(object):
         """
         return [w for w in self.search_filter_widgets if w.field_name == field_name]
 
-    def destroy(self):
-        self.w['Window'].destroy()
-    
+    def destroy(self, window=None):
+        if window:
+            self.w['Window'].destroy()
+        for attr in ('easytv', 'search_filter_widgets', 'l', 'model', 'selection', 'w'):
+            try:
+                delattr(self, attr)
+            except AttributeError, e:
+                pass
+            
 ##### reload & TreeView
     def reload(self):
         """issue a reload operation on master. Callback of reload button"""
@@ -503,6 +510,7 @@ class FilterTool(object):
 
         self.panel = panel
         self.master = master
+        self.master.connect('delete-event', self.destroy)
         self.field_name = field_name
         self.db_spec = self.master.mapper_info.fields[field_name]
 
@@ -536,6 +544,9 @@ class FilterTool(object):
         self.bind_name = self.master.metadata.bind.name
         self.widget = FilterWidget(self)
 
+    def destroy(self, window=None):
+        del self.widget
+        
 ##### handling
     def is_filter_value(self, value):
         """
