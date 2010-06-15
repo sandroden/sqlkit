@@ -804,7 +804,7 @@ class BooleanField(Field):
         if value is None:
             value = False
         if value not in (True, False):
-            msg = "Null value not admissable for field %s" % self.field_name
+            msg = "Null value not admittable for field %s" % self.field_name
             raise ValidationError(msg) 
         return value
     

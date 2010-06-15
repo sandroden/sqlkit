@@ -328,15 +328,22 @@ class BooleanNullWidget(BooleanWidget):
     """
     def __init__(self, *args):
         Widget.__init__(self, *args)
-        self.gtkwidget.connect('clicked', self.on_clicked_cb)
+        self._clicked_id = self.gtkwidget.connect('clicked', self.on_clicked_cb)
         self.gtkwidget.connect_after('toggled', self.on_toggled_cb)
 
     def set_value(self, value):
+
         if value == None:
             self.gtkwidget.set_inconsistent(True)
         else:
-            self.gtkwidget.set_active(value)
+            ## This is needed to work around the fact that set_active(...) triggers
+            ## a clicked signal
+            self.gtkwidget.handler_block(self._clicked_id)
+
             self.gtkwidget.set_inconsistent(False)
+            self.gtkwidget.set_active(value)
+
+            self.gtkwidget.handler_unblock(self._clicked_id)
 
     def get_value(self, shown=False):
         if self.gtkwidget.get_inconsistent():
