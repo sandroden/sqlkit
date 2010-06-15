@@ -1171,14 +1171,17 @@ class SqlTable(sqlwidget.SqlWidget):
         if quit: 
             self.sb(_('Unsaved data prevent opening a Mask to show the (unsaved) record'))
             return
-        
+
+        if hasattr(self, '_mask'):
+            self._mask.widgets['Window'].present()
+            return
         mask = SqlMask(mapper=self.mapper, session=self.session, layout=self.layout,
                        metadata=self.metadata, dbproxy=self.dbproxy, hooks=self.hooks)
         mask.set_mode(self.mode, reset=True)
         mask.mode = '-b'
         obj = getattr(self, '_clicked_obj', self.get_selected_obj())
         try:
-            del self._clecked_obj
+            del self._clicked_obj
         except AttributeError:
             pass
         
@@ -1193,6 +1196,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         def disconnect(mask, id):
             self.disconnect(id)
+            del self._mask
 
         mask.connect('delete-event', disconnect, handler_id)
 
@@ -1231,6 +1235,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         def disconnect(mask, id):
             self.disconnect(id)
+            del self._fmask
 
         mask.connect('delete-event', disconnect, handler_id)
 
