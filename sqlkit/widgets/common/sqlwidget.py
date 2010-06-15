@@ -667,18 +667,21 @@ class SqlWidget(gobject.GObject):
         :param delay: boolean. If True message is added in an idle cicle. It means it will be shown
                after other possibly scheduled automatic messages that would hide its visibility.
         """
-
-        if self.relationship_leader:
-            self.relationship_leader.sb(text, seconds=seconds)
-        else:
-            try:
-                if delay:
-                    gobject.idle_add(self.lay_obj.sb, text, seconds)
-                else:
-                    self.lay_obj.sb(text, seconds=seconds)
-            except Exception, e:
-                #print e, vars(e)
-                pass
+        try:
+            if self.relationship_leader:
+                self.relationship_leader.sb(text, seconds=seconds)
+            else:
+                try:
+                    if delay:
+                        gobject.idle_add(self.lay_obj.sb, text, seconds)
+                    else:
+                        self.lay_obj.sb(text, seconds=seconds)
+                except Exception, e:
+                    #print e, vars(e)
+                    pass
+        except AttributeError, e:
+            ## The widget has been deleted and no self.relationship_leader already emptyed
+            pass
 
     def _create_title(self, title=None):
         if not title:
@@ -1091,11 +1094,15 @@ class SqlWidget(gobject.GObject):
         Discard any changes in the session, refreshing all objects
         """
         for obj in self.session.dirty:
-            dbg.write("session.refresh(%s)" % obj)
-            self.session.refresh(obj)
+            if obj in self.session:
+                self.session.refresh(obj)
+
         for obj in self.session.new:
-            dbg.write("session.expunge(%s)" % obj)
-            self.session.expunge(obj)
+            # when you have several objects in the session.new this test *IS* needed since
+            # the first one expunge may cause another one to be expunged too.
+            if obj in self.session.new:  
+                self.session.expunge(obj)
+
         self.last_new_obj = None  ## FIXME: unsure...
         
     def unsaved_changes_exist(self, skip_new=False, skip_check=False):
@@ -1402,6 +1409,8 @@ class SqlWidget(gobject.GObject):
                 delattr(self, at)
             except (NameError, AttributeError), e:
                 pass
+#        ## .sb() may have added a collback with 
+#        self.relationship_leader = None
         gc.collect()
 
     def pending_differences_cb(self, menu=None):
