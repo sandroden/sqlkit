@@ -846,14 +846,11 @@ class SqlWidget(gobject.GObject):
             self._mode = set([x for x in known_modes])
 
         if reset:
-            if isinstance(mode, basestring) and not re.match('[-+]', mode): 
-                # setting a mode passed as string, we take mode into account
-                self._mode = set(x for x in mode)
+            if not mode or (isinstance(mode, basestring) and re.match('[-+]', mode)):
+                model_mode = self._mode
             else:
-                if mode:
-                    self._mode = set(x for x in mode)
-                else:
-                    self._mode = set(x for x in self._mode)
+                model_mode = mode
+            self._mode = set(x for x in model_mode)
 
         if mode:
             if isinstance(mode, set):
