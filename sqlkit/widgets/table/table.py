@@ -22,22 +22,24 @@ mapper. column.set_cell_data_func on each column will set the value from there.
 
 
 import sys
-from sqlkit import exc
+import re
+import gtk
+import weakref
+import datetime
+
+import gobject
+import gtk
 import sqlalchemy
+
+import sqlkit
+from sqlkit import exc
 from sqlkit import debug as dbg, _
 from sqlkit.layout import widgets, get_label
 from sqlkit.misc.utils import Container, str2list
-import re
-import gobject
-import gtk
-import sqlkit
 import utils as tv_utils
 import cell_renderers
 import totals
 from sqlkit.widgets.common import sqlwidget, dialogs
-import gtk
-import pango
-import datetime
 from modelproxy import ModelProxy
 from sqlkit.widgets.table.columns import View
 
@@ -1173,7 +1175,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return
 
         if hasattr(self, '_mask'):
-            self._mask.widgets['Window'].present()
+            self._mask().widgets['Window'].present()
             return
         mask = SqlMask(mapper=self.mapper, session=self.session, layout=self.layout,
                        metadata=self.metadata, dbproxy=self.dbproxy, hooks=self.hooks)
@@ -1200,7 +1202,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         mask.connect('delete-event', disconnect, handler_id)
 
-        self._mask = mask
+        self._mask = weakref.ref(mask)
 
     def fkey_record_in_mask(self, widget):
         """
@@ -1239,7 +1241,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         mask.connect('delete-event', disconnect, handler_id)
 
-        self._fmask = mask  # just for debug
+        self._fmask = weakref.ref(mask)  # just for debug
         del self._field_name
         del self._clicked_obj
 
