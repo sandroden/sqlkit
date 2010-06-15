@@ -11,7 +11,7 @@ VER=0.8.6
 
 
 install/python-sqlkit::
-	dh_bash-completion
+#	dh_bash-completion
 
 install/python-sqlkit-doc::
 	mkdir -p doc/html doc/.doctrees

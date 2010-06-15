@@ -12,7 +12,7 @@ Standards-Version: 3.8.3
 Package: python-sqlkit
 Architecture: all
 Depends: ${misc:Depends}, python, python-dateutil,  python-gtk2, python-glade2,
-         python-setuptools, python-sqlalchemy (>=0.5.4), python-pybabel
+         python-setuptools
 Recommends: python-psycopg2, python-mysqldb
 Description: GUI application and python package to edit data of databases
  Main features of sqlkit:
