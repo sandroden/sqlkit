@@ -258,17 +258,13 @@ class SqlWidget(gobject.GObject):
         self.label_map = map_labels(buf=label_map, private=True)
         self.icons = icons
         self.col_width = col_width
-#        self.filter = filter
         self.xml = xml
         self.dev = dev
         # used in self.reload() to prevent expose loop 
         self.reloading = dbg.TraceIt(False, name='reloading')
         self.geom = geom
         self.addto = addto
-#        self.actions = self.get_actions(actions)
-        self.constraint=constraint
         self.dbproxy = dbproxy
-#        self.engine = self.get_engine(engine, mapper)
         self.mapper = self._get_mapper(mapper, table or tables, class_)
         self.metadata = self._get_metadata(metadata, self.mapper)
         ## we can use singular or plural as an option, plural in the code
@@ -1423,8 +1419,7 @@ class SqlWidget(gobject.GObject):
         """clear the mask for a new record"""
         pass
     
-    def reload(self, sql=None, params=None, limit=None, constraint={},
-               reload_constraint=False, display=True, order_by=None):
+    def reload(self, limit=None, display=True, order_by=None, OR=False, **kwargs):
         """
         reload the data from the database taking all filter/constraints into
         consideration 
@@ -1432,24 +1427,30 @@ class SqlWidget(gobject.GObject):
         :param limit: add a LIMIT clause (integer) to limit number of returned
             records. Permanent effect
         :param order_by: reset order_by and apply when reloading. Permanent effect.
+        :param OR: (boolean, default False) as in ``add_constraint`` you can specify if
+                   conditions as in kwargs below should be ORed or ANDed (default)
+        :param kwargs: any filters accepted by the :ref:`django_syntax` and by add_filter
 
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
         """
+        from sqlkit.db.django_syntax import django2query
         if limit:
             self.limit = limit
 
-        if constraint:
-            self.constraint=constraint
+        query = self.query.filter(None)
 
-        if isinstance(sql, tuple) and len(sql) == 2:
-            sql_str, params = sql
-        else:
-            sql_str = sql
-            params = None
+#         if isinstance(sql, tuple) and len(sql) == 2:
+#             sql_str, params = sql
+#         else:
+#             sql_str = sql
+#             params = None
 
-        query = self.query.filter(sql_str)
-        if params:
-            query = query.params(**params)
+#         if sql_str:
+#             print "BINGO!!! sql:", sql_str
+#         query = self.query.filter(sql_str)
+#         if params:
+#             print "BINGO!!!  params:", params
+#             query = query.params(**params)
 
         ## order_by
         if order_by:
@@ -1466,6 +1467,9 @@ class SqlWidget(gobject.GObject):
         except exc.ParseFilterError, e:
             self.records = []
             return
+
+        if kwargs:
+            query = django2query(query, self.mapper, OR=OR, **kwargs)
 
         if self.limit:
             query = query.limit(self.limit)

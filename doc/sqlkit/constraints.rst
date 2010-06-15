@@ -8,11 +8,16 @@ Constraints are a mean to limit browsing of data to a limited set. It's a
 different concept from filtering, as this enforces a limitation while
 filtering allows the user to change the values at will.
 
+.. _django-syntax:
+
+Django-like syntax
+==================
+
 A constraint can be as simple as::
 
   t = SqlTable(table='movie', dbproxy=db)
   t.add_constraints(actors__country='ITA', genres__name='drama',
-    year__gte=1950, year__lte=1970)
+                    year__gte=1950, year__lte=1970)
 
 And browsing of movies will be constrained into dramas with at least one
 Italian actor, produced between 1950 and 1970. The double underscore '__'
@@ -22,8 +27,11 @@ used.
 
 .. note::
 
-  the same syntax can be used to add filters on :ref:`completion <filter_completion>`
+  This syntax is inspired to django_'s ORM syntax.
+  The same syntax can be used to add filters to the sqlwidget, to the :ref:`completion
+  <filter_completion>` and when ``.reload()`` method is used.
 
+.. _django: http://www.djangoproject.com
 
 query
 =======

@@ -72,7 +72,7 @@ slower. Previous 0.5 rel called it ``autoflush``
 .. autoclass:: sqlkit.widgets.common.sqlwidget.SqlWidget(see_below)
    :members: __init__, add_constraint, add_filter, resize, set_records,
              set_format, is_mask, is_table, sb, get_value, set_value,
-	     get_current_obj, set_mode, add_temporary_item
+	     get_current_obj, set_mode, add_temporary_item, reload
 
 
 Attributes
