@@ -274,13 +274,13 @@ class SqlWidget(gobject.GObject):
         self.constraint=constraint
         self.dbproxy = dbproxy
 #        self.engine = self.get_engine(engine, mapper)
-        self.session = self._get_session(session)
         self.mapper = self._get_mapper(mapper, table or tables, class_)
         self.metadata = self._get_metadata(metadata, self.mapper)
         ## we can use singular or plural as an option, plural in the code
         if table and not tables:
             tables = table
         self.tables = self._get_table(tables)
+        self.session = self._get_session(session)
         self.hooks = hooks or defaults.get_hook(self.tables, instance=True, nick=layout_nick)
         self.nick= self.get_nick(nick)
         self.set_mode(mode, delay=True)
@@ -327,9 +327,18 @@ class SqlWidget(gobject.GObject):
         for extension in session.extensions:
             if isinstance(extension, SKSessionExtension): 
                 extension.sk_widgets = getattr(extension, 'sk_widgets', []) + [self]
-
+        self.connect('delete-event', self._clean_session_extensions)
         return session
 
+    def _clean_session_extensions(self, *args):
+        """
+        get rid of any mechanism that was built for 
+        """
+        from sqlkit.db.proxy import SKSessionExtension
+        for extension in self.session.extensions:
+            if isinstance(extension, SKSessionExtension): 
+                extension.sk_widgets.pop(extension.sk_widgets.index(self))
+        
     def _get_mapper(self, mapper, tables, class_=None):
 
         from sqlkit.db.utils import get_class
