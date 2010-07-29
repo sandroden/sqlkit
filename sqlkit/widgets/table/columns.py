@@ -817,7 +817,16 @@ class ColumnMenuProxy(object):
             menu.append(item)
         
     def add_total_cb(self, menu_item, field_name):
-        self.master.totals.add_total(field_name)
+
+        try:
+            self.master.totals.add_total(field_name)
+        except AttributeError:
+            # mmh this is from filter panel!
+            from . import totals
+            self.master.totals = totals.Totals(self.master,
+                                               treeview=self.master.filter_panel.view.treeview)
+            self.master.totals.add_total(field_name)
+            
         
     def add_subtotal_cb(self, menu_item, field_name):
         self.master.totals.add_break(field_name)

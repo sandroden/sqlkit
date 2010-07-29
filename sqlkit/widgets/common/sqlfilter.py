@@ -69,7 +69,7 @@ after creating the field and the column you would add it to the view as follows:
     col = columns.VarcharColumn(t, 'n_movies', 'Movie Count', field=count)
     my_mask.filter_panel.view.add_column(col)
 
-At this point you can sort the output on each column.
+At this point you can sort the output on each column and even get totals in it.
   
 """
 import re

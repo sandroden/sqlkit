@@ -58,12 +58,18 @@ class Totals(object):
     """
     total_class = TotalObj
 
-    def __init__(self, table):
+    def __init__(self, table, treeview=None):
+        """
+        :param table:  the tabe for which a total must be generated
+        :param treeview: in case 'table' does not have a treeview, you can specify it.
+                       Used when total is made for filter_panel.
+        """
         self.table = table
         self.totals = {}
         self.subtotals = {}
         self.break_func = None
         self.prev = None
+        self.treeview = treeview or table.treeview
         self.table.modelproxy.connect('model-sorted', lambda proxy, model: self.compute())
         self.table.modelproxy.connect('model-pre-sort', self.delete_total_rows)
 
@@ -195,7 +201,7 @@ class Totals(object):
     def preserve_selection(func):
         def new_func(self):
             self.table.commit_inhibited = True
-            selection = self.table.treeview.get_selection()
+            selection = self.treeview.get_selection()
             model, rows = selection.get_selected_rows()
             if rows:
                 path = rows[0]
@@ -287,5 +293,3 @@ def func_date_same_quarter(obj, field_name):
         return date.year, divmod(date.month -1, 3)[0]
     else:
         return None
-
-
