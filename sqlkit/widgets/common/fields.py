@@ -186,12 +186,12 @@ class FieldChooser(object):
         self.info = info
         self.widgets = widgets or {}
 
-    def get_field(self, field_name, db_spec=None, def_str=None, test=False):
+    def get_field(self, field_name, field_attrs=None, def_str=None, test=False):
         """
         return a field
 
         field_name:  the name of the field in the db
-        db_spec:     the dict for this field as worked out by InspectMapper
+        field_attrs:     the dict for this field as worked out by InspectMapper
         def_str:     the definition string in the layout that determined
                      the gtk.Widget (eg.: c=married, e=first_name)
                      as extracted by layoutgen and set in laygen.fields_in_layout dictionary
@@ -232,13 +232,13 @@ class FieldChooser(object):
             return IntervalField
 
         if self.info.is_time(field_name):
-            if db_spec['col'].type.timezone:
+            if field_attrs['col'].type.timezone:
                 return TimeField
             else:
                 return TimeField
 
         if self.info.is_datetime(field_name):
-            if db_spec['col'].type.timezone:
+            if field_attrs['col'].type.timezone:
                 return DateTimeTZField
             else:
                 return DateTimeField
@@ -253,18 +253,18 @@ class FieldChooser(object):
             return VarcharField
 
 #         raise NotHandledField("Field '%s' is not handled in any way: COL_SPEC: %s" %
-#                               (field_name, db_spec['col_spec']))
+#                               (field_name, filter_attr['col_spec']))
 
 class Field(object):
     Widget = None
     default_def_string = 'ae'
     type = None
     
-    def __init__(self, field_name, db_spec):
+    def __init__(self, field_name, field_attrs=None):
         
         """
         :param field_name:  the name of the field in the db
-        :param db_spec:     the dict as worked out by InspectMapper. Can be created by hand: that is
+        :param field_attrs:     the dict as worked out by InspectMapper. Can be created by hand: that is
                      usefull when field is not mapped in the database. These attributes may be
                      present:
 
@@ -287,7 +287,7 @@ class Field(object):
         """
 
         self.field_name = field_name
-        self._add_info(db_spec)
+        self._add_info(field_attrs or {})
         self.initial_value = None
 
     def set_widget(self, gtkwidget=None, def_str=None, widget=None):
@@ -353,21 +353,20 @@ class Field(object):
 
     editable = property(get_editable, set_editable)
     
-    def _add_info(self, db_spec):
+    def _add_info(self, field_attrs):
         """
         read docs in __init__
         """
-        self._nullable =  db_spec.get('nullable', True)  # don't trigger now widget.set_bg()
-        self._editable =  db_spec.get('editable', 'column' in db_spec and db_spec['column'] or False)
-        self.length   =  db_spec.get('length', None)
-        self.default  =  db_spec.get('default', None)
-        self.mapper   =  db_spec.get('mapper', None)
-        self.pkey     =  db_spec.get('pkey', None)
-        self.fkey     =  db_spec.get('fkey', None)
-        self.type     =  db_spec.get('type', self.TYPE)
-        self.property =  db_spec.get('property', None)
-        self.column   =  db_spec.get('col', None)
-        self.table    =  db_spec.get('table', None)
+        self._nullable =  field_attrs.get('nullable', True)  # don't trigger now widget.set_bg()
+        self._editable =  field_attrs.get('editable', 'column' in field_attrs and field_attrs['column'] or False)
+        self.length   =  field_attrs.get('length', None)
+        self.default  =  field_attrs.get('default', None)
+        self.mapper   =  field_attrs.get('mapper', None)
+        self.pkey     =  field_attrs.get('pkey', None)
+        self.fkey     =  field_attrs.get('fkey', None)
+        self.property =  field_attrs.get('property', None)
+        self.column   =  field_attrs.get('col', None)
+        self.table    =  field_attrs.get('table', None)
         if self.pkey:
             self._nullable = False
 
@@ -430,13 +429,17 @@ class Field(object):
         """
         return a value of the correct type, if needed parse it with
         locale parsers (numbers, date...)
+
+        :param value: the value to be cleaned (i.e. cated to correct type)
         """
         return value
    
     def format_value(self, value):
         """
-        return a string representaion of the value according to current locale
-        value is a "cleaned" value
+        return a **string representation** of the value according to current
+        locale value is a"cleaned" value
+
+        :param value: the value to be formatted (must already be casted to correct type)
         """
         return value
     
