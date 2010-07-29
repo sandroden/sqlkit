@@ -26,11 +26,11 @@ updating/saving process should have it's own controller that is a Field.
 A Field is an entity that knows how to handle a piece of data, be it on
 the database (a field_name) or just in the GUI. It knows:
 
-   - if it belongs to the database (it's attribute mapper is defined) and in
-     case how it is defined (sqlalchemy column)
-   - if it is nullable
-   - which widget must be used to represent it (see below)
-   - which locale/format should be used to represent it for numbers/dates/time
+   - if it belongs to the database (if attribute mapper is defined) and in
+     case how it is defined ( i.e.: sqlalchemy property/column)
+   - if it is nullable/editable
+   - which widget must be used to represent it (see below, not requested)
+   - how to produce a formatted representation of the field.
 
 It provides functions to
 
@@ -59,7 +59,7 @@ to the Field via set_widget()
 Db attributes
 -------------
 
-The inspector of the mapper of the sqlwidget sets these values:
+The costructor can be passed a dict of field_attributes
 
    * field_name: the name of the field
    * nullable: True if field is nullable or False. The related widget will get a background color that
@@ -112,10 +112,10 @@ receives a gtkwidget from layoutgenerator; that widget has been set by
 introspection of the layout description and of the field in the database.
 
 You can overwrite the decision of the field redefining the gui_field on a
-derived sqlwidget::
+derived sqlwidget or passing it as argument (see code snippet 34)::
 
   class Movie(SqlMask):
-      gui_fields = {'date_release' : VarcharField}
+      gui_field_mapping = {'date_release' : VarcharField}
 
   t = Movie(table='movie', dbproxy=db, layout=lay)
   
@@ -131,9 +131,9 @@ by sqlkit.widgets.mask.miniwiget.Widget. More tipically it is done by the
 layout procedure and the Fields/Widget just takes its control and adds
 completion capabilities.
 
-A notable exception to this rule is represented by any m2m relation, that in
-the layout is only present as a gtk.Alignment widget to which a children is
-added by mask.Widget
+A notable exception to this rule is represented by any m2m/o2m relation,
+that in the layout is only present as a gtk.Alignment widget to which a
+children is added by mask.Widget
 
 Global variables
 ================
@@ -150,12 +150,39 @@ or globally:
 
 Default value for BLANK_OK is False.
 
+Available Fields
+=================
+
+.. autoclass:: Field
+   :members: set_widget, set_value, get_value, clear_value, format_value, clean_value, has_changed,
+             get_default, set_default, validate, get_human_value, persistent, nullable, editable
+
+
+
+All other field inherit from Field
+
+.. autoclass:: VarcharField
+.. autoclass:: IntegerField
+.. autoclass:: FloatField
+.. autoclass:: DecimalField
+.. autoclass:: TextField
+.. autoclass:: DateField
+.. autoclass:: TimeField
+.. autoclass:: TimeTZField
+.. autoclass:: IntervalField
+.. autoclass:: DateTimeField
+.. autoclass:: DateTimeTZField
+.. autoclass:: BooleanField
+.. autoclass:: BooleanNullField
+.. autoclass:: ForeignKeyField
+.. autoclass:: CollectionField
+
+.. autofunction:: std_cleanup
 """
 import re
 import types
 from datetime import datetime, time, date, timedelta
 from decimal import Decimal
-from pprint import pprint 
 
 import babel
 from sqlalchemy.schema import ColumnDefault
@@ -283,7 +310,6 @@ class Field(object):
                      :mapper:   the mapper the field is defined into, if any
                      :pkey:     true if this field is a primary key
                      :fkey:     a sqlalchemy ForeignKey ogject if this field is a foreign key
-                     :type:     the python type the value maps to
                      :property: the sqlalchemy property the field has in the mapper
                      :column:   the sqlalchemy column the field maps to
                      :table:    the table the field is defined in, if any
@@ -385,12 +411,18 @@ class Field(object):
             self.widget.set_value(value)
 
     def get_value(self, shown=False):
+        """
+        Return the current value. Look for it in the widget and returns a cleaned value
+        """
         if not hasattr(self, 'widget'):
             return exc.MissingWidget("%s has no defined 'widget' " % self)
         value = self.widget.get_value(shown=shown)
         return self.clean_value(value)
 
     def clear_value(self):
+        """
+        sets a value that clears the corresponding widget, can be None or []
+        """
         self.set_value(None)
 
     def set_completion(self, regexp):
@@ -443,7 +475,14 @@ class Field(object):
         return a value of the correct type, if needed parse it with
         locale parsers (numbers, date...)
 
-        :param value: the value to be cleaned (i.e. cated to correct type)
+        :param value: the value to be cleaned (i.e. casted to correct type). It's the
+                      attribute of a persisten object or **the object itself** for non
+                      persisted fields. I.e.: if you create a custom field to count how many
+                      movies has directed each director, the Director instance will be passed
+                      as ``value``. 
+
+        This function is used while sorting a column 
+
         """
         return value
    
@@ -457,6 +496,10 @@ class Field(object):
         return value
     
     def validate(self, value, clean=False):
+        """
+        check if the current value is accepted and call ``on_field_validation``
+        on the master's hook.
+        """
         if not clean:
             try:
                 value = self.clean_value(value) 
@@ -1065,9 +1108,9 @@ class ForeignKeyField(Field):
         
 class CollectionField(Field):
     """
-    A field that uses a SqlTable to show and edit a collection
-    in read-wite mode
-    Used in OneTomany or ManyToMany db fields
+    A field that manages a collection of objects
+    Used in OneToMany or ManyToMany db fields.
+    it's default widget is a collectionWidget that uses a SqlTable
 
     """
     Widget = CollectionWidget
@@ -1107,20 +1150,12 @@ class CollectionField(Field):
             self.widget.set_value(value)
 
 
-
-
-
-
-
-
-
-
 def std_cleanup(fn):
     """
-    A decorator that will handle standard cases: value it's None, '' or already cleaned
+    A decorator that will handle standard cases: value it's None, a string or already cleaned
 
     This is handy when building new Fields as allows to use it as simple as possible, i.e.
-    no need to check for 
+    no need to check for stamdard cases::
 
         class CountMovies(fields.IntegerField):
             '''

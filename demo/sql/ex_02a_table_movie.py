@@ -31,7 +31,7 @@ class MyModel(ModelProxy):
 
 
 t = SqlTable('movie', dbproxy=db, order_by='title', )
-t.modelproxy = MyModel(t.modelproxy, treeview=t.treeview)
+t.modelproxy = t.modelproxy.copy(MyModel)
 t.modelproxy.tree_field_name = 'director_id'
 t.hide_fields('director_id')
 t.reload()

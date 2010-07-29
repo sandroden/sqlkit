@@ -13,6 +13,51 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+===========
+ModelProxy
+===========
+
+A proxy to the treeview model that can handle both listore and
+treemodels and allows to switch easily from one to the other 
+
+A second purpouse is to allow reorderable treeviews (i.e.: those wehere
+you can set order by drag&drop) via self.order_store
+attribute/function. If position of rows need to be memorized in a visual
+way, a field must be set (order_store) that will be reset each time a
+new record is added or a row is dragged.
+
+Clearly if that means something at all, entirely depends on the
+application. In these cases the order is set in the records currently
+handled by the model.
+
+Sorting
+=======
+
+A modelproxy can be sorted via it's order_by() method. This sorting is done
+locally as opposed to the sorting done setting order_by attribute on the table
+
+Signals
+=======
+
+a modelproxy emits signals:
+
+:model-pre-sort: This signal is emitted just before sorting the model. Used to get rid
+               of possible "total rows" in the liststore.
+
+:model-sorted: When the model is sorted. Totals listen to this signal
+               to be informed they must refresh data
+
+:model-changed: the model has changed the content
+
+.. attribute:: modelstore
+
+   the ListStore or TreeStore for which this ModelProxy is a Proxy.
+
+.. autoclass:: ModelProxy
+   :members: __init__, copy, order_by, tree_field_name
+
+"""
 import re
 
 import gtk
@@ -20,45 +65,6 @@ import gobject
 
 class ModelProxy(gobject.GObject):
     """
-    =============
-    ModelProxy
-    =============
-    
-    A proxy to the treeview model that can handle both listore and
-    treemodels and allows to switch easily from one to the other 
-
-    A second purpouse is to allow reorderable treeviews (i.e.: those wehere
-    you can set order by drag&drop) via self.order_store
-    attribute/function. If position of rows need to be memorized in a visual
-    way, a field must be set (order_store) that will be reset each time a
-    new record is added or a row is dragged.
-
-    Clearly if that means something at all, entirely depends on the
-    application. In these cases the order is set in the records currently
-    handled by the model.
-
-    Sorting
-    =======
-
-    A modelproxy can be sorted via it's order_by() method. This sorting is done
-    locally as opposed to the sorting done setting order_by attribute on the table
-
-    Signals
-    =======
-
-    a modelproxy emits signals:
-
-    :model-pre-sort: This signal is emitted just before sorting the model. Used to get rid
-                   of possible "total rows" in the liststore.
-
-    :model-sorted: When the model is sorted. Totals listen to this signal
-                   to be informed they must refresh data
-
-    :model-changed: the model has changed the content
-
-    .. attribute:: modelstore
-
-       the ListStore or TreeStore for which this ModelProxy is a Proxy.
     """
 
     __gsignals__ = {
@@ -84,22 +90,28 @@ class ModelProxy(gobject.GObject):
         :param order_store: the field_name where the path should be stored 
         """
         self.__gobject_init__()
-        if isinstance(master, ModelProxy):
-            self.master = master.master
-            self.modelstore = master.modelstore
-            self._tree_field_name = tree_field_name or master.tree_field_name
-            self.order_store = order_store or master.order_store
-        else:
-            self.master = master
-            self.modelstore = gtk.ListStore(object)
-            self._tree_field_name = tree_field_name 
-            self.order_store = None
+        self.master = master
+        self.modelstore = gtk.ListStore(object)
+        self._tree_field_name = tree_field_name 
+        self.order_store = None
         self._order_list = None
 
         self.treeview = treeview
         if treeview:
             treeview.set_model(self.modelstore)
 
+    def copy(self, class_):
+        """
+        Ceate another ModelProxy of class ``class_`` with the same other values
+
+        :param class_: class of the new ModelProxy, a descendent of ModelProxy. Used when
+                       you need to add a function to create a Header (see example 02a)
+        """
+        m = class_(self.master, tree_field_name=self.tree_field_name, treeview=self.treeview,
+                   order_store=self.order_store)
+        m.modelstore = self.modelstore
+        return m
+    
     def _get_tree_field_name(self):
 
         return self._tree_field_name
@@ -112,6 +124,7 @@ class ModelProxy(gobject.GObject):
             self.set_listmodel()
             
     tree_field_name = property(_get_tree_field_name, _set_tree_field_name)
+    """The field on which you want to group rows"""
     
     def update(self):
         """update master view according to self.tree_field_name and self.order_store

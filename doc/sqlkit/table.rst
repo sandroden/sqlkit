@@ -182,7 +182,7 @@ view. The same column may be repeated in different views.
    An example of a table with views: *numbers* and *dates* are really fields
    of the same table in the database.
 
-.. add_view_column:
+.. _add_view_column:
 
 Adding a column
 ---------------
@@ -206,8 +206,8 @@ You can add columns to a view if there's a correspondig ``field``
        """
        A field that presents the obj 
        """
-       def format_value(self, value):
-	   return "%(year)s %(title)s" % DictLike(value)
+       def clean_value(self, value):
+	   return value and "%(year)s %(title)s" % DictLike(value)
 
    my_field = ObjField('new_column', {'editable' : False, 'type' : str, 'length' : 30})
    t.gui_fields['new_column'] = my_field

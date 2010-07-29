@@ -1,7 +1,10 @@
 =============
-Internals
+Advanced
 =============
+
+These classes are only needed for advanced configurations
 
 .. toctree::
 
-   fields
+   modules
+   

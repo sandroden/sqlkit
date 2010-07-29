@@ -175,7 +175,7 @@ Basic assumptions and limitations
          ...
 	 ForeignKeyConstraint('first_field, second_field], [referenced1, referenced2])
 
-   This will be adressed in a future release 
+   This will be addressed in a future release 
 
 3. You are using one single metadata. This is a limit but it's my normal
    environment. There's not really anything that cannot be changed easily

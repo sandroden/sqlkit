@@ -1,4 +1,4 @@
-# Copyright (C) 2005-2006-2007-2008, Sandro Dentella <sandro@e-den.it>
+# Copyright (C) 2005-2010, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -1482,7 +1482,7 @@ class SqlWidget(gobject.GObject):
         :param order_by: reset order_by and apply when reloading. Permanent effect.
         :param OR: (boolean, default False) as in ``add_constraint`` you can specify if
                    conditions as in kwargs below should be ORed or ANDed (default)
-        :param kwargs: any filters accepted by the :ref:`django_syntax` and by add_filter
+        :param kwargs: any filters accepted by the :ref:`django-syntax` and by add_filter
 
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
         """

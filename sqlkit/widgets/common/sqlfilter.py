@@ -66,7 +66,7 @@ field in SqlMask.gui_fields::
 
   my_mask.gui_fields['obj__repr'] = CountMovies('obj__repr')
 
-Alternatively you can :ref:`add a column <add_column_view>` to the output view
+Alternatively you can :ref:`add a column <add_view_column>` to the output view
 after creating the field and the column you would add it to the view as follows::
 
     my_mask.filter_panel.view.add_column(col)

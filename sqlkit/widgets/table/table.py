@@ -1406,7 +1406,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         Add record to the model and setup all what is needed
 
-        :param obj: an object of type table.mapper.class_
+        :param obj: an object of type ``table.mapper.class_``
         """
         self.records += [obj]
         try:
