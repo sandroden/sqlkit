@@ -563,7 +563,11 @@ class SqlMask(sqlwidget.SqlWidget):
         self.emit('pre-display', obj)
 
         for field in self.gui_fields:
-            value = getattr(obj, field.field_name)
+            if field.field_name in self.mapper_info:
+                value = getattr(obj, field.field_name)
+            else:
+                value = field.clean_value(obj)
+                
             self.set_value(field.field_name, value, initial=True)
 
         self._set_arrows_sensitivness(display_idx)
