@@ -66,6 +66,7 @@ class Totals(object):
         """
         self.table = table
         self.totals = {}
+        self._break_field_name = None
         self.subtotals = {}
         self.break_func = None
         self.prev = None
@@ -108,10 +109,15 @@ class Totals(object):
         see ``func_date_*`` is this module for examples
            
         """
+        
         if not func:
             def subtotal_diff(obj):
                 return getattr(obj, field_name)
-            self.break_func = subtotal_diff
+            if self.break_func and self._break_field_name == field_name:
+                self.break_func = None
+            else:
+                self.break_func = subtotal_diff
+            self._break_field_name = field_name
         else:
             def subtotal_diff(obj):
                 return func(obj, field_name)

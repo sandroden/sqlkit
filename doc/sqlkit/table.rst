@@ -31,7 +31,8 @@ Column headers
 Each column is clickable. Clicking on the column pops up a menu that enables:
 
  - to add a filter on this field (see :ref:`filters`). This same action can
-   be done by pressing ``f`` on the column w/o opening the column menu.
+   be done by pressing ``f`` on the column w/o opening the column menu. Only
+   persisted fields can be filtered on.
 
  - to sort on this field (database sorting). Note that sorting on a
    ForeignKey will trigger a join with the referenced table and an attempt
@@ -46,7 +47,7 @@ Each column is clickable. Clicking on the column pops up a menu that enables:
  - to add a total on this column (if the column is numeric). This same action can
    be done by pressing ``t`` on the column w/o opening the column menu.
 
- - to add a brake on this column (see docs for :ref:`totals`). This same action can
+ - to toggle a brake on this column (see docs for :ref:`totals`). This same action can
    be done by pressing ``b`` on the column w/o opening the column menu.
 
  - to hide a column. This same action can
@@ -88,12 +89,13 @@ in the treeeview
 :Control-s:  saves the record
 :Control-q:  quits the table
 :Control-n:  opens a new record
-:s:  sorts the table locally (toggle between scending and descending)
+:s:  sorts the table locally (toggle between ascending and descending)
 :f:  open a filter for this column
 :t:  create a total if the column is numeric
-:b:  add a break for totals on this column. In addition to this operation it
+:b:  toggles a break for subtotals on this column. In addition to this operation it
      also sort on the column as it often happens you want a subtotal after
      having ordered. Adding a break from the column menu does not order.
+     
 
 in the editable cell
 --------------------

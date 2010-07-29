@@ -972,13 +972,24 @@ class View(object):
             return getattr(self, ksym)(wdg, event)
 
     def key_tree_b(self, treeview, event):
-        "sort: sort the treeview on this column"
+        "brake: sort the treeview on this column and add a subtotal for this field"
 
         field_name = self.get_field_name_from_pointer(treeview)
         if self.master.modelproxy._order_list == [(field_name, True)]:
             field_name = "-" + field_name
         self.master.modelproxy.order_by(field_name)
         self.master.totals.add_break(field_name)
+        
+    def key_tree_shift_B(self, treeview, event):
+        "brake: get rid of subtotals"
+        
+        field_name = self.get_field_name_from_pointer(treeview)
+        if self.master.modelproxy._order_list == [(field_name, True)]:
+            field_name = "-" + field_name
+        self.master.modelproxy.order_by(field_name)
+        print "self.master.totals.break_func", None
+        self.master.totals.break_func = None
+        self.master.totals.compute()
         
     def key_tree_f(self, treeview, event):
         "filter: add a filter for this column"
