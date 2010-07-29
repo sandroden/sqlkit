@@ -1427,7 +1427,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         Add record to the model and setup all what is needed
 
-        :param obj: and object of type table.mapper.class_
+        :param obj: an object of type table.mapper.class_
         """
         self.records += [obj]
         try:
@@ -1435,7 +1435,7 @@ class SqlTable(sqlwidget.SqlWidget):
         except:
             self.modelproxy.modelstore.append(None, [obj])
         self.session.add(obj)
-        self._record_new
+#        self._record_new
         self.totals.compute()
 
     def len_model(self, model=None):
