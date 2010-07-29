@@ -56,6 +56,7 @@ class GenericColumn(object):
     EXPAND = True
     MIN_DEFAULT_WIDTH = 4
     MAX_DEFAULT_WIDTH = 30
+    editable = False
     
     def __init__(self, master, field_name, title, field=None):
         """
@@ -169,9 +170,10 @@ class GenericColumn(object):
             cell.set_property(prop_name, formatted_value)        
             cell.set_property('foreground-set', False)
             cell.set_property('cell-background-set', False)
-            cell.set_property('editable', self.field._editable)
+            cell.set_property('editable', self.editable)
         else:
             cell.set_property(prop_name, formatted_value)
+            cell.set_property('editable', False)
         
 
     def editing_canceled_cb(self, widget):
@@ -226,6 +228,7 @@ class GenericColumn(object):
 
         :param editable: boolean
         """
+        self.editable = editable 
         for cell in self.column.get_cell_renderers():
             cell.set_property('editable', editable)
 
@@ -338,6 +341,7 @@ class BooleanColumn(GenericColumn):
 
         :param editable: boolean
         """
+        self.editable = editable
         for cell in self.column.get_cell_renderers():
             cell.set_property('activatable', editable)
 
@@ -407,7 +411,7 @@ class BooleanColumn(GenericColumn):
             cell.set_property('activatable', False)        
         elif isinstance(obj, self.master.mapper.class_):
             cell.set_property('visible', True)       
-            cell.set_property('activatable', self.field._editable)
+            cell.set_property('activatable', self.editable)
 
             if value is None:
                 cell.set_property('inconsistent', True)
@@ -881,6 +885,7 @@ class View(object):
         self.master = master
         self.name = name
         self.treeview = treeview
+        self.read_only = ro
         treeview.set_data('view', self)
 
         self.field_list = str2list(field_list)
@@ -1128,6 +1133,8 @@ class View(object):
             self.treeview.append_column(column.column)
         else:
             self.treeview.insert_column(column.column, position)
+        if self.read_only:
+            column.set_editable(False)
         
     def get_first_editable_col(self):
         """
