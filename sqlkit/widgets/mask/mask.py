@@ -566,7 +566,8 @@ class SqlMask(sqlwidget.SqlWidget):
         self.emit('pre-display', obj)
 
         for field in self.gui_fields:
-            if field.field_name in self.mapper_info:
+            if field.persistent:
+            #if field.field_name in self.mapper_info:
                 value = getattr(obj, field.field_name)
             else:
                 value = field.clean_value(obj)

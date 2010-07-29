@@ -149,7 +149,7 @@ class GenericColumn(object):
         obj = model.get_value(iter, 0) 
         ## when the column is not representing a db-column (eg. is a python function)
         ## we pass the object itself to the function
-        if self.field_name in self.master.mapper_info:
+        if self.field.persistent:
             value = getattr(obj, self.field_name)
         else:
             value = obj
@@ -158,7 +158,7 @@ class GenericColumn(object):
         cell.set_property(prop_name, value)        
 
         if hasattr(self.master, 'totals') and isinstance(obj, self.master.totals.total_class):
-            if self.field_name in self.master.mapper_info:
+            if self.field.persistent:
                 formatted_value = self.field.format_value(value)
                 obj.set_value_and_colors(cell, formatted_value, self.field_name)
             else:
@@ -264,9 +264,7 @@ class GenericColumn(object):
         label.set_markup(label_text)
 
         ## bold italic
-        if self.field_name in self.master.mapper_info:
-            if not self.master.is_nullable(self.field_name) and not (
-                self.master.mapper_info.fields[self.field_name]['default']):
+        if self.field.persistent and not self.field.nullable and not self.field.default:
                 label.set_markup('<b><i>%s</i></b>' % label_text)
 
         # EventBox
@@ -705,7 +703,7 @@ class ColumnMenuProxy(object):
         field = self.master.gui_fields[field_name]
         ## add to filter
         field_name_localized = self.master.get_label(field_name, gtk_label=True)
-        if field_name in self.master.mapper_info:
+        if field.persistent:
             ## TIP: menu entry to add a filter in the filter panel
             label_str = _("Add a filter on '%s'") % field_name_localized
             item = StockMenuItem(label=label_str, stock='gtk-find')
