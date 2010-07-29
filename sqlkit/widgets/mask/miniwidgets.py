@@ -18,9 +18,17 @@ Gtk Widgets
 ===========
 
 widgets to be used by fields to display values and edit 
-at the time of writing, intial value is stored here but should be moved to fields
 widgets only interpret gtk, while fields teat with real values and do validation
 
+Colors
+------
+
+You can change default color for not nullable object globally:
+
+  from sqlkit.widgets.mask import miniwidgets
+  miniwidgets.NOT_NULL_COLOR = gtk.gdk.color_parse('green')
+
+You can change the foreground of unsensitive widgets setting NOT_EDITABLE_COLOR
 
 """
 
@@ -35,8 +43,8 @@ from decimal import Decimal
 import gobject
 from sqlkit import exc
 
-#NOT_NULL_COLOR = gtk.gdk.color_parse('LightGoldenrod')
 NOT_NULL_COLOR = gtk.gdk.color_parse('#f6ebba')
+NOT_EDITABLE_COLOR = gtk.gdk.color_parse('#333')
 
 
 class Widget(object):
@@ -45,17 +53,27 @@ class Widget(object):
         self.field = field
         self.master = field.master
         self.field_name = field.field_name
-        self.set_not_null_style()
+        if not self.field.nullable:
+            self.set_not_null_style(not self.field.nullable)
         self.gtkwidget.connect('destroy', self.destroy)
-        gtkwidget.set_property('sensitive', self.field.editable) 
+        self.set_editable(self.field.editable)
 
-    def set_not_null_style(self):
-        if self.field.editable:
-            if not self.field.nullable:
-                self.set_bg()
+        self.set_text(state=gtk.STATE_INSENSITIVE, color=gtk.gdk.color_parse('#333'))
 
-    def set_bg(self, state=gtk.STATE_NORMAL,  color=NOT_NULL_COLOR):
-        self.gtkwidget.modify_base(state, NOT_NULL_COLOR)
+    def set_not_null_style(self, value):
+        if value:
+            if self.field.editable:
+                self.set_bg(state=gtk.STATE_NORMAL, color=NOT_NULL_COLOR)
+        else:
+            style = gtk.Entry().get_style()
+            color = style.base[gtk.STATE_NORMAL]
+            self.set_bg(state=gtk.STATE_NORMAL, color=color)
+
+    def set_bg(self, state, color):
+        self.gtkwidget.modify_base(state, color)
+        
+    def set_text(self, state, color):
+        self.gtkwidget.modify_text(state, color)
         
     def set_value(self, value, shown=False):
         """if shown is True, the displayed value is returned also in any
@@ -79,6 +97,14 @@ class Widget(object):
                 delattr(self, attr)
             except AttributeError:
                 pass
+
+    def set_editable(self, editable):
+        """
+        set the widget editability
+        if the fields is not editable, the widget cannot be editable
+        """
+        editable = self.field.editable and editable
+        self.gtkwidget.set_property('sensitive', editable) 
         
     def __repr__(self):
         return "< %s - %s >" % (self.__class__.__name__, self.field_name)
@@ -463,7 +489,6 @@ class ForeignKeyWidget(Widget):
         self.add_completion()
         self.real_value = True
         self.master.completions[self.field_name] = self.completion
-        self.set_not_null_style()
         self.value = None
         self.entry.connect('changed', self.on_entry_changed)
 

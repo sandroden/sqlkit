@@ -60,9 +60,11 @@ Db attributes
 The inspector of the mapper of the sqlwidget sets these values:
 
    * field_name: the name of the field
-   * nullable: True if field is nullable or False
-   * editable: True if field is editable or False
-   * length: te desired length in chars
+   * nullable: True if field is nullable or False. The related widget will get a background color that
+               reflects the fact that it is required (currently yellow). This can be set at any time.
+   * editable: True if field is editable or False. The related widget will be set unsensitive. This can
+               be set at any time.
+   * length: the desired length in chars
    * default: a possible default option
    * type: the python type
 
@@ -310,16 +312,25 @@ class Field(object):
         
     def set_nullable(self, value):
         self._nullable = value
-        self.widget.set_not_null_style()
+        self.widget.set_not_null_style(value)
 
     def get_nullable(self):
         return self._nullable
 
     nullable = property(get_nullable, set_nullable)
     
+    def set_editable(self, value):
+        self._editable = value
+        self.widget.set_editable(value)
+
+    def get_editable(self):
+        return self._editable
+
+    editable = property(get_editable, set_editable)
+    
     def _add_info(self, db_spec):
         self._nullable =  db_spec.get('nullable', True)  # don't trigger now widget.set_bg()
-        self.editable =  db_spec.get('editable', True)
+        self._editable =  db_spec.get('editable', True)
         self.length   =  db_spec.get('length', None)
         self.default  =  db_spec.get('default', None)
         self.mapper   =  db_spec.get('mapper', None)
