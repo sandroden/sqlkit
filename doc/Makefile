@@ -94,4 +94,5 @@ firefox:
 
 chtml:	clean html
 
-	
+refs:
+	find -name \*rst -exec grep -oE '\.\. \_([^:]+):\s*' {} \; 	
