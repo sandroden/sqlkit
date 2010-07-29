@@ -107,7 +107,7 @@ This class implements a way to decide which Field should be associated to
 each field_name in a mapper (used in setup_field_validation so that it can
 be easily overwritten).  It's important to understand that it already
 receives a gtkwidget from layoutgenerator; that widget has been set by
-introspection on the layout description and of the field in the database.
+introspection of the layout description and of the field in the database.
 
 You can overwrite the decision of the field redefining the gui_field on a
 derived sqlwidget::
@@ -150,16 +150,18 @@ Default value for BLANK_OK is False.
 
 """
 import re
+from datetime import datetime, time, date, timedelta
+from decimal import Decimal
+from pprint import pprint 
+
+import gtk
+import babel
+from sqlalchemy.schema import ColumnDefault
+
+from sqlkit import exc, _
 from sqlkit.widgets.mask.miniwidgets import *
 from sqlkit.widgets.table.tablewidgets import CellWidget
-from datetime import datetime, time, date, timedelta
-import gtk
-from pprint import pprint 
-from sqlalchemy.schema import ColumnDefault
-from decimal import Decimal
 from sqlkit.misc.babel_support import numbers, dates
-from sqlkit import exc, _
-import babel
 from sqlkit.db import minspect
 
 from sqlkit.exc import ValidationError, NotHandledField, NotHandledDefault
@@ -256,7 +258,8 @@ class FieldChooser(object):
 class Field(object):
     Widget = None
     default_def_string = 'ae'
-
+    type = None
+    
     def __init__(self, field_name, db_spec):
         
         """
@@ -276,7 +279,7 @@ class Field(object):
         :param def_str:     the definition string in the layout that determined
                      the gtk.Widget (eg.: c=married, e=first_name)
         :param widget:      the miniwidget to be used. Defaults to class-define self.Widget
-        :param gtkwidget:   the gtk widget to be used (already craeted by Layout)
+        :param gtkwidget:   the gtk widget to be used (already created by Layout)
         
         """
         
@@ -312,7 +315,10 @@ class Field(object):
         
     def set_nullable(self, value):
         self._nullable = value
-        self.widget.set_not_null_style(value)
+        try:
+            self.widget.set_not_null_style(value)
+        except AttributeError:
+            pass
 
     def get_nullable(self):
         return self._nullable
@@ -321,7 +327,10 @@ class Field(object):
     
     def set_editable(self, value):
         self._editable = value
-        self.widget.set_editable(value)
+        try:
+            self.widget.set_editable(value)
+        except AttributeError:
+            pass
 
     def get_editable(self):
         return self._editable
@@ -336,7 +345,7 @@ class Field(object):
         self.mapper   =  db_spec.get('mapper', None)
         self.pkey     =  db_spec.get('pkey', None)
         self.fkey     =  db_spec.get('fkey', None)
-        self.type     =  db_spec.get('type', None)
+        self.type     =  db_spec.get('type', self.TYPE)
         self.property =  db_spec.get('property', None)
         self.column   =  db_spec.get('col', None)
         self.table    =  db_spec.get('table', None)
@@ -440,7 +449,7 @@ class Field(object):
 
 class VarcharField(Field):
     Widget = VarcharWidget
-    
+    type = str
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
         self.blank_ok = BLANK_OK
@@ -466,6 +475,8 @@ class VarcharField(Field):
 ##### Numbers
 class IntegerField(Field):
     Widget = IntegerWidget
+    type = int
+    length = 8
     
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
@@ -500,7 +511,9 @@ class IntegerField(Field):
         
 class FloatField(IntegerField):
     Widget = FloatWidget
-
+    type = float
+    length = 10
+    
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
         #self.format = "#.###,000"
@@ -529,11 +542,23 @@ class FloatField(IntegerField):
         
 class DecimalField(IntegerField):
     Widget = DecimalWidget
-
+    type = Decimal
+    length = 10
+    
     def __init__(self, *args, **kw):
+        """
+        If column is defined precision and scale from column will be used. 
+        You need to set precision and scale after the field is created otherwise
+        """
         Field.__init__(self, *args, **kw)
-        self.precision = self.column.type.precision
-        self.scale = self.column.type.scale
+        
+        if self.column:
+            self.precision = self.column.type.precision
+            self.scale = self.column.type.scale
+        else:
+            self.precision = 8
+            self.scale = 2
+            
         self.format = "#,###.%s" % ('0' * self.scale)
         self.format_f = "%%.%sf" % self.scale
         self.locale = babel.default_locale('LC_NUMERIC')
@@ -568,6 +593,7 @@ class DecimalField(IntegerField):
 class TextField(VarcharField):
     Widget = TextWidget
     default_def_string = 'TXS'
+    type = str
 
     def set_max_length(self):
         pass
@@ -577,6 +603,7 @@ class DateField(Field):
     Widget = DateWidget
     default_def_string = 'd'
     format = None
+    type = date
         
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
@@ -612,6 +639,7 @@ class DateField(Field):
 class TimeField(DateField):
     Widget = TimeWidget
     default_def_string = 'ae'
+    type = time
 
     def clean_value(self, value):
 
@@ -658,21 +686,6 @@ class TimeTZField(TimeField):
                 self.TZ = None
                 self.microsecond = 0
         
-#     def set_value(self, value):
-#         if value:
-#             self.TZ = value.tzinfo
-#             self.microsecond = value.microsecond
-#         else:
-#             self.TZ = None
-#             self.microsecond = 0
-
-#         if not value:
-#             value = ''
-#         elif isinstance(value, time):
-
-#             value = value.strftime("%H:%M")
-#         self.gtkwidget.set_text(value)
-
     def get_value(self, shown=False):
         value = self.gtkwidget.get_text() 
         print self, self.field_name, value
@@ -689,9 +702,11 @@ class TimeTZField(TimeField):
 
 class IntervalField(Field):
     Widget = IntervalWidget
+    type = timedelta
 
 class DateTimeField(DateField):
     Widget = DateTimeWidget
+    type = datetime
 
     def __init__(self, *args, **kwargs):
         DateField.__init__(self, *args, **kwargs)
@@ -810,6 +825,7 @@ class BooleanField(Field):
 
     Widget = BooleanWidget
     default_def_string = 'c'
+    type = bool
 
     def clean_value(self, value):
         if value is None:
@@ -828,6 +844,7 @@ class BooleanNullField(Field):
     A boolean field that allows to set NULL
     """
     Widget = BooleanNullWidget
+    type = bool
 
     def clean_value(self, value):
         if value not in (True, False, None):
@@ -842,7 +859,8 @@ class ForeignKeyField(Field):
     The popup should trigger the filling of the model with
     """
     Widget = ForeignKeyWidget
-
+    type = str
+    
     def __init__(self, *args, **kwargs):
         Field.__init__(self, *args, **kwargs)
 
