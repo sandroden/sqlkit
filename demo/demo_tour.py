@@ -1,13 +1,15 @@
 import os
 import re
+import tokenize
+import keyword
+
 import gtk
 import gobject
 import pango
+
+
 from sqlkit.layout import Layout, layout
 from sqlkit import debug as dbg
-# use for simple syntax highlighting ;-)
-import tokenize
-import keyword
 
 (
    TITLE_COLUMN,
@@ -71,9 +73,8 @@ class Demo(object):
 
 
         demos, child_demos = self.create_demos(pattern, exclude)
-
         self.tv = self.w['TV=a']
-        ex = self.configure_treeview(self.tv, demos, self.src, self.note)
+        self.model = self.configure_treeview(self.tv, demos, self.src, self.note)
         if not debug:
             self.w['tb=gtk-execute'].hide()
         else:
@@ -132,6 +133,18 @@ class Demo(object):
         treeview.show_all()
         return model
 
+    def model_foreach_func(self, model, path, iter):
+
+        name = model.get_value(iter, 1)
+        if name:
+            self.snippet_names += [name]
+
+    def get_names(self):
+
+        self.snippet_names = []
+        self.model.foreach(self.model_foreach_func)
+        return self.snippet_names
+        
     def execute_clicked_cb(self, widget):
         """
         toggle visibility of the window that shows debug
@@ -179,6 +192,7 @@ class Demo(object):
         self.create_widget_tree(toplevel=GLOB['w']['Window'])
         GLOB['w']['Window'].set_title(file_name)
         self.w['Window'].set_title("Esempio: %s" % (file_name))
+        return GLOB['t']
 
     def load_module_by_idx(self, idx):
         """
@@ -191,8 +205,7 @@ class Demo(object):
         for f in files:
             if re.match("ex_%s_" % idx, f):
                 print "loading ", f
-                self.load_module(f.replace('.py',''))
-                return
+                return self.load_module(f.replace('.py',''))
             
     def prepare_treestore_for_elements(self, elements):
         tv = self.w['TV=el']

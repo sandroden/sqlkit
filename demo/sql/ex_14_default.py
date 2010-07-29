@@ -20,3 +20,5 @@ def_movie.fk('director_id', 'last_name', 'Fellini')
 t = SqlTable(table='movie',  dbproxy=db,     )
 
 
+## unregister to prevet conflicts in following examples
+del defaults.tables['movie']

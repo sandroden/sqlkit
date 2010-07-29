@@ -10,6 +10,11 @@ opens the demo console or directly an example defined by its number:
 usage: %prog [opts] ex_number
    -N, --no-gtk-debug: gtk debug
    -g, --gtk: gtk debug in window
+   -t, --test: run all snippets and run t.reload() for each of them
+   -o, --offset=n: skip the first 'n' snipets
+   -n, --number=l: stop after 'n' snippets
+   -r, --reload: reload all snippets (some will stop for confirmation)
+   -e, --exit: exit on exception
 """
 
 
@@ -77,6 +82,10 @@ class DemoSql(Demo):
         GLOB['t'].widgets['Window'].set_title(file_name)
         self.w['Window'].set_title("Example: %s" % (file_name))
 
+        while gtk.events_pending():
+            gtk.main_iteration()
+
+        return GLOB['t']
 
 d = DemoSql(xml=False, debug=True)
 
@@ -86,12 +95,32 @@ if args:
     def quit(widget):
         gtk.main_quit()
 
-    d.t.connect('delete-event', quit)
+    try:
+        d.t.connect('delete-event', quit)
+    except AttributeError:
+        print "No such example ", args[0]
+        sys.exit(1)
 
 if opts.gtk:
     l =d.execute_clicked_cb(None)
 #    gobject.idle_add(l.model_clear, None)
 
+if opts.test:
+    snippets = d.get_names()
+    start = opts.offset and int(opts.offset) or 0
+    stop = opts.number and start + int(opts.number) or None
+    print start, ':', stop
+    for snippet in snippets[start:stop]:
+        print "------------------ %s %s --------------" % (snippets.index(snippet), snippet)
+        try:
+            t = d.load_module(snippet)
+            if opts.reload:
+                t.reload()
+        except Exception, e:
+            print e
+            if opts.exit:
+                sys.exit(1)
+        
 if __name__ == '__main__':
     gtk.main()
 
