@@ -367,14 +367,17 @@ class SqlMask(sqlwidget.SqlWidget):
             for field in self.gui_fields:
                 field_name = field.field_name
                 try:
-                    value = self.gui_fields[field_name].get_value()
-                    self.gui_fields[field_name].validate( value , clean=True)
+                    value = field.get_value()
+                    if field.editable:
+                        field.validate( value , clean=True)
 
                     if field.mapper:   # persisted fields, mask2obj has already cleaned  them
                         setattr(obj, field_name, self.get_value(field_name))
 
                 except exc.ValidationError, e:
                     self.add_validation_error(e, field_name=field_name)
+                except exc.MissingWidget, e:
+                    pass
 
         return obj
 

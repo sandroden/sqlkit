@@ -7,6 +7,7 @@ class NotHandledField(Exception): pass
 class NotHandledDefault(Exception): pass
 
 class MissingPrimaryKey(Exception): pass
+class MissingWidget(Exception): pass
 
 class NoSyncError(Exception): pass
 class SyncNotAvailable(Exception): pass

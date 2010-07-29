@@ -14,6 +14,8 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+.. _fields:
+
 =======
 Fields
 =======
@@ -374,9 +376,12 @@ class Field(object):
         value = self.clean_value(value)
         if initial:
             self.initial_value = value
-        self.widget.set_value(value)
+        if hasattr(self, 'widget'):
+            self.widget.set_value(value)
 
     def get_value(self, shown=False):
+        if not hasattr(self, 'widget'):
+            return exc.MissingWidget("%s has no defined 'widget' " % self)
         value = self.widget.get_value(shown=shown)
         return self.clean_value(value)
 
@@ -403,8 +408,11 @@ class Field(object):
         """
         return the default value for this object
         """
-        value = self.master.defaults.get(self.field_name)
-
+        if hasattr(self, 'master'):
+            value = self.master.defaults.get(self.field_name)
+        else:
+            value = None
+            
         if not value:
             try:
                 value = self.default
@@ -494,10 +502,13 @@ class VarcharField(Field):
         value = self.clean_value(value)
         if initial:
             self.initial_value = value
-        self.widget.set_value(value or '')
+
+        if hasattr(self, 'widget'):
+            self.widget.set_value(value or '')
 
     def get_value(self, shown=False):
-        value = self.widget.get_value()
+
+        value = Field.get_value(self, shown)
         if value == '' and (self.initial_value is None or self.blank_ok is False):
             return None
         return value
@@ -533,7 +544,9 @@ class IntegerField(Field):
         value = self.clean_value(value)
         if initial:
             self.initial_value = value
-        self.widget.set_value(value)
+
+        if hasattr(self, 'widget'):
+            self.widget.set_value(value)
 
     def format_value(self, value):
         if value is None:
@@ -718,8 +731,8 @@ class TimeTZField(TimeField):
                 self.microsecond = 0
         
     def get_value(self, shown=False):
-        value = self.gtkwidget.get_text() 
-        print self, self.field_name, value
+
+        value = Field.get_value(self, shown)
         if not self.TZ:
             ## Local will return a tzinfo with the timezone of the system
             ## it will be added to bypass the limitaition od dateedit
@@ -806,7 +819,7 @@ class DateTimeField(DateField):
         
     def get_value(self, shown=False):
 
-        value = self.widget.get_value()
+        value = Field.get_value(self, shown)
 
         if value and value.microsecond:
             self.microsecond = value.microsecond
@@ -845,7 +858,7 @@ class DateTimeTZField(DateTimeField):
         and I don't provide a cell_renderer that gives you the opportunity to change it
         Attach the same timezone as the original data
         """
-        value = self.widget.get_value()
+        value = Field.get_value(self, shown)
         return self.clean_value(value)
 
 ##### Boolean
@@ -986,7 +999,10 @@ class ForeignKeyField(Field):
         return value
         
     def get_value(self, shown=False):
-        value = self.widget.get_value(shown=shown)
+
+        if not hasattr(self, 'widget'):
+            return exc.MissingWidget("%s has no defined 'widget' " % self)
+        value = self.widget.get_value(shown)
         ## a shown value is not to be transformed
         if not shown and value == '' and self.initial_value is None:
             return None
@@ -1003,7 +1019,8 @@ class ForeignKeyField(Field):
             value = self.clean_value(value, input_is_fkey=True)
         if initial:
             self.initial_value = value
-        self.widget.set_value(value, shown=shown)
+        if hasattr(self, 'widget'):
+            self.widget.set_value(value, shown=shown)
         if value:
             ## TODO/FIXME: I believe it's not needed to call this all the time we set the value
             # we only need to add this when initial is not True, but I'm not sure:
@@ -1077,10 +1094,12 @@ class CollectionField(Field):
         return copy(value)
 
     def set_value(self, value, initial=True, shown=False):
+
         self.initial_value = self.clean_value(value)
         if value is None:
             value = []
-        self.widget.set_value(value)
+        if hasattr(self, 'widget'):
+            self.widget.set_value(value)
 
 
 
