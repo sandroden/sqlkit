@@ -446,6 +446,13 @@ class AlignmentEntry(LContainer):
             'x_options' : 'expand|fill',
             })
 
+    def _get_w(self):
+        return -1
+    def _set_w(self, value):
+        ## when setting the with of an ae object we just want to set the width of the entry
+        return
+    w = property(_get_w, _set_w )
+
 class Entry(LWidget):
     gtkClass = 'GtkEntry'
     transpose = {
