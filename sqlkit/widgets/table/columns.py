@@ -682,11 +682,13 @@ class ColumnMenuProxy(object):
         field = self.master.gui_fields[field_name]
         ## add to filter
         field_name_localized = self.master.get_label(field_name, gtk_label=True)
-        label_str = _("Add a filter on '%s'") % field_name_localized
-        item = StockMenuItem(label=label_str, stock='gtk-find')
-#        item.connect('activate', self.filter_panel.add, ev, field_name )
-        item.connect('activate', self.master.filter_panel.add, ev, field_name, self.master )
-        menu.append(item)
+        if field_name in self.master.mapper_info:
+            ## TIP: menu entry to add a filter in the filter panel
+            label_str = _("Add a filter on '%s'") % field_name_localized
+            item = StockMenuItem(label=label_str, stock='gtk-find')
+    #        item.connect('activate', self.filter_panel.add, ev, field_name )
+            item.connect('activate', self.master.filter_panel.add, ev, field_name, self.master )
+            menu.append(item)
 
         ## sort
         item = gtk.ImageMenuItem('gtk-sort-ascending')
@@ -1172,5 +1174,7 @@ class View(object):
         if path is not None:
             self.treeview.get_selection().select_path(path)
             
+
+
 
 
