@@ -156,7 +156,6 @@ class SqlMask(sqlwidget.SqlWidget):
     
         ## add click that pops filter_panel
         for field_name, label in self.labels.iteritems():
-            #print "label", label, 'field_name', field_name
             event_box = label.parent
             event_box.connect('button-press-event', self.button_press_event_cb, field_name)
 
@@ -522,7 +521,7 @@ class SqlMask(sqlwidget.SqlWidget):
         :param index:  the index in self.records to be displayed
         :param incr:   increment to current index
         :param check:  boolean. If False prevent checking if saving is needed
-        :param delay_message: int. Number of seconds to wait before writing in the sttus bar.
+        :param delay_message: int. Number of seconds to wait before writing in the status bar.
                This is needed to prevent normal display message from hiding "Saved" message.
         """
         if not self.records:
