@@ -1,4 +1,4 @@
-# Copyright (C) 2005-2006-2007-2008, Sandro Dentella <sandro@e-den.it>
+# Copyright (C) 2005--2010, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ FilterPanel
 
 The filter panel is the panel where all filter conditions can be written (remeber that
 constraints are different in the sense that are filters applied w/o possibility to remove
-them). It opens as a window separate from the main window so that it's esay to hide or keep
+them). It opens as a window separate from the main window so that it's easy to hide or keep
 it at hand.
 
 Each sqlwidget has a FilterPanel even if it doesn't show it
@@ -36,21 +36,21 @@ Each sqlwidget has a FilterPanel even if it doesn't show it
 """
 import re
 import gtk
-import completion
-from sqlkit.layout import layout, misc
-from sqlkit import debug as dbg
-from sqlkit.db.utils import tables, get_description
+import warnings
+from datetime import *
+
 import sqlalchemy
 from sqlalchemy.sql import select, Join
-from sqlkit.db import minspect
-from datetime import *
-from sqlkit.db.django_syntax import django2components
-from sqlkit.misc import datetools 
-from sqlkit import _, exc
 from babel import dates
-import warnings
 
-class SqlDataFixNeeded(Exception): pass
+from sqlkit import debug as dbg, _, exc
+from sqlkit.db import minspect
+from sqlkit.db.utils import tables, get_description, DictLike
+from sqlkit.db.django_syntax import django2components
+from sqlkit.misc import datetools, utils
+from sqlkit.layout import layout, misc
+from sqlkit.widgets.table import columns, modelproxy
+import completion
 
 OP_MSGID = {
     'REGEXP' : _('Match as regexp'),
@@ -87,7 +87,7 @@ class FilterPanel(object):
 
     tree = None
     """The name of an attribute that will work as grouping attribute.
-    the output TreeView will show records grouped by the same attribute as parent/child.
+    The output TreeView will show records grouped by the same attribute as parent/child.
     It should be improved as the parent is a the record and not a row with the only
     grouping attribute.
     """
@@ -309,15 +309,6 @@ class FilterPanel(object):
             except (exc.DialogValidationError, exc.ValidationError), e:
                 return
 
-        else:
-            ## FIXME: sqlData no longe exists
-            ## we get here if we use set_reload
-            raise SqlDataFixNeeded()
-            res = self.master.session.query(self.mapper).select(
-                sql[0], params=sql[1], limit=self.get_limit())
-            #self.sqlData = sk.sqldata.SqlData(res, self.map_fields,
-            #                                  self.master.session)
-
         if 'TV=out' in self.w:
             if length:
                 self.fill_model()
@@ -444,7 +435,6 @@ class FilterPanel(object):
         # when changing selection we only have 1 arg: gtk.treeSelection
         # when clicking 'Refresh' we get e gtk.TreeSelection but no
         #      iter get selected
-
         ## first guess: we selected w/ pointer
         model, iter = self.selection.get_selected()
 
@@ -463,12 +453,6 @@ class FilterPanel(object):
         idx = self.model.get_value(iter, 0)
         if self.default_reload:
             self.master.record_display(index=int(idx))
-        else:
-            ## FIXME: this is a not supported configuration at the  moment
-            ## when set_reload is used
-            ## sqlData is local to panel filter in this situation!
-            raise SqlDataFixNeeded()
-#            self.master.actions.on_filter_reload(self.sqlData.get(index=int(idx)))
     
 ##### SQL
     def get_limit(self):
@@ -978,3 +962,5 @@ class FilterWidget(object):
 #         if ev.button == num_button:
 #             self.menu.popup(None, None, None, ev.button, ev.time )
         
+
+
