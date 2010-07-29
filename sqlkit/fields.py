@@ -150,6 +150,11 @@ or globally:
 
 Default value for BLANK_OK is False.
 
+This is only enforced for NEW records, for alreadu persisted records the default behaviour is
+to let it as-is, to prevent a very annoying flood of dialog "do you want to save?" when you
+just need to browse some data.
+
+
 Available Fields
 =================
 
@@ -550,13 +555,14 @@ class VarcharField(Field):
         
     def clean_value(self, value):
         if value == '' and not self.blank_ok:
-            value = None
+            if not self.initial_value == '':
+                value = None
         return value
 
     def set_value(self, value, initial=True, shown=False):
-        value = self.clean_value(value)
         if initial:
             self.initial_value = value
+        value = self.clean_value(value)
 
         if hasattr(self, 'widget'):
             self.widget.set_value(value or '')
@@ -564,7 +570,10 @@ class VarcharField(Field):
     def get_value(self, shown=False):
 
         value = Field.get_value(self, shown)
-        if value == '' and (self.initial_value is None or self.blank_ok is False):
+        if value == '' and (self.initial_value is None or (
+            ## it's very annoying that a db with '' value is turned into None if I don't do anything!
+            ## self.blank_ok should only set behaviour of NEW objects
+            self.blank_ok is False and not self.initial_value == '')):
             return None
         return value
 
