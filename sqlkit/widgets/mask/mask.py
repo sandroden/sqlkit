@@ -190,6 +190,7 @@ class SqlMask(sqlwidget.SqlWidget):
         ## used to represent the data are provided by another SqlMask
 
         if not self.gui_fields:
+            raise Exception("I shouldn't be here...")
             self.gui_fields = {}
 
         field_chooser = FieldChooser(self.mapper_info, self.widgets)

@@ -172,7 +172,7 @@ class GenericColumn(object):
             cell.set_property('cell-background-set', False)
             cell.set_property('editable', self.editable)
         else:
-            cell.set_property(prop_name, formatted_value)
+            cell.set_property(prop_name, value)
             cell.set_property('editable', False)
         
 
@@ -892,7 +892,9 @@ class View(object):
         self.tvcolumns = {}
         self.columns = {}
         self.cell_renderers = {}
-        self.master.setup_field_validation(self.field_list)
+
+        if self.field_list:
+            self.master.setup_field_validation(self.field_list)
         self.setup_columns()
         if not name in ('main',):
             ## for 'main' I do that later so that master.actiongroup_* will be ready

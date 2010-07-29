@@ -33,6 +33,44 @@ Each sqlwidget has a FilterPanel even if it doesn't show it
 .. autoclass:: FilterTool
    :members: set_value, get_value, set_operator, get_operator
 
+When the filter is used from a SqlTable, the output is displayed directly
+into the SqlTable.  When the filter is used from a SqlMask the output is
+shown in a special tab of the FilterPanel that is really a :ref:`View
+<views>` on the output that can be customized to a good degree. Default
+representation is ``str(obj)`` unless a you have defined a ``format``
+in the :ref:`database attribute description <sqlkit_table>` for that table.
+
+Customizing the output tab
+==========================
+
+The default representation of records is a :ref:`View <views>` with a single
+column named ``obj__repr`` that is a field that creates a str(obj) as
+explained above.
+
+If you want to change that representation you just need to substitute the
+field in SqlMask.gui_fields::
+
+  from sqlkit.widgets.common import fields
+  from sqlkit.db.utils import DictLike
+
+  class CountMovies(fields.IntegerField):
+      '''
+      A field that counts the movies
+      '''
+      def clean_value(self, value):
+          ## missing a field_name attribute on obj the objct itselt is passed
+          return len(value.movies)
+
+      def format_value(self, value):
+          return fields.IntegerField.format_value(self, len(value.movies))
+
+  my_mask.gui_fields['obj__repr'] = CountMovies('obj__repr')
+
+Alternatively you can :ref:`add a column <add_column_view>` to the output view
+after creating the field and the column you would add it to the view as follows::
+
+    my_mask.filter_panel.view.add_column(col)
+  
 """
 import re
 import gtk
@@ -83,6 +121,7 @@ OP_MSGID = {
 class FilterPanel(object):
     """A panel that manages filter conditions of a query: number of records,
     field names and output to point & click in case of a panel of a SqlMask
+
     """
 
     tree = None
@@ -163,15 +202,27 @@ class FilterPanel(object):
             ('tb=gtk-refresh', 'clicked', self.reload_cb)
                         )
         self.w['label-cursor'] = gtk.gdk.Cursor(gtk.gdk.HAND1)
-        #self.l.xml('/tmp/f.glade')
         if 'TV=out' in self.w:
-            self.model = gtk.TreeStore(str, str, object)
-            self.easytv = misc.EasyTreeView(
-                ['id', 'output', ], tv=self.w['TV=out'], model=self.model )
-            self.selection = self.easytv.tv.get_selection()
-            self.selection.connect('changed',self.on_selection_changed)
-#            self.model = self.easytv.tv.get_model()
-            self.easytv.tvc['id'].set_property('visible', False)
+            self._add_treeview()
+
+    def _add_treeview(self):
+
+        from sqlkit.widgets.common import fields 
+
+        class ObjField(fields.VarcharField):
+            """
+            A field that represents the obj for filter_panel
+            """
+            def clean_value(self, value):
+                return str(value)
+
+        field = ObjField('__obj__')
+        self.master.gui_fields['__obj__'] = field
+        col = columns.VarcharColumn(self.master, '__obj__', _('output'), field=field)
+        self.view = self.create_view()
+        self.view.add_column(col)
+        self.selection = self.view.treeview.get_selection()
+        self.selection.connect('changed',self.on_selection_changed)
 
     def sb(self, message, seconds=None):
         """
@@ -308,10 +359,13 @@ class FilterPanel(object):
 
         if 'TV=out' in self.w:
             if length:
-                self.fill_model()
+                self.master.modelproxy.fill_model(clear=True)
+
                 self.set_tab('output')
                 self.select_output_path(0)
-                self.easytv.tv.grab_focus()
+                self.view.treeview.grab_focus()
+                self.tv_resize()
+                self.view.on_zoom_fit()
             else:
                 self.model.clear()
 
@@ -325,8 +379,8 @@ class FilterPanel(object):
             path = self.get_path_for_obj(obj)
 
         if path is not None and len(self.model):
-            self.easytv.tv.get_selection().select_path(path)
-            self.easytv.tv.scroll_to_cell(path)
+            self.selection.select_path(path)
+            self.view.treeview.scroll_to_cell(path)
             
     def get_path_for_obj(self, obj):
         """
@@ -334,7 +388,7 @@ class FilterPanel(object):
         """
         path_list = [0]
         def compare(model, path, iter):
-            if self.model.get_value(iter, 2) == obj:
+            if self.model.get_value(iter, 0) == obj:
                 
                 path_list[0] = path
                 return True
@@ -383,43 +437,22 @@ class FilterPanel(object):
         self.mapper = mapper
         self.map_fields = minspect.InspectMapper(mapper)
 
-    def fill_model(self):
-        """Fill the treeview with a clickable list 
-
-        Fill the model of the treeview that holds the data
+    def create_view(self, field_list=None):
         """
+        create a sqlkit.widgets.table.column.View to represent the objects
+        """
+        if not hasattr(self.master, 'views'):
+            self.master.views = utils.Container()
+        treeview = self.w['TV=out']
 
-        table = self.master.mapper_info.get_primary_table(name=False)
-        format_string = get_description(table, attr='format')
-        description = tables[table.name].description
-
-        self.model.clear()
-        iter = {}
-        i = 0
-        for obj in self.master.records:
-            attr_value = getattr(obj, description)
-            if self.tree and self.tree not in iter:
-                attr_value = getattr(obj, self.tree)
-                iterR = self.model.append(iter[attr_value])
-                self.model.set(iterR,
-                               0, i,
-#                               1, format_string % vars(obj),
-                               1, str(obj),
-                               2, obj,
-                               )
-                iter[attr_value] = iterR
-            else:
-                iterR = self.model.append(None)
-                self.model.set(iterR,
-                               0, i,
-#                               1, format_string % vars(obj),
-                               1, str(obj),
-                               2, obj,
-                               )
-            i += 1
-
-        self.tv_resize()
-
+        view = columns.View(master=self.master, name='filter_panel', treeview=treeview,
+                    field_list=field_list, ro=True)
+        self.master.modelproxy = modelproxy.ModelProxy(self.master, treeview=treeview)
+        self.model = self.master.modelproxy.modelstore
+        view.treeview.set_model(self.master.modelproxy.modelstore)
+        self.master.views['filter_panel'] = view
+        return view
+        
     def tv_resize(self):
         tv = self.w['TV=out']
         tv.realize()
@@ -428,7 +461,7 @@ class FilterPanel(object):
             tv.set_property('height-request', 300)
             
     def on_selection_changed(self, *args):
-        # when clicking om the teeview we get 2 args: treeView, event
+        # when clicking on the teeview we get 2 args: treeView, event
         # when changing selection we only have 1 arg: gtk.treeSelection
         # when clicking 'Refresh' we get e gtk.TreeSelection but no
         #      iter get selected
@@ -447,10 +480,12 @@ class FilterPanel(object):
                 ## TypeError: no data in the treeview
                 return
             
-        idx = self.model.get_value(iter, 0)
         if self.default_reload:
+            try:
+                idx = self.master.records.index(model.get_value(iter, 0))
+            except ValueError:
+                return
             self.master.handler_block(self._id_record_selected)
-            idx = self.master.records.index(model.get_value(iter, 0))
             self.master.record_display(index=idx)
             self.master.handler_unblock(self._id_record_selected)
     
@@ -962,6 +997,10 @@ class FilterWidget(object):
 #         if ev.button == num_button:
 #             self.menu.popup(None, None, None, ev.button, ev.time )
         
+
+
+
+
 
 
 
