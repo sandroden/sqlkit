@@ -28,8 +28,7 @@ it at hand.
 Each sqlwidget has a FilterPanel even if it doesn't show it
 
 .. autoclass:: FilterPanel
-   :members: hide, show, get_tools, reload, set_tab, tree
-
+   :members: hide, show, get_tools, reload, set_tab, tree, replace_column
 .. autoclass:: FilterTool
    :members: set_value, get_value, set_operator, get_operator
 
@@ -44,11 +43,11 @@ Customizing the output tab
 ==========================
 
 The default representation of records is a :ref:`View <views>` with a single
-column named ``obj__repr`` that is a field that creates a str(obj) as
+column named ``__obj__`` that is a field that creates a str(obj) as
 explained above.
 
 If you want to change that representation you just need to substitute the
-field in SqlMask.gui_fields::
+column in the treeview::
 
   from sqlkit.widgets.common import fields
   from sqlkit.db.utils import DictLike
@@ -61,15 +60,16 @@ field in SqlMask.gui_fields::
           ## missing a field_name attribute on obj the objct itselt is passed
           return len(value.movies)
 
-      def format_value(self, value):
-          return fields.IntegerField.format_value(self, len(value.movies))
-
-  my_mask.gui_fields['obj__repr'] = CountMovies('obj__repr')
+  my_mask.filter_panel.replace_column(CountMovies)
 
 Alternatively you can :ref:`add a column <add_view_column>` to the output view
 after creating the field and the column you would add it to the view as follows::
 
+    count = CountMovies('n_movies')
+    col = columns.VarcharColumn(t, 'n_movies', 'Movie Count', field=count)
     my_mask.filter_panel.view.add_column(col)
+
+At this point you can sort the output on each column.
   
 """
 import re
@@ -224,6 +224,23 @@ class FilterPanel(object):
         self.selection = self.view.treeview.get_selection()
         self.selection.connect('changed',self.on_selection_changed)
 
+    def replace_column(self, field_class, field_name='__obj__'):
+        """
+        Replace the column of the output treeview with a customized one
+
+        :param field_class: a subclass of ``sqlwidget.widgets.common.fields.Field``
+               with a proper ``clean_value`` method
+        :param field_name: the field_name of the column, Default: ``__obj__`` (i.e. the
+               name used for the default column of the output treeview
+
+        """
+        
+        field = field_class(field_name)
+        col = columns.VarcharColumn(self.master, '__obj__', _('output'), field=field)
+        self.view.treeview.remove_column(self.view.tvcolumns['__obj__'])
+        self.view.add_column(col, 0)
+        self.master.gui_fields[field_name] = field
+        
     def sb(self, message, seconds=None):
         """
         Write messag on the status bar
