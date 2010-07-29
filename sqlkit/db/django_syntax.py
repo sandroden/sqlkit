@@ -91,6 +91,7 @@ OPERATORS = {
     'in'         : 'IN',
     'notin'      : 'NOT IN',
     'null'       : 'IS NULL',
+    'notnull'    : 'IS NOT NULL',
     }
 
 class DjangoParser(object):
