@@ -174,13 +174,54 @@ Views
 Views (added in rel 0.8.8) are a way to view the same data in two different
 TreeViews.  This way you can split a very large table into different chunks
 (vertically), leaving some columns to a view and others to a different
-view. The same column may be repeated in different view.
+view. The same column may be repeated in different views.
 
 .. figure:: ../img/table-views.png
    :align: right 
 
    An example of a table with views: *numbers* and *dates* are really fields
-   of the same table
+   of the same table in the database.
+
+.. add_view_column:
+
+Adding a column
+---------------
+
+You can add columns to a view if there's a correspondig ``field``
+(sqlkit.widgets.common.fields.Field) in ``table.gui_field``. Examples #31 and
+#32 show how to do that that essentially boils down to:
+
+#. Create a Field class that has a method that uses as input the object and
+   produces the output, you'll need a clean_value() method s well if you
+   want to be able to create a total on that column (see example #32)
+
+#. Add an instance of that Field to the fields used in the gui:
+   table.gui_fields
+
+#. Create a Column and add it to the View
+
+::
+
+   class ObjField(fields.VarcharField):
+       """
+       A field that presents the obj 
+       """
+       def format_value(self, value):
+	   return "%(year)s %(title)s" % DictLike(value)
+
+   my_field = ObjField('new_column', {'editable' : False, 'type' : str, 'length' : 30})
+   t.gui_fields['new_column'] = my_field
+   ## create a column
+   col = columns.VarcharColumn(t, 'new_column', 'My New Column', field=my_field)
+   ## add it to the view
+   t.views['main'].add_column(col, 0)
+
+
+.. note::
+
+   Adding a column that is not mapped to any db-field leads to a column that
+   cannot be filtered on. On the other hand you can sort (locally, read
+   below) on that column and also get totals.
 
 Sorting columns
 ===============
