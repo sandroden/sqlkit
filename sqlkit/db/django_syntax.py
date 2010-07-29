@@ -137,11 +137,11 @@ class DjangoParser(object):
 
         if op_str == 'icontains':
             eng_name = self.table.metadata.bind.name
-            if eng_name  == 'sqlite':
+            if eng_name.startswith('sqlite'):
                 sql = col.ilike("%%%s%%" % value.strip('%'))
-            elif eng_name == 'postgres':
+            elif eng_name.startstwith('postgres'):
                 sql = col.op('~*')(value)
-            elif eng_name == 'mysql':
+            elif eng_name.startswith('mysql'):
                 sql = col.op('REGEXP')(value)
                 
         elif op_str == 'null':
@@ -363,12 +363,12 @@ def get_regexp_op(bind_name, op_str, value):
     return the best approximation to regexp operator
     in sqlite fall back to (I)LIKE
     """
-    if bind_name == 'postgres':
+    if bind_name.startswith('postgres'):
         if op_str == 'regexp':
             return '~', value
         else:
             return '~*', value
-    elif bind_name == 'mysql':
+    elif bind_name.startswith('mysql'):
         return 'REGEXP', value
     else:
         return 'like', '%' + value + '%'
