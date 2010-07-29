@@ -175,7 +175,7 @@ class SqlMask(sqlwidget.SqlWidget):
         self.ui_manager.get_action('/Main/Go/Forward').set_sensitive(display_idx+1 < len(self.records))
         self.ui_manager.get_action('/Main/Go/Back').set_sensitive(display_idx > 0)
 
-    def setup_field_validation(self):
+    def setup_field_validation(self, field_list=None):
         """
         create fields.Field objects 
 
@@ -650,4 +650,6 @@ class SqlMask(sqlwidget.SqlWidget):
         return True if current editable -if exists- has a value that does not need validation
         """
         return self.gui_fields[field_name].widget.is_valid()
+
+
 
