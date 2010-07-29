@@ -470,7 +470,7 @@ class Field(object):
         try:
             return self._persistent
         except AttributeError:
-            self._persistent = hasattr(self, 'property')
+            self._persistent = hasattr(self, 'property') and self.property
             return self._persistent
 
     persistent = property(_get_persistent)

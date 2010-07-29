@@ -333,8 +333,9 @@ class SqlWidget(gobject.GObject):
             relationship_leader.connect('delete-event', self.delete_event_cb)
         self.records = []
         self.about_dialog = about_dialog or self.create_about_dialog()
-        self.filter_panel = self._get_filter_panel()
         self.show(show)
+        if not relationship_leader:
+            self._filter_panel =  sqlfilter.FilterPanel(self, visible=False)
         if hide_fields:
             self.hide_fields(hide_fields)
         self.set_format(format)
@@ -644,10 +645,13 @@ class SqlWidget(gobject.GObject):
         return info
         
     def _get_filter_panel(self):
+
         if self.relationship_leader:
             return self.relationship_leader.filter_panel
+        else:
+            return self._filter_panel
         
-        return sqlfilter.FilterPanel(self, visible=False)
+    filter_panel = property(_get_filter_panel)
 
     def _set_title(self, title):
 
