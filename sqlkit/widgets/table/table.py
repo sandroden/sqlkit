@@ -1273,7 +1273,8 @@ class SqlTable(sqlwidget.SqlWidget):
         path = self.edited_row_model_path
 
         if path is None:
-            return None
+            #return None
+            return self.get_selected_obj()
         else:
             obj = self.modelproxy.modelstore[path][0]
             return obj
