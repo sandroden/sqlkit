@@ -1065,6 +1065,8 @@ class SqlWidget(gobject.GObject):
                 return True
 
         for field in self.gui_fields:      
+            if not field.editable:
+                continue
             try:
                 if self.is_mask():
                     ## this part is needed only for mask as in table the cell-renderer does it
@@ -1483,19 +1485,6 @@ class SqlWidget(gobject.GObject):
 
         query = self.query.filter(None)
 
-#         if isinstance(sql, tuple) and len(sql) == 2:
-#             sql_str, params = sql
-#         else:
-#             sql_str = sql
-#             params = None
-
-#         if sql_str:
-#             print "BINGO!!! sql:", sql_str
-#         query = self.query.filter(sql_str)
-#         if params:
-#             print "BINGO!!!  params:", params
-#             query = query.params(**params)
-
         ## order_by
         if order_by:
             self.order_by = order_by
@@ -1794,7 +1783,10 @@ class SqlWidget(gobject.GObject):
         """
         return True if this field is a foreign key
         """
-        return self.mapper_info.is_fkey(field_name)
+        try:
+            return self.mapper_info.is_fkey(field_name)
+        except AttributeError:
+            return None
 
     def is_primary(self, field_name):
         """
