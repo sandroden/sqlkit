@@ -112,10 +112,7 @@ class FilterPanel(object):
         self.bind_name = self.master.metadata.bind.name
         self.tree = False
         if master.is_mask():
-            master.connect('record-selected', self.record_selected_cb)
-        
-#     def __del__(self):
-#         self.destroy()
+            self._id_record_selected = master.connect('record-selected', self.record_selected_cb)
 
     def record_selected_cb(self, mask):
         """
@@ -452,7 +449,10 @@ class FilterPanel(object):
             
         idx = self.model.get_value(iter, 0)
         if self.default_reload:
-            self.master.record_display(index=int(idx))
+            self.master.handler_block(self._id_record_selected)
+            idx = self.master.records.index(model.get_value(iter, 0))
+            self.master.record_display(index=idx)
+            self.master.handler_unblock(self._id_record_selected)
     
 ##### SQL
     def get_limit(self):
@@ -962,5 +962,7 @@ class FilterWidget(object):
 #         if ev.button == num_button:
 #             self.menu.popup(None, None, None, ev.button, ev.time )
         
+
+
 
 
