@@ -35,12 +35,16 @@ Hooks
 
 .. autofunction::  register_hook
 
+.. autofunction::  unregister_hook
+
 .. autofunction::  get_hook
 
 Layout
 ------
 
 .. autofunction::  register_layout
+
+.. autofunction::  unregister_layout
 
 .. autofunction::  get_layout
 

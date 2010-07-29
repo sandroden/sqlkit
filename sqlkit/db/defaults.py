@@ -181,6 +181,28 @@ def register_hook(table, hook, nick='default'):
     hook_dict[nick] = hook
     hooks[table_name] = hook_dict
 
+def unregister_hook(table, nick='default'):
+    """
+    unregister a hook
+
+    :param table: the table or table_name for which you unregister the hook
+    :param nick: the possible nick (default: 'default')
+    """
+
+    table_name = get_table_name(table)
+    del hooks[table_name]
+
+def unregister_layout(table, nick='default'):
+    """
+    unregister a layout 
+
+    :param table: the table or table_name for which you unregister the layout
+    :param nick: the possible nick (default: 'default')
+    """
+
+    table_name = get_table_name(table)
+    del layout_dict[table_name]
+
 def get_hook(table, instance=False, nick='default'):
     """
     Return a hook tor table or None
