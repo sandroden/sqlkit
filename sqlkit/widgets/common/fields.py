@@ -372,9 +372,8 @@ class Field(object):
         """
         return True if field has changed after last set
         """
-#         dbg.write("has_changed - %r: or: %r ==> %r" % (
-#             self.field_name, self.initial_value, self.get_value()))
-
+        if not self.editable:
+            return False
         try:
             return not self.get_value() == self.initial_value
         except exc.ValidationError:
