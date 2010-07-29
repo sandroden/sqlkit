@@ -1149,12 +1149,12 @@ class View(object):
         
         return menu
 
-    def setup_columns(self):
+    def setup_columns(self, field_list=None):
         """
         :param field_list: list of field_names or string to be splitted (comma or space separated)
         """
 
-        for field_name in self.field_list:
+        for field_name in field_list or self.field_list:
             
             if field_name in widgets.info:
                 label = widgets.info[field_name][0]
@@ -1282,6 +1282,8 @@ class View(object):
         if path is not None:
             self.treeview.get_selection().select_path(path)
             
+
+
 
 
 

@@ -390,6 +390,7 @@ class Header(object):
 
         self.master = master
         value = self.master.gui_fields[field_name].get_human_value(value)
+        self.field_name = field_name
         setattr(self, field_name, value)
         
     def __getattribute__(self, name):
@@ -399,6 +400,5 @@ class Header(object):
         except AttributeError:
             return None
 
-
-
-
+    def __str__(self):
+        return getattr(self, self.field_name)
