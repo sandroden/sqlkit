@@ -773,6 +773,7 @@ class SqlTable(sqlwidget.SqlWidget):
             self.relationship_leader.current in self.session.new):
             # TIP: when saving m2m, we delay till leader record will be saved
             self.sb(_('delaying saving when main record will be saved'))
+            self.delayed = True
         else:
             try:
                 self.commit()
@@ -782,13 +783,16 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.edited_row_model_path = None
                 self.modelproxy.modelstore.remove(iter)
                 self.sb(_("Record has NOT been saved"), seconds=100)
-
+            self.delayed = True
+            
         self.last_new_obj = None
         self._new_record = False
-        
-        if self.relationship_leader:
-            self.session.expire(self.relationship_leader.current)
-            self.relationship_leader.record_display(check=False, delay_message=2)
+
+        if not self.delayed:
+            self.session.expire(self.current)
+            if self.relationship_leader:
+                self.session.expire(self.relationship_leader.current)
+                self.relationship_leader.record_display(check=False, delay_message=2)
 
         if hasattr(obj, '_sqlkit_mode'):
             del obj._sqlkit_mode

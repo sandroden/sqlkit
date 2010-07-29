@@ -425,6 +425,7 @@ class SqlMask(sqlwidget.SqlWidget):
             
         self.last_new_obj = None
         
+        self.session.expire(self.current)
         self.record_display(check=False, delay_message=2)
         
     def record_save_new(self, wdg, constraint={}):
