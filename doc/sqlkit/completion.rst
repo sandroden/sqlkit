@@ -275,6 +275,8 @@ Remember that :ref:`validation` is a completely different mechanism than
 completion even if it's not possible to add a field that doesn't come from a
 completion.
 
+.. _customizing_description:
+
 customizing description
 -----------------------
 
@@ -284,7 +286,7 @@ will be represented. Default value is determined as described
 :ref:`above <description>`, but you can customize it as you prefere, as far
 as you use fields present in the query. As an example::
 
-  t.completions.director_id.format = '%(first_name)s %(last_name)s -- %(nation)'
+  t.completions.director_id.format = '%(first_name)s %(last_name)s -- %(nation)s'
 
 
 Behaviour on completion with m2m/m2o relationship
