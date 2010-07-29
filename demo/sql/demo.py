@@ -31,7 +31,7 @@ sys.path.insert(0,ppdir)
 from sqlkit.misc import optionparse
 opts, args = optionparse.parse(__doc__)
 
-if not opts.no_gtk_debug:
+if opts.gtk:
     from sqlkit import debug as dbg
     dbg.debug(True)
     dbg.debug(True, gtk=True)
