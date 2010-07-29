@@ -9,7 +9,7 @@
 
 Filtering is a very powerful feature of sqlkit. Any single field in a
 SqlWidget may become a filter criteria and many filters on a field are
-accepted. A filter panel handle the filters that may also belong to related
+accepted. A filter panel handles the filters that may also belong to related
 table: in that case a join will be built when selecting (read the note on 
 selecting throught joins in :ref:`relationships`)
 

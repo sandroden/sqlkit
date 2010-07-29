@@ -86,6 +86,8 @@ You would use module sqlkit.db.utils and create an object TableDescr::
 metadata is necessary so that TableDescr knows where to go and autoload
 Table to introspect it if you don't provide the search_field (see below)
 
+.. _sqlkit_table:
+
 _sqlkit_table
 --------------
 It's possible to write in the database the format string to be used in the
@@ -96,7 +98,7 @@ table. A table called ``_sqlkit_table`` is searched for.
   defined, the first char field of the tale is used, if it exists.
 
 :format: 
-   the value of this field is used to represent the record
+   the value of this field is used to represent the record, e.g.: "%(title)s %(year)s"
 
 You can easily edit this table using :ref:`sqledit`
 
