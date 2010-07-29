@@ -1,4 +1,4 @@
-# Copyright (C) 2005-2006-2007-2008, Sandro Dentella <sandro@e-den.it>
+# Copyright (C) 2005-2010, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,23 +13,20 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, re, datetime
-from sqlkit import layout
-
-import gtk, pango
-from sqlalchemy import *
-from sqlalchemy.exc import InvalidRequestError
-from sqlkit.widgets.common.fields import FieldChooser
-import sqlkit
-from sqlkit.widgets.common import completion, sqlwidget
+import re
+import datetime
 import decimal
-import sqlkit
-from sqlkit import debug as dbg
-from sqlkit import exc, _
-import gobject
-import gtk
 
-#NOT_NULL_COLOR = gtk.gdk.color_parse('yellow')
+import gtk
+import gobject
+
+from sqlalchemy.exc import InvalidRequestError
+
+import sqlkit
+from sqlkit import debug as dbg, exc, _, layout
+from sqlkit.widgets.common.fields import FieldChooser
+from sqlkit.widgets.common import completion, sqlwidget
+
 FK_COLOR = gtk.gdk.color_parse('navyblue')
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
 
@@ -38,7 +35,6 @@ class SqlMask(sqlwidget.SqlWidget):
     """
 
     __metaclass__ = dbg.LogTheMethods
-#    gui_fields = None  # mask widgets: key: field_name  value: ( gtkClass, widgetName )
     labels   = None  # correspondance Label <-> EventBox
     row_count = 0    # number of records in the mapper
     current_idx = 0

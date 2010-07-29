@@ -1,4 +1,5 @@
 import gtk
+
 import layout
 from sqlkit import _
 

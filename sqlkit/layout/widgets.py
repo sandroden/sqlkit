@@ -17,14 +17,16 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import re
-#import dateedit   #delayed until needed
-#import datetime
 import os
-import gtk, gobject
+
+import gtk
+import gobject
+
+from sqlkit import _
 from sqlkit import debug as  dbg
 from sqlkit.layout.greedy_treeview import GreedyTreeView
+
 class IdentifierAlreadyPresent: pass
-from sqlkit import _
 
 info = {}
 class LWidget(object):

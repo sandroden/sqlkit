@@ -1,5 +1,6 @@
 import os
 from ConfigParser import ConfigParser, NoSectionError
+
 class MissingNickDefinition(Exception): pass
 class Opts(object): pass
 

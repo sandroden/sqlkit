@@ -1,12 +1,29 @@
+# Copyright (C) 2008-2010, Sandro Dentella <sandro@e-den.it>
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import re
+
+import gtk
+import sqlalchemy as sa
+
+import sqlkit
 from sqlkit import debug as dbg, _
 from sqlkit.widgets import SqlTable, SqlMask
 from sqlkit.widgets.common import fields
 from sqlkit import layout
 from sqlkit.db import utils
-import sqlkit
-import sqlalchemy as sa
-import gtk
-import re
 
 GENERAL_UI = '''
   <menubar name="Main">
@@ -440,7 +457,7 @@ def open_sqlwidget(table, single, opts, db):
 
     else:
         try:
-            t = SqlTable(**options)
+            t = SqlTable(table, **options)
         except sqlkit.exc.MissingDescriptorField:
             pass
 

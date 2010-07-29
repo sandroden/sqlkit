@@ -1,4 +1,4 @@
-# Copyright (C) 2008, Sandro Dentella <sandro@e-den.it>
+# Copyright (C) 2008-2010, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -32,16 +32,16 @@ You can change the foreground of unsensitive widgets setting NOT_EDITABLE_COLOR
 
 """
 
-
-from sqlkit.widgets.common import localtimezone
-import gtk
-from sqlkit import debug as  dbg, _, exc
-from datetime import timedelta, time
-from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion
 import re
 from decimal import Decimal
+from datetime import timedelta, time
+
+import gtk
 import gobject
-from sqlkit import exc
+
+from sqlkit import debug as  dbg, _, exc
+from sqlkit.widgets.common import localtimezone
+from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion
 
 NOT_NULL_COLOR = gtk.gdk.color_parse('#f6ebba')
 NOT_EDITABLE_COLOR = gtk.gdk.color_parse('#333')

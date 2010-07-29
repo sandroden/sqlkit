@@ -1,5 +1,6 @@
-import sqlalchemy
 import re
+
+import sqlalchemy
 
 class Container(object):
     """

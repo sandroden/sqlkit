@@ -4,7 +4,8 @@ columns
 
 """
 
-import gtk, gobject
+import gtk
+import gobject
 
 class GreedyTreeView(gtk.TreeView):
     __gtype_name__ = 'GreedyTreeView'

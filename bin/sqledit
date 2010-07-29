@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright (C) 2005-2006-2007-2008, Sandro Dentella <sandro@e-den.it>
+# Copyright (C) 2005-2006-2007-2008-2009-2010, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -34,10 +34,14 @@ usage: %prog [options] [[url|nick] table]
    -l, --limit=LIMIT: limit to LIMIT rows
 """
 
-import sys, re, datetime
+import sys
 import os
+import re
+import datetime
 import user
 import locale
+
+import gtk
 
 if not 'LANG' in os.environ:
     my_locale, my_code = locale.getdefaultlocale()
@@ -46,19 +50,15 @@ if not 'LANG' in os.environ:
     import locale
     locale.setlocale(locale.LC_ALL, '')
 
-from sqlkit.widgets.common import fields
-
-from sqlkit import debug as dbg
-from sqlkit.misc import conf
-import sqlkit
-from sqlkit import layout, _
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exceptions import OperationalError
-import gtk
-from sqlkit.widgets.common import fields
-from sqlkit.misc import optionparse, table_browser
 from sqlalchemy.engine import url
+
+import sqlkit
+from sqlkit import debug as dbg, layout, _
+from sqlkit.widgets.common import fields
+from sqlkit.misc import conf, optionparse, table_browser
 
 # if 'LD_LIBRARY_PATH' in os.environ:
 #     print os.environ['LD_LIBRARY_PATH']

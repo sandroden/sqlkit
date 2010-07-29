@@ -1,4 +1,4 @@
-# Copyright (C) 2008, Sandro Dentella <sandro@e-den.it>
+# Copyright (C) 2008-2010, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,12 +14,14 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+
 from sqlalchemy import Table, MetaData, sql
 from sqlalchemy.orm import sessionmaker, mapper
+from sqlalchemy.orm.interfaces import SessionExtension
+
+from sqlkit import _
 from sqlkit.db import minspect, utils
 from sqlkit.exc import MissingPrimaryKey
-from sqlkit import _
-from sqlalchemy.orm.interfaces import SessionExtension
 
 class DbProxy(object):
     """

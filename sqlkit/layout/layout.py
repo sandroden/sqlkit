@@ -25,13 +25,16 @@ Each widget is defined by a very concise string similar to e=txt or b=var
 
 """
 import re
-#import dateedit    #delayed until a dateedit is needed -> widgets
-import widgets
-import gtk, gobject
+import os
+import tempfile
+
+import gtk
+import gobject
 import gtk.glade
-import os, os.path, tempfile
+
 from sqlkit import debug as dbg  # uncommenting brakes importing....
 from sqlkit import _
+import widgets
 
 class UnbalancedLayoutCurlyBaces(Exception): pass
 class ConnectBeforeShowNotImplemented(Exception): pass

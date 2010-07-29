@@ -1,7 +1,7 @@
-import gettext
-import sys
 import os
+import sys
 import gettext
+
 from sqlkit.misc import utils
 
 __version__ = '0.8.7'

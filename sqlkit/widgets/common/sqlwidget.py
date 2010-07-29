@@ -32,13 +32,13 @@ from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper, attribute
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.orm.mapper import Mapper
 
+import sqlkit
+from sqlkit import _, exc, layout, debug as  dbg
 from sqlkit import layout, debug as  dbg
 from sqlkit.layout import map_labels, get_label
 from sqlkit.db import minspect, defaults
 from sqlkit.widgets.common import completion, sqlfilter, layoutgenerator
 from sqlkit.misc.utils import Container, str2list
-import sqlkit
-from sqlkit import _, exc
 
 NUMBERS = (int, float, decimal.Decimal)
 
@@ -2288,7 +2288,6 @@ class UnsavedDataDialog(object):
             except Exception, e:
                 exc.ValidationError(e.message)
 
-#        import ipdb; ipdb.set_trace()
         if self.master.session.dirty or (
             self.master.record_has_changed() and self.master.current not in self.master.session.new):
             dirty_iter = self.model.append(None)

@@ -5,10 +5,12 @@ should work out a bettere widget an possibly contribute it...
 
 
 """
-import gobject
-import gtk
 import re
 from datetime import timedelta
+
+import gobject
+import gtk
+
 from sqlkit import debug as dbg
 
 

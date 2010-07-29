@@ -1,5 +1,9 @@
 from datetime import datetime
-import gtk, gobject, pango
+
+import gtk
+import gobject
+import pango
+
 from sqlkit import debug as  dbg
 from multiline_cell import MultilineCellRenderer
 

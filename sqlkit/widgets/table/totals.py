@@ -1,7 +1,9 @@
-from sqlkit.widgets.common import sqlwidget
 from datetime import date, datetime
-from sqlkit import debug as dbg
+
 import gtk
+
+from sqlkit import debug as dbg
+from sqlkit.widgets.common import sqlwidget
 
 class TotalObj(object):
     """

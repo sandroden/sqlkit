@@ -1,4 +1,4 @@
-# Copyright (C) 2008, Sandro Dentella <sandro@e-den.it>
+# Copyright (C) 2008-2010, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -62,13 +62,14 @@ by default. It's possible to use ``OR`` operator adding ``OR=True``  argument.
 
 
 """
+from copy import deepcopy
 
 from sqlalchemy.sql.expression import ColumnElement, ClauseList 
 from sqlalchemy.sql import and_, or_
 from sqlalchemy import Table
 from sqlalchemy.orm import ColumnProperty, PropertyLoader, class_mapper
 from sqlalchemy.types import Date, DateTime
-from copy import deepcopy
+
 from sqlkit.misc.datetools import string2dates
 from sqlkit.db import utils
 

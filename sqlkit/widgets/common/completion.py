@@ -1,4 +1,4 @@
-# Copyright (C) 2005-2006-2007-2008, Sandro Dentella <sandro@e-den.it>
+# Copyright (C) 2005-2010, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -27,23 +27,23 @@ group_by
 ``field_name`` will be added to the request and used to group completion possibilities 
 
 """
-
-
 import re
+from copy import copy
+
 import gtk
-from sqlkit import debug as dbg, _
-import sqlkit
+from gobject import markup_escape_text
+
 from sqlalchemy import text, select, Table, exceptions
 from sqlalchemy.sql import and_, or_, not_
 from sqlalchemy.orm import class_mapper, mapper
+
+import sqlkit
+from sqlkit import debug as dbg, _, exc
 from sqlkit.db.proxy import table2mapper
 from sqlkit.db.utils import tables, get_description, DictLike
-from sqlkit import exc
 from sqlkit.db.django_syntax import django2query
-from copy import copy
 from sqlkit.db import utils
 from sqlkit.debug.sql import debug_inline_params
-from gobject import markup_escape_text
 
 ####### Completion
 # EntryCompletion widgets are added on the fly triggered by F1, C-F1 or menu items

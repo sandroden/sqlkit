@@ -28,6 +28,7 @@
 
 import sys
 import os
+import re
 import time
 import locale
 import datetime
@@ -37,7 +38,7 @@ import pygtk
 import gobject
 import gtk
 from gtk import gdk
-import re
+
 from sqlkit import _
 
 class WrongDateFormat(Exception): pass

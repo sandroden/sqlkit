@@ -1,9 +1,11 @@
-from sqlkit import debug as dbg
+import sys
+
 import gobject
 import gtk
 import pango
+
+from sqlkit import debug as dbg
 from cell_renderers import CellRendererVarchar
-import sys
 
 def unset_real_size(window, event):
     """Fields 'real width' and 'real height' become obsolete (or at least
