@@ -71,6 +71,7 @@ class GenericColumn(object):
         if not field:
             field = self.master.gui_fields[field_name]
         self.field = field
+        self.title  = title
         self.field_name = field_name
         self.column = self.setup_column(title)
         cell = self.setup_cell_renderers()
@@ -253,7 +254,7 @@ class GenericColumn(object):
 
         # Label
         label_text, help_text = self.master.label_map.get(self.field_name, (None, None))
-        label_text = self.master.get_label(label_text or self.field_name)
+        label_text = self.master.get_label(label_text or self.title)
         label = gtk.Label()
         label.set_markup(label_text)
 
@@ -1195,6 +1196,8 @@ class View(object):
         if path is not None:
             self.treeview.get_selection().select_path(path)
             
+
+
 
 
 
