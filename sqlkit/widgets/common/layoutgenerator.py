@@ -305,8 +305,8 @@ class LayoutGenerator (object):
         if length:
             ## really long field should not eat up all the space
             ## (but you can override this by hand!...)
-            if length > 50:
-                length = 50
+            if length > 30:
+                length = 30
             ## now alignment: this will ensure it will grow
             ##  if more space is given to the window via rezising
             spec = ":%s" % length

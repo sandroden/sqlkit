@@ -8,6 +8,20 @@ Backward Incompatibilities
 From version 0.8.6 (first public release) I keep track of backward
 incompatibilities:
 
+0.9.0
+=====
+:Mask: a fix in the layout machinary make setting width specs
+       working... that means you may need to fine tune the width of your
+       entryes. You set the width of an entry as follows::
+
+          last_name:40
+	  first_name:30-
+	  sex:1>
+
+       the first sets 40 chars, the second sets 30 that would grow to use
+       available space, the latter would use 2 chars and would right align
+       it (compared to other entries)
+
 0.8.7
 =====
 

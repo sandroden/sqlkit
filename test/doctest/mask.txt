@@ -17,7 +17,7 @@
 >>> lay = "title"
 >>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> sm.lay_obj.lay
-'L=title ae=title:50-'
+'L=title ae=title:30-'
 >>> sm.laygen.fields_in_layout
 {'title': 'e=title'}
 
@@ -41,7 +41,7 @@ L=text e=text
 >>> lay = "TXS=description"
 >>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> sm.lay_obj.lay
-'L=description TXS=description:50-'
+'L=description TXS=description:30-'
 >>> sm.laygen.fields_in_layout
 {'description': 'TX=description'}
 
@@ -84,14 +84,14 @@ L=director_id fk=director_id
 >>> lay = "{>>.open title}"
 >>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
-{>>.open L=title ae=title:50-}
+{>>.open L=title ae=title:30-}
 >>> sm.laygen.fields_in_layout
 {'title': 'e=title'}
 
 >>> lay = "{>.closed title}"
 >>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
-{>.closed L=title ae=title:50-}
+{>.closed L=title ae=title:30-}
 
 >>> lay = "m2m=genres"
 >>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
@@ -150,7 +150,7 @@ b=gtk-save-as
 ...      """
 >>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
-L=title ae=title:50-       L=year ae=year:5< 
+L=title ae=title:30-       L=year ae=year:5< 
      L=director_id fk=director_id - - 
      m2m=genres  - m2m=actors -
 
@@ -169,7 +169,7 @@ L=title ae=title:50-       L=year ae=year:5<
 >>> print sm.lay_obj.lay.strip()
 {|.uno
         {N  { %title
-              L=title ae=title:50-   L=year ae=year:5<
+              L=title ae=title:30-   L=year ae=year:5<
             }
             {  %file
               m2m=genres m2m=actors -
@@ -177,7 +177,7 @@ L=title ae=title:50-       L=year ae=year:5<
          }
      }
             
-# :50 is wrong for dates and numbers
+# :30 is wrong for dates and numbers
 >>> sm = SqlMask(Movie, dbproxy=db, naked=True, show=True)
 
 # sm.current is added with gobject.idle_add...
