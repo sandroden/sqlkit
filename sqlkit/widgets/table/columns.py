@@ -1120,7 +1120,7 @@ class View(object):
         
         columns = self.treeview.get_columns()
         second_choice = []
-        for field_name in self.field_list:
+        for field_name in [c.get_data('field_name') for c in self.treeview.get_columns()]:
             if self.tvcolumns[field_name].get_visible() and self.master.is_editable(field_name):
                 if self.master.gui_fields[field_name].get_default():
                     second_choice += [self.tvcolumns[field_name]]
