@@ -1989,11 +1989,21 @@ class SqlWidget(gobject.GObject):
         
         for key in ('table_name', 'name', 'db_type', 'col_spec', 'fkey', 'default',
                     'pkey', 'nullable', 'editable', 'length'):
-            if key == "db_type":
-                model.set(model.append(), 0,  key, 1, self.mapper_info.fields[field_name][key].__name__)
-            else:
-                model.set(model.append(), 0,  key, 1, self.mapper_info.fields[field_name][key])
-
+            miter = model.append()
+            try:
+                if key == "db_type":
+                    model.set(miter,
+                              0,  key,
+                              1, self.mapper_info.fields[field_name][key].__name__)
+                else:
+                    model.set(miter,
+                              0,  key,
+                              1, self.mapper_info.fields[field_name][key])
+            except AttributeError:
+                    model.set(miter,
+                              0,  key,
+                              1, getattr(self.gui_fields[field_name], key, ''))
+                
         try:
             cell = self.tvcolumns[field_name].get_cell_renderers()[0]
             model.set(model.append(), 0,  'width', 1, cell.get_data('width'))
