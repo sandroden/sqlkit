@@ -277,12 +277,16 @@ class ModelProxy(gobject.GObject):
         :param more: other fields to use when field_name is the same
 
         """
-
-        v1 = getattr(obj1, field_name, None)
-        v2 = getattr(obj2, field_name, None)
-        if fkey:
-            v1 = self.master.gui_fields[field_name].lookup_value(v1)
-            v2 = self.master.gui_fields[field_name].lookup_value(v2)
+        if hasattr(obj1, field_name):
+            v1 = getattr(obj1, field_name)
+            v2 = getattr(obj2, field_name)
+            if fkey:
+                v1 = self.master.gui_fields[field_name].lookup_value(v1)
+                v2 = self.master.gui_fields[field_name].lookup_value(v2)
+        else:
+            v1 = self.master.gui_fields[field_name].clean_value(obj1)
+            v2 = self.master.gui_fields[field_name].clean_value(obj2)
+            
 
         if v1 == v2:
             if not more:
@@ -319,6 +323,7 @@ class ModelProxy(gobject.GObject):
              to get an ascending ordering on status and descending on description
              implemented just for one attribute
         """
+
         if order_list == None:
             self._order_list = None
             return
@@ -336,6 +341,7 @@ class ModelProxy(gobject.GObject):
         rows = [tuple(r) + (i,) for i, r in enumerate(self.modelstore)]
         if rows:
             rows.sort(cmp=self.comp_func)
+
             self.modelstore.reorder([r[-1] for r in rows])        
             self.emit('model-sorted', self.modelstore)
 
@@ -345,7 +351,7 @@ class ModelProxy(gobject.GObject):
         for tk in order_list.split():
             m = re.match('(?P<asc>[+-]?)(?P<field_name>.*)', tk)
             asc, field_name = m.groups()
-            fkey = self.master.is_fkey(field_name)
+            fkey = self.master.gui_fields[field_name].fkey
             if asc == '-':
                 output += [(field_name, False, fkey)]
             else:
