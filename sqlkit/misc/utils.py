@@ -55,10 +55,7 @@ class Container(object):
         return self._attrs
 
     def get(self, key, default=None):
-        try:
-            return getattr(self, key)
-        except KeyError:
-            return defalut
+        return getattr(self, key, default)
 
 
 def check_sqlalchemy_version(req):
