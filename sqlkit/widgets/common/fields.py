@@ -358,7 +358,7 @@ class Field(object):
         read docs in __init__
         """
         self._nullable =  field_attrs.get('nullable', True)  # don't trigger now widget.set_bg()
-        self._editable =  field_attrs.get('editable', 'column' in field_attrs and field_attrs['column'] or False)
+        self._editable =  field_attrs.get('editable', 'property' in field_attrs and field_attrs['property'] or False)
         self.length   =  field_attrs.get('length', None)
         self.default  =  field_attrs.get('default', None)
         self.mapper   =  field_attrs.get('mapper', None)
@@ -464,6 +464,16 @@ class Field(object):
         return the value or a translation in human readable for foreign key
         """
         return self.format_value(value)
+        
+    def _get_persistent(self):
+        
+        try:
+            return self._persistent
+        except AttributeError:
+            self._persistent = hasattr(self, 'property')
+            return self._persistent
+
+    persistent = property(_get_persistent)
         
     def __repr__(self):
         return "<%s - %s >" % (self.__class__.__name__, self.field_name)
