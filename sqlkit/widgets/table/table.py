@@ -1404,8 +1404,13 @@ class SqlTable(sqlwidget.SqlWidget):
             ## NOTE: when this function return a True value, iteration terminates!!!
             obj = model.get_value(iter, 0)
             view = self.views[view_name]
-            ret += [[self.gui_fields[f].get_human_value(getattr(obj, f)) for f in view.field_list
-                    if view.tvcolumns[f].get_property('visible')]]
+            field_list = [c.get_data('field_name') for c in view.treeview.get_columns()
+                          if c.get_property('visible')]
+                          
+            ## getattr(obj, f, obj): obj is used when the column does not have a 1-1 mapping
+            ## to an attribute as happens for FunctionColumn that show a function out of the
+            ## record
+            ret += [[self.gui_fields[f].get_human_value(getattr(obj, f, obj)) for f in field_list ]]
 
         def get_all_rows():
             ret = []
@@ -1519,6 +1524,8 @@ class ExportDialog(dialogs.SaveDialog):
                             quoting=self.QUOTE or csv.QUOTE_MINIMAL)
         writer.writerows(self.get_rows_func())
         f.close()
+
+
 
 
 
