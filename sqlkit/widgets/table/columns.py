@@ -162,12 +162,14 @@ class GenericColumn(object):
                 obj.set_value_and_colors(cell, formatted_value, self.field_name)
             else:
                 obj.set_value_and_colors(cell, getattr(obj, self.field_name), self.field_name)
+            cell.set_property('editable', False)        
 
         elif isinstance(obj, self.master.mapper.class_):
             formatted_value = self.field.format_value(value)
             cell.set_property(prop_name, formatted_value)        
             cell.set_property('foreground-set', False)
             cell.set_property('cell-background-set', False)
+            cell.set_property('editable', self.field._editable)
         else:
             cell.set_property(prop_name, formatted_value)
         
@@ -402,8 +404,10 @@ class BooleanColumn(GenericColumn):
 
         if isinstance(obj, self.master.totals.total_class):
             cell.set_property('visible', False)        
+            cell.set_property('activatable', False)        
         elif isinstance(obj, self.master.mapper.class_):
-            cell.set_property('visible', True)        
+            cell.set_property('visible', True)       
+            cell.set_property('activatable', self.field._editable)
 
             if value is None:
                 cell.set_property('inconsistent', True)
@@ -585,6 +589,7 @@ class FKeyColumn(VarcharColumn):
         
         if isinstance(obj, self.master.totals.total_class):
             cell.set_property('text', '')
+            cell.set_property('editable', False)        
 
         elif isinstance(obj, self.master.mapper.class_):
             fkey_value = getattr(obj, self.field_name)
@@ -595,6 +600,7 @@ class FKeyColumn(VarcharColumn):
                 cell.set_property('text', value)
             else:
                 cell.set_property('text', '')
+            cell.set_property('editable', self.field._editable)
         else:
             cell.set_property('text', getattr(obj, self.field_name))
 
