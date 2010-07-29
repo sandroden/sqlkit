@@ -644,7 +644,7 @@ class DecimalField(IntegerField):
         """
         Field.__init__(self, *args, **kw)
         
-        if self.column:
+        if self.column is not None:
             self.precision = self.column.type.precision
             self.scale = self.column.type.scale
         else:

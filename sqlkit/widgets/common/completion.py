@@ -53,6 +53,7 @@ from sqlkit.debug.sql import debug_inline_params
 OP = {
     'sqlite' : 'LIKE',
     'postgres'     : '~*',
+    'postgresql'     : '~*',
     'mysql'  : 'ILIKE',
     }
 
@@ -137,9 +138,12 @@ class SimpleCompletion(object):
             self.attrs += [field_name]
             group_column = self.table.columns[field_name]
             self.columns += [group_column]
-            self.query = self.query.add_column(group_column)
+            if hasattr(self.query, 'add_columns'):
+                self.query = self.query.add_columns(group_column)  # SqlAlchemy 0.6
+            else:
+                self.query = self.query.add_column(group_column)   # SqlAlchemy 0.5
             if self.filtered_query:
-                self.filtered_query = self.filtered_query.add_column(grup_column)
+                self.filtered_query = self.filtered_query.add_columns(grup_column)
 
         self._group_by = field_name
         self._order_by = [self.table.columns[f] for f in [field_name, self.description]]

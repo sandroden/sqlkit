@@ -39,6 +39,7 @@ from sqlkit.layout import map_labels, get_label
 from sqlkit.db import minspect, defaults
 from sqlkit.widgets.common import completion, sqlfilter, layoutgenerator
 from sqlkit.misc.utils import Container, str2list
+from sqlkit.misc import printing
 
 NUMBERS = (int, float, decimal.Decimal)
 

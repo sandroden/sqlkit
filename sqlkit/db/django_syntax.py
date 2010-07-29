@@ -257,7 +257,7 @@ def django2components(mapper_or_table, kw=None):
                     # element from the table but when using mapper/table expressing joins
                     # the name of the column changes while  mappers have the name we expect
                     col0 = getattr(table.columns, joins[0], None)
-                if col0:
+                if col0 is not None:
                     join_args = (col.table, col0 == col0.foreign_keys[0].column)
                 else:
                     join_args = False

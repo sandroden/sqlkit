@@ -552,7 +552,7 @@ class FilterTool(object):
 
         ## db_spec['table'] may not be defined if the column correspond to an expression
         
-        if self.db_spec['table'] and self.master.relationship_path:
+        if self.db_spec['table'] is not None and self.master.relationship_path:
             ## use an alias in case we have another filter to the same table
             self.table = self.db_spec['table'].alias()
         else:
@@ -571,7 +571,7 @@ class FilterTool(object):
             self.col = cols[0]
         else:
             ## Note: here self.table can be the alias of self.master.mapper_info.field[field_name].table
-            if self.table:
+            if self.table is not None:
                 self.col = self.table.c[self.field_name]
             else:
                 ## no aliasing here: is any possible to alias a _Label/expression?

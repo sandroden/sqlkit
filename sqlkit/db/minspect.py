@@ -110,7 +110,7 @@ class InspectMapper(Container):
         
         try:
             col_spec = mapper.c[field_name].type.get_col_spec()
-        except NotImplementedError,e:
+        except (NotImplementedError, AttributeError),e:
             col_spec = None
         d = Container({
             'name'        :  str(field_name),
@@ -143,7 +143,7 @@ class InspectMapper(Container):
             d['editable']    =  field_name not in self.noup
 
 
-        if d['table'] and col.table.name not in self.table_mappers:
+        if d['table'] is not None and col.table.name not in self.table_mappers:
             #dbg.write("%s %s" % (mapper.local_table.name, self.table_mappers))
             self.table_mappers[col.table.name] = (self.mapper.class_, self.mapper)
             self.pkeys[col.table.name] = []
