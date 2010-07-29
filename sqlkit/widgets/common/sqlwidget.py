@@ -859,7 +859,7 @@ class SqlWidget(gobject.GObject):
         If mode start with + or - the following permissions are granted/revoked for the widget
         by adding or removing from the modes already present. If no sign is used the mode is set.
 
-        ``mode`` is a property, you can set it directly: ``self.mode = b``
+        ``mode`` is a property, you can set it directly: ``self.mode = 'b'``
 
         The mode influences permission by setting menu entries active or not. It's not acting on
         the session. If an object has been inserted in the session a simple update operation

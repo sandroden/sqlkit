@@ -844,7 +844,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         :param skip_check: we already know it needs saving. Passed to unsaved_changes_exists
         :param skip_new: skip_new may be an object whose changes we disregard (see unsaved_changes_exist)
-        Return False if cancel is pressed
+        :return: False if cancel is pressed
         
         """
 
@@ -1249,7 +1249,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """Return the path of the selected row or None
 
         NOTE: treeselection 'changed' signal arrives when the selection changed has
-              alreadu occurred
+              already occurred
 
         """
         selection = self.treeview.get_selection()
@@ -1266,7 +1266,7 @@ class SqlTable(sqlwidget.SqlWidget):
     def get_current_obj(self):
         """
         Return the corrently edited (not just selected!!) obj or obj at path.
-        Selection can already be elsewehre (as in on_selection_change)
+        Selection can already be elsewhere (as in on_selection_change)
         Read comment in set_value
         Return None if no selection
         """
@@ -1293,7 +1293,7 @@ class SqlTable(sqlwidget.SqlWidget):
     def get_obj_at_path(self, path, all=False):
         """
         Return the object at path. Return None if no selection.
-        If the object at path is a total object (see :ref:`total`) it
+        If the object at path is a total object (see :ref:`totals`) it
         will be discarder unless you use param all=True
 
         :param path: the modelproxy.modelstore path

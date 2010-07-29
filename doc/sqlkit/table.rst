@@ -11,7 +11,7 @@ the foreign key is used.
 
 .. autoclass:: sqlkit.widgets.SqlTable(see_below)
    :members: create_view, set_field_list, set_editable, set_opts,  select_path,
-             add_record, set_fk_layout, record_in_mask, fkey_record_in_mask,
+             add_record, set_fk_layout, record_in_mask, fkey_record_in_mask
 
 
 Attributes
@@ -156,7 +156,7 @@ both for Table and Mask generation that allows to use the same Hook for both
 widgets. 
 
 Signals and callbacks are arranged so that it will follow the selection of
-the table. The newly created mask will inherit the :ref:`mode` of the table,
+the table. The newly created mask will inherit the :ref:`mode <set_mode>` of the table,
 i.e. if the table was read-only the mask will be opened in read-only mode.
 On the other hand the mask will be have browsing inhibited.
 
