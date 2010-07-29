@@ -20,6 +20,9 @@ This should allow to be as generic as possible while adding new renderers
 Each Column widget need a 'master' argument that is the SqlWidget
 in editing_started_cb and  edited_cb to set state variables on SqlWidget
 
+.. autoclass:: View
+   :members: add_column, select_path
+
 """
 
 
@@ -880,12 +883,15 @@ class ColumnMenuProxy(object):
 class View(object):
 
     """
-    A View is a particular view of the SqlTable's model, i.e. a choice of columns to
-    be shown (or hidden). Each SqlTable has one mandatory view named 'main' and possibly
-    other views. Attribute ``views`` (a sqlkit.utils.Container) stores them.
 
-    It can be used to provide different way to look at the same data
+    A View is a set of columns of the SqlTable's that offers a (possibly
+    partial) view of the model. Each SqlTable has one mandatory view named
+    ``main`` and possibly other views. Attribute ``views`` (a
+    sqlkit.utils.Container) stores them.
+
+    It can be used to provide different ways to look at the same data
     (e.g. different cell-renderers) or different columns for long ones
+
     """
     def __init__(self, master, name, treeview=None, field_list=None, cell_renderers=None, ro=False):
         """

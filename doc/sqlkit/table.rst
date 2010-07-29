@@ -262,4 +262,3 @@ Sorting columns can be done in 2 different ways:
         ``s`` when **focus in in the treeview** (i.e. you ave already
         clicked the treeview). Sorting will toggle ascending and descending.
 
-
