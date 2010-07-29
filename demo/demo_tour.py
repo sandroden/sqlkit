@@ -1,3 +1,6 @@
+# DISCLAIMER: This is an awful peace of code... I'm aware of it
+# but it works and it dosn't hurt anybody it you don't try to read it!...
+
 import os
 import re
 import tokenize
@@ -14,10 +17,11 @@ from sqlkit import debug as dbg
 (
    TITLE_COLUMN,
    MODULE_COLUMN,
-   FUNC_COLUMN,
+   DEMO_COLUMN,
    ITALIC_COLUMN,
    MAPPED,
-) = range(5)
+   TOOLTIP,
+) = range(6)
 CHILDREN_COLUMN = 3
 
 class InputStream(object):
@@ -41,8 +45,10 @@ class InputStream(object):
 
 
 class Demo(object):
-    def __init__(self, pattern=".+.py$", xml=True, debug=False, exclude="demo.py"):
+    example_pattern = 'ex_.*.py'
+    def __init__(self, pattern=None, xml=True, debug=False, exclude="demo.py"):
 
+        self.pattern = pattern or self.example_pattern
         lay = """
            { {B m=_File  } {O tb=gtk-execute } }
            {v 
@@ -72,9 +78,9 @@ class Demo(object):
         self.ts_pack = self.prepare_treeview_tree(self.w['TV=pack'])
 
 
-        demos, child_demos = self.create_demos(pattern, exclude)
+        self.demos = self.create_demos(self.pattern, exclude)
         self.tv = self.w['TV=a']
-        self.model = self.configure_treeview(self.tv, demos, self.src, self.note)
+        self.model = self.configure_treeview(self.tv, self.demos, self.src, self.note)
         if not debug:
             self.w['tb=gtk-execute'].hide()
         else:
@@ -86,13 +92,15 @@ class Demo(object):
             ('gtk-quit' , 'activate', gtk.main_quit, ),
             )   
 
-    def configure_treeview(self, treeview, testgtk_demos, src, note):
+    def configure_treeview(self, treeview, demos, src, note):
+        
         model = gtk.TreeStore(
             gobject.TYPE_STRING,
             gobject.TYPE_STRING,
+            gobject.TYPE_PYOBJECT,
+            gobject.TYPE_BOOLEAN,
+            gobject.TYPE_BOOLEAN,
             gobject.TYPE_STRING,
-            gobject.TYPE_BOOLEAN,
-            gobject.TYPE_BOOLEAN,
         )
 
         treeview.set_model(model)
@@ -100,35 +108,32 @@ class Demo(object):
         selection.set_mode(gtk.SELECTION_BROWSE)
         treeview.set_size_request(200, -1)
 
-        for module in testgtk_demos:
+        sections = []
+        for ex in demos:
+            if ex.section not in sections:
+                sections += [ex.section]
+        iters = {}
+        for section in sections:
             iter = model.append(None)
             model.set(iter,
-                TITLE_COLUMN, module[TITLE_COLUMN],
-                MODULE_COLUMN, module[MODULE_COLUMN],
-                FUNC_COLUMN, module[FUNC_COLUMN],
-                ITALIC_COLUMN, False,
-                MAPPED, False
+                      TITLE_COLUMN, section,
             )
+            iters[section] = iter
 
-            try:
-                children = module[CHILDREN_COLUMN]
-                for child_module in children:
-                    child_iter = model.append(iter)
-                    model.set(child_iter,
-                        TITLE_COLUMN, child_module[TITLE_COLUMN],
-                        MODULE_COLUMN, child_module[MODULE_COLUMN],
-                        FUNC_COLUMN, child_module[FUNC_COLUMN],
-                        ITALIC_COLUMN, False,
-                        MAPPED, False
+        for demo in demos:
+            iter = model.append(iters[demo.section])
+            model.set(iter,
+                      TITLE_COLUMN, demo.title,
+                      MODULE_COLUMN, demo.filename,
+                      DEMO_COLUMN, demo,
+                      TOOLTIP, "%s\n\n%s" % (demo.title, demo.doc),
                     )
-            except IndexError:
-                pass
 
         cell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Widget", cell, text=TITLE_COLUMN)
         treeview.append_column(column)
         selection.connect('changed', self.selection_changed_cb)
-
+        treeview.set_tooltip_column(TOOLTIP)
         treeview.expand_all()
         treeview.show_all()
         return model
@@ -168,18 +173,13 @@ class Demo(object):
         if not iter:
             return False
 
-        name = model.get_value(iter, MODULE_COLUMN)
-        self.load_module(name)
-        self.l.sb("file: %s.py" % name)
+        demo = model.get_value(iter, DEMO_COLUMN)
+        self.load_module(demo)
+        self.l.sb("file: %s" % demo.filename)
 
-    def load_module(self, name, asrc=None, anote=None):
-        # set last_layout_object
-        file_name = name + ".py"
-        doc, body = self.readexample(file_name)
-
-        ### fill text: src, notes, and xml
-        self.insert_source(body, self.src)
-        self.note.set_text(doc)
+    def load_module(self, demo):
+        self.insert_source(demo.body, self.src)
+        self.note.set_text(demo.doc)
 
         ### exec the example
         GLOB = {'Layout': Layout, 'layout': layout, 'gtk': gtk}
@@ -201,11 +201,9 @@ class Demo(object):
           demo.py 03
           
         """
-        files = os.listdir(".")
-        for f in files:
-            if re.match("ex_%s_" % idx, f):
-                print "loading ", f
-                return self.load_module(f.replace('.py',''))
+        for demo in self.demos:
+            if demo.idx == idx:
+                return self.load_module(demo)
             
     def prepare_treestore_for_elements(self, elements):
         tv = self.w['TV=el']
@@ -291,53 +289,13 @@ class Demo(object):
         dbg.gtk_dbg.show_widgets()
 
     def create_demos(self, pattern=None, exclude=None):
-        ### taken from __init__.py demos dir 
+
         file_list = [x for x in os.listdir('.') if re.match(pattern, x) and not re.match(exclude, x)]
-
-        demo_list = []
         file_list.sort()
-        for mod in file_list:
-            # Leave underscored Modulnames.
-            if re.match('[_A-Z]',mod):
-                continue
-            mod = mod[:-3]
-            txt, body = self.readexample(mod + ".py")
-            if body:
-                _description = txt.splitlines()[0]
-                demo_list.append((_description, mod))
 
-        child_demos = {}
-        testgtk_demos = []
-
-        def beauty(m):
-            return m.group(1)[0].isupper() and m.group(1) or m.group(1).capitalize()
-
-        D_TEMPL ="%sDemo"
-        for descr, mod in demo_list:
-            # Find some categorized demos
-            try:
-                main, child = descr.split('/')
-            except ValueError:
-                # No, only one application
-                demo_class = D_TEMPL % re.sub('(\S+) *', beauty, descr)
-                testgtk_demos.append((descr, mod, demo_class))
-
-            else:
-                # Ok. Some more testing
-                demo_class = D_TEMPL % re.sub('(\S+) *', beauty, child)
-
-                try:
-                    # Applicationgroup already defined?
-                    child_demos[main.upper()].append((child, mod, demo_class))
-                except KeyError:
-                    # No. Start a new category
-                    child_demos.setdefault(main.upper(), []).append((child, mod, demo_class))
-                    testgtk_demos.append((main, None, None, child_demos[main.upper()]))
-
-
-        return (testgtk_demos, child_demos)
-
-
+        demo_list = [Example(ex) for ex in file_list]
+        
+        return demo_list
 
 
     def create_widget_tree(self, new=False, toplevel=None):
@@ -350,18 +308,6 @@ class Demo(object):
 
         show_widgets.fill_model(toplevel, model)
         self.tv_tree.expand_all()
-
-# def fillBuf(buf, file=None, txt=None):
-#     if file:
-#         idf = open(file,"r")
-#         txt = idf.read()
-#         idf.close()
-
-#     buf.set_text(txt)
-
-# def txt2buf(tx_note, txt):
-#     buf.set_text(txt)
-
 
     def insert_source(self, data, buf):
 
@@ -425,22 +371,6 @@ class Demo(object):
                                        style=pango.STYLE_ITALIC)
 
 
-    def readexample(self, file_name):
-        """ read the __doc__ of the example and separate it from the body"""
-
-        idf = file(file_name,'r')
-        txt = idf.read()
-        idf.close()
-        pat = re.compile(r'''
-        ^"""(?:(?P<doc>.*?)""")\s*(?P<body>(.*))
-        ''', re.MULTILINE| re.DOTALL|re.VERBOSE)
-        m = pat.search(txt)
-        if m:
-            return  m.group('doc','body')
-        else:
-            return (None, None)
-
-
     def iconify(self):
         self.w['Window'].iconify()
         
@@ -479,3 +409,41 @@ class TreeShow(object):
             iter = ts.append(None)
             ts.set(iter, 0, i[0], 1, i[1],  2, i[2],
                    3, i[3],  4, i[4])
+
+
+class Example(object):
+
+    def __init__(self, filename):
+
+        self.doc, self.body = self.readexample(filename)
+        self.filename = filename
+        self.description = self.doc.splitlines()[0]
+        self.doc = "\n".join(self.doc.splitlines()[1:])
+        # ex_01b_import_table.py
+        m = re.match('ex_(?P<idx>.*?)_(?P<name>.*).py', self.filename)
+        self.idx = m.group('idx')
+        self.name = m.group('name')
+        self.section, self.title = self.description.split('/')
+        
+    def readexample(self, file_name):
+        """
+        read the __doc__ of the example and separate it from the body
+        """
+
+        idf = file(file_name,'r')
+        txt = idf.read()
+        idf.close()
+        pat = re.compile(r'''
+        ^"""(?:(?P<doc>.*?)""")\s*(?P<body>(.*))
+        ''', re.MULTILINE| re.DOTALL|re.VERBOSE)
+        m = pat.search(txt)
+        if m:
+            return  m.group('doc','body')
+        else:
+            return (None, None)
+
+    def __str__(self):
+        return self.filename
+    
+    def __repr__(self):
+        return "<Example: %s>" % self.filename

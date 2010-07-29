@@ -11,7 +11,7 @@ usage: %prog [opts] ex_number
    -N, --no-gtk-debug: gtk debug
    -g, --gtk: gtk debug in window
    -t, --test: run all snippets and run t.reload() for each of them
-   -o, --offset=n: skip the first 'n' snipets
+   -o, --offset=n: skip the first 'n' snippets
    -n, --number=l: stop after 'n' snippets
    -r, --reload: reload all snippets (some will stop for confirmation)
    -e, --exit: exit on exception
@@ -47,14 +47,10 @@ from sqlkit.db import proxy, defaults, utils
 import model
 
 class DemoSql(Demo):
-    def load_module(self, name):
-        # set last_layout_object
-        file_name = name + ".py"
-        doc, body = self.readexample(file_name)
-
+    def load_module(self, demo):
         ### fill text: src, notes, and xml
-        self.insert_source(body, self.src)
-        self.note.set_text(doc)
+        self.insert_source(demo.body, self.src)
+        self.note.set_text(demo.doc)
 
         ### exec the example
         GLOB = {
@@ -66,7 +62,7 @@ class DemoSql(Demo):
             'model': model,
 
             }
-        execfile(file_name, GLOB)
+        execfile(demo.filename, GLOB)
         self.last_lo = GLOB['t'].lay_obj
         self.last_w  = GLOB['t'].widgets
         self.t = GLOB['t']
@@ -79,8 +75,8 @@ class DemoSql(Demo):
         #self.xml.set_text(GLOB['l'].xml())
         self.create_widget_tree(toplevel=GLOB['t'].widgets['Window'])
         self.prepare_treestore_for_elements(GLOB['t'].lay_obj.elements)
-        GLOB['t'].widgets['Window'].set_title(file_name)
-        self.w['Window'].set_title("Example: %s" % (file_name))
+        GLOB['t'].widgets['Window'].set_title(demo.filename)
+        self.w['Window'].set_title("Example: %s" % (demo.filename))
 
         while gtk.events_pending():
             gtk.main_iteration()
@@ -106,14 +102,13 @@ if opts.gtk:
 #    gobject.idle_add(l.model_clear, None)
 
 if opts.test:
-    snippets = d.get_names()
     start = opts.offset and int(opts.offset) or 0
     stop = opts.number and start + int(opts.number) or None
     print start, ':', stop
-    for snippet in snippets[start:stop]:
-        print "------------------ %s %s --------------" % (snippets.index(snippet), snippet)
+    for demo in d.demos[start:stop]:
+        print "------------------ %s %s --------------" % (d.demos.index(demo), demo)
         try:
-            t = d.load_module(snippet)
+            t = d.load_module(demo)
             if opts.reload:
                 t.reload()
         except Exception, e:
