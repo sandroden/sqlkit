@@ -295,7 +295,7 @@ class LayoutGenerator (object):
                 return ":8"
             elif self.master.is_float(field_name):
                 return ":8"
-            elif self.master.is_numeric(field_name):
+            elif self.master.is_number(field_name):
                 return ":10"
             elif self.master.is_text(field_name):
                 dim = ":250.100"

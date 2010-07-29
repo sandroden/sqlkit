@@ -418,7 +418,14 @@ class InspectMapper(Container):
             return issubclass(db_type, (sqltypes.Numeric))
         return False
 
-
+    def is_number(self, field_name):
+        """
+        Return true if this field is a number
+        """
+        db_type = self.fields[field_name]['db_type']
+        if db_type:
+            return issubclass(db_type, (sqltypes.Numeric, sqltypes.Integer, sqltypes.Float))
+        return False
 
     def is_boolean(self, field_name):
         """

@@ -1818,49 +1818,82 @@ class SqlWidget(gobject.GObject):
         """
         Return true if this field is  date
         """
-        return self.mapper_info.is_date(field_name)
+        try:
+            return self.mapper_info.is_date(field_name)
+        except AttributeError:
+            return self.gui_fields[field_name].type == datetime.date
 
     def is_datetime(self, field_name):
         """
         Return true if this field is  datetime
         """
-        return self.mapper_info.is_datetime(field_name)
+        try:
+            return self.mapper_info.is_datetime(field_name)
+        except AttributeError:
+            return self.gui_fields[field_name].type == datetime.datetime
 
     def is_time(self, field_name):
         """
         Return true if this field is time
         """
-        return self.mapper_info.is_time(field_name)
+        try:
+            return self.mapper_info.is_time(field_name)
+        except AttributeError:
+            return self.gui_fields[field_name].type == datetime.time
 
     def is_interval(self, field_name):
         """
         Return true if this field is time
         """
-        return self.mapper_info.is_interval(field_name)
+        try:
+            return self.mapper_info.is_interval(field_name)
+        except AttributeError:
+            return self.gui_fields[field_name].type == datetime.interval
 
     def is_integer(self, field_name):
         """
         Return true if this field is integer
         """
-        return self.mapper_info.is_integer(field_name)
+        try:
+            return self.mapper_info.is_integer(field_name)
+        except AttributeError:
+            return self.gui_fields[field_name].type in (int, long)
 
     def is_float(self, field_name):
         """
         Return true if this field is float
         """
-        return self.mapper_info.is_float(field_name)
+        try:
+            return self.mapper_info.is_float(field_name)
+        except AttributeError:
+            return self.gui_fields[field_name].type == float
 
     def is_numeric(self, field_name):
         """
         Return true if this field is numeric
         """
-        return self.mapper_info.is_numeric(field_name)
+        try:
+            return self.mapper_info.is_numeric(field_name)
+        except AttributeError:
+            return self.gui_fields[field_name].type is decimal.Decimal
+
+    def is_number(self, field_name):
+        """
+        Return true if this field is numeric
+        """
+        try:
+            return self.mapper_info.is_number(field_name)
+        except AttributeError:
+            return self.gui_fields[field_name].type in NUMBERS
 
     def is_boolean(self, field_name):
         """
         Return true if this field is  date
         """
-        return self.gui_fields[field_name].type == bool
+        try:
+            return self.mapper_info.is_boolean(field_name)
+        except AttributeError:
+            return self.gui_fields[field_name].type == bool
 
     def is_nullable(self, field_name):
         """
@@ -1888,15 +1921,6 @@ class SqlWidget(gobject.GObject):
             
         return False
 
-    def is_number(self, field_name):
-        """
-        Return true if this field is a number 
-        """
-        py_type = self.mapper_info.fields[field_name]['type']
-        if py_type:
-            return issubclass(py_type, (int, float, decimal.Decimal))
-        else:
-            return False
 
     def is_text(self, field_name):
         """
@@ -2258,6 +2282,8 @@ class ValidationWarningDialog(ValidationErrorDialog):
             raise exc.DialogValidationError
         else:
             pass
+
+
 
 
 
