@@ -188,8 +188,7 @@ import babel
 from sqlalchemy.schema import ColumnDefault
 
 from sqlkit import exc, _
-from sqlkit.widgets.mask.miniwidgets import *
-from sqlkit.widgets.table.tablewidgets import CellWidget
+from sqlkit.misc import localtimezone
 from sqlkit.misc.babel_support import numbers, dates
 from sqlkit.db import minspect
 
@@ -327,22 +326,30 @@ class Field(object):
         """
         :param def_str:     the definition string in the layout that determined
                      the gtk.Widget (eg.: c=married, e=first_name)
-        :param widget:      the miniwidget to be used. Defaults to class-define self.Widget
+        :param widget:      the miniwidget to be used. Defaults to class-defined self.Widget
+                            the widget can be a string of a Widget derived from ``miniwidget.Widget``
         :param gtkwidget:   the gtk widget to be used (already created by Layout)
         
         """
-        
+        from sqlkit.widgets.mask import miniwidgets
+        from sqlkit.widgets.table import tablewidgets
+
+        ## widget can be a string in which case it it searched for in sqlkit.widgets.mask.miniwidgets
+        ## tis avoids importing miniwidgets at import time and delayes it to this function
+        if isinstance(widget, basestring):
+            Widget = getattr(miniwidgets, widget)
+
         if def_str and  def_str.startswith('ro='):
-            widget = ReadOnlyWidget
+            widget = miniwidgets.ReadOnlyWidget
             
-        Widget = widget or self.Widget
+        Widget = widget or getattr(miniwidgets, self.Widget)
         if gtkwidget:
             ## used in SqlMask
             self.widget = Widget(gtkwidget, self)
             gtkwidget.connect('destroy', self.destroy)
         else:
             ### used in SqlTable
-            self.widget = CellWidget(self)
+            self.widget = tablewidgets.CellWidget(self)
 
     def destroy(self, widget):
 
@@ -535,7 +542,7 @@ class Field(object):
         return "<%s - %s >" % (self.__class__.__name__, self.field_name)
 
 class VarcharField(Field):
-    Widget = VarcharWidget
+    Widget = 'VarcharWidget'
     type = str
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
@@ -564,7 +571,7 @@ class VarcharField(Field):
 
 ##### Numbers
 class IntegerField(Field):
-    Widget = IntegerWidget
+    Widget = 'IntegerWidget'
     type = int
     length = 8
     
@@ -602,7 +609,7 @@ class IntegerField(Field):
         return numbers.format_decimal(value, format=self.format, locale=self.locale)
         
 class FloatField(IntegerField):
-    Widget = FloatWidget
+    Widget = 'FloatWidget'
     type = float
     length = 10
     
@@ -633,7 +640,7 @@ class FloatField(IntegerField):
         return numbers.format_decimal(value, format=self.format, locale=self.locale)
         
 class DecimalField(IntegerField):
-    Widget = DecimalWidget
+    Widget = 'DecimalWidget'
     type = Decimal
     length = 10
     
@@ -683,7 +690,7 @@ class DecimalField(IntegerField):
         return numbers.format_decimal(value, format=self.format, locale=self.locale)
 
 class TextField(VarcharField):
-    Widget = TextWidget
+    Widget = 'TextWidget'
     default_def_string = 'TXS'
     type = str
 
@@ -692,7 +699,7 @@ class TextField(VarcharField):
 
 ##### Time/Dates
 class DateField(Field):
-    Widget = DateWidget
+    Widget = 'DateWidget'
     default_def_string = 'd'
     format = None
     type = date
@@ -729,7 +736,7 @@ class DateField(Field):
         
         
 class TimeField(DateField):
-    Widget = TimeWidget
+    Widget = 'TimeWidget'
     default_def_string = 'ae'
     type = time
 
@@ -755,7 +762,7 @@ class TimeField(DateField):
         return dates.format_time(value, format=self.format, locale=self.locale)
 
 class TimeTZField(TimeField):
-    Widget = TimeTZWidget
+    Widget = 'TimeTZWidget'
 
     def __init__(self, *args, **kwargs):
         TimeField.__init__(self, *args, **kwargs)
@@ -783,7 +790,7 @@ class TimeTZField(TimeField):
         value = Field.get_value(self, shown)
         if not self.TZ:
             ## Local will return a tzinfo with the timezone of the system
-            ## it will be added to bypass the limitaition od dateedit
+            ## it will be added to bypass the limitation of dateedit
             self.TZ = localtimezone.Local
             self.microsecond = 0
 
@@ -793,11 +800,11 @@ class TimeTZField(TimeField):
         return value.replace(tzinfo=self.TZ, microsecond=self.microsecond)
 
 class IntervalField(Field):
-    Widget = IntervalWidget
+    Widget = 'IntervalWidget'
     type = timedelta
 
 class DateTimeField(DateField):
-    Widget = DateTimeWidget
+    Widget = 'DateTimeWidget'
     type = datetime
 
     def __init__(self, *args, **kwargs):
@@ -876,7 +883,7 @@ class DateTimeField(DateField):
         return value
         
 class DateTimeTZField(DateTimeField):
-    Widget = DateTimeTZWidget
+    Widget = 'DateTimeTZWidget'
 
     def __init__(self, *args, **kwargs):
         DateTimeField.__init__(self, *args, **kwargs)
@@ -915,7 +922,7 @@ class BooleanField(Field):
     A simple boolean field that does not allow NULL
     """
 
-    Widget = BooleanWidget
+    Widget = 'BooleanWidget'
     default_def_string = 'c'
     type = bool
 
@@ -935,7 +942,7 @@ class BooleanNullField(Field):
     """
     A boolean field that allows to set NULL
     """
-    Widget = BooleanNullWidget
+    Widget = 'BooleanNullWidget'
     type = bool
 
     def clean_value(self, value):
@@ -950,7 +957,7 @@ class ForeignKeyField(Field):
     A field that uses ComboBoxEntry
     The popup should trigger the filling of the model with
     """
-    Widget = ForeignKeyWidget
+    Widget = 'ForeignKeyWidget'
     type = str
     
     def __init__(self, *args, **kwargs):
@@ -1113,7 +1120,7 @@ class CollectionField(Field):
     it's default widget is a collectionWidget that uses a SqlTable
 
     """
-    Widget = CollectionWidget
+    Widget = 'CollectionWidget'
 
     def __init__(self, *args, **kwargs):
         Field.__init__(self, *args, **kwargs)
@@ -1154,8 +1161,8 @@ def std_cleanup(fn):
     """
     A decorator that will handle standard cases: value it's None, a string or already cleaned
 
-    This is handy when building new Fields as allows to use it as simple as possible, i.e.
-    no need to check for stamdard cases::
+    This is handy when building new Fields as allows to keep it as simple as possible, i.e.
+    no need to check for standard cases::
 
         class CountMovies(fields.IntegerField):
             '''
@@ -1163,7 +1170,7 @@ def std_cleanup(fn):
             '''
             @fields.std_cleanup
             def clean_value(self, value):
-                ## missing a field_name attribute on obj the objct itselt is passed
+                ## missing a field_name attribute on obj the object itselt is passed
                 return len(value.movies)
 
     """

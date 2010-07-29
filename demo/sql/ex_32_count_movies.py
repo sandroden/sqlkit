@@ -4,7 +4,7 @@ This is an alternative way to add a movie count field that adds a column
 When going this way you cannot filter on the "Movie Count" column
 """
 
-from sqlkit.widgets.common import fields
+from sqlkit import fields
 from sqlkit.widgets.table import columns
 from sqlkit.db.utils import DictLike
 

@@ -17,7 +17,8 @@ Right-click on the record to see what you can do: delete, add a new record or
 display the record in a Mask
 """
 
-from sqlkit.widgets import SqlTable, Header, ModelProxy
+from sqlkit.widgets import SqlTable
+from sqlkit.widgets.table.modelproxy import Header, ModelProxy
 from sqlkit.db import proxy
 import model
 

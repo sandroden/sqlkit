@@ -40,7 +40,6 @@ import gtk
 import gobject
 
 from sqlkit import debug as  dbg, _, exc
-from sqlkit.widgets.common import localtimezone
 from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion
 
 NOT_NULL_COLOR = gtk.gdk.color_parse('#f6ebba')

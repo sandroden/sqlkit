@@ -29,7 +29,7 @@ import pango
 from decimal import Decimal
 
 import cell_renderers, utils as tv_utils
-from sqlkit import debug as dbg, _
+from sqlkit import debug as dbg, _, fields
 from sqlkit.layout import widgets
 from sqlkit.misc.utils import str2list
 from sqlkit.db.utils import DictLike
@@ -304,8 +304,6 @@ class GenericColumn(object):
         """
         make expandable only Strings with n_chars > 20 or Text
         """
-        from sqlkit.widgets.common import fields
-
         #        if self.master.is_text(self.field_name):
         if isinstance(self.field, fields.TextField):
             return True
@@ -474,7 +472,6 @@ class VarcharColumn(GenericColumn):
         """
         prepare the editable, completion and validation
         """
-        from sqlkit.widgets.common import fields
         
         self.master.currently_edited_field_name = self.field_name
         self.master.cell_entry = CellEntry(editable, cell, path, self.field_name)
@@ -713,7 +710,6 @@ class ColumnMenuProxy(object):
     def popup_col_menu(self, ev, treeview, field_name):
 
         from sqlkit.layout.misc import StockMenuItem
-        from sqlkit.widgets.common import fields
         try:
             self.master.widgets['M=popup'].destroy()
         except:

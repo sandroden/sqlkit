@@ -23,8 +23,7 @@ import gobject
 from sqlalchemy.exc import InvalidRequestError
 
 import sqlkit
-from sqlkit import debug as dbg, exc, _, layout
-from sqlkit.widgets.common.fields import FieldChooser
+from sqlkit import debug as dbg, exc, _, layout, fields
 from sqlkit.widgets.common import completion, sqlwidget
 
 FK_COLOR = gtk.gdk.color_parse('navyblue')
@@ -189,7 +188,7 @@ class SqlMask(sqlwidget.SqlWidget):
             raise Exception("I shouldn't be here...")
             self.gui_fields = {}
 
-        field_chooser = FieldChooser(self.mapper_info, self.widgets,
+        field_chooser = fields.FieldChooser(self.mapper_info, self.widgets,
                                      gui_field_mapping=getattr(self, 'gui_field_mapping', None))
 
         for field_name, widget_key in self.laygen.fields_in_layout.iteritems():

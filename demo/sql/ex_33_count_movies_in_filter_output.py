@@ -5,7 +5,7 @@ can be customized
 
 """
 
-from sqlkit.widgets.common import fields
+from sqlkit import fields
 from sqlkit.widgets.table import columns
 from sqlkit.db.utils import DictLike
 

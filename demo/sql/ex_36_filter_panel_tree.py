@@ -5,7 +5,7 @@ The output view of a filter panel can be grouped
 
 """
 
-from sqlkit.widgets import Header, ModelProxy
+from sqlkit.widgets.table import Header, ModelProxy
 
 class MyModel(ModelProxy):
 

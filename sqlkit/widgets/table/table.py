@@ -32,8 +32,7 @@ import gtk
 import sqlalchemy
 
 import sqlkit
-from sqlkit import exc
-from sqlkit import debug as dbg, _
+from sqlkit import debug as dbg, _, exc, fields
 from sqlkit.layout import widgets, get_label
 from sqlkit.misc.utils import Container, str2list
 import utils as tv_utils
@@ -42,6 +41,7 @@ import totals
 from sqlkit.widgets.common import sqlwidget, dialogs
 from modelproxy import ModelProxy
 from sqlkit.widgets.table.columns import View
+from sqlkit.widgets.table.tablewidgets import CellWidget
 
 class SqlTable(sqlwidget.SqlWidget):
     """
@@ -148,14 +148,12 @@ class SqlTable(sqlwidget.SqlWidget):
         
     def setup_field_validation(self, field_list=None):
         """
-        Create sqlkit.widgets.common.fields.Field object: one for each handled field
+        Create sqlkit.fields.Field object: one for each handled field
         """
         if not field_list:
             return
 
-        from sqlkit.widgets.common.fields import FieldChooser
-        
-        field_chooser = FieldChooser(self.mapper_info)
+        field_chooser = fields.FieldChooser(self.mapper_info)
         for field_name in field_list or self.field_list:
             if field_name not in self.gui_fields:
                 db_spec = self.mapper_info.fields[field_name]
@@ -163,7 +161,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 field = Field(field_name, db_spec)
 
                 field.set_master(self)
-                field.set_widget()
+                field.set_widget(widget=CellWidget)
 
                 self.field_widgets[field_name] = field.widget
                 self.gui_fields[field_name] = field

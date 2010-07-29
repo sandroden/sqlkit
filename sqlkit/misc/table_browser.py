@@ -19,9 +19,8 @@ import gtk
 import sqlalchemy as sa
 
 import sqlkit
-from sqlkit import debug as dbg, _
+from sqlkit import debug as dbg, _, fields
 from sqlkit.widgets import SqlTable, SqlMask
-from sqlkit.widgets.common import fields
 from sqlkit import layout
 from sqlkit.db import utils
 

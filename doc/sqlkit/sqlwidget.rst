@@ -98,9 +98,9 @@ Attributes
 
 .. attribute:: gui_fields
 
-   a container for all validation fields. A validation fields is an objects
-   that lives in sqlkit.widgets.common.fields (temporary position) and that
-   knows how to represent a field and how to validate it. 
+   a container for all validation fields. A validation fields is an object
+   that lives in ``sqlkit.fields`` and that knows how to represent a field
+   and how to validate it.
 
 .. attribute:: query
 

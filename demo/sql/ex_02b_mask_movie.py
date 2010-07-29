@@ -12,7 +12,7 @@ lay = """
     L=description
     TXS==description -
     """
-from sqlkit.widgets.common.fields import VarcharField
+from sqlkit.fields import VarcharField
 
 t = SqlMask('movie', dbproxy=db, layout=lay)
 t.reload()

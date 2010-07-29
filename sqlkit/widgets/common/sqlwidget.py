@@ -33,7 +33,7 @@ from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.orm.mapper import Mapper
 
 import sqlkit
-from sqlkit import _, exc, layout, debug as  dbg
+from sqlkit import _, exc, layout, debug as  dbg, fields
 from sqlkit import layout, debug as  dbg
 from sqlkit.layout import map_labels, get_label
 from sqlkit.db import minspect, defaults
@@ -1061,7 +1061,6 @@ class SqlWidget(gobject.GObject):
         ## eg: a new item is added to the session, no editing is done. A reload is issued
         ## I want to avoid the dialog: do you want to save?
         ## session.dirty would (correctly) say a commit is needed
-        from sqlkit.widgets.common import fields
         
         if not self.current:
             return False

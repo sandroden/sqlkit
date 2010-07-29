@@ -56,8 +56,7 @@ from sqlalchemy.exceptions import OperationalError
 from sqlalchemy.engine import url
 
 import sqlkit
-from sqlkit import debug as dbg, layout, _
-from sqlkit.widgets.common import fields
+from sqlkit import debug as dbg, layout, _, fields
 from sqlkit.misc import conf, optionparse, table_browser
 
 # if 'LD_LIBRARY_PATH' in os.environ:

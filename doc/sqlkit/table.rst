@@ -188,7 +188,7 @@ Adding a column
 ---------------
 
 You can add columns to a view if there's a correspondig ``field``
-(sqlkit.widgets.common.fields.Field) in ``table.gui_field``. Examples #31 and
+(sqlkit.fields.Field) in ``table.gui_field``. Examples #31 and
 #32 show how to do that that essentially boils down to:
 
 #. Create a Field class that has a method that uses as input the object and

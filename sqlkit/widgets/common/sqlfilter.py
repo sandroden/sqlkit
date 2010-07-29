@@ -49,7 +49,7 @@ explained above.
 If you want to change that representation you just need to substitute the
 column in the treeview::
 
-  from sqlkit.widgets.common import fields
+  from sqlkit.import fields
   from sqlkit.db.utils import DictLike
 
   class CountMovies(fields.IntegerField):
@@ -81,7 +81,7 @@ import sqlalchemy
 from sqlalchemy.sql import select, Join
 from babel import dates
 
-from sqlkit import debug as dbg, _, exc
+from sqlkit import debug as dbg, _, exc, fields
 from sqlkit.db import minspect
 from sqlkit.db.utils import tables, get_description, DictLike
 from sqlkit.db.django_syntax import django2components
@@ -207,8 +207,6 @@ class FilterPanel(object):
 
     def _add_treeview(self):
 
-        from sqlkit.widgets.common import fields 
-
         class ObjField(fields.VarcharField):
             """
             A field that represents the obj for filter_panel
@@ -228,7 +226,7 @@ class FilterPanel(object):
         """
         Replace the column of the output treeview with a customized one
 
-        :param field_class: a subclass of ``sqlwidget.widgets.common.fields.Field``
+        :param field_class: a subclass of ``sqlwidget.fields.Field``
                with a proper ``clean_value`` method
         :param field_name: the field_name of the column, Default: ``__obj__`` (i.e. the
                name used for the default column of the output treeview

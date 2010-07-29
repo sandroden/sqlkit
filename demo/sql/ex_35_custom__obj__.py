@@ -5,7 +5,7 @@ A field can be added to a mask as well
 
 """
 
-from sqlkit.widgets.common import fields
+from sqlkit import fields
 from sqlkit.widgets.table import columns
 from sqlkit.db.utils import DictLike
 
