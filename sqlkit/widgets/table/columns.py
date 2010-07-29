@@ -155,26 +155,36 @@ class GenericColumn(object):
             value = obj
             if isinstance(obj, self.master.mapper.class_):
                 value = self.field.clean_value(value)
-        cell.set_property(prop_name, value)        
 
-        if hasattr(self.master, 'totals') and isinstance(obj, self.master.totals.total_class):
-            if self.field.persistent:
-                formatted_value = self.field.format_value(value)
-                obj.set_value_and_colors(cell, formatted_value, self.field_name)
-            else:
-                obj.set_value_and_colors(cell, getattr(obj, self.field_name), self.field_name)
-            cell.set_property('editable', False)        
+        cell.set_property('visible', True)        
 
-        elif isinstance(obj, self.master.mapper.class_):
+        ## DB RECORDS
+        if isinstance(obj, self.master.mapper.class_):
+            cell.set_property('visible', True)        
             formatted_value = self.field.format_value(value)
             cell.set_property(prop_name, formatted_value)        
             cell.set_property('foreground-set', False)
             cell.set_property('cell-background-set', False)
             cell.set_property('editable', self.editable)
+
+        ## TOTALS
+        elif hasattr(self.master, 'totals') and isinstance(obj, self.master.totals.total_class):
+            if self.field_name in self.master.totals.totals:
+                if self.field.persistent:
+                    formatted_value = self.field.format_value(value)
+                    obj.set_value_and_colors(cell, formatted_value, self.field_name)
+                else:
+                    value = getattr(obj, self.field_name, None)
+                    obj.set_value_and_colors(cell, self.field.format_value(value), self.field_name)
+            else:
+                cell.set_property('visible', False)
+                    
+            cell.set_property('editable', False)        
+
+        ## HEADERS
         else:
             cell.set_property(prop_name, value)
             cell.set_property('editable', False)
-        
 
     def editing_canceled_cb(self, widget):
         """
@@ -402,12 +412,10 @@ class BooleanColumn(GenericColumn):
         
         obj = model.get_value(iter, 0) 
         value = getattr(obj, self.field_name)
-        cell.set_property('active', value)        
 
-        if isinstance(obj, self.master.totals.total_class):
-            cell.set_property('visible', False)        
-            cell.set_property('activatable', False)        
-        elif isinstance(obj, self.master.mapper.class_):
+        ## DB RECORDS
+        if isinstance(obj, self.master.mapper.class_):
+            cell.set_property('active', value)        
             cell.set_property('visible', True)       
             cell.set_property('activatable', self.editable)
 
@@ -415,6 +423,11 @@ class BooleanColumn(GenericColumn):
                 cell.set_property('inconsistent', True)
             else:    
                 cell.set_property('inconsistent', False)
+
+        ## TOTALS
+        elif isinstance(obj, self.master.totals.total_class):
+            cell.set_property('visible', False)        
+            cell.set_property('activatable', False)        
         
 class VarcharColumn(GenericColumn):
     """
@@ -589,11 +602,10 @@ class FKeyColumn(VarcharColumn):
         if not obj:
             return
         
-        if isinstance(obj, self.master.totals.total_class):
-            cell.set_property('text', '')
-            cell.set_property('editable', False)        
+        cell.set_property('visible', True)        
 
-        elif isinstance(obj, self.master.mapper.class_):
+        ## DB RECORDS
+        if isinstance(obj, self.master.mapper.class_):
             fkey_value = getattr(obj, self.field_name)
 
             if fkey_value is not None:
@@ -602,9 +614,17 @@ class FKeyColumn(VarcharColumn):
                 cell.set_property('text', value)
             else:
                 cell.set_property('text', '')
-            cell.set_property('editable', self.field._editable)
+            cell.set_property('editable', self.editable)
+
+        ## TOTALS
+        elif hasattr(self.master, 'totals') and isinstance(obj, self.master.totals.total_class):
+            cell.set_property('text', '')
+            cell.set_property('editable', False)        
+
+        ## HEADER
         else:
             cell.set_property('text', getattr(obj, self.field_name))
+            cell.set_property('editable', False)
 
     def editing_started_cb(self, cell, editable, path):
         
@@ -1282,6 +1302,8 @@ class View(object):
         if path is not None:
             self.treeview.get_selection().select_path(path)
             
+
+
 
 
 
