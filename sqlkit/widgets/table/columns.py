@@ -209,7 +209,11 @@ class GenericColumn(object):
         """
         add here possible connect
         """
-        pass
+        editable.connect('activate', self.on_activate)
+
+    def on_activate(self, editable):
+
+        self.master.run_hook('on_activate', self.field, field_name=self.field_name)
         
     def clicked_cb(self, column):
         """
@@ -550,6 +554,7 @@ class MultilineColumn(VarcharColumn):
             cell.emit("edited", cell.editor.get_data("path"), cell.editor.get_text())
             cell.editor.remove_widget()
 
+    def editable_connects(self, editable):
         pass
 
 class NumericColumn(VarcharColumn):
@@ -575,8 +580,9 @@ class NumericColumn(VarcharColumn):
         cell.set_property('xalign', 1.0)
 
     def editable_connects(self, editable):
-        editable.connect('key-press-event', self.master.digits_check_input_cb  )            
 
+        VarcharColumn.on_activate(self, editable)
+        editable.connect('key-press-event', self.master.digits_check_input_cb  )            
 
 class FKeyColumn(VarcharColumn):
     """

@@ -333,7 +333,11 @@ The following hooks are defined:
     .. function:: on_validation(sqlwidget, field_name, field_value, field)
 
 :on_activate__field_name: when *Return* is pressed in Mask view. Good to
-    complete fields via calculation on other fields (eg: total, vat...)
+    complete fields via calculation on other fields (eg: total, vat...). It
+    has a different behaviour in SqlMask and SqlTable.  In a SqlMask It's
+    triggered when you press ``Return`` in an entry (i.e.: it's not
+    triggered if you don't) while in a SqlTable it's triggered when you
+    click on a cell in a treeview (limited to Varchar and Numeric columns).
 
     .. function:: on_activate__field_name(sqlwidget, field_name, field)
 
