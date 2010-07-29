@@ -263,11 +263,27 @@ class Field(object):
     def __init__(self, field_name, db_spec):
         
         """
-        field_name:  the name of the field in the db
-        db_spec:     the dict as worked out by InspectMapper
-        def_str:     the definition string in the layout that determined
+        :param field_name:  the name of the field in the db
+        :param db_spec:     the dict as worked out by InspectMapper. Can be created by hand: that is
+                     usefull when field is not mapped in the database. These attributes may be
+                     present:
+
+                     :nullable: boolean. If True None is accepted as value
+                     :editable: boolean. If True the value can be edited, if 'column'  is not passed
+                                the field is tuned into not editable
+                     :length:   used to determine how many chas are needed to represent it
+                     :default:  a possible default value
+                     :mapper:   the mapper the field is defined into, if any
+                     :pkey:     true if this field is a primary key
+                     :fkey:     a sqlalchemy ForeignKey ogject if this field is a foreign key
+                     :type:     the python type the value maps to
+                     :property: the sqlalchemy property the field has in the mapper
+                     :column:   the sqlalchemy column the field maps to
+                     :table:    the table the field is defined in, if any
+                     
+        :param def_str:     the definition string in the layout that determined
                      the gtk.Widget (eg.: c=married, e=first_name)
-        master:      the sqlkit widget: an instance of SqlMask or SqlTable
+        :param master:      the sqlkit widget: an instance of SqlMask or SqlTable
         """
 
         self.field_name = field_name
@@ -338,8 +354,11 @@ class Field(object):
     editable = property(get_editable, set_editable)
     
     def _add_info(self, db_spec):
+        """
+        read docs in __init__
+        """
         self._nullable =  db_spec.get('nullable', True)  # don't trigger now widget.set_bg()
-        self._editable =  db_spec.get('editable', True)
+        self._editable =  db_spec.get('editable', 'column' in db_spec and db_spec['column'] or False)
         self.length   =  db_spec.get('length', None)
         self.default  =  db_spec.get('default', None)
         self.mapper   =  db_spec.get('mapper', None)
