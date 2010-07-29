@@ -628,11 +628,13 @@ class SqlTable(sqlwidget.SqlWidget):
             return
         
         ## casting of value
+        field = self.gui_fields[field_name]
         if self.is_fkey(field_name):
-            value = self.gui_fields[field_name].clean_value(value, input_is_fkey=True)
+            value = field.clean_value(value, input_is_fkey=True)
         else:
-            value = self.gui_fields[field_name].clean_value(value)
-        setattr(obj, field_name, value)
+            value = field.clean_value(value)
+        if field.editable:
+            setattr(obj, field_name, value)
 
         ## text would come up automatically but only after
         ## loosing the focus...
