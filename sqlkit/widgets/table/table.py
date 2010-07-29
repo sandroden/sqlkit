@@ -497,37 +497,6 @@ class SqlTable(sqlwidget.SqlWidget):
 
         return False
         
-    def key_tree_b(self, treeview, event):
-        "sort: sort the treeview on this column"
-        field_name = self.get_field_name_from_pointer(treeview)
-        if self.modelproxy._order_list == [(field_name, True)]:
-            field_name = "-" + field_name
-        self.modelproxy.order_by(field_name)
-        self.totals.add_break(field_name)
-        
-    def key_tree_s(self, treeview, event):
-        "sort: sort the treeview on this column"
-        field_name = self.get_field_name_from_pointer(treeview)
-
-        if self.modelproxy.get_order() == (field_name, True):
-            field_name = "-" + field_name
-        self.modelproxy.order_by(field_name)
-        
-    def key_tree_f(self, treeview, event):
-        "filter: add a filter for this column"
-        field_name = self.get_field_name_from_pointer(treeview)
-        self.filter_panel.add(None, None, field_name, self)
-        
-    def key_tree_h(self, treeview, event):
-        "hide: hide this column"
-        field_name = self.get_field_name_from_pointer(treeview)
-        self.views['main'].hide_fields(field_name)
-        
-    def key_tree_t(self, treeview, event):
-        "totals: add total to the column"
-        field_name = self.get_field_name_from_pointer(treeview)
-        self.totals.add_total(field_name, quiet=True)
-        
     def key_tree_ctrl_s(self, treeview, event):
 
         if self.current in self.session.new and 'i' not in self.mode:
@@ -1461,19 +1430,6 @@ class SqlTable(sqlwidget.SqlWidget):
 
         return a[0]
                 
-    def get_field_name_from_pointer(self, treeview=None):
-
-        if not treeview:
-            treeview = self.views['main'].treeview
-
-        x, y, modifier_state = treeview.window.get_pointer()
-        try:
-            path, column, x_in_cell, y_in_cell = treeview.get_path_at_pos(x,y)
-            iter = self.modelproxy.modelstore.get_iter(path)
-            field_name = column.get_data('field_name')
-            return field_name
-        except TypeError:
-            return
         
 #### completion
 

@@ -28,7 +28,7 @@ import gobject
 import pango
 from decimal import Decimal
 
-import cell_renderers
+import cell_renderers, utils as tv_utils
 from sqlkit import debug as dbg, _
 from sqlkit.layout import widgets
 from sqlkit.misc.utils import str2list
@@ -157,7 +157,7 @@ class GenericColumn(object):
                 value = self.field.clean_value(value)
         cell.set_property(prop_name, value)        
 
-        if isinstance(obj, self.master.totals.total_class):
+        if hasattr(self.master, 'totals') and isinstance(obj, self.master.totals.total_class):
             if self.field_name in self.master.mapper_info:
                 formatted_value = self.field.format_value(value)
                 obj.set_value_and_colors(cell, formatted_value, self.field_name)
@@ -880,7 +880,7 @@ class View(object):
         :param cell_renderers: a dict of cell_renderers for each column
         :param ro: make it read-only (default: False)
         """
-        assert field_list is not None, "Field_list cannot be None"
+#        assert field_list is not None, "Field_list cannot be None"
         assert treeview is not None, "You need to set the Treeview"
         self.master = master
         self.name = name
@@ -894,13 +894,14 @@ class View(object):
         self.cell_renderers = {}
         self.master.setup_field_validation(self.field_list)
         self.setup_columns()
-        if not name == 'main':
+        if not name in ('main',):
             ## for 'main' I do that later so that master.actiongroup_* will be ready
             self.create_column_menu()
 
-        self.treeview.connect('cursor-changed', self.master.cursor_changed_cb, self)
-        self.treeview.connect('key-press-event', self.master.keypress_event_cb, self)
-        self.treeview.connect('button-press-event', self.master.button_press_event_cb, self)
+        if hasattr(self.master, 'cursor_changed_cb'):
+            self.treeview.connect('cursor-changed', self.master.cursor_changed_cb, self)
+            self.treeview.connect('key-press-event', self.master.keypress_event_cb, self)
+            self.treeview.connect('button-press-event', self.master.button_press_event_cb, self)
 
         self.treeview.set_enable_search(False)
         self.treeview.show_all()
@@ -916,6 +917,72 @@ class View(object):
         treeselection.connect('changed', self.selection_changed_cb, self)
         treeview.connect('row-collapsed', self.row_collapsed_cb, self)
         treeview.connect('row-expanded', self.row_expanded_cb, self)
+        treeview.connect('key-press-event', self.keypress_event_cb)
+
+    def keypress_event_cb(self, wdg, event, view=None):
+
+        pre = 'tree'
+        ksym = gtk.gdk.keyval_name(event.keyval)
+        mods = ['key_' + pre]
+        ## mod2 gets in the way when you press the NumLock: I don't want
+        ## to depend on that, as I'm not usng it!!!
+        for prefix, mask in [('ctrl', gtk.gdk.CONTROL_MASK),
+                             ('shift', gtk.gdk.SHIFT_MASK),
+                             ('alt', gtk.gdk.MOD1_MASK),
+                             #('mod2', gtk.gdk.MOD2_MASK),
+                             ('mod3', gtk.gdk.MOD3_MASK),
+                             ('mod4', gtk.gdk.MOD4_MASK),
+                             ('mod5', gtk.gdk.MOD5_MASK),]:
+            if event.state & mask:
+                mods.append(prefix)
+
+        ksym = '_'.join(mods + [ksym])
+        if ksym in dir(self):
+            return getattr(self, ksym)(wdg, event)
+
+    def key_tree_b(self, treeview, event):
+        "sort: sort the treeview on this column"
+
+        field_name = self.get_field_name_from_pointer(treeview)
+        if self.master.modelproxy._order_list == [(field_name, True)]:
+            field_name = "-" + field_name
+        self.master.modelproxy.order_by(field_name)
+        self.master.totals.add_break(field_name)
+        
+    def key_tree_f(self, treeview, event):
+        "filter: add a filter for this column"
+        field_name = self.get_field_name_from_pointer(treeview)
+        if field_name and field_name in self.master.mapper_info:
+            self.master.filter_panel.add(None, None, field_name, self.master)
+        
+    def key_tree_h(self, treeview, event):
+        "hide: hide this column"
+        field_name = self.get_field_name_from_pointer(treeview)
+        self.hide_fields(field_name)
+
+    def key_tree_s(self, treeview, event):
+        "sort: sort the treeview on this column"
+        field_name = self.get_field_name_from_pointer(treeview)
+
+        if self.master.modelproxy.get_order() == (field_name, True):
+            field_name = "-" + field_name
+        self.master.modelproxy.order_by(field_name)
+        
+    def key_tree_t(self, treeview, event):
+        "totals: add total to the column"
+        field_name = self.get_field_name_from_pointer(treeview)
+        self.master.totals.add_total(field_name, quiet=True)
+        
+    def get_field_name_from_pointer(self, treeview=None):
+
+        x, y, modifier_state = self.treeview.window.get_pointer()
+        try:
+            path, column, x_in_cell, y_in_cell = self.treeview.get_path_at_pos(x,y)
+            #iter = self.master.modelproxy.modelstore.get_iter(path)
+            field_name = column.get_data('field_name')
+            return field_name
+        except TypeError, e:
+            return
 
     def selection_changed_cb(self, treeview, view):
         """
@@ -993,7 +1060,7 @@ class View(object):
             self.menu.menu_add_toggle_column(field_name, self)
 
 
-    def on_zoom_fit(self, widget, *args):
+    def on_zoom_fit(self, widget=None, *args):
 
         tv_utils.zoom_to_fit(self.treeview, resize=True)
 
@@ -1037,16 +1104,22 @@ class View(object):
         self.actiongroup_view.add_actions([
             ('ExportView', None, _('Export'), None, None, self.master.export),
             ], self.name)
+        self.actiongroup_view.add_actions([
+            ('Zoom-fit', gtk.STOCK_ZOOM_FIT, None, '<Control>z', None, self.on_zoom_fit),
+            ('ShowColumns', None, _('Show field')),  # menuitem
+            ('HideColumns', None, _('Hide field')),  # menuitem
+            ])
 
-        self.ui_manager.insert_action_group(self.master.actiongroup_table, 10)
-#        self.ui_manager.insert_action_group(self.master.actiongroup_general, 11)
-        self.ui_manager.insert_action_group(self.master.actiongroup_insert, 12)
-        self.ui_manager.insert_action_group(self.master.actiongroup_delete, 13)
+        try:
+            self.ui_manager.insert_action_group(self.master.actiongroup_table, 10)
+            self.ui_manager.insert_action_group(self.master.actiongroup_insert, 12)
+            self.ui_manager.insert_action_group(self.master.actiongroup_delete, 13)
+            self.ui_manager.add_ui_from_string(uidescription.TREEPOPUP)
+        except AttributeError:
+            pass
+
         self.ui_manager.insert_action_group(self.actiongroup_view, 14)
-#        self.ui_manager.insert_action_group(self.actiongroup_update, 1)
 
-
-        self.ui_manager.add_ui_from_string(uidescription.TREEPOPUP)
         self.ui_manager.add_ui_from_string(COLUMN_MENU)
         self.menu = ColumnMenuProxy(self.master, self)
 
@@ -1209,6 +1282,8 @@ class View(object):
         if path is not None:
             self.treeview.get_selection().select_path(path)
             
+
+
 
 
 
