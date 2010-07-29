@@ -19,6 +19,6 @@ lay = """
          director_id - - -
          m2m=genres -  m2m=actors -
          """
-t = SqlMask(class_=model.Movie, dbproxy=db , layout=lay)
+t = SqlMask(model.Movie, dbproxy=db , layout=lay)
 
 

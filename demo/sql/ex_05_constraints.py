@@ -5,7 +5,7 @@ This means that additional filters (possibly spanning joined relations) are
 applied to the query when issuing.
 """
 
-t = SqlTable(table='movie',
+t = SqlTable('movie',
              dbproxy=db,
              order_by='title',
              geom=(800,300),

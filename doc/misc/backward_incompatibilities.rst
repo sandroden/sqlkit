@@ -20,6 +20,11 @@ incompatibilities:
      necessary due to the fact that table now have views and t.treeview only
      points to the main view's treeview.
 
+:Table & Mask:
+
+  * now keyword table/class/mapper are deprecated in favour to setting it
+    as first argument.
+
 :Hooks: 
 
    arguments in hooks of related widgets where not as documented: a hook on
@@ -34,7 +39,7 @@ incompatibilities:
 	def on_change_value__addresses__domain(self, sqlwidget, field_name, value, fkvalue):
 	   pass
 
-     m = SqlMask(table=User,... hooks=Hook())
+     m = SqlMask(User,... hooks=Hook())
      m_address = m.related.addresses
      
    the hook instance will reveive ``m`` as argument where previously

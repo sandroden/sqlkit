@@ -14,5 +14,5 @@ lay = """
     """
 from sqlkit.widgets.common.fields import VarcharField
 
-t = SqlMask(table='movie', dbproxy=db, layout=lay)
+t = SqlMask('movie', dbproxy=db, layout=lay)
 t.reload()

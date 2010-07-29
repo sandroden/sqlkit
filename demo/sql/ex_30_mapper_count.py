@@ -22,7 +22,7 @@ m = mapper(Director2, model.Director.__table__,
 )
 
 field_list = "last_name, first_name, nation, film_number"
-t = SqlTable(mapper=m, field_list=field_list, dbproxy=db)
+t = SqlTable(m, field_list=field_list, dbproxy=db)
 t.add_filter(film_number=3)
 t.add_constraint(film_number__lt = 5)
 t.reload()

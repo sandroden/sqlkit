@@ -1177,7 +1177,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if hasattr(self, '_mask'):
             self._mask().widgets['Window'].present()
             return
-        mask = SqlMask(mapper=self.mapper, session=self.session, layout=self.layout,
+        mask = SqlMask(self.mapper, session=self.session, layout=self.layout,
                        metadata=self.metadata, dbproxy=self.dbproxy, hooks=self.hooks)
         mask.set_mode(self.mode, reset=True)
         mask.mode = '-b'
@@ -1218,7 +1218,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         ftable = self.completions[field_name].table
 
-        mask = SqlMask(table=ftable.name, session=self.session, dbproxy=self.dbproxy, 
+        mask = SqlMask(ftable.name, session=self.session, dbproxy=self.dbproxy, 
                        metadata=self.metadata, 
                        layout_nick=self._fk_layout_nick.get(field_name, 'default'),
                        )

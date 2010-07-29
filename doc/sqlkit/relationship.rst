@@ -50,7 +50,7 @@ You just have to start the SqlMask like this::
   lay = """first_name last_name
          o2m=movies      - - -
          """
-  SqlMask(mapper=Director.mapper, metadata=__metadata__, 
+  SqlMask(Director.mapper, metadata=__metadata__, 
           session=elixir.session,layout=lay)
 
 
@@ -113,13 +113,13 @@ does the heavy job. Definition is as simple as::
     lay = """year title
              m2m=genres - - -
              """
-    tm = sqlkit.SqlMask(mapper=Movie.mapper, metadata=__metadata__, 
+    tm = sqlkit.SqlMask(Movie.mapper, metadata=__metadata__, 
                         session=elixir.session,layout=lay)
     lay = """
          name 
          m2m=movies -
     """
-    tm2 = sqlkit.SqlMask(mapper=Genre.mapper, metadata=__metadata__, 
+    tm2 = sqlkit.SqlMask(Genre.mapper, metadata=__metadata__, 
                          session=elixir.session,layout=lay)
       
 

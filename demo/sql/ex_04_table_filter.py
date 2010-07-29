@@ -3,7 +3,7 @@
 a filter can be added with django_like syntax
 """
 
-t = SqlTable(table='director', dbproxy=db,  order_by='last_name',  )
+t = SqlTable('director', dbproxy=db,  order_by='last_name',  )
 t.add_filter(last_name__icontains='a')
 t.reload()
 

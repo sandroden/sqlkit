@@ -25,7 +25,7 @@ class Validation(object):
             print "Deleted objects: %s" % o
 
 
-t = SqlTable(class_=model.Director, dbproxy=db,
+t = SqlTable(model.Director, dbproxy=db,
              order_by='first_name', hooks=Validation(),)
 t.reload()
 

@@ -9,5 +9,5 @@ lay = """
      m2m=actors:nation_cod,last_name,first_name - - -
 """
 
-t = SqlMask(class_=model.Movie, dbproxy=db , layout=lay)
+t = SqlMask(model.Movie, dbproxy=db , layout=lay)
 t.related.actors.completions.nation_cod.filter(nation__nation='France')

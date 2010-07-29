@@ -6,7 +6,7 @@ programmatically)
 
 """
 
-t = SqlTable(table='movie',
+t = SqlTable('movie',
              dbproxy=db,
              order_by='director_id',
              noup='year, description',

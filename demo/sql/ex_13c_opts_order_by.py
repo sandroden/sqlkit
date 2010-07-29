@@ -4,7 +4,7 @@ Order by can use django_syntax too
 
 """
 
-t = SqlTable(table='movie',
+t = SqlTable('movie',
              dbproxy=db,
              order_by='director_id__last_name',
              geom=(800,300),

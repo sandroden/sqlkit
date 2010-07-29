@@ -13,7 +13,7 @@
 >>> from sqlkit.widgets.common.fields import FieldChooser
 
 >>> lay = "title year director_id m2m=genres date_release"
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> sm.gui_fields = {}
 >>> field_chooser = FieldChooser(sm, sm.widgets)
 >>> field_name, key = 'title', 'title'
@@ -41,7 +41,7 @@
 >>> from datetime import date, datetime, time, timedelta
 
 # fkey
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> f = sm.gui_fields['director_id']
 >>> f.lookup_value(14)
 u'Fellini'
@@ -50,7 +50,7 @@ u'Fellini'
 u'Fellini'
 
 # integer
->>> sm = SqlMask(class_=AllTypes, dbproxy=db, naked=True, show=False)
+>>> sm = SqlMask(AllTypes, dbproxy=db, naked=True, show=False)
 >>> f = sm.gui_fields['integer']
 >>> print f
 <IntegerField - integer >
@@ -135,7 +135,7 @@ True
 >>> os.environ['LANG'] = 'it_IT.utf8'
 
 # integer
->>> sm = SqlMask(class_=AllTypes, dbproxy=db, naked=True, show=False)
+>>> sm = SqlMask(AllTypes, dbproxy=db, naked=True, show=False)
 >>> f = sm.gui_fields['integer']
 >>> f.clean_value(1)
 1

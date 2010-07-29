@@ -115,7 +115,7 @@ Autocompletion
 You can force completion to start after n chars has been entered setting the
 completion object ``autostart`` value::
 
-  t = SqlMask(table='movie', dbproxy=db)
+  t = SqlMask('movie', dbproxy=db)
   t.completions.director_id.autostart = 2
 
 Completion will be recalculated every time the written string is shorter that
@@ -160,7 +160,7 @@ You can programmatically decide to filter what a completion returns in a
 very easy way using :ref:`django like syntax <constraints>` (the same used
 to set constraints)::
 
-  t = SqlTable(class_=Movie,...)
+  t = SqlTable(Movie,...)
   t.completions.title.filter(title__icontains='love')
 
 this line will instruct the completion to only show titles that contain the

@@ -16,7 +16,7 @@ and you can right click on the table and you will notice that "I'm not the other
 def test(item):
     print "Here I am!"
 
-t = SqlTable(table='movie',    dbproxy=db, order_by='title', )
+t = SqlTable('movie',    dbproxy=db, order_by='title', )
 t.actiongroup_mag   = gtk.ActionGroup('Demo')
 t.actiongroup_mag.add_actions([
     ('MaskView', gtk.STOCK_LEAVE_FULLSCREEN,  "I'm not the other one!", '<Control>m', None, test),

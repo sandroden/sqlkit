@@ -30,7 +30,7 @@ lay = """
          
 """
 
-t = SqlMask(class_=model.AllTypes, layout=lay, dbproxy=db )
+t = SqlMask(model.AllTypes, layout=lay, dbproxy=db )
 t.reload()
 
 
@@ -41,7 +41,7 @@ for label in ('text','date','numbers','boolean'):
         '<b><i>%s</i></b>' % label)
 
 
-t = SqlTable(class_=model.AllTypes, dbproxy=db )
+t = SqlTable(model.AllTypes, dbproxy=db )
 t.reload()
 
 

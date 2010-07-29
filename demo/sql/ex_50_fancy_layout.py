@@ -37,7 +37,7 @@ lay = """
    
 
 """
-t = SqlMask(class_=model.AllTypes, dbproxy=db, layout=lay )
+t = SqlMask(model.AllTypes, dbproxy=db, layout=lay )
 
 def close(widget, window):
     print "The End for me..."

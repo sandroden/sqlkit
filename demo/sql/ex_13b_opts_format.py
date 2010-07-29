@@ -8,7 +8,7 @@ It's possible to force a different representation setting 'format' and possibly
 'format' argument.
 """
 
-t = SqlTable(table='movie',
+t = SqlTable('movie',
              dbproxy=db,
              order_by='director_id',
              rows = 15,

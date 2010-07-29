@@ -84,7 +84,7 @@ elixir.setup_all()
 lay = """first_name last_name
          o2m=movies      - - -
          """
-tm = sqlkit.SqlMask(mapper=Director.mapper, metadata=__metadata__, session=elixir.session,layout=lay)
+tm = sqlkit.SqlMask(Director.mapper, metadata=__metadata__, session=elixir.session,layout=lay)
 t = tm.mfields['movies'].widget.table
 
 
@@ -107,21 +107,21 @@ t = tm.mfields['movies'].widget.table
 
 #session.flush()
 
-#t1 = sqlkit.SqlMask(mapper=Movie.mapper, metadata=metadata, session=elixir.session,)
+#t1 = sqlkit.SqlMask(Movie.mapper, metadata=metadata, session=elixir.session,)
 #t1.reload()
 
 #print lay
-#tm = sqlkit.SqlMask(mapper=Director.mapper, metadata=metadata, session=elixir.session)
-#tm = sqlkit.SqlTable(mapper=Director.mapper, metadata=metadata, session=elixir.session)
+#tm = sqlkit.SqlMask(Director.mapper, metadata=metadata, session=elixir.session)
+#tm = sqlkit.SqlTable(Director.mapper, metadata=metadata, session=elixir.session)
 
 
 
 
-#td = sqlkit.SqlTable(mapper=Movie.mapper, metadata=metadata, session=elixir.session,)
+#td = sqlkit.SqlTable(Movie.mapper, metadata=metadata, session=elixir.session,)
 #                     addto=tm.w['A=uno'], naked=True)
-#tm = sqlkit.SqlTable(mapper=Movie.mapper, dbproxy=db)
+#tm = sqlkit.SqlTable(Movie.mapper, dbproxy=db)
 
-#tm = sqlkit.SqlMask(mapper=Movie.mapper, metadata=metadata, session=elixir.session)
+#tm = sqlkit.SqlMask(Movie.mapper, metadata=metadata, session=elixir.session)
 
 
 completion.set_description_fields('director', 'last_name', add='first_name',

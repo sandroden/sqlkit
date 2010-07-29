@@ -4,7 +4,7 @@ year and description will not be visible
 
 """
 
-t = SqlTable(table='movie',
+t = SqlTable('movie',
              dbproxy=db,
              order_by='director_id',
              hide_fields='year, description',

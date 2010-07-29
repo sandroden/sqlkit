@@ -20,7 +20,7 @@ class Validation(object):
         if changed:
             raise ValidationError("I don't want you to change anything!!!")
 
-t = SqlMask(class_=model.Movie, dbproxy=db, hooks=Validation())
+t = SqlMask(model.Movie, dbproxy=db, hooks=Validation())
 t.gui_fields.description.blank = True  #don't try to change '' in None
 
 t.reload()

@@ -30,7 +30,7 @@ class MyModel(ModelProxy):
         return Header(self.master, 'title', self.master.gui_fields.director_id.get_human_value(field_value))
 
 
-t = SqlTable(table='movie', dbproxy=db, order_by='title', )
+t = SqlTable('movie', dbproxy=db, order_by='title', )
 t.modelproxy = MyModel(t.modelproxy)
 t.modelproxy.tree_field_name = 'director_id'
 t.hide_fields('director_id')

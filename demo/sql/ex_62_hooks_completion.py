@@ -9,7 +9,7 @@ class Hook(object):
         print "Was this film directed by %s?" % obj['last_name']
 
 
-t = SqlMask(class_=model.Movie, dbproxy=db, hooks=Hook())
+t = SqlMask(model.Movie, dbproxy=db, hooks=Hook())
 
 t.reload()
 

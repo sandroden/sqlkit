@@ -20,14 +20,17 @@ import datetime
 import decimal
 import inspect
 import gc
+import warnings
 
 import gtk
 import pango
 import gobject
 from babel import numbers
+import sqlalchemy
 from sqlalchemy import exceptions, Table
 from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper, attributes
 from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.orm.mapper import Mapper
 
 from sqlkit import layout, debug as  dbg
 from sqlkit.layout import map_labels, get_label
@@ -83,7 +86,8 @@ class SqlWidget(gobject.GObject):
     records = None
     last_new_obj = None
 
-    def __init__(self, mapper=None,
+    def __init__(self, what=None,
+                 mapper=None,
                  ## geometry
                  layout = None,
                  layout_nick = 'default',
@@ -128,6 +132,11 @@ class SqlWidget(gobject.GObject):
                  ):
 
         """
+        :param what: this is the table/mapper/class to be displayed. You are
+           encouraged to use it as first argument. The keyword 'what' is
+           just here for backward compatibility as the first versiona had
+           different keywork for table/classes/mappers
+
         :param table: the table to be edited. May be a string in which case it will
            be autoloaded or a `sqlalchemy.Table` object. When using table argument
            no info on relationship to other table are passed except those
@@ -137,10 +146,19 @@ class SqlWidget(gobject.GObject):
            If you pass 2 table as in ``movie director`` sqlkit will try to join
            them and build a proper mapper.
 
+           This keyword is now **deprecated** and will disappear in future releases.
+           You are encouraged to use the table as first argument istead.
+
         :param class\_: a sqlalchemy mapped class (eg: that defined via declarative
            layer). The mapper will be automatically found
 
+           This keyword is now **deprecated** and will disappear in future releases.
+           You are encouraged to use the class as first argument istead.
+
         :param mapper: a mapper. All fields will be desumed by introspection
+
+           This keyword is now **deprecated** and will disappear in future releases.
+           You are encouraged to use the mapper as first argument istead.
 
         :param session: the session to be used
 
@@ -251,6 +269,21 @@ class SqlWidget(gobject.GObject):
         """
 
         gobject.GObject.__init__(self)
+        if what:
+            if isinstance(what, (basestring, sqlalchemy.Table)):
+                table = what
+            elif isinstance(what, Mapper):
+                mapper = what
+            else:
+                class_ = what
+        else:
+            frame = sys._getframe(2)
+            info = "Called by '%s' in %s:%s" % (frame.f_code.co_name,
+                                                frame.f_code.co_filename, frame.f_lineno)
+            warnings.warn("Use of table/tables/class_/mapper keyword is now Depecated\n" +\
+                          "place table/class_/mapper as first argument\n%s" % info,
+                          DeprecationWarning, stacklevel=3)
+                
         self.related = Container()
         self.gui_fields = Container(self.gui_fields)
         self.field_widgets = Container()
@@ -2161,7 +2194,10 @@ class SqlWidget(gobject.GObject):
         return '<%s: %s>' % (self.__class__.__name__, self.tables)
 
     def __str__(self):
-        return '<%s: %s>' % (self.__class__.__name__, self.tables)
+        try:
+            return '<%s: %s>' % (self.__class__.__name__, self.tables)
+        except AttributeError, e:
+            return '<%s>' % (self.__class__.__name__)
 
 
 

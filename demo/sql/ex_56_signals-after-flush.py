@@ -9,7 +9,7 @@ Try changing some values and read the output
 """
 
 
-t = SqlTable(class_=model.Director, dbproxy=db, )
+t = SqlTable(model.Director, dbproxy=db, )
 
 def after_flush_cb(sqlwidget, obj, session):
     from sqlkit.db.utils import get_differences

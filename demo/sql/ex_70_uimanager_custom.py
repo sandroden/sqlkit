@@ -16,7 +16,7 @@ CUSTOM='''
 def custom_action_cb(widget):
     print "ok!"
 
-t = SqlTable(class_=model.Movie, dbproxy=db)
+t = SqlTable(model.Movie, dbproxy=db)
 
 
 t.actiongroup_general.add_actions([

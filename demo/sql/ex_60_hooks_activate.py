@@ -11,7 +11,7 @@ class Validation(object):
 
     on_activate__last_name = on_activate__first_name
 
-t = SqlMask(class_=model.Director, dbproxy=db,
+t = SqlMask(model.Director, dbproxy=db,
             order_by='last_name', hooks=Validation() )
 
 t.reload()

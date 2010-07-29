@@ -14,7 +14,7 @@
 >>> from sqlkit.widgets import SqlMask, SqlTable
 
 >>> lay = "title year director_id m2m=genres m2m=actors "
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 
 ## 01 - title simple
 >>> print sm.completions.title.debug_completion_sql(value='il')
@@ -100,7 +100,7 @@ FROM actor JOIN nation AS nation_1 ON actor.nation_cod = nation_1.cod
 WHERE lower(actor.first_name) LIKE lower('f%') AND (nation_1.nation LIKE 'Italy%') ORDER BY actor.last_name
 
 ## 14 - filter on a completion of an m2m with relation on table
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> sm.related.actors.completions.nation_cod.filter(nation__cod='Italy')
 >>> print sm.related.actors.completions.nation_cod.debug_completion_sql()
 SELECT DISTINCT actor.id, actor.first_name, actor.last_name, nation_1.nation 
@@ -112,7 +112,7 @@ WHERE (nation.cod = 'Italy') AND (nation_1.nation LIKE '%') ORDER BY actor.last_
 >>> utils.register_class(Nation)
 
 ## 15 - filter on a completion of an m2m with relation on table - afetr registering
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> sm.related.actors.completions.nation_cod.filter(nation__cod='Italy')
 >>> print sm.related.actors.completions.nation_cod.debug_completion_sql()
 SELECT DISTINCT actor.id, actor.first_name, actor.last_name, nation_1.nation 
@@ -121,7 +121,7 @@ WHERE (nation.cod = 'Italy') AND (nation_1.nation LIKE '%') ORDER BY actor.last_
     
 ## Join
 ## 20 - completion on a field in a joined table - first table
->>> sm = SqlTable(tables="actor nation", dbproxy=db, naked=True, show=False)
+>>> sm = SqlTable("actor nation", dbproxy=db, naked=True, show=False)
 >>> print sm.completions.first_name.debug_completion_sql()
 SELECT DISTINCT actor.first_name 
 FROM actor 
@@ -149,7 +149,7 @@ WHERE (nation.nation like 'aa') AND (nation.nation LIKE '%') ORDER BY nation.nat
 
 ## Dynamic filter
 >>> lay = "first_name nation"
->>> sm = SqlMask(class_=Director, dbproxy=db, layout=lay, naked=True)
+>>> sm = SqlMask(Director, dbproxy=db, layout=lay, naked=True)
 >>> idx = gobject.idle_add(sm.set_value, 'nation', 'IT')
 >>> while gtk.events_pending():
 ...    hide = gtk.main_iteration_do()

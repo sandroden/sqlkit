@@ -260,7 +260,7 @@ class TableBrowser(object):
 
         mode, table = data
         dev = self.ui_manager.get_action('/Main/Modify/Dev').get_active()
-        options ={'table' : table,
+        options ={
                'dev' : dev,
                'single' : False,
                'nick' : "%s_%s" % (table, mode),
@@ -272,7 +272,7 @@ class TableBrowser(object):
             SqlWid = SqlTable
 
         try:
-            self.t = SqlWid(**options)
+            self.t = SqlWid(table, **options)
             if self.ui_manager.get_action('/Main/Modify/Reload').get_active():
                 self.t.reload()
         except sqlkit.exc.MissingDescriptorField:
@@ -383,7 +383,7 @@ def sqlkit_model(item=None, dbproxy=None, single=False):
             else:    
                 Base.metadata.create_all()
                 
-        tbl = SqlMask(class_=SqlkitTable, dbproxy=db, single=single,
+        tbl = SqlMask(SqlkitTable, dbproxy=db, single=single,
                       hooks=ConfigHook(), layout=lay)
         
     except Exception, e:
@@ -423,8 +423,7 @@ def create_about_dialog():
 
 def open_sqlwidget(table, single, opts, db):
 
-    options ={'table' : table,
-              'dev' : opts.dev,
+    options ={'dev' : opts.dev,
               'single' : single,
               'nick' : table,
               'limit' : opts.limit and int(opts.limit) or 200,
@@ -435,7 +434,7 @@ def open_sqlwidget(table, single, opts, db):
            }
     if opts.mask:
         try:
-            t = SqlMask(**options)
+            t = SqlMask(table, **options)
         except sqlkit.exc.MissingDescriptorField:
             pass
 

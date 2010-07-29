@@ -14,7 +14,7 @@ lay = """
    m2m=movies::title,year -
 """
 
-t = SqlMask(class_=model.Director, dbproxy=db, layout=lay)
+t = SqlMask(model.Director, dbproxy=db, layout=lay)
 
 t.reload()
 

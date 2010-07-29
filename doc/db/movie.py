@@ -37,10 +37,10 @@ lay = """
     director_id
 """
 if 'm' in sys.argv:
-    t = SqlMask(table='movie', dbproxy=db, single=True, layout=lay)
+    t = SqlMask('movie', dbproxy=db, single=True, layout=lay)
     
 else:
-    t = SqlTable(table='movie', dbproxy=db, single=True, dev=False,
+    t = SqlTable('movie', dbproxy=db, single=True, dev=False,
                   order_by='director_id', rows=20)
     t.reload()
     

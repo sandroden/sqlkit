@@ -18,7 +18,7 @@ m = mapper(Join, model.Movie.__table__.join(model.Director.__table__),
 
 
 
-t = SqlTable(mapper=m, dbproxy=db )
+t = SqlTable(m, dbproxy=db )
 t.add_filter(director_nation='IT')
 t.reload()
 

@@ -1026,7 +1026,7 @@ def edit_foreign_key_table(wdg, (master, field_name, mode)):
     
     ftable, fkey = get_foreign_info(master, field_name)
     if mode == 'mask':
-        m = SqlMask(table=ftable, dbproxy=master.dbproxy)
+        m = SqlMask(ftable, dbproxy=master.dbproxy)
         try:
             fkvalue = master.get_value(field_name, shown=False)
             m.set_records(pk=fkvalue)

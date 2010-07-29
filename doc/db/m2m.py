@@ -31,7 +31,7 @@ lay = """
          director_id - - -
          {T.a m2m=genres:5   m2m=actors:5:first_name,last_name } - - -
          """
-t = sqlkit.SqlMask(class_=Movie, dbproxy=db , layout=lay)
+t = sqlkit.SqlMask(Movie, dbproxy=db , layout=lay)
 #t.add_constraint(genres__name__like='sto%')
 Tbl = t.widgets['T.a']
 Tbl.get_parent().child_set_property(Tbl, 'y-options', gtk.EXPAND|gtk.FILL)

@@ -15,7 +15,7 @@
 
 ## entry with dimenstions: uses entry + alignement
 >>> lay = "title"
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> sm.lay_obj.lay
 'L=title ae=title:50-'
 >>> sm.laygen.fields_in_layout
@@ -23,7 +23,7 @@
 
 ## TEXT: widget is a text TextWidget
 >>> lay = "text"
->>> sm = SqlMask(class_=AllTypes, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(AllTypes, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
 L=text TXS=text
 >>> sm.laygen.fields_in_layout
@@ -31,7 +31,7 @@ L=text TXS=text
 
 ## TEXT: casting the text widget to entry
 >>> lay = "e=text"
->>> sm = SqlMask(class_=AllTypes, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(AllTypes, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
 L=text e=text
 >>> sm.laygen.fields_in_layout
@@ -39,7 +39,7 @@ L=text e=text
 
 ## TEXT: casting the entry widget to text
 >>> lay = "TXS=description"
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> sm.lay_obj.lay
 'L=description TXS=description:50-'
 >>> sm.laygen.fields_in_layout
@@ -47,54 +47,54 @@ L=text e=text
 
 ## TEXT  no label
 >>> lay = "TXS==description"
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> sm.lay_obj.lay
 'TXS=description'
 >>> sm.laygen.fields_in_layout
 {'description': 'TX=description'}
 
 >>> lay = "date_release"
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
 L=date_release d=date_release
 >>> sm.laygen.fields_in_layout
 {'date_release': 'd=date_release'}
 
 >>> lay = "year"
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
 L=year ae=year:8
 >>> sm.laygen.fields_in_layout
 {'year': 'e=year'}
 
 >>> lay = "time"
->>> sm = SqlMask(class_=AllTypes, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(AllTypes, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
 L=time ae=time
 >>> sm.laygen.fields_in_layout
 {'time': 'e=time'}
 
 >>> lay = "director_id"
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
 L=director_id fk=director_id
 >>> sm.laygen.fields_in_layout
 {'director_id': 'fk=director_id'}
 
 >>> lay = "{>>.open title}"
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
 {>>.open L=title ae=title:50-}
 >>> sm.laygen.fields_in_layout
 {'title': 'e=title'}
 
 >>> lay = "{>.closed title}"
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
 {>.closed L=title ae=title:50-}
 
 >>> lay = "m2m=genres"
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
 m2m=genres
 >>> sm.laygen.loaders
@@ -103,7 +103,7 @@ m2m=genres
 {'genres': 'm2m=genres'}
 
 >>> lay = "m2m=genres::name"
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
 m2m=genres::name
 >>> sm.laygen.loaders
@@ -112,7 +112,7 @@ m2m=genres::name
 {'genres': 'm2m=genres'}
 
 >>> lay = "m2m=genres:2"
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
 m2m=genres:2
 >>> sm.laygen.loaders
@@ -121,7 +121,7 @@ m2m=genres:2
 {'genres': 'm2m=genres'}
 
 >>> lay = "m2m=genres:2:"
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
 m2m=genres:2:
 >>> sm.laygen.loaders
@@ -130,14 +130,14 @@ m2m=genres:2:
 {'genres': 'm2m=genres'}
 
 # >>> lay = "m2m=genres.film:20"
-# >>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+# >>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 # >>> print sm.lay_obj.lay.strip()
 # m2m=genres.film:20
 # >>> sm.laygen.loaders
 # {'genres': {'rows': 20,}}
 
 >>> lay = "b=gtk-save-as"
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
 b=gtk-save-as
 >>> sm.laygen.fields_in_layout
@@ -148,7 +148,7 @@ b=gtk-save-as
 ...      director_id - - 
 ...      m2m=genres  - m2m=actors -
 ...      """
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
 L=title ae=title:50-       L=year ae=year:5< 
      L=director_id fk=director_id - - 
@@ -165,7 +165,7 @@ L=title ae=title:50-       L=year ae=year:5<
 ...          }
 ...      }
 ...  """
->>> sm = SqlMask(class_=Movie, dbproxy=db, layout=lay, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
 {|.uno
         {N  { %title
@@ -178,7 +178,7 @@ L=title ae=title:50-       L=year ae=year:5<
      }
             
 # :50 is wrong for dates and numbers
->>> sm = SqlMask(class_=Movie, dbproxy=db, naked=True, show=True)
+>>> sm = SqlMask(Movie, dbproxy=db, naked=True, show=True)
 
 # sm.current is added with gobject.idle_add...
 >>> while gtk.events_pending():  
@@ -205,7 +205,7 @@ Truffaut
 >>> for p in sm.gui_fields.director_id._props_for_delete_orphan: str(p)
 'Movie.director'
 
->>> sm = SqlMask(class_=AllTypes, dbproxy=db, naked=True, show=False)
+>>> sm = SqlMask(AllTypes, dbproxy=db, naked=True, show=False)
 >>> n = sm.reload()
->>> t = SqlTable(class_=AllTypes, dbproxy=db, naked=True, show=False)
+>>> t = SqlTable(AllTypes, dbproxy=db, naked=True, show=False)
 

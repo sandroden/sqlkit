@@ -10,6 +10,6 @@ import model
 db = proxy.DbProxy(bind="sqlite:///model/db.sqlite")
 
 
-t = SqlTable(class_=model.Genre,    dbproxy=db )
+t = SqlTable(model.Genre,    dbproxy=db )
 t.reload()
 

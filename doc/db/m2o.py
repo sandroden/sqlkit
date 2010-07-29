@@ -50,7 +50,7 @@ elixir.setup_all()
 lay = """first_name last_name
          o2m=movies      - - -
          """
-tm = sqlkit.SqlMask(mapper=Director.mapper, metadata=__metadata__, session=elixir.session,layout=lay)
+tm = sqlkit.SqlMask(Director.mapper, metadata=__metadata__, session=elixir.session,layout=lay)
 t = tm.vfields['movies'].widget.table
 
 

@@ -24,6 +24,6 @@ import model
 db = proxy.DbProxy(bind="sqlite:///model/db.sqlite")
 
 
-t = SqlTable(table='movie',    dbproxy=db, order_by='title', )
+t = SqlTable('movie',    dbproxy=db, order_by='title', )
 t.reload()
 

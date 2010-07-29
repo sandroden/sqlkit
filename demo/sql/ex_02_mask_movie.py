@@ -12,5 +12,5 @@ lay = """
     TXS=description 
     director_id
     """
-t = SqlMask(table='movie', dbproxy=db, layout=lay)
+t = SqlMask('movie', dbproxy=db, layout=lay)
 t.reload()

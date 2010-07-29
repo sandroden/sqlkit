@@ -15,7 +15,7 @@ Django-like syntax
 
 A constraint can be as simple as::
 
-  t = SqlTable(table='movie', dbproxy=db)
+  t = SqlTable('movie', dbproxy=db)
   t.add_constraints(actors__country='ITA', genres__name='drama',
                     year__gte=1950, year__lte=1970)
 
@@ -116,7 +116,7 @@ on the query directly::
    tk_tbl = ticket.Ticket.__table__
    my_id = self.db.get_session().query(ticket.User).filter_by(username=setup.USERNAME).one().id
 
-   t = sk.SqlTable(class_=ticket.Ticket, field_list=field_list, order_by='priority', **self.meta)
+   t = sk.SqlTable(ticket.Ticket, field_list=field_list, order_by='priority', **self.meta)
    t.add_filter(status=1)
    t.query = t.query.filter(or_(tk_tbl.c['assigned_by_id'] == my_id ,
                                 tk_tbl.c['assigned_to_id'] == my_id , ))
@@ -155,7 +155,7 @@ much more appropriate for sorting).
 Now suppose you also have an ``active`` field on the user_table. You can
 achieve this (simple) in the following way::
 
-  t = SqlTable(table='address', order_by='user_id__first_name', ...)
+  t = SqlTable('address', order_by='user_id__first_name', ...)
   t.add_constraint(user_id__active=True, aliased=True)
 
 the order_by argument implicitely have built a join with the user table, the

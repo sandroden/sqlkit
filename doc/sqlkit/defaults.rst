@@ -56,7 +56,7 @@ to set defalts local only to the instance of sqlwidget they belong to.
 
 You can use such a default in any of the following ways::
 
-  m = SqlMask(table='movie', ...)
+  m = SqlMask('movie', ...)
   m.defaults.set_default(actor=False)
   m.defaults.set_defaults( {'title' : 'write your preferred...'} )
   m.defaults.fk('director_id', 'first_name', 'Fellini')

@@ -9,7 +9,7 @@ lay = """
          director_id - - -
          m2m=actors  - - -
          """
-t = SqlMask(class_=model.Movie, dbproxy=db , layout=lay)
+t = SqlMask(model.Movie, dbproxy=db , layout=lay)
 t.related.actors.set_editable(True)
 
 

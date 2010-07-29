@@ -26,7 +26,7 @@ lay = """
    o2m=movies - - -
    """
 
-t = SqlMask(class_=model.Director, layout=lay,
+t = SqlMask(model.Director, layout=lay,
          dbproxy=db, hooks=HooksDirector())
 
 ## you can change hooks any time just assigning it

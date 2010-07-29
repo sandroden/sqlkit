@@ -41,7 +41,7 @@ lay = """
    b=ciao -
 """
 
-t = SqlTable(class_=model.Movie, dbproxy=db, layout=lay,
+t = SqlTable(model.Movie, dbproxy=db, layout=lay,
              order_by='title')
 t.reload()
 

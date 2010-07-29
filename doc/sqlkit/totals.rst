@@ -9,7 +9,7 @@ subtotals. Subtotals are determined by brake fields/functions. This may be
 done interactively from the column menu or from code. The following example
 is very stupid but... you get the feeling!::
 
-    t = SqlTable(table='movie', dbproxy=db, order_by='director_id')
+    t = SqlTable('movie', dbproxy=db, order_by='director_id')
     t.totals.add_break('director_id')
     t.totals.add_total('year')
 

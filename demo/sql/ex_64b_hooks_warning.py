@@ -20,7 +20,7 @@ lay = """
    m2m=genres -
    """
 
-t = SqlMask(class_=model.Movie, layout=lay, label_map={'genres.name':'genres'},
+t = SqlMask(model.Movie, layout=lay, label_map={'genres.name':'genres'},
          dbproxy=db, hooks=Hooks())
 
 t.reload()

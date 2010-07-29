@@ -3,7 +3,7 @@
 A stupid example to show the total on an integer
 """
 
-t = SqlTable(class_=model.Movie,
+t = SqlTable(model.Movie,
              dbproxy=db,
              order_by='director_id',
              rows=30,

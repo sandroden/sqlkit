@@ -20,7 +20,7 @@ def custom_action_cb(table, event, obj, field_name, menu):
     table.add_temporary_item(item, menu, separator=True)
 
 
-t = SqlTable(class_=model.Movie, dbproxy=db)
+t = SqlTable(model.Movie, dbproxy=db)
 t.reload()
 
 

@@ -10,7 +10,7 @@ Sqlkit depends on:
 
        * Python
            * Pygtk
-           * sqlalchemy (>=0.5.3)
+           * sqlalchemy (>=0.5.3, < 0.6)
            * glade2
        * python-dateutils 
        * setuptools

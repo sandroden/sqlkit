@@ -12,7 +12,7 @@ lay = """
 
 import gobject
 
-t = SqlMask(class_=model.Movie, dbproxy=db, layout=lay)
+t = SqlMask(model.Movie, dbproxy=db, layout=lay)
 t.completions.director_id.group_by = 'nation'
 gobject.idle_add(t.completions.director_id.show_possible_completion, None, 'start')
 

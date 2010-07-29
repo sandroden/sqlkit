@@ -25,6 +25,6 @@ lay = """
     o2m=movies -
 """
 
-t = SqlMask(class_=model.Director, dbproxy=db, layout=lay,)
+t = SqlMask(model.Director, dbproxy=db, layout=lay,)
 t.reload()
 

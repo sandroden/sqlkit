@@ -19,7 +19,7 @@ A typical usage can be::
   from sqlkit import DbProxy
   
   db = DbProxy(engine='sqledit:///movies.sqlite')
-  t = SqlMask(table='movie', dbproxy=db, single=True)
+  t = SqlMask('movie', dbproxy=db, single=True)
      
 that will pop up an editor for the record. Filter panel will be available
 just clicking on the label of the fields.
@@ -73,9 +73,9 @@ that where requested by the following instructions::
       letto inviata
      cena canti 
      """
-   t1 = SqlMask(table='partecipazioni_invitato', dbproxy=db, 
+   t1 = SqlMask('partecipazioni_invitato', dbproxy=db, 
              hide='email note', layout=layout, )
-   t2 = SqlTable(table='partecipazioni_invitato', dbproxy=db, )
+   t2 = SqlTable('partecipazioni_invitato', dbproxy=db, )
 
 Filter
 ------
@@ -148,7 +148,7 @@ Constraints
 
 A :ref:`contraint <constraints>` can be as simple as::
 
-  t = SqlTable(table='movie', dbproxy=db)
+  t = SqlTable('movie', dbproxy=db)
   t.add_constraints(actors__country='ITA', genres__name='drama',
     year__gte=1950, year__lte=1970)
 

@@ -45,7 +45,7 @@ True
 >>> def_local_director.get('last_name')
 'Olmi'
 
->>> sm = SqlMask(class_=Movie, dbproxy=db, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, naked=True, show=False)
 >>> while gtk.events_pending():
 ...   silent =  gtk.main_iteration()
 
@@ -67,7 +67,7 @@ u'Donnersmak'
 >>> defaults.get_default('movie', 'title')
 
 
->>> sm = SqlMask(class_=Director, dbproxy=db, naked=True, show=False)
+>>> sm = SqlMask(Director, dbproxy=db, naked=True, show=False)
 
 ## no default, get the global one
 >>> sm.gui_fields.last_name.get_default()
@@ -85,7 +85,7 @@ u'Donnersmak'
 'Olmi'
 
 
->>> sm = SqlMask(class_=Movie, dbproxy=db, naked=True, show=False)
+>>> sm = SqlMask(Movie, dbproxy=db, naked=True, show=False)
 >>> sm.defaults.tdict
 {}
 

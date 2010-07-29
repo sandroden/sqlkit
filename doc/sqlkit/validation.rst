@@ -54,7 +54,7 @@ The validation has the following steps:
 		   raise ValidationError("Hei: how can you know the future!")
 
 
-       t = SqlMask(class_=model.Movie, layout=lay, label_map={'genres.name':'genres'},
+       t = SqlMask(model.Movie, layout=lay, label_map={'genres.name':'genres'},
 		dbproxy=db, hooks=Hooks())
 
      

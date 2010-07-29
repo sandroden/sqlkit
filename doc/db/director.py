@@ -38,10 +38,10 @@ lay = """
 
 
 if 'm' in sys.argv:
-    t = SqlMask(table='director', dbproxy=db, single=True, layout=lay)
+    t = SqlMask('director', dbproxy=db, single=True, layout=lay)
     
 else:
-    t = SqlTable(table='director', dbproxy=db, single=True, dev=False,
+    t = SqlTable('director', dbproxy=db, single=True, dev=False,
                   order_by='last_name',
                   rows=6,
                   #field_list='director_id,title'

@@ -16,8 +16,8 @@ def_movie.set_defaults(
 def_movie.fk('director_id', 'last_name', 'Fellini')
 
 
-#t = SqlMask(table='movie',  dbproxy=db,     )
-t = SqlTable(table='movie',  dbproxy=db,     )
+#t = SqlMask('movie',  dbproxy=db,     )
+t = SqlTable('movie',  dbproxy=db,     )
 
 
 ## unregister to prevet conflicts in following examples

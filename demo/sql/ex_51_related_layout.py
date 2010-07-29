@@ -18,7 +18,7 @@ lay_movie = """
     m2m=actors -
 """
 
-t = SqlMask(class_=model.Director, dbproxy=db, layout=lay_director,
+t = SqlMask(model.Director, dbproxy=db, layout=lay_director,
             order_by='last_name')
 t.related.movies.layout = lay_movie
 

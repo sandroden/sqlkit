@@ -11,7 +11,7 @@ in a database (as opposed to editing the *structure* of the database).
 
 No programming skill is required, but if you are supopsed to install it
 yourself, you may need to understand at least a little bit of your operating
-system (but that may be as simpe as a double clik if you use boundles).
+system (but that may be as simple as a double clik if you use boundles).
 
 
 Installation
@@ -23,7 +23,7 @@ Boundles
 The only possibly difficult part of installation may be the installation of
 the dependencies. To bypass this I also provide binaries that bundle
 toghether any required software for Linux or Windows (you can donwload it
-from the `download page`_). Drivers for postgres, mysql and sqlite are
+from the `download page`_). Drivers for PostgreSQL, MySQL and sqlite are
 included. 
 
 The hard way
@@ -55,7 +55,8 @@ Sqlkit depends on several packages:
 :sqlalchemy: this is the core of the sql staff. It's a layer that builds SQL
          statements and invokes the backend drivers. It takes care of
          inspecing the database and so on. You need at least release 0.5 but
-         0.5.4 would be much better. 
+         0.5.4 would be much better. SqlKit has not yet been ported to
+         sqlalchemy 0.6.
 
 :python-dateutil: needed for computation on dates, used in filters (eg: date
          >= 'm-1', means date >= starting of last month), see :ref:`date_filters`.
@@ -361,7 +362,7 @@ has lines as::
       first_name  = Column(String(60))
       nation      = Column(String(6))
 
-      movies      = relation('Movie', backref='director', cascade='all, delete-orphan',)
+      movies      = relation('movie', backref='director', cascade='all, delete-orphan',)
 
 where the last line instructs sqlalchemy of the relation existent between
 the tables, and more: it adds an attribute on the class ``Director`` that

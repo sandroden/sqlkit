@@ -567,7 +567,7 @@ class CollectionWidget(Widget):
             direction = "o2m"
 
         self.table = SqlTable(
-            table=table.name,
+            table.name,
             geom = (-1, -1),
             rows = loader_spec.get('rows', 5),
             mapper = self.field.mapper,

@@ -33,7 +33,7 @@ initialized from the engine specification::
   from sqlkit.widgets import SqlMask, SqlTable
   from sqlkit import dbproxy
   db = proxy.DbProxy(engine="sqlite:///model/movies.sqlite")
-  SqlTable(table="movies", dbproxy=db)
+  SqlTable("movies", dbproxy=db)
 
 below you can see some alternatives that would work as well::
 
@@ -42,12 +42,12 @@ below you can see some alternatives that would work as well::
   meta = MetaData()
   meta.bind = "sqlite:///model/movies.sqlite"
   #
-  SqlTable(table="movies", session=sess, metadata=meta)
+  SqlTable("movies", session=sess, metadata=meta)
 
   # passing a mapped class (Movie here is build with declarative layer):
   # the metadata is found from the mapper.local_table.metadata
 
-  SqlTable(class_=Movies, session=sess)
+  SqlTable(Movies, session=sess)
 
 Session are created with  ``autoflush=False``, ``expire_on_commit=False`` but
 can be changed when building ``DbProxy``. 
@@ -117,7 +117,7 @@ Attributes
    You can also set it on a related table::
 
       GUI="director @ m2m=movies"
-      t = SqlMask(class_=Director, layout=GUI, ...)
+      t = SqlMask(Director, layout=GUI, ...)
       t.related.movies.layout = "title @ m2m=actors"
    
 
