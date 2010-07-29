@@ -180,13 +180,17 @@ class FieldChooser(object):
         
     """
 
-    def __init__(self, info, widgets=None):
+    def __init__(self, info, widgets=None, gui_field_mapping=None):
         """    
-        widgets:     the widget dictionary retuned by Layout
         info:        a InspectMapper objet
+        widgets:     the widget dictionary retuned by Layout
+        gui_field_mapping:  a dictionali-like store where to look for custom mapping of
+                     field-name and fields. Used when the field cannot be devised
+                     from the mapper as the fields are not persisted.
         """
         self.info = info
         self.widgets = widgets or {}
+        self.gui_field_mapping = gui_field_mapping or {}
 
     def get_field(self, field_name, field_attrs=None, def_str=None, test=False):
         """
@@ -199,8 +203,9 @@ class FieldChooser(object):
                      as extracted by layoutgen and set in laygen.fields_in_layout dictionary
         """        
 
-#         if field_name in self.master.gui_fields:
-#             return self.master.gui_fields.get(field_name)(*args)
+        if field_name in self.gui_field_mapping:
+            return self.gui_field_mapping.get(field_name)
+
         def_str = def_str or ''
 
         if self.info.is_fkey(field_name):
@@ -1100,6 +1105,10 @@ class CollectionField(Field):
             value = []
         if hasattr(self, 'widget'):
             self.widget.set_value(value)
+
+
+
+
 
 
 

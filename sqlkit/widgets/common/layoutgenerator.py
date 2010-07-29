@@ -187,24 +187,29 @@ class LayoutGenerator (object):
         field_name = m.group('field')
         mod = m.group('mod')
         
-        if field_name not in self.master.field_list or mod in ('L','le', 'm2m', 'o2m','m2o'):
+        if field_name not in self.master.field_list \
+               or (hasattr(self.master, 'gui_field_mapping') and field_name in self.master.gui_field_mapping) \
+               or  mod in ('L','le', 'm2m', 'o2m','m2o'):
             return m.group(0)
+#         if not self.known_fields(field_name):
+#             print "RETURN ", m.group(0)
+#             return m.group(0)
 
-#         ## this is for reference of fields defined in other tables: tbl.field
-#         if field_name not in self.fields:
-#             ## any field that is not explicitly here is mapped into 'str'
-#             field_name, t, col_spec = self.register(field_name)
-#             if t is None:  # this is not a db field
-#                 return field_name
+        ## check if we defined already a Field via gui_field_mapping
 
-        widget = mod or self.get_widget(field_name)
+        if hasattr(self.master, 'gui_field_mapping'):
+            Field = self.master.gui_field_mapping.get(field_name, None)
+        else:
+            Field = None
+            
+        widget = mod or self.get_widget(field_name, Field)
         spec = m.group('spec') or ''
         
         if self.master.is_loader(field_name):
             self.loaders[field_name] = spec
 
         if not spec:
-            spec = self.create_spec(field_name)
+            spec = self.create_spec(field_name, Field)
         
         self.fields_in_layout[field_name] = "%s=%s" % (self.get_edit_string(widget), field_name)
 
@@ -215,6 +220,21 @@ class LayoutGenerator (object):
         
         return "L=%s %s=%s%s" % (field_name, widget, field_name, spec)
 
+    def known_fields(self, field_name):
+
+#         if field_name not in self.master.field_list or mod in ('L','le', 'm2m', 'o2m','m2o'):
+#             return m.group(0)
+        known = False
+        if field_name in self.master.field_list:
+            known = True
+
+        elif hasattr(self.master, 'gui_field_mapping') and field_name in self.master.gui_field_mapping:
+            known = True
+        
+        elif mod in ('L','le', 'm2m', 'o2m','m2o'):
+            return True
+        return known
+        
     def get_edit_string(self, mod):
         """
         return the real modifier that handle editing
@@ -227,17 +247,16 @@ class LayoutGenerator (object):
             return mod
         
         
-    def get_widget(self, field_name):
+    def get_widget(self, field_name, Field=None):
         """
         choose appropriate widget to represent this field
         check if a particular field was already defined in gui_fields
         """
-        ## check if we defined already a Fiedl via gui_field
-        if field_name in self.master.gui_fields:
-            field = self.master.gui_fields[field_name]
-            widget = getattr(field, 'default_def_string')
-            if widget:
-                return widget
+        ## check if we defined already a Field via gui_field_mapping
+        if Field:
+            widget_str = getattr(Field, 'default_def_string')
+            if widget_str:
+                return widget_str
             
 
         #self.used_field_dict[field_name] = 
@@ -256,47 +275,47 @@ class LayoutGenerator (object):
             widget = 'TXS'
         return widget
 
-    def create_spec(self, field_name):
+    def create_spec(self, field_name, Field):
         """
         create a spec string that decides how long en entry must be
         reflects fom db
         """
-        length = self.master.mapper_info.fields[field_name]['length']
-        col_spec = self.master.mapper_info.fields[field_name]['col_spec'] or ''
-        db_type  = self.master.mapper_info.fields[field_name]['db_type'] 
+        try:
+            length = self.master.mapper_info.fields[field_name]['length']
+            col_spec = self.master.mapper_info.fields[field_name]['col_spec'] or ''
+            db_type  = self.master.mapper_info.fields[field_name]['db_type']
+        except AttributeError:
+            length = Field.length if hasattr(Field, 'length') else None
             
         if self.master.is_fkey(field_name) or self.master.is_loader(field_name):
             ### FIXME: should I set the length of the foreign key?
             return ''
         
-        pytype = self.master.mapper_info.fields[field_name]['type']
-
-        if self.master.is_integer(field_name):
-            return ":8"
-        elif self.master.is_float(field_name):
-            return ":8"
-        elif self.master.is_numeric(field_name):
-            return ":10"
-        elif self.master.is_text(field_name):
-            dim = ":250.100"
-        else:
-            if not length:
-                m = re.search('VARCHAR.(\d+).', col_spec)
-                if m:
-                    length = int(m.group(1))
-            if length:
-                ## really long field should not eat up all the space
-                ## (but you can override this by hand!...
-                if length > 50:
-                    length = 50
-                ## now alignment: this will ensure it will grow
-                ##  if more space is given to the window via rezising
-                spec = ":%s" % length
-                if length> 20:
-                    spec += "-"
-#                 else:
-#                     spec += "<"
-                return spec
+        if not length:
+            if self.master.is_integer(field_name):
+                return ":8"
+            elif self.master.is_float(field_name):
+                return ":8"
+            elif self.master.is_numeric(field_name):
+                return ":10"
+            elif self.master.is_text(field_name):
+                dim = ":250.100"
+            m = re.search('VARCHAR.(\d+).', col_spec)
+            if m:
+                length = int(m.group(1))
+        if length:
+            ## really long field should not eat up all the space
+            ## (but you can override this by hand!...)
+            if length > 50:
+                length = 50
+            ## now alignment: this will ensure it will grow
+            ##  if more space is given to the window via rezising
+            spec = ":%s" % length
+            if length> 20:
+                spec += "-"
+            #  else:
+            #      spec += "<"
+            return spec
         return ''
                     
         

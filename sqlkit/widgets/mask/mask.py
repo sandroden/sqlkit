@@ -193,11 +193,13 @@ class SqlMask(sqlwidget.SqlWidget):
             raise Exception("I shouldn't be here...")
             self.gui_fields = {}
 
-        field_chooser = FieldChooser(self.mapper_info, self.widgets)
+        field_chooser = FieldChooser(self.mapper_info, self.widgets,
+                                     gui_field_mapping=getattr(self, 'gui_field_mapping', None))
 
         for field_name, widget_key in self.laygen.fields_in_layout.iteritems():
             widget = self.widgets[widget_key]
-            db_spec = self.mapper_info.fields[field_name]
+            db_spec = self.mapper_info.fields.get(field_name, None)
+            
             Field = field_chooser.get_field(field_name, db_spec, widget_key)
             field = Field(field_name, db_spec)
 
