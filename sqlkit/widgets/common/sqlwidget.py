@@ -722,7 +722,7 @@ class SqlWidget(gobject.GObject):
                 title=self.table
             except:
                 title= self.mapper_info.get_primary_table()
-        return title
+        return gobject.markup_escape_text(title)
     
     def get_table_labels(self):
         """
