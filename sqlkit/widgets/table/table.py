@@ -102,6 +102,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
         self.treeview = self.widgets["TV=tree"]
+        self.widgets['S=tree'].set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         ## from now on, the real field_list is the one in the View
         self.views['main'] = self.create_view(name='main', field_list = self.field_list, treeview=self.treeview)
         ## let tree use all the available space... 
@@ -1378,7 +1379,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if not icons:
             self.widgets['A.icons'].hide()
         if not scroll:
-            self.widgets['S=tree'].set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+            self.widgets['S=tree'].set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         else:
             if 'x' not in scroll:
                 xpolicy = gtk.POLICY_NEVER
@@ -1518,6 +1519,8 @@ class ExportDialog(dialogs.SaveDialog):
                             quoting=self.QUOTE or csv.QUOTE_MINIMAL)
         writer.writerows(self.get_rows_func())
         f.close()
+
+
 
 
 
