@@ -26,10 +26,13 @@ in editing_started_cb and  edited_cb to set state variables on SqlWidget
 import gtk
 import gobject
 import pango
+from decimal import Decimal
+
 import cell_renderers
 from sqlkit import debug as dbg, _
 from sqlkit.layout import widgets
 from sqlkit.misc.utils import str2list
+from sqlkit.db.utils import DictLike
 
 COLUMN_MENU = '''
 <popup name="TreePopup">
@@ -43,6 +46,7 @@ COLUMN_MENU = '''
 </popup>
 '''
 
+
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
 class GenericColumn(object):
     RENDERER = gtk.CellRendererText
@@ -53,11 +57,20 @@ class GenericColumn(object):
     MIN_DEFAULT_WIDTH = 4
     MAX_DEFAULT_WIDTH = 30
     
-    def __init__(self, master, field_name, title):
+    def __init__(self, master, field_name, title, field=None):
         """
         Generic column with cell render setup
+
+        :param master: the SqlWidget or which this Column is created, maybe a SqlMask if
+                       the Column is created for FilterPanel
+        :param field_name: the field_name used to add the field_name into master.gui_fields
+        :param title: the title used for the column
+        :param field: the field (if missing is looked for in master.gui_fields[field_name]
         """
-        self.master = master 
+        self.master = master
+        if not field:
+            field = self.master.gui_fields[field_name]
+        self.field = field
         self.field_name = field_name
         self.column = self.setup_column(title)
         cell = self.setup_cell_renderers()
@@ -134,7 +147,7 @@ class GenericColumn(object):
         obj = model.get_value(iter, 0) 
         value = getattr(obj, self.field_name)
         cell.set_property(prop_name, value)        
-        formatted_value = self.master.gui_fields[self.field_name].format_value(value)
+        formatted_value = self.field.format_value(value)
 
         if isinstance(obj, self.master.totals.total_class):
             obj.set_value_and_colors(cell, formatted_value, self.field_name)
@@ -156,7 +169,7 @@ class GenericColumn(object):
             self.master.cell_entry.substitute = False
             return
         
-        self.master.set_value(self.field_name, self.master.gui_fields[self.field_name].initial_value)
+        self.master.set_value(self.field_name, self.field.initial_value)
         self.master.cell_entry = None
 
         self.master.sb(_("Editing canceled. Restoring original value"), seconds=3)
@@ -206,7 +219,7 @@ class GenericColumn(object):
         set cell properties
         """
         
-        if self.master.is_editable(self.field_name) and 'u' in self.master.mode:
+        if self.field.editable and 'u' in self.master.mode:
             self.set_editable(True)
             cell.set_property('editable-set', True)
         else:
@@ -233,9 +246,10 @@ class GenericColumn(object):
         label.set_markup(label_text)
 
         ## bold italic
-        if not self.master.is_nullable(self.field_name) and not (
-            self.master.mapper_info.fields[self.field_name]['default']):
-            label.set_markup('<b><i>%s</i></b>' % label_text)
+        if self.field_name in self.master.mapper_info:
+            if not self.master.is_nullable(self.field_name) and not (
+                self.master.mapper_info.fields[self.field_name]['default']):
+                label.set_markup('<b><i>%s</i></b>' % label_text)
 
         # EventBox
         event_box = gtk.EventBox()
@@ -264,11 +278,14 @@ class GenericColumn(object):
         """
         make expandable only Strings with n_chars > 20 or Text
         """
+        from sqlkit.widgets.common import fields
 
-        if self.master.is_text(self.field_name):
+        #        if self.master.is_text(self.field_name):
+        if isinstance(self.field, fields.TextField):
             return True
-        if self.master.is_string(self.field_name):
-            if self.master.mapper_info.fields[self.field_name]['length'] > 20:
+        if isinstance(self.field, fields.VarcharField):
+            #if self.master.mapper_info.fields[self.field_name]['length'] > 20:
+            if self.field.length and self.field.length > 20:
                 return True
         return False
 
@@ -280,7 +297,7 @@ class GenericColumn(object):
         if self.master.col_width and self.field_name in self.master.col_width:
             width = self.master.col_width.get(self.field_name, )
         else:
-            width = self.master.gui_fields[self.field_name].length
+            width = self.field.length
 
             if not width or width < self.MIN_DEFAULT_WIDTH:
                 width = self.MIN_DEFAULT_WIDTH
@@ -331,7 +348,7 @@ class BooleanColumn(GenericColumn):
         
     def cell_set_property(self, cell):
 
-        if self.master.is_editable(self.field_name):
+        if self.field.editable:
             self.set_editable(True)
         else:
             self.set_editable(False)
@@ -346,7 +363,7 @@ class BooleanColumn(GenericColumn):
         obj = self.master.modelproxy.modelstore[path][0]
         status = getattr(obj, self.field_name)
 
-        if self.master.is_nullable(self.field_name):
+        if self.field.nullable:
             # status may be True/False/None - I want to cicle
             if   status == True:    status = False
             elif status == False:   status = None
@@ -354,7 +371,7 @@ class BooleanColumn(GenericColumn):
         else:
             status = not status
 
-        self.master.gui_fields[self.field_name].set_value(status, initial=False )        
+        self.field.set_value(status, initial=False )        
             
         return True
     
@@ -411,8 +428,7 @@ class VarcharColumn(GenericColumn):
         Set alignment of text in the cell
         """
         
-        length = self.master.gui_fields[self.field_name].length
-        if length:
+        if self.field.length:
             try:
                 ## if field has less then 4 chars, position it in the middle
                 if int(length) <= 4:
@@ -426,6 +442,8 @@ class VarcharColumn(GenericColumn):
         """
         prepare the editable, completion and validation
         """
+        from sqlkit.widgets.common import fields
+        
         self.master.currently_edited_field_name = self.field_name
         self.master.cell_entry = CellEntry(editable, cell, path, self.field_name)
         editable.connect('remove-widget', self.remove_widget_cb)
@@ -437,12 +455,13 @@ class VarcharColumn(GenericColumn):
 
         if hasattr(self.master.field_widgets[self.field_name], 'completion'):
             completion = self.master.field_widgets[self.field_name].completion
-            if completion and not self.master.is_text(self.field_name):
+            #if completion and not self.master.is_text(self.field_name):
+            if completion and not isinstance(self.field, fields.TextField):
                 completion.add_completion(editable)
                 completion.add_callbacks(editable)
             
         ## MAX LENGTH: not enforce for fkey as the field is not the real value but the shown one
-        if not self.master.is_fkey(self.field_name):
+        if not self.field.fkey:
             self.master.field_widgets[self.field_name].field.widget.set_max_length()
                 
         self.master.initialize_record_editing(path)
@@ -512,10 +531,10 @@ class NumericColumn(VarcharColumn):
         if self.master.col_width and self.field_name in self.master.col_width:
             width = self.master.col_width.get(self.field_name, )
         else:
-            if self.master.gui_fields[self.field_name].type == int:
+            if self.field.type == int:
                 width = 8
             else:
-                width = self.master.gui_fields[self.field_name].column.type.precision
+                width = self.field.precision
 
         return width
 
@@ -559,7 +578,7 @@ class FKeyColumn(VarcharColumn):
 
             if fkey_value is not None:
                 path = model.get_path(iter)
-                value = self.master.gui_fields[self.field_name].lookup_value(fkey_value)
+                value = self.field.lookup_value(fkey_value)
                 cell.set_property('text', value)
             else:
                 cell.set_property('text', '')
@@ -653,15 +672,15 @@ class ColumnMenuProxy(object):
     def popup_col_menu(self, ev, treeview, field_name):
 
         from sqlkit.layout.misc import StockMenuItem
+        from sqlkit.widgets.common import fields
         try:
             self.master.widgets['M=popup'].destroy()
         except:
             pass
 
         menu = self.master.widgets['M=popup'] = gtk.Menu()
-        
+        field = self.master.gui_fields[field_name]
         ## add to filter
-        ## TIP: menu entry to add a filter in the filter panel
         field_name_localized = self.master.get_label(field_name, gtk_label=True)
         label_str = _("Add a filter on '%s'") % field_name_localized
         item = StockMenuItem(label=label_str, stock='gtk-find')
@@ -685,7 +704,7 @@ class ColumnMenuProxy(object):
         menu.append(item)
 
         ## totals
-        if self.master.is_number(field_name) and not self.master.is_fkey(field_name):
+        if field.type in (int, float, Decimal) and not isinstance(field, fields.ForeignKeyField):
             # TIP: column menu opt
             item = gtk.MenuItem(label=_("Create total"))
             item.connect('activate', self.add_total_cb, field_name )
@@ -693,7 +712,7 @@ class ColumnMenuProxy(object):
 
         menu.append(gtk.SeparatorMenuItem())
         ## subtotals
-        if self.master.is_date(field_name):
+        if isinstance(field, fields.DateField):
             self.menu_add_date_total_break(menu, field_name)
         else:
             # TIP: column menu total
@@ -796,7 +815,7 @@ class ColumnMenuProxy(object):
 
         from sqlkit.db.utils import tables, get_description
 
-        if self.master.relationship_leader:
+        if self.master.relationship_leader or field_name not in self.master.mapper_info:
             ## related table are ordered locally via modelproxy.order_by
             if direction == "DESC":
                 field_name = "-" + field_name
@@ -1012,7 +1031,7 @@ class View(object):
         action.set_sensitive(obj and True or False)
             
         action_fk = self.ui_manager.get_action('/TreePopup/MaskViewFKey')
-        if field_name and self.master.is_fkey(field_name):
+        if field_name and self.master.gui_fields[field_name].fkey:
             action_fk.set_visible(True)
             label = self.master.get_label(field_name, gtk_label=True)
             action_fk.set_property('label', _("View '%s' in a Mask") % label)
