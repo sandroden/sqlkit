@@ -683,7 +683,8 @@ class DecimalField(IntegerField):
                 elif isinstance(value, Decimal):
                     pass
                 elif isinstance(value, int):
-                    value = self.clean_value(str(value))
+                    value = Decimal(value)
+                    #value = self.clean_value(str(value))
                 elif isinstance(value, float):
                     fl_str = numbers.format_decimal(value, locale=self.locale)
                     value = self.clean_value(fl_str)

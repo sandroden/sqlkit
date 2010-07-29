@@ -86,7 +86,7 @@ Decimal("1.2")
 (Decimal("4881.69"), <class 'decimal.Decimal'>)
 
 >>> f.clean_value(12), type(f.clean_value(12))
-(Decimal("12.00"), <class 'decimal.Decimal'>)
+(Decimal("12"), <class 'decimal.Decimal'>)
 
 >>> isinstance(f.format_value(f.clean_value('1.2')), basestring)
 True
@@ -165,7 +165,7 @@ Decimal("1.2")
 # (Decimal("4881.69"), <class 'decimal.Decimal'>)
 
 >>> f.clean_value(12), type(f.clean_value(12))
-(Decimal("12.00"), <class 'decimal.Decimal'>)
+(Decimal("12"), <class 'decimal.Decimal'>)
 
  
 # date
