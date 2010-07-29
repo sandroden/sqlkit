@@ -48,6 +48,9 @@ class ModelProxy(gobject.GObject):
 
     a modelproxy emits signals:
 
+    :model-pre-sort: This signal is emitted just before sorting the model. Used to get rid
+                   of possible "total rows" in the liststore.
+
     :model-sorted: When the model is sorted. Totals listen to this signal
                    to be informed they must refresh data
 
@@ -62,9 +65,9 @@ class ModelProxy(gobject.GObject):
         'model-sorted': (gobject.SIGNAL_RUN_FIRST,
                         gobject.TYPE_NONE,
                         (gobject.TYPE_PYOBJECT,)),
-#         'model-filled': (gobject.SIGNAL_RUN_FIRST,
-#                         gobject.TYPE_NONE,
-#                         (gobject.TYPE_PYOBJECT,)),
+        'model-pre-sort': (gobject.SIGNAL_RUN_FIRST,
+                        gobject.TYPE_NONE,
+                        (gobject.TYPE_PYOBJECT,)),
         'model-changed': (gobject.SIGNAL_RUN_FIRST,
                         gobject.TYPE_NONE,
                         (gobject.TYPE_PYOBJECT,)),
@@ -93,7 +96,6 @@ class ModelProxy(gobject.GObject):
             self._tree_field_name = tree_field_name 
             self.order_store = None
         self._order_list = None
-#        gobject.idle_add(self.master.connect, 'records-displayed', self._sort_model)
 
         if treeview:
             self.master.treeview.set_model(self.modelstore)
@@ -338,6 +340,7 @@ class ModelProxy(gobject.GObject):
         if not self._order_list:
             return
         
+        self.emit('model-pre-sort', self.modelstore)
         rows = [tuple(r) + (i,) for i, r in enumerate(self.modelstore)]
         if rows:
             rows.sort(cmp=self.comp_func)
@@ -379,5 +382,7 @@ class Header(object):
             return object.__getattribute__(self, name)
         except AttributeError:
             return None
+
+
 
 

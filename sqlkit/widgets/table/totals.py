@@ -57,6 +57,7 @@ class Totals(object):
         self.break_func = None
         self.prev = None
         self.table.modelproxy.connect('model-sorted', lambda proxy, model: self.compute())
+        self.table.modelproxy.connect('model-pre-sort', self.delete_total_rows)
 
     def add_total(self,  *field_names, **kw):
         """
@@ -218,7 +219,7 @@ class Totals(object):
         if self.break_func:
             self.insert_subtotal(row.iter, after=True if self.hide_total else False)
 
-    def delete_total_rows(self):
+    def delete_total_rows(self, *args):
         iter_del_list = []
         self.table.modelproxy.modelstore.foreach(self.foreach_del_func, iter_del_list)
         for iter in iter_del_list:
