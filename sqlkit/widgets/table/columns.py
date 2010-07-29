@@ -145,13 +145,25 @@ class GenericColumn(object):
         if not column.get_visible():
             return
         obj = model.get_value(iter, 0) 
-        value = getattr(obj, self.field_name)
+        ## when the column is not representing a db-column (eg. is a python function)
+        ## we pass the object itself to the function
+        if self.field_name in self.master.mapper_info:
+            value = getattr(obj, self.field_name)
+        else:
+            value = obj
+            if isinstance(obj, self.master.mapper.class_):
+                value = self.field.clean_value(value)
         cell.set_property(prop_name, value)        
-        formatted_value = self.field.format_value(value)
 
         if isinstance(obj, self.master.totals.total_class):
-            obj.set_value_and_colors(cell, formatted_value, self.field_name)
+            if self.field_name in self.master.mapper_info:
+                formatted_value = self.field.format_value(value)
+                obj.set_value_and_colors(cell, formatted_value, self.field_name)
+            else:
+                obj.set_value_and_colors(cell, getattr(obj, self.field_name), self.field_name)
+
         elif isinstance(obj, self.master.mapper.class_):
+            formatted_value = self.field.format_value(value)
             cell.set_property(prop_name, formatted_value)        
             cell.set_property('foreground-set', False)
             cell.set_property('cell-background-set', False)

@@ -19,7 +19,7 @@ class TotalObj(object):
     def __init__(self, fields, sub=True):
         """
         all fileds will be initialized to None
-        _sub will be set to Tue for subTotals, to render with different colors
+        _sub will be set to True for subTotals, to render with different colors
         """
         for name in fields:
             setattr(self, name, None)
@@ -129,8 +129,12 @@ class Totals(object):
         
     def sum(self, obj):
         for field_name in self.totals.keys():
-            self.totals[field_name]    += getattr(obj, field_name, 0) or 0
-            self.subtotals[field_name] += getattr(obj, field_name, 0) or 0
+            if field_name in self.table.mapper_info:
+                value = getattr(obj, field_name, 0)
+            else:
+                value = self.table.gui_fields[field_name].clean_value(obj)
+            self.totals[field_name]    += value or 0
+            self.subtotals[field_name] += value or 0
 
     def reset_subtotals(self):
         for field_name in self.totals:
