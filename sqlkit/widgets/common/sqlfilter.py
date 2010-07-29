@@ -28,7 +28,7 @@ it at hand.
 Each sqlwidget has a FilterPanel even if it doesn't show it
 
 .. autoclass:: FilterPanel
-   :members: hide, show, get_tools, reload, set_tab, tree, replace_column
+   :members: hide, show, get_tools, reload, set_tab, tree, replace_column, add_column
 .. autoclass:: FilterTool
    :members: set_value, get_value, set_operator, get_operator
 
@@ -240,6 +240,16 @@ class FilterPanel(object):
         self.view.treeview.remove_column(self.view.tvcolumns['__obj__'])
         self.view.add_column(col, 0)
         self.master.gui_fields[field_name] = field
+        
+    def add_column(self, field_name):
+        """
+        Add a column among already defined fields in gui_fields
+
+        :param field_name: the field_name of the field
+
+        """
+        
+        self.view.setup_columns([field_name])
         
     def sb(self, message, seconds=None):
         """
