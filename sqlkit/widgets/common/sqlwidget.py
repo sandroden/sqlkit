@@ -518,6 +518,7 @@ class SqlWidget(gobject.GObject):
         just been build by another SqlMask object and we just need to
         add controls and so on
         """
+        self.run_hook('pre_layout')
         self.get_table_labels()
         
         self.laygen = layoutgenerator.LayoutGenerator(self, naked=naked, lay=lay)
