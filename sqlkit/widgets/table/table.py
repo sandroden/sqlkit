@@ -539,9 +539,11 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.modelproxy.tree_field_name:
             return False
         else:
-            row = self.get_selected_row()[0]
+            row = self.get_selected_row()
             if row is None:
                 row = -1
+            else:
+                row = row[0]
             if row + 1 == self.len_model():
                 try:
                     self.record_new(treeview)
