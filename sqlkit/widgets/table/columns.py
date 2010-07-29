@@ -547,7 +547,7 @@ class NumericColumn(VarcharColumn):
             if self.field.type == int:
                 width = 8
             else:
-                width = self.field.precision
+                width = 10
 
         return width
 
