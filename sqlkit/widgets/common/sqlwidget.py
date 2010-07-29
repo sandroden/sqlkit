@@ -284,6 +284,7 @@ class SqlWidget(gobject.GObject):
                           "place table/class_/mapper as first argument\n%s" % info,
                           DeprecationWarning, stacklevel=3)
                 
+        self._format_dict = format
         self.related = Container()
         self.gui_fields = Container(self.gui_fields)
         self.field_widgets = Container()
@@ -1715,6 +1716,7 @@ class SqlWidget(gobject.GObject):
         :param format_dict: a dict of field_name/format strings
 
         """
+        self._format_dict = format_dict
         if not format_dict:
             return
 

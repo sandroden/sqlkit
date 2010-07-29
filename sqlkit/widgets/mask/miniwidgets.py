@@ -53,6 +53,7 @@ class Widget(object):
         self.field = field
         self.master = field.master
         self.field_name = field.field_name
+
         if not self.field.nullable:
             self.set_not_null_style(not self.field.nullable)
         self.gtkwidget.connect('destroy', self.destroy)
@@ -601,6 +602,7 @@ class CollectionWidget(Widget):
             dbproxy=self.master.dbproxy,
             naked=True,
             mode=self.master.mode,
+            format = filter_related(self.master._format_dict, self.field_name),
             col_width = filter_related(self.master.col_width, self.field_name),
             field_list = loader_spec.get('field_list', None),
             addto=self.gtkwidget,
