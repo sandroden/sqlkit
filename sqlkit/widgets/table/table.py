@@ -153,18 +153,19 @@ class SqlTable(sqlwidget.SqlWidget):
         if not field_list:
             return
 
-        field_chooser = fields.FieldChooser(self.mapper_info)
+        field_chooser = fields.FieldChooser(self.mapper_info,
+                                            gui_field_mapping=getattr(self, 'gui_field_mapping', None))
         for field_name in field_list or self.field_list:
             if field_name not in self.gui_fields:
-                db_spec = self.mapper_info.fields[field_name]
+                db_spec = self.mapper_info.fields.get(field_name, None)
                 Field = field_chooser.get_field(field_name, db_spec)
                 field = Field(field_name, db_spec)
+                self.gui_fields[field_name] = field
 
                 field.set_master(self)
                 field.set_widget(widget=CellWidget)
 
                 self.field_widgets[field_name] = field.widget
-                self.gui_fields[field_name] = field
 
     def create_view(self, name='main', treeview=None, field_list=None):
         """
