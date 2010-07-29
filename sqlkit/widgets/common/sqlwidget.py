@@ -552,9 +552,6 @@ class SqlWidget(gobject.GObject):
                 self.resize(*self.geom)
 
         self.setup_field_validation()
-        self.prepare_actions()
-        self.prepare_uimanager()
-        self.set_mode()
         
         return (self.lay_obj, self.widgets)
     
@@ -575,6 +572,9 @@ class SqlWidget(gobject.GObject):
         create the widget and go on displaying the layout
         """
         self.lay_obj, self.widgets  = self._get_layout(self.layout, self.naked,)
+        self.prepare_actions()
+        self.prepare_uimanager()
+        self.set_mode()
             
         ## only render when dimentions are complete
         lcontainer_name = self.lay_obj.container().el_def
@@ -582,6 +582,7 @@ class SqlWidget(gobject.GObject):
 
         if show:
             self.widgets[el_def].show()
+        self.set_mode()
 
     def _set_ignored_fields(self, ignored_list):
         """

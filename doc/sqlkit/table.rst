@@ -72,8 +72,10 @@ I don't have a satisfactory CellRender for long text. Any hint is appreciated.
 Export
 =======
 
-A very minimal export function allows to export visible data in a csv (comma
-separated value) format. Follow File -> Export.
+A very minimal export function allows to export visible data in a .csv (comma
+separated value) format. Follow File -> Export. That function can be reach
+also right-clicking on the table, thus allowing to export that particular 
+:ref:`view <views>`.
 
 Shortcut
 ========

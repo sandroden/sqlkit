@@ -35,6 +35,7 @@ COLUMN_MENU = '''
 <popup name="TreePopup">
   <placeholder name="Columns">
     <separator name="sep_cols" />
+    <menuitem action="ExportView" />
     <menuitem action="Zoom-fit" />
     <menu action="ShowColumns" />
     <menu action="HideColumns" />
@@ -847,7 +848,9 @@ class View(object):
         self.cell_renderers = {}
         self.master.setup_field_validation(self.field_list)
         self.setup_columns()
-        self.create_column_menu()
+        if not name == 'main':
+            ## for 'main' I do that later so that master.actiongroup_* will be ready
+            self.create_column_menu()
 
         self.treeview.connect('cursor-changed', self.master.cursor_changed_cb, self)
         self.treeview.connect('key-press-event', self.master.keypress_event_cb, self)
@@ -985,6 +988,9 @@ class View(object):
 
 
         self.actiongroup_view = gtk.ActionGroup('View')
+        self.actiongroup_view.add_actions([
+            ('ExportView', None, _('Export'), None, None, self.master.export),
+            ], self.name)
 
         self.ui_manager.insert_action_group(self.master.actiongroup_table, 10)
 #        self.ui_manager.insert_action_group(self.master.actiongroup_general, 11)

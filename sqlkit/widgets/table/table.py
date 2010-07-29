@@ -1,4 +1,4 @@
-# Copyright (C) 2005-2006-2007-2008, Sandro Dentella <sandro@e-den.it>
+# Copyright (C) 2005-2010, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -104,7 +104,6 @@ class SqlTable(sqlwidget.SqlWidget):
         self.treeview = self.widgets["TV=tree"]
         ## from now on, the real field_list is the one in the View
         self.views['main'] = self.create_view(name='main', field_list = self.field_list, treeview=self.treeview)
-        self.views['main'].menu.fill_menu_hide_fields()
         ## let tree use all the available space... 
         if not self.naked:
             self.lay_obj.prop('A.external','yscale',1)
@@ -116,7 +115,6 @@ class SqlTable(sqlwidget.SqlWidget):
         self.treeview.hide()
         self.treeview.show()
         gobject.idle_add(tv_utils.set_optimal_width, self.treeview)
-        self.set_mode()
         return (self.lay_obj, self.widgets)
 
     def icon_setup(self):
@@ -190,6 +188,11 @@ class SqlTable(sqlwidget.SqlWidget):
         self.views[name] = view
         return view
 
+    def show(self, show):
+        sqlwidget.SqlWidget.show(self, show)
+        self.views['main'].create_column_menu()
+        self.views['main'].menu.fill_menu_hide_fields()
+        
     def set_rows(self, rows=None, view=None, view_name=None):
         """
         set number of treeview visible rows to "rows"
@@ -254,11 +257,12 @@ class SqlTable(sqlwidget.SqlWidget):
 #            ('VisibleColumns', None, None),          # menu
 #            ('HiddenColumns', None, None),           # menu
             ('Records', None, 'Records'),
-            ('Export', None, _('Export'), None, None, self.export),
             ('MaskView', gtk.STOCK_ZOOM_IN, _('View this record in a Mask'), '<Control>m', None, self.record_in_mask),
             ('MaskViewFKey', gtk.STOCK_LEAVE_FULLSCREEN, _('View this ForeignKey in a Mask'), None, None, self.fkey_record_in_mask),
             ])
-
+        self.actiongroup_table.add_actions([
+            ('Export', None, _('Export'), None, None, self.export),
+            ], 'main')
     def prepare_uimanager(self):
 
         from sqlkit.widgets.common import uidescription
@@ -1396,7 +1400,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         
         def foreach_handler(model, path, iter, ret):
-            ## NOTE: whe this function return a True value, iteration terminates!!!
+            ## NOTE: when this function return a True value, iteration terminates!!!
             obj = model.get_value(iter, 0)
             view = self.views[view_name]
             ret += [[self.gui_fields[f].get_human_value(getattr(obj, f)) for f in view.field_list
