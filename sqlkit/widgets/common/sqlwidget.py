@@ -1270,6 +1270,8 @@ class SqlWidget(gobject.GObject):
         Validate any fields in self.gui_fields
         """
         for field in self.gui_fields:
+            if not field.editable:
+                continue
             field_name = field.field_name
             try:
                 if field.mapper:   # persisted fields, mask2obj has already cleaned  them
@@ -1689,7 +1691,11 @@ class SqlWidget(gobject.GObject):
                     text=_("Sorry, export is implemented only for table view"))
 
     def get_field_type(self, field_name):
-        return self.mapper_info.fields[field_name]['type']
+
+        try:
+            return self.gui_fields[field_name].type
+        except AttributeError:
+            return self.mapper_info.fields[field_name]['type']
 
     def get_label(self, field_name, gtk_label=False):
         """
