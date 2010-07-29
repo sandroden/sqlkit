@@ -150,11 +150,11 @@ Default value for BLANK_OK is False.
 
 """
 import re
+import types
 from datetime import datetime, time, date, timedelta
 from decimal import Decimal
 from pprint import pprint 
 
-import gtk
 import babel
 from sqlalchemy.schema import ColumnDefault
 
@@ -512,7 +512,7 @@ class IntegerField(Field):
                 if isinstance(value, basestring):
                     value = numbers.parse_number(value, locale=self.locale)
                 elif isinstance(value, (int, long)):
-                    pass
+                    value = int(value)
                 else:
                     value = int(value)
             except Exception, e:
@@ -1076,3 +1076,30 @@ class CollectionField(Field):
 
 
 
+
+def std_cleanup(fn):
+    """
+    A decorator that will handle standard cases: value it's None, '' or already cleaned
+
+    This is handy when building new Fields as allows to use it as simple as possible, i.e.
+    no need to check for 
+
+        class CountMovies(fields.IntegerField):
+            '''
+            A field that counts the movies
+            '''
+            @fields.std_cleanup
+            def clean_value(self, value):
+                ## missing a field_name attribute on obj the objct itselt is passed
+                return len(value.movies)
+
+    """
+    def new_func(self, value):
+        ## standard cleanup: values can
+        if isinstance(value, (basestring, types.NoneType, self.type)) or \
+               self.type == int and isinstance(value,long):
+            return super(self.__class__, self).clean_value(value)
+        ## custom one
+        return fn(self, value)
+    new_func.__doc__ = fn.__doc__
+    return new_func
