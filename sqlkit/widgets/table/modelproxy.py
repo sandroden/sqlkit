@@ -72,15 +72,14 @@ class ModelProxy(gobject.GObject):
                         gobject.TYPE_NONE,
                         (gobject.TYPE_PYOBJECT,)),
         }
-    def __init__(self, master, tree_field_name=None, treeview=True, order_store=None):
+    def __init__(self, master, tree_field_name=None, treeview=None, order_store=None):
         """
         :param master: the sqlwidget this belongs or another modelproxy to copy
 
         :param tree_field_name: the field_name that will hold parent/child
             relationship. Defaults to None
 
-        :param treeview: set self.modelstore as the model for the master's treeview.
-            Use False if Treeview is not yet setup
+        :param treeview: the treeview to set the model for or None for later setting.
 
         :param order_store: the field_name where the path should be stored 
         """
@@ -97,8 +96,9 @@ class ModelProxy(gobject.GObject):
             self.order_store = None
         self._order_list = None
 
+        self.treeview = treeview
         if treeview:
-            self.master.treeview.set_model(self.modelstore)
+            treeview.set_model(self.modelstore)
 
     def _get_tree_field_name(self):
 
@@ -138,9 +138,9 @@ class ModelProxy(gobject.GObject):
             self._order_id = self.modelstore.connect_after('row-deleted', self.persist_rows_order)
 
         self._tree_field_name = tree_field_name
-        self.master.treeview.set_reorderable(True)
-        self.master.treeview.set_model(self.modelstore)
-        self.master.record_display()
+        self.treeview.set_reorderable(True)
+        self.treeview.set_model(self.modelstore)
+#        self.master.record_display()
         self.edited_row_model_path = None
         
     def set_listmodel(self, tree_order=None):
@@ -160,9 +160,9 @@ class ModelProxy(gobject.GObject):
             self._order_id = self.modelstore.connect('row-inserted', self.rows_reordered_cb)
 
         self._tree_field_name = None
-        self.master.treeview.set_reorderable(False)
-        self.master.treeview.set_model(self.modelstore)
-        self.master.record_display()
+        self.treeview.set_reorderable(False)
+        self.treeview.set_model(self.modelstore)
+#        self.master.record_display()
         self.edited_row_model_path = None
         
     def block_emit_reorder(func, *args, **kw):
@@ -185,6 +185,7 @@ class ModelProxy(gobject.GObject):
         """
         fill the model according to simplest model type
         """
+        self.treeview.set_model(None)
         if clear:
             
             self.modelstore.clear()
@@ -194,6 +195,8 @@ class ModelProxy(gobject.GObject):
         else:
             self.fill_listmodel()
             self._sort_model()
+
+        self.treeview.set_model(self.modelstore)
         self.emit('model-changed', self.modelstore)
         
     def fill_listmodel(self):

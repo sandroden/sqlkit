@@ -90,8 +90,9 @@ class SqlTable(sqlwidget.SqlWidget):
         self.deleting_row = False
         #self.edited_row_model_path = dbg.TraceIt(True, name='edited_row_model_path', mode='rw')
         self.edited_row_model_path = None
-        self.modelproxy = ModelProxy(self, treeview=False)
+        self.modelproxy = ModelProxy(self, treeview=None)
         sqlwidget.SqlWidget.__init__(self, *args, **kwargs)
+        self.modelproxy.treeview = self.treeview
         self.modelproxy.update()
         self.totals = totals.Totals(self)
         self._fk_layout_nick = {}
@@ -723,9 +724,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """
 
         if index == None:
-            self.treeview.set_model(None)
             self.modelproxy.fill_model(clear=True)
-            self.treeview.set_model(self.modelproxy.modelstore)
         # TIP: status bar message
         self.sb(_("Total N. of records: %s") % (len(self.records)), seconds=None)
 
