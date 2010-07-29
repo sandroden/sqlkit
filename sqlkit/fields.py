@@ -498,7 +498,7 @@ class Field(object):
         """
         return value
    
-    def format_value(self, value):
+    def format_value(self, value, format=None):
         """
         return a **string representation** of the value according to current
         locale value is a"cleaned" value
@@ -527,11 +527,11 @@ class Field(object):
 
         return True
 
-    def get_human_value(self, value):
+    def get_human_value(self, value, format=None):
         """
         return the value or a translation in human readable for foreign key
         """
-        return self.format_value(value)
+        return self.format_value(value, format=format)
         
     def _get_persistent(self):
         
@@ -612,10 +612,10 @@ class IntegerField(Field):
         if hasattr(self, 'widget'):
             self.widget.set_value(value)
 
-    def format_value(self, value):
+    def format_value(self, value, format=None):
         if value is None:
             return ''
-        return numbers.format_decimal(value, format=self.format, locale=self.locale)
+        return numbers.format_decimal(value, format=format or self.format, locale=self.locale)
         
 class FloatField(IntegerField):
     Widget = 'FloatWidget'
@@ -643,10 +643,10 @@ class FloatField(IntegerField):
                 raise exc.ValidationError(e.message)
             return value
         
-    def format_value(self, value):
+    def format_value(self, value, format=None):
         if value is None:
             return ''
-        return numbers.format_decimal(value, format=self.format, locale=self.locale)
+        return numbers.format_decimal(value, format=format or self.format, locale=self.locale)
         
 class DecimalField(IntegerField):
     Widget = 'DecimalWidget'
@@ -694,10 +694,10 @@ class DecimalField(IntegerField):
                 raise exc.ValidationError(e.message)
             return value
         
-    def format_value(self, value):
+    def format_value(self, value, format=None):
         if value is None:
             return ''
-        return numbers.format_decimal(value, format=self.format, locale=self.locale)
+        return numbers.format_decimal(value, format=format or self.format, locale=self.locale)
 
 class TextField(VarcharField):
     Widget = 'TextWidget'
@@ -737,12 +737,12 @@ class DateField(Field):
             raise exc.ValidationError(e.message)
         return value
     
-    def format_value(self, value):
+    def format_value(self, value, format=None):
 
         if not value:
             return ''
 
-        return dates.format_date(value, format=self.format, locale=self.locale)
+        return dates.format_date(value, format=format or self.format, locale=self.locale)
         
         
 class TimeField(DateField):
@@ -762,14 +762,14 @@ class TimeField(DateField):
                     raise exc.ValidationError(e.message)
         return value
         
-    def format_value(self, value):
+    def format_value(self, value, format=None):
         if not value:
             return ''
         
         if not isinstance(value, time):
             value = self.clean_value(value)
 
-        return dates.format_time(value, format=self.format, locale=self.locale)
+        return dates.format_time(value, format=format or self.format, locale=self.locale)
 
 class TimeTZField(TimeField):
     Widget = 'TimeTZWidget'
@@ -875,12 +875,12 @@ class DateTimeField(DateField):
                 self.second = 0
         
         
-    def format_value(self, value):
+    def format_value(self, value, format=None):
 
         if not value:
             return ''
         
-        return dates.format_datetime(value, format=self.format, locale=self.locale)
+        return dates.format_datetime(value, format=format or self.format, locale=self.locale)
         
     def get_value(self, shown=False):
 
@@ -1073,7 +1073,7 @@ class ForeignKeyField(Field):
             return None
         return value
 
-    def get_human_value(self, value):
+    def get_human_value(self, value, format=None):
 
         if isinstance(value, (list, tuple)):
             return str([self.lookup_value(v) for v in value])
