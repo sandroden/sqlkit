@@ -862,11 +862,12 @@ class View(object):
     It can be used to provide different way to look at the same data
     (e.g. different cell-renderers) or different columns for long ones
     """
-    def __init__(self, master, name, treeview=None, field_list=None, cell_renderers=None):
+    def __init__(self, master, name, treeview=None, field_list=None, cell_renderers=None, ro=False):
         """
         :param master: the SqlTable this view belongs to
         :param treeview: the treeview where the columns live
         :param cell_renderers: a dict of cell_renderers for each column
+        :param ro: make it read-only (default: False)
         """
         assert field_list is not None, "Field_list cannot be None"
         assert treeview is not None, "You need to set the Treeview"
@@ -1103,16 +1104,24 @@ class View(object):
             else:
                 col = VarcharColumn(self.master, field_name, label)
 
-            self.tvcolumns[field_name] = col.column
-            self.columns[field_name] = col
-            self.treeview.append_column(col.column)
-
-#             if field_name in self.hidden_fields:
-#                 col.column.set_visible(False)
+            self.add_column(col)
             
         self.treeview.columns_autosize()
         self.fix_expandable_columns()
             
+    def add_column(self, column, position=-1):
+        """
+        Add a column to the view
+
+        :param column:
+        """
+        self.tvcolumns[column.field_name] = column.column
+        self.columns[column.field_name] = column
+        if position  < 0:
+            self.treeview.append_column(column.column)
+        else:
+            self.treeview.insert_column(column.column, position)
+        
     def get_first_editable_col(self):
         """
         return the first visible col to position the cursor on
