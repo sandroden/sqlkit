@@ -947,10 +947,10 @@ class ForeignKeyField(Field):
         if value:
             ## TODO/FIXME: I believe it's not needed to call this all the time we set the value
             # we only need to add this when initial is not True, but I'm not sure:
-            # whe  growsing records and initializing a record I loop on field_values and set_value
+            # when  browsing records and initializing a record I loop on field_values and set_value
             # on each field, but clearly the attributes is already there. See ex_03 (that uses class_=Movie
-            # i.e. with definition of relation with baclref with delete-orphan). this function is called
-            # all the time entere a record (not just *new* records.
+            # i.e. with definition of relation with backref with delete-orphan). this function is called
+            # all the time we enter a record (not just *new* records).
             for prop in self._props_for_delete_orphan:
                 self.add_related_object(prop, value)
 

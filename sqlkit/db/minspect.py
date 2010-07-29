@@ -1,13 +1,13 @@
-from sqlalchemy import *
-import sqlalchemy 
 import sys
-from sqlkit import debug as dbg, exc
+import re
 import datetime
 import decimal
-import re
+
+import sqlalchemy 
 from  sqlalchemy.orm import properties
-import sqlalchemy.orm.properties 
 import sqlalchemy.types as sqltypes
+
+from sqlkit import debug as dbg, exc
 from sqlkit.misc.utils import Container
 from sqlalchemy.sql import expression
 
@@ -31,13 +31,6 @@ SA_TYPE_MAP =  {
 
 PROPERTIES = properties
 class MissingPrimaryKeyError(Exception): pass
-# def is_serial (c):
-#     if hasattr (c.default, 'arg') and hasattr (c.default.arg, 'text'):
-#         if "nextval" in c.default.arg.text:
-#             return True
-#     else:
-#         return False
-
 
 class InspectMapper(Container):
     """inspect a mapper and gather all info on fields normally used.
@@ -483,6 +476,8 @@ def get_props_for_delete_orphan(mapper, field_name):
     for a delete_orphan cascading on a possible relation
     returns the generator for the properties or ()
     """
+    ## TODO: FIX this. this is not working correctly tests must be added
+
     ## eg. Movies.__mapper__, director_id
     # when setting director_id you neeed to set also director so that
     # the backref relation from Director to Movie (that has delete_orphan set)
@@ -497,17 +492,17 @@ def get_props_for_delete_orphan(mapper, field_name):
     column = prop.columns[0]
 
     props = []
-    for p in mapper.iterate_properties:
-        if isinstance(p, properties.RelationProperty):
-            if p.direction.name in ('MANYTOONE',):
-                for col in p.local_remote_pairs[0]:
+    for pr in mapper.iterate_properties:
+        if isinstance(pr, properties.RelationProperty):
+            if pr.direction.name in ('MANYTOONE',):
+                for col in pr.local_remote_pairs[0]:
                     # I can't use col in p.local_remote_pairs
                     # as it uses 'col == p.local_remote_pairs' that evaluates
                     # to a BinaryExpression
                     if column is col:
                         try:
-                            if p.backref.prop.cascade.delete_orphan:
-                                props += [p]
+                            if pr.backref.prop.cascade.delete_orphan:
+                                props += [pr]
                         except AttributeError, e:
                             pass
     return tuple(props)
