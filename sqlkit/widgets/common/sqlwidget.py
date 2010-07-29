@@ -329,6 +329,8 @@ class SqlWidget(gobject.GObject):
         self.relationship_mode = relationship_mode
         self.relationship_path = self._get_relationship_path(relationship_path)
         self.relationship_leader = relationship_leader
+        if relationship_leader:
+            relationship_leader.connect('delete-event', self.delete_event_cb)
         self.records = []
         self.about_dialog = about_dialog or self.create_about_dialog()
         self.filter_panel = self._get_filter_panel()
@@ -545,7 +547,7 @@ class SqlWidget(gobject.GObject):
             table.child_set_property(internal_align, 'y-options', gtk.EXPAND | gtk.FILL)
 
         if self.is_toplevel():
-            self.lay_obj.connect(('Window', 'delete_event', self.delete_event_cb))
+            self.lay_obj.connect(('Window', 'delete-event', self.delete_event_cb))
             if self.geom:
                 self.resize(*self.geom)
 
@@ -1164,7 +1166,6 @@ class SqlWidget(gobject.GObject):
         """
         prevents the possibility of inputting wrong chars
         """
-        import gtk
         key = gtk.gdk.keyval_name (event.keyval)
 
         if key in ('KP_Decimal',) and numbers.get_decimal_symbol() == ",":
@@ -1349,6 +1350,19 @@ class SqlWidget(gobject.GObject):
         """
         pass
     
+    def destroy(self):
+        """
+        Destroy the widget
+        """
+        
+        if 'Window' in self.widgets:
+            ## This sqlwidget owns a toplevel Window. Destroying that one triggers
+            ## delete_event_cb, that emits 'delete'event'
+            event = gtk.gdk.Event(gtk.gdk.NOTHING)
+            self.widgets['Window'].emit('delete-event', event)
+        else:
+            self.emit('delete-event')
+
     def delete_event_cb(self, *args):
         """
         Quit operations: check if need to save first
@@ -1364,7 +1378,8 @@ class SqlWidget(gobject.GObject):
         if self.current and self.current in self.session.new:
             self.session.expunge(self.current)
 
-        self.widgets['Window'].destroy()
+        if 'Window' in self.widgets:
+            self.widgets['Window'].destroy()
         if self.single:
             self.gquit()
         attrs = [

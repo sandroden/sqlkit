@@ -606,7 +606,6 @@ class CollectionWidget(Widget):
             col_width = filter_related(self.master.col_width, self.field_name),
             field_list = loader_spec.get('field_list', None),
             addto=self.gtkwidget,
-#            icons='b=gtk-new b=gtk-delete b=gtk-save b=gtk-zoom-fit',
             ignore_fields = [c.name for c in self.field.property.remote_side],
             dev = self.master.dev,
             relationship_leader = self.master,
@@ -623,14 +622,8 @@ class CollectionWidget(Widget):
                 parent.child_set_property(self.gtkwidget, 'y-options', gtk.EXPAND | gtk.FILL)
             if isinstance(parent, gtk.VBox):
                 parent.child_set_property(self.gtkwidget, 'expand', True)
-        
-
-#         if self.field_name in self.master.laygen.loaders:
-#             self.table.set_field_list(self.master.laygen.loaders[self.field_name])
 
         self.master.related.add_element(self.field_name, self.table)
-
-        #self.gtkwidget.set_property('sensitive', True) 
 
     def set_value(self, value):
         self.table.set_records(value)
