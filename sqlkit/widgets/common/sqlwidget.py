@@ -510,18 +510,6 @@ class SqlWidget(gobject.GObject):
         add controls and so on
         """
         self.get_table_labels()
-        if self.is_mask(lay):
-            self.widgets = lay.widgets
-            self.filter_panel = lay.filter_panel
-            ## NOTE: here I say that I can reach w/ get_value also the
-            ##       values of the secondary mask. Of course you need to be
-            ##       carefull not to mix up filed-names
-            self.mfields = lay.mfields
-            self._analize_widgets_in_layout()
-            self._add_click_for_filter()
-            self._add_color_to_labels()
-            self.values = lay.values
-            return (lay.lay_obj, lay.widgets)
         
         self.laygen = layoutgenerator.LayoutGenerator(self, naked=naked, lay=lay)
         lay = self.laygen.layout
@@ -1862,19 +1850,20 @@ class SqlWidget(gobject.GObject):
         """
         Return true if this field is  date
         """
-        return self.mapper_info.is_boolean(field_name)
+        return self.gui_fields[field_name].type == bool
 
     def is_nullable(self, field_name):
         """
-        Return true if this field is  date
+        Return true if this field is nullable
         """
-        return self.mapper_info.is_nullable(field_name)
+        return self.gui_fields[field_name].nullable
 
     def is_editable(self, field_name):
         """
         Return true if this field is  date
         """
-        edit = self.mapper_info.fields[field_name]['editable']
+        #edit = self.mapper_info.fields[field_name]['editable']
+        edit = self.gui_fields[field_name].editable
         if not edit:
             # you probably explicitely set it (via noup?)
             return False
