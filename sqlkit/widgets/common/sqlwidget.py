@@ -285,8 +285,6 @@ class SqlWidget(gobject.GObject):
         self.layout   = layout or self._get_layout_from_nick(layout_nick)
         self.field_list = self._parse_fields(field_list)
         self.ignored_fields = self._set_ignored_fields(ignore_fields)
-        if hide_fields:
-            self.hide_fields(force=True)
         self._title = self._create_title(title)
 
         ## create the interface and add obvious constraints
@@ -301,6 +299,8 @@ class SqlWidget(gobject.GObject):
         self.about_dialog = about_dialog or self.create_about_dialog()
         self.filter_panel = self._get_filter_panel()
         self.show(show)
+        if hide_fields:
+            self.hide_fields(hide_fields)
         self.set_format(format)
         self.query = self.session.query(self.mapper)
         self.defaults = defaults.Defaults(self.tables, metadata=self.metadata, local=True)
