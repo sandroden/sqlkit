@@ -63,13 +63,15 @@ this make very diffiocult to add a way to plug in a different rendere for a fiel
 .. proper widget representation
 
 """
-import sys, re
+import re
 import datetime
-from sqlkit import debug as dbg
 import decimal
-import sqlkit as sk
-from sqlkit.layout import widgets
+
 from sqlalchemy import *
+
+import sqlkit as sk
+from sqlkit import debug as dbg
+from sqlkit.layout import widgets
 
 for mod in ('m2m', 'm2o', 'o2m', 'o2o'):
     widgets.register_alias(widgets.Alignment, mod)
@@ -186,14 +188,9 @@ class LayoutGenerator (object):
         """
         field_name = m.group('field')
         mod = m.group('mod')
-        
-        if field_name not in self.master.field_list \
-               or (hasattr(self.master, 'gui_field_mapping') and field_name in self.master.gui_field_mapping) \
-               or  mod in ('L','le', 'm2m', 'o2m','m2o'):
+
+        if not self.needs_parsing(field_name, mod):
             return m.group(0)
-#         if not self.known_fields(field_name):
-#             print "RETURN ", m.group(0)
-#             return m.group(0)
 
         ## check if we defined already a Field via gui_field_mapping
 
@@ -220,20 +217,22 @@ class LayoutGenerator (object):
         
         return "L=%s %s=%s%s" % (field_name, widget, field_name, spec)
 
-    def known_fields(self, field_name):
+    def needs_parsing(self, field_name, mod):
 
-#         if field_name not in self.master.field_list or mod in ('L','le', 'm2m', 'o2m','m2o'):
-#             return m.group(0)
-        known = False
-        if field_name in self.master.field_list:
-            known = True
+        #         if field_name not in self.master.field_list or mod in ('L','le', 'm2m', 'o2m','m2o'):
+        #             return m.group(0)
+    
+        needs = False
+        if mod in ('L','le', 'm2m', 'o2m','m2o'):
+            needs = False
+
+        elif field_name in self.master.field_list:
+            needs = True
 
         elif hasattr(self.master, 'gui_field_mapping') and field_name in self.master.gui_field_mapping:
-            known = True
-        
-        elif mod in ('L','le', 'm2m', 'o2m','m2o'):
-            return True
-        return known
+            needs = True
+
+        return needs
         
     def get_edit_string(self, mod):
         """

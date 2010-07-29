@@ -95,6 +95,7 @@ class SqlWidget(gobject.GObject):
                  geom=(-1,-1),
                  rows=10,
                  addto=None,
+                 gui_field_mapping = None,
                  title=None,
                  show=True,
                  icons='',
@@ -221,6 +222,10 @@ class SqlWidget(gobject.GObject):
            case if you have a relation with attribute 'address' you may use: 
            {'address.zip_code': 6}
 
+        :param gui_field_mapping: a dict that maps field names to Field classes. You
+           only need to set this for non persisted fields, i.e. field that are not
+           already defined in the mapper
+
         :param title:
            the title for the gtk.Window. 
 
@@ -284,6 +289,8 @@ class SqlWidget(gobject.GObject):
                           "place table/class_/mapper as first argument\n%s" % info,
                           DeprecationWarning, stacklevel=3)
                 
+        if gui_field_mapping:
+            self.gui_field_mapping = gui_field_mapping 
         self._format_dict = format
         self.related = Container()
         self.gui_fields = Container(self.gui_fields)
