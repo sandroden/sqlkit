@@ -4,14 +4,14 @@
  SqlTables
 ===========
 
-SqlTable is a widget that represent data in a table mode. Columns that are
+SqlTable is a widget that presents data in a table mode. Columns that are
 foreign keys are presented in blue and a :ref:`description` of
 the foreign key is used.
 
 
 .. autoclass:: sqlkit.widgets.SqlTable(see_below)
-   :members: create_view, set_field_list, set_editable, set_opts,
-             add_record, set_fk_layout
+   :members: create_view, set_field_list, set_editable, set_opts,  select_path,
+             add_record, set_fk_layout, record_in_mask, fkey_record_in_mask,
 
 
 Attributes
@@ -58,7 +58,7 @@ Cell renderers
 
 
 Boolean
----------
+-------
 
 Booleans are represented with CellRendererToggle, if the field is nullable,
 the value loops over 3 states.
@@ -151,7 +151,21 @@ and completions will be copied in the new Mask. Same for the hooks.
 If you need to configure this Mask in a particular fashion you can put all
 configuration in a hook named :ref:`on_init <hooks>`. This code will be executed
 both for Table and Mask generation that allows to use the same Hook for both
-widgets
+widgets. 
+
+Signals and callbacks are arranged so that it will follow the selection of
+the table. The newly created mask will inherit the :ref:`mode` of the table,
+i.e. if the table was read-only the mask will be opened in read-only mode.
+On the other hand the mask will be have browsing inhibited.
+
+If a layout was registered for the database table it will be used.
+
+You can programmatically open this SqlMask::
+
+  t = SqlTable(...)
+  m = t.record_in_mask()
+
+
 
 RecordInMask for ForeignKeys
 ============================
@@ -165,7 +179,11 @@ To be sure it will have the customization you want you can
 In the case you have several possible layout for the same fk, and you want
 to use a layout that is not the default one, you can use ``set_fk_layout``
 
+You can programmatically open the foreign key mask::
 
+  t = SqlTable(model.Movie, ...)
+  m = t.fkey_record_in_mask('director_id')
+  
 .. _views:
 
 Views

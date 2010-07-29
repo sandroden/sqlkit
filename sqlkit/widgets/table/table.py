@@ -1127,15 +1127,20 @@ class SqlTable(sqlwidget.SqlWidget):
         self._new_record = False
 
 
-    def record_in_mask(self, widget):
+    def record_in_mask(self, widget=None):
         """
-        Open a SqlMask to show self.current.
+        Open a SqlMask to show self.current if any and to follow selection.
+        
         Hooks are set on the newly created mask so that validation is retained
-        Remember to set any possible configuration of the table in an 'on_init'
+        Remember to set any possible configuration of the table in an ``on_init``
         hook so that it will be propagated.
 
-        If there are pending modification, a save dialog is opened.
+        If there are pending modification, a save dialog is opened. This function is normally
+        invoked by the first menu entry of the menu popped by right click on a table *view this
+        record in a mask*.
 
+        :param widget: the menu entry that invoked it, can be ignored when calling it by hand
+        :returns SqlMask: the SqlMask widget
         """
         from sqlkit.widgets import SqlMask, SqlTable
         try:
@@ -1164,6 +1169,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
         ## signals to keep selection in sync 
         def follow_selection(table, obj, mask):
+            if mask.record_has_changed():
+                mask.record_save(ask=True)
             mask.set_records([obj])
 
         handler_id = self.connect('context-changed', follow_selection, mask)
@@ -1175,18 +1182,22 @@ class SqlTable(sqlwidget.SqlWidget):
         mask.connect('delete-event', disconnect, handler_id)
 
         self._mask = weakref.ref(mask)
+        return mask
 
-    def fkey_record_in_mask(self, widget):
+    def fkey_record_in_mask(self, widget=None, field_name=None):
         """
         Open a SqlMask to show the fkey of this field
 
+        :param widget: the menu entry that invoked it, can be ignored when calling it by hand
+        :param field_name: the foreign key attribute name that should be displayed
+        :returns SqlMask: the SqlMask widget
         """
         from sqlkit.widgets import SqlMask, SqlTable
 
-        if not hasattr(self, '_field_name'):
+        if not field_name and not hasattr(self, '_field_name'):
             return
 
-        field_name = self._field_name
+        field_name = field_name or self._field_name
 
         ftable = self.completions[field_name].table
 
@@ -1198,11 +1209,14 @@ class SqlTable(sqlwidget.SqlWidget):
         mask.mode = '-b'
         obj = getattr(self, '_clicked_obj', self.get_selected_obj())
 
-        mask.set_records(pk=getattr(obj, field_name))
+        if obj:
+            mask.set_records(pk=getattr(obj, field_name))
 
         ## signals to keep selection in sync 
         def follow_selection(table, obj, mask):
             if obj and self.get_selected_obj():
+                if mask.record_has_changed():
+                    mask.record_save(ask=True)
                 mask.set_records(pk=getattr(self.get_selected_obj(), field_name))
 
         handler_id = self.connect('context-changed', follow_selection, mask)
@@ -1214,8 +1228,12 @@ class SqlTable(sqlwidget.SqlWidget):
         mask.connect('delete-event', disconnect, handler_id)
 
         self._fmask = weakref.ref(mask)  # just for debug
-        del self._field_name
-        del self._clicked_obj
+        try:
+            del self._field_name
+            del self._clicked_obj
+        except AttributeError:
+            pass
+        return mask
 
     def set_fk_layout(self, field_name, layout_nick):
         """
