@@ -20,7 +20,7 @@ class TotalObj(object):
     _fg_color = 'indianred'
     def __init__(self, fields, sub=True):
         """
-        all fileds will be initialized to None
+        all fields will be initialized to None
         _sub will be set to True for subTotals, to render with different colors
         """
         for name in fields:
@@ -38,8 +38,14 @@ class TotalObj(object):
             cell.set_property('markup', "<b><i>%s</i></b>" % (value))
         
         # set color only if we have a value
-        if getattr(self, field_name):
+        if hasattr(self, field_name):
             cell.set_property('foreground', self._fg_color)
+
+    def __getattr__(self, key):
+        try:
+            object.__getattr__(self, key)
+        except AttributeError:
+            return None
 
     
 class Totals(object):
