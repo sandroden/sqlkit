@@ -4,8 +4,13 @@
 Relationships
 ================
 
-Sqlkit makes editing of data that have relation as one2many of many2many
-very simple. It's as easy as adding a field in the layout of the SqlMask.
+Sqlkit makes editing of data that have relation as one2many or many2many
+very simple. It's as easy as adding a field in the layout of the SqlMask::
+
+  lay = """first_name last_name
+           o2m=movies      - - -
+         """
+
 
 One2Many in a SqlMak
 =====================

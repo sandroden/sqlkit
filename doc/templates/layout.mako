@@ -149,9 +149,9 @@ ${self.footer()}
     <div id="searchbox" style="display: none">
 
     <h3>Quick search</h3>
-	<form class="search" action="search.html" method="get">
+	<form class="search" action="${pathto('search.html', 1)}" method="get">
 	  <input type="text" name="q" size="18" />
-	  <input type="submit" value="Vai" />
+	  <input type="submit" value="Search" />
 	  <input type="hidden" name="check_keywords" value="yes" />
 
 	  <input type="hidden" name="area" value="default" />
@@ -256,10 +256,10 @@ ${self.footer()}
 		 <li ><a href="${pathto('sqlkit/browsing')}" title="Browsing Data" 
 		       ><span>Browsing data</span></a>
 		    <ul> 
-		      <li ><a href="${pathto('sqlkit/filters')}" title="Filtering Data" 
-			    ><span>Filtering data</span></a></li>
 		      <li ><a href="${pathto('sqlkit/constraints')}" title="Constraints" 
 			    ><span>Constraints</span></a></li>
+		      <li ><a href="${pathto('sqlkit/filters')}" title="Filters" 
+			    ><span>Filters</span></a></li>
 		      <li ><a href="${pathto('sqlkit/totals')}" title="Totals" 
 			    ><span>Totals</span></a></li>
 		    </ul>

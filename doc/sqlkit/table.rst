@@ -1,7 +1,7 @@
 .. _table:
 
 ===========
- SqlTables
+ SqlTable
 ===========
 
 SqlTable is a widget that presents data in a table mode. Columns that are

@@ -73,7 +73,8 @@ section h1 {
     border-width: 0pt 0pt 1px
     }
 .section h1, .section h2, .section h3, h1, h2, h3 {
-    color: #940000
+    color: #940000 ;
+    font-weight: bold;
     }
 a {
     color: #ca7900;
@@ -568,11 +569,9 @@ div.highlight-python {
 #description a {
     color: #333
     }
-#volantino {
-    text-align: center;
-    margin-bottom: 10px
-    }
-.box {
+.news {
+/*     text-align: center; */
+    margin-bottom: 10px;
     background-color: #eee;
     /*   border-width: 0ps 1px 0px 1px; */
     border-color: #ddd;
