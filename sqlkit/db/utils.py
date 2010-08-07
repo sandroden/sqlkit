@@ -89,7 +89,8 @@ import re
 from sqlalchemy import Table, orm
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
-from defaults import register_hook, get_hook, register_layout, get_layout, register_class, get_class
+from defaults import register_hook, get_hook, register_layout, get_layout, register_class, \
+     get_class, unregister_hook, unregister_layout
 
 ########   descriptor
 from sqlkit.misc.utils import Container
