@@ -70,7 +70,7 @@ setup(name='sqlkit',
       scripts=['bin/sqledit'],
 #      package_dir = {'' : 'sqlkit'},
 #      package_data = {'sqlkit' : ['locale']},
-      classifiers= __doc__.split('\n'),
+      classifiers= classifiers.split('\n'),
       include_package_data=True,      
       zip_safe=False,
      )
