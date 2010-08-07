@@ -8,9 +8,8 @@ SQLKit
    Documentation for your release is in :file:`doc` directory
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
-   tour
    widgets
    browsing
    editing

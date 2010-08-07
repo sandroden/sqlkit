@@ -87,10 +87,10 @@ pdf:    latex
 
 
 galeon: 
-	galeon .build/html/contents.html
+	galeon .build/html/tour.html
 
 firefox: 
-	firefox ./.build/html/index.html
+	firefox ./.build/html/tour.html
 
 chtml:	clean html
 

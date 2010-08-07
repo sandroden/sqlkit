@@ -48,7 +48,7 @@ Main features of sqlkit:
    django-like syntax. Works on expressions too.
  - :ref:`signals`
  - :ref:`hooks` for a very easy customization of behaviour and for validation
- - more than 50 snippets of code to test each feature
+ - more than 70 snippets of code to test each feature
 
 .. _sqlalchemy: http://www.sqlalchemy.org
 

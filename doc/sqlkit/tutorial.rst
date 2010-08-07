@@ -9,7 +9,7 @@ This is meant as a tutorial for the :command:`sqledit` command that is part of
 sqlkit. It's intended audience is anybody who is interested in editing data
 in a database (as opposed to editing the *structure* of the database).
 
-No programming skill is required, but if you are supopsed to install it
+No programming skill is required, but if you are supposed to install it
 yourself, you may need to understand at least a little bit of your operating
 system (but that may be as simple as a double clik if you use boundles).
 

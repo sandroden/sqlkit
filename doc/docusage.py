@@ -82,11 +82,10 @@ class IncludePyProgramDirective(Include):
     return Include.run(self)
 
   def get_docstring_file(self, path):
-    GLOB = {}
-    execfile(path, GLOB)
+    p = Program(path)
     tfd, target_path = tempfile.mkstemp(prefix='sd-')
     f = open(target_path, 'wb')
-    text = GLOB[self.options['docstring']]
+    text = p.docstring
     
     if 'verbatim' in self.options:
       f.write('::\n')
@@ -101,8 +100,23 @@ def setup(app):
   '''
   Extension setup, called by Sphinx
   '''
+  app.add_config_value('templates_map', {}, 'html')
   # Sphinx 5 support
   if '5' in sphinx.__version__.split('.'):
     app.add_directive('docusage', IncludePyProgramDirective, 0, (0,0,0))
   else:
     app.add_directive('docusage', IncludePyProgramDirective)
+
+class Program(object):
+
+    DOCSTRING = re.compile(
+        r'''
+        """(?P<docstring>.*?)"""
+        ''',
+        re.VERBOSE|re.DOTALL
+        )
+    def __init__(self, filename):
+
+        self.text = open(filename).read()
+        self.docstring = self.DOCSTRING.search(self.text).group('docstring')
+    

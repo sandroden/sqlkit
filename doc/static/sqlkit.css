@@ -3,36 +3,68 @@
  * Originally created by Armin Ronacher for Werkzeug, adapted by Georg Brandl.
  * modified by Sandro Dentella per ReteIsi
  */
+html, body {
+    height: 98%
+    }
+#wrap {
+    background: none repeat scroll 0 0 #FFFFFF;
+    margin: 0px auto;
+    max-width: 1024px;
+    min-width: 800px;
+    position: relative;
+    text-align: left;
+    min-height: 100%;
+    margin-top: -10px
+    }
+/* #wrap { */
+/*     min-height: 100% */
+/*     } */
+#document {
+    overflow: auto;
+    padding-bottom: 50px
+    }
+/* must be same height as the footer */
+#footer {
+    position: relative;
+    margin-top: -50px;
+    /* negative value of footer height */
+    height: 50px;
+    clear: both
+    }
+/*Opera Fix*/
+body:before {
+    content: "";
+    height: 100%;
+    float: left;
+    width: 0;
+    margin-top: -32767px
+    }
 body {
     font-family: "Lucida Grande", "Lucida Sans Unicode", "Geneva", "Verdana", sans-serif;
     font-size: 13px;
-    /*     letter-spacing: -0.01em; */
+    letter-spacing: -0.01em;
     line-height: 130%;
     text-align: center;
     /*background-color: #AFC1C4; */
-    background-color: #c6d8b2;
+    /*     background-color: #e9d56c; */
+    background-color: #fff;
     color: #333333;
     padding: 0;
-    border: 1px solid #aaa;
-    margin: 0px 80px 0px 80px;
-    min-width: 740px
+    /*     border: 1px solid #aaa; */
+    /*     margin: 0px 80px 0px 80px; */
+    /*     min-width: 740px */
     }
-.section h1, h1 {
+.logo {
+    margin: 10px 10px 20px 10px
+    }
+section h1 {
     background-color: #FDFAF3;
-    font-size: 220%;
-    font-weight: bold
-    }
-.section h2, h2 {
     font-size: 180%;
     font-weight: bold
     }
-.section h3, h3 {
-    font-size: 130%;
-    font-weight: normal;
-    font-style: italic
-    }
-.section h4, h4 {
-    font-size: 110%;
+.section h2, h2 {
+    font-size: 150%;
+    font-weight: normal
     }
 .section h1, .section h2, h1, h2 {
     font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
@@ -40,11 +72,11 @@ body {
     border-style: solid;
     border-width: 0pt 0pt 1px
     }
-.section h1, .section h2, .section h3, h1, h2, h3, h4 {
+.section h1, .section h2, .section h3, h1, h2, h3 {
     color: #940000
     }
 a {
-    color: #CA7900;
+    color: #ca7900;
     text-decoration: none
     }
 a:hover {
@@ -89,8 +121,7 @@ tt {
 tt.descname {
     background-color: transparent;
     font-weight: bold;
-    color: #2525ce;
-    font-size: 1.1em;
+    font-size: 1.2em;
     border: 0
     }
 tt.descclassname {
@@ -106,7 +137,7 @@ a tt {
     background-color: transparent;
     font-weight: bold;
     border: 0;
-    color: #CA7900
+    color: #ca7900
     }
 a tt:hover {
     color: #2491CF
@@ -146,7 +177,7 @@ pre {
     line-height: 120%
     }
 pre a {
-    color: inherit;
+    /*     color: inherit; */
     text-decoration: underline
     }
 .first {
@@ -166,9 +197,6 @@ div.documentwrapper {
 div.clearer {
     clear: both
     }
-div.related { 
-    background-color: #fff
- }
 div.related h3 {
     display: none
     }
@@ -195,25 +223,25 @@ div.related ul li a {
     margin: 0;
     padding: 0 5px 0 5px;
     line-height: 1.75em;
-    color: #EE9816
+    color: #ca7900
     }
 div.related ul li a:hover {
     color: #3CA8E7
     }
 div.body {
     margin: 0;
-    padding: 0.5em 20px 20px 20px
+    padding: 0.5em 20px 20px 3px
     }
 div.bodywrapper {
     margin: 0 240px 0 0;
     border-right: 1px solid #ccc
     }
-/* div.body a { */
-/*     text-decoration: underline */
-/*     } */
+div.body a {
+    text-decoration: underline
+    }
 div.sphinxsidebar {
     margin: 0;
-    padding: 0.5em 15px 15px 0;
+    padding: 0.5em 15px 15px 30px;
     width: 210px;
     float: right;
     text-align: left;
@@ -223,9 +251,9 @@ div.sphinxsidebar h4, div.sphinxsidebar h3 {
     margin: 1em 0 0.5em 0;
     font-size: 0.9em;
     padding: 0.1em 0 0.1em 0.5em;
-    color: #940000;
+    color: #fff;
     border: 1px solid #940000;
-    background-color: #f0ae4a
+    background-color: #f4821f
     }
 div.sphinxsidebar ul ul {
     padding-left: 1.5em;
@@ -248,7 +276,7 @@ h1 {
     margin: 0;
     padding: 0.7em 0 0.3em 0;
     font-size: 1.5em;
-    color: #11557C
+    /*     color: #11557C */
     }
 h2 {
     margin: 1.3em 0 0.2em 0;
@@ -277,18 +305,21 @@ h1 a.anchor:hover, h2 a.anchor:hover, h3 a.anchor:hover, h4 a.anchor:hover, h5 a
     }
 table {
     border-collapse: collapse;
-    margin: 0 -0.5em 0 -0.5em
+    /*     margin: 0 -0.5em 0 -0.5em */
     }
 table td, table th {
     padding: 0.2em 0.5em 0.2em 0.5em
     }
 div.footer {
-    background-color: #f0ae4a;
+    background-color: #f4821f;
     color: #86989B;
-    padding: 3px 8px 3px 0;
-    clear: both;
-    font-size: 0.8em;
-    text-align: right
+    /*     padding: 3px 8px 3px 0; */
+    /*     clear: both; */
+    /*     font-size: 0.8em; */
+    /*     text-align: right; */
+    /*     position:absolute; */
+    /*     bottom: 0; */
+    /*     width: 100% */
     }
 div.footer a {
     color: #86989B;
@@ -323,9 +354,9 @@ div.sphinxsidebar ul.toc ul li {
     }
 div.admonition, div.warning {
     font-size: 0.9em;
-    margin: 1em 0 0 0;
+    margin: 1em 40px 10px 40px;
     border: 1px solid #86989B;
-    background-color: #f7f7f7
+    background-color: #fffdea
     }
 div.admonition p, div.warning p {
     margin: 0.5em 1em 0.5em 1em;
@@ -340,7 +371,7 @@ div.admonition p.admonition-title, div.warning p.admonition-title {
     color: white;
     border-bottom: 1px solid #86989B;
     font-weight: bold;
-    background-color: #AFC1C4
+    background-color: #fe6f20
     }
 div.warning {
     border: 1px solid #940000
@@ -442,23 +473,183 @@ div.sidebar {
     background-color: #FFFFCC;
     width: 40%;
     float: right;
-    /*     clear: right; */
     margin-bottom: 20px
     }
-.class dd, .function dd, .method dd {
-    border: 1px solid #ddd;
-    margin-left: 20px;
-    color: #35485a;
-    font-style: italic;
-    padding: 0 20px 0;
-    background-color: #f8fafa;
-
+div.highlight-python {
+    display: inline-block
     }
-.class dd { 
-    border: 1px solid #dfdfdf;    
-    background-color: #fbfbfb;
- }
-
-.versionmodified { 
+/* Menu */
+.horizontal_menu ul {
+    list-style-type: none;
+    margin: 0pt;
+    padding: 0pt;
+    z-index: 100
+    }
+/* All' li principale metto un altezza piu piccola e il fon a bold */
+.horizontal_menu .mainli {
+    line-height: 13px;
+    font-weight: bold;
+    -moz-border-radius-topleft: 4px
+    }
+/* settaggi x tt le voci di menu */
+.horizontal_menu ul li {
+    display: inline;
+    float: left;
+    line-height: 21px;
+    padding: 0px;
+    position: relative;
+    margin-right: 4px;
+    font-weight: normal
+    }
+.horizontal_menu ul li a {
+    color: #ffffff;
+    display: block;
+    padding: 1px 8px;
+    text-decoration: none
+    }
+/* Colore dei sottomenu quando ci passo sopra */
+.horizontal_menu .mainli ul li a:hover {
+    background-color: #e6fc1e
+    }
+.horizontal_menu ul li a.active {
+    background-color: #e6fc1e
+    }
+/* Settaggi per menu principale, quello sempre visibile */
+.horizontal_menu .mainfoldericon {
+    background: #f4821f url(/static/img/color_tabs_left.gif) no-repeat left top;
+    -moz-border-radius-topleft: 4px;
+    float: left;
+    color: #ffffff;
+    padding: 0 0 1px 3px;
+    text-decoration: none;
+    letter-spacing: 1px
+    }
+.horizontal_menu .mainfoldericon span {
+    float: left;
+    display: block;
+    background: transparent url(/static/img/color_tabs_right.gif) no-repeat right top;
+    padding: 4px 9px 2px 6px
+    }
+/* Colore del menu principale quando ci passo sopra */
+.horizontal_menu ul li a:hover {
+    background-color: #f8c929
+    }
+/* Settaggi vari per corretta visualizzazione sottomenu */
+.horizontal_menu ul li ul {
+    display: block;
+    left: 0pt;
+    position: absolute;
+    top: 1em;
+    visibility: hidden;
+    float: none
+    }
+.horizontal_menu ul li ul li {
+    display: list-item;
+    float: none
+    }
+.horizontal_menu ul li ul li ul {
+    left: 159px;
+    top: 0pt
+    }
+.doc_copyright {
+    color: #fff
+    }
+.slogan {
+    padding: 0px 30px 1px 1px
+    }
+#description {
+    margin: 15px 0px 0 0;
+    position: absolute;
+    right: 0;
+    top: 45px;
+    width: 250px;
     font-style: italic
- }
+    }
+#description a {
+    color: #333
+    }
+#volantino {
+    text-align: center;
+    margin-bottom: 10px
+    }
+.box {
+    background-color: #eee;
+    /*   border-width: 0ps 1px 0px 1px; */
+    border-color: #ddd;
+    padding: 5px 5px 5px 5px;
+    border-color: #333;
+    border-top-width: 1px;
+    border-bottom-width: 1px
+    }
+.slide h2 {
+    -moz-border-radius-topleft: 4px;
+    -moz-border-radius-topright: 4px;
+    background: none repeat scroll 0 0 #DAD7D3;
+    margin: 0;
+    padding: 8px 1px 8px 8px;
+    color: #333;
+    font-size: 24px;
+    line-height: 20px;
+    margin: 0 0 8px
+    }
+h1, h2, h3, h4, h5, h6 {
+    font-weight: normal
+    }
+h4 {
+    font-weight: normal;
+    font-size: 110%;
+    border-color: #333333;
+    border-style: solid;
+    border-width: 0pt 0pt 0px
+    }
+.slide {
+    min-height: 300px;
+    /*   font-family:"Trebuchet MS",Arial,Helvetica,sans-serif; */
+    font-weight: normal;
+    color: #333
+    }
+.text {
+    width: 400px;
+    /*    display: inline; */
+    /*    float: left; */
+    margin-left: 8px;
+    margin-right: 8px;
+    position: relative;
+    font-size: 15px
+    }
+.img {
+    padding: 8px 5px;
+    right: 0;
+    text-align: center;
+    top: 0;
+    width: 350px;
+    margin-right: 0;
+    display: inline;
+    float: right;
+    margin-left: 8px
+    }
+h1 {
+    font-size: 150%;
+    font-size: 26px;
+    padding: 8px 0 2px;
+    margin-bottom: 25px
+    }
+/* .slide {  */
+/*   padding-left: 20px */
+/*  } */
+/* .slide ul { */
+/*   list-style: disc outside none; */
+/*   list-style: disc;  */
+/*   margin: 0 0 0 25px; */
+/* } */
+/* .slide ul li {  */
+/*   display: list-item; */
+/* } */
+/* .slide                              { padding: 10px 30px; } */
+.anythingSlider .slide .text ul {
+    list-style: disc;
+    margin: 0 0 0 25px
+    }
+.anythingSlider .slide .text ul li {
+    display: list-item
+    }

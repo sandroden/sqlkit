@@ -11,7 +11,8 @@
 # All configuration values have a default value; values that are commented out
 # serve to show the default value.
 
-import sys, os
+import sys
+import os
 
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath tosphinx.ext.autodoc make it
@@ -26,18 +27,23 @@ import sys, os
 cur_dir = os.path.dirname(__file__)
 sys.path += [cur_dir]
 sys.path += [os.path.dirname(cur_dir)]
+
 import docusage
+import sqlkit
+
 extensions = ['sphinx.ext.autodoc', 'docusage']
 #extensions = ['sphinx.ext.autodoc']
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['.templates']
+templates_path = ['templates']
+templates_map = {}
+template_bridge = "builder.builders.MakoBridge"
 
 # The suffix of source filenames.
 source_suffix = '.rst'
 
 # The master toctree document.
-master_doc = 'contents'
+master_doc = 'hidden'
 
 # General substitutions.
 project = 'sqlkit'
@@ -47,9 +53,9 @@ copyright = '2008, Sandro Dentella'
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = '0.8.6'
+version = sqlkit.__version__
 # The full version, including alpha/beta/rc tags.
-release = '0.8.6'
+release = version
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -109,7 +115,7 @@ html_style = 'sqlkit.css'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['.static']
+html_static_path = ['static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -127,10 +133,7 @@ html_sidebars = {'index': 'indexsidebar.html'}
 html_additional_pages = {'index': 'index.html'}
 
 # If false, no module index is generated.
-#html_use_modindex = True
-
-# If false, no index is generated.
-#html_use_index = True
+html_use_modindex = False
 
 # If true, the index is split into individual pages for each letter.
 #html_split_index = False
