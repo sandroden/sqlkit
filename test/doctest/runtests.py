@@ -10,6 +10,7 @@ import babel
 
 os.environ['LANG'] = 'C'
 os.environ['LANG'] = 'en_US.utf8'
+doctest.ELLIPSIS = 10
 
 files = (
     'completions.txt',
@@ -28,7 +29,7 @@ if sys.argv[1:]:
 for filename in files:
     print filename
     os.environ['LANG'] = 'en_US.utf8'
-    doctest.testfile(filename)
+    doctest.testfile(filename, optionflags=doctest.ELLIPSIS)
 
     
 

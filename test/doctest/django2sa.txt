@@ -24,35 +24,35 @@
 
 #### components: path, str_op, col, op, value
 >>> djs.django2components(User.__table__, {'first_name' : 'ed'})
-([], '=', 'eq', 'ed', Column('first_name', String(length=50, convert_unicode=False, assert_unicode=None), table=<user>), None)
+([], '=', 'eq', 'ed', Column('first_name', String(length=50, convert_unicode=False...), table=<user>), None)
 
 >>> djs.django2components(User.__mapper__, {'first_name' : 'ed'})
-([], '=', 'eq', 'ed', Column('first_name', String(length=50, convert_unicode=False, assert_unicode=None), table=<user>), None)
+([], '=', 'eq', 'ed', Column('first_name', String(length=50, convert_unicode=False, ...), table=<user>), None)
 
 >>> djs.django2components(User.__mapper__, {'first_name__icontains' : 'ed'})
-([], 'icontains', 'icontains', 'ed', Column('first_name', String(length=50, convert_unicode=False, assert_unicode=None), table=<user>), None)
+([], 'icontains', 'icontains', 'ed', Column('first_name', String(length=50, ...), table=<user>), None)
 
 >>> djs.django2components(User.__mapper__, {'addresses__email__icontains' : 'e-den.it'})
-(['addresses'], 'icontains', 'icontains', 'e-den.it', Column('email', String(length=50, convert_unicode=False, assert_unicode=None), table=<address>), False)
+(['addresses'], 'icontains', 'icontains', 'e-den.it', Column('email', String(length=50, ...), table=<address>), False)
 
 >>> djs.django2components(User.__mapper__, {'addresses__email__in' : ['abc', 'def']})
-(['addresses'], 'IN', 'in', ['abc', 'def'], Column('email', String(length=50, convert_unicode=False, assert_unicode=None), table=<address>), False)
+(['addresses'], 'IN', 'in', ['abc', 'def'], Column('email', String(length=50, ...), table=<address>), False)
 
 >>> djs.django2components(User.__mapper__, {'addresses__date_created__gte' : 'm'})
 (['addresses'], '>=', 'gte', 'm', Column('date_created', Date(), table=<address>), False)
 
 >>> djs.django2components(User.__mapper__, {'addresses__provider__provider' : 'e-den.it'})
-(['addresses', 'provider'], '=', 'eq', 'e-den.it', Column('provider', String(length=50, convert_unicode=False, assert_unicode=None), table=<provider>), False)
+(['addresses', 'provider'], '=', 'eq', 'e-den.it', Column('provider', String(length=50, ...), table=<provider>), False)
 
 >>> djs.django2components(User.__mapper__, {'addresses__provider__provider__icontains' : 'e-den.it'})
-(['addresses', 'provider'], 'icontains', 'icontains', 'e-den.it', Column('provider', String(length=50, convert_unicode=False, assert_unicode=None), table=<provider>), False)
+(['addresses', 'provider'], 'icontains', 'icontains', 'e-den.it', Column('provider', String(length=50, ...), table=<provider>), False)
 
 >>> djs.django2components(User.__mapper__, {'addresses__provider__country__country' : 'IT'})
-(['addresses', 'provider', 'country'], '=', 'eq', 'IT', Column('country', String(length=50, convert_unicode=False, assert_unicode=None), table=<country>), False)
+(['addresses', 'provider', 'country'], '=', 'eq', 'IT', Column('country', String(length=50, ...), table=<country>), False)
 
 ## Foreign keys
 >>> djs.django2components(Address.__mapper__, {'user_id__first_name' : 'ed'})[:-1]
-(['user_id'], '=', 'eq', 'ed', Column('first_name', String(length=50, convert_unicode=False, assert_unicode=None), table=<user>))
+(['user_id'], '=', 'eq', 'ed', Column('first_name', String(length=50, ...), table=<user>))
 
 >>> djs.django2components(Address.__mapper__, {'user_id__first_name' : 'ed'})[-1][0] == User.__table__
 True
@@ -81,11 +81,12 @@ True
 ...                              Address.email.op('=')('me@google.com'))).join(Address))
 True
 
-# TODO  query + mapper + fk: it doesn't follow the relation (yet)  
->>> q = djs.django2query(query, Address.__mapper__, user_id__first_name='ed')
-Traceback (most recent call last):
-    ...
-KeyError: 'user_id'
+# TODO  query + mapper + fk: it doesn't follow the relation (yet)
+## Error is commented as sqla 0.5 and 0.6 raise different errors 
+# >>> q = djs.django2query(query, Address.__mapper__, user_id__first_name='ed')
+# Traceback (most recent call last):
+#     ...
+# KeyError: 'user_id'
 
 >>> q = djs.django2query(query, User.__mapper__, first_name='ed',
 ...                      addresses__provider__provider__icontains='google', OR=True)
