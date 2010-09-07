@@ -371,16 +371,10 @@ class SimpleCompletion(object):
         value = model.get(iter, self.VALUE_COL)[0]
         obj = model.get_value(iter, self.OBJ_COL)
         
-        if self.master.is_fkey(field_name):
-            fkvalue = model.get(iter, self.DESCRIPTION_COL)[0]
-        else:
-            fkvalue = None
-
-        self.master.set_value(field_name, value, fkvalue=fkvalue, initial=False)
-        if fkvalue:
-            ## just handier to accept it already
-            if not self.master.is_mask():
-                self.master.cell_entry.entry.emit('activate')
+        self.master.set_value(field_name, value, fkvalue=None, initial=False)
+        ## here field.set_value is not yet needed. It's there just in case the field has some
+        ## validation logic
+        self.master.gui_fields[field_name].set_value(value, initial=False)
 
         self.displaying_completion = False
         self.master.run_hook('on_completion', obj, field_name=self.field_name)
@@ -844,6 +838,36 @@ class FkeyCompletion(SimpleCompletion):
 
         return query
     
+
+    def match_selected_cb(self, wdg, model, iter, field_name):
+        """
+        after selecting an entry store the value in self.values and set
+        the entry with the correct value.
+        """
+        # the completion model has 1 or 4 columns (in case of FKey):
+        # 0:  the real value to be put in the db
+        # 1:  the value to be shown in the field
+        # 2:  the value to be shown in the drop down completion menu
+        # 3:  the row return by the SELECT when building the completion
+        #         if more fields are present more columns get written
+
+        value = model.get(iter, self.VALUE_COL)[0]
+        obj = model.get_value(iter, self.OBJ_COL)
+        
+        fkvalue = model.get(iter, self.DESCRIPTION_COL)[0]
+
+        self.master.set_value(field_name, value, fkvalue=fkvalue, initial=False)
+
+        ## here set_field IS needed. Read the note in fields.FKeyField.set_value
+        self.master.gui_fields[field_name].set_value(value, initial=False)
+
+        ## just handier to accept it already
+        if not self.master.is_mask():
+            self.master.cell_entry.entry.emit('activate')
+
+        self.displaying_completion = False
+        self.master.run_hook('on_completion', obj, field_name=self.field_name)
+        return True
 
 ### What to show
     def append_to_model(self, obj):
