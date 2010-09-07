@@ -738,16 +738,18 @@ class FilterTool(object):
 class FilterStringTool(FilterTool):
 
     def get_suitable_operators(self ):
+        
         STD_OPERATORS = self.STR_STD_OPERATORS + self.STD_OPERATORS
-        if self.bind_name in 'sqlite':
+        if self.bind_name.startswith('sqlite'):
             return ['ICONTAINS'] + STD_OPERATORS
         
-        elif self.bind_name in 'mysql':
+        elif self.bind_name.startswith('mysql'):
             return [ 'REGEXP' ] + STD_OPERATORS
 
-        elif self.bind_name in 'postgres':
+        elif self.bind_name.startswith('postgres'):
             return  ['~*', '~', '!~*', '!~' ] + STD_OPERATORS
 
+        return STD_OPERATORS
 
 class FilterBooleanTool(FilterTool):
 
@@ -810,13 +812,13 @@ class FilterFKeyTool(FilterTool):
 
     def get_suitable_operators(self):
 
-        if self.bind_name in ('postgres'):
+        if self.bind_name.startswith('postgres'):
             return  ['~*', '~', '!~*', '~*' ] + self.STD_OPERATORS
 
-        elif self.bind_name in ('mysql'):
+        elif self.bind_name.startswith('mysql'):
             return ['REGEXP' ] + self.STD_OPERATORS
 
-        elif self.bind_name in ('sqlite'):
+        elif self.bind_name.startswith('sqlite'):
             return ['ICONTAINS' ] + self.STD_OPERATORS
 
     def get_value(self):
@@ -942,6 +944,7 @@ class FilterWidget(object):
 
         menu = gtk.Menu()
         operator.set_menu(menu)
+
         for op in operators:
             entry = gtk.MenuItem(op)
             menu.append(entry)

@@ -1074,7 +1074,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 obj = self.get_selected_obj()
             if obj:
                 for field in self.gui_fields:
-                    if field.column: # only mapped fields need initialize
+                    if field.persistent: # only mapped fields need initialize
                         value = getattr(obj, field.field_name)
                         self.gui_fields[field.field_name].set_value(value, initial=True)
 
