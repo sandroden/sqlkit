@@ -1,5 +1,5 @@
 =======================  
-Sqlkit & Sqledit
+Sqlkit & Sqledit 
 =======================
 
 Sqlkit is a tool to edit **data** of a database (as opposed to schemas) in the

@@ -1,3 +1,9 @@
+sqlkit (0.9-rc1) hardy; urgency=low
+
+  * updated to 0.9-rc1
+
+ -- Sandro Dentella <sandro@e-den.it>  Sat, 07 Aug 2010 10:27:33 +0200
+
 sqlkit (0.8.6.1) unstable; urgency=low
 
   * release 0.8.6.1 with spanish translation by Juan Fernando Jaramillo Botero

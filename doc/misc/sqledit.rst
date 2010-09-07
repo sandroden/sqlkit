@@ -6,6 +6,14 @@
 
 .. image:: ../img/sqledit.png
    :align: right
+   :scale: 40
+   :class: preview
+
+.. image:: ../img/sqledit_setup.png
+   :align: left
+   :scale: 40
+   :class: preview
+
 
 Sqledit is a data editor/browser. It may be called on a database and it will
 present a list of all tables that can be selected for editing (choosing 
@@ -18,7 +26,6 @@ It has several options:
 
 If called without argument it will present a connection dialog:
 
-.. image:: ../img/sqledit_setup.png
 
 If sqledit can find a demo in your systems, it will give you the chance to
 start it. If you want to type the URL of your db you can directly attempt a

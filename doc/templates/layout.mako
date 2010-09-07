@@ -172,7 +172,7 @@ ${self.footer()}
 ##        <li><a href="${pathto('index.html', 1)}">ReteIsi </a> |&nbsp;</li>
 ##       <li><a href="${pathto('contents.html', 1)}">Documentazione </a> &raquo;</li>
 
-	${prevnextheader()}
+	${self.prevnextheader()}
 
       </ul>
 

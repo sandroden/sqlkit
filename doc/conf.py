@@ -38,6 +38,7 @@ extensions = ['sphinx.ext.autodoc', 'docusage']
 templates_path = ['templates']
 templates_map = {
     'sqlkit/tour' : 'tour.mako' ,
+    'misc/sqledit' : 'tour.mako' ,
     }
 template_bridge = "builder.builders.MakoBridge"
 

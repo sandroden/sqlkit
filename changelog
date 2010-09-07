@@ -1,4 +1,108 @@
-sqlkit 0.8.7
+sqlkit 0.9.rc1 - August 7 2010
+
+	* support:   * support for sqlalchemy 0.6 has been added
+	
+	* sqlwidget: * syntax change: now the first argument is not a keywork. It's
+	             the table_name/table/class/mapper. keyword args table, mapper
+	             class_ are now deprecated
+		   * improved handling of ForeignKey when the model has a backref that
+	             prevents orphans
+	           * added django-like syntax to .reload()
+		   * mapper: now the mapper can have a function
+		   * get_title()
+		   * now decimal from the keypad works nicely (inserts "." or ","
+	             according to locale)
+		   * fixed 'delete-event' callback: self.current needed to be
+	             cleaned and session-extensions needed to be cleaned to prevent
+	             several calls to hooks on commit/flush
+		   * now NumLock is ignored when using hot keys (Control-n, Tab...)
+	             was totally misleading
+	           * fixed 'set_mode'
+		   * added documentation on using UIManager proficiently
+		   * format: keywork format is handled over to related table too, as
+	             for col_width.
+		   * added hook 'on_pre_layout' to be able to set a mapping fields in hooks
+		   * now any char can be used for 'title' as is process by
+	             gobject.markup_escape_text
+		   * refresh after save. Now after each save a refresh is done so
+	             that any db-computed field is correctly displayed. This is
+	             propagated to the possibly existing parent widgets.
+	
+	* filters:   * fixed filtering an integer with value 0 (previously was
+	             ignored)
+		   * filter for boolean: added IS NOT TRUE/ IS NOT FALSE
+		   * selection of widgets now reflects widget displayed
+		   * the filter_panel is now a view, you can highly customize the
+	             appearence, creating new fields or displaying fields from the
+	             record. Methods add_column and replace_column help you
+	             customize it. The possiblity to have grouped lines in the
+	             filter panel (as in a 2 level tree) is now supported. You can
+	             eve have totals in the filter panel
+		   * added notnull filter (tat was already documented)
+	
+	
+	* completion: * added possibility to add attributes to completion result. That
+	              opens new possibility to on_completion hook
+	
+	* fields:    * internal important restructure. 
+		   * now imported from sqlkit.fields
+		   * fixed import loop. No gtk is implied when importing sqlkit.fields
+	 	   * Now attributes nullable and editable are
+	             propertyies and affect the widget, if any
+		   * now fields in a widget can be calculated from other fields. you
+		     can add a field just inheriting a sqlkit.field.Field and
+		     overwriting cleaned_value(). 
+		     A field that is not persisted will be turned into read-only and
+		     will not be validated on saving. 
+		   * now you can pass a mapping that forces which field will be
+		     used, a signal has been added to be able to do that in Hooks.
+		   * slightly changed behaviour of BLANK_OK in fields. Now no change
+		     is proposed on fields that are not edited.
+		     
+	* table:   * views have been added. The same model can now  be represented in
+	           differet TreeViews displaying possibly different columns. Views
+	           have the selection sincronized so that get_selected_obj() point
+	           to the same object.
+	           (Note that 'button-press-event' call back now needs 
+	            one more arg, the view).
+	         * added possibility to sort locally (w/o hitting the
+	           database). This also adds the possibility to sort related tables.
+	         * Control-x is now an alias for Control-k
+		 * Improved RecordInMask (minor fixes). Added Control-m to start it.
+		 * FKeyRecord now can use a custom layout/nick
+		 * fix in get_value()
+		 * better edit experience (no more vanishing text if not saving)
+		 * several minor fixes 
+		 * totals: added possibility to hide the grand-total
+		 * totals: added the local sort tat is faster as it's done in the
+	           treeview, w/o fetching from the database.
+		 * Total and sorting in tables works for not persisted fields as
+	           well.
+	         * subtotal can be toggled using the letter 'b' on a focused
+	           treeview (record...)
+		 * export is now different for each view
+		 * record_in_mask now checks for usaved record in session
+		 * record_in_mask/fkey_record_in_mask can be called programmatically
+		 * hooks: added on_activate that was not implemented for tables
+		 * self.current now points to the currently edited OR SELECTED
+	           record. previously was only on currently edited on None. This
+	           makes it much more usable.
+	
+	* demo:    * Fixed demo (opt -g)
+	          
+	
+	* tests:   * added some tests
+	
+	* mask:    * added signal 'pre-display'
+		 * fixed BooleanNullRenderer that occasionally failed to set
+	   	   correctly the values
+		 * layout: fixed alignment problem that prevented from being able to
+		   set entry length
+	
+	
+	
+	
+sqlkit 0.8.7 - December 21 2009
 
 	* docs: general improvement:
 	           - started backword incompatibilities
@@ -59,13 +163,13 @@ sqlkit 0.8.7
 
 	* tables:   Now Table can show content as hierarchy on objects
 	
-sqlkit 0.8.6.1
+sqlkit 0.8.6.1 - September 29 2009
 
 	* translation: added spanish translation
 
 	* datetools: added @2m syntax and added Y-1m capability
 	
-sqlkit 0.8.6 -
+sqlkit 0.8.6 - September 10 2009
 
 	* package: 
 	          - improved setup.py: install_requires is now handled by
@@ -74,7 +178,7 @@ sqlkit 0.8.6 -
 	          - debian package now depends on psycopg & mysql also
 	          - added binary version via pyinstaller
 	
-sqlkit 0.8.6 rc5-
+sqlkit 0.8.6 rc5- August 6 2009
 
 	* sqledit: 
 	         - gui improved

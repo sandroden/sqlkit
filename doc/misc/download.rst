@@ -10,7 +10,8 @@ Sqlkit depends on:
 
        * Python
            * Pygtk
-           * sqlalchemy (>=0.5.3, < 0.6)
+           * sqlalchemy (>=0.5.3). Rel 0.9.0 is the first sqlkit release
+             that works with sqlalchemy 0.6+
            * glade2
        * python-dateutils 
        * setuptools
@@ -86,9 +87,8 @@ Even if the source states ``lenny`` it can safely be used for ubuntu.
 
 .. note:: Sqlalchemy
     
-    sqlkit depends on sqlalchemy >= 0.5 that is not yet packaged by ubuntu
-    so the .deb does not require it. You can get it from Debian
-    Experimental_ and it will install also in ubuntu
+    sqlkit depends on sqlalchemy >= 0.5 that is only packaged for ubuntu >=
+    9.10 so the .deb does not require it. You can install it
 
 .. note:: Babel
 
@@ -96,9 +96,9 @@ Even if the source states ``lenny`` it can safely be used for ubuntu.
    ubuntu with two different names in hardy and jaunty and is missing in
    intrepid. So the package I have prepared does not depend on it. You are
    supposed to add the package. If using hardy install ``python-babel`` if
-   using jaunty, use ``python-pybabel`` instead. If using intrepid... I'm
-   almost sure there was a pybabel, but there is no more... install by
-   hand!::
+   using jaunty or following, use ``python-pybabel`` instead. If using
+   intrepid... I'm almost sure there was a pybabel, but there is no
+   more... install by hand!::
 
       easy_install babel
 

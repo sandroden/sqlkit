@@ -6,19 +6,24 @@
     <script type="text/javascript" src="${pathto('_static/preview.js', 1)}"></script>
 </%def>
 
+<%def name="prevnextheader()"></%def>
+
+
 <%def name="sidebar()">
 
   <div class="sphinxsidebar">
      <div class="sphinxsidebarwrapper">
       <div class="news">
 
-      <h2>Release 0.9 beta is out</h2>
+      <h2>Release 0.9 rc1 is out</h2>
       
-      I'm proud to announce that on August, 6 2010 I released 
-      <a href="${pathto('misc/download', )}#download">version 0.9beta</a> of
-      sqlkit that adds a huge quantity of new features and bug fixes. 
+      I'm happy to announce that on August, 7 2010 I released 
+      <a href="${pathto('misc/download', )}#download">version 0.9rc1</a> of
+	sqlkit that adds a huge quantity of new features and bug fixes (see 
+	<a href="/download/Changelog">changelog</a>). This release works
+      with sqlalchemy 0.5 and 0.6.
 	
-      It will stay in beta stage till the end of August.
+      It will be turned to stable around the end of August.
 
      </div>
      </div>
