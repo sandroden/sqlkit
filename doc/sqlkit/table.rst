@@ -89,6 +89,8 @@ in the treeeview
 :Control-s:  saves the record
 :Control-q:  quits the table
 :Control-n:  opens a new record
+:Control-z:  zoom the treeview
+:Shift-Z:  zoom the treeview in a related table (nested in a mask)
 :s:  sorts the table locally (toggle between ascending and descending)
 :f:  open a filter for this column
 :t:  create a total if the column is numeric

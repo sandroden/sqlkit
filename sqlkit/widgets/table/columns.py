@@ -1028,6 +1028,12 @@ class View(object):
         self.master.modelproxy._filter_rows = not self.master.modelproxy._filter_rows
         self.master.record_refresh()
         
+    def key_tree_shift_Z(self, treeview, event):
+        """zoom-fit
+        I would have preferred Control-z but it's kidnapped by global action shortcut
+        """
+        self.on_zoom_fit(self)
+        
     def get_field_name_from_pointer(self, treeview=None):
 
         x, y, modifier_state = self.treeview.window.get_pointer()
