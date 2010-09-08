@@ -14,7 +14,7 @@ Completion works both in Table view and Mask view.
 Completion on a field that is not a foreign key return a selection of values
 of the field
 
-Completion has 2 flavours: start & regexp: see docs
+Completion has 2 flavours: start and regexp: see docs
 
 You don't need to do anything particular to start a plain/basic completion
 
