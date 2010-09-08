@@ -13,4 +13,4 @@ SQLKit
    widgets
    browsing
    editing
-
+   advanced/contents

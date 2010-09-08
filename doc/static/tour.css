@@ -11,7 +11,8 @@ h3 {
    margin: 0 0 8px;
 }
 img {
-      border: 0;
+    border: 0;
+    padding: 0 10px  
 }
 #preview{
 	position: absolute;

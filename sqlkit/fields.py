@@ -21,12 +21,12 @@ Fields
 =======
 Mask/Tables are collection of data that may belong to the database or not.
 Each of the data represented in the GUI that needs to partecipate to any
-updating/saving process should have it's own controller that is a Field.
+updating/saving process should have it's own handler that is a Field.
 
 A Field is an entity that knows how to handle a piece of data, be it on
 the database (a field_name) or just in the GUI. It knows:
 
-   - if it belongs to the database (if attribute mapper is defined) and in
+   - if it belongs to the database (attribute ``persisted`` is True) and in
      case how it is defined ( i.e.: sqlalchemy property/column)
    - if it is nullable/editable
    - which widget must be used to represent it (see below, not requested)
@@ -167,11 +167,21 @@ Available Fields
 All other field inherit from Field
 
 .. autoclass:: VarcharField
+   :members: blank_ok
+   
 .. autoclass:: IntegerField
+   :members: format
+
 .. autoclass:: FloatField
+   :members: format
+
 .. autoclass:: DecimalField
+   :members: format
+
 .. autoclass:: TextField
 .. autoclass:: DateField
+   :members: format
+
 .. autoclass:: TimeField
 .. autoclass:: TimeTZField
 .. autoclass:: IntervalField
@@ -180,6 +190,8 @@ All other field inherit from Field
 .. autoclass:: BooleanField
 .. autoclass:: BooleanNullField
 .. autoclass:: ForeignKeyField
+   :members: lookup_value, add_related_object
+   
 .. autoclass:: CollectionField
 
 .. autofunction:: std_cleanup
@@ -550,8 +562,18 @@ class Field(object):
         return "<%s - %s >" % (self.__class__.__name__, self.field_name)
 
 class VarcharField(Field):
+    """
+    The field to represent Strings
+
+    """
     Widget = 'VarcharWidget'
     type = str
+    blank_ok = None
+    """
+    The widget return an epty string on empty values. This variable determines if that value
+    will be set NULL or left empty. Regardless of this value the value is left untouched if
+    it already exists.
+    """
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
         self.blank_ok = BLANK_OK
@@ -587,9 +609,15 @@ class VarcharField(Field):
 
 ##### Numbers
 class IntegerField(Field):
+    """
+    The fields to handle interegers
+    """
     Widget = 'IntegerWidget'
     type = int
     length = 8
+
+    format = None
+    """How to represent integers. Default: '#,###' """
     
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
@@ -617,9 +645,15 @@ class IntegerField(Field):
         return numbers.format_decimal(value, format=format or self.format, locale=self.locale)
         
 class FloatField(IntegerField):
+    """
+    The fields to handle floats
+    """
     Widget = 'FloatWidget'
     type = float
     length = 10
+    
+    format = None
+    """How to represent integers. Default: None """
     
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
@@ -648,9 +682,20 @@ class FloatField(IntegerField):
         return numbers.format_decimal(value, format=format or self.format, locale=self.locale)
         
 class DecimalField(IntegerField):
+    """
+    The fields to handle Numeric Fields
+    """
     Widget = 'DecimalWidget'
     type = Decimal
     length = 10
+
+    scale = None
+    """the number of decimals. Default is desumed by introspection"""
+
+    
+    format = None
+    """How to represent integers. Default: '#,###.00' (The number of 0 determined by ``scale`` """
+    
     
     def __init__(self, *args, **kw):
         """
@@ -708,9 +753,14 @@ class TextField(VarcharField):
 
 ##### Time/Dates
 class DateField(Field):
+    """
+    The fields to handle datets
+    """
     Widget = 'DateWidget'
     default_def_string = 'd'
     format = None
+    """The format used to represent dates. Default: ``short``"""
+
     type = date
         
     def __init__(self, *args, **kw):
@@ -745,6 +795,9 @@ class DateField(Field):
         
         
 class TimeField(DateField):
+    """
+    The fields to handle times w/o timezone
+    """
     Widget = 'TimeWidget'
     default_def_string = 'ae'
     type = time
@@ -771,6 +824,9 @@ class TimeField(DateField):
         return dates.format_time(value, format=format or self.format, locale=self.locale)
 
 class TimeTZField(TimeField):
+    """
+    The fields to handle times with timezone
+    """
     Widget = 'TimeTZWidget'
 
     def __init__(self, *args, **kwargs):
@@ -813,10 +869,16 @@ class TimeTZField(TimeField):
         return value.replace(tzinfo=self.TZ, microsecond=self.microsecond)
 
 class IntervalField(Field):
+    """
+    The fields to handle times with interval
+    """
     Widget = 'IntervalWidget'
     type = timedelta
 
 class DateTimeField(DateField):
+    """
+    The fields to handle datetimes w/o timezone
+    """
     Widget = 'DateTimeWidget'
     type = datetime
 
@@ -899,6 +961,9 @@ class DateTimeField(DateField):
         return value
         
 class DateTimeTZField(DateTimeField):
+    """
+    The fields to handle datetimes with timezone
+    """
     Widget = 'DateTimeTZWidget'
 
     def __init__(self, *args, **kwargs):
@@ -935,7 +1000,7 @@ class DateTimeTZField(DateTimeField):
 ##### Boolean
 class BooleanField(Field):
     """
-    A simple boolean field that does not allow NULL
+    A field to handle booleans that does not allow NULL
     """
 
     Widget = 'BooleanWidget'
@@ -956,8 +1021,9 @@ class BooleanField(Field):
 
 class BooleanNullField(Field):
     """
-    A boolean field that allows to set NULL
+    A field to handle booleans that allows NULL
     """
+
     Widget = 'BooleanNullWidget'
     type = bool
 
@@ -970,8 +1036,7 @@ class BooleanNullField(Field):
 ##### Misc
 class ForeignKeyField(Field):
     """
-    A field that uses ComboBoxEntry
-    The popup should trigger the filling of the model with
+    A field to handle foreign keys
     """
     Widget = 'ForeignKeyWidget'
     type = str
@@ -1126,12 +1191,13 @@ class ForeignKeyField(Field):
         keyword the ``attach_instance`` key pointing to the property of the relation
         to be added.
 
-        In the demo you can fine this example::
+        In the demo you can find this example::
 
           class Movie(Base):
               __tablename__  = 'movie'
               ...
-              director_id    = Column(Integer, ForeignKey('director.id'), nullable=False, info={'attach_instance': 'director'})
+              director_id    = Column(Integer, ForeignKey('director.id'), nullable=False,
+                                      info={'attach_instance': 'director'})
 
           class Director(Base):
               __tablename__ = 'director'
@@ -1202,10 +1268,12 @@ class CollectionField(Field):
 
 def std_cleanup(fn):
     """
-    A decorator that will handle standard cases: value it's None, a string or already cleaned
+    A decorator that will handle standard cases: value is None, is a string
+    or is already cleaned.
 
-    This is handy when building new Fields as allows to keep it as simple as possible, i.e.
-    no need to check for standard cases::
+    This is handy when building new Fields as it allows to keep the
+    ``.clean_value`` method as simple as possible, i.e.  no need to check for
+    standard cases::
 
         class CountMovies(fields.IntegerField):
             '''

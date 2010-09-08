@@ -275,6 +275,15 @@ ${self.footer()}
 				 ><span>Relationships</span></a></li>
 			 </ul>
 		       </li>
+		 <li ><a href="${pathto('sqlkit/advanced/contents')}" title="Advanced configuration" 
+		       ><span>Advanced configuration</span></a>
+			 <ul> 
+			   <li ><a href="${pathto('sqlkit/advanced/fields')}" title="Fields" 
+				 ><span>Fields</span></a></li>
+			   <li ><a href="${pathto('sqlkit/advanced/views')}" title="Views" 
+				 ><span>Views</span></a></li>
+			 </ul>
+		       </li>
 
 	       </ul>
             </li>

@@ -123,6 +123,7 @@ tt.descname {
     background-color: transparent;
     font-weight: bold;
     font-size: 1.2em;
+    color: #5454d8;
     border: 0
     }
 tt.descclassname {
@@ -162,8 +163,11 @@ dd ul, dd table {
 dd {
     margin-top: 3px;
     margin-bottom: 10px;
-    margin-left: 30px
-    }
+    margin-left: 30px;
+    background-color:#FBFBFB;
+    border:1px solid #DFDFDF;
+    padding:0 20px;
+}
 .refcount {
     color: #060
     }
