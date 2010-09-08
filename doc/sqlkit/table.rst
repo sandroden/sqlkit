@@ -11,7 +11,7 @@ the foreign key is used.
 
 .. autoclass:: sqlkit.widgets.SqlTable(see_below)
    :members: create_view, set_field_list, set_editable, set_opts,  select_path,
-             add_record, set_fk_layout, record_in_mask, fkey_record_in_mask
+             add_record, set_fk_layout, record_in_mask, fkey_record_in_mask, add_row_filter
 
 
 Attributes
@@ -92,6 +92,8 @@ in the treeeview
 :s:  sorts the table locally (toggle between ascending and descending)
 :f:  open a filter for this column
 :t:  create a total if the column is numeric
+:v:  toggle visibility of some rows, needs that you set a visibility
+     function via :meth:`sqlkit.widgets.SqlTable.add_row_filter`
 :b:  toggles a break for subtotals on this column. In addition to this operation it
      also sort on the column as it often happens you want a subtotal after
      having ordered. Adding a break from the column menu does not order.

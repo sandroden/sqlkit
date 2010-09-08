@@ -95,7 +95,9 @@ class ModelProxy(gobject.GObject):
         self._tree_field_name = tree_field_name 
         self.order_store = None
         self._order_list = None
-
+        self._filter_rows = False
+        self._check_func = None
+        
         self.treeview = treeview
         if treeview:
             treeview.set_model(self.modelstore)
@@ -215,9 +217,9 @@ class ModelProxy(gobject.GObject):
     def fill_listmodel(self):
 
         for record in self.master.records:
-            self.modelstore.append([record])
+            if self.check_visibility(record):
+                self.modelstore.append([record])
         return
-        
         
     def fill_treemodel(self):
         """
@@ -225,6 +227,8 @@ class ModelProxy(gobject.GObject):
         """
         parents = {}
         for record in self.master.records:
+            if not self.check_visibility(record):
+                return
             field_value = getattr(record, self.tree_field_name)
             parent = parents.get(field_value, None)
             if not parent:
@@ -236,6 +240,15 @@ class ModelProxy(gobject.GObject):
             iter = self.modelstore.append(parent, [record])
             if field_value not in parents:
                 parents[field_value] = iter
+
+    def check_visibility(self, obj):
+        """
+        Return True if the obj should be added to the model of the treeview, False otherwise
+        """
+
+        if self._filter_rows and self._check_func:
+            return self._check_func(obj)
+        return True
 
     def make_header_obj(self, field_value):
         """

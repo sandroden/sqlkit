@@ -1460,6 +1460,15 @@ class SqlTable(sqlwidget.SqlWidget):
 
         return a[0]
                 
+    def add_row_filter(self, func):
+        """
+        Add a filter that selects which rows should be displayed
+
+        :param func: the function that will be called with the obj as argument
+                     and must return a bool
+        """
+        self.modelproxy._filter_rows = True
+        self.modelproxy._check_func = func
         
 #### completion
 

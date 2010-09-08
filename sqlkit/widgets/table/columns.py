@@ -1021,6 +1021,13 @@ class View(object):
         field_name = self.get_field_name_from_pointer(treeview)
         self.master.totals.add_total(field_name, quiet=True)
         
+    def key_tree_v(self, treeview, event):
+        """toggle row visibility if a function has been set via
+        :meth:`sqlkit.common.SqlTable.add_row_filter` """
+
+        self.master.modelproxy._filter_rows = not self.master.modelproxy._filter_rows
+        self.master.record_refresh()
+        
     def get_field_name_from_pointer(self, treeview=None):
 
         x, y, modifier_state = self.treeview.window.get_pointer()
