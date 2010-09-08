@@ -1080,7 +1080,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 for field in self.gui_fields:
                     if field.persistent: # only mapped fields need initialize
                         value = getattr(obj, field.field_name)
-                        self.gui_fields[field.field_name].set_value(value, initial=True)
+                        self.gui_fields[field.field_name].set_value(value, obj=obj, initial=True)
 
         self.edited_row_model_path = path
         
