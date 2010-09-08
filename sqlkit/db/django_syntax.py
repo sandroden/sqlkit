@@ -47,6 +47,7 @@ supported lookup
 :like/ilike:        use like operator, ilike if available
 :notlike/notilike:  negate like operator, ilike if available
 :regexp/iregexp:    now ~/~* for postgres and REGEX for mysql like again for the rest
+:notregexp/notiregexp:    now !~/!~* (only for postgresql)
 :lt/gt:             less than / grater than (<, >)
 :lte/gte:           less than equal/ grater than equal(<=, >=)
 :eq/neq:            equal / not equal ( = , !=)
@@ -81,6 +82,8 @@ OPERATORS = {
     'notilike'   : 'not ilike',
     'iregexp'    : '~*',
     'regexp'     : '~',
+    'notiregexp' : '!~*',
+    'notregexp'  : '!~',
     'lt'         : '<',
     'gt'         :  '>',
     'lte'        : '<=',

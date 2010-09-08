@@ -51,6 +51,8 @@ these operators are recognized::
      'notilike'   : 'not ilike',
      'iregexp'    : '~*',
      'regexp'     : '~',
+     'notiregexp' : '!~*',
+     'notregexp'  : '!~',
      'lt'         : '<',
      'gt'         :  '>',
      'lte'        : '<=',
