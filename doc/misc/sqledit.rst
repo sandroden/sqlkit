@@ -64,7 +64,9 @@ schema browser
 
 Introspection of the database will give you the possibility to see all
 fields of a table showing all fields, with type, primary keys, foreign keys and
-indexes.
+indexes. If you configured a nick to jump directly on a table or any other
+configuration allowed by sqledit customization, you'll need the -b
+(--browser) option to get to the schema browser.
 
 Options
 =======

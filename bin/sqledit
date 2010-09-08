@@ -20,6 +20,7 @@ usage: %prog [options] [[url|nick] table]
    -n, --nick = nick: a nick in ~/.sqleditdb
    -t, --table = table: open table 'table'
    -m, --mask: open a SqlMask (default is SqlTable)
+   -b, --browser: open the table browser reguardless of nick configuration
    -T, --sqltable: open a SqlTable (default when -t is used)
    -d, --dev: open in 'dev' mode
    -D, --debug: print debug
@@ -314,7 +315,7 @@ def main():
 
 
         try:
-             if opts.table:
+             if opts.table and not opts.browser:
                  tables = re.split('[ ,]+', opts.table)
                  for t in tables:
                      if len(tables) > 1:
