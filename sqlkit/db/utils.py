@@ -359,7 +359,7 @@ def get_differences(obj):
     show differences between old and new version of an object
     this is a generator, you should use as in::
 
-       for fiel_name, old_value, new_value in get_differences(obj):
+       for field_name, old_value, new_value in get_differences(obj):
            print 'field   %s changed from %s, to %s' % (field_name, old_value, new_value)
 
     :param obj: the object to look for changes
@@ -378,8 +378,12 @@ def get_differences(obj):
         new = None
         old = None
 
-        new, unchanged, old =  orm.attributes.get_history(
-            orm.attributes.instance_state(obj), prop.key)
+        try:
+            new, unchanged, old =  orm.attributes.get_history(obj, prop.key)
+        except AttributeError, e:
+            # sqla 0.5.0 -> 0.5.1
+            new, unchanged, old =  orm.attributes.get_history(
+                orm.attributes.instance_state(obj), prop.key)
         if new or old:
             ## Not sure about this code. I don't want to have to cope with
             ## a list if there is no need for that (i.e. is not a collection)
@@ -414,8 +418,12 @@ def get_history(obj, field_name, session=None):
         if prop.key == field_name:
 
             try:
-                new, unchanged, old =  orm.attributes.get_history(
-                    orm.attributes.instance_state(obj), prop.key)
+                try:
+                    new, unchanged, old =  orm.attributes.get_history(obj, prop.key)
+                except AttributeError, e:
+                    # sqla 0.5.0 -> 0.5.1
+                    new, unchanged, old =  orm.attributes.get_history(
+                        orm.attributes.instance_state(obj), prop.key)
                 if isinstance(prop, orm.properties.RelationProperty) and (
                     prop.direction.name in ('MANYTOMANY', 'ONETOMANY')):
                     return new, unchanged, old
