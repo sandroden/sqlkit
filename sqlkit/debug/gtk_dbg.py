@@ -994,7 +994,7 @@ class ShowLogs(object):
         self.indent = {}
         ## method, args, caller, line
         cols = ['meth','class', 'time', 'caller', 'line',
-                'ret code', 'class', 'args', 'all_args']
+                'ret code', 'class', 'args', 'all_args', 'tooltips']
         self.easytv = misc.EasyTreeView(
             cols, sort=False, show=show, but='tb=gtk-close tb=gtk-open', title="GTK debug")
         self.time = time.time()
@@ -1002,6 +1002,12 @@ class ShowLogs(object):
         self.model = self.easytv.model
         cell = self.easytv.tvc['meth'].get_cell_renderers()[0]
         self.easytv.tvc['meth'].set_attributes(cell, markup=0)
+        try:
+            self.easytv.tvc['tooltips'].props.visible = False
+        except:
+            import ipdb; ipdb.set_trace()
+
+        self.easytv.tv.set_tooltip_column(9)
         self.easytv.l.connect(
             ('tb=gtk-open', 'clicked', lambda w, : self.easytv.tv.expand_all()),
             ('tb=gtk-close', 'clicked', lambda w, : self.easytv.tv.collapse_all()),
@@ -1023,6 +1029,20 @@ class ShowLogs(object):
         except:
             pass
         
+    def get_tooltip(self, meth, args, ret, caller, line, time):
+        ret  = re.sub('[<>]','', str(ret))
+        args = re.sub('[<>]','', str(args))
+
+        try:
+            caller = ".".join(caller.split('.')[-2:])
+        except:
+            pass
+        caller = re.sub('[<>]','', str(caller))
+
+        txt = "<i>%(meth)s</i>(<tt>%(args)s</tt>)\n<b>%(ret)s</b>\n" + \
+              "<i>%(caller)s:%(line)s</i>\n%(time)s"
+        return txt  % (locals())
+    
     def button_press_cb(self, wdg, ev):
         if ev.button != 3:
             return False
@@ -1243,15 +1263,18 @@ class ShowLogs(object):
         except IndexError:
             txt = ''
         now = time.time()
+        # elapsed time is totally wrong!!!
+        elapsed_time = "%.3f - %.4f" % (now - self.time, now - self.last_time)
+        args = ", ".join([str(f) for f in args])
         self.model.set(  self.iter[indent],
-                         1, Class,
                          0, meth_str,
+                         1, Class,
 #                         2, txt,
-                         7, ", ".join([str(f) for f in args]),
+                         2, elapsed_time,
                          3, caller,
                          4, line,
                          6, class_obj,
-                         2, "%.3f - %.4f" % (now - self.time, now - self.last_time),
+                         7, args,
                          8, args,
                          )
         self.last_time = now
@@ -1309,38 +1332,14 @@ class ShowLogs(object):
         return iter
 
     def ret(self, iter, txt):
-        self.model.set(iter, 5, txt[0:100])
+        meth, args, caller, line, time = self.model.get(
+            iter, 0, 7, 3, 4, 2)
+        self.model.set(iter,
+                       5, txt[0:100],
+                       9, self.get_tooltip(meth, args, txt[0:100], caller, line, time),
+
+                       )
         return iter
-
-#DBGLogger = LogTheMethods()
-
-try:
-    from TreeViewTooltips import TreeViewTooltips
-    class DebugTreeView(TreeViewTooltips):
-        def __init__(self, model):
-            self.model = model
-            TreeViewTooltips.__init__(self)
-
-
-        def get_tooltip(self, view, column, path):
-            meth, args, ret, caller, line, time = self.model.get(
-                self.model.get_iter(path), 0, 7, 5, 3, 4, 2)
-            ret  = re.sub('[<>]','', str(ret))
-            args = re.sub('[<>]','', str(args))
-            
-            try:
-                caller = ".".join(caller.split('.')[-2:])
-            except:
-                pass
-            caller = re.sub('[<>]','', str(caller))
-
-            txt = """<i>%s</i>(<tt>%s</tt>)\n<b>%s</b>\n<i>%s:%s</i>\n%s""" % (
-                meth, args, ret, caller, line, time
-        )
-            return txt
-except:
-    pass
-
 
 
 def get_widget_signals(item, result=None):
