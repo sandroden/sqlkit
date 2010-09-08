@@ -202,7 +202,7 @@ value already of another field::
 In this case the value of $nation will be set using ``t.get_value('nation')``
 In case you have a related table you can go back to the main table::
 
-  t.related.movie.completions.title.filter(director_id='$main.director_id)
+  t.related.movie.completions.title.filter(director_id='$main.director_id')
 
 
 enum mode with foreign keys
@@ -224,7 +224,8 @@ enum mode w/o foreign key
 ---------------------------
 
 There is another way that mimics enum mode, i.e. setting directly the
-possible completion values via the method ``set_values``::
+possible completion values via the method 
+:meth:`set_values <sqlkit.widgets.common.completion.SimpleCompletion.set_values>`::
 
 
   t.completions.status.set_values(['open', 'closed', 'waiting for input'])
@@ -303,3 +304,6 @@ on all fields. Rationale: if you have a movie/actor relationship and set a
 contraint on actors so that only femail should be selected, you probably
 want to retain that filter independently from the fact that you select the
 nation, the first or the last name.
+
+.. automodule:: sqlkit.widgets.common.completion
+

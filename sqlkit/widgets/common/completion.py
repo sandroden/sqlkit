@@ -14,17 +14,17 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-autocompletion
----------------
 
-``my_sqlwidget.completions.my_field.autostart = n``
-(Where n holds the number of chars entered to trogger automatic start of completion)
+Public API
+==========
 
-group_by
---------
+.. autoclass:: SimpleCompletion
+   :members: autostart, force_enum, group_by, filtered_query, query, filter, set_values
 
-``my_sqlwidget.completions.my_field.group_by = field_name``
-``field_name`` will be added to the request and used to group completion possibilities 
+.. autoclass:: FkeyCompletion
+
+.. autoclass:: M2mCompletion
+
 
 """
 import re
@@ -58,6 +58,10 @@ OP = {
     }
 
 class SimpleCompletion(object):
+    """
+    An object that hold all the information on how to retrieve possible completions in simple cases
+    
+    """
     __metaclass__ = dbg.LogTheMethods
     autostart = False
     autostart_last_length = 0
@@ -69,6 +73,29 @@ class SimpleCompletion(object):
     MATCH_COL = 2
     SEARCH_COL = 0
         
+    group_by = None
+    """
+    The field_name on which the output should be grouped.
+    ``field_name`` will be added to the request and used to group completion options.
+
+    """
+
+    autostart = None
+    """A possible interger stating fter how manu chars completion should start automatically"""
+
+    query = None
+    """The query that will be issued upon completion request if ``Alt`` is pressed (i.e.: not
+    all filters applied). You can add filters width :meth:`filter` or via SqlAlchemy syntax."""
+
+    filtered_query = None
+    """The query that will be issued upon completion request. You can customize it as for :attr:`query`"""
+
+    force_enum = None
+    "Modify output: show all options regarless of what has been already written in the field"
+
+    column = None
+    "the database column it will use when searching the values. It's a Sqlalchemy Column"
+    
     def __init__(self, master, widget, field_name):
 
         """completion is the way we can find possible completions of text in
@@ -132,7 +159,11 @@ class SimpleCompletion(object):
             delattr(self, attr)
         
     def set_group_by(self, field_name):
-        """if group_by is not already in table.attrs, add it runtime
+        """
+        Modify the way output is presented adding a group field.
+        If group_by is not already in table.attrs, add it runtime
+
+        :param field_name: the field name
         """
         if not field_name in self.attrs:
             self.attrs += [field_name]
@@ -492,19 +523,18 @@ class SimpleCompletion(object):
         """
         if not self._dynamic_filters  or not self._apply_filter:
             return query
-#        import ipdb; ipdb.set_trace()
-
 
         ## substitute values
         kw = {}
-        
-        for key, val in self._dynamic_filters.iteritems():
+        OR = self._dynamic_filters.pop(0)
+
+        for key, val in self._dynamic_filters:
             value =  self.parse_value(val)   # get a possible dynamic filter
             if value:
                 kw[key] = value
         
         if kw:
-            return django2query(query, self.mapper, **kw)
+            return django2query(query, self.mapper, OR=OR, **kw)
         else:
             return query
 
@@ -758,15 +788,19 @@ class SimpleCompletion(object):
              
         """
 
-        kw_dyn = {}
+        kw_dyn_list = [OR]
+        keys = []
 
+        # firstly parse the args for 'dynamic' args ($)
         for key, val in kwargs.iteritems():
             if isinstance(val, basestring) and val.startswith('$'):
-                kw_dyn.update({key: re.sub('^\$', '', val)})
-
-        for key in kw_dyn:
+                keys += [key]
+                kw_dyn_list += [(key, re.sub('^\$', '', val))]
+                
+        for key in keys:
             kwargs.pop(key)
 
+        # now 'static' filters
         if kwargs:
             if main_query:
                 self.query = django2query(self.query, self.mapper, OR=OR, **kwargs)
@@ -774,7 +808,7 @@ class SimpleCompletion(object):
                 self.filtered_query = django2query(self.filtered_query or self.query,
                                                    self.mapper, OR=OR, **kwargs)
 
-        self._dynamic_filters = kw_dyn
+        self._dynamic_filters = kw_dyn_list
         
     def parse_value(self, value):
         """
@@ -797,6 +831,7 @@ class SimpleCompletion(object):
 class FkeyCompletion(SimpleCompletion):
     """
     A completion that follows foreign key to get values to complete and to substitute for lookup.
+    Inherits from :class:`SimpleCompletion`
     """
     VALUE_COL = 0
     DESCRIPTION_COL = 1
@@ -955,7 +990,10 @@ class M2mCompletion(FkeyCompletion):
     record. It's not possible in this mode to compose a new record field by field.
 
     The lookup of foreign key values needs a different table than the one used to complete.
-    This is called table_lookup/column_lookup
+    This is called table_lookup/column_lookup.
+
+    Inherits from :class:`FkeyCompletion`
+
     """
     
     VALUE_COL = 0
