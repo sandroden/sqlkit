@@ -1,4 +1,4 @@
-"""Bricks/translation & tips
+"""Bricks/translation &amp; tips
 
 You can write translations and tips in a separate file or a string, unique
 for the whole application.

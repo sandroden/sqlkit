@@ -1,4 +1,4 @@
-"""scrolled
+"""more/scrolled
 
 Simple example of a scrolled window. We use a 'cluster' of label/entry in a
 table, in a view-port, in a scrolled Window

@@ -183,16 +183,16 @@ class Demo(object):
 
         ### exec the example
         GLOB = {'Layout': Layout, 'layout': layout, 'gtk': gtk}
-        execfile(file_name, GLOB)
+        execfile(demo.filename, GLOB)
 
         self.xml.set_text(GLOB['l'].xml())
         self.last_lo = GLOB['l']
         self.last_w  = GLOB['w']
         self.prepare_treestore_for_elements(GLOB['l'].elements)
         self.create_widget_tree(toplevel=GLOB['w']['Window'])
-        GLOB['w']['Window'].set_title(file_name)
-        self.w['Window'].set_title("Esempio: %s" % (file_name))
-        return GLOB['t']
+        GLOB['w']['Window'].set_title(demo.filename)
+        self.w['Window'].set_title("Esempio: %s" % (demo.filename))
+        return GLOB['l']
 
     def load_module_by_idx(self, idx):
         """
@@ -292,7 +292,7 @@ class Demo(object):
 
         file_list = [x for x in os.listdir('.') if re.match(pattern, x) and not re.match(exclude, x)]
         file_list.sort()
-
+        
         demo_list = [Example(ex) for ex in file_list]
         
         return demo_list
@@ -420,7 +420,7 @@ class Example(object):
         self.description = self.doc.splitlines()[0]
         self.doc = "\n".join(self.doc.splitlines()[1:])
         # ex_01b_import_table.py
-        m = re.match('ex_(?P<idx>.*?)_(?P<name>.*).py', self.filename)
+        m = re.match('(ex_)?(?P<idx>.*?)_(?P<name>.*).py', self.filename)
         self.idx = m.group('idx')
         self.name = m.group('name')
         self.section, self.title = self.description.split('/')

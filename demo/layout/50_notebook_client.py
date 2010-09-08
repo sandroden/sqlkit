@@ -1,4 +1,4 @@
-"""Notebook client
+"""more/Notebook client
 
 """
 

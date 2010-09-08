@@ -1,4 +1,4 @@
-"""esempio logo
+"""more/esempio logo
 """
 
 

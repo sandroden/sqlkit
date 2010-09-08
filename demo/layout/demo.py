@@ -14,7 +14,10 @@ sys.path.insert(0,ppdir)
 
 from demo_tour import Demo
 
-d = Demo()
+class LayoutDemo(Demo):
+    example_pattern = '\d\d.*.py'
+
+d = LayoutDemo()
 
 gtk.main()
 

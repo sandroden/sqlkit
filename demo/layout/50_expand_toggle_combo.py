@@ -1,4 +1,4 @@
-"""expander
+"""more/expander
 
 '>>' forces expanded position
 

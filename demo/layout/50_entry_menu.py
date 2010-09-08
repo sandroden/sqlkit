@@ -1,4 +1,4 @@
-"""Entry e menu"""
+"""more/Entry e menu"""
 
 
 simple_menu = """
