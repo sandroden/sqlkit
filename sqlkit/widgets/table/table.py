@@ -1184,6 +1184,15 @@ class SqlTable(sqlwidget.SqlWidget):
         self.select_path(obj=obj)
         mask.set_records([obj])
 
+        ## let's make sure any changes in the table, after a commit, is reflected
+        ## back in the mask. This prevents a double commit with opposite meaning
+        ## check=False means that after a commit whatever is the sitution in the
+        ## mask will be disreguarded
+        def refresh_mask(table, obj, session):
+            mask.record_display(check=False)
+            
+        self.connect('record-saved', refresh_mask)
+
         ## signals to keep selection in sync 
         def follow_selection(table, obj, mask):
             if mask.record_has_changed():
