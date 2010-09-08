@@ -1018,8 +1018,9 @@ class View(object):
         
     def key_tree_t(self, treeview, event):
         "totals: add total to the column"
+
         field_name = self.get_field_name_from_pointer(treeview)
-        self.master.totals.add_total(field_name, quiet=True)
+        self.menu.add_total_cb(None, field_name)
         
     def key_tree_v(self, treeview, event):
         """toggle row visibility if a function has been set via
