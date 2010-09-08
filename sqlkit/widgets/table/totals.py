@@ -112,7 +112,10 @@ class Totals(object):
         
         if not func:
             def subtotal_diff(obj):
-                return getattr(obj, field_name)
+                try:
+                    return getattr(obj, field_name)
+                except:
+                    return self.table.gui_fields[field_name].clean_value(obj)
             if self.break_func and self._break_field_name == field_name:
                 self.break_func = None
             else:
