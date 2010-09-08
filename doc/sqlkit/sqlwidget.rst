@@ -194,7 +194,7 @@ Signals
 
    .. function:: records_selected_cb(sqlwidget):
       
-      :param sqlwidget: the widget the emitted the signal
+      :param sqlwidget: the widget that emitted the signal
 
 :record-saved:
    A record has been saved. This signal is *not* emitted from within session
@@ -208,7 +208,7 @@ Signals
 
    .. function:: records_selected_cb(sqlwidget):
       
-      :param sqlwidget: the widget the emitted the signal
+      :param sqlwidget: the widget that emitted the signal
 
 :records-displayed:
    Records have been displayed. This may be after .reload() or .set_records([])
@@ -218,10 +218,9 @@ Signals
 
    .. function:: records_displayed_cb(sqlwidget):
       
-      :param sqlwidget: the widget the emitted the signal
+      :param sqlwidget: the widget that emitted the signal
 
 :after-flush:
-   
    flush has occurred, normally commit should not add any errors. This is
    implemented with a SessionExtension: if you used the default session
    obtained via get_session() you are assured that it will be correct. If you
@@ -237,18 +236,16 @@ Signals
 	  other widgets may be present, possibily in "dirty state", "new" or
 	  "deleted", but current was the one selected in a table or displayed in
 	  the main mask
-      :session: the session that was flushed. The moment in which the signal is
+      :param session: the session that was flushed. The moment in which the signal is
 	  emitted you can still dig into ``session.dirty``, ``session.new`` 
 	  and ``session.deleted`` and find which attributes have been changed
-	  (you may want to use `get_differences`)
+	  (you may want to use :func:`get_differences`)
 
 :after-commit:
-
-   run from within after-commit SessionExtension. Callback signature is
+   run from within ``after-commit`` SessionExtension. Callback signature is
    identical to ``after_flush_callback`` above.
    
 :delete-event:
-
    emitted when the sqlwidget is destroyed
 
    .. function:: delete_event_callback(sqlwidget)
@@ -398,7 +395,7 @@ The following hooks are defined:
 	  other widgets may be present, possibily in "dirty state", "new" or
 	  "deleted", but current was the one selected in a table or displayed in
 	  the main mask
-      :session: the session that was flushed. The moment in which the signal is
+      :param session: the session that was flushed. The moment in which the signal is
 	  emitted you can still dig into ``session.dirty``, ``session.new`` 
 	  and ``session.deleted`` and find which attributes have been changed
 	  (you may want to use `get_differences`), but you won't have
