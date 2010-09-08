@@ -636,7 +636,7 @@ class SqlTable(sqlwidget.SqlWidget):
         else:
             value = field.clean_value(value)
         if field.editable:
-            setattr(obj, field_name, value)
+            field.set_value(value, initial=initial, obj=obj, update_widget=False)
 
         ## text would come up automatically but only after
         ## loosing the focus...

@@ -415,12 +415,15 @@ class Field(object):
         if self.pkey:
             self._nullable = False
 
-    def set_value(self, value, initial=True, shown=False):
+    def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True):
+
         value = self.clean_value(value)
         if initial:
             self.initial_value = value
-        if hasattr(self, 'widget'):
+        if hasattr(self, 'widget') and update_widget:
             self.widget.set_value(value)
+        if obj and not initial:
+            setattr(obj, self.field_name, value)
 
     def get_value(self, shown=False):
         """
@@ -559,13 +562,17 @@ class VarcharField(Field):
                 value = None
         return value
 
-    def set_value(self, value, initial=True, shown=False):
+    def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True):
+
         if initial:
             self.initial_value = value
         value = self.clean_value(value)
 
-        if hasattr(self, 'widget'):
+        if hasattr(self, 'widget') and update_widget:
             self.widget.set_value(value or '')
+
+        if obj and not initial:
+            setattr(obj, self.field_name, value)
 
     def get_value(self, shown=False):
 
@@ -603,14 +610,6 @@ class IntegerField(Field):
             except Exception, e:
                 raise exc.ValidationError(e.message)
             return value
-
-    def set_value(self, value, initial=True, shown=False):
-        value = self.clean_value(value)
-        if initial:
-            self.initial_value = value
-
-        if hasattr(self, 'widget'):
-            self.widget.set_value(value)
 
     def format_value(self, value, format=None):
         if value is None:
@@ -783,9 +782,10 @@ class TimeTZField(TimeField):
             value = dates.parse_time(value)
         return value
         
-    def set_value(self, value, initial=True, shown=False):
+    def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True):
 
-        TimeField.set_value(self, value, initial=initial)
+        TimeField.set_value(self, value, initial=initial, obj=obj,
+                            update_widget=update_widget)
         
         if initial:
             if value:
@@ -794,6 +794,9 @@ class TimeTZField(TimeField):
             else:
                 self.TZ = None
                 self.microsecond = 0
+
+        if obj and not initial:
+            setattr(obj, self.field_name, value)
         
     def get_value(self, shown=False):
 
@@ -860,9 +863,10 @@ class DateTimeField(DateField):
             
         return value
 
-    def set_value(self, value, initial=True, shown=False):
+    def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True):
 
-        Field.set_value(self, value, initial=initial)
+        Field.set_value(self, value, initial=initial, obj=obj,
+                        update_widget=update_widget)
         
         if initial:
             if value:
@@ -874,7 +878,9 @@ class DateTimeField(DateField):
                 self.microsecond = 0
                 self.second = 0
         
-        
+        if obj and not initial:
+            setattr(obj, self.field_name, value)
+
     def format_value(self, value, format=None):
 
         if not value:
@@ -1079,12 +1085,12 @@ class ForeignKeyField(Field):
             return str([self.lookup_value(v) for v in value])
         return self.lookup_value(value)
     
-    def set_value(self, value, initial=True, shown=False):
+    def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True):
         if not shown:
             value = self.clean_value(value, input_is_fkey=True)
         if initial:
             self.initial_value = value
-        if hasattr(self, 'widget'):
+        if hasattr(self, 'widget') and update_widget:
             self.widget.set_value(value, shown=shown)
 
         if value and not initial:
@@ -1096,6 +1102,9 @@ class ForeignKeyField(Field):
 
             for prop in self._props_for_delete_orphan:
                 self.add_related_object(prop, value)
+
+        if obj and not initial:
+            setattr(obj, self.field_name, value)
 
     def has_changed(self):
         ## special case, when is empty
@@ -1180,14 +1189,16 @@ class CollectionField(Field):
             value = []
         return copy(value)
 
-    def set_value(self, value, initial=True, shown=False):
+    def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True):
 
         self.initial_value = self.clean_value(value)
         if value is None:
             value = []
-        if hasattr(self, 'widget'):
+        if hasattr(self, 'widget') and update_widget:
             self.widget.set_value(value)
 
+        if obj and not initial:
+            setattr(obj, self.field_name, value)
 
 def std_cleanup(fn):
     """

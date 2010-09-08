@@ -368,8 +368,8 @@ class SqlMask(sqlwidget.SqlWidget):
                     if field.editable:
                         field.validate( value , clean=True)
 
-                    if field.mapper:   # persisted fields, mask2obj has already cleaned  them
-                        setattr(obj, field_name, self.get_value(field_name))
+                    if field.persistent:   # persisted fields, mask2obj has already cleaned  them
+                        field.set_value(self.get_value(field_name), initial=False, obj=obj, update_widget=False)
 
                 except exc.ValidationError, e:
                     self.add_validation_error(e, field_name=field_name)
