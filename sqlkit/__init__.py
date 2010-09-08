@@ -4,7 +4,7 @@ import gettext
 
 from sqlkit.misc import utils
 
-__version__ = '0.9-rc1'
+__version__ = '0.9'
 
 
 cwd = os.path.abspath(os.path.dirname(__file__))

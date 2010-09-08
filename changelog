@@ -1,3 +1,26 @@
+sqlkit 0.9 - September 8 2010
+
+	* support: fixes to sqlalchemy 0.6 (now my current reference)
+	* tests:   fixed some tests that didn't pass under python2.6 
+	* orphan:  changed the way orphan are handled, now an explicit
+	           parameter must be passed
+	* layout:  changed the way xml is read to bypass an odd segfault on
+	           accented letters
+	* layout:  fixed completely broken demo snippets
+	* table:   added possibility to hide some demos
+	           improved look of headers under std ubuntu theme
+	* totals:  minor fix
+	* filter_panel: improved interaction (Ctrl-l, Ctrl-o, Ctrl-r)
+	* filters: added negation of regexp for postgresql
+	* mask:    added a method to quickly add labels to frame
+	           (.set_frame_label)
+	* docs:    improved look and added section "advanced"
+	* completion: minor improvement: now you can add 2 conditions on
+	           the same field in some occasions
+	* sqledit: added icons for main toolbar actions
+	* tooltips: added tooltip to some actions
+
+	
 sqlkit 0.9.rc1 - August 7 2010
 
 	* support:   * support for sqlalchemy 0.6 has been added

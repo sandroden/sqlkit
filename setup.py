@@ -29,6 +29,7 @@ except ImportError, e:
    print "You need to install setuptools to use this setup.py script"
    sys.exit(1)
 
+REQUIRES = []
 
 f = open('sqlkit/__init__.py')
 for line in f:
@@ -44,7 +45,11 @@ if sys.argv[1] == 'install':
       sys.exit(1)
 
 # setuptools really fails in understanding which packages are already installed
-REQUIRES = ['sqlalchemy >= 0.5', ]
+# pip is much better!
+try:
+   import sqlalchemy
+except ImportError:
+   REQUIRES = ['sqlalchemy >= 0.5', ]
 
 try:
    import babel

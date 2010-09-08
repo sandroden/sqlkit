@@ -69,6 +69,13 @@ the command sqledit, that's a good choice (probably a little slower to open).
 Debian/Ubuntu
 =============
 
+If you want a bleeding edge sqlkit version you'd better install from the
+package distribution. On a Debina lenny or Ubuntu >= 9.04 you can prepare
+dependancies::
+
+  sudo apt-get install python-setuptools python-pybabel python-dateutil python-psycopg2 python-sqlalchemy python-mysqldb python-pip
+  sudo pip install sqlkit
+
 You can also add the source::
 
   deb http://apt.argolinux.org/ lenny sqlkit

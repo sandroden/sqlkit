@@ -5,20 +5,28 @@
 This is the base class for :ref:`mask` and :ref:`table` that implements the
 common interface. 
 
+mandatory argument
+==================
+
+The first and mandatory argumenti is the ``mapper`` of the object that will
+be retrieved and displayed. Alternatively any other objects from which the
+sqlwidget infers them (eg.: the tablename and the metadata where the table
+can be autoloaded):
+
+* a mapper
+* a mapped class
+* table name (requires you also pass metadata)
+
+In older releases different options: ``class_``, ``table``, or ``mapper``
+where used. Now a DeprecationWarning is raised if you use those opts.
 
 main options
-================
+============
 
 
-Any sqlwidget need a ``mapper`` and ``session``. It's possible to provide other
-objects from which the sqlwidget infers them (eg.: the tablename and the
-metadata where the table can be autoloaded, + the session)
+Any sqlwidget needs a ``session`` as well. 
 
-Keep in mind that in order to make :ref:`relationships` to work you must
-provide the mapper (possibly via the mapped class). The relations translate
-PropertyLoaders (see sqlalchemy_ documentation) that do not belong to the table.
-
-Metadata is also used when autoloading tables references by foreign keys to
+Metadata is also used when autoloading tables referenced by foreign keys to
 display a better representation of the referenced record.
 
 .. _dbproxy:

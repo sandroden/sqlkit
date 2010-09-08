@@ -273,6 +273,9 @@ ${self.footer()}
 		 <li ><a href="http://sqlkit.argolinux.org/download/Changelog"  title="Changelog"
 		       title="Changelog"
 		       ><span>Changelog</span></a></li>
+		 <li ><a href="${pathto('misc/backward_incompatibilities')}"
+		       title="Backward incompatibilities"
+		       ><span>Backward incompatibilities</span></a></li>
 	       </ul>
             </li>
 

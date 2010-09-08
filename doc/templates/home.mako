@@ -32,39 +32,6 @@
         });
     </script>
 </%def>
-<%def name="sidebar()">
-
-  <div class="sphinxsidebar">
-     <div class="sphinxsidebarwrapper">
-
-     <div id="volantino" class="box">
-     Scarica il 
-     <a href="${pathto('_static/volantino/volantino.pdf', 1)}">
-     depliant illustrativo
-     <img src="${pathto('_static/volantino/volantino.png', 1)}" border="0" alt="volantino"/>
-     </a><br/>
-     Altri <a href="${pathto('allegati/volantino')}">formati disponibili.</a>
-     </div>
-
-     <div id="demo" class="box">
-        <b>
-	Siete interessati ad una demo?</b>
-
-	<p>
-	Organizziamo dimostrazioni presso alcune scuole. Al momento stiamo
-	programmando una demo a Milano ed una in Brianza.  Se siete
-	interessati <a href="mailto:sandro@e-den.it">contattateci</a>.</p>
-
-	<p>
-	Se non siete comodi per queste sedi ma credete che possano esserci
-	più scuole interessate, contattateci ugualmente 
-        per capire se possiamo	organizzare una trasferta.</p>
-     </div>
-
-   </div>
-  </div>
-
-</%def>
 <%def name="related()"></%def>
 
 ${next.body()}

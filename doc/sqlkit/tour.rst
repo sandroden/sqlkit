@@ -5,7 +5,7 @@ Sqlkit & Sqledit
 Sqlkit is a tool to edit **data** of a database (as opposed to schemas) in the
 easiest possible way. By **easy** we mean both: easy to write for the *user*
 since completion helps you, and easy to write for the *programmer* as a lot of
-features are there to help you customize it. It's based on ``pygtk``.
+features are there to help you customize it. It's based on PyGTK_.
 
 It provides:
 
@@ -305,3 +305,4 @@ sqlkit supported backend structure
    layer) or a mapper.
 
 .. _`different engines`: http://www.sqlalchemy.org/trac/wiki/DatabaseNotes
+.. _PyGTK: http://www.pygtk.org
