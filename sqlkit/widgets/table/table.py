@@ -58,6 +58,9 @@ class SqlTable(sqlwidget.SqlWidget):
 
     SqlTables can have both ListStores or TreeStores. The latter allows to represent
     rows in a hierarchy.
+
+    SqlTable inherits from :class:`sqlkit.widgets.common.sqlwidget.SqlWidget`
+
     """
 #### Signals
     __gsignals__ = {

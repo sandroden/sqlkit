@@ -30,7 +30,11 @@ FK_COLOR = gtk.gdk.color_parse('navyblue')
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
 
 class SqlMask(sqlwidget.SqlWidget):
-    """doc string for sqlmask
+    """
+    SqlMask is the widget that displays one record at a time and buttons to
+    browse data, save/delete records. SqlMask is inherited from
+    :class:`sqlkit.widgets.common.sqlwidget.SqlWidget`
+    
     """
 
     __metaclass__ = dbg.LogTheMethods
@@ -213,6 +217,34 @@ class SqlMask(sqlwidget.SqlWidget):
             self.show_field_info(None, field_name)
         else:
             self.filter_panel.add(widget, event, field_name, self)        
+        
+    def set_frame_label(self, frame_name, markup_label, opts='bi'):
+        """
+        Add a label to the frame whose key in self.widgets is 'frame_key'.
+
+        :param frame_name: the key in :attr:`self.widgets`
+        :param markup_label: the label with possible markup
+        :param opts: a combination of b (bold) and i (italic). Default: 'bi'
+        
+        In example 15::
+
+          LAYOUT = '''
+           {|.number .. }
+           ...
+          '''
+          
+        m.set_frame_label('number', 'Number')
+        """
+
+        frame = self.widgets['F.%s' % frame_name]
+        frame.set_label('a')
+
+        if 'i' in opts or '':
+            markup_label = "<i>%s</i>" % markup_label
+        if 'b' in opts or '':
+            markup_label = "<b>%s</b>" % markup_label
+
+        frame.get_property('label-widget').set_markup(markup_label)
         
 ###### Actions/UiManager
     def prepare_actions(self):
@@ -633,7 +665,7 @@ class SqlMask(sqlwidget.SqlWidget):
 ####### Misc
     def get_widget(self, field_name):
         """
-        get the widget that render field_name
+        get the widget that renders field_name
         """
 
         return self.gui_fields[field_name].widget.gtkwidget

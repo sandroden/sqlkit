@@ -4,10 +4,10 @@
  SqlMask
 =========
 
-SqlMask is the widget that presents one record at a time and buttons to
-browse data, save/delete records. 
+.. autoclass:: sqlkit.widgets.SqlMask()
+   :members: get_widget, clear_mask, set_frame_label
 
-Introspection of the table is used to decide which widgets will be used to
+Introspection of the table is used to determine which widgets will be used to
 edit the data. The following rules are applied:
 
   :varchar: gtk.Entry
@@ -105,5 +105,5 @@ Signals
      :param mask: the SqlMask that emitted the signal
      :param obj: the object currently selected or None
 
-.. versionadded:: 8.8
+.. versionadded:: 0.8.8
 

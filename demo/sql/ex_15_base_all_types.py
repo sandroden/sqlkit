@@ -31,14 +31,9 @@ lay = """
 """
 
 t = SqlMask(model.AllTypes, layout=lay, dbproxy=db )
+for name in ('text','date', 'numbers', 'boolean'):
+    t.set_frame_label(name, name)
 t.reload()
-
-
-for label in ('text','date','numbers','boolean'):
-    frame = t.widgets['F.%s' % label]
-    frame.set_label('a')
-    frame.get_property('label-widget').set_markup(
-        '<b><i>%s</i></b>' % label)
 
 
 t = SqlTable(model.AllTypes, dbproxy=db )
