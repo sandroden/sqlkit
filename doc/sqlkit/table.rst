@@ -166,7 +166,8 @@ On the other hand the mask will be have browsing inhibited.
 
 If a layout was registered for the database table it will be used.
 
-You can programmatically open this SqlMask::
+You can programmatically open this SqlMask using
+:meth:`fkey_record_in_mask <sqlkit.widgets.SqlTable.fkey_record_in_mask>`::
 
   t = SqlTable(...)
   m = t.record_in_mask()
@@ -185,7 +186,8 @@ To be sure it will have the customization you want you can
 In the case you have several possible layout for the same fk, and you want
 to use a layout that is not the default one, you can use ``set_fk_layout``
 
-You can programmatically open the foreign key mask::
+You can programmatically open the foreign key mask using
+:meth:`record_in_mask <sqlkit.widgets.SqlTable.record_in_mask>`::
 
   t = SqlTable(model.Movie, ...)
   m = t.fkey_record_in_mask('director_id')

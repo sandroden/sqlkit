@@ -172,12 +172,13 @@ class SqlTable(sqlwidget.SqlWidget):
 
     def create_view(self, name='main', treeview=None, field_list=None):
         """
-        .. views:
-        
-        Create a view, i.e.: a list of columns one for each field in self.field_list. Columns are
-        setup according to the type of the database field, introspected from the mapper. There may be
-        more than one view in a SqlTable. The first one is created mandatorily; possible further ones are
-        created by hand, passing a view name, a treeview and -normally- a field_list.
+        Create a :ref:`view <views>`, i.e.: a list of columns one for each
+        field in self.field_list. Columns are setup according to the type of
+        the database field, introspected from the mapper. There may be more
+        than one view in a SqlTable. The first one is created mandatorily;
+        possible further ones are created by hand, passing a view name, a
+        treeview and -normally- a field_list. The filter panel output page
+        is a view of the filtered records.
 
         All the views of a SqlTable share the same model.
         
