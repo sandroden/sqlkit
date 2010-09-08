@@ -1,4 +1,4 @@
-# Copyright (C) 2009, Sandro Dentella <sandro@e-den.it>
+# Copyright (C) 2009-2010, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -228,16 +228,7 @@ class GenericColumn(object):
         return True
     
     
-    def button_press_cb(self, widget, event, column):
-        """
-        popup the menu on the header of the column
-        """
-        ## this is not working at the moment.
-        ## click on the label inside the eventBox don't propagate the button-press-event...
-        self.master.popup_col_menu(event, column.get_parent(), self.field_name)
-        
-        return True
-    
+
 #### auxiliary
     def set_editable(self, editable):
         """
@@ -260,20 +251,10 @@ class GenericColumn(object):
         else:
             cell.set_property('editable', False)
                 
-        
     def add_header_widget(self, column):
         """
         Add a header that accepts tooltips and bold labels for mandatory columns
         """
-        def ene_cb(eb, event):
-            eb.get_child().set_state(gtk.STATE_PRELIGHT)
-            #eb.window.set_cursor(gtk.gdk.HAND)
-            return True
-
-        def lne_cb(eb, event):
-            eb.get_child().set_state(gtk.STATE_NORMAL)
-            return True
-
         # Label
         label_text, help_text = self.master.label_map.get(self.field_name, (None, None))
         label_text = self.master.get_label(label_text or self.title)
@@ -284,24 +265,13 @@ class GenericColumn(object):
         if self.field.persistent and not self.field.nullable and not self.field.default:
                 label.set_markup('<b><i>%s</i></b>' % label_text)
 
-        # EventBox
-        event_box = gtk.EventBox()
-        event_box.add(label)
-        event_box.show_all()
-
-        event_box.connect('enter-notify-event', ene_cb)
-        event_box.connect('leave-notify-event', lne_cb)
-        label.modify_fg(gtk.STATE_PRELIGHT, LBL_HOOVER_STYLE)
-        
-        event_box.connect("realize", self.realize_cb)        
-
         # Tooltip
         if help_text:
-            event_box.set_tooltip_text(help_text)
+            label.set_tooltip_text(help_text)
 
         # Header
-        column.set_widget(event_box)
-        event_box.connect('button-press-event', self.button_press_cb, column)
+        column.set_widget(label)
+        label.show()
 
     def realize_cb(self, widget):
         watch = gtk.gdk.Cursor(gtk.gdk.HAND2)
