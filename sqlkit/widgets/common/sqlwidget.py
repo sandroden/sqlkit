@@ -781,16 +781,17 @@ class SqlWidget(gobject.GObject):
             ])
 
         self.actiongroup_update.add_actions([
-            ('Save', gtk.STOCK_SAVE, None, '<Ctrl>s', None, self.record_save_cb),
+            ('Save', gtk.STOCK_SAVE, None, '<Ctrl>s', _('Save current record'), self.record_save_cb),
             ])
             
         self.actiongroup_browse.add_actions([
-            ('Filters', gtk.STOCK_FIND, _('Filter panel'), None, None, self.add_filter_cb),
-            ('Reload', gtk.STOCK_REFRESH, _("Reload"), '<Ctrl>r', None, self.reload_cb),
+            ('Filters', gtk.STOCK_FIND, _('Filter panel'), None, _('Add filte panel'), self.add_filter_cb),
+            ('Reload', gtk.STOCK_REFRESH, _("Reload"), '<Ctrl>r', _('Reload from the database'),
+             self.reload_cb),
             ])
         self.actiongroup_select.add_actions([
-            ('Forward', gtk.STOCK_GO_FORWARD, None, '<Alt>f', None, self.record_forward_cb),
-            ('Back',   gtk.STOCK_GO_BACK, None, '<Alt>b', None, self.record_back_cb),
+            ('Forward', gtk.STOCK_GO_FORWARD, None, '<Alt>f', _('Go to next record'), self.record_forward_cb),
+            ('Back',   gtk.STOCK_GO_BACK, None, '<Alt>b', _('Go to previous record'), self.record_back_cb),
             ])
 
         self.actiongroup_print.add_actions([

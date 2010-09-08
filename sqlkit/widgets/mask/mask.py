@@ -254,14 +254,14 @@ class SqlMask(sqlwidget.SqlWidget):
         sqlwidget.SqlWidget.prepare_actions(self)
 
         self.actiongroup_insert.add_actions([
-            ('New', gtk.STOCK_NEW,   None, '', None, self.record_new_cb),
+            ('New', gtk.STOCK_NEW,   None, '', _('Add new record'), self.record_new_cb),
             ('Save-as', gtk.STOCK_SAVE_AS, None, None, None, self.record_save_new),
             ])
         self.actiongroup_select.add_actions([
-            ('Undo', gtk.STOCK_UNDO, None, None, None, self.record_undo_cb),
+            ('Undo', gtk.STOCK_UNDO, None, None, _('Discard changes'), self.record_undo_cb),
             ])
         self.actiongroup_delete.add_actions([
-            ('Delete', gtk.STOCK_DELETE, None, '', None, self.record_delete),
+            ('Delete', gtk.STOCK_DELETE, None, '', _('Delete this record'), self.record_delete),
             ])
 
     def prepare_uimanager(self):
