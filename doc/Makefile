@@ -96,3 +96,6 @@ chtml:	clean html
 
 refs:
 	find -name \*rst -exec grep -oE '\.\. \_([^:]+):\s*' {} \; 	
+css:
+	cp static/*css ./.build/html/_static/
+	cp ./static/AnythingSlider/css/page.css ./.build/html/_static/AnythingSlider
