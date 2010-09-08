@@ -26,7 +26,7 @@ class Director(Base):
     __tablename__ = 'director'
     id             = Column(Integer, primary_key=True)
     last_name   = Column(String(60), nullable=False)
-    first_name  = Column(String(60))
+    first_name  = Column(String(60), nullable=False)
     nation      = Column(String(6))
     
     movies      = relation('Movie', backref='director', cascade='all, delete-orphan',)
@@ -43,7 +43,7 @@ class Movie(Base):
     description    = Column(String(512))
     year           = Column(Integer())
     date_release   = Column(Date())
-    director_id    = Column(Integer, ForeignKey('director.id'), nullable=False)
+    director_id    = Column(Integer, ForeignKey('director.id'), nullable=False, info={'attach_instance': 'director'})
 
     ## relations
     # alternative way to set the relation between movies and actors

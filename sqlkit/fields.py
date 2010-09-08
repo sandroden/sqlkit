@@ -1110,6 +1110,27 @@ class ForeignKeyField(Field):
     def add_related_object(self, prop, key):
         """
         Add an object to fullfill the  constraint on delete-orphan 
+
+        This is not meant to be used directly, it is used by :meth:`set_value`
+        If you have a relation with a delete-orphan constraint that would complain
+        that is not attached to anybody configure the Column adding in the info
+        keyword the ``attach_instance`` key pointing to the property of the relation
+        to be added.
+
+        In the demo you can fine this example::
+
+          class Movie(Base):
+              __tablename__  = 'movie'
+              ...
+              director_id    = Column(Integer, ForeignKey('director.id'), nullable=False, info={'attach_instance': 'director'})
+
+          class Director(Base):
+              __tablename__ = 'director'
+              ...
+              movies      = relation('Movie', backref='director', cascade='all, delete-orphan',)
+
+        Attaching a director_id via completion, requires that you attach a director instance as well.
+
         """
         if not prop:
             return

@@ -22,6 +22,14 @@ incompatibilities:
        available space, the latter would use 2 chars and would right align
        it (compared to other entries)
 
+:mappers: if a relationship has ``cascade=delete-orphan`` set, and you add
+       an object by completion Sqlalchemy will complain that there's a
+       missing object. With SA 0.5 this is automatically done, with SA 0.6
+       this is no longer supported by sqlkit. You are supposed to
+       explicitely add info on the Column as explained in 
+       :meth:`sqlkit.fields.ForeignKeyField.add_related_object`
+
+
 0.8.7
 =====
 
