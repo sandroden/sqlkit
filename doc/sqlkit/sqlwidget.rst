@@ -587,7 +587,7 @@ While for each table'view you have::
        Delete
        RecordDelete
 
-Changeing an entry
+Changing an entry
 ------------------
 
 To change an entry you can: 

@@ -1,7 +1,38 @@
+import os
+import sys
+
 import gtk
 
 import layout
 from sqlkit import _
+
+### utility: stock icons    
+SK_ICONS = (
+    ('cal15.png', 'sk-calendar'),
+    ('keys.png', 'sk-pkeys'),
+    ('table-load.png', 'sk-table-load'),
+    )
+
+
+def add_stock_icons(*icon_list):
+
+    factory = gtk.IconFactory()
+
+    for icon_file, stock_id in icon_list:
+
+        if os.path.exists(icon_file):
+            filename = icon_file
+        else:
+            filename = os.path.join(os.path.dirname(__file__), icon_file)
+            if not os.path.exists(filename):
+                filename = os.path.join(os.path.dirname(sys.executable), icon_file)
+
+        pixbuf = gtk.gdk.pixbuf_new_from_file(filename)
+        iconset = gtk.IconSet(pixbuf)
+        factory.add(stock_id, iconset)
+        factory.add_default()
+
+add_stock_icons(*SK_ICONS)
 
 class StockMenuItem(gtk.ImageMenuItem):
     

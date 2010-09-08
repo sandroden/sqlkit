@@ -1196,4 +1196,4 @@ def register_alias(Class, alias, force=False):
         msg = "Alias %s is already present. Use force=True to force it" % alias
         raise IdentifierAlreadyPresent(msg)
     _W[alias] = Class
-    
+

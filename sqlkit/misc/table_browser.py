@@ -145,10 +145,11 @@ class TableBrowser(object):
             ('EditFields', None, _('Edit Sqlkit Fields'), '<Ctrl>e', tooltip, sqlkit_model),
             ], self.dbproxy)
         self.actiongroup.add_toggle_actions([
-            ('Dev', None, _('Primary Key'), None, _('Show/Hide primary key if the key is numeric'),
-             self.toggle_dev_cb),
-            ('Reload', None, _('Load data'), None, _('Load the data as well'), self.toggle_reload_cb),
-            ('Blank', None, _('Blank'), None, _('Cast blank into NULL'), self.toggle_blank_cb),
+            ('Dev', 'sk-pkeys', _('Primary Key'), None,
+             _('Show/Hide primary key if the key is numeric'), self.toggle_dev_cb),
+            ('Reload', 'sk-table-load', _('Load data'), None,
+             _('Load the data as well'), self.toggle_reload_cb),
+            ('Blank', 'gtk-bold', _('Blank'), None, _('Cast blank into NULL'), self.toggle_blank_cb),
             ])
 
     def toggle_reload_cb(self, item):
