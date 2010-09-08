@@ -415,7 +415,7 @@ class Layout(object):
     def xml(self, filename=None, tmpfile=None, logfile=None):
         """Produces the xml for glade to create the GUI, possibly writes it to file"""
 
-        start = '<?xml version="1.0" standalone="no"?> <!--*- mode: nxml -*-->'+\
+        start = '<?xml version="1.0" encoding="UTF-8" standalone="no"?> <!--*- mode: nxml -*-->'+\
         '\n<!DOCTYPE glade-interface SYSTEM "http://glade.gnome.org/glade-2.0.dtd">' +\
         '\n<glade-interface>\n'
 
@@ -455,12 +455,24 @@ class Layout(object):
         return "DIM %s,%s" % (self.rows+1, self.cols+1)
 
     def show(self,action=None, x=None):
+
+        import tempfile
+        
         gtk.glade.set_custom_handler(widgets.custom_widget)
         if self.shown:
             self.widgets['Window'].show()
         else:
             XML = self.xml()
-            glade = gtk.glade.xml_new_from_buffer(XML,len(XML))
+            fh, fname = tempfile.mkstemp(suffix='.glade', prefix='sqlkit-')
+            self.xml(filename=fname)
+            glade = gtk.glade.XML(fname)
+            try:
+                os.close(fh)
+            finally:
+                os.remove(fname)
+            # I used to use xml_new_from_buffer till when I realized in some circumstancies it
+            # core dumps if diacritics char are used in the file.
+            # glade = gtk.glade.xml_new_from_buffer(XML,len(XML))
             glade.signal_autoconnect(self)
             self.widgets = {}
             for key, val in self.elements.iteritems():
