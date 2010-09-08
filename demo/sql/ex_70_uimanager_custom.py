@@ -17,10 +17,10 @@ def custom_action_cb(widget):
     print "ok!"
 
 t = SqlTable(model.Movie, dbproxy=db)
+view = t.views['main']
 
-
-t.actiongroup_general.add_actions([
+view.actiongroup_view.add_actions([
     ('CustomAction', None, 'Tell me sir...', None, None, custom_action_cb),
     ])
-t.ui_manager.add_ui_from_string(CUSTOM)
+view.ui_manager.add_ui_from_string(CUSTOM)
 
