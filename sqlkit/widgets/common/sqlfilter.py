@@ -28,7 +28,7 @@ it at hand.
 Each sqlwidget has a FilterPanel even if it doesn't show it
 
 .. autoclass:: FilterPanel
-   :members: hide, show, get_tools, reload, set_tab, tree, replace_column, add_column
+   :members: hide, show, get_tools, reload, set_page, tree, replace_column, add_column
 .. autoclass:: FilterTool
    :members: set_value, get_value, set_operator, get_operator
 
@@ -77,6 +77,7 @@ import gtk
 import warnings
 from datetime import *
 
+import gobject
 import sqlalchemy
 from sqlalchemy.sql import select, Join
 from babel import dates
@@ -90,6 +91,18 @@ from sqlkit.layout import layout, misc
 from sqlkit.widgets.table import columns, modelproxy
 import completion
 
+FILTER_MENU = '''
+<menubar name="FilterMain">
+   <menu action="FilterMenu">
+     <menuitem action="GoFilter" />
+     <menuitem action="GoOutput" />
+     <separator name="sep"/>
+     <menuitem action="Reload" />
+     <separator name="sep2"/>
+     <menuitem action="Close" />
+  </menu>
+</menubar>
+'''
 OP_MSGID = {
     'REGEXP' : _('Match as regexp'),
     'match' : _('Match as LIKE, "%" automatically added'),
@@ -150,8 +163,10 @@ class FilterPanel(object):
         self.search_filter_field_names = []     ## field_names used
         self.bind_name = self.master.metadata.bind.name
         self.tree = False
+        self._last_focused_entry = None
         if master.is_mask():
             self._id_record_selected = master.connect('record-selected', self.record_selected_cb)
+        self.prepare_actions()
 
     def record_selected_cb(self, mask):
         """
@@ -163,8 +178,8 @@ class FilterPanel(object):
         """create the filter panel widget"""
         if self.master.is_mask():
             lay = """
-            {H.a {B m=opts } {O.a tb=gtk-refresh ts=limit tb=gtk-close } }
-            {N %filter
+            {H.a {V.menu } {O.a tb=gtk-refresh ts=limit tb=gtk-close } }
+            {N.0 %filter
                {|T.fld }
                %output
                { TVS=out}
@@ -172,7 +187,7 @@ class FilterPanel(object):
             """
         else:
             lay = """
-            {H.a {B m=opts } {O.a tb=gtk-refresh ts=limit tb=gtk-close } }
+            {H.a {V.menu } {O.a tb=gtk-refresh ts=limit tb=gtk-close } }
                {|T.fld }
 
             """
@@ -193,10 +208,6 @@ class FilterPanel(object):
 #        self.w['s=limit'].set_value(self.master.limit)
         adj = self.w['s=limit'].get_adjustment()
         adj.set_all(self.master.limit, 0, 10000, 10, 100, 0)
-        self.l.menu('m=opts',
-                    ('-', ),
-                    ('gtk-close', 'activate', self.hide),
-                    )
         self.l.connect(
             ('tb=gtk-close', 'clicked', self.hide),
             ('tb=gtk-refresh', 'clicked', self.reload_cb)
@@ -204,6 +215,8 @@ class FilterPanel(object):
         self.w['label-cursor'] = gtk.gdk.Cursor(gtk.gdk.HAND1)
         if 'TV=out' in self.w:
             self._add_treeview()
+        if 'N.0' in self.w:
+            self.w['N.0'].connect_after('switch-page', self.on_switch_page)
 
     def _add_treeview(self):
 
@@ -222,6 +235,35 @@ class FilterPanel(object):
         self.selection = self.view.treeview.get_selection()
         self.selection.connect('changed',self.on_selection_changed)
 
+    def prepare_actions(self):
+        self.actiongroup   = gtk.ActionGroup('Filter')
+
+        self.actiongroup.add_actions([
+            ('FilterMenu', None, _('Filter actions')),
+            ('Reload', gtk.STOCK_REFRESH, _('Reload from db'), '<Control>r', None, self.reload_cb),
+            ('Close', gtk.STOCK_CLOSE, _('Close the panel'), '<Control>q', None, self.hide),
+            ], )
+        self.actiongroup.add_actions([
+            ('GoFilter', None, _('Go to filter panel'), '<Control>l', None, self.set_page),], 'filter')
+        self.actiongroup.add_actions([
+            ('GoOutput', None, _('Go to output panel'), '<Control>o', None, self.set_page),], 'output')
+        self.ui_manager = gtk.UIManager()
+        self.accel_group = self.ui_manager.get_accel_group()
+        self.l.widgets['Window'].add_accel_group(self.accel_group)
+        self.ui_manager.insert_action_group(self.actiongroup, 10)
+        self.ui_manager.add_ui_from_string(FILTER_MENU)
+        
+        ## pack menu and toolbar if it's a toplevel
+        header = self.l.widgets['V.menu']
+        menu    = self.ui_manager.get_widget('/FilterMain')
+        header.add(menu)
+        #header.add(toolbar)
+
+
+    def go_to_filter(self, action):
+        
+        self.set_page('filter')
+        
     def replace_column(self, field_class, field_name='__obj__'):
         """
         Replace the column of the output treeview with a customized one
@@ -305,7 +347,7 @@ class FilterPanel(object):
             self.search_filter_widgets += [ widget]
             self.search_filter_field_names  += [search_path]
 
-        self.set_tab('filter')
+        self.set_page(name='filter')
 
         if show:
             self.w['Window'].show_all()
@@ -315,14 +357,13 @@ class FilterPanel(object):
         except:
             return None
 
-    def set_tab(self, name):
+    def set_page(self, action=None, name=None):
         """
         set the tab in the filter. Tab name can be 'filter' or 'output'.
         Sqlmasks only have 'filter'.
 
         :param name: name of the tab in the filter widget: *filter* or *output*
         """
-
         if 'N.0' in self.w:
             if name == 'filter':
                 self.w['N.0'].set_current_page(0)
@@ -358,6 +399,7 @@ class FilterPanel(object):
         return [w for w in self.search_filter_widgets if w.field_name == field_name]
 
     def destroy(self, window=None):
+
         if window:
             self.w['Window'].destroy()
         for attr in ('easytv', 'search_filter_widgets', 'l', 'model', 'selection', 'w'):
@@ -366,6 +408,15 @@ class FilterPanel(object):
             except AttributeError, e:
                 pass
             
+    def entry_focus_cb(self, entry, event=None):
+
+        self._last_focused_entry = entry
+        
+    def on_switch_page(self, notebook, junk, page_n):
+
+        if page_n == 0 and self._last_focused_entry:
+            gobject.idle_add(self._last_focused_entry.grab_focus)
+        
 ##### reload & TreeView
     def reload(self):
         """issue a reload operation on master. Callback of reload button"""
@@ -386,7 +437,7 @@ class FilterPanel(object):
             if length:
                 self.master.modelproxy.fill_model(clear=True)
 
-                self.set_tab('output')
+                self.set_page(name='output')
                 self.select_output_path(0)
                 self.view.treeview.grab_focus()
                 self.tv_resize()
@@ -910,6 +961,7 @@ class FilterWidget(object):
         ## entry
 
         self.field_widget = gtk.Entry()
+        self.field_widget.connect('focus-in-event', self.tool.panel.entry_focus_cb)
         self.field_widget.connect('activate', self.tool.panel.reload_cb)
         if isinstance(self.tool, FilterDateTool):
             self.field_widget.connect('changed', self.date_changed_cb)
