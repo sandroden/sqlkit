@@ -197,7 +197,7 @@ class TableBrowser(object):
                     gtk.main_iteration()
                 reflected_table = meta.tables.get(table_name, None)
 
-                if not reflected_table:
+                if reflected_table is None:
                     reflected_table = sa.Table(table_name, meta, autoload=True)
 
                 count = sess.query(reflected_table).count()
