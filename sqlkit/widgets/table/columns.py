@@ -122,7 +122,6 @@ class GenericColumn(object):
         callback on signal 'edited' on cell_renderer. 
         
         """
-
         ## NOTE: modelstore.clear will trigger text_edited_cb!!!
         if self.master.deleting_row:
             return True
@@ -132,6 +131,7 @@ class GenericColumn(object):
 
         if self.master.cell_entry and self.master.cell_validate():
             self.master.cell_entry = None
+            self.on_activate()
         else:
             return True
 
@@ -210,9 +210,13 @@ class GenericColumn(object):
         add here possible connect
         """
         editable.connect('activate', self.on_activate)
+        return
 
-    def on_activate(self, editable):
-
+    def on_activate(self, editable=None):
+        # this is no longer connected to 'activate' signal since I prefere the changed value
+        # be available. I prefere to keep similarit with what happens in a normal
+        # entry where 'activate' means "press Enter". Pressing enter here make it edited.
+        # That means it will also be triggered via Tab...
         self.master.run_hook('on_activate', self.field, field_name=self.field_name)
         
     def clicked_cb(self, column):
@@ -551,7 +555,7 @@ class NumericColumn(VarcharColumn):
 
     def editable_connects(self, editable):
 
-        VarcharColumn.on_activate(self, editable)
+        #VarcharColumn.on_activate(self, editable)
         editable.connect('key-press-event', self.master.digits_check_input_cb  )            
 
 class FKeyColumn(VarcharColumn):
@@ -969,7 +973,6 @@ class View(object):
         if self.master.modelproxy._order_list == [(field_name, True)]:
             field_name = "-" + field_name
         self.master.modelproxy.order_by(field_name)
-        print "self.master.totals.break_func", None
         self.master.totals.break_func = None
         self.master.totals.compute()
         
