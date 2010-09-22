@@ -402,7 +402,12 @@ def sqlkit_model(item=None, dbproxy=None, single=False):
                 
         tbl = SqlMask(SqlkitTable, dbproxy=db, single=single,
                       hooks=ConfigHook(), layout=lay)
-        
+        tbl.widgets['l=name'].set_tooltip_text(_('The name of the table we are customizing'))
+        format_tip = _("The best representation of a record \nas a combination of fields, " +\
+                       "e.g.: %(title)s %(year)s")
+        tbl.widgets['l=format'].set_tooltip_text(format_tip)
+        search_tip = _('The field that will be searched for when completion is used')
+        tbl.widgets['l=search_field'].set_tooltip_text(search_tip)
     except Exception, e:
         print e
         raise

@@ -827,6 +827,7 @@ class SqlWidget(gobject.GObject):
         self.ui_manager.insert_action_group(self.actiongroup_print, 16)
         self.ui_manager.insert_action_group(self.actiongroup_debug, 17)
 
+        self.ui_manager.connect('connect-proxy', self.uimanager_connect_proxy)
         ## pack menu and toolbar if it's a toplevel
         if 'V.header' in self.widgets:
             header = self.widgets['V.header']
@@ -834,6 +835,12 @@ class SqlWidget(gobject.GObject):
             toolbar = self.ui_manager.get_widget('/TbMain')
             header.add(menu)
             header.add(toolbar)
+
+    def uimanager_connect_proxy(self, uimgr, action, widget):
+
+        tooltip = action.get_property('tooltip')
+        if isinstance(widget, gtk.MenuItem) and tooltip:
+            widget.set_tooltip_text(tooltip)
 
     def set_mode(self, mode=None, reset=False, delay=False):
         """

@@ -709,6 +709,12 @@ class ColumnMenuProxy(object):
         ## sort
         item = gtk.ImageMenuItem('gtk-sort-ascending')
         item.connect('activate', self.reload_sort_cb, field_name, 'ASC' )
+        if field.persistent:
+            item.set_tooltip_text(_("Sort on this column reloading from the database, " + \
+                                    "you can used 's' to sort locally"))
+        else:
+            item.set_tooltip_text(_("Sort on this column locally (w/o touching the database)"))
+            
         menu.append(item)
 
         item = gtk.ImageMenuItem('gtk-sort-descending')
@@ -1126,7 +1132,7 @@ class View(object):
         from sqlkit.widgets.common import uidescription
 
         self.ui_manager = gtk.UIManager()
-
+        self.ui_manager.connect('connect-proxy', self.master.uimanager_connect_proxy)
         self.accel_group = self.ui_manager.get_accel_group()
         if self.master.is_toplevel():
             self.master.widgets['Window'].add_accel_group(self.accel_group)
@@ -1134,10 +1140,12 @@ class View(object):
 
         self.actiongroup_view = gtk.ActionGroup('View')
         self.actiongroup_view.add_actions([
-            ('ExportView', None, _('Export'), None, None, self.master.export),
+            ('ExportView', None, _('Export'), None, _('Export these data into csv format'),
+             self.master.export),
             ], self.name)
         self.actiongroup_view.add_actions([
-            ('Zoom-fit', gtk.STOCK_ZOOM_FIT, None, '<Control>z', None, self.on_zoom_fit),
+            ('Zoom-fit', gtk.STOCK_ZOOM_FIT, None, '<Control>z',
+             _('Adapt width of columns to data'), self.on_zoom_fit),
             ('ShowColumns', None, _('Show field')),  # menuitem
             ('HideColumns', None, _('Hide field')),  # menuitem
             ])
