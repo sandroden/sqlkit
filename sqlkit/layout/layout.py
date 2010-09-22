@@ -819,7 +819,13 @@ class Layout(object):
         return dialog(toplevel, *args, **kw)
     
     def message(self, type=None, text=None, show=True):
+        """Pop a message dialog and return the dialog itself
 
+        :param type: info, warn, warning, question, error. Default 'info'.
+        :param text: Write this text
+        :param show: (boolean), It true (default) shaw_all()
+        """
+        
         if type is None:
             type = 'info'
 
@@ -842,7 +848,7 @@ class Layout(object):
         dialog = gtk.MessageDialog(**opts)
         if show:
             dialog.show_all()
-        return (dialog, dialog.label)
+        return dialog
 
 def map_labels(filename=None, buf=None, sep='\t', private=False):
     """

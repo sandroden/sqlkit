@@ -985,7 +985,7 @@ class SqlWidget(gobject.GObject):
         except (exceptions.DBAPIError, exceptions.FlushError), e:
             if not self.commit_error_handler(e):
                 self.session.rollback()
-                raise exc.HandledRollback(e.message)
+                raise exc.HandledRollback(str(e))
 
     def commit_error_handler(self, e):
         """
@@ -994,11 +994,9 @@ class SqlWidget(gobject.GObject):
         """
         if isinstance(e, exceptions.IntegrityError):
             # TIP: message in the status bar when a commit error is handled
-            msg = _("Error while writing to the database. Possible causes: you are saving \n" + \
-                  "an already existent record or deleting a record that is referenced by other " \
-                  "records. \nOriginal error was: \n%s") % e.message
+            msg = _("Error while writing to the database. \nOriginal error was: \n%s") % e
             self.message(type='error', text=_(msg))
-            self.sb(e.message)
+            self.sb(str(e))
 
         elif isinstance(e, exceptions.DBAPIError):
             # TIP: message in the status bar when a commit error is handled
@@ -1660,7 +1658,7 @@ class SqlWidget(gobject.GObject):
     
     def message(self, text='', type='question'):
         self.response = None
-        dialog, l = self.lay_obj.message(text=text, type=type)
+        dialog = self.lay_obj.message(text=text, type=type)
         #dialog.connect('response', self.response_cb )
         self.response = dialog.run()
         dialog.destroy()
