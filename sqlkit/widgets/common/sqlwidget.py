@@ -306,6 +306,7 @@ class SqlWidget(gobject.GObject):
         self.geom = geom
         self.addto = addto
         self.dbproxy = dbproxy
+
         self.mapper = self._get_mapper(mapper, table or tables, class_)
         self.metadata = self._get_metadata(metadata, self.mapper)
         ## we can use singular or plural as an option, plural in the code
@@ -385,6 +386,11 @@ class SqlWidget(gobject.GObject):
             return mapper
         elif class_:
             mapper = class_mapper(class_)
+            ## this grants that a class_ that was registered *before* a binding
+            ## was active (eg: from sqledit when you only have models.py in nick dir)
+            ## gets a correct one. Mailiy needed to automante sqledir nicks 
+            if not mapper.local_table.metadata.bind and self.dbproxy.metadata:
+                mapper.local_table.metadata.bind = self.dbproxy.metadata.bind
         else:
             mapper = self.dbproxy.get_mapper(mapper, tables)
             
@@ -785,7 +791,7 @@ class SqlWidget(gobject.GObject):
             ])
             
         self.actiongroup_browse.add_actions([
-            ('Filters', gtk.STOCK_FIND, _('Filter panel'), None, _('Add filte panel'), self.add_filter_cb),
+            ('Filters', gtk.STOCK_FIND, _('Filter panel'), None, _('Add filter panel'), self.add_filter_cb),
             ('Reload', gtk.STOCK_REFRESH, _("Reload"), '<Ctrl>r', _('Reload from the database'),
              self.reload_cb),
             ])

@@ -33,6 +33,7 @@ usage: %prog [options] [[url|nick] table]
    -v, --version: prin version and exit
    -L, --load: load data when opening a table (if no table is directly opened, set LoadData)
    -l, --limit=LIMIT: limit to LIMIT rows
+   -C, --create-templates=mode: create in one of these modes: layout, hooks, programm, models, all
 """
 
 import sys
@@ -269,8 +270,23 @@ def start_demo():
 
 def open_db(exc=False):
     global db
+    if opts.nick_dir:
+        os.chdir(opts.nick_dir)
+        sys.path.append(opts.nick_dir)
+        if opts.run:
+            os.getcwd()
+            execfile(opts.run, {'opts': opts})
+            sys.exit()
+        else:
+            if opts.models:
+                import models
+            if opts.hooks:
+                import hooks
+            if opts.layout:
+                import layout
+            
     try:
-        db = proxy.DbProxy(engine=opts.url)
+        db = proxy.DbProxy(bind=opts.url)
         db.metadata.bind.connect()
         return True
     except Exception, e:
@@ -294,6 +310,10 @@ def main():
     if len(args) >1:
         opts.table = args[1]
 
+    if opts.create_templates:
+        conf.create_templates(opts)
+        sys.exit(0)
+
     if opts.debug:
         dbg.debug(True)
 
@@ -316,7 +336,6 @@ def main():
     if not response == RESPONSE_DEMO:
         session = db.get_session()
 
-
         try:
              if opts.table and not opts.browser:
                  tables = re.split('[ ,]+', opts.table)
@@ -325,9 +344,9 @@ def main():
                          single = False
                      else:
                          single = True
-                     table_browser.open_sqlwidget(t, single, opts, db)
+                     t = table_browser.open_sqlwidget(t, single, opts, db)
              elif opts.configure:
-                 table_browser.sqlkit_model(dbproxy=db, single=True)
+                 t = table_browser.sqlkit_model(dbproxy=db, single=True)
 
              else:
                  title = session.bind.url.database

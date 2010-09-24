@@ -13,7 +13,6 @@ No programming skill is required, but if you are supposed to install it
 yourself, you may need to understand at least a little bit of your operating
 system (but that may be as simple as a double clik if you use boundles).
 
-
 Installation
 ============
 
@@ -24,7 +23,7 @@ The only possibly difficult part of installation may be the installation of
 the dependencies. To bypass this I also provide binaries that bundle
 toghether any required software for Linux or Windows (you can donwload it
 from the `download page`_). Drivers for PostgreSQL, MySQL and sqlite are
-included. 
+included. Note that there boundles are not updated very frequently.
 
 The hard way
 -------------
@@ -104,6 +103,7 @@ and install it via::
 
   apt-get install python-sqlkit
 
+This as well as the boundles is not as updated as python packages
 
 sqledit/sqlkit
 ==============
@@ -120,6 +120,13 @@ Programming with sqlkit is a pretty simple experience that allows yut to use
 many more features than available with ``sqledit``, nevertheless you can do
 a lot of simple tasks by using ``sqledit`` alone.
 
+.. versionadded:: 9.1
+
+Sqledit has a flexible :ref:`configuration system <sqledit>` that allows you
+to add many code snippets w/o writing a true program, so that even if you
+decide to start with sqledit due to it's simplicity you can add more
+configurations as far as you needs them. I personally started using that as
+my preferred way.
 
 Sqledit can be used:
 
@@ -262,15 +269,15 @@ director...).
 completions
 -----------
 
-When you enter data in a text entr or in a foreign key, you may happen to
+When you enter data in a text entry or in a foreign key, you may 
 find yourself typing something that is already in the database. In this cases
 you can have sqledit to search that text for you. Really that's a must for
 Foreign Keys where you can only pick the data among those proposed. 
 
 Since the possible values may be a lot and we don't want to wast time
 waiting to retrieve data that would only confuse us, we will require sqledit
-to show possible vallues pressing enter in the entry. In this case the text
-that we may ave already entered will be used to filter the possible values
+to show possible values pressing enter in the entry. In this case the text
+that we may have already entered will be used to filter the possible values
 and to be more precise:
 
 :Shift Enter: will trigger a search using the text at the beginning of the
@@ -281,18 +288,20 @@ and to be more precise:
    in any position, but can do much more and really also depends on the
    database backend. 
 
-:Control Shift: will diregard what you have already written and do a search
+:Control Shift: will disregard what you have already written and do a search
    on all possible values, thus emulating an ``enum`` field.
 
+You can find complete informations on how to configure :ref:`completion` in
+the docs.
 
 changing view
 -------------
 
-
-When in a table view you may want to jump on a mask view or even keep the
-two open simultaneously. That can be simply done clicking with right button
-n a row: the menu that appears lets you edit the row with a mask. It that's
-a ForeignKey column you can even edit the value the foreign key point to.
+When in a table view, you may want to jump on a *mask view* or even keep the
+two open simultaneously. That can be simply done by clicking with right
+button in a row: the menu that appears lets you edit the row with a mask. If
+that's a ForeignKey column you can even edit the value the foreign key points
+to.
 
 Mask
 =====
@@ -300,8 +309,8 @@ Mask
 .. image:: ../img/mask.png
    :align: right
 
-The other view we can use is the mask view. The record are presented by
-default in a form with the labels on the right and the forms on the left. 
+The other view we can use is the *mask view*. The records are presented by
+default in a form with the labels on the right and the forms on the left.
 
 .. note:: 
 
@@ -336,8 +345,15 @@ package that can handle any fancy layout as you can see looking at the
 examples of the demo.
 
 The library also allows you to edit related tables (i.e.: director and
-movies) with no effort, but there is no yet a way to do that other that
-programmatically.
+movies) with no effort, in order to do this you need at least a minimum of
+programming, namely:
+
+  * defining the model (as per SqlAlchemy)
+  * defining the layout  (this is very easy and demo ahs plenty of examples)
+
+These 2 definitions can be written in the configurazion for the a nick of
+sqledit, please read :ref:`sqledit manual <sqledit>` for details on nick
+configuration.
 
 The Demo
 ========

@@ -56,8 +56,10 @@ start sqledit on that configuration using a nickname::
 Valid option are URL and any other option for sqledit. The special option
 ``copy`` force sqledit to read the other definition first and then
 overwrite.
-In this case 'brasile' shares all optioons with '2giugno'  but overwrites
+In this case 'brasile' shares all options with '2giugno'  but overwrites
 field_list.
+
+.. automodule:: sqlkit.misc.conf
 
 schema browser
 ==============
