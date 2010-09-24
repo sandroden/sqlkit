@@ -154,6 +154,7 @@ class FilterPanel(object):
 
         """
         self.master = master
+        self.dont_record_display = False
         self.master.connect('delete-event', self.destroy)
         self.get_layout(visible=visible)
         self.row = 0  # counter for position of fields
@@ -172,7 +173,7 @@ class FilterPanel(object):
         """
         callback on record selection
         """
-        self.select_output_path(obj=mask.current)
+        self.select_output_path(obj=mask.current, block=True)
         
     def get_layout(self, visible=True):
         """create the filter panel widget"""
@@ -438,7 +439,7 @@ class FilterPanel(object):
                 self.master.modelproxy.fill_model(clear=True)
 
                 self.set_page(name='output')
-                self.select_output_path(0)
+                self.select_output_path(0, block=False)
                 self.view.treeview.grab_focus()
                 self.tv_resize()
                 self.view.on_zoom_fit()
@@ -447,16 +448,21 @@ class FilterPanel(object):
 
         self.l.sb(_('Total N. of records: %s' % length))
 
-    def select_output_path(self, path=None, obj=None):
+    def select_output_path(self, path=None, obj=None, block=False):
         """
         Select path ``path``. If path is null and obj is not null try finding path at which is obj
+
+        :param block: block record display (when selction is already an answer to record_display)
         """
+        if block:
+            self.dont_record_display = True
         if path is None and obj:
             path = self.get_path_for_obj(obj)
 
         if path is not None and len(self.model):
             self.selection.select_path(path)
             self.view.treeview.scroll_to_cell(path)
+        self.dont_record_display = False
             
     def get_path_for_obj(self, obj):
         """
@@ -542,6 +548,8 @@ class FilterPanel(object):
         # when clicking 'Refresh' we get e gtk.TreeSelection but no
         #      iter get selected
         ## first guess: we selected w/ pointer
+        if self.dont_record_display:
+            return
         model, iter = self.selection.get_selected()
 
         ## we don't have a selection

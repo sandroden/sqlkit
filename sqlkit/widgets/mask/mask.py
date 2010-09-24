@@ -356,6 +356,17 @@ class SqlMask(sqlwidget.SqlWidget):
         self.sb(_("New record %s") % (self.current_idx +1))
         if 'i' in self._mode:
             self.actiongroup_update.set_sensitive(True)
+            
+        ## the following lines ensure that in presence of
+        ## related tables any 'related.records' is exactly 'current.related'
+        ## (e.g. m.related.movies.records is m.current.movies).  This is
+        ## important to use loops in a natural way when you add a record and
+        ## want to loop on already written rows that are only present in the
+        ## related table
+        for key in self.related.keys():
+            r = self.related[key]
+            r.records = getattr(self.current, key)
+
         self.current_mode = 'INSERT'
         
     def record_new_idle(self):
