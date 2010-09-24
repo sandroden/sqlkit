@@ -37,9 +37,9 @@ Features
 
 - Editor of databases in 2 modes: :ref:`table` & :ref:`mask`. Mask can
   embed tables of :ref:`related tables <relationships>`.
-- Based on sqlalchemy_: can cope with many different database backend
-  (Postgresql, Mysql, sqlite the most popular ones). Can be used to edit any
-  selectable you can build with sqlalchemy.
+- Based on sqlalchemy_: can cope with many different database backends
+  (PostgreSQL, MySQL, sqlite and firebird the ones sqlkit was tested
+  on).  Can be used to edit any  selectable you can build with sqlalchemy.
 - Very powerfull :ref:`filtering <filters>` capabilities:
 
   * each field can be used to filter visible records
@@ -296,13 +296,11 @@ the best possible way. More info in the completion chapter:
 sqlkit supported backend structure
 ==================================
 
-1. sqlkit is built on sqlalchemy that allows editing db with many
-   `different engines`_. I use it with postgres, mysql and sqlite. 
-   Other engines are supported but need a very simple addition that I'd be
-   willing to do on demand.
+Sqlkit is built on sqlalchemy that allows editing db with many `different
+engines`_. I use it with PostgreSQL, MySQL, sqlite and Firebird.  Other
+engines are supported but may need a very simple addition that I'd be
+willing to do on demand.
 
-2. SqlMask/SqlTable must be fed with a table, a class (eg: from declarative
-   layer) or a mapper.
 
 .. _`different engines`: http://www.sqlalchemy.org/trac/wiki/DatabaseNotes
 .. _PyGTK: http://www.pygtk.org

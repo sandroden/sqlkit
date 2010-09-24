@@ -87,7 +87,7 @@ database editing (``sqledit -c url``)
 import re
 
 from sqlalchemy import Table, orm
-from sqlalchemy.exc import OperationalError, ProgrammingError
+from sqlalchemy.exc import OperationalError, ProgrammingError, InterfaceError
 
 from defaults import register_hook, get_hook, register_layout, get_layout, register_class, \
      get_class, unregister_hook, unregister_layout
@@ -317,6 +317,9 @@ def get_description_from_sqlkit(table, metadata=None):
     if isinstance(table, Table):
         metadata = table.metadata
 
+    if not metadata.bind.has_table('_sqlkit_table'):
+        return None, None
+
     SQL = """SELECT search_field, format
              FROM _sqlkit_table WHERE name = '%s'""" % table.name
     try:
@@ -339,6 +342,9 @@ def get_labels_and_tips_from_sqlkit(table, metadata=None):
     else:
         table_name = table
         
+    if not metadata.bind.has_table('_sqlkit_field'):
+        return {}
+
     SQL = """SELECT table_name, name, description, help_text
              FROM _sqlkit_field WHERE table_name = '%s'""" % table_name
     descr = {}

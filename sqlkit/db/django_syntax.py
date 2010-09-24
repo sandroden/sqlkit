@@ -140,12 +140,12 @@ class DjangoParser(object):
 
         if op_str == 'icontains':
             eng_name = self.table.metadata.bind.name
-            if eng_name.startswith('sqlite'):
-                sql = col.ilike("%%%s%%" % value.strip('%'))
-            elif eng_name.startstwith('postgres'):
+            if eng_name.startswith('postgres'):
                 sql = col.op('~*')(value)
             elif eng_name.startswith('mysql'):
                 sql = col.op('REGEXP')(value)
+            else:
+                sql = col.ilike("%%%s%%" % value.strip('%'))
                 
         elif op_str == 'null':
             sql = col == value  ## True | False

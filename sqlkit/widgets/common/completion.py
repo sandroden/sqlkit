@@ -131,7 +131,7 @@ class SimpleCompletion(object):
         self.master = master
         self.master.connect('delete-event', self.destroy)
         self.lookup_values = {}
-        self.MATCH_OPERATOR = OP[self.master.metadata.bind.name] or 'LIKE'
+        self.MATCH_OPERATOR = OP.get(self.master.metadata.bind.name, 'ILIKE')
         self.widget = widget
         self.field_name = field_name
         self.completion = self.prepare_completion()
@@ -470,7 +470,10 @@ class SimpleCompletion(object):
     def compose_select_statement(self, query, oper, value):
 
         if oper:
-            query = query.filter(self.column.op(oper)(value))
+            if oper == 'ILIKE':
+                query = query.filter(self.column.ilike(value))
+            else:
+                query = query.filter(self.column.op(oper)(value))
             
         return query
     
@@ -869,8 +872,11 @@ class FkeyCompletion(SimpleCompletion):
     def compose_select_statement(self, query, oper, value):
 
         if oper:
-            query = query.filter(self.table_lookup.columns[self.search_field].op(oper)(value))
-
+            lookup_col = self.table_lookup.columns[self.search_field]
+            if oper == 'ILIKE':
+                query = query.filter(lookup_col.ilike(value))
+            else:
+                query = query.filter(lookup_col.op(oper)(value))
         return query
     
 

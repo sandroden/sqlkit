@@ -760,7 +760,8 @@ class FilterTool(object):
                 raise e
             
             if value not in (None, ''):
-                if self.bind_name == "sqlite" and op_value in ('ICONTAINS', 'MATCH'):
+                if not re.match('postgres|mysql', self.bind_name) and \
+                       op_value in ('ICONTAINS', 'MATCH'):
                     op_value = 'ILIKE'
                     value = '%' + value + '%'
 
@@ -791,17 +792,16 @@ class FilterStringTool(FilterTool):
     def get_suitable_operators(self ):
         
         STD_OPERATORS = self.STR_STD_OPERATORS + self.STD_OPERATORS
-        if self.bind_name.startswith('sqlite'):
-            return ['ICONTAINS'] + STD_OPERATORS
-        
+
+        if self.bind_name.startswith('postgres'):
+            return  ['~*', '~', '!~*', '!~' ] + STD_OPERATORS
+
         elif self.bind_name.startswith('mysql'):
             return [ 'REGEXP' ] + STD_OPERATORS
 
-        elif self.bind_name.startswith('postgres'):
-            return  ['~*', '~', '!~*', '!~' ] + STD_OPERATORS
-
-        return STD_OPERATORS
-
+        else:
+            return ['ICONTAINS'] + STD_OPERATORS
+        
 class FilterBooleanTool(FilterTool):
 
     def get_suitable_operators(self):
@@ -869,7 +869,7 @@ class FilterFKeyTool(FilterTool):
         elif self.bind_name.startswith('mysql'):
             return ['REGEXP' ] + self.STD_OPERATORS
 
-        elif self.bind_name.startswith('sqlite'):
+        else:
             return ['ICONTAINS' ] + self.STD_OPERATORS
 
     def get_value(self):
