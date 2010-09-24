@@ -58,14 +58,7 @@ from sqlalchemy.exceptions import OperationalError
 from sqlalchemy.engine import url
 
 import sqlkit
-from sqlkit import debug as dbg, layout, _, fields
-from sqlkit.misc import conf, optionparse, table_browser
-
-# if 'LD_LIBRARY_PATH' in os.environ:
-#     print os.environ['LD_LIBRARY_PATH']
-# else:
-#     print "NO LD_LIBRARY_PATH"
-    
+from sqlkit import _
 
 RESPONSE_DEMO = 1
 DEMO_DIRS = [
@@ -84,7 +77,6 @@ try:
         ]
 except:
     pass
-
 
 class ConnectionDialog(object):
     TITLE = _('Connection setup') + "(sqlkit %s)" % sqlkit.__version__
@@ -237,6 +229,7 @@ class ConnectionDialog(object):
         markup = '<span foreground="%s">%s</span>' % (color, markup_escape_text(text))
         self.l.widgets['l=errors'].set_markup(markup)
         
+
 def find_demo():
     """
     find the demo dir looking in fixed positions or in module sqlkit.demo
@@ -270,7 +263,7 @@ def start_demo():
 
 def open_db(exc=False):
     global db
-    if opts.nick_dir:
+    if getattr(opts,'nick_dir', None):
         os.chdir(opts.nick_dir)
         sys.path.append(opts.nick_dir)
         if opts.run and not opts.browser:
@@ -286,7 +279,7 @@ def open_db(exc=False):
                 import layout
             
     try:
-        db = proxy.DbProxy(bind=opts.url)
+        db = DbProxy(bind=opts.url)
         db.metadata.bind.connect()
         return True
     except Exception, e:
@@ -364,27 +357,29 @@ def main():
 
 ###### Program
 
-if __name__ == '__main__':
-    opts, args = optionparse.parse(__doc__)
+from sqlkit.misc import optionparse
+opts, args = optionparse.parse(__doc__)
 
-    if opts.version:
-        print sqlkit.__version__
-        sys.exit(0)
+if opts.version:
+    print sqlkit.__version__
+    sys.exit(0)
 
-    if opts.gtk_debug:
-        dbg.trace_class(ok='SqlTable|SqlMask|Completion')
-        but = 'set_fkey_descr|(lookup|set|get)_value|[el]ne_cb|match_func' + \
-           '|cell_default_cb|cell_bool_cb|_lookup_value|is_fkey'
-        dbg.trace_function(exclude=but)
-        dbg.debug(True)
-        lgm = dbg.ShowLogs(show=True)
+if opts.gtk_debug:
+    from sqlkit import debug as dbg
+    dbg.trace_class(ok='SqlTable|SqlWidget|SqlMask|Completion')
+    but = 'set_fkey_descr|(lookup|set|get)_value|[el]ne_cb|match_func' + \
+       '|cell_default_cb|cell_bool_cb|_lookup_value|is_fkey'
+    dbg.trace_function(exclude=but)
+    dbg.debug(True, gtk=True)
 
-    import sqlkit
-    from sqlkit.widgets import SqlTable, SqlMask
-    from sqlkit.db import proxy
+import sqlkit
+from sqlkit import debug as dbg, layout, fields, DbProxy
+from sqlkit.misc import conf, optionparse, table_browser
 
-    main()
-    try:
-        gtk.main()
-    except KeyboardInterrupt:
-        pass
+#from sqlkit.db import proxy
+
+main()
+try:
+    gtk.main()
+except KeyboardInterrupt:
+    pass
