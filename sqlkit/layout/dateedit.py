@@ -93,7 +93,6 @@ class DateEdit(gtk.HBox):
 
         self._cal_popup.connect('delete_event', self.delete_popup_cb)
         self._cal_popup.connect('key_press_event', self.key_press_popup_cb)
-        self._cal_popup.connect('button_press_event', self.button_press_popup_cb)
            
         self.date_format = '%x'
 
@@ -249,13 +248,12 @@ class DateEdit(gtk.HBox):
             return
         
         # set calendar date
-        if not self.get_date:
+        if self.get_date():
             self._calendar.select_month(self._current_date.month - 1, self._current_date.year)
             self._calendar.select_day(self._current_date.day)        
         
         # position and show popup window
         self.position_popup()
-#        self._cal_popup.grab_add() # what was this for? creates pb with gtk 2.12
         self._cal_popup.show()
         self._calendar.grab_focus()
         
@@ -281,28 +279,6 @@ class DateEdit(gtk.HBox):
             return True
 
         return False
-
-
-    # Todo: is this correct?
-    def button_press_popup_cb(self, widget, data=None):
-        # We don't ask for button press events on the grab widget, so
-        # if an event is reported directly to the grab widget, it must
-        # be on a window outside the application (and thus we remove
-        # the popup window). Otherwise, we check if the widget is a child
-        # of the grab widget, and only remove the popup window if it
-        # is not.
-        if data == None or data.window == None:
-            return False
-            
-        child = data.window.get_user_data()
-        if child != widget:
-            while child:
-                if child == widget:
-                    return False
-                child = child.parent
-                
-        self.hide_popup()
-        return True
 
 
     def delete_popup_cb(self, widget, data=None):
