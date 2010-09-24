@@ -198,6 +198,7 @@ All other field inherit from Field
 """
 import re
 import types
+import warnings
 from datetime import datetime, time, date, timedelta
 from decimal import Decimal
 
@@ -1131,6 +1132,7 @@ class ForeignKeyField(Field):
         from sqlkit.db.minspect import get_foreign_info
 
         self.lookup_values = {}
+        self.broken_lookup = False
         self.table, self.column = get_foreign_info(self.fkey, names=False)
         self.table_lookup, self.column_lookup = self.table, self.column
 
@@ -1146,6 +1148,10 @@ class ForeignKeyField(Field):
 
         if field_value is None:
             return ''
+        ## broken_lookup is needed just for cases when a referenced column is not unique (FKey)
+        # I think this is not regular but fiebird sample database do have such references...
+        if self.broken_lookup:
+            return field_value
         try:
             return self.lookup_values[self.field_name][field_value]
         except Exception, e:
@@ -1165,8 +1171,13 @@ class ForeignKeyField(Field):
                 raise exc.LookupValueMissingValue("%s returns no values for '%s': '%s'" % (
                     sql, self.field_name, field_value))
             elif len(all) > 1:
-                raise exc.LookupValueMultipleValues("%s returns multiple values for '%s': '%s'" % (
-                    sql, self.field_name, field_value))
+                msg = "%s returns multiple values for '%s': '%s'" % (
+                    sql, self.field_name, field_value)
+                warnings.warn(msg)
+                self.editable = False
+                self.broken_lookup = True
+                return field_value
+                #raise exc.LookupValueMultipleValues()
             else:
                 value = format % DictLike(all[0])
                 try:
