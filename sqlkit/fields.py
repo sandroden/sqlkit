@@ -561,6 +561,34 @@ class Field(object):
     def __repr__(self):
         return "<%s - %s >" % (self.__class__.__name__, self.field_name)
 
+    @classmethod
+    def std_cleanup(cls, fn):
+        """
+        A decorator that will handle standard cases: value is None, is a string
+        or is already cleaned.
+
+        This is handy when building new Fields as it allows to keep the
+        ``.clean_value`` method as simple as possible, i.e.  no need to check for
+        standard cases::
+
+            class CountMovies(fields.IntegerField):
+                '''
+                A field that counts the movies
+                '''
+                @fields.std_cleanup
+                def clean_value(self, value):
+                    ## missing a field_name attribute on obj the object itselt is passed
+                    return len(value.movies)
+
+        """
+        def new_func(self, value):
+            ## standard cleanup: values can
+            if isinstance(value, (basestring, types.NoneType, self.type)):
+                return super(self.__class__, self).clean_value(value)
+            ## custom one
+            return fn(self, value)
+        new_func.__doc__ = fn.__doc__
+        return new_func
 class VarcharField(Field):
     """
     The field to represent Strings
@@ -636,7 +664,7 @@ class IntegerField(Field):
                 else:
                     value = int(value)
             except Exception, e:
-                raise exc.ValidationError(e.message)
+                raise exc.ValidationError(str(e))
             return value
 
     def format_value(self, value, format=None):
@@ -644,6 +672,34 @@ class IntegerField(Field):
             return ''
         return numbers.format_decimal(value, format=format or self.format, locale=self.locale)
         
+    @classmethod
+    def std_cleanup(cls, fn):
+        """
+        A decorator that will handle standard cases: value is None, is a string
+        or is already cleaned.
+
+        This is handy when building new Fields as it allows to keep the
+        ``.clean_value`` method as simple as possible, i.e.  no need to check for
+        standard cases::
+
+            class CountMovies(fields.IntegerField):
+                '''
+                A field that counts the movies
+                '''
+                @fields.std_cleanup
+                def clean_value(self, value):
+                    ## missing a field_name attribute on obj the object itselt is passed
+                    return len(value.movies)
+
+        """
+        def new_func(self, value):
+            ## standard cleanup: values can
+            if isinstance(value, (basestring, types.NoneType, self.type, long)):
+                return super(self.__class__, self).clean_value(value)
+            ## custom one
+            return fn(self, value)
+        new_func.__doc__ = fn.__doc__
+        return new_func
 class FloatField(IntegerField):
     """
     The fields to handle floats
@@ -743,6 +799,34 @@ class DecimalField(IntegerField):
             return ''
         return numbers.format_decimal(value, format=format or self.format, locale=self.locale)
 
+    @classmethod
+    def std_cleanup(cls, fn):
+        """
+        A decorator that will handle standard cases: value is None, is a string
+        or is already cleaned.
+
+        This is handy when building new Fields as it allows to keep the
+        ``.clean_value`` method as simple as possible, i.e.  no need to check for
+        standard cases::
+
+            class CountMovies(fields.IntegerField):
+                '''
+                A field that counts the movies
+                '''
+                @fields.std_cleanup
+                def clean_value(self, value):
+                    ## missing a field_name attribute on obj the object itselt is passed
+                    return len(value.movies)
+
+        """
+        def new_func(self, value):
+            ## standard cleanup: values can
+            if isinstance(value, (basestring, types.NoneType, self.type, int)):
+                return super(self.__class__, self).clean_value(value)
+            ## custom one
+            return fn(self, value)
+        new_func.__doc__ = fn.__doc__
+        return new_func
 class TextField(VarcharField):
     Widget = 'TextWidget'
     default_def_string = 'TXS'
