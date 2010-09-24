@@ -19,7 +19,7 @@ Public API
 ==========
 
 .. autoclass:: SimpleCompletion
-   :members: autostart, force_enum, group_by, filtered_query, query, filter, set_values
+   :members: autostart, force_enum, group_by, filtered_query, query, filter, set_values, attrs
 
 .. autoclass:: FkeyCompletion
 
@@ -81,7 +81,7 @@ class SimpleCompletion(object):
     """
 
     autostart = None
-    """A possible interger stating fter how manu chars completion should start automatically"""
+    """A possible interger stating after how many chars completion should start automatically"""
 
     query = None
     """The query that will be issued upon completion request if ``Alt`` is pressed (i.e.: not
@@ -91,11 +91,16 @@ class SimpleCompletion(object):
     """The query that will be issued upon completion request. You can customize it as for :attr:`query`"""
 
     force_enum = None
-    "Modify output: show all options regarless of what has been already written in the field"
+    "Modify output: show all options regardless of what has been already written in the field"
 
     column = None
     "the database column it will use when searching the values. It's a Sqlalchemy Column"
-    
+
+    attrs = None
+    """a list of attributes that will be added to the object retrieved to fill the completion choices.
+    You can add attributes if you need to have more data e.g. in :ref:`completion hooks <on_completion>`
+    """
+
     def __init__(self, master, widget, field_name):
 
         """completion is the way we can find possible completions of text in

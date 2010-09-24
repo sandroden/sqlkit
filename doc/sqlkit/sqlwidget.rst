@@ -305,13 +305,30 @@ The following hooks are defined:
        :param value:  the new value
        :param fkvalue: if field is a ForeignKey, the value shown
 
+.. _on_completion:
+
 :on_completion__field_name: called when a completion if choosen
 
     .. function:: on_completion__field_name(sqlwidget, field_name, obj)
 
        :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
        :param field_name:  the field_name
-       :param obj:  the matched object in the completion
+
+       :param obj: the matched object in the completion. This obj has
+       	      attributes for each *field_name* named in :attr:`attrs
+       	      <sqlkit.widgets.common.completion.SimpleCompletion.attrs>`
+       	      attribute of the completion. You can add field_names to
+	      that attribute if you need them in this hook function::
+
+	        sqlwidget.completions.director_id.attrs += ['nation']
+		
+	      allows you to add a completion hook::
+
+ 	        def on_completion__director_id(self, sqlwidget, field_name, obj):
+ 	            print obj.nation
+		    sqlwidget.set_value('nation', obj.nation)
+
+              you can also reach field attributes as dict values: obj['nation']. 
    
 :on_validation: called when all the values have been callected in the object,
     before calling validation on all fields and related widgets. That's a

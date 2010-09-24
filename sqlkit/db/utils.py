@@ -144,6 +144,9 @@ class DictLike(object):
         """
         return getattr(self.obj, key, '') or ''
 
+    def __getattr__(self, key):
+        return getattr(self.obj, key)
+
 class Tables(Container):
     def __getitem__(self, key):
         try:
