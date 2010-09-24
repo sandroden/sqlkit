@@ -86,7 +86,7 @@ database editing (``sqledit -c url``)
 
 import re
 
-from sqlalchemy import Table, orm
+from sqlalchemy import Table, orm, select
 from sqlalchemy.exc import OperationalError, ProgrammingError, InterfaceError
 
 from defaults import register_hook, get_hook, register_layout, get_layout, register_class, \
@@ -317,13 +317,16 @@ def get_description_from_sqlkit(table, metadata=None):
     if isinstance(table, Table):
         metadata = table.metadata
 
-    if not metadata.bind.has_table('_sqlkit_table'):
+    from sqlkit.db.sqlkit_model import get_classes
+    table_class, field_class = get_classes(metadata.bind)
+
+    if not metadata.bind.has_table(table_class.__tablename__):
         return None, None
 
-    SQL = """SELECT search_field, format
-             FROM _sqlkit_table WHERE name = '%s'""" % table.name
     try:
-        res_proxy = metadata.bind.execute(SQL, table=table.name)
+        tbl = table_class.__table__
+        sql = select([tbl.c.search_field, tbl.c.format], tbl.c.name == table.name)
+        res_proxy = metadata.bind.execute(sql)
         descr = res_proxy.fetchone()
         if not descr:
             descr = None, None
@@ -342,14 +345,18 @@ def get_labels_and_tips_from_sqlkit(table, metadata=None):
     else:
         table_name = table
         
-    if not metadata.bind.has_table('_sqlkit_field'):
+    from sqlkit.db.sqlkit_model import get_classes
+    table_class, field_class = get_classes(metadata.bind)
+
+    if not metadata.bind.has_table(field_class.__tablename__):
         return {}
 
-    SQL = """SELECT table_name, name, description, help_text
-             FROM _sqlkit_field WHERE table_name = '%s'""" % table_name
     descr = {}
     try:
-        res_proxy = metadata.bind.execute(SQL, table=table_name)
+        tbl = field_class.__table__
+        sql = select([tbl.c.table_name, tbl.c.name, tbl.c.description, tbl.c.help_text],
+                     tbl.c.table_name == table_name)
+        res_proxy = metadata.bind.execute(sql)
         for record in res_proxy.fetchall():
             descr[record.name] = (record.description, record.help_text)
     except (OperationalError, ProgrammingError), e:

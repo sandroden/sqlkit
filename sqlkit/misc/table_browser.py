@@ -392,7 +392,8 @@ def sqlkit_model(item=None, dbproxy=None, single=False):
     if dbproxy:
         db = dbproxy
     try:
-        from sqlkit.db.sqlkit_model import SqlkitTable, Base
+        from sqlkit.db.sqlkit_model import get_classes, Base
+        SqlkitTable, SqlkitFields = get_classes(db.metadata.bind)
         Base.metadata.bind = db.metadata.bind
         if not db.metadata.bind.has_table('_sqlkit_table'):
             response = dialog_create_continue()

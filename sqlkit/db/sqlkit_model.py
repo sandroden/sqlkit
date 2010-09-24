@@ -57,7 +57,7 @@ you can edit these tables directly from sqledit with the option --configure::
   
 
 """
-
+import re
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Table, Column, String, Integer, ForeignKey
@@ -67,25 +67,36 @@ import utils
 
 Base = declarative_base()
 
-SQLKIT_TABLE = '_sqlkit_table'
-SQLKIT_FIELD = '_sqlkit_field'
+def get_classes(bind):
 
-class SqlkitTable(Base, utils.Descr):
-    __tablename__  = SQLKIT_TABLE
-    name           = Column(String(50), primary_key=True)
-    search_field   = Column(String(50))
-    format         = Column(String(150))
+    global SqlkitTable, SqlkitFields
+    try:
+        return SqlkitTable, SqlkitFields
+    except:
+        if re.match('firebird', bind.name):
+            SQLKIT_TABLE = 'sqlkit_table'
+            SQLKIT_FIELD = 'sqlkit_field'
+        else:
+            SQLKIT_TABLE = '_sqlkit_table'
+            SQLKIT_FIELD = '_sqlkit_field'
 
-class SqlkitFields(Base, utils.Descr):
-    __tablename__ = SQLKIT_FIELD
-    table_name    = Column(String(20), ForeignKey('%s.name' % SQLKIT_TABLE),
-                           primary_key=True)
-    name          = Column(String(100), primary_key=True)
-    description   = Column(String(100))
-    help_text     = Column(String(300))
-    regexp        = Column(String(100))
-    autostart     = Column(Integer)
-    default       = Column(String(200))
-    table         = relation('SqlkitTable', backref='attributes',
-                             primaryjoin = table_name == SqlkitTable.name)
+        class SqlkitTable(Base, utils.Descr):
+            __tablename__  = SQLKIT_TABLE
+            name           = Column(String(50), primary_key=True)
+            search_field   = Column(String(50))
+            format         = Column(String(150))
 
+        class SqlkitFields(Base, utils.Descr):
+            __tablename__ = SQLKIT_FIELD
+            table_name    = Column(String(20), ForeignKey('%s.name' % SQLKIT_TABLE),
+                                   primary_key=True)
+            name          = Column(String(100), primary_key=True)
+            description   = Column(String(100))
+            help_text     = Column(String(300))
+            regexp        = Column(String(100))
+            autostart     = Column(Integer)
+            default       = Column(String(200))
+            table         = relation('SqlkitTable', backref='attributes',
+                                     primaryjoin = table_name == SqlkitTable.name)
+
+        return SqlkitTable, SqlkitFields
