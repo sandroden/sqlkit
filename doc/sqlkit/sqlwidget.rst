@@ -345,13 +345,16 @@ The following hooks are defined:
 
        :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
 
+.. _on_field__validation:
+
 :on_field_validation__field_name: called to validate a single field
-    as for the previous ``on_validation``
+    as for the previous ``on_validation``. This is called from within the
+    :meth:`field validation method<sqlkit.fields.Field.validate>` 
 
     1. raising ``sqlkit.exc.ValidationError``. Simple when just one error is
        found
-    2. filling self.validation_errors: a dict holding all error. The key is
-       the field_name or "recod_validation", the value a list of error messages
+    2. filling self.validation_errors: a dict holding all errors. The key is
+       the field_name or "record_validation", the value a list of error messages
     
     .. function:: on_validation(sqlwidget, field_name, field_value, field)
 

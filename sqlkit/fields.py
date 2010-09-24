@@ -160,10 +160,9 @@ Available Fields
 =================
 
 .. autoclass:: Field
-   :members: set_widget, set_value, get_value, clear_value, format_value, clean_value, has_changed,
-             get_default, set_default, validate, get_human_value, persistent, nullable, editable
-
-
+   :members: set_widget, set_value, get_value, clear_value, format_value, clean_value,
+          has_changed, get_default, set_default, validate, get_human_value, persistent,
+          nullable, editable
 
 All other field inherit from Field
 
@@ -524,7 +523,8 @@ class Field(object):
     
     def validate(self, value, clean=False):
         """
-        check if the current value is accepted and call ``on_field_validation``
+        check if the current value is accepted and call
+        :ref:`on_field__validation <on_field__validation>`
         on the master's hook.
         """
         if not clean:
