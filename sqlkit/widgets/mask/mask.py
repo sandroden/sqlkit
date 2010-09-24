@@ -443,7 +443,8 @@ class SqlMask(sqlwidget.SqlWidget):
             focus_widget.activate()
         self.get_toplevel().set_focus(None)
 
-        if not new_obj and not self.record_has_changed() and not (
+        changed = self.record_has_changed()
+        if not new_obj and not changed and not (
             self.unsaved_changes_exist(skip_new=self.current)):
             self.sb(_('Nothing to save'), seconds=4)
             return
