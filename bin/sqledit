@@ -273,7 +273,7 @@ def open_db(exc=False):
     if opts.nick_dir:
         os.chdir(opts.nick_dir)
         sys.path.append(opts.nick_dir)
-        if opts.run:
+        if opts.run and not opts.browser:
             os.getcwd()
             execfile(opts.run, {'opts': opts})
             sys.exit()
@@ -301,6 +301,7 @@ def open_db(exc=False):
 
 def main():
     global opts
+
     if args:
         if re.search('://', args[0]):
             opts.url = args[0]
