@@ -43,7 +43,8 @@ SA defaults & server defaults
 =============================
 
 At the moment Sqlalchemy defaults are handled only in case of a fixed value
-(not a callable) and defaults defined in the server as well.
+(not a callable) nor defaults defined in the server. Adding a new record
+with an unhandled default will result in an empty value.
 
 .. _local_defaults:
 

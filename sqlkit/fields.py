@@ -484,19 +484,17 @@ class Field(object):
             except KeyError:
                 pass
             if isinstance(value, ColumnDefault):
-                if not callable(value.arg):
+                if not callable(value.arg) and type(value.arg) == self.type:
                     return value.arg
                 else:
                     ## FIXME: I'm not able to handle this now.
                     raise NotHandledDefault
-
+        if not isinstance(value, self.type):
+            return
         return value
         
     def set_default(self):
-        try:
-            self.set_value(self.get_default())
-        except NotHandledDefault:
-            pass
+        self.set_value(self.get_default())
         
     def clean_value(self, value):
         """
@@ -1276,6 +1274,32 @@ class ForeignKeyField(Field):
         else:
             return Field.has_changed(self)
 
+    def get_default(self):
+        """
+        return the default value for this object
+        """
+        ## The only difference from super is that I don't get out if there's a default
+        if hasattr(self, 'master'):
+            value = self.master.defaults.get(self.field_name)
+        else:
+            value = None
+            
+        if not value:
+            try:
+                value = self.default
+            except KeyError:
+                pass
+            if isinstance(value, ColumnDefault):
+                if not callable(value.arg) and type(value.arg) == self.type:
+                    return value.arg
+                else:
+                    ## FIXME: I'm not able to handle this now.
+                    raise NotHandledDefault
+        ## This has no meaning as self.type has no real meaning in a foreign key
+        if not isinstance(value, self.type):
+            pass
+        return value
+        
     def add_related_object(self, prop, key):
         """
         Add an object to fullfill the  constraint on delete-orphan 

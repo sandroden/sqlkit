@@ -495,7 +495,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return
         try:
             self.record_new(treeview)
-        except exc.ValidationError:
+        except exc.ValidationError, e:
             return True
 
         return False
@@ -821,10 +821,8 @@ class SqlTable(sqlwidget.SqlWidget):
         ## scroll_to_cell will trigger selection_changed_cb
         ## when the new_obj has been added but not yet edited.
         ## we inhibit this 
-        #commit_allowed_status = self.commit_allowed
         self.commit_inhibited = True
 
-        #treeiter = self.modelproxy.modelstore.append([self.last_new_obj])
         treeiter = self._get_next_iter(self.last_new_obj)
         path = self.modelproxy.modelstore.get_path(treeiter)
         if start:
@@ -836,7 +834,6 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.records += [self.last_new_obj]  ## adding to records is vital to get fk correctly, in
                                              ## case this table is a M2M of M2O
-
         self.commit_inhibited = False
         self._new_record = True
         return path
