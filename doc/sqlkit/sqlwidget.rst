@@ -2,6 +2,8 @@
  Sqlwidget
 ============
 
+.. automodule:: sqlkit.widgets.common.sqlwidget
+
 This is the base class for :ref:`mask` and :ref:`table` that implements the
 common interface. 
 
@@ -80,7 +82,7 @@ slower. Previous 0.5 rel called it ``autoflush``
 .. autoclass:: sqlkit.widgets.common.sqlwidget.SqlWidget(see_below)
    :members: __init__, add_constraint, add_filter, resize, set_records,
              set_format, is_mask, is_table, sb, get_value, set_value,
-	     get_current_obj, set_mode, add_temporary_item, reload,
+	     get_current_obj, set_mode, add_temporary_item, reload, commit,
 	     add_validation_error, add_not_null_error
 
 
@@ -208,7 +210,7 @@ Signals
 :record-saved:
    A record has been saved. This signal is *not* emitted from within session
    extension. That means you are sure there will be just one signal for each
-   button press on "save" button. This is issued from within the commit()
+   button press on "save" button. This is issued from within the :meth:`SqlWidget.commit`
    method indipendently from the fact that a real modification occurred, so
    you are not garanteed any modification took place. Was originally added
    to implement a destroy of the widget when the save operation was performed.
@@ -220,7 +222,8 @@ Signals
       :param sqlwidget: the widget that emitted the signal
 
 :records-displayed:
-   Records have been displayed. This may be after .reload() or .set_records([])
+   Records have been displayed. This may be after :meth:`SqlWidget.reload`
+   or :meth:`SqlWidget.set_records`.
    The callback will just receive the widget as argument.
    See also :ref:`context changed <context_changed>` to see another signal
    that better tracks *any* change
@@ -296,7 +299,8 @@ present (due e.g. to a different layout or different field_list)
 
 The following hooks are defined:
 
-:on_change_value__field_name: called any time the value is set using set_value without
+:on_change_value__field_name: called any time the value is set using 
+    :meth:`set_value <sqlkit.widgets.common.sqlwidget.SqlWidget.set_value>` without
     initial=True flag. Ie: should be called any time a value is changed from
     the original
 
@@ -309,7 +313,8 @@ The following hooks are defined:
 
 .. _on_completion:
 
-:on_completion__field_name: called when a completion if choosen
+:on_completion__field_name: called when a completion 
+    is choosen
 
     .. function:: on_completion__field_name(sqlwidget, field_name, obj)
 
@@ -328,7 +333,7 @@ The following hooks are defined:
 
  	        def on_completion__director_id(self, sqlwidget, field_name, obj):
  	            print obj.nation
-		    sqlwidget.set_value('nation', obj.nation)
+        	    sqlwidget.set_value('nation', obj.nation)
 
               you can also reach field attributes as dict values: obj['nation']. 
    
@@ -339,7 +344,7 @@ The following hooks are defined:
 
     1. raising ``sqlkit.exc.ValidationError``. Simple when just one error is
        found
-    2. filling self.validation_errors: a dict holding all error. The key is
+    2. filling self.validation_errors: a dict holding all errors. The *key* is
        the field_name or "recod_validation", the value a list of error messages
     
     .. function:: on_validation(sqlwidget)
@@ -359,19 +364,18 @@ The following hooks are defined:
     
     .. function:: on_validation(sqlwidget, field_name, field_value, field)
 
-:on_activate__field_name: when *Return* is pressed in Mask view. Good to
-    complete fields via calculation on other fields (eg: total, vat...). It
-    has a different behaviour in SqlMask and SqlTable.  In a SqlMask It's
-    triggered when you press ``Return`` in an entry (i.e.: it's not
-    triggered if you don't) while in a SqlTable it's triggered when you
-    click on a cell in a treeview (limited to Varchar and Numeric columns).
+:on_activate__field_name: when *Return* is pressed in Mask or Table. Good to
+    complete fields via calculation on other fields (eg: total, vat...).
+    The name derive from the GTK name 'activate' that is when you press
+    'Return' in an entry, even thought in a Table's treeview it's really
+    connected to the cell's ``edited`` signal (limited to Varchar and
+    Numeric columns).
 
     .. function:: on_activate__field_name(sqlwidget, field_name, field)
 
        :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
        :param field_name:  the field_name
        :param field:  the ``sqlkit.widgets.common.field``
-   
     
 :on_init: run as the last command of __init__. It's main purpouse is to 
     allow to configure a widget in a way that will be handed over to a

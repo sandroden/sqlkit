@@ -8,6 +8,13 @@ Backward Incompatibilities
 From version 0.8.6 (first public release) I keep track of backward
 incompatibilities:
 
+0.9.1
+=====
+
+:hooks: ``on_completion`` is now triggered when you press Return, both for
+        tables and masks. Previously was triggered on Return for Masks
+        and on click for table.
+
 0.9.0
 =====
 :Mask: a fix in the layout machinary make setting width specs
