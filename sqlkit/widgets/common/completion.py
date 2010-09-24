@@ -767,6 +767,7 @@ class SimpleCompletion(object):
         Add filters to the completion. Filters must be expressed in django-like syntax
         Value can be in the form ``$field_name`` (see below)::
 
+          t = SqlMask(...)
           t.completions.field1.filter(cod='$field2')
 
         would request
@@ -775,12 +776,17 @@ class SimpleCompletion(object):
            2. to add .filter(field2 = value) to the query that retrieves the possible
               completions
 
-        Filter conditions are relative to the mapper of the completion: for a completion
-        on a ForeignKey it's the referenced table's mapper.
+        Filter conditions are relative *to the mapper of the completion*: for a completion
+        on a ForeignKey it's the referenced table's mapper. To state it again and referring
+        to example 40 of the demo: if you edit movie table and complete on diector_id, the
+        following code would select the ``nation`` of the director in table ``director``::
 
-        t.get_value() is relative to the SqlWidget in which completions is requested.
-        This is relevant when related tables are present in the mask. Field value of the main mask
-        can be referred to as ``$main.field_name``
+          t.completions.director_id.filter(nation='IT')
+
+        In point 1. above ``t.get_value()`` is relative to
+        the SqlWidget in which the completion is requested.  This is relevant
+        when related tables are present in the mask. Field value of the main
+        mask can be referred to as ``$main.field_name``
 
           1. each token starting with ``$`` as in ``$title`` is stripped
              from the ``$`` and the remaining part is used as field_name and

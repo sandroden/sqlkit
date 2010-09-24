@@ -1484,8 +1484,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
     def set_editable(self, editable=True):
         """
-        Turn this table into a normal editable table
-        table are not normally editable table if have relationship_mode = m2m
+        Turn this table into a normal editable table.
+        A tables is not normally editable if it has ``relationship_mode = m2m``
 
         :param editable: Only meaningful for table that represent an
                m2m relationship: turns the table from non editable to editable, 

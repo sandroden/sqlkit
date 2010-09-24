@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2008-2009-2010, Sandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -1136,8 +1137,12 @@ class ForeignKeyField(Field):
 
     def lookup_value(self, field_value):
         """
-        retrieve the value in a lookup table in case of foreign_key
-        Since field_value may be incorrectly casted (is used in completion)
+        retrieve the value in a lookup table in case of foreign_key. It means: "given
+        the foreign key return a value describing at the best the referenced record". 
+        This implies some guessing of the best representation of the record or using
+        information given to site-wide database configuration via _sqlkit_table.
+        The details of such mechanism are described in :ref:`completion` and :ref:`TableDescr`.
+        Since field_value may be incorrectly casted (it is used in completion)
         errors are catched and None is returned (rather than raising an Error)
 
         """

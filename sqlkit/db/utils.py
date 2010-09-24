@@ -14,7 +14,7 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-.. _register_utils:
+.. _dbutils:
 
 Utilities
 =========
@@ -82,6 +82,16 @@ format for tables (see: ref:`sqlkit_model`).
 
 You can set values directly using TableDescr class or implicitely via
 database editing (``sqledit -c url``)
+
+.. _TableDescr:
+
+Table Description
+-----------------
+
+.. autoclass:: sqlkit.db.utils.TableDescr
+   :members: format, attrs, search, __init__
+
+
 """
 
 import re
@@ -163,26 +173,75 @@ tables = Tables()
 
 class TableDescr(object):
     """
-    Format may be eather a normal python format string
-    (eg.: "%(title)s - %(year)s")
-    in which case each prenthesized token must be a field_name
-    or a simple string that again must be a field_name
-    'table' may be a string or a sqlalchemy.Table object
+    Handler for table search/format fields. This is an important component of
+    :ref:`completion` as it determines:
 
-    Metadata is not necessary to pick primary key or when autoloading is
-    required unless a Table object is given
 
-    Format string passed via TableDescr take precedence over format string
-    present in the database (dbformat).
+    1. what is searched for (`search` attribute)
+    2. how it will be represented (`format` attribute)
 
-    self.format is always a proper format string
-    self.attrs comprises pkey so that can be used for completion
-    self.search: this is the field that will be searched for in a foreign
-    key context
+    TableDescr is automatically built from within :func:`get_description`. 
+    In __init__ it queries the database' sqlkit_table to see if any site-wide
+    configuration is available.
+
+    In turn :func:`get_description` is called within completion classes and
+    :meth:`sqlkit.fields.ForeignKeyField.lookup_value`
+    
     """
+
+    format = None
+    """The format string used to represent the record.
+
+    When no format string is passed to the constructor, the first string
+    field of the table is used. That clearly may be totally wrong in some
+    cases, that's why you can change it.
+
+    May be eather a normal python format string
+    (eg.: "%(title)s - %(year)s")
+    in which case each prenthesized token must be a *field_name*
+    or a simple string that again must be a *field_name* (e.g.: ``last_name``)
+    The representation of a director as in our demo could be:
+    ``%(first_name)s %(last_name)s`` 
+
+    Format string passed to TableDescr take precedence over format string
+    present in the database. 
+    """
+    
+    attrs = None
+    """List of attributes required by the format string.  Always includes
+    pkey."""
+    
+    search = None
+    """this is the field that will be searched for in a foreign key.
+    When using completion in a ForeignKey the database is queried using this field as a filter.
+    E.g.: if in a SqlMask for a Movie you enter ``fe`` and then complete (Control-Enter) a
+    query is build on the fly and sent to the database that selects the director's table with
+    an additional ``"SELECT DISTINCT %(attrs) FROM director WHERE %s = 'fe'" % (attrs, search_field)``.
+
+    It has the same default as :attr:`format` above.
+    """
+
     pattern = '%\((\w+)\)'
-    def __init__(self, table, format=None, pk=None, metadata=None):
-        global tables
+    def __init__(self, table, format=None, pk=None, metadata=None, register=True):
+        """
+        Handler for table search/format fields
+
+        :param table: the table_name or the sqlalchemy Table
+        :param format: a possible format string, used to represent the record.
+            See :attr:`format` above.
+
+        :param pk: suggests which pk are to be used
+        :param metadata: necessary to pick primary key or when autoloading is
+                   required unless a Table object is given
+        :param register: (boolean) if True (default) this Table Description will be
+                   registered as default
+
+
+        """
+        if register:
+            global tables
+        else:
+            tables = {}
 
         if isinstance(table, Table):
             self.table = table
@@ -195,9 +254,7 @@ class TableDescr(object):
             self.table = table.original
             table_name = table.original.name
 
-
         self.table_name = table_name
-#        self.format = format
         self.metadata = metadata
         
         tables[table_name] = self
@@ -265,19 +322,17 @@ class TableDescr(object):
         
 
     def guess_description(self):
-        """look if a description field is defined, if not use introspection
-        return the description field if mode == return otherwise call set_fromat
+        """look if a description (format) field is defined, if not use introspection
+        return the description
 
         """
         table = self.get_table()
         description, format = get_description_from_sqlkit(table)
         if description:
-            #self.set_format(format)
             return description, format
-        descr_exists = False
+
         for field_name in table.c.keys():
             if re.search("string|text|char", table.c[field_name].type.__class__.__name__, re.I):
-                found_field = field_name
                 break
 
         return field_name, format
@@ -303,6 +358,10 @@ def get_table_name(table):
     return table_name
 
 def get_description(table, metadata=None, attr='attrs'):
+    """
+    return info on table according to data already available
+    or guessing by introspection of the table
+    """
 
     table_name = get_table_name(table)
     try:

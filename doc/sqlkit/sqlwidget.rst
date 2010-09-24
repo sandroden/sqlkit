@@ -268,20 +268,21 @@ Hooks
 Beside signals there is another way to add controls: hooks. A hook is a
 function that will be called in particular moments only if present. 
 
-Hooks are the main way to customize the behaviuour of a sqlwidget.  Some of
+Hooks are the main way to customize the behaviour of a sqlwidget.  Some of
 the hooks (``on_validation.*``) are related to validation other are related
 to configuration (``on init``), others (``on_activate``) may be used to save
 typing.
 
 Hooks are searched for in the methods of the instance of a class declared in
-the optional ``hooks`` argument.
+the optional ``hooks`` argument or in the global registered hooks (see below).
 
-Hooks can be registered using ``sqlkit.db.utils.register_hook`` (and
-``get_hook`` from :ref:`utils <utils>` module) so that any sqlwidget built
-on that table will use those hooks (unless the table is part of a join!!). The
-advantage is that browsing data (e.g. using right click on a table row) can
-lead to opening table that are not configured: registering hooks is a way to
-enforce configuration (and possibly constraints) on any widget.
+Hooks can be *registered* using :func:`sqlkit.db.utils.register_hook` (and
+:func:`get_hook <sqlkit.db.utils.get_hook` from :ref:`utils <dbutils>` module)
+so that any sqlwidget built on that table will use those hooks (unless the
+table is part of a join or another selectable!!). The advantage is that
+browsing data (e.g. using right click on a table row) can lead to opening
+tables that are not configured: registering hooks is a way to enforce
+configuration (and possibly constraints) on any widget.
 
 As layout hooks can be registered with a nick (default is ``default``) so
 that you can register different hooks for different editing flavours. E.g/:
@@ -467,8 +468,8 @@ This example show how to use hooks to play a sound on completion::
 Registered hooks and SessionEtensions
 -------------------------------------
 
-When hooks are :ref:`registered <register_utils>` they're customizations are
-enforced each time the model for which they're register is called. That adds
+When hooks are :ref:`registered <dbutils>` their customizations are
+enforced each time the model for which they're registered is called. That adds
 some complecations you should be sure to understand if using one of these
 hooks:
 
@@ -506,8 +507,8 @@ trigger *on_after_commit* on the Actor's table and viceversa.
 get_differences
 ---------------
 
-Module sqlkit.db.utils provides a simple function that yields all modified
-attributes of an object, along with their old and new values
+Module :ref:`sqlkit.db.utils <utils>` provides a simple function that yields
+all modified attributes of an object, along with their old and new values
 
 .. function:: get_differences(obj)
 
@@ -537,12 +538,6 @@ behaviour you need to set blank=True on fields::
 
 .. _`idle in transaction`: http://groups.google.it/group/sqlalchemy/browse_frm/thread/6abb815a3728d41c?hl=it&tvc=1&q=idle
 
-Utils
-=====
-
-.. _utils:
-
-.. automodule:: sqlkit.db.utils
 
 .. _uimanager:
 

@@ -4,14 +4,25 @@
 Completion
 ============
 
+.. image:: ../img/completion.png
+   :align: right
+   
 Completion is the way you can avoid writing too much if the system already
 has your data. It means you write some text that will be used as filter in a
-select statements of all possible values.
+select statements of all possible values. Completion is active 
+
+* in text fields 
+* in foreign key fields
+* in many2many fields with :meth:`set_editable(True) <sqlkit.widgets.SqlTable.set_editable>`
 
 This operation has the following main actors: 
 
-  1. the **search field**: the field in which you type text that should be used
-     as filter to limit the output
+  1. the **search field**: the field where what you type is searched for. In
+     the image, 'f' is the typed text that will be searched for 
+     in the field *last_name* that is the *search_field*. The letter 'f' 
+     will be used to filter the output. In this example the first_name
+     (Roberto, Federico, Françoise) is not part of the search, but is used
+     to better represent the possible matches.
 
   2. the **object that should be returned**: 
  
@@ -33,9 +44,13 @@ This operation has the following main actors:
 
   3. the **representation of the result**: when using completion on a
      ForeignKey or on an m2m relation, the representaion of the possible
-     values needs to be taken. 
+     values needs to be taken. In the example of the image 'Fellini' the the
+     representation of the referenced record that was refererenced by a numeric
+     id.
 
-  4. the **operator** used when searching: normally ``regexp`` or ``like``
+  4. the **operator** used when searching: normally ``regexp`` or
+     ``like``. In the image here you see that 'Truffault' is returned that does
+     not start with 'F' but *contains* 'f'.
 
 
 The match of the completion has these *modes*:
@@ -66,19 +81,21 @@ Pressing ``Alt`` along with the other keys will prevent any
 foreign key description & search field
 ======================================
 
-A foreign key is substituted by a more descriptive text. Let's see how to
-personalize it.
-
-When completing a foreign key the completion puts in the EntryCompletion a
-description of the foreign reference that can be customized via normal
-python format strings. 
+When displaying data (and data shown by a completion are no exception), a
+foreign key is substituted by a more descriptive text. Let's see how to
+customize it.
 
 Make sure you understood the limitation on ForeignKey expressed in
 :ref:`basic_limitations` 
 
+You can customize the way a record is represented by:
+
+* using :class:`sqlkit.db.utils.TableDescr` class
+* writing configuration info in a database table (normally ``_sqlkit_table``)
+
 sqlkit.db.utils
 ----------------
-You would use module sqlkit.db.utils and create an object TableDescr::
+You would use module sqlkit.db.utils and create an object :ref:`TableDescr`::
 
   from sqlkit.db.utils import TableDescr
   utils.TableDescr('movie', format='%(title)s - %(year)s', metadata=db.metadata)
@@ -91,7 +108,8 @@ Table to introspect it if you don't provide the search_field (see below)
 _sqlkit_table
 --------------
 It's possible to write in the database the format string to be used in the
-table. A table called ``_sqlkit_table`` is searched for. 
+table. A table called ``_sqlkit_table`` is searched for (firebird backend
+doesn't allow leading '_' in table names so '_'  is stripped for it). 
 
 :search_field:
   The value of this field is used for the search. If no such field was
@@ -306,4 +324,5 @@ want to retain that filter independently from the fact that you select the
 nation, the first or the last name.
 
 .. automodule:: sqlkit.widgets.common.completion
+
 
