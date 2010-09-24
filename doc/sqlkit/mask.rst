@@ -4,6 +4,11 @@
  SqlMask
 =========
 
+.. image:: ../img/mask-demo.png
+   :align: right
+   :scale: 50%
+   :class: preview
+
 .. autoclass:: sqlkit.widgets.SqlMask()
    :members: get_widget, clear_mask, set_frame_label
 

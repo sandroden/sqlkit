@@ -1285,7 +1285,8 @@ class SqlWidget(gobject.GObject):
     def add_not_null_error(self, field_name):
         """
         simple way to add a not nullable field error
-        :param field_name: the field_name that canno be nullable
+        
+        :param field_name: the field_name that cannot be nullable
         """
         error = exc.NotNullableFieldError(field_name, master=self)
         self.add_validation_error(error, field_name)

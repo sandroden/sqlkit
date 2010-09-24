@@ -4,6 +4,13 @@
  SqlTable
 ===========
 
+.. image:: ../img/table-demo.png
+   :align: right
+   :scale: 50%
+   :class: preview
+   :alt:   table opened on movies
+
+
 SqlTable is a widget that presents data in a table mode. Columns that are
 foreign keys are presented in blue and a :ref:`description` of
 the foreign key is used.
