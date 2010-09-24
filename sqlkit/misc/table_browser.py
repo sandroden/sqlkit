@@ -359,7 +359,8 @@ class TableBrowser(object):
             if c.primary_key:
                 self.model.set(iter2, self.PKEY_COLUMN, 'X' )
             if c.foreign_keys:
-                self.model.set(iter2, self.FKEY_COLUMN, repr(c.foreign_keys) )
+                self.model.set(iter2, self.FKEY_COLUMN,
+                               ",".join([x.target_fullname for x in c.foreign_keys]) )
             if not c.nullable:
                 self.model.set(iter2, self.NULL_COLUMN, "NOT NULL")
             if c.name in index_dict:

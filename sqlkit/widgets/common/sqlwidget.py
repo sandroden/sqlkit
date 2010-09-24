@@ -2032,6 +2032,11 @@ class SqlWidget(gobject.GObject):
                     model.set(miter,
                               0,  key,
                               1, self.mapper_info.fields[field_name][key].__name__)
+                elif key == "fkey":
+                    fkeys = self.mapper_info.fields[field_name]['fkey']
+                    model.set(miter,
+                              0,  key,
+                              1, ",".join(x.target_fullname for x in fkeys))
                 else:
                     model.set(miter,
                               0,  key,
