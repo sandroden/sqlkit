@@ -2122,12 +2122,12 @@ class UnsavedDataDialog(object):
         expander = l.widgets['X.details']
         ## expanding the details will possibly trigget mask2obj that
         ## in turn will trogger validation. That's why I want to delay as much as possible
+        self.model = gtk.TreeStore(str, str, str, str)
         if expanded:
             self.fill_model()
         else:
             expander.connect("notify::expanded", self.fill_model)
         
-        self.model = gtk.TreeStore(str, str, str, str)
         tv.set_model(self.model)
         tv.set_property('width-request', 600)
         tv.set_property('height-request', 150)
