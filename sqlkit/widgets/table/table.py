@@ -798,9 +798,6 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.session.expire(self.relationship_leader.current)
                 self.relationship_leader.record_display(check=False, delay_message=2)
 
-        if hasattr(obj, '_sqlkit_mode'):
-            del obj._sqlkit_mode
-
     def record_new(self, widget=None, view_name='main', start=True, obj=None, *args):
         """prepare for 
         """
