@@ -52,16 +52,16 @@ Sqlkit is used in a production environment and great care is put in fixing
 any bug as soon as possible. The first stable version will be 0.8.6. 
 
 I really appreciate any bug report particularly if based on a repeatable
-example, possibily starting from the demo.
+example, possibly starting from the demo.
 
-Binary boundles
+Binary bundles
 ===============
 
-Since sqlkit depends on several different packages we also provide a boundle
+Since sqlkit depends on several different packages we also provide a bundle
 with an installer that you can use to run the demo and the command sqledit
-for sqlite, mysql and postgres databases. 
+for sqlite, mysql and postgresql databases. 
 
-It does not have any dependancies.
+It does not have any dependencies.
 
 You cannot use it to build other executables. If all you want to do is using
 the command sqledit, that's a good choice (probably a little slower to open).
@@ -70,8 +70,8 @@ Debian/Ubuntu
 =============
 
 If you want a bleeding edge sqlkit version you'd better install from the
-package distribution. On a Debina lenny or Ubuntu >= 9.04 you can prepare
-dependancies::
+package distribution. On a Debian lenny or Ubuntu >= 9.04 you can prepare
+dependencies::
 
   sudo apt-get install python-setuptools python-pybabel python-dateutil python-psycopg2 python-sqlalchemy python-mysqldb python-pip
   sudo pip install sqlkit
@@ -80,7 +80,7 @@ You can also add the source::
 
   deb http://apt.argolinux.org/ lenny sqlkit
 
-by issuing the followin command::
+by issuing the following command::
 
   wget http://apt.argolinux.org/sqlkit.list --output-document=/etc/apt/sources.list.d/sqlkit.list
   wget -O-  http://apt.argolinux.org/dists/lenny/public.key| sudo apt-key add -
@@ -90,17 +90,17 @@ and install it via::
 
   apt-get install python-sqlkit
 
-Even if the source states ``lenny`` it can safely be used for ubuntu.
+Even if the source states ``lenny`` it can safely be used for Ubuntu.
 
 .. note:: Sqlalchemy
     
-    sqlkit depends on sqlalchemy >= 0.5 that is only packaged for ubuntu >=
+    sqlkit depends on sqlalchemy >= 0.5 that is only packaged for Ubuntu >=
     9.10 so the .deb does not require it. You can install it
 
 .. note:: Babel
 
-   sqlkit depends on babel that is not packaged in debian but is packaged in
-   ubuntu with two different names in hardy and jaunty and is missing in
+   sqlkit depends on babel that is not packaged in Debian but is packaged in
+   Ubuntu with two different names in hardy and jaunty and is missing in
    intrepid. So the package I have prepared does not depend on it. You are
    supposed to add the package. If using hardy install ``python-babel`` if
    using jaunty or following, use ``python-pybabel`` instead. If using
@@ -109,7 +109,7 @@ Even if the source states ``lenny`` it can safely be used for ubuntu.
 
       easy_install babel
 
-This way you'll also install backend drivers for postgres, mysql and clearly sqlite.
+This way you'll also install backend drivers for postgresql, mysql and clearly sqlite.
 
 Other platforms
 ===============
@@ -129,7 +129,7 @@ you can revert to::
 
 
 No one of these command will install the backend driver (psycopg2 for
-postgres, MySQLdb for mysql -MySQL-python,...) that you are supposed to
+postgresql, MySQLdb for mysql -MySQL-python,...) that you are supposed to
 install by yourself. Sqlite is included in any 
 
 

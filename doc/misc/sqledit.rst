@@ -32,7 +32,7 @@ start it. If you want to type the URL of your db you can directly attempt a
 connection or disable it via a checkbox on the right of the entry.
 
 The autoconnect mode is really nice but you may experiment hangs till a
-connection timeout if you write a wong host name.
+connection timeout if you write a wrong host name.
 
 
 .sqledit
@@ -73,13 +73,13 @@ configuration allowed by sqledit customization, you'll need the -b
 Options
 =======
 
-Calling `sqledit` from a command line under a linux system with bash
+Calling `sqledit` from a command line under a Linux system with bash
 completion you can benefit from the completion that will look for completion
 in the .sqledit/nicks file and will suggest some common url (postgres://,
 sqlite://...) 
 
 When primary keys are numeric you probably don't want/need to see them, you
-can switch off the visualization with the ``primary key`` togle button
+can switch off the visualization with the ``primary key`` toggle button
 
 The ``Load`` toggle button determines if you want to load data when opening a
 table. 
@@ -110,13 +110,13 @@ table's field
 :search field: this is the **string** field that will be used when searching
    via foreign key. Suppose you are editing a table of movies, and you must
    fill in the director's field. You write some letters and trigger a
-   completion, that means you want sqlkit to use that text (eg. "Fel"), 
+   completion, that means you want sqlkit to use that text (e.g. "Fel"), 
    select which directors are present that has that string in... well you
    surely want to search in the last name, but you need to tell sqlkit.
 
    *search_field* is here for that.
 
-:format: ok, you have back from completion a list of directors you still
+:format: ok, you get back from completion a list of directors you still
    need to show them in a nice way (e.g. first_name, last_name). Here you
    are supposed to used the syntax "%(field_name)s".
 
@@ -126,11 +126,11 @@ attributes'fields
 
 :name: the field_name
 
-:description:  the lable you want to be used. (Note that when using
+:description:  the label you want to be used. (Note that when using
    :ref:`related tables <relationships>`  you may indicate
    relation.field_name)
 
-:help_text: this is the ooltip that will be added to the entry
+:help_text: this is the tooltip that will be added to the entry
 
 :autostart: you can set an :ref:`autostart` value for the completion
 

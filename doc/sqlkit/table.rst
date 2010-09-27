@@ -220,7 +220,7 @@ view. The same column may be repeated in different views.
 Adding a column
 ---------------
 
-You can add columns to a view if there's a correspondig ``field``
+You can add columns to a view if there's a corresponding ``field``
 (sqlkit.fields.Field) in ``table.gui_field``. Examples #31 and
 #32 show how to do that that essentially boils down to:
 

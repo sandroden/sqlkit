@@ -22,11 +22,11 @@ The validation has the following steps:
 
    .. note::  At present fields representing m2m or o2m relations (e.g. *movies*  in a
               *director* class) are not searched for
-              ``on_field_valdation__field_name``  hook. You can use
+              ``on_field_validation__field_name``  hook. You can use
               ``on_validation`` hook to set validation on relations
 
    Each method of the hooks class can raise a ValidationWarning directly
-   that is cought by the main validation loop, and populates
+   that is caught by the main validation loop, and populates
    ``validation_error`` dict or can feed this dict via the sqlwidget's
    method :meth:`add_validation_error
    <sqlkit.widgets.common.sqlwidget.SqlWidget.add_validation_error>` or
@@ -35,14 +35,14 @@ The validation has the following steps:
    This operation is repeated for each related process and the main
    ``validation_error``  dict is updated.
 
-2. If the ``validation_error`` dict has collected some errrors a
+2. If the ``validation_error`` dict has collected some errors a
    *ValidationErrorDialog* is presented to the user::
 
      class Hooks(object):
 
 	   def on_field_validation__year(self, mask, field_name, field_value, field):
 	       if field_value > 2020:
-		   raise ValidationError("Hei: how can you know the future!")
+		   raise ValidationError("Hey: how can you know the future!")
 
 
      t = SqlMask(model.Movie, layout=lay, label_map={'genres.name':'genres'},

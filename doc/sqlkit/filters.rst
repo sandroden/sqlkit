@@ -11,7 +11,7 @@ Filtering is a very powerful feature of sqlkit. Any single field in a
 SqlWidget may become a filter criteria and many filters on a field are
 accepted. A filter panel handles the filters that may also belong to related
 table: in that case a join will be built when selecting (read the note on 
-selecting throught joins in :ref:`relationships`)
+selecting through joins in :ref:`relationships`)
 
 As you can see in the image a filter panel gives also the opportunity to
 limit the query. Any filter can be enabled or disabled by clicking on it's
@@ -50,7 +50,7 @@ Adding Filters programmatically
 Filters can be added programmatically via method ``add_filter`` that uses
 django_like syntax, of interactively. As an example::
 
-  t.add_fiter(numeric_field__gte=5, boolean_field=True)
+  t.add_filter(numeric_field__gte=5, boolean_field=True)
   t2.add_filter(date_field__lte='y', string_field__null=False)
 
 more examples can be found in the :ref:`constraints` sections as they share
@@ -103,7 +103,7 @@ Date filters
 =============
 
 Date filters deserve a special chapter. It's very common the need for a
-filter based on relative dates (ie: the beginning of the month, the year,
+filter based on relative dates (i.e.: the beginning of the month, the year,
 the last month and so on), that's the only way to allow saving queries that
 will behave the same all the time.
 

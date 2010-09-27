@@ -100,7 +100,7 @@ Django2sqlalchemy returns a tuple: (clause_list, join_path):
 	   query.join(path).reset_joinpoint()
 
 
-Filter simplifield syntax
+Filter simplified syntax
 -------------------------
 
 .. automodule:: sqlkit.db.django_syntax
@@ -125,7 +125,7 @@ on the query directly::
 
 
 this example shows how to force a constraint on ticket requiring that the
-ticket be assigned *by* or *to* USERNAME. Any further filter applyed
+ticket be assigned *by* or *to* USERNAME. Any further filter applied
 interactively will be applied *on top* of this constraint. This is
 equivalent to writing::
 
@@ -143,7 +143,7 @@ aliased constraints
 Sometimes you need to have aliased constraints in order to ha sqlalchemy
 build an aliased join to related classes on which you may want to set 
 constraints. This may be necessary if you want to use constraints along with
-order_by and possiby filters on foreign keys.
+order_by and possibly filters on foreign keys.
 
 example
 +++++++
@@ -151,7 +151,7 @@ example
 Suppose you have an 'address' table with a ``user_id`` field that is a
 ForeignKey to a ``user.id`` column. Suppose you want to open a SqlTable on
 table addresses, ordered on ``user_id`` (well... surely you don't want to
-order by the `ìd`` value, you probaly have a ``first_name`` field that is
+order by the ``id`` value, you probably have a ``first_name`` field that is
 much more appropriate for sorting).  
 
 Now suppose you also have an ``active`` field on the user_table. You can
@@ -160,8 +160,8 @@ achieve this (simple) in the following way::
   t = SqlTable('address', order_by='user_id__first_name', ...)
   t.add_constraint(user_id__active=True, aliased=True)
 
-the order_by argument implicitely have built a join with the user table, the
-same stands for the constraint ``user_id__active``. Sqlalchemy woud have
+the order_by argument implicitly have built a join with the user table, the
+same stands for the constraint ``user_id__active``. Sqlalchemy would have
 complained that the table 'user' was already present, so you need to alias
 it. I'll probably make this the default in a future version.
 

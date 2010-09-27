@@ -64,12 +64,12 @@ And you will get a mask that looks like this:
 .. image:: ../img/director_movies.png
 
 
-delete behaviour
+delete behavior
 ----------------
 
-We leave to sqlalchemy the responsability to decide if a film must be
+We leave to sqlalchemy the responsibility to decide if a film must be
 deleted from the database or must just updated to set the director_id to NULL.
-To change this behaviour you must act on the cascade property of the
+To change this behavior you must act on the cascade property of the
 relation (or directly on the database definition). If yo want to delete a
 film in stead of just setting the property to NULL you can define the table
 in this way::
@@ -88,21 +88,21 @@ in this way::
 Filtering
 -----------
 
-It is now possible to filter on a field present in related tables, eg.:
+It is now possible to filter on a field present in related tables, e.g.:
 filtering all films that have a certain genre.
 
 .. note::
 
    Starting from 0.8.6-pre2 filters on a related table are *aliased*
    (see `sqlalchemy docs`_). This is relevant if you filter on related
-   table via different path (eg: filtering staff and manager of a table
+   table via different path (e.g: filtering staff and manager of a table
    projects, where both staff and managers are a m2m relation to User).
 
-   There are cases wher this is really what you want but in some cases this
-   is not. Here you really need to deeply understand waht is happenning
+   There are cases where this is really what you want but in some cases this
+   is not. Here you really need to deeply understand what is happening
    underneath at the SQL level. As an example if you have a sqlmask of
    directors with a related table of films, if you filter on films and use a
-   filter on title (containig 'la') and a filter on year (> 2005), the two
+   filter on title (containing 'la') and a filter on year (> 2005), the two
    filters will not be related to the same film: you'll get all directors
    that have a film with 'la' in the title and (possibly a
    different) film produce after 2005. This may or may not be what you want...
@@ -146,7 +146,7 @@ adding & completion
   differently that adding from m2o in that it requires the field to be
   already present and does not allow to edit it
 
-  This behaviour can be changed setting it's 'm2m_editable' property to
+  This behavior can be changed setting it's 'm2m_editable' property to
   True (new in 0.8.4)::
 
      t.related.genres.set_editable(True)

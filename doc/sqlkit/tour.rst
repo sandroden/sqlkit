@@ -13,7 +13,7 @@ It provides:
   not require programming knowledge
 
 * a Python package that mainly provides two megawidgets: :ref:`mask` and
-  :ref:`table`, very powerfull classes to build your application.
+  :ref:`table`, very powerful classes to build your application.
 
 A typical usage can be::
 
@@ -40,7 +40,7 @@ Features
 - Based on sqlalchemy_: can cope with many different database backends
   (PostgreSQL, MySQL, sqlite and firebird the ones sqlkit was tested
   on).  Can be used to edit any  selectable you can build with sqlalchemy.
-- Very powerfull :ref:`filtering <filters>` capabilities:
+- Very powerful :ref:`filtering <filters>` capabilities:
 
   * each field can be used to filter visible records
   * date filtering possible also on relative basis (good for saved
@@ -58,7 +58,7 @@ Features
   or a Table. It can be expressed as a normal sqlalchemy query or with
   django-like syntax. Works on expressions too.
 - SqlMask and SqlTable are widgets with several :ref:`signals`
-- :ref:`hooks` for a very easy customization of behaviour and for validation
+- :ref:`hooks` for a very easy customization of behavior and for validation
 - More than 70 snippets of code to demonstrate each feature
 
 .. _sqlalchemy: http://www.sqlalchemy.org
@@ -80,7 +80,7 @@ The code is as simple as::
    t = SqlTable('movie', dbproxy=db, )
 
 you can customize which columns to show, possible filters or constraints
-(see below), and a lot of others detailsC
+(see below), and a lot of others details
 
 Mask
 ----
@@ -132,8 +132,8 @@ Filters
    :scale: 50%
    :class: preview
 
-Each label of both views can be cliced to get a :ref:`filter panel
-<filters>` thought wich we can choose an operator and filter records. Filter
+Each label of both views can be clicked to get a :ref:`filter panel
+<filters>` through which we can choose an operator and filter records. Filter
 let you use a "human" representation of foreign keys, that means that if
 ``director_id`` points to a numeric id, sqlkit will let you write the (last)
 name of the director instead when filtering.
@@ -185,7 +185,7 @@ Relationships
 This is probably the most impressive feature.
 
 You can build a layout in which related data are displayed in a totally
-naural way. The following layout requires the code::
+natural way. The following layout requires the code::
 
   lay = """
      first_name
@@ -217,7 +217,7 @@ Totals
 
 
 It's possible to display totals and subtotals in a table view. 
-In this picture you can see how a table embeddedinto a mask can display
+In this picture you can see how a table embedded into a mask can display
 totals.
 
 More in :ref:`totals`
@@ -225,7 +225,7 @@ More in :ref:`totals`
 Constraints
 -----------
 
-A :ref:`contraint <constraints>` can be as simple as::
+A :ref:`constraint <constraints>` can be as simple as::
 
   t = SqlTable('movie', dbproxy=db)
   t.add_constraints(actors__country='ITA', genres__name='drama',
@@ -266,7 +266,7 @@ Basic assumptions and limitations
 
 1. You use PrimaryKeys and ForeignKeys throughout the db.
    If you don't use ForeignKeys sqlkit will just work w/o any special
-   behaviour. If you don't use PrimaryKeys sqlkit will not even open the
+   behavior. If you don't use PrimaryKeys sqlkit will not even open the
    table.
 
 2. ForeignKeys are *simple*. Compound ForeignKeys are not yet supported,
@@ -293,8 +293,8 @@ the best possible way. More info in the completion chapter:
 :ref:`description`
 
 
-sqlkit supported backend structure
-==================================
+sqlkit supported backends
+=========================
 
 Sqlkit is built on sqlalchemy that allows editing db with many `different
 engines`_. I use it with PostgreSQL, MySQL, sqlite and Firebird.  Other

@@ -2,17 +2,15 @@
  Sqlwidget
 ============
 
-.. automodule:: sqlkit.widgets.common.sqlwidget
-
 This is the base class for :ref:`mask` and :ref:`table` that implements the
 common interface. 
 
 mandatory argument
 ==================
 
-The first and mandatory argumenti is the ``mapper`` of the object that will
+The first and mandatory argument is the ``mapper`` of the object that will
 be retrieved and displayed. Alternatively any other objects from which the
-sqlwidget infers them (eg.: the tablename and the metadata where the table
+sqlwidget infers them (e.g.: the tablename and the metadata where the table
 can be autoloaded):
 
 * a mapper
@@ -28,7 +26,7 @@ main options
 
 Any sqlwidget needs a ``session`` as well. 
 
-Metadata is also used when autoloading tables referenced by foreign keys to
+Metadata is also used when auto-loading tables referenced by foreign keys to
 display a better representation of the referenced record.
 
 .. _dbproxy:
@@ -71,13 +69,11 @@ session & expire_on_commit
 
 The reason to have ``expire_on_commit=False`` is that if you don't set it,
 after every commit, you have to reload all objects and the interface turns
-very slow, expecially when working with a remote database.
+very slow, especially when working with a remote database.
 
 ``expire_on_commit`` is a recent addition to sqlalchemy session (around sa
 rel. 5.03rc) so I try it and fallback to default that would turn to be
 slower. Previous 0.5 rel called it ``autoflush``
-
-.. .. automodule:: sqlkit.widgets.common.sqlwidget
 
 .. autoclass:: sqlkit.widgets.common.sqlwidget.SqlWidget(see_below)
    :members: __init__, add_constraint, add_filter, resize, set_records,
@@ -97,14 +93,14 @@ Attributes
 
    a container for all related sqlwidgets (i.e.: SqlWidgets that have a
    relation with this sqlwidget defined by sqlalchemy and that are 
-   dispayed in the widget).
+   displayed in the widget).
 
    This is used in all situation in which you need to fine-tune the
    configuration of a related table (completion, layout, ...)
 
 .. attribute:: completions
 
-   a container of all completion objects. Needed to change the behaviour of
+   a container of all completion objects. Needed to change the behavior of
    some completion (see :ref:`completion`)
 
 .. attribute:: gui_fields
@@ -142,13 +138,13 @@ Attributes
    table or None. In the transient in which you are saving a record in a
    table (when selection changes) ``self.current`` will not already point to
    the wright obj. Use get_current_obj() instead. This may change as I do
-   found it counterintuitive...
+   found it counter-intuitive...
 
 .. attribute:: field_list
 
    a list of the field names the GUI is handling. It comprises
    PropertyLoaders (i.e. properties of the class that act as a loader of
-   other info - all relation are seend as PropertLoaders w/o column)
+   other info - all relation are seen as PropertLoaders w/o column)
 
 .. attribute:: order_by
 
@@ -211,8 +207,8 @@ Signals
    A record has been saved. This signal is *not* emitted from within session
    extension. That means you are sure there will be just one signal for each
    button press on "save" button. This is issued from within the :meth:`SqlWidget.commit`
-   method indipendently from the fact that a real modification occurred, so
-   you are not garanteed any modification took place. Was originally added
+   method independently from the fact that a real modification occurred, so
+   you are not guaranteed any modification took place. Was originally added
    to implement a destroy of the widget when the save operation was performed.
 
    The callback will just receive the widget as argument.
@@ -243,9 +239,9 @@ Signals
    .. function:: after_flush_callback(sqlwidget, object, session)
 
       :param sqlwidget: the sqlwidget that emitted the signal
-      :param object: the object that was *current* when session ws
+      :param object: the object that was *current* when session was
 	  flushed. Current means that it was the main object represented. Many
-	  other widgets may be present, possibily in "dirty state", "new" or
+	  other widgets may be present, possibly in "dirty state", "new" or
 	  "deleted", but current was the one selected in a table or displayed in
 	  the main mask
       :param session: the session that was flushed. The moment in which the signal is
@@ -272,7 +268,7 @@ Hooks
 Beside signals there is another way to add controls: hooks. A hook is a
 function that will be called in particular moments only if present. 
 
-Hooks are the main way to customize the behaviour of a sqlwidget.  Some of
+Hooks are the main way to customize the behavior of a sqlwidget.  Some of
 the hooks (``on_validation.*``) are related to validation other are related
 to configuration (``on init``), others (``on_activate``) may be used to save
 typing.
@@ -289,7 +285,7 @@ tables that are not configured: registering hooks is a way to enforce
 configuration (and possibly constraints) on any widget.
 
 As layout hooks can be registered with a nick (default is ``default``) so
-that you can register different hooks for different editing flavours. E.g/:
+that you can register different hooks for different editing flavors. E.g/:
 you can have a table for *people* and you can decide to open it with *customer*
 or *provider* layout/hooks just registering both layout and hooks and using
 argument ``layout_nick``.
@@ -301,7 +297,7 @@ The following hooks are defined:
 
 :on_change_value__field_name: called any time the value is set using 
     :meth:`set_value <sqlkit.widgets.common.sqlwidget.SqlWidget.set_value>` without
-    initial=True flag. Ie: should be called any time a value is changed from
+    initial=True flag. I.e.: should be called any time a value is changed from
     the original
 
     .. function:: on_change_value__field_name(sqlwidget, field_name, value, fkvalue)
@@ -314,7 +310,7 @@ The following hooks are defined:
 .. _on_completion:
 
 :on_completion__field_name: called when a completion 
-    is choosen
+    is chosen
 
     .. function:: on_completion__field_name(sqlwidget, field_name, obj)
 
@@ -337,15 +333,15 @@ The following hooks are defined:
 
               you can also reach field attributes as dict values: obj['nation']. 
    
-:on_validation: called when all the values have been callected in the object,
+:on_validation: called when all the values have been collected in the object,
     before calling validation on all fields and related widgets. That's a
-    good point to implement any procedure to add authomathisms. Within this
+    good point to implement any procedure to add automatism's. Within this
     hook you can propagate errors to the validation machinery in two of ways:
 
     1. raising ``sqlkit.exc.ValidationError``. Simple when just one error is
        found
     2. filling self.validation_errors: a dict holding all errors. The *key* is
-       the field_name or "recod_validation", the value a list of error messages
+       the field_name or "record_validation", the value a list of error messages
     
     .. function:: on_validation(sqlwidget)
 
@@ -355,7 +351,7 @@ The following hooks are defined:
 
 :on_field_validation__field_name: called to validate a single field
     as for the previous ``on_validation``. This is called from within the
-    :meth:`field validation method<sqlkit.fields.Field.validate>` 
+    :meth:`field's validation method <sqlkit.fields.Field.validate>` 
 
     1. raising ``sqlkit.exc.ValidationError``. Simple when just one error is
        found
@@ -365,7 +361,7 @@ The following hooks are defined:
     .. function:: on_validation(sqlwidget, field_name, field_value, field)
 
 :on_activate__field_name: when *Return* is pressed in Mask or Table. Good to
-    complete fields via calculation on other fields (eg: total, vat...).
+    complete fields via calculation on other fields (e.g.: total, vat...).
     The name derive from the GTK name 'activate' that is when you press
     'Return' in an entry, even thought in a Table's treeview it's really
     connected to the cell's ``edited`` signal (limited to Varchar and
@@ -377,7 +373,7 @@ The following hooks are defined:
        :param field_name:  the field_name
        :param field:  the ``sqlkit.widgets.common.field``
     
-:on_init: run as the last command of __init__. It's main purpouse is to 
+:on_init: run as the last command of __init__. It's main purpose is to 
     allow to configure a widget in a way that will be handed over to a
     possible SqlMask generated right-clicking from a table row (see :ref:`recordinmask`).
 
@@ -386,8 +382,8 @@ The following hooks are defined:
 
        :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
    
-:on_pre_layout: run before the layout is setup. It's main purpouse is to 
-    allow to add fields vi self.gui_field_mapping (tat is only usefull for SqlMask)
+:on_pre_layout: run before the layout is setup. It's main purpose is to 
+    allow to add fields vi self.gui_field_mapping (tat is only useful for SqlMask)
 
     .. function:: on_init(sqlwidget)
 
@@ -404,7 +400,7 @@ The following hooks are defined:
     be defined in a separate class so that it's easier to propagate
     validation hooks to a spawned child (i.e.: :ref:`recordinmask`,
     when a mask right clicking on a record, change something and
-    save). You'll see that ``on_after_flush`` is called eather.
+    save). You'll see that ``on_after_flush`` is called ether.
 
 
     From the sqlalchemy documentation: "Note that the session's state is
@@ -414,8 +410,8 @@ The following hooks are defined:
     for *after_flush_postexec*, that on the other had has already setup
     relation.
 
-    I end up in some circumtancies to split the callback in two phases: one
-    that detects if an action is needed from whithin the
+    I end up in some circumstances to split the callback in two phases: one
+    that detects if an action is needed from within the
     after_flush/after_commit phase, the second (may be a mail, or any other
     action) from within the after_flush_postexec, so that I can use the
     relations. Beware that you may have one call to ``on_after_flush`` and
@@ -424,9 +420,9 @@ The following hooks are defined:
     .. function:: on_after_flush_callback(sqlwidget, object, session)
 
       :param sqlwidget: the sqlwidget that emitted the signal
-      :param object: the object that was *current* when session ws
+      :param object: the object that was *current* when session was
 	  flushed. Current means that it was the main object represented. Many
-	  other widgets may be present, possibily in "dirty state", "new" or
+	  other widgets may be present, possibly in "dirty state", "new" or
 	  "deleted", but current was the one selected in a table or displayed in
 	  the main mask
       :param session: the session that was flushed. The moment in which the signal is
@@ -440,7 +436,7 @@ The following hooks are defined:
 
     As in the precedent hook this is called exactly within the session
     extension method by the same name. When it's run the session will have
-    no longer informations on session.dirty/session.new/session.delete but
+    no longer information on session.dirty/session.new/session.delete but
     will have all relations set-up.
 
     The callback has the same signature as for ``on_after_flush``
@@ -463,7 +459,7 @@ table definition for the relation (and in the layout as in m2m=actors)
 example
 +++++++
 
-This example show how to use hooks to play a sound on completion::
+This example shows how to use hooks to play a sound on completion::
 
   class Hook(obj):
       def on_completion__genre(self, field_name, obj):
@@ -478,7 +474,7 @@ Registered hooks and SessionEtensions
 
 When hooks are :ref:`registered <dbutils>` their customizations are
 enforced each time the model for which they're registered is called. That adds
-some complecations you should be sure to understand if using one of these
+some complications you should be sure to understand if using one of these
 hooks:
 
  * on_after_flush
@@ -502,7 +498,7 @@ As an example, suppose you have a Mask with the following layout::
 
 suppose *movies*, *genres* and *actors* have registered ``on_after_commit``
 hooks. They will all be called on any commit. Adding a genre object will
-trigger *on_after_commit* on the Actor's table and viceversa.
+trigger *on_after_commit* on the Actor's table and vice verse.
 
 
 
@@ -538,7 +534,7 @@ Saving varchar and text fields
 ==============================
 
 Text fields with empty values will be saved as NULL. To change this
-behaviour you need to set blank=True on fields::
+behavior you need to set blank=True on fields::
 
   t.gui_fields[field_name].blank = True
 
@@ -596,7 +592,7 @@ Standard actions are divided into the following categories::
        Gtk-tree
 
 
-While for each table'view you have::
+While for each table's view you have::
 
   Table
        HideColumns
@@ -619,10 +615,10 @@ To change an entry you can:
 
 #. add an actiongroup in which you have defined an  action with the same
    name 
-#. insert this actiongroup *before* it's relevant one (posizion 0 is
+#. insert this actiongroup *before* it's relevant one (position 0 is
    normally a good choice
 
-Eample #72 in the demo shows how to do it
+Example #72 in the demo shows how to do it
 
 Adding an entry
 ---------------
@@ -634,4 +630,4 @@ the standard way is shown in demo snippet #70:
 
 You can also use a SqlTable method :ref:`add_temporary_item <add_temporary_item>` that will add a
 temporary entry, so that it can be contextually changed. This way is
-demostrated in demo snippet #71
+demonstrated in demo snippet #71

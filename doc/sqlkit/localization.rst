@@ -4,9 +4,9 @@
  Localization
 ==============
 
-localization support comprizes:
+localization support comprises:
 
-  * localization of number (decimal separators and thosand grouping)
+  * localization of number (decimal separators and thousand grouping)
   * localization of date/datetime fields
   * library messages translation (we need help bu translators, there is a
     project in launchpad_)
@@ -83,7 +83,7 @@ friendly look.
 
 The same column name may be translated differently in different tables so
 sqlkit adds a layer in the way of translation via a "label_map" that can be
-passed direcly to the layout object or to the sqlwidget (label_map option).
+passed directly to the layout object or to the sqlwidget (label_map option).
 
 This ``label_map`` is a dictionary whose key is the ``field_name`` and the
 value is a tuple with a description and a help_text to show as tooltip on
@@ -97,7 +97,7 @@ that gettext will further try to translate::
 Description and help_text can be stored in the table ``_sqlkit_field`` that
 can be easily edit with ``sqledit -c URL``. Each time a sqlwidget is
 instantiated it will try to see if any info for the tables it is editing was
-writtend in the database and add those to what can be passed to the widget
+written in the database and add those to what can be passed to the widget
 as "label_map".
 
 label translation for related tables
@@ -111,13 +111,13 @@ related table that point to users, one for 'staff' and another for
   m2m=staff:username m2m=manager:username 
 
 both would show up as 'username', that is pretty misleading. You can then
-add two keys to labl_map::
+add two keys to label_map::
 
   'staff.username': ('staff', None)
   'manager.username': ('manager', None)
 
-that would translate as desired. That can be convenientrly set in the
-_sqlkit_field table, in which case on ly the description column need to be
+that would translate as desired. That can be conveniently set in the
+_sqlkit_field table, in which case only the description column needs to be
 filled with 'staff'/'manager'
 
 Tooltips
@@ -129,7 +129,7 @@ personalization of the hints he wants to add to the GUI.
 
 In the table ``_sqlkit_field`` each row should represent a field of a table, but
 there's no harm adding to it more fields that can be the name of buttons or
-relationships (eg.: author) just for the sake of translation and tooltip.
+relationships (e.g.: author) just for the sake of translation and tooltip.
 
 
 .. _`Number Format Pattern Syntax`: http://java.sun.com/docs/books/tutorial/i18n/format/decimalFormat.html#numberpattern

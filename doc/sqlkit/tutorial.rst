@@ -11,40 +11,40 @@ in a database (as opposed to editing the *structure* of the database).
 
 No programming skill is required, but if you are supposed to install it
 yourself, you may need to understand at least a little bit of your operating
-system (but that may be as simple as a double clik if you use boundles).
+system (but that may be as simple as a double click if you use bundles).
 
 Installation
 ============
 
-Boundles
+Bundles
 ---------
 
 The only possibly difficult part of installation may be the installation of
 the dependencies. To bypass this I also provide binaries that bundle
-toghether any required software for Linux or Windows (you can donwload it
+together any required software for Linux or Windows (you can download it
 from the `download page`_). Drivers for PostgreSQL, MySQL and sqlite are
-included. Note that there boundles are not updated very frequently.
+included. Note that there bundles are not updated very frequently.
 
 The hard way
 -------------
 
-If you prefere to do it the hard way, or if you meet problems with the
-boundle, or you need more backend drivers, you need to do the following steps.
+If you prefer to do it the hard way, or if you meet problems with the
+bundle, or you need more backend drivers, you need to do the following steps.
 
 Dependencies
 ------------
 
 Sqlkit depends on several packages:
 
-:python: sqledit it's a pyton script. It should work with python 2.4 and
+:python: sqledit it's a Python script. It should work with python 2.4 and
          following. But if you used 2.4 be sure to add the driver for sqlite
          that was added to the main distribution only starting from 2.5.
 
 	 If you use python 2.6 you may have some warning but should just work.
 
-:pygtk:  any Linux desktop distribution has it already installed, in case
-         it does not have it, it should be trivial to do. In debian like
-         systems (eg.: Ubuntu), you simply run::
+:PyGTK:  any Linux desktop distribution has it already installed, in case
+         it does not have it, it should be trivial to do. In Debian like
+         systems (e.g.: Ubuntu), you simply run::
 
  	     apt-get install python-gtk2
 
@@ -53,11 +53,11 @@ Sqlkit depends on several packages:
 
 :sqlalchemy: this is the core of the sql staff. It's a layer that builds SQL
          statements and invokes the backend drivers. It takes care of
-         inspecing the database and so on. You need at least release 0.5 but
+         inspecting the database and so on. You need at least release 0.5 but
          0.5.4 would be much better. SqlKit has not yet been ported to
          sqlalchemy 0.6.
 
-:python-dateutil: needed for computation on dates, used in filters (eg: date
+:python-dateutil: needed for computation on dates, used in filters (e.g: date
          >= 'm-1', means date >= starting of last month), see :ref:`date_filters`.
 
 
@@ -68,7 +68,7 @@ Sqlkit depends on several packages:
 :drivers: don't forget to add the driver for the backend of your choice, the
           only driver included is for ``sqlite``, that is the database of
           the demo and is included in the python distribution since python
-          2.5. The boundle has drivers for postgres and mysql as well.
+          2.5. The bundle has drivers for postgresql and mysql as well.
 	  
 
 If you have setuptools installed in your system, you can install whatever
@@ -81,7 +81,7 @@ and probably you'd have better results using ``pip``::
    easy_install pip
    pip install sqlkit
 
-remeber to install the backend driver, these are the examples for postgresql
+remember to install the backend driver, these are the examples for postgresql
 and mysql::
 
    pip install psycopg2
@@ -91,9 +91,9 @@ and mysql::
 Installing under Debian/Ubuntu
 -------------------------------
 
-If you have a debian like distro I suggest you install sqlalchemy from
+If you have a Debian like distro I suggest you install sqlalchemy from
 source or via ``easy_install`` or ``pip`` (preferred) and then install the
-debian package::
+Debian package::
 
   sudo wget http://apt.argolinux.org/sqlkit.list --output-document=/etc/apt/sources.list.d/sqlkit.list
   sudo wget -O-  http://apt.argolinux.org/dists/lenny/public.key| sudo apt-key add -
@@ -103,7 +103,7 @@ and install it via::
 
   apt-get install python-sqlkit
 
-This as well as the boundles is not as updated as python packages
+This as well as the bundles is not as updated as python packages
 
 sqledit/sqlkit
 ==============
@@ -116,7 +116,7 @@ with is ``sqledit`` that is based on a library named ``sqlkit``. If you are
 a programmer and are interested in the sqlkit package you can find extensive
 documentation in the `web site`_
 
-Programming with sqlkit is a pretty simple experience that allows yut to use
+Programming with sqlkit is a pretty simple experience that allows you to use
 many more features than available with ``sqledit``, nevertheless you can do
 a lot of simple tasks by using ``sqledit`` alone.
 
@@ -136,7 +136,7 @@ Sqledit can be used:
 If you start it with no arguments you are presented a dialog with an entry
 and 3 buttons:
 
-* you can write the url of a database of yours in the entry, eg.::
+* you can write the url of a database of yours in the entry, e.g.::
 
     postgres://localhost/dbname
     sqledit:///db.sqlite
@@ -144,7 +144,7 @@ and 3 buttons:
   
   .. note::
      the URL for a sqlite database has 3 '/'if the database is in your
-     corrent directory, 4 if you need to pass a file starting with '/'.
+     current directory, 4 if you need to pass a file starting with '/'.
 
 * start the demo tour
 
@@ -157,7 +157,7 @@ but it's also suitable for our introduction and is a living database, so we
 will use that in this tutorial.
 
 The demo presents you some examples on the left. Let's start with...  the
-last one! We start with the last one becouse it's the window you will
+last one! We start with the last one because it's the window you will
 see when you start sqledit with an address of a real database (the demo one
 in this case).
 
@@ -169,7 +169,7 @@ The table listing
 The table listing of the database is shown above: clicking on a table
 name pops a menu that lets you choose between:
 
-* table view: representation of the table in a spreadsheet fasion
+* table view: representation of the table in a spreadsheet fashion
 * mask view:  a form with each field is displayed
 * table reflection: sqledit reads the definition for that table
 
@@ -183,37 +183,37 @@ Let's choose a table view:
 each field of the table is represented in a column, each type has different
 representations:
 
-:text: a simple cell will rendere the text
+:text: a simple cell will render the text
 
 :numbers: each number is adjusted to the right
 
-:dates: dates are represented in yout preferred locale that is argued from
+:dates: dates are represented in you preferred locale that is argued from
     LANG variable or from locale module information
 
 :boolean: a checkbox is used. It the NULL value is accepted, clicking the
     checkbox will loop between True, False and undefined
 
-:intervals: intervals are really poorely rendered at the moment...
+:intervals: intervals are really poorly rendered at the moment...
 
 :foreign keys: foreign keys are represented via the value they point to in
-    the remote table. At present only simple (not coumpound keys) are
+    the remote table. At present only simple (not compound keys) are
     allowed. To help you detect that that's a ForeignKey it's drawn in blue.
     Just to be pedantic: you won't see the real value (that may happen to be
     an id, normally not very interesting), you will rather see the value it
     points to... 
 
     As you can realize there is not real *value* where is points. An id
-    points to a record of a table (eg.: director id 1 may point to the record
+    points to a record of a table (e.g.: director id 1 may point to the record
     in director table where ``last_name`` is *Fellini*), but *Fellini* is not
     the value of the id: it's rather a representation of the record that in
-    many circumstacies may be enought (and in many other is not).
+    many circumstances may be enough (and in many other is not).
 
     So I introduced a rule: I represent it with the value of the first
-    character field of the line. Clearly this ruls is doomed to fail in some
+    character field of the line. Clearly this rules is doomed to fail in some
     cases and you can correct it forcing a representation of the line we
     will call a format field. You can go in the main window of sqledit,
     select databases and 'edit sqlkit field' and you will be presented a
-    mask to edit the value you prefere.
+    mask to edit the value you prefer.
 
     .. image:: ../img/sqledit_config.png
 
@@ -227,13 +227,13 @@ that pops a menu entry. The first menu entry pops a filter widget:
 
 .. image:: ../img/filter-panel.png
 
-in the image we have clicked on three column's header: te filter on each
+in the image we have clicked on three column's header: the filter on each
 column is composed of 4 parts: the label with the name, the operator for the
 filter, the checkbox to disable the filter and the entry for a value.
 
 Some operators have pretty intuitive operators ('>' as bigger than or later
 that for dates) text have also regular expression (normally much more
-usefull so that it's the default) or ``like``.
+useful so that it's the default) or ``like``.
 
 .. note::
   
@@ -245,9 +245,9 @@ usefull so that it's the default) or ``like``.
 Pressing ``Enter`` on a field or the reload button will run the query and
 present the selected records in the TableView. 
 
-Dates are special in that you oftn have to filter with dates relative to the
+Dates are special in that you often have to filter with dates relative to the
 moment you do the query (today, this month,...) so that i added some
-shortcuts to accomplish this task (eg: 'm' means the beginning of the
+shortcuts to accomplish this task (e.g.: 'm' means the beginning of the
 month). You can read more on this feature in :ref:`date_filters`.
 
 totals
@@ -256,14 +256,14 @@ totals
 .. image:: ../img/totals.png
 
 One more feature of sqlkit that comes very handy is the ability to make
-totals in the fasion of a spreadsheet. This only works on numbers of course,
+totals in the fashion of a spreadsheet. This only works on numbers of course,
 and you can trigger this feature from the column menu. Since our test
 database does not have numbers other than for *year* of production, in the
-example I joked and totalled the column of the year of production. In real
+example I joked and computed the total on the column of the year of production. In real
 cases you will do sum with more interesting data...
 
-Subtotals are a very usefull feature of any total, so you can ask sqlkit to
-create subtotals when some value change (eg: date, month, year,
+Subtotals are a very useful feature of any total, so you can ask sqlkit to
+create subtotals when some value change (e.g: date, month, year,
 director...).
 
 completions
@@ -291,7 +291,7 @@ and to be more precise:
 :Control Shift: will disregard what you have already written and do a search
    on all possible values, thus emulating an ``enum`` field.
 
-You can find complete informations on how to configure :ref:`completion` in
+You can find complete information on how to configure :ref:`completion` in
 the docs.
 
 changing view
@@ -333,7 +333,7 @@ presented as usual.
 
 The difference is that when the query is issued the result is presented in a
 tab of the filter panel and you browse the results clicking in the output
-tab or clicking the forward and backword arrows of the mask.
+tab or clicking the forward and backward arrows of the mask.
 
 
 layout
@@ -349,9 +349,9 @@ movies) with no effort, in order to do this you need at least a minimum of
 programming, namely:
 
   * defining the model (as per SqlAlchemy)
-  * defining the layout  (this is very easy and demo ahs plenty of examples)
+  * defining the layout  (this is very easy and demo has plenty of examples)
 
-These 2 definitions can be written in the configurazion for the a nick of
+These 2 definitions can be written in the configuration for the a nick of
 sqledit, please read :ref:`sqledit manual <sqledit>` for details on nick
 configuration.
 
@@ -382,18 +382,18 @@ has lines as::
 
 where the last line instructs sqlalchemy of the relation existent between
 the tables, and more: it adds an attribute on the class ``Director`` that
-holds all the movies produces by that director (and viceversa thanks to the
+holds all the movies produces by that director (and vice verse thanks to the
 argument ``backref``).
 
 Adding these information makes it possible to used the layout in a mask to
 produce a mask with director and all the movies, if you are interested in
-this part... let me knwo and I will add more info. For the moment I suggest
+this part... let me know and I will add more info. For the moment I suggest
 you to go and read more about :ref:`relationships`
 
-Feedbak
+Feedback
 ========
 
-I hope you found this tutorial usefull.
+I hope you found this tutorial useful.
 
 If you like this piece of software, have suggestion on how to improve it or
 improve the tutorial I'd be `happy to know`_

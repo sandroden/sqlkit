@@ -31,8 +31,8 @@ This operation has the following main actors:
        No validation is done by default on this field, the completed text
        can be further edited.
 
-     * the *foreign key* (frequentrly an ``id``) along with a 
-       *representation of the referenced record* (eg: the fullname of a
+     * the *foreign key* (frequently an ``id``) along with a 
+       *representation of the referenced record* (e.g.: the fullname of a
        director). A check is made: there's no way to input a text that is
        not matched on the  remote field (see :ref:`description` below).
 
@@ -43,9 +43,9 @@ This operation has the following main actors:
 
 
   3. the **representation of the result**: when using completion on a
-     ForeignKey or on an m2m relation, the representaion of the possible
+     ForeignKey or on an m2m relation, the representation of the possible
      values needs to be taken. In the example of the image 'Fellini' the the
-     representation of the referenced record that was refererenced by a numeric
+     representation of the referenced record that was referenced by a numeric
      id.
 
   4. the **operator** used when searching: normally ``regexp`` or
@@ -62,7 +62,7 @@ The match of the completion has these *modes*:
     LIKE operator adding ``%`` on both sides
 
   :enum: any value matches. All possible values are shown. This mimics an enum
-    field. When there are only few vaues this may result more natural than
+    field. When there are only few values this may result more natural than
     the others 
 
 Since completion implies a search that may return *many* records, it's only
@@ -100,7 +100,7 @@ You would use module sqlkit.db.utils and create an object :ref:`TableDescr`::
   from sqlkit.db.utils import TableDescr
   utils.TableDescr('movie', format='%(title)s - %(year)s', metadata=db.metadata)
 
-metadata is necessary so that TableDescr knows where to go and autoload
+metadata is necessary so that TableDescr knows where to go and auto-load
 Table to introspect it if you don't provide the search_field (see below)
 
 .. _sqlkit_table:
@@ -125,7 +125,7 @@ format and __str__
 
 When SqlWidget creates a class on the fly it looks for the 'format' field to
 add a __str__ method to the class, so that this representation is used
-whenever suitable (eg.: when a filter action is performed in a Mask)
+whenever suitable (e.g.: when a filter action is performed in a Mask)
 
 .. _autostart:
 
@@ -212,7 +212,7 @@ you can set filter on the completion based on this relation::
 dynamic filters
 ----------------
 
-It's also possible to set a "dinamic filter" i.e. a filter depending on the
+It's also possible to set a "dynamic filter" i.e. a filter depending on the
 value already of another field::
 
   t.completions.last_name.filter(nation='$nation')
@@ -228,11 +228,11 @@ enum mode with foreign keys
 
 Enum mode is the way you can mimic a standard enumeration field: you see all
 fields independently from what you have in your entry. This is more natural
-in some circumstancies if you ony have few values.
+in some circumstances if you only have few values.
 
-You can get this behaviour all the times just hitting
+You can get this behavior all the times just hitting
 Control-Shift-Return or in ForeignKey fields double-clicking the down arrow.
-Since you probably whant this depening on the values
+Since you probably want this depending on the values
 of the table you can programmatically choose to serve completion *only* via
 this way setting ``force_enum = True`` on the completion::
 
@@ -304,13 +304,13 @@ customizing description
 The ``query`` attribute of the completion determines which fields will be
 present in the completions list, the ``format`` attribute decides how it
 will be represented. Default value is determined as described 
-:ref:`above <description>`, but you can customize it as you prefere, as far
+:ref:`above <description>`, but you can customize it as you prefer, as far
 as you use fields present in the query. As an example::
 
   t.completions.director_id.format = '%(first_name)s %(last_name)s -- %(nation)s'
 
 
-Behaviour on completion with m2m/m2o relationship
+Behavior on completion with m2m/m2o relationship
 =================================================
 
 When the completion is in a SqlTable that represents a not editable m2m
@@ -319,7 +319,7 @@ not simply add the single field but substitutes the whole record.
 
 On such a relationship table's completion you can set filter that will act
 on all fields. Rationale: if you have a movie/actor relationship and set a
-contraint on actors so that only femail should be selected, you probably
+constraint on actors so that only female should be selected, you probably
 want to retain that filter independently from the fact that you select the
 nation, the first or the last name.
 

@@ -37,7 +37,7 @@ layout
 
 The most powerful part of SqlMask is the ability to define the layout via
 simple text description. In the examples you'll see how easy it is to create
-fancy layout that have all nice gtk Widgets like expanders, notebook, panes
+fancy layout that have all nice gtk Widgets like expanders, notebooks, panes
 and it makes it incredibly easy to nest SqlTables into SqlMask to build
 complex layout that represent also :ref:`relationships`.
 
@@ -62,8 +62,8 @@ try to complete choosing the values of directors from the director table,
 title will suggest completion based on title present in the table (and in
 this case may not be very useful). Description would render is am entry as
 it's a varchar, we wanted to "cast" it to text so we had to explicitly add
-also a token for the label. L is the identifield for a sensitive label (a
-gtk.Label inside a gtk.Event) and TX is the identifier or a scolled text.
+also a token for the label. L is the identified for a sensitive label (a
+gtk.Label inside a gtk.Event) and TX is the identifier or a scrolled text.
 
 The description language you can use is petty rich (and dynamic, so you can
 add your custom made widgets): you'd better have  a look at the demo of

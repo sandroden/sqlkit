@@ -17,9 +17,9 @@ incompatibilities:
 
 0.9.0
 =====
-:Mask: a fix in the layout machinary make setting width specs
+:Mask: a fix in the layout machinery make setting width specs
        working... that means you may need to fine tune the width of your
-       entryes. You set the width of an entry as follows::
+       entries. You set the width of an entry as follows::
 
           last_name:40
 	  first_name:30-
@@ -33,7 +33,7 @@ incompatibilities:
        an object by completion Sqlalchemy will complain that there's a
        missing object. With SA 0.5 this is automatically done, with SA 0.6
        this is no longer supported by sqlkit. You are supposed to
-       explicitely add info on the Column as explained in 
+       explicitly add info on the Column as explained in 
        :meth:`sqlkit.fields.ForeignKeyField.add_related_object`
 
 
@@ -51,7 +51,7 @@ incompatibilities:
 
 :Table & Mask:
 
-  * now keyword table/class/mapper are deprecated in favour to setting it
+  * now keyword table/class/mapper are deprecated in favor to setting it
     as first argument.
 
 :Hooks: 
@@ -71,7 +71,7 @@ incompatibilities:
      m = SqlMask(User,... hooks=Hook())
      m_address = m.related.addresses
      
-   the hook instance will reveive ``m`` as argument where previously
+   the hook instance will receive ``m`` as argument where previously
    received ``m_addresses``
 
 
