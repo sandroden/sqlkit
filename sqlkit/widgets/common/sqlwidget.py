@@ -1083,11 +1083,12 @@ class SqlWidget(gobject.GObject):
             if sqlwidget.record_has_changed():
                 return True
 
+        is_mask = self.is_mask()
         for field in self.gui_fields:      
             if not field.editable:
                 continue
             try:
-                if self.is_mask():
+                if is_mask:
                     ## this part is needed only for mask as in table the cell-renderer does it
                     ## as soon as you leave the cell
                     ## if we setattr now the value in the entry cannot reach the object
