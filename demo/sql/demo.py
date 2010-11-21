@@ -19,7 +19,6 @@ usage: %prog [opts] ex_number
 """
 
 
-import gtk
 import sys
 import os
 import sqlite3
@@ -33,6 +32,8 @@ sys.path.insert(0,ppdir)
 import sqlkit
 from sqlkit.misc import optionparse
 opts, args = optionparse.parse(__doc__)
+
+import gtk
 
 if opts.gtk:
     from sqlkit import debug as dbg

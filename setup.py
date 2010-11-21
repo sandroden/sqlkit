@@ -26,9 +26,10 @@ import sys
 try:
    from setuptools import setup, find_packages
 except ImportError, e:
-   print "You need to install setuptools to use this setup.py script"
-   sys.exit(1)
-
+   from ez_setup import use_setuptools
+   use_setuptools()
+   from setuptools import setup, find_packages
+   
 REQUIRES = []
 
 f = open('sqlkit/__init__.py')
@@ -38,8 +39,9 @@ for line in f:
 
 if sys.argv[1] == 'install':
    try:
-      import gtk
-   except:
+      import pygtk
+      pygtk.require('2.0')
+   except ImportError:
       print "You need to install also pygtk and I was not able to work out"
       print "  a correct dependency in setup.py"
       sys.exit(1)
