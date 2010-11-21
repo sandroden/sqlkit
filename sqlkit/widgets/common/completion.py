@@ -534,9 +534,10 @@ class SimpleCompletion(object):
 
         ## substitute values
         kw = {}
-        OR = self._dynamic_filters.pop(0)
+        OR = self._dynamic_filters[0]
+        dynamic_filters = self._dynamic_filters[1:]
 
-        for key, val in self._dynamic_filters:
+        for key, val in dynamic_filters:
             value =  self.parse_value(val)   # get a possible dynamic filter
             if value:
                 kw[key] = value
