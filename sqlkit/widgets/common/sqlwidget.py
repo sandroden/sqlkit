@@ -1015,9 +1015,9 @@ class SqlWidget(gobject.GObject):
             # TIP: message in the status bar when a commit error is handled
             msg = _("Error while writing to the database: \n" \
                     "are you 'saving as new' an already known record?\n" + \
-                    "original error was: \n%s") % e.message
+                    "original error was: \n%s") % e
             self.message(type='error', text=_(msg))
-            self.sb(e.message)
+            self.sb(e)
 
         return False  # i.e.: rollback
 
@@ -1269,7 +1269,7 @@ class SqlWidget(gobject.GObject):
         if isinstance(error, basestring):
             error_message = error
         else:
-            error_message = error.message
+            error_message = str(error)
             
         if isinstance(error, exc.ValidationWarning):
             error_dict = self.validation_warnings
@@ -2165,7 +2165,7 @@ class UnsavedDataDialog(object):
             try:
                 self.master.record_mask2obj(self.master.get_current_obj())
             except Exception, e:
-                exc.ValidationError(e.message)
+                exc.ValidationError(e)
 
         if self.master.session.dirty or (
             self.master.record_has_changed() and self.master.current not in self.master.session.new):

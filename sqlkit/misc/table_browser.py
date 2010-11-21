@@ -295,7 +295,7 @@ class TableBrowser(object):
         except sqlkit.exc.MissingDescriptorField:
             pass
         except sqlkit.exc.MissingPrimaryKey, e:
-            dialog, l = self.l.dialog(type='ok', layout="l=msg", text=e.message)
+            dialog, l = self.l.dialog(type='ok', layout="l=msg", text=e)
             dialog.show_all()
             response = dialog.run()
             dialog.destroy()

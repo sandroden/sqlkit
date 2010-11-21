@@ -188,7 +188,7 @@ def string2date(string):
                     end_month = False
 
     except Exception, e:
-        raise WrongRelativeDateFormat(e.message)
+        raise WrongRelativeDateFormat(str(e))
     
     return computed
     

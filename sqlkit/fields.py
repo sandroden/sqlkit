@@ -533,7 +533,7 @@ class Field(object):
 
             except Exception, e:
                 msg = "Field %s could not validate value '%s': error was: %s" 
-                raise exc.ValidationError(_(msg % (field_name, e.message) ))
+                raise exc.ValidationError(_(msg % (field_name, e) ))
 
         if value is None and not self.nullable and not self.default:
             raise exc.NotNullableFieldError(self.field_name, master=self.master)
@@ -729,7 +729,7 @@ class FloatField(IntegerField):
                 else:
                     value = float(value)
             except Exception, e:
-                raise exc.ValidationError(e.message)
+                raise exc.ValidationError(e)
             return value
         
     def format_value(self, value, format=None):
@@ -791,7 +791,7 @@ class DecimalField(IntegerField):
                 else:
                     raise exc.ValidationError(_("value is not Decimal nor string: %s" % value))
             except Exception, e:
-                raise exc.ValidationError(e.message)
+                raise exc.ValidationError(e)
             return value
         
     def format_value(self, value, format=None):
@@ -867,7 +867,7 @@ class DateField(Field):
             else:
                 raise exc.ValidationError(_("value is not date nor string: %s" % value))
         except Exception, e:
-            raise exc.ValidationError(e.message)
+            raise exc.ValidationError(e)
         return value
     
     def format_value(self, value, format=None):
@@ -895,7 +895,7 @@ class TimeField(DateField):
                 try:
                     value = dates.parse_time("%s:00" % value)
                 except Exception, e:
-                    raise exc.ValidationError(e.message)
+                    raise exc.ValidationError(e)
         return value
         
     def format_value(self, value, format=None):
@@ -1167,7 +1167,7 @@ class ForeignKeyField(Field):
                 all = self.table.metadata.bind.execute(sql).fetchall()
             except (exceptions.DBAPIError), e:
                 if hasattr(self, 'master'):
-                    self.master.sb(e.message)
+                    self.master.sb(e)
                 return None
 
             if len(all) == 0:
@@ -1223,7 +1223,7 @@ class ForeignKeyField(Field):
             value = self.clean_value(value, input_is_fkey=clean)
         except Exception, e:
             msg = "Field %s could not validate value '%s': error was: %s" 
-            raise exc.ValidationError(_(msg % (self.field_name, value, e.message) ))
+            raise exc.ValidationError(_(msg % (self.field_name, value, e) ))
 
         if value is None and not self.nullable:
             raise exc.NotNullableFieldError(self.field_name, master=self.master)

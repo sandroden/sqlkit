@@ -1009,7 +1009,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 show(self.cell_entry.entry, 'start')
                 return True
             except (sqlalchemy.exceptions.DBAPIError), e:
-                self.sb(e.message)
+                self.sb(e)
                 return True
         else:
             ## 
@@ -1030,7 +1030,7 @@ class SqlTable(sqlwidget.SqlWidget):
                     return True
                 except exc.ValidationError, e:
                     self.cell_entry.valid = False
-                    self.sb(e.message)
+                    self.sb(e)
                     return False
         
         
