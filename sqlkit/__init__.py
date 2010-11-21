@@ -1,6 +1,8 @@
 import os
 import sys
 import gettext
+import pygtk
+pygtk.require('2.0')
 
 from sqlkit.misc import utils
 
