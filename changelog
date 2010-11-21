@@ -1,7 +1,40 @@
+
+sqlkit -0.9.1 - Spetember 29 2010
+
+	usability: added tooltips in many menu entries
+
+	backends: full support for firebird. _sqlkit_table is called sqlkit_table
+          for that backend
+
+	hooks: minor modification to 'on_activate' hook for table widget so that
+	       it behaves as 'on_activate' for masks
+
+	fields: * added std_cleaup als as classmethod, usefull for integers and for
+                  some corner cases
+                * lookup now raises a warning rather then an errore when a lookup
+                  returns multiple values
+
+        sqledit: * minor improvement in the way fkey are represneted when
+                   introspecting a table
+	         * added sqledit customization via nick subdirectories of
+                   .sqledit. and possibility to use very simple addon
+
+         table:   * minor fix to RecordInMask
+
+	 defaults: improved docmentation on hook "on_completion"
+
+	 docs: improved documentation on completion, fields and validation
+
+	 validation: delayed till the save dialog pops the dfferences widget so that
+		     it's only triggered if needed
+
+	 dateedit: minor fix. DateEdit widget didn't set data from a handwritten
+		   entry in some circumstancies
+
 sqlkit 0.9 - September 8 2010
 
 	* support: fixes to sqlalchemy 0.6 (now my current reference)
-	* tests:   fixed some tests that didn't pass under python2.6 
+	* tests:   fixed some tests that didn't pass under python2.6
 	* orphan:  changed the way orphan are handled, now an explicit
 	           parameter must be passed
 	* layout:  changed the way xml is read to bypass an odd segfault on

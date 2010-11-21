@@ -1,32 +1,24 @@
-                      ANNOUNCE: sqlkit 0.8.6
+                      ANNOUNCE: sqlkit 0.9.1
 
-                        September, 12 - 2009
+                        September, 28 - 2010
 
 
-I'm happy to announce release 0.8.6 of sqlkit package for python.
+I'm happy to announce release 0.9.1 of sqlkit package for python.
 
   http://sqlkit.argolinux.org/
 
 This release
 ------------
 
-This is the first stable release. It features a new interface for the
-standalone command (sqledit), many improvements and functions added.
+This release covers 2 main points:
 
-We have used pyinstaller to create standalone executable for Linux and Mac,
-you can download them to use the application and to run the demo.
+  * sqlkit: a very flexible customization system has been introduced that
+            lets you create a sqlkit program in a ridiculous amount of lines
 
-It's now registered in pypi so you can 'easy_install' it.
-I'm currently looking for a debian sponsor to upload the package in sqeeze.
+  * the firebird backend support was tested and added 
 
-A new tutorial is available here:
-http://sqlkit.argolinux.org/sqlkit/tutorial.html
-
-Refer to http://sqlkit.argolinux.org/download/Changelog for details
-
-
-The package
------------
+The python package
+------------------
 SQLkit PyGtk package provides Mask and Table widgets to edit database
 data. It's meant as a base for database desktop applications.
 
@@ -68,7 +60,7 @@ Main features of sqlkit:
 
 Sqlkit is based on:
 -------------------
-  * python (>= 2.4 - but developed on 2.5) 	
+  * python (>= 2.5)
   * PyGtk	
   * Sqlalchemy (>= 0.5)
   * glade
