@@ -1,5 +1,0 @@
-?package(python-sqlkit):\
-        needs="x11"\
-        section="Applications/Data Management"\
-        title="sqledit"\
-        command="/usr/bin/sqledit"

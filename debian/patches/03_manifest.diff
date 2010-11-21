@@ -1,8 +1,0 @@
---- sqlkit-0.8.6.orig/MANIFEST.in	2009-09-04 19:35:20.000000000 +0200
-+++ sqlkit-0.8.6/MANIFEST.in	2009-09-04 19:52:53.000000000 +0200
-@@ -1,5 +1,3 @@
--include sqlkit/locale/*pot
--include sqlkit/locale/*/*/sqlkit.*
- include sqlkit/layout/cal15.png
- 
- 
