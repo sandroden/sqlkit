@@ -3,9 +3,21 @@
 import os
 import sys
 import doctest
+import sqlite3
+from contextlib import closing
 
-import sys
 import babel
+
+DB_SCHEMA = '../../demo/sql/model/schema.sql'
+DB_FILE = '../../demo/sql/model/db.sqlite'
+def init_db():
+    if os.path.exists(DB_FILE):
+        os.remove(DB_FILE)
+    with closing(sqlite3.connect(DB_FILE)) as db:
+        with open(DB_SCHEMA, 'r') as schema:
+            db.cursor().executescript(schema.read())
+        db.commit()
+init_db()
 
 
 os.environ['LANG'] = 'C'

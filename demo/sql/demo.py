@@ -15,19 +15,22 @@ usage: %prog [opts] ex_number
    -n, --number=l: stop after 'n' snippets
    -r, --reload: reload all snippets (some will stop for confirmation)
    -e, --exit: exit on exception
+   -x, --existent-db: don't delete the demo db if it exists
 """
 
 
 import gtk
 import sys
 import os
-import gobject
+import sqlite3
+from contextlib import closing
 
 pdir = os.path.dirname(os.getcwd())
 ppdir = os.path.dirname(pdir)
 sys.path.insert(0,pdir)    
 sys.path.insert(0,ppdir)    
 
+import sqlkit
 from sqlkit.misc import optionparse
 opts, args = optionparse.parse(__doc__)
 
@@ -41,10 +44,16 @@ if opts.gtk:
     dbg.trace_function(exclude=but)
 
 from demo_tour import Demo
-import sqlkit
 from sqlkit.widgets import SqlMask, SqlTable
 from sqlkit.db import proxy, defaults, utils
 import model
+
+
+def init_db():
+    with closing(sqlite3.connect('model/db.sqlite')) as db:
+        with open('model/schema.sql', 'r') as schema:
+            db.cursor().executescript(schema.read())
+        db.commit()
 
 class DemoSql(Demo):
     def load_module(self, demo):
@@ -83,6 +92,11 @@ class DemoSql(Demo):
 
         return GLOB['t']
 
+if not opts.existent_db and os.path.exists('model/db.sqlite'):
+    os.remove('model/db.sqlite')
+if not os.path.exists('model/db.sqlite'):
+    init_db()
+    
 d = DemoSql(xml=False, debug=True)
 
 if args:
@@ -99,7 +113,6 @@ if args:
 
 if opts.gtk:
     l =d.execute_clicked_cb(None)
-#    gobject.idle_add(l.model_clear, None)
 
 if opts.test:
     start = opts.offset and int(opts.offset) or 0
