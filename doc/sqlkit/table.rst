@@ -188,7 +188,7 @@ Similarly, if the column in which you click is a ForeignKey, the popped menu
 will show an entry to edit the referenced record in a mask.
 
 To be sure it will have the customization you want you can 
-:ref:`register <utils>` Layout, Hooks and Class.
+:ref:`register <dbutils>` Layout, Hooks and Class.
 
 In the case you have several possible layout for the same fk, and you want
 to use a layout that is not the default one, you can use ``set_fk_layout``

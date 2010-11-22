@@ -261,8 +261,8 @@ class SqlWidget(gobject.GObject):
 
         :param layout_nick:
            nick name of a layout to be used. Defaults to ``default``. A layout can
-           be registered under a nick via ``sqlkit.db.utils.register_layout``
-           function (see :ref:`utils <utils>`)
+           be registered under a nick via :func:`register layout <sqlkit.db.utils.register_layout>``
+           function 
 
         :param relationship_mode: SINGLE, m2m, m2o, o2m
               
