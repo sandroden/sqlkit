@@ -32,11 +32,11 @@ The code is available under an hg repository::
 
   hg clone http://hg.argolinux.org/py/sqlkit
   
-You can download sqlkit package VER from here_ in tar or deb format. 
-
+You can download sqlkit package VER from here_ in tar or zip format. 
 
 +--------------------------------------+-------------------------------------+
-| Python package                       |sqlkit-VER.tar.gz_                   |
+| Python package                       |* sqlkit-VER.tar.gz_                 |
+|                                      |* sqlkit-VER.zip_                    |
 +--------------------------------------+-------------------------------------+
 | Debian/Ubuntu package (read below!   |python-sqlkit_DEBVER_all.deb_        |
 | you are supposed to install          |                                     |
@@ -49,7 +49,7 @@ You can download sqlkit package VER from here_ in tar or deb format.
 
 
 Sqlkit is used in a production environment and great care is put in fixing
-any bug as soon as possible. The first stable version will be 0.8.6. 
+any bug as soon as possible. The first stable version has been 0.8.6 in 2008. 
 
 I really appreciate any bug report particularly if based on a repeatable
 example, possibly starting from the demo.
@@ -156,6 +156,7 @@ Sqlkit is developed by `Alessandro Dentella`_
 .. _Experimental: http://packages.debian.org/experimental/python-sqlalchemy
   
 .. _sqlkit-VER.tar.gz: http://sqlkit.argolinux.org/download/sqlkit-VER.tar.gz
+.. _sqlkit-VER.zip: http://sqlkit.argolinux.org/download/sqlkit-VER.zip
 .. _python-sqlkit_DEBVER_all.deb: http://sqlkit.argolinux.org/download/python-sqlkit_DEBVER_all.deb
 .. _sqledit-binary-LNXVER.tar.gz: http://sqlkit.argolinux.org/download/sqledit-binary-LNXVER.tar.gz
 .. _sqledit-setup-WINVER.exe: http://sqlkit.argolinux.org/download/sqledit-setup-WINVER.exe
