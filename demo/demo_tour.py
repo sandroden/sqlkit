@@ -50,7 +50,7 @@ class Demo(object):
 
         self.pattern = pattern or self.example_pattern
         lay = """
-           { {B m=_File  } {O tb=gtk-execute } }
+           {V.header  }
            {v 
                {h TVS=a:120.300 {N TXS=txt:250. TVS=tree TVS=el TVS=pack TXS=xml} }
                TXS=note
@@ -81,16 +81,37 @@ class Demo(object):
         self.demos = self.create_demos(self.pattern, exclude)
         self.tv = self.w['TV=a']
         self.model = self.configure_treeview(self.tv, self.demos, self.src, self.note)
-        if not debug:
-            self.w['tb=gtk-execute'].hide()
-        else:
-            self.w['tb=gtk-execute'].connect('clicked', self.execute_clicked_cb)
-            self.execute_clicked_cb(None)
+        self.prepare_actions()
+        # self.l.menu('m=_File',
+        #     ('inspect widgets' , 'activate', self.pop_inspect, ),
+        #     ('gtk-quit' , 'activate', gtk.main_quit, ),
+        #     )   
 
-        self.l.menu('m=_File',
-            ('inspect widgets' , 'activate', self.pop_inspect, ),
-            ('gtk-quit' , 'activate', gtk.main_quit, ),
-            )   
+    def prepare_actions(self):
+
+        UI = """
+          <toolbar name="TbMain">
+            <toolitem  action="Execute" />
+            <toolitem  action="Quit" />
+          </toolbar>
+        """
+
+        self.actiongroup = gtk.ActionGroup('Main')
+        self.actiongroup.add_actions([
+            ('TbMain', None, None),
+            ('Execute', 'gtk-execute', 'Debug', None, "Debug via a gtk logger", self.execute_clicked_cb),
+            ('Quit', 'gtk-quit', None, "<Control>q", None, gtk.main_quit),
+            ])
+        self.ui_manager = gtk.UIManager()
+        self.ui_manager.add_ui_from_string(UI)
+        self.ui_manager.insert_action_group(self.actiongroup, 10)
+
+        self.accel_group = self.ui_manager.get_accel_group()
+        self.w['Window'].add_accel_group(self.accel_group)
+        header = self.w['V.header']
+        toolbar = self.ui_manager.get_widget('/TbMain')
+        header.add(toolbar)
+        header.show_all()
 
     def configure_treeview(self, treeview, demos, src, note):
         

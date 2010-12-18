@@ -18,7 +18,7 @@ usage: %prog [opts] ex_number
    -x, --existent-db: don't delete the demo db if it exists
 """
 
-
+from __future__ import with_statement
 import sys
 import os
 import sqlite3
