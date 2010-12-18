@@ -1,4 +1,11 @@
-
+sqlkit - 0.9.2 -December 18 2010
+	setup.py: modified so that it should be easier to install by using
+   	          simply 'python setup.py install'. Uses distribute_setup.py
+	          if needed to install distribute
+	demo:     now the model is recreated each time the demo is started
+	debian:   removed debian staff: Pietro Battiston started the
+	          debian packaging as a standalone project
+	
 sqlkit -0.9.1 - Spetember 29 2010
 
 	usability: added tooltips in many menu entries
