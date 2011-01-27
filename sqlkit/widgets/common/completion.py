@@ -1117,7 +1117,7 @@ def edit_foreign_key_table(wdg, (master, field_name, mode)):
         except exc.ValidationError, e:
             pass
     else:
-        SqlTable(table=ftable, dbproxy=master.dbproxy)
+        SqlTable(ftable, dbproxy=master.dbproxy)
     
 def get_foreign_info(master, field_name, names=True):
 
