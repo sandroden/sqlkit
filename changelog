@@ -1,3 +1,8 @@
+sqlkit - 0.9.2.1 - Jan 27 2011
+	translations: added polish translation
+	docs:  removal o javacript that I'm not sure can redistribute
+
+	
 sqlkit - 0.9.2 -December 18 2010
 	setup.py: modified so that it should be easier to install by using
    	          simply 'python setup.py install'. Uses distribute_setup.py
