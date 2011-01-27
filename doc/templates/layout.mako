@@ -160,7 +160,7 @@ ${self.footer()}
         Enter search terms or a module, class or function name.
 	</p>
     <h3>License</h3>
-	<img src="${pathto('_static/loghi/gplv3.png', 1)}" alt="logo GPLv3">
+	<img src="${pathto('_static/gplv3.png', 1)}" alt="logo GPLv3">
 
     </div>
     <script type="text/javascript">$('#searchbox').show(0);</script>
