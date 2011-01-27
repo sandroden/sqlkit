@@ -28,6 +28,8 @@ demo/sql/model/rel2.py
 demo/sql/model/test2.py
 demo/sql/model/test3.py
 doc/sqlkit/minspect.rst
+demo/sql/images/.thumbnail
+demo/sql/model/db.sqlite
 sqlkit/misc/utils2.py
 sqlkit/misc/utils3.py
 test.py
