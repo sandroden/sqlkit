@@ -1,6 +1,9 @@
+sqlkit - 0.9.2.2 - Feb 1 2011
+	setup: setup tuning in MANIFEST that didn't add demo and tests
+	
 sqlkit - 0.9.2.1 - Jan 27 2011
 	translations: added polish translation
-	docs:  removal o javacript that I'm not sure can redistribute
+	docs:  removal of javacript that I'm not sure can redistribute
 
 	
 sqlkit - 0.9.2 -December 18 2010

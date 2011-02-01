@@ -1,6 +1,6 @@
 # Makefile for Sphinx documentation
 #
-VER           = 0.9.2
+VER           = 0.9.2.2
 DEBVER        = 0.8.6.1-1
 WINVER        = 0.8.6.1
 LNXVER        = 0.9-rc1
