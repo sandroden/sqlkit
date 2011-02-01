@@ -5,7 +5,7 @@ Localization
 You can read about sqlkit and localization in the docs.
 
 If you feel like contributing, I'd really appreciate you send me a
-translation file taht you can optain following the following steps.
+translation file that you can obtain following the following steps.
 
 
   1. copy locale/sqlkit.pot in the folder (to be created) for your language

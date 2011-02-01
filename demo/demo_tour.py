@@ -45,7 +45,7 @@ class InputStream(object):
 
 
 class Demo(object):
-    example_pattern = 'ex_.*.py'
+    example_pattern = 'ex_.*.py$'
     def __init__(self, pattern=None, xml=True, debug=False, exclude="demo.py"):
 
         self.pattern = pattern or self.example_pattern

@@ -63,6 +63,28 @@ try:
 except ImportError:
    REQUIRES += ['python-dateutil']
 
+try:
+   from sphinx.setup_command import BuildDoc
+
+   class BuildDocFromDir(BuildDoc):
+       def run(self):
+           """
+           Run the normal build but first chdir to the documentation root.
+           """
+           orig_params = [os.path.realpath( '.' ), self.builder_target_dir, self.doctree_dir]
+           os.chdir( self.source_dir )
+
+           self.builder_target_dir = os.path.relpath( self.builder_target_dir, self.source_dir )
+           self.doctree_dir = os.path.relpath( self.doctree_dir, self.source_dir )
+
+           BuildDoc.run( self )
+           curdir, self.builder_target_dir, self.docree_dir = orig_params
+           os.chdir( curdir )
+   cmdclass = {'build_sphinx': BuildDocFromDir}
+
+except ImportError:
+   cmdclass = {}
+   
    
 setup(name='sqlkit',
       version=version,
@@ -78,5 +100,6 @@ setup(name='sqlkit',
       classifiers= classifiers.split('\n'),
       include_package_data=True,      
       zip_safe=False,
+      cmdclass=cmdclass,
      )
 
