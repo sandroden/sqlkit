@@ -17,34 +17,37 @@ One2Many in a SqlMak
 
 This is a very powerful feature of ``sqlkit`` that is built on top of
 ``sqlalchemy``'s mechanism of properties and session and on the ability of
-``layout`` to let you define in a symbolic way a widget.
+``layout`` to let you define a widget in a symbolic way.
 
-In the following example we will use a ``Mask`` to represent Directors 
-and a ``Table`` to represent films, connected to the first by a OneToMany
+In the following example we will use a ``SqlMask`` to represent ``Directors`` 
+and a ``SqlTable`` to represent films, connected to the first by a OneToMany
 relationship.
 
 Suppose you already define a couple of tables in sqlalchemy, we will do it
 using elixir_ that slightly simplifies the syntax, in the package the demo
 uses declarative layer instead::
 
-  class Director(elixir.Entity):
-      last_name = elixir.Field(elixir.String(60))
-      first_name = elixir.Field(elixir.String(60))
-      movies = elixir.OneToMany('Movie', inverse='director', )
-      elixir.using_options(tablename='director')
-  
-      def __repr__(self):
-          return u'<Director: %s>' %self.last_name
-  
-  class Movie(elixir.Entity):
-      title = elixir.Field(elixir.String(60))
-      year = elixir.Field(elixir.Integer())
-      director = elixir.ManyToOne('Director', inverse='movies' )
-      elixir.using_options(tablename='movie')
-  
-      def __repr__(self):
-          return u'<Movie: %s>' % self.title
-  
+   class Director(Base):
+       __tablename__ = 'director'
+       id             = Column(Integer, primary_key=True)
+       last_name   = Column(String(60), nullable=False)
+       first_name  = Column(String(60), nullable=False)
+       nation      = Column(String(6))
+
+       movies      = relation('Movie', backref='director', cascade='all, delete-orphan',)
+
+   class Movie(Base):
+       __tablename__  = 'movie'
+       id             = Column(Integer, primary_key=True)
+       title          = Column(String(60), nullable=False)
+       image          = Column(String(250), info={'render' : 'image', 
+                              'base_dir' : './images', 'thumbnail_size' : (30,30)})
+       description    = Column(String(512))
+       year           = Column(Integer())
+       date_release   = Column(Date())
+       director_id    = Column(Integer, ForeignKey('director.id'), nullable=False,
+			       info={'attach_instance': 'director'})
+
 To get a mask that:
  
  1. lets you see director and films together
@@ -52,16 +55,16 @@ To get a mask that:
 
 You just have to start the SqlMask like this::
 
-  lay = """first_name last_name
-         o2m=movies      - - -
+  lay = """first_name 
+           last_name  nation
+           o2m=movies      - - -
          """
-  SqlMask(Director.mapper, metadata=__metadata__, 
-          session=elixir.session,layout=lay)
+  SqlMask(model.Director,layout=lay, ...)
 
 
 And you will get a mask that looks like this:
 
-.. image:: ../img/director_movies.png
+.. image:: ../img/o2m.png
 
 
 delete behavior

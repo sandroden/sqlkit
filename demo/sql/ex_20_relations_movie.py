@@ -9,9 +9,8 @@ the mapping so we pass a class_ attribute that is really a mapped class
 
 lay = """
    first_name
-   last_name
-   nation
-   m2m=movies -
+   last_name   nation
+   m2m=movies - - -
 """
 
 t = SqlMask(model.Director, dbproxy=db, layout=lay)

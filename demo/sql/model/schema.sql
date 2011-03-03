@@ -148,7 +148,7 @@ INSERT INTO "movie" VALUES(3,'Sostiene pereira','Great Mastroianni!',1995,NULL,6
 INSERT INTO "movie" VALUES(5,'La ragazza sul ponte.','Don''t miss this film',1999,'2008-04-07',7,'la-ragazza-sul-ponte.jpg',2);
 INSERT INTO "movie" VALUES(7,'Le vite degli altri','Probably the best film this year',2006,'2007-04-06',8,'le-vite-degli-altri.jpg',3);
 INSERT INTO "movie" VALUES(8,'4 minuti',NULL,2006,'2007-05-04',11,NULL,1);
-INSERT INTO "movie" VALUES(9,'Cantando dietro il paraventi','Really charming atmosphere...',2002,'2003-10-24',13,NULL,NULL);
+INSERT INTO "movie" VALUES(9,'Cantando dietro il paraventi','Really charming atmosphere...',2002,'2003-10-24',13,'cantando.jpeg',2);
 INSERT INTO "movie" VALUES(13,'Jim e Jules',NULL,1963,NULL,12,NULL,1);
 INSERT INTO "movie" VALUES(21,'100 chiodi',NULL,2007,'2007-03-30',13,NULL,NULL);
 INSERT INTO "movie" VALUES(22,'Dogville',NULL,NULL,'2003-11-07',3,NULL,NULL);
@@ -163,6 +163,6 @@ INSERT INTO "movie" VALUES(31,'La signora della porta accanto',NULL,1983,NULL,12
 INSERT INTO "movie" VALUES(36,'Il marito della parrucchiera',NULL,1990,NULL,7,NULL,NULL);
 INSERT INTO "movie" VALUES(38,'Tango',NULL,1993,NULL,7,NULL,NULL);
 INSERT INTO "movie" VALUES(39,'La strada','unforgettable!',1954,NULL,14,NULL,3);
-INSERT INTO "movie" VALUES(40,'La leggenda del santo bevitore',NULL,1988,NULL,13,NULL,NULL);
+INSERT INTO "movie" VALUES(40,'La leggenda del santo bevitore',NULL,1988,NULL,13,'leggenda.jpeg',NULL);
 CREATE INDEX ix_movie_director_id ON movie (director_id);
 COMMIT;

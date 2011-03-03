@@ -4,68 +4,45 @@
  SqlMask
 =========
 
-.. image:: ../img/mask-demo.png
+.. image:: ../img/layout-simple.png
    :align: right
-   :scale: 50%
-   :class: preview
-
-.. autoclass:: sqlkit.widgets.SqlMask()
-   :members: get_widget, clear_mask, set_frame_label
-
-Introspection of the table is used to determine which widgets will be used to
-edit the data. The following rules are applied:
-
-  :varchar: gtk.Entry
-     
-  :numbers: gtk.Entry with right alignment
-
-  :bool: gtk.CheckBox
-
-  :text: gtk.Text
-  
-  :FKey: fk_edit (a custom ComboBoxEntry)
-
-  :date/datetime: dateedit (entry + arrow for calendar + time)
-
-  :default: gtk.Entry
-
-All fields will have a label that is sensitive to mouse clicks. A mouse
-click pops up a :ref:`filter <filters>` widget.
 
 layout
 =======
 
-The most powerful part of SqlMask is the ability to define the layout via
-simple text description. In the examples you'll see how easy it is to create
+The most powerful part of SqlMask is the ability to **define the layout via
+simple text description**. In the examples you'll see how easy it is to create
 fancy layout that have all nice gtk Widgets like expanders, notebooks, panes
 and it makes it incredibly easy to nest SqlTables into SqlMask to build
-complex layout that represent also :ref:`relationships`.
+complex layouts that can also represent :ref:`relationships`.
+
+If you know ReST language and glade, it relates to glade as ReSt to html.
 
 If no layout is provided a flat one will be generated on the fly.
-
-.. image:: ../img/layout-simple.png
-   :align: right
 
 The key is that a textual layout is parsed to see if the token are
 recognized as fields of the table that the mask is editing, in which case
 introspection is done to understand which widget should be used to edit the
 data (according to rules above) and a label is added::
 
-   title
-   date_release
-   L=description TXS=description
-   director_id
+   mylayout = """
+      image
+      title
+      date_release
+      TXS=description
+      director_id
+   """
+   m = SqlMask(model.Movie, layout=mylayout, ...)
 
-will show a mask with an entry, a date a text and a fkey. Title and
-director_id will be already instrumented with completion: director_id will
-try to complete choosing the values of directors from the director table,
-title will suggest completion based on title present in the table (and in
-this case may not be very useful). Description would render is am entry as
-it's a varchar, we wanted to "cast" it to text so we had to explicitly add
-also a token for the label. L is the identified for a sensitive label (a
-gtk.Label inside a gtk.Event) and TX is the identifier or a scrolled text.
+will creare a mask with an image, an entry, a date a text and a
+fkey. ``title`` and ``director_id`` will be already instrumented with
+completion: ``director_id`` will try to complete choosing the values of
+directors from the ``director`` table, ``title`` will suggest completion based
+on title present in the table (and in this case may not be very
+useful). ``description`` would render as an entry as it's a *varchar*, we wanted
+to "cast" it to *text* using ``TXS=``. 
 
-The description language you can use is petty rich (and dynamic, so you can
+The description language you can use is pretty rich (and dynamic, so you can
 add your custom made widgets): you'd better have  a look at the demo of
 sqlkit.layout that you find in sqlkit.demo.layout
 
@@ -83,12 +60,15 @@ attribute of the SqlWidget. In example 26 we use::
   Tbl = t.widgets['T.a']
   Tbl.get_parent().child_set_property(Tbl, 'y-options', gtk.EXPAND|gtk.FILL)
 
-that changes pack properties to a gtk.Table whose name is ``T.a``
+that changes pack properties to a gtk.Table whose name is ``T.a``. If you
+have ipython you can start the demo with option -i to gain an interactive
+shell to play with an experiment with the widgets. By default each field has
+a label whose key in widgets dict is ``l=field_name`` while each entry is
+``e=field_name``. 
 
 
 Shortcuts
 ----------
-
 
 :mouse scrolling: allows to browse the records that have been loaded by a
    reload operation
@@ -111,6 +91,11 @@ Signals
      :param obj: the object currently selected or None
 
 .. versionadded:: 0.8.8
+
+.. image:: ../img/mask-demo.png
+   :align: right
+   :scale: 50%
+   :class: preview
 
 .. _save-as:
 
@@ -152,3 +137,27 @@ It's important you understand exactly what it does so that:
    not visible that field will not get copied. You may have problems if
    required fields are not visible. To allow to fill with new values a
    :ref:`hook <hooks>` is invoked named :ref:`on_save_as <on_save_as>`.
+
+.. autoclass:: sqlkit.widgets.SqlMask()
+   :members: get_widget, clear_mask, set_frame_label
+
+Introspection of the table is used to determine which widgets will be used to
+edit the data. The following rules are applied:
+
+  :varchar: gtk.Entry
+     
+  :numbers: gtk.Entry with right alignment
+
+  :bool: gtk.CheckBox
+
+  :text: gtk.Text
+  
+  :FKey: fk_edit (a custom ComboBoxEntry)
+
+  :date/datetime: dateedit (entry + arrow for calendar + time)
+
+  :default: gtk.Entry
+
+All fields will have a label that is sensitive to mouse clicks. A mouse
+click pops up a :ref:`filter <filters>` widget.
+
