@@ -278,7 +278,7 @@ class SimpleCompletion(object):
             # TIP: status bar 
             self.master.sb(_("search mode: %s") % mode)
         self.model.clear()
-        self._prev_gruop_by_value = None
+        self._prev_group_by_value = None
 
         result = self.select_values(mode, return_sql=return_sql, value=value)
         self._needs_recalculating = True
