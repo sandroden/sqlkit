@@ -79,15 +79,19 @@ class DateEdit(gtk.HBox):
                     'The date currently selected',             # description
                     gobject.PARAM_READWRITE),                  # flags
 
-        'initial_date' : (gobject.TYPE_PYOBJECT,
+        'initial-date' : (gobject.TYPE_PYOBJECT,
                     'Initial Date',
                     'The initial date',
                     gobject.PARAM_READABLE),
+        'width-chars' : (gobject.TYPE_PYOBJECT,
+                    'Width of the entry in chars',
+                    'The width of the entry',
+                    gobject.PARAM_READWRITE),
                   
     }
 
     __gsignals__ = {
-        'date_changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+        'date-changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
                           ()),                          
     }
 
@@ -145,9 +149,10 @@ class DateEdit(gtk.HBox):
         self._entry = self._date_entry
         self._date_entry.set_max_length(15)
         self._date_entry.set_width_chars(10)
-        self._align_entry = gtk.Alignment(1,0,1,0)
+        self._align_entry = gtk.Alignment(0,0)
         #self.pack_start(self._date_entry, True, True, 0)
         date_box.add(self._align_entry)
+        date_box.child_set_property(self._align_entry, 'expand', False)
         self._align_entry.add(self._date_entry)
         self._align_entry.show()
         self._date_entry.show()
@@ -353,6 +358,8 @@ class DateEdit(gtk.HBox):
             return self.get_date()
         elif property.name == 'initial-date':
             return self._initial_date
+        elif property.name == 'width-chars':
+            return self._date_entry.props.width_chars
         else:
             raise AttributeError, 'unknown property %s' % property.name
 
@@ -360,6 +367,8 @@ class DateEdit(gtk.HBox):
     def do_set_property(self, property, value):
         if property.name == 'date':
             self.set_date(value)
+        elif property.name == 'width-chars':
+            self._date_entry.props.width_chars = value
         else:
             raise AttributeError, 'unknown property %s' % property.name
             
