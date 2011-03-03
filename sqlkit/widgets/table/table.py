@@ -1244,7 +1244,7 @@ class SqlTable(sqlwidget.SqlWidget):
         mask = SqlMask(self.mapper, session=self.session, layout=self.layout,
                        metadata=self.metadata, dbproxy=self.dbproxy, hooks=self.hooks)
         mask.set_mode(self.mode, reset=True)
-        mask.mode = '-b'
+        mask.mode = '-bd'
         obj = getattr(self, '_clicked_obj', self.get_selected_obj())
         try:
             del self._clicked_obj
@@ -1253,6 +1253,12 @@ class SqlTable(sqlwidget.SqlWidget):
         
         self.select_path(obj=obj)
         mask.set_records([obj])
+        def update_table_treeview(mask, table):
+            # emitting a 'row-changed', forces the update of the treeview but 
+            model = self.modelproxy.modelstore
+            path = table.get_selected_path()
+            model.emit('row-changed', path, model.get_iter(path))
+        mask.connect('record-saved', update_table_treeview, self)
 
         ## let's make sure any changes in the table, after a commit, is reflected
         ## back in the mask. This prevents a double commit with opposite meaning
@@ -1597,7 +1603,7 @@ class SqlTable(sqlwidget.SqlWidget):
         :param obj:  if path is None, the object to be searched for and selected
         """
 
-        self.views['main'].select_path(path=path, obj=obj)
+        return self.views['main'].select_path(path=path, obj=obj)
             
     def add_record(self, obj):
         """
