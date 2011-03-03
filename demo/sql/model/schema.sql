@@ -139,28 +139,29 @@ CREATE TABLE movie (
         year INTEGER, 
         date_release DATE, 
         director_id INTEGER NOT NULL, 
-        PRIMARY KEY (id), 
-        CONSTRAINT movie_director_id_fk FOREIGN KEY(director_id) REFERENCES director (id)
+        image VARCHAR(255), 
+PRIMARY KEY (id), 
+ CONSTRAINT movie_director_id_fk FOREIGN KEY(director_id) REFERENCES director (id)
 );
-INSERT INTO "movie" VALUES(3,'Sostiene Pereira','Geat Mastroianni!',1995,NULL,6);
-INSERT INTO "movie" VALUES(5,'La ragazza sul ponte','Don''t miss this film',1999,'2008-04-07',7);
-INSERT INTO "movie" VALUES(7,'Le vite degli altri','Probably the best film this year',2006,'2007-04-06',8);
-INSERT INTO "movie" VALUES(8,'4 minuti',NULL,2006,'2007-05-04',11);
-INSERT INTO "movie" VALUES(9,'Cantando dietro il paraventi','Really charming atmosphere...',2002,'2003-10-24',13);
-INSERT INTO "movie" VALUES(13,'Jim e Jules',NULL,1963,NULL,12);
-INSERT INTO "movie" VALUES(21,'100 chiodi',NULL,2007,'2007-03-30',13);
-INSERT INTO "movie" VALUES(22,'Dogville',NULL,NULL,'2003-11-07',3);
-INSERT INTO "movie" VALUES(23,'Soffio',NULL,2007,NULL,2);
-INSERT INTO "movie" VALUES(25,'Time',NULL,2006,NULL,2);
-INSERT INTO "movie" VALUES(26,'La Samaritana',NULL,2004,NULL,2);
-INSERT INTO "movie" VALUES(27,'Ferro 3','very few words indeed',2004,'2008-11-10',2);
-INSERT INTO "movie" VALUES(28,'Il Capo',NULL,NULL,'2007-01-05',3);
-INSERT INTO "movie" VALUES(29,'Le onde del destino',NULL,NULL,NULL,3);
-INSERT INTO "movie" VALUES(30,'L''Arco',NULL,2005,NULL,2);
-INSERT INTO "movie" VALUES(31,'La signora della porta accanto',NULL,1983,NULL,12);
-INSERT INTO "movie" VALUES(36,'Il marito della parrucchiera',NULL,1990,NULL,7);
-INSERT INTO "movie" VALUES(38,'Tango',NULL,1993,NULL,7);
-INSERT INTO "movie" VALUES(39,'La strada','unforgettable!',1954,NULL,14);
-INSERT INTO "movie" VALUES(40,'La leggenda del sandro bevitore',NULL,1988,NULL,13);
+INSERT INTO "movie" VALUES(3,'Sostiene pereira','Great Mastroianni!',1995,NULL,6,'sostiene-pereira.jpg');
+INSERT INTO "movie" VALUES(5,'La ragazza sul ponte.','Don''t miss this film',1999,'2008-04-07',7,'la-ragazza-sul-ponte.jpg');
+INSERT INTO "movie" VALUES(7,'Le vite degli altri','Probably the best film this year',2006,'2007-04-06',8,'le-vite-degli-altri.jpg');
+INSERT INTO "movie" VALUES(8,'4 minuti',NULL,2006,'2007-05-04',11,NULL);
+INSERT INTO "movie" VALUES(9,'Cantando dietro il paraventi','Really charming atmosphere...',2002,'2003-10-24',13,NULL);
+INSERT INTO "movie" VALUES(13,'Jim e Jules',NULL,1963,NULL,12,NULL);
+INSERT INTO "movie" VALUES(21,'100 chiodi',NULL,2007,'2007-03-30',13,NULL);
+INSERT INTO "movie" VALUES(22,'Dogville',NULL,NULL,'2003-11-07',3,NULL);
+INSERT INTO "movie" VALUES(23,'Soffio',NULL,2007,NULL,2,NULL);
+INSERT INTO "movie" VALUES(25,'Time',NULL,2006,NULL,2,NULL);
+INSERT INTO "movie" VALUES(26,'La Samaritana',NULL,2004,NULL,2,NULL);
+INSERT INTO "movie" VALUES(27,'Ferro 3','very few words indeed',2004,'2008-11-10',2,NULL);
+INSERT INTO "movie" VALUES(28,'Il Capo',NULL,NULL,'2007-01-05',3,NULL);
+INSERT INTO "movie" VALUES(29,'Le onde del destino',NULL,NULL,NULL,3,NULL);
+INSERT INTO "movie" VALUES(30,'L''Arco',NULL,2005,NULL,2,NULL);
+INSERT INTO "movie" VALUES(31,'La signora della porta accanto',NULL,1983,NULL,12,NULL);
+INSERT INTO "movie" VALUES(36,'Il marito della parrucchiera',NULL,1990,NULL,7,NULL);
+INSERT INTO "movie" VALUES(38,'Tango',NULL,1993,NULL,7,NULL);
+INSERT INTO "movie" VALUES(39,'La strada','unforgettable!',1954,NULL,14,NULL);
+INSERT INTO "movie" VALUES(40,'La leggenda del santo bevitore',NULL,1988,NULL,13,NULL);
 CREATE INDEX ix_movie_director_id ON movie (director_id);
 COMMIT;

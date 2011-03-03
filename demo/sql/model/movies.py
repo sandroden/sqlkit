@@ -40,6 +40,7 @@ class Movie(Base):
     __tablename__  = 'movie'
     id             = Column(Integer, primary_key=True)
     title          = Column(String(60), nullable=False)
+    image          = Column(String(250), info={'render' : 'image', 'base_dir' : './images', 'thumbnail_size' : (30,30)})
     description    = Column(String(512))
     year           = Column(Integer())
     date_release   = Column(Date())
