@@ -71,6 +71,7 @@ TREEPOPUP = '''
         <menuitem action="MaskView" />
         <menuitem action="MaskViewFKey" />
         <menuitem action="New" />
+        <menuitem action="NewChild" />
         <menuitem action="UploadImage" />
         <menuitem action="DeleteFile" />
         <menuitem action="UploadFile" />

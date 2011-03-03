@@ -136,6 +136,9 @@ class ModelProxy(gobject.GObject):
         else:
             self.set_listmodel()
 
+    def is_tree(self):
+        return isinstance(self.modelstore, gtk.TreeStore)
+    
     def set_treemodel(self, tree_field_name, tree_order=None):
         """
         change the mode of the Table to a TreeTable, possibly converting the model itself

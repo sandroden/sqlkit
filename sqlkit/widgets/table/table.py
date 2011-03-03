@@ -265,6 +265,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.actiongroup_insert.add_actions([
             ('New', gtk.STOCK_NEW,   None, '', None, self.record_new_cb),
+            ('NewChild', gtk.STOCK_NEW,   _('New child row'), '',
+             _("Create e new row as child of this one"), self.record_new_child_cb),
             ])
         self.actiongroup_delete.add_actions([
             ('Delete', gtk.STOCK_DELETE, None, '<Control>k', None, self.record_delete),
@@ -523,6 +525,20 @@ class SqlTable(sqlwidget.SqlWidget):
 
         return False
         
+    def key_tree_ctrl_c(self, treeview, event):
+
+        if not self.modelproxy.is_tree():
+            return
+        if not 'i' in self.mode:
+            self.sb(_("Insertion of new records is disabled. Sorry"))
+            return
+        try:
+            self.record_new(treeview, child=True)
+        except exc.ValidationError, e:
+            return True
+
+        return False
+        
     def key_tree_ctrl_s(self, treeview, event):
 
         if self.current in self.session.new and 'i' not in self.mode:
@@ -630,6 +646,14 @@ class SqlTable(sqlwidget.SqlWidget):
                 if not self.cell_validate():
                     return True
 
+    def record_new_child_cb(self, widget, event=None):
+        """Save the record and invokes the validator before UPDATE/INSERT a record
+        """
+        try:
+            self.record_new(parent=self._clicked_path)
+        except (exc.DialogValidationError, exc.CancelledAction):
+            return True
+    
 ###### Saving
     def set_value(self, field_name, value, path=None, fkvalue=None, initial=False, shown=False):
         """
@@ -825,8 +849,16 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.session.expire(self.relationship_leader.current)
                 self.relationship_leader.record_display(check=False, delay_message=2)
 
-    def record_new(self, widget=None, view_name='main', start=True, obj=None, *args):
-        """prepare for 
+    def record_new(self, widget=None, view_name='main', start=True, obj=None, parent=None, *args):
+        """Add a new record
+
+        :param widget: the treeview
+        :param view_name: the name on the view
+        :param start: start editing the first non default field
+        :param obj: 
+        :param parent: if defined it's a tuple representing a path.
+                      The new row must be a child of ``parent``
+        
         """
         ## I want to avoid generating a new obj if an object was created 
         ## and not modified (as when you press Down Arrow several times
@@ -847,7 +879,7 @@ class SqlTable(sqlwidget.SqlWidget):
         ## we inhibit this 
         self.commit_inhibited = True
 
-        treeiter = self._get_next_iter(self.last_new_obj)
+        treeiter = self._get_next_iter(self.last_new_obj, parent=parent)
         path = self.modelproxy.modelstore.get_path(treeiter)
         if start:
             self.views[view_name].start_editing(path)
@@ -975,7 +1007,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.select_path(obj=self._clicked_obj)
         self.record_delete()
 
-    def _get_next_iter(self, new_obj, child=False):
+    def _get_next_iter(self, new_obj, parent=None):
         """
         create a new row in the next reasonable place:
 
@@ -983,11 +1015,10 @@ class SqlTable(sqlwidget.SqlWidget):
           * the next sibling for treestores
 
         :param new_obj: the obj to be placed there
-        :param child: (boolean, default False) if True, the new object should be
-                      a child of the current one
+        :param parent: if defined it's the path of the parent row for the new object 
           
         """
-        path = self.get_selected_path()
+        path = parent or self.get_selected_path()
         if not path:
             try:
                 return self.modelproxy.modelstore.append([new_obj])
@@ -995,6 +1026,10 @@ class SqlTable(sqlwidget.SqlWidget):
                 return self.modelproxy.modelstore.append(None, [new_obj])
         else:
             current_iter = self.modelproxy.modelstore.get_iter(path)
+            if parent:
+                new_iter = self.modelproxy.modelstore.insert_after(current_iter, None, [new_obj])
+                self.treeview.expand_row(path, True)
+                return new_iter
             parent_iter = self.modelproxy.modelstore.iter_parent(current_iter)
             if parent_iter:
                 new_iter = self.modelproxy.modelstore.insert_after(parent_iter, current_iter, [new_obj])

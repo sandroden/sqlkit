@@ -1272,6 +1272,14 @@ class View(object):
         else:
             action_upload_image.set_visible(False)
             
+        action_new_child = self.ui_manager.get_action('/TreePopup/NewChild')
+        if self.master.modelproxy.is_tree():
+            new = self.ui_manager.get_action('/TreePopup/New').get_visible()
+            action_new_child.set_visible(new)
+        else:
+            action_new_child.set_visible(False)
+            
+
         action_delete_file = self.ui_manager.get_action('/TreePopup/DeleteFile')
         action_show_file = self.ui_manager.get_action('/TreePopup/ShowFile')
         action_save_file = self.ui_manager.get_action('/TreePopup/SaveFile')
