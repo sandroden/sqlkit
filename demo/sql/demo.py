@@ -51,6 +51,7 @@ from sqlkit.widgets import SqlMask, SqlTable
 from sqlkit.db import proxy, defaults, utils
 import model
 
+class MissingExampleError(Exception): pass
 
 def init_db():
     with closing(sqlite3.connect('model/db.sqlite')) as db:
@@ -97,7 +98,10 @@ class DemoSql(Demo):
 
     @property
     def t(self):
-        return self._t()
+        try:
+            return self._t()
+        except AttributeError:
+            raise MissingExampleError("The example was not found")
     
     
 if not opts.existent_db and os.path.exists('model/db.sqlite'):
@@ -116,10 +120,11 @@ if args:
     try:
         hid = d.t.connect('delete-event', quit)
         d.t._ids['delete_event'] = (d.t, hid)
-    except AttributeError, e:
-        print e
+    except MissingExampleError:
         print "No such example ", args[0]
         sys.exit(1)
+    except AttributeError, e:
+        pass
 
 if opts.test:
     start = opts.offset and int(opts.offset) or 0
