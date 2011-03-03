@@ -6,8 +6,6 @@
     <link rel="stylesheet" href="${pathto('_static/pygments.css', 1)}" type="text/css" />
     <link rel="stylesheet" href="${pathto('_static/docs.css', 1)}" type="text/css" />
     <link rel="stylesheet" href="${pathto('_static/sqlkit.css', 1)}" type="text/css" />
-##    <link rel="stylesheet" href="${pathto('_static/menu-css.css', 1)}" type="text/css" />
-    <link rel="stylesheet" href="${pathto('_static/jqueryslidemenu.css', 1)}" type="text/css" />
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -20,7 +18,6 @@
     % for scriptfile in script_files + self.attr.local_script_files:
         <script type="text/javascript" src="${pathto(scriptfile, 1)}"></script>
     % endfor
-    <script type="text/javascript" src="${pathto('_static/jqueryslidemenu.js', 1)}"/>
 
     <script type="text/javascript" src="${pathto('_static/init.js', 1)}"></script>
     % if hasdoc('about'):
@@ -172,9 +169,6 @@ ${self.footer()}
 <%def name="related()">
     <div class="related">
       <ul>
-##        <li><a href="${pathto('index.html', 1)}">ReteIsi </a> |&nbsp;</li>
-##       <li><a href="${pathto('contents.html', 1)}">Documentazione </a> &raquo;</li>
-
 	${self.prevnextheader()}
 
       </ul>
@@ -195,87 +189,87 @@ ${self.footer()}
    <div style="clear:left;"></div>
 
 
-<div id="main_menu" class="jqueryslidemenu">
-	<ul>
-            <li ><a href="${pathto('sqlkit/tour')}" title="Home" 
-                  ><span>Home</span></a></li>
+<div >
+	<ul id="jMenu">
+            <li><a class="fNiv" href="${pathto('sqlkit/tour')}" title="Home" 
+                  >Home</a></li>
 
-            <li ><a href="${pathto('sqlkit/contents')}"
+            <li><a li class="fNiv" href="${pathto('sqlkit/contents')}"
                   title="Sqlkit - the python package" 
-                  ><span>Sqlkit</span></a>
+                  >Sqlkit</a>
 
 	       <ul>
 		 <li ><a href="${pathto('sqlkit/contents')}"
 		       title="Sqlkit - the python package" 
-		       ><span>Sqlkit</span></a></li>
+		       >Sqlkit</a></li>
 
 		 <li ><a href="${pathto('sqlkit/sqlwidget')}" title="Widgets" 
-		       ><span>Widgets</span></a>
+		       >Widgets</a>
 		       <ul> 
 			 <li ><a href="${pathto('sqlkit/mask')}" title="Mask" 
-			       ><span>Mask view</span></a></li>
+			       >Mask view</a></li>
 			 <li ><a href="${pathto('sqlkit/table')}" title="Table" 
-			       ><span>Table view</span></a></li>
+			       >Table view</a></li>
 		       </ul>
                  </li>
 		 <li ><a href="${pathto('sqlkit/browsing')}" title="Browsing Data" 
-		       ><span>Browsing data</span></a>
+		       >Browsing data</a>
 		    <ul> 
 		      <li ><a href="${pathto('sqlkit/constraints')}" title="Constraints" 
-			    ><span>Constraints</span></a></li>
+			    >Constraints</a></li>
 		      <li ><a href="${pathto('sqlkit/filters')}" title="Filters" 
-			    ><span>Filters</span></a></li>
+			    >Filters</a></li>
 		      <li ><a href="${pathto('sqlkit/totals')}" title="Totals" 
-			    ><span>Totals</span></a></li>
+			    >Totals</a></li>
 		    </ul>
                  </li>
 		 <li ><a href="${pathto('sqlkit/editing')}" title="Editing Data" 
-		       ><span>Editing data</span></a>
+		       >Editing data</a>
 			 <ul> 
 			   <li ><a href="${pathto('sqlkit/completion')}" title="Completion" 
-				 ><span>Completion</span></a></li>
+				 >Completion</a></li>
 			   <li ><a href="${pathto('sqlkit/validation')}" title="Validation" 
-				 ><span>Validation</span></a></li>
+				 >Validation</a></li>
 			   <li ><a href="${pathto('sqlkit/relationship')}" title="Relationships" 
-				 ><span>Relationships</span></a></li>
+				 >Relationships</a></li>
 			 </ul>
 		       </li>
 		 <li ><a href="${pathto('sqlkit/advanced/contents')}" title="Advanced configuration" 
-		       ><span>Advanced configuration</span></a>
+		       >Advanced configuration</a>
 			 <ul> 
 			   <li ><a href="${pathto('sqlkit/advanced/fields')}" title="Fields" 
-				 ><span>Fields</span></a></li>
+				 >Fields</a></li>
 			   <li ><a href="${pathto('sqlkit/advanced/views')}" title="Views" 
-				 ><span>Views</span></a></li>
+				 >Views</a></li>
 			 </ul>
 		       </li>
 
 	       </ul>
             </li>
 
-            <li ><a href="${pathto('misc/sqledit')}"
+            <li><a class="fNiv" href="${pathto('misc/sqledit')}"
                   title="Sqledit GUI" 
-                  ><span>Sqledit GUI</span></a></li>
+                  >Sqledit GUI</a></li>
 
-            <li ><a href="${pathto('sqlkit/tutorial',)}" title="Tutorial" 
-                  ><span>Tutorial</span></a></li>
+            <li><a class="fNiv" href="${pathto('sqlkit/tutorial',)}" title="Tutorial" 
+                  >Tutorial</a></li>
 
-            <li ><a href="${pathto('layout/contents')}" title="Layout"
-                  ><span>Layout</span></a></li>
+            <li><a class="fNiv" href="${pathto('layout/contents')}" title="Layout"
+                  >Layout</a></li>
 
-            <li ><a href="${pathto('misc/contents')}" title="Download" 
-                  ><span>Download</span></a>
+            <li><a  class="fNiv"href="${pathto('misc/contents')}" title="Download" 
+                  >Download</a>
 
 	       <ul>
 		 <li ><a href="${pathto('misc/contents')}"
 		       title="Download"
-		       ><span>Download</span></a></li>
+		       >Download</a></li>
 		 <li ><a href="http://sqlkit.argolinux.org/download/Changelog"  title="Changelog"
 		       title="Changelog"
-		       ><span>Changelog</span></a></li>
+		       >Changelog</a></li>
 		 <li ><a href="${pathto('misc/backward_incompatibilities')}"
 		       title="Backward incompatibilities"
-		       ><span>Backward incompatibilities</span></a></li>
+		       >Backward incompatibilities</a></li>
 	       </ul>
             </li>
 
@@ -284,6 +278,5 @@ ${self.footer()}
         </ul>
 </div>
    <div style="clear:left;"></div>
-  
 </%def>
 <br style="clear: left" />

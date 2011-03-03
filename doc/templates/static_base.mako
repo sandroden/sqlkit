@@ -7,6 +7,13 @@
         ${metatags and metatags or ''}
         <title>${capture(next.show_title)|util.striptags} &mdash; ${docstitle|h}</title>
         ${next.headers()}
+<!-- <link rel="stylesheet" href="http://www.myjqueryplugins.com/plugins/jmenu/demo/jquery/jMenu.jquery.css" type="text/css" /> -->
+    <link rel="stylesheet" href="${pathto('_static/jMenu.jquery.css', 1)}" type="text/css" />
+<script type="text/javascript" src="http://www.myjqueryplugins.com/plugins/jmenu/demo/jquery/jquery.js"></script>
+<script type="text/javascript" src="http://www.myjqueryplugins.com/plugins/jmenu/demo/jquery/jquery-ui.js"></script>
+
+<!-- <script type="text/javascript" src="http://www.myjqueryplugins.com/plugins/jmenu/demo/jquery/jMenu.jquery.js"></script> -->
+
 <script type="text/javascript">
 
   var _gaq = _gaq || [];
@@ -19,6 +26,25 @@
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 
+</script>
+<script type="text/javascript" src="${pathto('_static/jMenu.jquery.js', 1)}"></script>
+<script type="text/javascript">
+	$(document).ready(function(){
+		$("#jMenu").jMenu({
+			ulWidth : '150',
+			effects : {
+				effectSpeedOpen : 300,
+				effectSpeedClose : 300,
+				effectTypeOpen : 'slide',
+				effectTypeClose : 'slide',
+				effectOpen : 'linear',
+				effectClose : 'linear'
+			},
+			TimeBeforeOpening : 100,
+			TimeBeforeClosing : 400,
+			animatedText : false,
+			paddingLeft: 1		});
+	})
 </script>
     </head>
     <body>
