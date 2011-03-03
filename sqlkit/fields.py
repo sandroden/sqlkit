@@ -281,6 +281,8 @@ class FieldChooser(object):
         if field_name in self.gui_field_mapping:
             return self.gui_field_mapping.get(field_name)
 
+        assert field_attrs is not None, \
+               "field_name '%s' has no attributes and is not present in gui_fields" % field_name
         col =  field_attrs.get('col', None)
         if col is not None:
             try:
