@@ -14,16 +14,70 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Gtk Widgets
-===========
+Fields Representation
+=====================
 
-widgets to be used by fields to display values and edit 
-widgets only interpret gtk, while fields teat with real values and do validation
++--------------------+--------------------------------------------+--------------------+
+| field or property  | Mask                                       |Table               |
++--------------------+--------------------------------------------+--------------------+
+|varchar             |:class:`VarcharWidget`                      |                    |
+|                    |                                            |                    |
++--------------------+--------------------------------------------+--------------------+
+|text                |:class:`TextWidget`                         |                    |
++--------------------+--------------------------------------------+--------------------+
+|integer             |:class:`IntegerWidget`                      |                    |
++--------------------+--------------------------------------------+--------------------+
+|float               |:class:`FloatWidget`                        |                    |
++--------------------+--------------------------------------------+--------------------+
+|numeric             |:class:`DecimalWidget`                      |                    |
++--------------------+--------------------------------------------+--------------------+
+|date                |:class:`DateWidget`                         |                    |
++--------------------+--------------------------------------------+--------------------+
+|datetime            |:class:`DateTimeWidget`                     |                    |
++--------------------+--------------------------------------------+--------------------+
+|datetime with       |:class:`DateTimeTZWidget`                   |                    |
+|timezone            |                                            |                    |
++--------------------+--------------------------------------------+--------------------+
+|interval            |:class:`IntervalWidget`                     |                    |
++--------------------+--------------------------------------------+--------------------+
+|time                |:class:`TimeWidget`                         |                    |
++--------------------+--------------------------------------------+--------------------+
+|time with timezone  |:class:`TimeTZWidget`                       |                    |
++--------------------+--------------------------------------------+--------------------+
+|boolean             |:class:`BooleanWidget`                      |                    |
++--------------------+--------------------------------------------+--------------------+
+|boolean with null   |:class:`BooleanNullWidget`                  |                    |
++--------------------+--------------------------------------------+--------------------+
+|foreign key         |:class:`ForeignKeyWidget`                   |                    |
++--------------------+--------------------------------------------+--------------------+
+|relation (o2m/m2m)  |:class:`CollectionWidget`                   |                    |
++--------------------+--------------------------------------------+--------------------+
+
+
+.. autoclass:: Widget
+   :members: __init__, set_value, get_value, set_editable, set_not_null_style
+   
+.. autoclass:: VarcharWidget
+.. autoclass:: TextWidget
+.. autoclass:: IntegerWidget
+.. autoclass:: FloatWidget
+.. autoclass:: DecimalWidget
+.. autoclass:: DateWidget
+.. autoclass:: DateTimeWidget
+.. autoclass:: DateTimeTZWidget
+.. autoclass:: IntervalWidget
+.. autoclass:: TimeWidget
+.. autoclass:: TimeTZWidget
+.. autoclass:: BooleanWidget
+.. autoclass:: BooleanNullWidget
+.. autoclass:: ForeignKeyWidget
+.. autoclass:: CollectionWidget
+
 
 Colors
 ------
 
-You can change default color for not nullable object globally:
+You can change default color for not nullable object globally::
 
   from sqlkit.widgets.mask import miniwidgets
   miniwidgets.NOT_NULL_COLOR = gtk.gdk.color_parse('green')
@@ -33,6 +87,7 @@ You can change the foreground of unsensitive widgets setting NOT_EDITABLE_COLOR
 """
 
 import re
+import os
 from decimal import Decimal
 from datetime import timedelta, time
 
@@ -47,7 +102,17 @@ NOT_EDITABLE_COLOR = gtk.gdk.color_parse('#333')
 
 
 class Widget(object):
+    """
+    A proxy between the :ref:`field <fields>` and a real gtk widget
+    """
     def __init__(self, gtkwidget, field):
+        """
+        setup all what is needed in the widget: completion if any and much
+        more for complex cases as :class:`CollectionWidget`
+        
+        :param gtkwidget: the gtk widget used to display the data
+        :param field: the :ref:`field <fields>` from ``sqlkit.fields``
+        """
         self.gtkwidget = gtkwidget
         self.field = field
         self.master = field.master
@@ -76,13 +141,24 @@ class Widget(object):
         self.gtkwidget.modify_text(state, color)
         
     def set_value(self, value, shown=False):
-        """if shown is True, the displayed value is returned also in any
-        case. The difference is only for ForeignKey
-        The displayed value may be used for completion purpouses
+        """
+        Set the value in the widget
+
+        :param value: the value to be set
+        :param shown: (boolean) only memaningfull for foreign key.
+              if True, the displayed value is returned also in any
+              case. The difference is only for ForeignKey
+              The displayed value may be used for completion purpouses
         """
         pass
 
-    def get_value(self):
+    def get_value(self, shown=False):
+        """
+        Return the displayed value
+
+        :param shown: (boolean) return the shown value or the real value
+           (only meaningful for foreign keys)
+        """
         pass
 
     def get_entry(self):
@@ -107,7 +183,7 @@ class Widget(object):
         self.gtkwidget.set_property('sensitive', editable) 
         
     def __repr__(self):
-        return "< %s - %s >" % (self.__class__.__name__, self.field_name)
+        return "<%s - %s >" % (self.__class__.__name__, self.field_name)
 
 class VarcharWidget(Widget):
     #  to prevent to change NULL to '' and viceversa
@@ -227,6 +303,11 @@ class DecimalWidget(IntegerWidget):
     pass
 
 class DateWidget(Widget):
+    """
+    A widget that uses :class:`DateEdit <sqlkit.layout.dateedit.DateEdit>`
+    widget to represent a date.
+    A button that pops a calendar is provided  to pick a date
+    """
 
     def __init__(self, *args):
         Widget.__init__(self, *args)
@@ -252,7 +333,9 @@ class DateWidget(Widget):
             return value
 
 class TimeWidget(Widget):
-
+    """
+    A timezone unaware widget to set time. Very poor widget indeed.
+    """
     def set_value(self, value):
         self.gtkwidget.set_text(self.field.format_value(value))
 
@@ -266,7 +349,9 @@ class TimeWidget(Widget):
         return self.field.clean_value(value)
 
 class TimeTZWidget(Widget):
-    pass
+    """
+    A timezone aware widget to set time. Should have a TimeZone chooser but does not yet
+    """
 
 class IntervalWidget(Widget):
 
@@ -285,6 +370,10 @@ class IntervalWidget(Widget):
         return value
 
 class DateTimeWidget(DateWidget):
+    """
+    A timezone unaware widget to set datetime. Very poor widget indeed.
+    Uses :class:`DateTimeEdit <sqlkit.layout.dateedit.DateTimeEdit>`.
+    """
 
     def __init__(self, *args):
         DateWidget.__init__(self, *args)
@@ -301,7 +390,9 @@ class DateTimeWidget(DateWidget):
         return value 
 
 class DateTimeTZWidget(DateTimeWidget):
-    pass
+    """
+    A timezone aware widget to set datetime. Should have a TimeZone chooser but does not yet
+    """
 
 class TextWidget(Widget):
 
@@ -474,10 +565,13 @@ class ForeignKeyComboboxWidget(Widget):
         return  value
 
 class ForeignKeyWidget(Widget):
-    """a ComboBoxEntry with 2 columns
+    """A ComboBoxEntry that displays a represention of the referenced record
+    rather that the referece. I.e.: it shows last_name/first_name of a director
+    rather than the `id` of the record in the directors' table.
 
-    In any case for the moment we need to click on a choice from the completion
-    (we cannot just write a correct value), since completion also retrieves the id
+    It also enforces the foreign key constraint. Completion occurs on the
+    foreign (referenced) table according to what is detailed in
+    :ref:`completion` documentation.
     """
 
     def __init__(self, *args):
@@ -575,7 +669,13 @@ class ForeignKeyWidget(Widget):
 
 class CollectionWidget(Widget):
     """
-    a SqlTable widget that represents a collection of records
+    A SqlTable widget that represents a collection of records. This is used to represent
+    a property that in turn holds a relation. E.g.:  ``director.movies`` movies being a
+    list. The contructor setups a SqlTable that has
+    :attr:`relationship_leader <sqlkit.widgets.common.sqlwidget.SqlWidget.relationsip_leader>`
+    pointing to the main SqlMask.
+
+    It maintains the same session so that a single commit will save parent and children.
     """
     def __init__(self, *args):
         
@@ -653,6 +753,9 @@ class CollectionWidget(Widget):
         return label_map
 
 
+class FileWidget(Widget):
+    pass
+
 def filter_related(my_dict, relation):
     """
     filters a dict to use only width info for relation 'relation'
@@ -671,8 +774,3 @@ def filter_related(my_dict, relation):
                 new[nkey] = my_dict[key]
 
     return new
-
-
-
-
-
