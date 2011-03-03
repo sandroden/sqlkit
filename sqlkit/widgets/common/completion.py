@@ -893,7 +893,7 @@ class FkeyCompletion(SimpleCompletion):
 
     def prepare_model(self):
         ## last col is for markup
-        return gtk.ListStore(str, str, str, object, bool, str)
+        return gtk.ListStore(object, str, str, object, bool, str)
             
     def compose_select_statement(self, query, oper, value):
 
