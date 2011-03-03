@@ -57,9 +57,12 @@ supported lookup
 conjunctions
 ------------
 
-``django2sqlalchemy`` and ``django2query`` connect all arguments with AND operator
+:func:`django2sqlalchemy` and :func:`django2query` connect all arguments with AND operator
 by default. It's possible to use ``OR`` operator adding ``OR=True``  argument.
 
+.. autofunction:: django2sqlalchemy
+
+.. autofunction:: django2query
 
 
 """
@@ -99,13 +102,19 @@ OPERATORS = {
 
 class DjangoParser(object):
     """
-    parses a django-like argument to compose a sqlalchemy
+    Parser for django-like syntax.
+    
+    Parses a django-like argument to compose a sqlalchemy
     ColumnList/ColumnElement object to be used in queries
     """
     def __init__(self, mapper_or_table=None, query=None, OR=False, aliased=False, outer=False):
         """
         A sqlalchemy.Table object
 
+        :param mapper_or_table: the mapper or table to be parsed
+        :param query: the query that will be use as base
+        :param OR: (boolean) it True all conditions will be ORed
+        :param aliased: (Boolean) passed to join conditions if any
         :param outer: the join will be an OUTER JOIN
         """
         self.aliased = aliased
@@ -299,7 +308,8 @@ def django2query(query, mapper_or_class, OR=False, aliased=False, OUTER=False, *
 
     :param query:     the query to which filters will be applied
     :param mapper_or_class: a mapper or a class from which the class will be devised
-    :param OUTER: DjangoParse will be instantiated as an OUTER join
+    :param aliased: passed to :class:`DjangoParser`
+    :param OUTER: :class:`DjangoParser` will be instantiated as an OUTER join
     """
 
     from sqlalchemy.orm import class_mapper, Mapper
@@ -320,7 +330,12 @@ def django2query(query, mapper_or_class, OR=False, aliased=False, OUTER=False, *
 
 def django2sqlalchemy(mapper=None, table=None, OR=False, **kw):
     """
-    return a ClauseList and a join path. 
+    Return a tuple (ClauseList, join path).
+
+    :param mapper: the mapper that will be used in the query
+    :param table: the mapper that will be used in the query
+    :param OR: if True the conditions will be ORed
+    :param kw: the conditions as per django-like syntax
     """
     if table:
         parser = DjangoParser(table, query=None, OR=OR)

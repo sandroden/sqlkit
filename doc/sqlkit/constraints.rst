@@ -105,7 +105,6 @@ Filter simplified syntax
 
 .. automodule:: sqlkit.db.django_syntax
 
-.. autofunction:: django2sqlalchemy
 
 
 Native sqlalchemy constraint
