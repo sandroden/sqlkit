@@ -603,7 +603,13 @@ class Field(gobject.GObject):
         if initial:
             self.initial_value = value
         if obj:
-            setattr(obj, self.field_name, value)
+            if not value == getattr(obj, self.field_name):
+                # this check shouldn't be needed but I verified that occasionally it would
+                # make session.is_modified(obj) to get wrong ideas on the occurred changes
+                # ./demo 02 -> ceate a new (empty record)
+                # d.t.current.title = None -> d.t.current.date_release = None
+                # d.t.session.is_modified(d.t.current)  => True
+                setattr(obj, self.field_name, value)
         else:
             self.emit('value-set', value, initial)
 
@@ -801,7 +807,8 @@ class VarcharField(Field):
         #     self.widget.set_value(value or '', initial=initial)
 
         if obj:
-            setattr(obj, self.field_name, value)
+            if not value == getattr(obj, self.field_name):
+                setattr(obj, self.field_name, value)
         else:
             self.emit('value-set', value, initial)
 
@@ -1116,9 +1123,6 @@ class TimeTZField(TimeField):
                 self.TZ = None
                 self.microsecond = 0
 
-        if obj:
-            setattr(obj, self.field_name, value)
-        
     def get_value(self, shown=False):
 
         value = Field.get_value(self, shown)
@@ -1205,9 +1209,6 @@ class DateTimeField(DateField):
                 self.microsecond = 0
                 self.second = 0
         
-        if obj:
-            setattr(obj, self.field_name, value)
-
     def format_value(self, value, format=None):
 
         if not value:
@@ -1499,7 +1500,8 @@ class ImageField(VarcharField):
                 value = self.clean_value(save_path, obj=obj) # It can be changed
 
         if obj:
-            setattr(obj, self.field_name, value)
+            if not value == getattr(obj, self.field_name):
+                setattr(obj, self.field_name, value)
 
     def is_image(self, filename):
         """
@@ -1799,7 +1801,8 @@ class ForeignKeyField(Field):
                 self.add_related_object(prop, value)
 
         if obj:
-            setattr(obj, self.field_name, value)
+            if not value == getattr(obj, self.field_name):
+                setattr(obj, self.field_name, value)
         else:
             self.emit('value-set', value, initial)
 
