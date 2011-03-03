@@ -46,6 +46,13 @@
 			paddingLeft: 1		});
 	})
 </script>
+<!-- Preview -->
+     <script type="text/javascript" src="${pathto('_static/imgpreview.js',1)}"></script>
+     <script type="text/javascript">
+       $(document).ready(function(){
+           $('.preview').imgPreview();
+       });
+     </script>
     </head>
     <body>
         ${next.body()}

@@ -191,7 +191,7 @@ ${self.footer()}
 
 <div >
 	<ul id="jMenu">
-            <li><a class="fNiv" href="${pathto('sqlkit/tour')}" title="Home" 
+            <li><a class="fNiv" href="${pathto('index.html', 1)}" title="Home" 
                   >Home</a></li>
 
             <li><a li class="fNiv" href="${pathto('sqlkit/contents')}"

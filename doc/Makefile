@@ -102,5 +102,5 @@ css:
 	cp ./static/AnythingSlider/css/page.css ./.build/html/_static/AnythingSlider
 
 refresh:
-	touch sqlkit/tour.rst
+	touch sqlkit/tour.rst contents.rst misc/download.rst misc/sqledit.rst
 	make

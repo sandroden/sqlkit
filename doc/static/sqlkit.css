@@ -661,3 +661,41 @@ h1 {
 .anythingSlider .slide .text ul li {
     display: list-item
     }
+
+.promo {
+    float: left;
+    font-size: 13px;
+    margin: 12px -20px 20px 0;
+    overflow: hidden;
+    width: 960px;
+    color: #a91819;
+}
+#box1, #box2 {
+    /* color: #a91819; */
+    /* color: #FFFFFF; */
+    float: left;
+    /* height: 118px; */
+    margin: 0 19px 0 0;
+    padding: 9px 0 0 21px;
+    /* background-color: #ddd; */
+}
+
+.promo h1 {
+    color: #fff;
+}
+.promo p {
+    color: #333;
+}
+.promo a {
+    color: #fff;
+}
+#box1 {
+    -moz-border-radius: 8px;
+    width: 330px;
+    background: url("../_static/sfondo-box.png") no-repeat scroll 0 0 transparent; 
+}
+#box2 {
+    -moz-border-radius: 8px;
+    width: 350px;
+    background: url("../_static/sfondo-box.png") no-repeat scroll 0 0 transparent;
+}
