@@ -393,7 +393,9 @@ class SimpleCompletion(object):
         """
         self.displaying_completion = True
         entry.grab_focus()
-        entry.emit('changed')
+        # entry.emit('changed') ## needed to make completion to pop
+        # read note in widget.pop_completion()
+        self.widget.pop_completion()
         ## we don't want selection to prevent autocompletion from deleting already written text
         entry.select_region(-1,-1)
         

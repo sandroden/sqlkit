@@ -248,6 +248,12 @@ class Widget(gobject.GObject):
         self.master.completions[self.field_name] = self.completion
         self.completion.add_callbacks(self.gtkwidget)
 
+    def pop_completion(self):
+        ## self.emit('changed') is needed as the only way to pop the completion
+        ## when you click on the icon to pop the completion you should not invalidate
+        ## self.real_value as it's not an editing action
+        self.gtkwidget.emit('changed')
+        
     def __repr__(self):
         return "<%s - %s >" % (self.__class__.__name__, self.field_name)
 
@@ -742,6 +748,7 @@ class ForeignKeyWidget(Widget):
         self.real_value = True
         self.master.completions[self.field_name] = self.completion
         self.value = None
+        self._dont_change_real_value = False
         self.entry.connect('changed', self.on_entry_changed)
 
     def add_completion(self):
@@ -763,7 +770,6 @@ class ForeignKeyWidget(Widget):
         Double click -> mode enum
         Simple click <3> -> menu
         """
-
         if event.button == 3:
             self.completion.pop_menu(widget, event, self.field_name)
 
@@ -787,13 +793,17 @@ class ForeignKeyWidget(Widget):
         return self.completion.keypress_event_cb(self.entry, event, self.field_name, when)
 
     def on_entry_changed(self, editable):
+        if not self._dont_change_real_value:
+            self.real_value = False
 
-        self.real_value = False
-
-    def clean_real_value(self, *args):
-        ## the EntryText has been changed. The value may no longe be  valid
-        self.real_value = False
-
+    def pop_completion(self):
+        ## self.emit('changed') is needed as the only way to pop the completion
+        ## when you click on the icon to pop the completion you should not invalidate
+        ## self.real_value as it's not an editing action
+        self._dont_change_real_value = True
+        self.entry.emit('changed')
+        self._dont_change_real_value = False
+        
     def is_valid(self):
         return self.real_value
 
