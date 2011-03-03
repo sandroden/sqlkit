@@ -36,7 +36,7 @@ data computed from related records.
 
 cthe field knows:
 
-   - if it belongs to the database (attribute ``persisted`` is True) and in
+   - if it belongs to the database (attribute ``persistent`` is True) and in
      case how it is defined ( i.e.: sqlalchemy property/column)
    - if it is nullable/editable
    - which widget must be used to represent it (see below, not requested)
@@ -177,7 +177,7 @@ or globally:
 
 Default value for BLANK_OK is False.
 
-This is only enforced for NEW records, for alreadu persisted records the default behaviour is
+This is only enforced for NEW records, for already persisted records the default behaviour is
 to let it as-is, to prevent a very annoying flood of dialog "do you want to save?" when you
 just need to browse some data.
 
@@ -602,7 +602,7 @@ class Field(gobject.GObject):
         value = self.clean_value(value, obj=obj)
         if initial:
             self.initial_value = value
-        if obj:
+        if obj and self.persistent:
             if not value == getattr(obj, self.field_name):
                 # this check shouldn't be needed but I verified that occasionally it would
                 # make session.is_modified(obj) to get wrong ideas on the occurred changes
@@ -806,7 +806,7 @@ class VarcharField(Field):
         # if hasattr(self, 'widget') and update_widget:
         #     self.widget.set_value(value or '', initial=initial)
 
-        if obj:
+        if obj and self.persistent:
             if not value == getattr(obj, self.field_name):
                 setattr(obj, self.field_name, value)
         else:
@@ -1499,7 +1499,7 @@ class ImageField(VarcharField):
                         shutil.copyfile(self.widget.copy_file, save_path)
                 value = self.clean_value(save_path, obj=obj) # It can be changed
 
-        if obj:
+        if obj and self.persistent:
             if not value == getattr(obj, self.field_name):
                 setattr(obj, self.field_name, value)
 
@@ -1800,7 +1800,7 @@ class ForeignKeyField(Field):
             for prop in self._props_for_delete_orphan:
                 self.add_related_object(prop, value)
 
-        if obj:
+        if obj and self.persistent:
             if not value == getattr(obj, self.field_name):
                 setattr(obj, self.field_name, value)
         else:
@@ -1928,7 +1928,7 @@ class CollectionField(Field):
         if hasattr(self, 'widget') and update_widget:
             self.widget.set_value(value, initial=initial)
 
-        if obj:
+        if obj and self.persistent:
             setattr(obj, self.field_name, value)
 
 
