@@ -109,6 +109,11 @@ Attributes
    that lives in ``sqlkit.fields`` and that knows how to represent a field
    and how to validate it.
 
+.. attribute:: gui_field_mapping
+
+   A dict used to force a map between a ``sqlkit.Field`` and a gui
+   field. Read more in :ref:`fields`.
+
 .. attribute:: query
 
    the sqlalchemy query object (``session.query(mapper)``) with all
@@ -382,8 +387,12 @@ The following hooks are defined:
 
        :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
    
+.. _on_pre_layout:
+
 :on_pre_layout: run before the layout is setup. It's main purpose is to 
-    allow to add fields vi self.gui_field_mapping (tat is only useful for SqlMask)
+    allow to add fields in :attr:`gui_field_mapping` (that is only useful for
+    SqlMask). Note that you can force a field for a table's attribute if you
+    want setting info's *field* key pointing to that field's class.
 
     .. function:: on_init(sqlwidget)
 

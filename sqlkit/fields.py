@@ -20,12 +20,21 @@
 =======
 Fields
 =======
-Mask/Tables are collection of data that may belong to the database or not.
-Each of the data represented in the GUI that needs to partecipate to any
-updating/saving process should have it's own handler that is a Field.
 
-A Field is an entity that knows how to handle a piece of data, be it on
-the database (a field_name) or just in the GUI. It knows:
+Mask and Tables display a collection of data that may belong to the database
+or not.  Each of the data represented in the GUI that needs to partecipate
+to any updating/saving process should have it's own handler that is a Field.
+
+A Field is an entity that knows how to handle a piece of data, be it on the
+database (a field_name) or just in the GUI. It's a layer that allows gui
+widget to be simpler and easier to interchange. As an example, both varchars
+and integers are normally displayed by a gtk.Entry: the entry.get_text()
+will retrieve in both cases a string, it's the Field (IntegerField) that
+knows how to turn that string into an integer using the
+:meth:`Field.clean_value` method. In more complex cases ``clean_value`` can return
+data computed from related records.
+
+cthe field knows:
 
    - if it belongs to the database (attribute ``persisted`` is True) and in
      case how it is defined ( i.e.: sqlalchemy property/column)
@@ -40,6 +49,18 @@ It provides functions to
    - tell if it changed from the default
    - clean value according to it's logic: i.e. return a value of the correct type
    - validate values (possibly according to other criteria)
+
+
+The association between a database field and a Field is dome by
+:ref:`field_chooser`, but you can force a particular Field when defining the
+model class setting the key ``field`` of the column's ``info`` dictionary::
+
+  class MyClass(Base):
+      ...
+      foo = Column(..., info={'field' : MyField})
+
+A last method is to use :ref:`on_pre_layout hook <on_pre_layout>` that allows
+to set ``sqlkit.Fields`` even on non persisted fields.
 
 Relation with the master sqlwidget
 ----------------------------------
@@ -103,10 +124,12 @@ formatting/locale
 
 .. _decimal: http://java.sun.com/docs/books/tutorial/i18n/format/decimalFormat.html
 
+.. _field_chooser:
+
 FieldChooser
 ===============
 
-This class implements a way to decide which Field should be associated to
+This class implements a way to determine which Field should be associated to
 each field_name in a mapper (used in setup_field_validation so that it can
 be easily overwritten).  It's important to understand that it already
 receives a gtkwidget from layoutgenerator; that widget has been set by
@@ -249,6 +272,15 @@ class FieldChooser(object):
 
         if field_name in self.gui_field_mapping:
             return self.gui_field_mapping.get(field_name)
+
+        col =  field_attrs.get('col', None)
+        if col is not None:
+            try:
+                return col.info['field']
+            except (AttributeError, KeyError), e:
+                # AttributeError: column (as Label) that don't have .info
+                # KeyError when info does not have 'field' key
+                pass
 
         def_str = def_str or ''
 
