@@ -100,7 +100,8 @@ class TableBrowser(object):
         self.w = self.l.show()
         self.w['prg=count'].hide()
         self.tv = self.w['TV=tree']
-        cols = ['Table', 'N.rows', 'Type', 'Default', 'Prim. Key', 'Foreign Key', 'Nullable', 'Indexes']
+        cols = ['Table', 'N.rows', 'Type', 'Default', 'Prim. Key',
+                'Foreign Key', 'Nullable', 'Indexes']
                 
 #         cols = [_('Table'), _('N. rows'), _('Default'), _('Prim. Key'), _('Foreign Key'),
 #                 _('Nullable'), _('Indexes')]
@@ -114,6 +115,7 @@ class TableBrowser(object):
         self.l.connect(
             ('b=filter_tables', 'clicked', self.fill_model),
             ('e=filter', 'activate', self.fill_model),
+            ('Window', 'delete-event', self.quit_cb),
             )
         self.fill_model()
         self.lay_obj = self.l
@@ -225,7 +227,7 @@ class TableBrowser(object):
     def focus_filter(self, *args):
         self.widgets['e=filter'].grab_focus()
 
-    def quit_cb(self, widget):
+    def quit_cb(self, widget, event=None):
         if self.x == 'quit':
             gtk.main_quit()
         else:
