@@ -479,7 +479,7 @@ class DateTimeEdit(LWidget):
         'lower-hour' : 10,
         'upper-hour' : 23,
         'show-time' : None,
-        'use-24h-format' : False
+        'use-24h-format' : True
         }
             
 class Calendar(LWidget):

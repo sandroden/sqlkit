@@ -20,11 +20,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA
 
-# Todo:
-#
-# mnemonic stuff
-# gobject register no longer needed...
-
 """
 .. _date_edit:
 
@@ -110,6 +105,7 @@ class DateEdit(gtk.HBox):
 
         hid = self._date_entry.connect('changed', self.date_entry_changed_cb)
         self._ids = {'date_entry_changed' : (self._date_entry, hid)}
+
         self._date_button.connect('clicked', self.date_button_clicked_cb)
 
         self._calendar.connect('day-selected', self.day_selected_cb)
@@ -125,7 +121,7 @@ class DateEdit(gtk.HBox):
     def locale_setup(self):
         if os.name == 'nt' or sys.platform == 'darwin':
             # Todo: fix this for windows
-            self.__use_24h_format = False
+            self._use_24h_format = False
         else:
             # locale stuff, ugly hack, due to ugly locale functions
             saved_locale = locale.getlocale()
@@ -134,9 +130,9 @@ class DateEdit(gtk.HBox):
                 locale.setlocale(locale.LC_ALL, '')
             # the time format
             if locale.nl_langinfo(locale.T_FMT_AMPM) == '' :
-                self.__use_24h_format = True
+                self._use_24h_format = True
             else:
-                self.__use_24h_format = False
+                self._use_24h_format = False
             # restore original locale
             locale.setlocale(locale.LC_ALL, saved_locale)
         
@@ -451,6 +447,7 @@ class DateTimeEdit(DateEdit):
                     True,
                     gobject.PARAM_READWRITE),
                     
+        # TODO: use-24 is not working, only 24 hours is working
         'use-24h-format' : (gobject.TYPE_BOOLEAN,
                     'Use 24h Format',
                     'Display time in 24h format',
@@ -468,18 +465,15 @@ class DateTimeEdit(DateEdit):
 
         # preset values
         self._initial_datetime = self._current_datetime = None
-        #datetime.datetime.today()
         self._lower_hour = 7;
         self._upper_hour = 19;        
         self._show_time = True
         self._use_24h_format = True
         
         DateEdit.__init__(self)
-        
         self._time_combobox.connect('changed', self.time_combobox_changed_cb)
         self._time_combobox.child.connect('focus-out-event', self.time_entry_focus_out_event_cb)
         self.connect('realize', self.fill_time_combobox)
-
 
     def build_layout(self):
 
@@ -499,7 +493,6 @@ class DateTimeEdit(DateEdit):
            
         # set the initial widget properties
         self.set_show_time(self._show_time)
-#        self.set_time(self._initial_datetime)
         self.set_use_24h_format(self._use_24h_format)
 
     def fill_time_combobox(self, widget, data=None):
@@ -669,15 +662,15 @@ class DateTimeEdit(DateEdit):
         if property.name == 'datetime':
             return self.get_datetime()
         elif property.name == 'initial-datetime':
-            return self.__initial_datetime
+            return self._initial_datetime
         elif property.name == 'lower-hour': 
-            return self.__lower_hour
+            return self._lower_hour
         elif property.name == 'upper-hour':
-            return self.__upper_hour
+            return self._upper_hour
         elif property.name == 'show-time':
-            return self.__show_time
+            return self._show_time
         elif property.name == 'use-24h-format':
-            return self.__use_24h_format
+            return self._use_24h_format
         else:
             raise AttributeError, 'unknown property %s' % property.name
 
@@ -697,35 +690,10 @@ class DateTimeEdit(DateEdit):
         else:
             raise AttributeError, 'unknown property %s' % property.name
             
-# # finally register our new Type
-# if gobject.pygtk_version < (2, 8):
-# 	    gobject.type_register(DateEdit)
-# 	    gobject.type_register(DateTimeEdit)
-
-# if __name__ == '__main__':
-
-#     w = gtk.Window()
-#     v = gtk.VBox()
-#     d1 = DateTimeEdit()
-#     d2 = DateTimeEdit()
-#     d3 = DateEdit()
-#     d2.set_property('show_time', False)
-#     v.add(d1)
-#     v.add(d2)
-#     v.add(d3)
-# #    d1.set_property('datetime', None)
-#     d1.set_property('datetime', datetime.datetime.now())
-#     d3.set_property('date', datetime.date.today())
-#     d3.set_property('date', None)
-#     w.add(v)
-#     w.show_all()
-
-#     gtk.main()
-    
 
 class EntryCal(gtk.Entry):
     """
-    basic gtk widget to edit data
+    basic gtk widget to edit data that uses primary/secondary icon stock
     """
     __gtype_name__ = 'DateEdit2'
     
@@ -764,8 +732,9 @@ if __name__ == '__main__':
     import misc  # adds the sk-calendar stock-icon
     w = gtk.Window()
     d = EntryCal()
+#    d = DateTimeEdit()
     w.add(d)
     w.show_all()
 
-    gtk.main()
+    gtk.set_interactive(True)
     
