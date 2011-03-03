@@ -492,7 +492,7 @@ class Field(object):
         :param update_widget: if True (default) the widget that renders the field is set as well.
         """
 
-        value = self.clean_value(value)
+        value = self.clean_value(value, obj=obj)
         if initial:
             self.initial_value = value
         if hasattr(self, 'widget') and update_widget:
@@ -564,7 +564,7 @@ class Field(object):
         except NotHandledDefault, e:
             pass
         
-    def clean_value(self, value):
+    def clean_value(self, value, obj=None):
         """
         return a value of the correct type, if needed parse it with
         locale parsers (numbers, date...)
@@ -574,6 +574,9 @@ class Field(object):
                       persisted fields. I.e.: if you create a custom field to count how many
                       movies has directed each director, the Director instance will be passed
                       as ``value``. 
+        :param obj: the object to which the field belongs. It's normally disreguarded but
+                    it can be used by special fields (as image fields) to create customized
+                    property (e.g.: the save path)
 
         This function is used while sorting a column 
 
@@ -674,7 +677,7 @@ class VarcharField(Field):
         Field.__init__(self, *args, **kw)
         self.blank_ok = BLANK_OK
         
-    def clean_value(self, value):
+    def clean_value(self, value, obj=None):
         if value == '' and not self.blank_ok:
             if not self.initial_value == '':
                 value = None
@@ -720,7 +723,7 @@ class IntegerField(Field):
         self.format = "#,###"
         self.locale = babel.default_locale('LC_NUMERIC')
         
-    def clean_value(self, value):
+    def clean_value(self, value, obj=None):
         if value in (None, ''):
             return None
         else:
@@ -785,7 +788,7 @@ class FloatField(IntegerField):
         self.format = None
         self.locale = babel.default_locale('LC_NUMERIC')
         
-    def clean_value(self, value):
+    def clean_value(self, value, obj=None):
         if value in (None, ''):
             return None
         else:
@@ -839,7 +842,7 @@ class DecimalField(IntegerField):
         self.format_f = "%%.%sf" % self.scale
         self.locale = babel.default_locale('LC_NUMERIC')
         
-    def clean_value(self, value):
+    def clean_value(self, value, obj=None):
         if value in (None, ''):
             return None
         else:
@@ -922,7 +925,7 @@ class DateField(Field):
         #if format not in ('short', 'long', 'default', 'medium', 'full'):
         #    pass
 
-    def clean_value(self, value):
+    def clean_value(self, value, obj=None):
 
         if value in (None, ''):
             return None
@@ -954,7 +957,7 @@ class TimeField(DateField):
     default_def_string = 'ae'
     type = time
 
-    def clean_value(self, value):
+    def clean_value(self, value, obj=None):
 
         if isinstance(value, basestring):
             try:
@@ -985,7 +988,7 @@ class TimeTZField(TimeField):
         TimeField.__init__(self, *args, **kwargs)
         self.TZ = None
         
-    def clean_value(self, value):
+    def clean_value(self, value, obj=None):
         if isinstance(value, basestring):
             value = dates.parse_time(value)
         return value
@@ -1039,7 +1042,7 @@ class DateTimeField(DateField):
         self.microsecond = 0
         self.second = 0
         
-    def clean_value(self, value, add_second=False, add_microsecond=False):
+    def clean_value(self, value, add_second=False, add_microsecond=False, obj=None):
         """
         parse and return a clean value (ie: a datetime)
         if add_second/add_microsecond, second and microsecond as found in self.(micro)second
@@ -1123,7 +1126,7 @@ class DateTimeTZField(DateTimeField):
         self.TZ = None
         self.microsecond = 0
         
-    def clean_value(self, value, add_second=False, add_microsecond=False):
+    def clean_value(self, value, add_second=False, add_microsecond=False, obj=None):
 
         value = DateTimeField.clean_value(self, value, add_second, add_microsecond)
 
@@ -1159,7 +1162,7 @@ class BooleanField(Field):
     default_def_string = 'c'
     type = bool
 
-    def clean_value(self, value):
+    def clean_value(self, value, obj=None):
         if value is None:
             value = False
         if value not in (True, False):
@@ -1179,7 +1182,7 @@ class BooleanNullField(Field):
     Widget = 'BooleanNullWidget'
     type = bool
 
-    def clean_value(self, value):
+    def clean_value(self, value, obj=None):
         if value not in (True, False, None):
             msg = "Null value not admissable for field %s" % self.field_name
             raise ValidationError(msg) 
@@ -1214,7 +1217,7 @@ class EnumField(Field):
         for key, value in values:
             self.values[key] = value
 
-    def clean_value(self, value):
+    def clean_value(self, value, obj=None):
         """
         Check if value is in the admitted values
         """
@@ -1366,7 +1369,7 @@ class ImageField(VarcharField):
                             shutil.copyfile(self.widget.copy_file, save_path)                            
                     else:
                         shutil.copyfile(self.widget.copy_file, save_path)
-                value = self.clean_value(save_path) # It can be changed
+                value = self.clean_value(save_path, obj=obj) # It can be changed
 
         if obj:
             setattr(obj, self.field_name, value)
@@ -1591,7 +1594,7 @@ class ForeignKeyField(Field):
         self._props_for_delete_orphan = minspect.get_props_for_delete_orphan(
             master.mapper, self.field_name)
         
-    def clean_value(self, value, input_is_fkey=False):
+    def clean_value(self, value, input_is_fkey=False, obj=None):
         """
         Return a cleaned value (i.e.: the foreign key) or None if no value exists.
         :param input_is_fkey:  If True the text is considered an id, else it's
@@ -1775,7 +1778,7 @@ class CollectionField(Field):
         ## FIXME: is this always correct?
         return None
 
-    def clean_value(self, value):
+    def clean_value(self, value, obj=None):
         from copy import copy
         
         if value is None:
@@ -1813,7 +1816,7 @@ def std_cleanup(fn):
                 return len(value.movies)
 
     """
-    def new_func(self, value):
+    def new_func(self, value, obj=None):
         ## standard cleanup: values can
         if isinstance(value, (basestring, types.NoneType, self.type)) or \
                self.type == int and isinstance(value,long):

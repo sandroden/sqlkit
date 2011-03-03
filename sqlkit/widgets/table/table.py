@@ -692,9 +692,9 @@ class SqlTable(sqlwidget.SqlWidget):
         ## casting of value
         field = self.gui_fields[field_name]
         if self.is_fkey(field_name):
-            value = field.clean_value(value, input_is_fkey=True)
+            value = field.clean_value(value, input_is_fkey=True, obj=obj)
         else:
-            value = field.clean_value(value)
+            value = field.clean_value(value, obj=obj)
         if field.editable:
             field.set_value(value, initial=initial, obj=obj, update_widget=False)
 
