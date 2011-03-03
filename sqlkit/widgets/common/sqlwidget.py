@@ -1884,7 +1884,7 @@ class SqlWidget(gobject.GObject):
 
     def is_numeric(self, field_name):
         """
-        Return true if this field is numeric
+        Return true if this field is numeric (rendered as Decimal)
         """
         try:
             return self.mapper_info.is_numeric(field_name)
@@ -1893,7 +1893,7 @@ class SqlWidget(gobject.GObject):
 
     def is_number(self, field_name):
         """
-        Return true if this field is numeric
+        Return true if this field is a number (int, float or Decimal)
         """
         try:
             return self.mapper_info.is_number(field_name)
