@@ -82,13 +82,13 @@ def get_classes(bind):
 
         class SqlkitTable(Base, utils.Descr):
             __tablename__  = SQLKIT_TABLE
-            name           = Column(String(50), primary_key=True)
+            name           = Column(String(100), primary_key=True)
             search_field   = Column(String(50))
             format         = Column(String(150))
 
         class SqlkitFields(Base, utils.Descr):
             __tablename__ = SQLKIT_FIELD
-            table_name    = Column(String(20), ForeignKey('%s.name' % SQLKIT_TABLE),
+            table_name    = Column(String(100), ForeignKey('%s.name' % SQLKIT_TABLE),
                                    primary_key=True)
             name          = Column(String(100), primary_key=True)
             description   = Column(String(100))
