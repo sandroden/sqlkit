@@ -27,8 +27,14 @@ class CellWidget(object):
     
     entry = property(get_entry)
 
-    def add_completion(self, editable=False):
-        """completion is set just for fkey and string fields"""
+    def add_completion(self, editable=False, force=False):
+        """completion is set just for fkey and string fields
+
+        :param editable: the editable widget to which completion should be added
+        :param force: (boolen) if True a SimpleCompletion is added even if
+                      field is not a Varchar. Used to add completion to other fields,
+                      possibly in conjunction with enum.
+        """
 
         
         if self.master.relationship_mode == 'm2m' and editable == False:
@@ -37,7 +43,7 @@ class CellWidget(object):
         elif self.master.is_fkey(self.field_name):
             Completion = FkeyCompletion
 
-        elif self.master.get_field_type(self.field_name) in (str, unicode):
+        elif force or self.master.get_field_type(self.field_name) in (str, unicode):
             Completion = SimpleCompletion
         else:
             self.completion = None

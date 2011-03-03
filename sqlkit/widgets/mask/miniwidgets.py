@@ -62,7 +62,7 @@ Fields Representation
 
 
 .. autoclass:: Widget
-   :members: __init__, set_value, get_value, set_editable, set_not_null_style
+   :members: __init__, set_value, get_value, set_editable, add_completion, set_not_null_style
    
 .. autoclass:: VarcharWidget
 .. autoclass:: TextWidget
@@ -210,6 +210,22 @@ class Widget(object):
         editable = self.field.editable and editable
         self.gtkwidget.set_property('sensitive', editable) 
         
+    def add_completion(self):
+        """add completion bindings and liststore
+
+        This adds completion capabilities to varchar fields and to foreign keys.
+        You can add it to other widgets as well provided you also use completion's
+        :meth:`set_values <sqlkit.widgets.common.completion.SimpleCompletion.set_values>`
+        method to provide values to be used in completion.
+        """
+        try:
+            self.completion = SimpleCompletion(self.master, self, self.field_name)
+        except exc.ColumnWithoutTable, e:
+            return
+        self.completion.add_completion(self.gtkwidget)
+        self.master.completions[self.field_name] = self.completion
+        self.completion.add_callbacks(self.gtkwidget)
+
     def __repr__(self):
         return "<%s - %s >" % (self.__class__.__name__, self.field_name)
 
@@ -237,17 +253,6 @@ class VarcharWidget(Widget):
             return
 
         self.master.run_hook('on_activate', self, field_name=self.field_name)
-
-    def add_completion(self):
-        """add completion bindings and liststore
-        """
-        try:
-            self.completion = SimpleCompletion(self.master, self, self.field_name)
-        except exc.ColumnWithoutTable, e:
-            return
-        self.completion.add_completion(self.gtkwidget)
-        self.master.completions[self.field_name] = self.completion
-        self.completion.add_callbacks(self.gtkwidget)
 
     def set_value(self, value, initial=False):
         # Entry

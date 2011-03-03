@@ -469,6 +469,10 @@ class SimpleCompletion(object):
     def set_values(self, values):
         """
         Set explicitely the possible completion values.
+
+        :param values: a list of values or a callable that will return a list
+                       of possible values
+
         Can be a list or a callable that will be called to get the
         real list of values passing the (possible) text in the entry
         as parameter
