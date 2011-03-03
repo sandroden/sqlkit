@@ -1151,7 +1151,7 @@ class SqlTable(sqlwidget.SqlWidget):
                     return True
                 except exc.ValidationError, e:
                     self.cell_entry.valid = False
-                    self.sb(e)
+                    self.sb(str(e), seconds=8)
                     return False
         
         

@@ -1034,6 +1034,136 @@ class FkeyCompletion(SimpleCompletion):
     def __str__(self):
         return "<FkeyCompletion: %s>" % self.field_name
         
+class EnumCompletion(SimpleCompletion):
+    """
+    A completion that shows enum alternatives.
+    Inherits from :class:`SimpleCompletion`
+    """
+    VALUE_COL = 0
+    DESCRIPTION_COL = 1
+    SEARCH_COL = 1
+    MARKUP_COL = 1
+        
+    def __init__(self, master, widget, *args, **kw):
+        SimpleCompletion.__init__(self, master, widget, *args, **kw)
+        self.widget = widget
+        self._needs_recalculating = False
+    def get_entry(self):
+        return self.widget.entry
+
+    def prepare_model(self):
+        ## last col is for markup
+        return gtk.ListStore(object, str, )
+            
+    def match_selected_cb(self, wdg, model, iter, field_name):
+        """
+        after selecting an entry store the value in self.values and set
+        the entry with the correct value.
+        """
+        # the completion model has 1 or 4 columns (in case of FKey):
+        # 0:  the real value to be put in the db
+        # 1:  the value to be shown in the field
+        # 2:  the value to be shown in the drop down completion menu
+        # 3:  the row return by the SELECT when building the completion
+        #         if more fields are present more columns get written
+
+        value = model.get(iter, self.VALUE_COL)[0]
+        
+        fkvalue = model.get(iter, self.DESCRIPTION_COL)[0]
+
+        self.master.set_value(field_name, value, fkvalue=fkvalue, initial=False)
+
+        ## just handier to accept it already
+        if not self.master.is_mask():
+            self.master.cell_entry.entry.emit('activate')
+
+        self.displaying_completion = False
+        #self.master.run_hook('on_completion', obj, field_name=self.field_name)
+        return True
+
+### What to show
+    def show_possible_completion(self, widget, mode, apply_filter=True, pop=True, sb=True,
+                                 value=None, return_sql=False, one=False):
+        """
+        fill in a ListStore to use with completion, fetch data from db
+        
+        :param mode: determines the match of the already typed text:
+
+           :start: only matching data starting with typed text
+           :regexp: typed text is a regexp (*~ or ILIKE)
+           :enum: all values
+           :exact: triggers the completion machanism but just for the exact match
+
+        :param apply_filter: filter added with .filter() will be applied
+        :param return_sql:   boolean only the sql is returned (debug purpose)
+        :param value:        value to use as "displayed value". debug purpose
+        :param pop:          don't try to pop the selection (debug purpose)
+        :param one:          return the result that should be just one (used internally
+                             within check_existance)
+        """
+        self._apply_filter = apply_filter
+        if self.force_enum:
+            mode = 'enum'
+        self.mode = mode
+        if sb:
+            # TIP: status bar 
+            self.master.sb(_("search mode: %s") % mode)
+        self.model.clear()
+
+        self.completion.set_model(None)
+        field = self.master.gui_fields[self.field_name]
+
+        for idx, text in field.values.iteritems():
+            self.append_to_model(idx, text)
+        self.completion.set_model(self.model)
+
+        if one and mode == 'exact':  # used by self.check_existance
+        ## just one result will be returned even if no check is done that more that one exists
+            # I'm not sure that obj is *always* defined!... I believe so!
+            return DictLike(obj)
+
+        if pop:
+            self.make_completion_to_pop(self.get_entry())
+        else: # doctest purpose
+            for row in self.model:
+                print self.model.get_value(row.iter, 1)
+    def append_to_model(self, idx, text):
+        """
+        add to the model that has 6 cols
+        """
+        miter = self.model.append(None)
+        self.model.set(miter,
+                       self.VALUE_COL,       idx,
+                       self.DESCRIPTION_COL, text,
+                       )
+
+    def get_obj_no_flush(self, value):
+        """
+        check if the object exists and .one(), but don't trigger .flush()
+        """
+        
+        filter_cnd = {str(self.description) : value}
+        query = self.master.session.query(table2mapper(self.table)).autoflush(False)
+        return query.filter_by( **filter_cnd ).one()
+        
+#     def compose_binary_expression(self, **kwargs):
+#         return compose_binary_expression(self.table, **kwargs)
+
+
+    def get_filtered_clause_list(self, **kw):
+        """
+        apply filter rules to this particular completion request.
+        Note: mapper is not available in the general situation, so we
+        use table to build the clause. That means we cannot follow any
+        further relationship.
+        """
+        
+        clause_list, path = django2sqlalchemy(table=self.table, **kw)
+        return clause_list
+
+    def __str__(self):
+        return "<FkeyCompletion: %s>" % self.field_name
+        
 class M2mCompletion(FkeyCompletion):
     """
     A completion that completes on the whole line: each field can be used to choose the same

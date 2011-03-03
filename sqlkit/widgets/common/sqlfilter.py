@@ -768,10 +768,11 @@ class FilterTool(object):
             if len(self.master.relationship_path) == 1:
                 query = query.join( (self.table, self.master.relationship_path[0]))
             else:
-                ## NOTE: if relationship_path is longer that 1, the table is not aliased, i.e.: if you place
-                ## 2 search conditions to the same table (e.g. searching on staff and manager of a project-
-                ## and both manager and staff are m2m relation to User)
-                ## will most surely lead to no result
+                ## NOTE: if relationship_path is longer that 1, the table is
+                ## not aliased, i.e.: if you place 2 search conditions to
+                ## the same table (e.g. searching on staff and manager of a
+                ## project- and both manager and staff are m2m relation to
+                ## User) will most surely lead to no result
                 query = query.join(*self.master.relationship_path)
 
         if op_value in ('IS NULL', 'IS NOT NULL',
@@ -797,14 +798,16 @@ class FilterTool(object):
             try:
                 value = self.get_value()
             except exc.ValidationError, e:
-                msg = _("value '%s' cannot be used for field '%s'") % (self.get_row_value(), self.field_name)
+                msg = _("value '%s' cannot be used for field '%s'") % (
+                    self.get_row_value(), self.field_name)
                 self.master.sb(msg)
                 self.panel.sb(msg)
                 raise e
             
             if value not in (None, ''):
                 if not re.match('postgres|mysql', self.bind_name) and \
-                       op_value in ('ICONTAINS', 'MATCH'):
+                       op_value in ('ICONTAINS', 'MATCH') and \
+                       not isinstance(value, list): ## value is a list in FilterEnum 
                     op_value = 'ILIKE'
                     value = '%' + value + '%'
 
@@ -887,7 +890,7 @@ class FilterDateTool(FilterTool):
 
     def string_representation(self, value):
         """
-        when date algebra is used we dont need to do anything
+        when date algebra is used we don't need to do anything
         """
         if isinstance(value, date): 
             return FilterTool.string_representation(self, value)
@@ -947,6 +950,52 @@ class FilterFKeyTool(FilterTool):
 
         return query.filter(self.col.in_(ids))
 
+class FilterEnumTool(FilterTool):
+
+    def __init__(self, field_name, panel, master):
+
+        FilterTool.__init__(self, field_name, panel, master)
+
+    def get_suitable_operators(self):
+
+        return ['~', '!~' ] + ['IS NULL', 'IS NOT NULL', 'ID']
+
+    def get_value(self):
+
+        op_value = self.get_operator()
+        
+        text = self.widget.get_value()
+        if not text or op_value == 'ID':
+            return text
+
+        field = self.master.gui_fields[self.field_name]
+        return [key for key, val in field.column.info['values']
+                  if re.search(text, val, re.IGNORECASE)]
+    
+    def string_representation(self, value):
+        """
+        a boolean must be always a string
+        """
+        return str(value)
+    
+    def _compose_field_whereclause(self, query, value, op_value):
+        """return a sql whereclause for field
+
+        In case field is a fkey, and the destination lookup field is not in
+        the mapper, it composes a subselect
+        """
+        from sqlalchemy.sql import not_
+        
+        if op_value == 'ID':
+            return query.filter(self.col == value)
+
+        elif op_value == '~':
+            return query.filter(self.col.in_(value))
+        
+        elif op_value == '!~':
+            return query.filter(not_(self.col.in_(value)))
+        
+        return query
 
 def get_filter_widget(field_name, panel, master, value=None):
     """
@@ -960,6 +1009,9 @@ def get_filter_widget(field_name, panel, master, value=None):
     elif master.is_fkey(field_name):
         return FilterFKeyTool(*args)
 
+    elif master.is_enum(field_name):
+        return FilterEnumTool(*args)
+    
     elif master.is_boolean(field_name):
         return FilterBooleanTool(*args)
     
@@ -1016,7 +1068,8 @@ class FilterWidget(object):
         c = 0
         widgets = [ self.field_name_event_box, self.operator, self.check_button ]
         ftype  = self.tool.master.get_field_type(self.tool.field_name)
-        if not issubclass(ftype, bool):
+        
+        if self.tool.master.is_enum(self.tool.field_name) or not issubclass(ftype, bool):
             widgets += [self.field_widget]
             
         for wdg in widgets:

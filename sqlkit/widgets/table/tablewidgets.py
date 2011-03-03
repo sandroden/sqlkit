@@ -1,4 +1,4 @@
-from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion, M2mCompletion
+from sqlkit.widgets.common import completion 
 from sqlkit import _, exc
 
 class CellWidget(object):
@@ -47,13 +47,16 @@ class CellWidget(object):
 
         
         if self.master.relationship_mode == 'm2m' and editable == False:
-            Completion = M2mCompletion
+            Completion = completion.M2mCompletion
             
         elif self.master.is_fkey(self.field_name):
-            Completion = FkeyCompletion
+            Completion = completion.FkeyCompletion
+
+        elif self.master.is_enum(self.field_name):
+            Completion = completion.EnumCompletion
 
         elif force or self.master.get_field_type(self.field_name) in (str, unicode):
-            Completion = SimpleCompletion
+            Completion = completion.SimpleCompletion
         else:
             self.completion = None
             return

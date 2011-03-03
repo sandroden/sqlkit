@@ -642,7 +642,7 @@ class DateTimeColumn(DateColumn):
         pass
         #editable.connect('key-press-event')
     
-class EnumColumn(GenericColumn):
+class EnumColumn(VarcharColumn):
 
     RENDERER = gtk.CellRendererText
     RESIZE = True
