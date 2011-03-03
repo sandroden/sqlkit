@@ -34,6 +34,7 @@ usage: %prog [options] [[url|nick] table]
    -L, --load: load data when opening a table (if no table is directly
          opened, set LoadData)
    -l, --limit=LIMIT: limit to LIMIT rows
+   -i, --ipython: if ipython is present it opne an ipython shell
    -C, --create-templates=mode: create in one of these modes: layout,
          hooks, programm, models, all
 """
@@ -383,7 +384,22 @@ from sqlkit.misc import conf, optionparse, table_browser
 #from sqlkit.db import proxy
 
 main()
-try:
-    gtk.main()
-except KeyboardInterrupt:
-    pass
+
+if opts.ipython:
+    try:
+        gtk.set_interactive(True)
+    except AttributeError:
+        print "This version of gtk does'n not have 'set_interactive', sorry."
+        sys.exit(1)
+    try:
+        import IPython
+        from IPython.Shell import IPShellEmbed
+        ipshell = IPShellEmbed([])
+        ipshell()
+    except ImportError, e:
+        print "Interactive demo needs ipython. Quitting."
+else:
+    try:
+        gtk.main()
+    except KeyboardInterrupt:
+        pass
