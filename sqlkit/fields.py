@@ -933,10 +933,9 @@ class DecimalField(IntegerField):
     type = Decimal
     length = 10
 
-    scale = None
+    scale = 2
     """the number of decimals. Default is desumed by introspection"""
 
-    
     format = None
     """How to represent integers. Default: '#,###.00' (The number of 0 determined by ``scale`` """
     
@@ -949,8 +948,8 @@ class DecimalField(IntegerField):
         Field.__init__(self, *args, **kw)
         
         if self.column is not None:
-            self.precision = self.column.type.precision
-            self.scale = self.column.type.scale
+            self.precision = self.column.type.precision or 8
+            self.scale = self.column.type.scale or 2
         else:
             self.precision = 8
             self.scale = 2
