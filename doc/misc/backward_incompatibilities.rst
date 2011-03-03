@@ -8,6 +8,12 @@ Backward Incompatibilities
 From version 0.8.6 (first public release) I keep track of backward
 incompatibilities:
 
+0.9.2
+=====
+
+:hooks: ``on__field_change`` now pass also the field. The demo snippet
+        already had this arguments but was always None and was not documented
+
 0.9.1
 =====
 

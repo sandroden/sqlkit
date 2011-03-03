@@ -714,7 +714,7 @@ class SqlTable(sqlwidget.SqlWidget):
                     self.cell_entry.entry.set_text(self.gui_fields[field_name].format_value(value))
 
         if not initial:
-            self.run_hook('on_change_value', value, fkvalue, field_name=field_name)
+            self.run_hook('on_change_value', value, fkvalue, field, field_name=field_name)
 
     def get_value(self, field_name, shown=False):
         """

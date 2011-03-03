@@ -318,12 +318,14 @@ The following hooks are defined:
     initial=True flag. I.e.: should be called any time a value is changed from
     the original
 
-    .. function:: on_change_value__field_name(sqlwidget, field_name, value, fkvalue)
+    .. function:: on_change_value__field_name(sqlwidget, field_name, value,
+                  fkvalue, field)
 
        :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
        :param field_name:  the field_name
        :param value:  the new value
        :param fkvalue: if field is a ForeignKey, the value shown
+       :param field: the field
 
 .. _on_completion:
 

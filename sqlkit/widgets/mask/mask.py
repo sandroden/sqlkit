@@ -294,10 +294,11 @@ class SqlMask(sqlwidget.SqlWidget):
         if field_name not in self.gui_fields:
             raise exc.FieldNotInLayout("field_name: %s" % (field_name))
 
-        self.gui_fields[field_name].set_value(field_value, initial=initial, shown=shown)
+        field = self.gui_fields[field_name]
+        field.set_value(field_value, initial=initial, shown=shown)
 
         if not initial:
-            self.run_hook('on_change_value', field_value, fkvalue, field_name=field_name)
+            self.run_hook('on_change_value', field_value, fkvalue, field, field_name=field_name)
     
     def get_value(self, field_name, shown=False):
         """
