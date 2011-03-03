@@ -46,6 +46,41 @@ any bug as soon as possible. The first stable version has been 0.8.6 in 2008.
 I really appreciate any bug report particularly if based on a repeatable
 example, possibly starting from the demo.
 
+Windows
+=======
+
+I'm not a window guy and it always takes me quite long to setup things
+correctly, anyhow this is a working recepy, aimed at minimum effort:
+
+ * `Python from ActiveState`_ (it already sets Python in the PATH. Watch out
+      for licence, otherwise do all by hand: install python27_ and set PATH
+      accordingly) 
+
+ * `PyGTK-all installer`_ by Dieter Verfaillie (Note that it's a testing
+      bundle but I found it ok provided you use it with a fairly new
+      installer engine e.g. SP2 on XP)
+
+ * unzip sqlkit and install it simply by running::
+
+      > python setup.py install
+
+   at this point you should be able to move to demo and run it::
+
+      > cd demo\sql
+      > python demo.py
+
+.. _`PyGTK-all installer`: https://github.com/dieterv/pygtk-installer/downloads
+.. _Python27: http://www.python.org/ftp/python/2.7/python-2.7.msi
+.. _`Python from ActiveState`: http://downloads.activestate.com/ActivePython/releases/2.7.0.2/ActivePython-2.7.0.2-win32-x86.msi
+
+.. _Python26: http://downloads.activestate.com/ActivePython/releases/2.6.6.15/ActivePython-2.6.6.15-win32-x86.msi
+.. http://www.python.org/ftp/python/2.6.6/python-2.6.6.msi
+.. _`GTK + glade`:  http://ftp.gnome.org/pub/GNOME/binaries/win32/glade3/3.6/glade3-3.6.7-with-GTK+.exe
+.. _PyGTK: http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.16/pygtk-2.16.0+glade.win32-py2.6.exe
+.. PyCairo: http://ftp.gnome.org/pub/GNOME/binaries/win32/pycairo/1.8/pycairo-1.8.6.win32-py2.6.exe
+.. Pygobject: http://ftp.gnome.org/pub/GNOME/binaries/win32/pygobject/2.20/pygobject-2.20.0.win32-py2.6.exe
+
+
 Debian/Ubuntu
 =============
 
