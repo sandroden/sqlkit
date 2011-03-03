@@ -476,6 +476,18 @@ class DateEdit(LWidget):
         'date' : None,
         }
             
+class ImageWidget(LWidget):
+    gtkClass = 'Custom'
+    ## this widget is provided by image module
+    transpose = {
+        'w'    : 'string1',
+        'h'    : 'string2',
+        }
+    class_properties = {
+        'creation_function' : 'lay_image_widget',
+        'image' : None,
+        }
+            
 class DateTimeEdit(LWidget):
     gtkClass = 'Custom'
     ## this widget is provided by dateedit module
@@ -708,10 +720,8 @@ class Image(LWidget):
         else:
             cdir = os.getcwd()
             filename = os.path.join(cdir,self.var)
-            if os.stat(filename):
+            if os.path.exists(filename) and os.path.isfile(filename):
                 self.properties['pixbuf'] = filename
-            else:
-                print "Missing image: " + filename
 
 class Window(LContainer):
     gtkClass = 'GtkWindow'
@@ -1088,6 +1098,7 @@ _W = {
     'dt'  : DateTimeEdit,
     'da'  : DrawingArea,
     'i'   : Image,
+    'img' : ImageWidget,
     'b'   : Button,
     'lb'   : LinkButton,
     'r'   : RadioButton,
@@ -1144,18 +1155,33 @@ _W = {
 
 class CustomWidget(object):
 
-    def lay_dateedit(self):
+    def lay_dateedit(self, str1=None, str2=None):
+
         import dateedit
         d = dateedit.DateEdit()
         d.show()
         return d
 
-    def lay_datetimeedit(self):
+    def lay_datetimeedit(self, str1=None, str2=None):
+
         import dateedit
         d = dateedit.DateTimeEdit()
         d.set_property('show-time', True)
         d.show()
         return d
+
+    def lay_image_widget(self, width=None, height=None):
+        """
+        width and height allows to set dimention via img=field_name:w.h
+        """
+        import image_widget
+        i = image_widget.ImageWidget()
+        if width:
+            i.props.width = int(width)
+        if height:
+            i.props.height = int(height)
+        i.show()
+        return i
 
 class MyCustomWidget(CustomWidget):
     pass
@@ -1163,7 +1189,7 @@ class MyCustomWidget(CustomWidget):
 def custom_widget(glade, function_name, widget_name,
                   str1=None, str2=None, int1=None , int2=None):
     cw = MyCustomWidget()
-    return getattr(cw, function_name)()
+    return getattr(cw, function_name)(str1, str2)
 
 
 

@@ -95,19 +95,19 @@ class GreedyTreeView(widgets.LWidget):
         }
 
 class MyWidget(widgets.CustomWidget):
-    def fk_edit(self):
+    def fk_edit(self, str1=None, str2=None):
         from sqlkit.layout import fk_entry
         fk = fk_entry.FkEdit()
         fk.show()
         return fk
     
-    def interval_edit(self):
+    def interval_edit(self, str1=None, str2=None):
         from sqlkit.layout import interval_entry
         ie = interval_entry.IntervalEdit()
         ie.show()
         return ie
         
-    def greedy_treeview(self):
+    def greedy_treeview(self, str1=None, str2=None):
         from sqlkit.layout import greedy_treeview
         gt = greedy_treeview.GreedyTreeView()
         gt.show()
@@ -405,4 +405,6 @@ class LayoutGenerator (object):
                     
                 self.fields_in_layout[field_name] = "%s=%s" % (
                     self.get_edit_string(mod), field_name)
+
+
 
