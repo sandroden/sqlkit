@@ -353,10 +353,13 @@ class SimpleCompletion(object):
             else:
                 match = False
                 ## start mode
-                if self.mode == 'start' and re.search("^%s" %(key), text, re.IGNORECASE):
-                    match = True
-                elif re.search(key, text, re.IGNORECASE):  # regexp mode
-                    match = True
+                try:
+                    if self.mode == 'start' and re.search("^%s" %(key), text, re.IGNORECASE):
+                        match = True
+                    elif re.search(key, text, re.IGNORECASE):  # regexp mode
+                        match = True
+                except re.error, e:
+                    match = False
                     
                 if match and self._group_by:
                     ## switch ON the display of group by label in completion
@@ -502,7 +505,7 @@ class SimpleCompletion(object):
             val = self.master.get_value(self.field_name, shown=True) or ''
         assert isinstance(val, basestring)
         self.autostart_last_length = len(val)
-        return self.add_for_LIKE_and_REGEXP(val)
+        return self.add_for_LIKE_and_REGEXP(val.strip('\\'))
 
     def get_match_operator(self):
         
