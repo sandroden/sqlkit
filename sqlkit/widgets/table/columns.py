@@ -639,6 +639,54 @@ class DateTimeColumn(DateColumn):
         pass
         #editable.connect('key-press-event')
     
+class EnumColumn(GenericColumn):
+
+    RENDERER = gtk.CellRendererText
+    RESIZE = True
+    REORDER = True
+    CLICK = True
+    EXPAND = False
+    MIN_DEFAULT_WIDTH = 4
+    MAX_DEFAULT_WIDTH = 30
+    PROPERTY = 'text'
+    editable = False
+
+    def cell_data_func_cb(self, column, cell, model, iter, prop_name):
+        """
+        cell_data_function used by column that have fkey
+        """
+
+        if not column.get_visible():
+            return
+
+        obj = model.get_value(iter, 0)
+        
+        if not obj:
+            return
+        
+        cell.set_property('visible', True)        
+
+        ## DB RECORDS
+        if isinstance(obj, self.master.mapper.class_):
+            value = getattr(obj, self.field_name)
+
+            if value is not None:
+                show_value = self.field.lookup_value(value)
+                cell.set_property('text', show_value)
+            else:
+                cell.set_property('text', '')
+            cell.set_property('editable', self.editable)
+
+        ## TOTALS
+        elif hasattr(self.master, 'totals') and isinstance(obj, self.master.totals.total_class):
+            cell.set_property('text', '')
+            cell.set_property('editable', False)        
+
+        ## HEADER
+        else:
+            cell.set_property('text', getattr(obj, self.field_name))
+            cell.set_property('editable', False)
+
 class ImageColumn(GenericColumn):
 
     RENDERER = gtk.CellRendererPixbuf
@@ -1331,11 +1379,14 @@ class View(object):
             elif self.master.is_fkey(field_name) :   ## FKey
                 col = FKeyColumn(self.master, field_name, label)
 
-            elif self.master.is_boolean(field_name):  ## boolean
-                col = BooleanColumn(self.master, field_name, label)
-
             elif self.master.is_image(field_name):  ## image
                 col = ImageColumn(self.master, field_name, label)
+
+            elif self.master.is_enum(field_name):  ## image
+                col = EnumColumn(self.master, field_name, label)
+
+            elif self.master.is_boolean(field_name):  ## boolean
+                col = BooleanColumn(self.master, field_name, label)
 
             elif self.master.is_date(field_name):   ## Dates
                 col = DateColumn(self.master, field_name, label)

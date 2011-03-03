@@ -1939,6 +1939,15 @@ class SqlWidget(gobject.GObject):
         except AttributeError:
             return self.gui_fields[field_name].type == bool
 
+    def is_enum(self, field_name):
+        """
+        Return true if this field is to rendered as enum
+        """
+        try:
+            return self.mapper_info.is_enum(field_name)
+        except AttributeError:
+            return isinstance(self.gui_fields[field_name], fields.EnumField)
+
     def is_image(self, field_name):
         """
         Return true if this field is image

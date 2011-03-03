@@ -652,6 +652,49 @@ class ProgressBar(LWidget):
 
 class ComboBox(Entry):
     gtkClass = 'GtkComboBox'
+    transpose = {
+        'w' : 'width_request',
+        }
+    def _class_specific(self):
+        self.pack_properties.update({
+            'x_options' : 'fill',
+            })
+
+class AlignmentComboBox(LContainer):
+    gtkClass = 'GtkAlignment'
+
+    def __init__(self,  el_def, pos, container, children_list=None, elements={}, layout=None):
+        el_def = el_def.replace('aC=','A=')
+        super(LContainer, self).__init__(el_def, pos, container, elements=elements, layout=layout)
+        ## prepare the names...
+
+        entry_str   = "C=%s" % (el_def.replace('A=',''))
+        #print "ENTRY_STR", entry_str
+        ## and create the children
+        #print "EventLabel elements: ", elements.keys()
+        wdg = ComboBox(entry_str,(0,0),    'A', elements=elements, layout=layout)
+        self.lw['children_list'] = [ wdg ]
+        if self.align == '-':
+            self.properties['xscale'] = 1
+        else:
+            self.properties['xscale'] = 0
+
+        if self.align == '>':
+            self.properties['xalign'] = 1
+        else:
+            self.properties['xalign'] = 0
+
+    def _class_specific(self):
+        self.pack_properties.update({
+            'x_options' : 'expand|fill',
+            })
+
+    def _get_w(self):
+        return -1
+    def _set_w(self, value):
+        ## when setting the with of an ae object we just want to set the width of the entry
+        return
+    w = property(_get_w, _set_w )
 
 class ComboBoxEntry(Entry):
     gtkClass = 'GtkComboBoxEntry'
@@ -1099,6 +1142,7 @@ _W = {
     'fl'  : FrameLabel,
     'e'   : Entry,
     'ae'  : AlignmentEntry,
+    'aC'  : AlignmentComboBox,
     'd'   : DateEdit,
     'dt'  : DateTimeEdit,
     'da'  : DrawingArea,

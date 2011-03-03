@@ -12,7 +12,7 @@
 >>> from sqlkit.widgets import SqlMask
 >>> from sqlkit.fields import FieldChooser
 
->>> lay = "title year director_id m2m=genres date_release"
+>>> lay = "title year director_id m2m=genres date_release score"
 >>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> sm.gui_fields = {}
 >>> field_chooser = FieldChooser(sm.mapper_info, sm.widgets)
@@ -36,6 +36,10 @@
 >>> print field_chooser.get_field(field_name, sm.mapper_info.fields[field_name], key)
 <class 'sqlkit.fields.DateField'>
 
+>>> field_name, key = 'score', 'score'
+>>> print field_chooser.get_field(field_name, sm.mapper_info.fields[field_name], key)
+<class 'sqlkit.fields.EnumField'>
+
 ### clean_value
 >>> from decimal import Decimal
 >>> from datetime import date, datetime, time, timedelta
@@ -48,6 +52,17 @@ u'Fellini'
 
 >>> f.get_human_value(14)
 u'Fellini'
+
+# enum
+>>> f = sm.gui_fields['score']
+>>> f.clean_value(3)
+3
+
+>>> f.clean_value(4)
+Traceback (most recent call last):
+...
+ValidationError: Value '4' is not accepted
+
 
 # integer
 >>> sm = SqlMask(AllTypes, dbproxy=db, naked=True, show=False)
@@ -133,6 +148,7 @@ datetime.time(15, 30)
 
 >>> isinstance(f.format_value(f.clean_value('15:30')), basestring)
 True
+
 
 
 #####################################

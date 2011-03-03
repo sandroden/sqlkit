@@ -14,46 +14,50 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+
 Fields Representation
 =====================
 
 +--------------------+--------------------------------------------+--------------------+
-| field or property  | Mask                                       |Table               |
+| Field or Property  | Mask                                       |Table               |
 +--------------------+--------------------------------------------+--------------------+
 ||varchar|           |:class:`VarcharWidget`                      |                    |
-|                    |                                            |                    |
 +--------------------+--------------------------------------------+--------------------+
-|text                |:class:`TextWidget`                         |                    |
+||text|              |:class:`TextWidget`                         |                    |
 +--------------------+--------------------------------------------+--------------------+
-|integer             |:class:`IntegerWidget`                      |                    |
+||integer|           |:class:`IntegerWidget`                      |                    |
 +--------------------+--------------------------------------------+--------------------+
-|float               |:class:`FloatWidget`                        |                    |
+||float|             |:class:`FloatWidget`                        |                    |
 +--------------------+--------------------------------------------+--------------------+
-|numeric             |:class:`DecimalWidget`                      |                    |
+||numeric|           |:class:`DecimalWidget`                      |                    |
 +--------------------+--------------------------------------------+--------------------+
-|date                |:class:`DateWidget`                         |                    |
+||date|              |:class:`DateWidget`                         |                    |
 +--------------------+--------------------------------------------+--------------------+
-|datetime            |:class:`DateTimeWidget`                     |                    |
+||datetime|          |:class:`DateTimeWidget`                     |                    |
 +--------------------+--------------------------------------------+--------------------+
-|datetime with       |:class:`DateTimeTZWidget`                   |                    |
-|timezone            |                                            |                    |
+||datetimetz|        |:class:`DateTimeTZWidget`                   |                    |
 +--------------------+--------------------------------------------+--------------------+
-|interval            |:class:`IntervalWidget`                     |                    |
+||interval|          |:class:`IntervalWidget`                     |                    |
 +--------------------+--------------------------------------------+--------------------+
-|time                |:class:`TimeWidget`                         |                    |
+||time|              |:class:`TimeWidget`                         |                    |
 +--------------------+--------------------------------------------+--------------------+
-|time with timezone  |:class:`TimeTZWidget`                       |                    |
+||timetz|            |:class:`TimeTZWidget`                       |                    |
 +--------------------+--------------------------------------------+--------------------+
-|boolean             |:class:`BooleanWidget`                      |                    |
+||boolean|           |:class:`BooleanWidget`                      |                    |
 +--------------------+--------------------------------------------+--------------------+
-|boolean with null   |:class:`BooleanNullWidget`                  |                    |
+||boolnull|          |:class:`BooleanNullWidget`                  |                    |
 +--------------------+--------------------------------------------+--------------------+
-|image (varchar w/   |:class:`ImageWidget`                        |                    |
-|render=image)       |                                            |                    |
+||enum| (varchar or  |:class:`EnumWidget`                         |                    |
+|integer with        |                                            |                    |
+|render='enum')      |                                            |                    |
 +--------------------+--------------------------------------------+--------------------+
-|foreign key         |:class:`ForeignKeyWidget`                   |                    |
+||image| (varchar    |:class:`ImageWidget`                        |                    |
+|with render='image')|                                            |                    |
 +--------------------+--------------------------------------------+--------------------+
-|relation (o2m/m2m)  |:class:`CollectionWidget`                   |                    |
+||fkey|              |:class:`ForeignKeyWidget`                   |                    |
++--------------------+--------------------------------------------+--------------------+
+||relation|          |:class:`CollectionWidget`. This is just a   |                    |        
+|                    |SqlTable that represents the related field  |                    |
 +--------------------+--------------------------------------------+--------------------+
 
 
@@ -73,6 +77,7 @@ Fields Representation
 .. autoclass:: TimeTZWidget
 .. autoclass:: BooleanWidget
 .. autoclass:: BooleanNullWidget
+.. autoclass:: EnumWidget
 .. autoclass:: ImageWidget
 .. autoclass:: ForeignKeyWidget
 .. autoclass:: CollectionWidget
@@ -88,7 +93,23 @@ You can change default color for not nullable object globally::
 
 You can change the foreground of unsensitive widgets setting NOT_EDITABLE_COLOR
 
-.. |varchar| replace:: :class:`VarcharField <sqlkit.fields.VarcharField>` 
+.. |varchar| replace:: :class:`Varchar <sqlkit.fields.VarcharField>` 
+.. |text|    replace:: :class:`Text <sqlkit.fields.TextField>` 
+.. |integer| replace:: :class:`Integer <sqlkit.fields.IntegerField>` 
+.. |float|   replace:: :class:`Float <sqlkit.fields.FloatField>` 
+.. |numeric| replace:: :class:`Numeric <sqlkit.fields.DecimalField>` 
+.. |date|    replace:: :class:`Date <sqlkit.fields.DateField>` 
+.. |datetime| replace:: :class:`Datetime <sqlkit.fields.DateTimeField>` 
+.. |datetimetz| replace:: :class:`Datetime w/ TZ <sqlkit.fields.DateTimeTZField>` 
+.. |interval| replace:: :class:`Interval <sqlkit.fields.IntervalField>` 
+.. |time|     replace:: :class:`Time <sqlkit.fields.TimeField>` 
+.. |timetz|   replace:: :class:`Time w/ timezone <sqlkit.fields.TimeTZField>` 
+.. |boolean|  replace:: :class:`Boolean <sqlkit.fields.BooleanField>` 
+.. |boolnull| replace:: :class:`Boolean with null <sqlkit.fields.BooleanNullField>` 
+.. |enum|     replace:: :class:`Enum <sqlkit.fields.EnumField>` 
+.. |image|    replace:: :class:`Image <sqlkit.fields.ImageField>` 
+.. |fkey|     replace:: :class:`ForeignKey <sqlkit.fields.ForeignKeyField>` 
+.. |relation| replace:: :class:`relation (o2m/m2m) <sqlkit.fields.CollectionField>` 
 """
 
 import re
@@ -497,6 +518,55 @@ class BooleanNullWidget(BooleanWidget):
 
         return True
 
+class EnumWidget(Widget):
+    """
+    A proxy for a ComboBox
+    """
+    def __init__(self, gtkwidget, field):
+
+        Widget.__init__(self, gtkwidget, field)
+        self.model = gtk.ListStore(gobject.TYPE_PYOBJECT, gobject.TYPE_STRING)
+        gtkwidget.set_model(self.model)
+        gtkwidget.props.width_request = -1
+        cell = gtk.CellRendererText()
+        gtkwidget.pack_start(cell, True)
+        gtkwidget.add_attribute(cell, 'text', 1)
+        self.notify_id = gtkwidget.connect('notify::active', self.notify_active_cb)
+        self.fill_model()
+
+    def notify_active_cb(self, widget, param):
+        self.master.run_hook('on_change_value', self.get_value(), self.get_value(shown=True),
+                             self.field, field_name=self.field_name)
+        
+    def fill_model(self):
+        self.model.append((None, ''))
+        for key, value in self.field.values.iteritems():
+            self.model.append([key, value])
+
+    def _find_value(self, model, path, iter, (value, i)):
+        if model.get_value(iter, 0) == value:
+            return True
+        i[0] += 1
+        
+    def set_value(self, value):
+        i = [0]
+        self.model.foreach(self._find_value, (value, i))
+        self.gtkwidget.handler_block(self.notify_id)
+        self.gtkwidget.set_active(i[0])
+        if not initial:
+            self.master.run_hook('on_change_value', self.get_value(), self.get_value(shown=True),
+                             self.field, field_name=self.field_name)
+        self.gtkwidget.handler_unblock(self.notify_id)
+
+    def get_value(self, shown=False):
+        index = self.gtkwidget.get_active_iter()
+        if index:
+            if shown:
+                return self.model.get_value(index, 1)
+            else:
+                return self.model.get_value(index, 0)
+        return None
+    
 class ImageWidget(Widget):
     """
     A proxy for :ref:`image_widget` to represent fields that hold file

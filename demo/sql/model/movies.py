@@ -22,6 +22,11 @@ movie_genre = Table('movie_genre' , Base.metadata,
                       Column('genre_name', Integer, ForeignKey('genre.name')),
                       )
 
+SCORE_VALUES = (
+    (1, 'Nice'),
+    (2, 'Beautifull'),
+    (3, 'Great'),
+    )
 class Director(Base):
     __tablename__ = 'director'
     id             = Column(Integer, primary_key=True)
@@ -44,8 +49,9 @@ class Movie(Base):
     description    = Column(String(512))
     year           = Column(Integer())
     date_release   = Column(Date())
-    director_id    = Column(Integer, ForeignKey('director.id'), nullable=False, info={'attach_instance': 'director'})
-
+    director_id    = Column(Integer, ForeignKey('director.id'), nullable=False,
+                            info={'attach_instance': 'director'})
+    score          = Column(Integer, info={'render' :'enum', 'values' : SCORE_VALUES})
     ## relations
     # alternative way to set the relation between movies and actors
     # director       = relation('Director', backref=backref('movies', cascade='all, delete-orphan',))

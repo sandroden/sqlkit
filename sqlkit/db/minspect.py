@@ -446,6 +446,21 @@ class InspectMapper(Container):
             return issubclass(db_type, (sqltypes.Text))
         return False
 
+    def is_enum(self, field_name):
+        """
+        Return true if this field is  date
+        """
+        from sqlkit import fields
+
+        col = self.fields[field_name]['col']
+        try:
+            field = col.info.get('field', None)
+            if field:
+                return issubclass(field, fields.EnumField)
+            return col.info.get('render') == 'enum'
+        except AttributeError:
+            pass
+
     def is_image(self, field_name):
         """
         Return true if this field is  date

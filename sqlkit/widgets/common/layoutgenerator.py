@@ -212,6 +212,8 @@ class LayoutGenerator (object):
         """
         if mod in ('ae'):
             return 'e'
+        if mod in ('aC'):
+            return 'C'
         if mod in ('TXS'):
             return 'TX'
         else:
@@ -241,6 +243,9 @@ class LayoutGenerator (object):
 
         if self.master.is_image(field_name):
             return 'img'
+        
+        if self.master.is_enum(field_name):
+            return 'aC'
         
         ftype = self.master.get_field_type(field_name)
         widget = self.map_types[ftype]

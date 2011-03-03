@@ -150,14 +150,17 @@ validation) or to completely change the widget that represent data.
 Widgets
 ========
 
-A Field does not create a gtk widget to represent data, that's -rarely- done
-by sqlkit.widgets.mask.miniwiget.Widget. More tipically it is done by the
-layout procedure and the Fields/Widget just takes its control and adds
-completion capabilities.
+A Field does not create a gtk widget to represent data. Layout definition is
+normally enought to create the correct GTK widget. If a gtk widget exists
+that represent a field, it is handled by a proxy called Miniwidget that
+offers a common interface to possbly different gtk widgets. If a MiniWidget
+exists the Field will instantiate it and set values thought it. 
 
 A notable exception to this rule is represented by any m2m/o2m relation,
 that in the layout is only present as a gtk.Alignment widget to which a
-children is added by mask.Widget
+children is added by mask.Widget.
+
+:ref:`Miniwidgets <field-widgets>` for all main types are provided.
 
 Global variables
 ================
@@ -212,6 +215,8 @@ All other field inherit from Field
 .. autoclass:: DateTimeTZField
 .. autoclass:: BooleanField
 .. autoclass:: BooleanNullField
+.. autoclass:: EnumField
+   :members: keys, values, lookup_value
 .. autoclass:: ImageField
    :members: base_dir, thumbnail_size, default_size,
              get_value, set_value, clean_value, get_save_path, scale_pixbuf, scale_file,
@@ -300,6 +305,9 @@ class FieldChooser(object):
         if self.info.is_loader(field_name):
             return CollectionField
         
+        if self.info.is_enum(field_name):
+            return EnumField
+
         if self.info.is_integer(field_name):
             return IntegerField
 
@@ -1176,6 +1184,54 @@ class BooleanNullField(Field):
             msg = "Null value not admissable for field %s" % self.field_name
             raise ValidationError(msg) 
         return value
+    
+class EnumField(Field):
+    """
+    A field to handle a set of allowed values. You set ``values`` in the
+    ``info`` column dict or setting :attr:`values`. Setting info column's
+    key ``render`` to 'enum' triggers this field and a widget based on ComboBox.
+    It doesn't currently use Sqlalchemy Enum type as it's not yet supported in
+    sqlalchemy 0.5. 
+    """
+    Widget = 'EnumWidget'
+    type = (str, int)
+
+    keys = None
+    """A list of allowe values in the orederd set by the programmer.
+    Used to set the order of the Combo Box"""
+    
+    values = None
+    """A dict: keys are the allowed values, values are te corresponding
+    descriptions. It's up to the programmer to set this list appropriately.
+    """
+    
+    def __init__(self, *args, **kw):
+
+        Field.__init__(self, *args, **kw)
+        self.values = {}
+        values = self.column.info.get('values', [])
+        self.keys = [x[0] for x in values]
+        for key, value in values:
+            self.values[key] = value
+
+    def clean_value(self, value):
+        """
+        Check if value is in the admitted values
+        """
+        if value is None:
+            if not self.nullable:
+                raise exc.ValidationError(_("Value cannot be NULL"))
+            else:
+                return value
+        if not value in self.keys:
+            raise exc.ValidationError(_("Value '%s' is not accepted") % value)
+        return value
+
+    def lookup_value(self, value):
+        """
+        Return the value to be shown
+        """
+        return self.values[value]
     
 class ImageField(VarcharField):
     """
