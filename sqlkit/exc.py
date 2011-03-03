@@ -45,17 +45,21 @@ class NotNullableFieldError(ValidationError):
         self.field_name = field_name
         if master:
             self.field_name = master.get_label(field_name)
-        self.message = message or _("field %s cannot be NULL") % self.field_name
+        self.message = message or _("Field '%s' cannot be NULL") % self.field_name
+
+    def __str__(self):
+        return self.message
     
 class InvalidValue(ValidationError):
+
     def __init__(self, field_name, value, message=None, master=None):
         self.field_name = field_name
         if master:
             self.field_name = master.get_label(field_name)
         self.value = value
-        self.message = message or _('field %s cannot have value %s') % (
+        self.message = message or _("Field '%s' cannot have value %s") % (
             self.field_name, value)
-    
+
 class CommitError(ValidationError): pass
 class HandledRollback(CommitError): pass
 
