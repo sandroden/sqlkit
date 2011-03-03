@@ -26,6 +26,18 @@
 >>> djs.django2components(User.__table__, {'first_name' : 'ed'})
 ([], '=', 'eq', 'ed', Column('first_name', String(length=50, convert_unicode=False...), table=<user>), None)
 
+>>> djs.django2components(User.__table__, {'first_name__ilike' : 'ed'})
+([], 'ilike', 'ilike', 'ed', Column('first_name', String(length=50, convert_unicode=False...), table=<user>), None)
+
+>>> djs.django2components(User.__table__, {'first_name__notilike' : 'ed'})
+([], 'not ilike', 'notilike', 'ed', Column('first_name', String(length=50, convert_unicode=False...), table=<user>), None)
+
+>>> djs.django2components(User.__table__, {'id__in' : [3,4]})
+([], 'IN', 'in', [3, 4], Column('id', Integer(), table=<user>...), None)
+
+>>> djs.django2components(User.__table__, {'id__notin' : [3,4]})
+([], 'NOT IN', 'notin', [3, 4], Column('id', Integer(), table=<user>...), None)
+
 >>> djs.django2components(User.__mapper__, {'first_name' : 'ed'})
 ([], '=', 'eq', 'ed', Column('first_name', String(length=50, convert_unicode=False, ...), table=<user>), None)
 

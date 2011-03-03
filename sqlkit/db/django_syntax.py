@@ -69,7 +69,7 @@ by default. It's possible to use ``OR`` operator adding ``OR=True``  argument.
 from copy import deepcopy
 
 from sqlalchemy.sql.expression import ColumnElement, ClauseList 
-from sqlalchemy.sql import and_, or_
+from sqlalchemy.sql import and_, or_, not_
 from sqlalchemy import Table
 from sqlalchemy.orm import ColumnProperty, PropertyLoader, class_mapper
 from sqlalchemy.types import Date, DateTime
@@ -160,6 +160,12 @@ class DjangoParser(object):
             sql = col == value  ## True | False
         elif op_str == 'ilike': # SA manages difference where there is no ILIKE operator
             sql = col.ilike(value)
+        elif op_str == 'notilike': # SA manages difference where there is no ILIKE operator
+            sql = not_(col.ilike(value))
+        elif op_str == 'in': 
+            sql = col.in_(value)
+        elif op_str == 'notin': 
+            sql = not_(col.in_(value))
         elif self.is_date(col):
             if isinstance(value, basestring):
                 start, stop = string2dates(value)
