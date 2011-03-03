@@ -83,6 +83,7 @@ class DateEdit(gtk.HBox):
                     'Initial Date',
                     'The initial date',
                     gobject.PARAM_READABLE),
+
         'width-chars' : (gobject.TYPE_PYOBJECT,
                     'Width of the entry in chars',
                     'The width of the entry',
@@ -185,6 +186,8 @@ class DateEdit(gtk.HBox):
         self._cal_popup.set_title('popup for calendar')
         self._cal_popup.set_events(self._cal_popup.get_events() | gdk.KEY_PRESS_MASK)
         self._cal_popup.set_resizable(False) # Todo: Needed?
+        self._cal_popup.set_tooltip_text(_(
+            'Press Esc to close or double click a date to select it'))
 
         frame = gtk.Frame()
         frame.set_shadow_type(gtk.SHADOW_OUT)
@@ -216,17 +219,17 @@ class DateEdit(gtk.HBox):
         self._default_base = color
         
     def popup_grab_on_window(self, window, activate_time):
-        if gdk.pointer_grab(window, True, gdk.BUTTON_PRESS_MASK 
+        grab = gdk.pointer_grab(window, True, gdk.BUTTON_PRESS_MASK 
                                           | gdk.BUTTON_RELEASE_MASK
                                           | gdk.POINTER_MOTION_MASK, 
-                            None, None, activate_time) == 0:
-                if gdk.keyboard_grab (window, True, activate_time) == 0:
-                    return True
-                else:
-                    gdk.pointer_ungrab(activate_time)
-                    return False
+                            None, None, activate_time)
+        if grab == 0:
+            if gdk.keyboard_grab (window, True, activate_time) == 0:
+                return True
+            else:
+                gdk.pointer_ungrab(activate_time)
+                return False
         return False
-
 
     def position_popup(self):
         req = self._cal_popup.size_request()
@@ -663,22 +666,69 @@ class DateTimeEdit(DateEdit):
 # 	    gobject.type_register(DateEdit)
 # 	    gobject.type_register(DateTimeEdit)
 
+# if __name__ == '__main__':
+
+#     w = gtk.Window()
+#     v = gtk.VBox()
+#     d1 = DateTimeEdit()
+#     d2 = DateTimeEdit()
+#     d3 = DateEdit()
+#     d2.set_property('show_time', False)
+#     v.add(d1)
+#     v.add(d2)
+#     v.add(d3)
+# #    d1.set_property('datetime', None)
+#     d1.set_property('datetime', datetime.datetime.now())
+#     d3.set_property('date', datetime.date.today())
+#     d3.set_property('date', None)
+#     w.add(v)
+#     w.show_all()
+
+#     gtk.main()
+    
+
+class EntryCal(gtk.Entry):
+    """
+    basic gtk widget to edit data
+    """
+    __gtype_name__ = 'DateEdit2'
+    
+    __gproperties__ = {
+        'date' : (gobject.TYPE_PYOBJECT,                       # type
+                    'Date',                                    # nick name
+                    'The date currently selected',             # description
+                    gobject.PARAM_READWRITE),                  # flags
+
+        'initial-date' : (gobject.TYPE_PYOBJECT,
+                    'Initial Date',
+                    'The initial date',
+                    gobject.PARAM_READABLE),
+
+        'width-chars' : (gobject.TYPE_PYOBJECT,
+                    'Width of the entry in chars',
+                    'The width of the entry',
+                    gobject.PARAM_READWRITE),
+                  
+    }
+
+    __gsignals__ = {
+        'date-changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                          ()),                          
+    }
+
+    def __init__(self):
+        
+        gtk.Entry.__init__(self)
+        self.props.primary_icon_stock = 'gtk-quit'
+        self.props.secondary_icon_stock = 'sk-calendar'
+        self.props.secondary_icon_tooltip_text = "Calendar"
+
 if __name__ == '__main__':
 
+    import misc  # adds the sk-calendar stock-icon
     w = gtk.Window()
-    v = gtk.VBox()
-    d1 = DateTimeEdit()
-    d2 = DateTimeEdit()
-    d3 = DateEdit()
-    d2.set_property('show_time', False)
-    v.add(d1)
-    v.add(d2)
-    v.add(d3)
-#    d1.set_property('datetime', None)
-    d1.set_property('datetime', datetime.datetime.now())
-    d3.set_property('date', datetime.date.today())
-    d3.set_property('date', None)
-    w.add(v)
+    d = EntryCal()
+    w.add(d)
     w.show_all()
 
     gtk.main()
