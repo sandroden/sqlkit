@@ -100,12 +100,14 @@ class DateEdit(gtk.HBox):
         self.invalid_date = False
         #datetime.datetime.today()
 
-        self.locale_setup()
+        try:
+            self.locale_setup()
+        except locale.Error:
+            pass
         self.build_layout()
 
         hid = self._date_entry.connect('changed', self.date_entry_changed_cb)
         self._ids = {'date_entry_changed' : (self._date_entry, hid)}
-
         self._date_button.connect('clicked', self.date_button_clicked_cb)
 
         self._calendar.connect('day-selected', self.day_selected_cb)
