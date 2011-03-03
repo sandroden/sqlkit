@@ -12,7 +12,7 @@
 >>> from sqlkit.widgets import SqlMask
 >>> from sqlkit.fields import FieldChooser
 
->>> lay = "title year director_id m2m=genres date_release score"
+>>> lay = "title year director_id m2m=genres date_release score image"
 >>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> sm.gui_fields = {}
 >>> field_chooser = FieldChooser(sm.mapper_info, sm.widgets)
@@ -52,6 +52,22 @@ u'Fellini'
 
 >>> f.get_human_value(14)
 u'Fellini'
+
+# image. In the definition of Movie model image has a base_dir=./images
+>>> f= sm.gui_fields['image']
+>>> sql_images = os.path.abspath('../../demo/sql')
+>>> f.clean_value("%s/%s" % (sql_images, "images/test.jpg"))
+'test.jpg'
+>>> f.clean_value("images/test.jpg")
+'test.jpg'
+>>> f.clean_value("/images/test.jpg")
+'test.jpg'
+>>> f.clean_value("/tmp/test.jpg")
+'test.jpg'
+
+## get_save_path is relative to the current working directory
+>>> f.get_save_path('/tmp/test.jpg') == "%s/%s" % (os.getcwd(), 'images/test.jpg')
+True
 
 # enum
 >>> f = sm.gui_fields['score']
