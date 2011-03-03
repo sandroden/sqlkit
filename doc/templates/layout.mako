@@ -4,22 +4,8 @@
 
 <%def name="headers()">
     <link rel="stylesheet" href="${pathto('_static/pygments.css', 1)}" type="text/css" />
-    <link rel="stylesheet" href="${pathto('_static/docs.css', 1)}" type="text/css" />
     <link rel="stylesheet" href="${pathto('_static/sqlkit.css', 1)}" type="text/css" />
 
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-          URL_ROOT:    '${pathto("", 1)}',
-          VERSION:     '${release|h}',
-          COLLAPSE_MODINDEX: false,
-          FILE_SUFFIX: '${file_suffix}'
-      };
-    </script>
-    % for scriptfile in script_files + self.attr.local_script_files:
-        <script type="text/javascript" src="${pathto(scriptfile, 1)}"></script>
-    % endfor
-
-    <script type="text/javascript" src="${pathto('_static/init.js', 1)}"></script>
     % if hasdoc('about'):
         <link rel="author" title="${_('About these documents')}" href="${pathto('about')}" />
     % endif
@@ -38,14 +24,19 @@
     % if prevtopic:
         <link rel="prev" title="${prevtopic['title']|util.striptags}" href="${prevtopic['link']|h}" />
     % endif
-    ${self.extrahead()}
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+          URL_ROOT:    '${pathto("", 1)}',
+          VERSION:     '${release|h}',
+          COLLAPSE_MODINDEX: false,
+          FILE_SUFFIX: '${file_suffix}'
+      };
+    </script>
+    % for scriptfile in script_files + self.attr.local_script_files: ## jquery.js, doctools.js
+    <script type="text/javascript" src="${pathto(scriptfile, 1)}"></script>
+    % endfor
+
 </%def>
-<%def name="extrahead()"><!-- extrahead --></%def>
-<!--[if !IE 7]>
-	<style type="text/css">
-		#wrap {display:table;height:100%}
-	</style>
-<![endif]-->
 
 
 <div id="wrap">

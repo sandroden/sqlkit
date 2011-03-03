@@ -85,7 +85,7 @@ except:
 
 class ConnectionDialog(object):
     TITLE = _('Connection setup') + "(sqlkit %s)" % sqlkit.__version__
-    URL_DB_BACKEND='http://www.sqlalchemy.org/trac/wiki/DatabaseNotes'
+    URL_DB_BACKEND='http://www.sqlalchemy.org/docs/dialects/index.html'
     URL_SQLKIT='http://sqlkit.argolinux.org/misc/sqledit.html'
     GENERAL_MSG = _("""
     You can indicate the database you want to connect to

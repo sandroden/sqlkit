@@ -661,7 +661,6 @@ h1 {
 .anythingSlider .slide .text ul li {
     display: list-item
     }
-
 .promo {
     float: left;
     font-size: 13px;
@@ -670,7 +669,7 @@ h1 {
     width: 960px;
     color: #a91819;
 }
-#box1, #box2 {
+.box {
     /* color: #a91819; */
     /* color: #FFFFFF; */
     float: left;
@@ -678,8 +677,9 @@ h1 {
     margin: 0 19px 0 0;
     padding: 9px 0 0 21px;
     /* background-color: #ddd; */
+    -moz-border-radius: 8px;
+    background: url("../_static/sfondo-box.png") no-repeat scroll 0 0 transparent; 
 }
-
 .promo h1 {
     color: #fff;
 }
@@ -689,13 +689,18 @@ h1 {
 .promo a {
     color: #fff;
 }
-#box1 {
-    -moz-border-radius: 8px;
+.box1 {
     width: 330px;
-    background: url("../_static/sfondo-box.png") no-repeat scroll 0 0 transparent; 
 }
-#box2 {
-    -moz-border-radius: 8px;
+.box2 {
     width: 350px;
-    background: url("../_static/sfondo-box.png") no-repeat scroll 0 0 transparent;
+}
+.box h1 sname {
+    color: #a91819;
+}
+.box sname {
+    color: #a91819;
+}
+.slider-text {
+    color: #fff;
 }

@@ -121,4 +121,4 @@ Sqlkit is developed by `Alessandro Dentella`_
 .. _sqlkit-doc_VER_all.deb: http://sqlkit.argolinux.org/download/sqlkiy-doc_VER_all.deb
 .. _`Alessandro Dentella`: mailto:sandro@e-den.it
 .. _launchpad: https://launchpad.net/sqlkit
-.. _`supported by sqlalchemy`: http://www.sqlalchemy.org/trac/wiki/DatabaseNotes
+.. _`supported by sqlalchemy`: http://www.sqlalchemy.org/docs/dialects/index.html
