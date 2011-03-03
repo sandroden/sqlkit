@@ -1849,7 +1849,10 @@ class SqlWidget(gobject.GObject):
         """
         Return true if this field is a String type
         """
-        return self.mapper_info.is_string(field_name)
+        try:
+            return self.mapper_info.is_string(field_name)
+        except AttributeError, e:
+            return isinstance(self.gui_fields[field_name], fields.VarcharField)
 
     def is_date(self, field_name):
         """
@@ -1988,7 +1991,10 @@ class SqlWidget(gobject.GObject):
                 return True
         except:
             pass
-        return self.mapper_info.is_text(field_name)
+        try:
+            return self.mapper_info.is_text(field_name)
+        except AttributeError:
+            return isinstance(self.gui_fields[field_name], fields.TextField)
 
     def is_toplevel(self):
         """
