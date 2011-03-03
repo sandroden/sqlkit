@@ -1,4 +1,5 @@
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+from sqlalchemy.exc import DBAPIError
 from sqlkit import _
 
 class FieldNotInLayout(Exception): pass
@@ -71,4 +72,6 @@ class UnhandledMultipleForeignKeys(Exception): pass
 
 class ParseFilterError(Exception): pass
 class ColumnWithoutTable(Exception): pass
+
+class ConnectionError(Exception): pass
 

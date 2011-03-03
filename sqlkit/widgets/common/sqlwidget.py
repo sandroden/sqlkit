@@ -346,7 +346,12 @@ class SqlWidget(gobject.GObject):
             relationship_leader.connect('delete-event', self.delete_event_cb)
         self.records = []
         self.about_dialog = about_dialog or self.create_about_dialog()
-        self.show(show)
+        try:
+            self.show(show)
+        except exc.DBAPIError, e:
+            msg = _("Sorry, problems onnecting to remote db. Original error was: \n\n%s" % e)
+            raise exc.ConnectionError(msg)
+            
         if not relationship_leader:
             self._filter_panel =  sqlfilter.FilterPanel(self, visible=False)
         if hide_fields:
