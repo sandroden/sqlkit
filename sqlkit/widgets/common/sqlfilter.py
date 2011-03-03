@@ -168,6 +168,8 @@ class FilterPanel(object):
         self._last_focused_entry = None
         if master.is_mask():
             self._id_record_selected = master.connect('record-selected', self.record_selected_cb)
+            self.master.connect('record-deleted', self.record_deleted_cb)
+            self.master.connect('record-new', self.record_added_cb)
         self.prepare_actions()
 
     def record_selected_cb(self, mask):
@@ -175,6 +177,23 @@ class FilterPanel(object):
         callback on record selection
         """
         self.select_output_path(obj=mask.current, block=True)
+        
+    def record_deleted_cb(self, mask, obj):
+        """
+        callback on record deletion
+        """
+        path = self.get_path_for_obj(obj)
+        self.model.remove( self.model.get_iter(path) )
+        
+    def record_added_cb(self, mask):
+        """
+        callback on record deletion
+        """
+        try:
+            self.model.append([mask.current])
+        except:
+            ## FIXME: I should consider also  
+            self.model.append(None, [mask.current])
         
     def get_layout(self, visible=True):
         """create the filter panel widget"""
@@ -467,14 +486,16 @@ class FilterPanel(object):
             
     def get_path_for_obj(self, obj):
         """
-        return 
+        return path for object
+        :param obj: the object for which we neeed the path
         """
         path_list = [0]
         def compare(model, path, iter):
-            if self.model.get_value(iter, 0) == obj:
-                
+            row_obj = model.get_value(iter, 0)
+            if row_obj == obj:
                 path_list[0] = path
                 return True
+            return False
         
         self.model.foreach(compare)
         return path_list[0]
@@ -531,11 +552,14 @@ class FilterPanel(object):
         view = columns.View(master=self.master, name='filter_panel', treeview=treeview,
                     field_list=field_list, ro=True)
         self.master.modelproxy = modelproxy.ModelProxy(self.master, treeview=treeview)
-        self.model = self.master.modelproxy.modelstore
         view.treeview.set_model(self.master.modelproxy.modelstore)
         self.master.views['filter_panel'] = view
         return view
-        
+    def _get_model(self):
+        return self.master.modelproxy.modelstore
+
+    model = property(_get_model)
+    
     def tv_resize(self):
         tv = self.w['TV=out']
         tv.realize()
