@@ -381,7 +381,8 @@ class BooleanColumn(GenericColumn):
         else:
             status = not status
 
-        self.field.set_value(status, initial=False, obj=obj)
+        #self.field.set_value(status, initial=False, obj=obj)
+        self.master.set_value(self.field_name, status, initial=False)
             
         return True
     

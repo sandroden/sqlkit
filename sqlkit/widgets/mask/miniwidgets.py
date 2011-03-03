@@ -399,6 +399,8 @@ class DateWidget(Widget):
     def __init__(self, *args):
         Widget.__init__(self, *args)
         self.gtkwidget.connect('date-changed', self.date_changed_cb, )
+        self._date_changed_id = self.gtkwidget.connect('date-changed',
+                                                       self.date_changed_cb, )
         self.gtkwidget.date_format = self.field.format_value
         self.gtkwidget.date_parse = self.field.clean_value
 
@@ -407,12 +409,19 @@ class DateWidget(Widget):
 
     def date_changed_cb(self, widget):
         self.invalid = None
+        date = self.gtkwidget.props.date
+        self.master.run_hook('on_change_value', date, date,
+                             self.field, field_name=self.field_name)
+        self.emit('value-set', date, False)
+        
 
     def set_value(self, value, initial=False):
 
         self.invalid = None
+        self.gtkwidget.handler_block(self._date_changed_id)
         self.gtkwidget.set_property('date', value)
         self.emit('value-set', value, initial)
+        self.gtkwidget.handler_unblock(self._date_changed_id)
 
     def get_value(self, shown=False):
 
@@ -468,14 +477,37 @@ class DateTimeWidget(DateWidget):
     """
 
     def __init__(self, *args):
-        DateWidget.__init__(self, *args)
+        Widget.__init__(self, *args)
+        self._datetime_changed_id = self.gtkwidget.connect('datetime-changed',
+                                                       self.date_changed_cb, )
+        self._date_changed_id = self.gtkwidget.connect('date-changed',
+                                                       self.date_changed_cb, )
+        self._time_changed_id = self.gtkwidget.connect('time-changed',
+                                                       self.date_changed_cb, )
         self.gtkwidget.set_property('show-time', True)
         self.initial_delta = timedelta(0)
         
+    def date_changed_cb(self, widget):
+
+        self.invalid = None
+        datetime = self.gtkwidget.props.datetime
+        self.master.run_hook('on_change_value', datetime, datetime,
+                             self.field, field_name=self.field_name)
+        self.emit('value-set', datetime, False)
+
     def set_value(self, value, initial=False):
+        
+        self.gtkwidget.handler_block(self._date_changed_id)
+        self.gtkwidget.handler_block(self._datetime_changed_id)
+        self.gtkwidget.handler_block(self._time_changed_id)
+
         ## FIXME: datetime has only time?
         self.gtkwidget.set_property('datetime', value)
         self.emit('value-set', value, initial)
+
+        self.gtkwidget.handler_unblock(self._date_changed_id)
+        self.gtkwidget.handler_unblock(self._datetime_changed_id)
+        self.gtkwidget.handler_unblock(self._time_changed_id)
         
     def get_value(self, shown=False):
         value = self.gtkwidget.get_property('datetime')
@@ -526,6 +558,8 @@ class BooleanWidget(Widget):
 
     def on_toggled_cb(self, widget):
         self.master.run_hook('on_activate', self, field_name=self.field_name)
+        self.master.run_hook('on_change_value', self.get_value(), self.get_value(),
+                             self.field, field_name=self.field_name)
         
     def set_value(self, value, initial=False):
         self.gtkwidget.set_active(bool(value))
@@ -622,14 +656,11 @@ class EnumWidget(Widget):
         self.gtkwidget.handler_block(self.notify_id)
         self.gtkwidget.set_active(i[0])
         self.emit('value-set', value, initial)
-        if not initial:
-            self.master.run_hook('on_change_value', self.get_value(), self.get_value(shown=True),
-                             self.field, field_name=self.field_name)
         self.gtkwidget.handler_unblock(self.notify_id)
 
     def get_value(self, shown=False):
         index = self.gtkwidget.get_active_iter()
-        if index:
+        if index is not None:
             if shown:
                 return self.model.get_value(index, 1)
             else:

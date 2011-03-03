@@ -301,7 +301,9 @@ class SqlMask(sqlwidget.SqlWidget):
         field = self.gui_fields[field_name]
         field.set_value(field_value, initial=initial, shown=shown)
 
+        
         if not initial:
+            fkvalue = fkvalue if fkvalue is not None else field.get_value(shown=True)
             self.run_hook('on_change_value', field_value, fkvalue, field, field_name=field_name)
     
     def get_value(self, field_name, shown=False):

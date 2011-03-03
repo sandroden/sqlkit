@@ -328,11 +328,26 @@ present (due e.g. to a different layout or different field_list)
 
 The following hooks are defined:
 
-:on_change_value__field_name: called any time the value is set using
-    :meth:`set_value <sqlkit.widgets.common.sqlwidget.SqlWidget.set_value>`
-    without initial=True flag, or the value is changed directly in the
-    entry. I.e.: should be called any time a value is changed from the
-    original. It's **not** change if the value is set (e.g.: on record change)
+:on_change_value__field_name: this hook is used to trace *changes* in the
+    widget. It's mainly meant to be used interactively but it is also
+    triggered when :meth:`set_value
+    <sqlkit.widgets.common.sqlwidget.SqlWidget.set_value>` is invoked with
+    initial=False. It's **not** changed if the value is set on record
+    change.
+
+    Currently it behaves differently for Table widgets or Mask widgets.
+
+    Mask widgets invoke it each meaningful changes i.e. each char for
+    varchar/int field, each time a value is choosen for enum/foreign key
+    fields,  when a date is selected or validated for Date widgets. 
+
+    Table widgets invoke this hook only when the field is leaved or
+    activated (Return is pressed).
+
+    .. note:: Implementation of this hooks is currently limited to some
+              fields: Varchar, Int, Float, Numeric, Enum, ForeignKey, Date,
+	      DateTime, Bool. Text, Images, Time and Interval are not
+              implemented. Example 63c is a complete example that shows it.
 
     .. function:: on_change_value__field_name(sqlwidget, field_name, value,
                   fkvalue, field)

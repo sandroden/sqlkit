@@ -1345,7 +1345,14 @@ class EnumField(Field):
         Return the value to be shown
         """
         return self.values[value]
-    
+
+    def get_value(self, shown=False):
+
+        if not hasattr(self, 'widget'):
+            return exc.MissingWidget("%s has no defined 'widget' " % self)
+        return self.widget.get_value(shown=shown)
+
+        
 class ImageField(VarcharField):
     """
     Imge field suitable for VarcharField that hold an image path and should

@@ -488,7 +488,6 @@ class DateTimeEdit(DateEdit):
         time_box = gtk.HBox()
         self.add(time_box)
         time_box.show()
-        
 
         # the time entry combobox
         self._time_combobox = gtk.ComboBoxEntry()
@@ -554,6 +553,7 @@ class DateTimeEdit(DateEdit):
 
         except Exception, e:
             self.wrong_time_format(e, time_text)
+        self.set_time(the_time)
         
     ############################################
     # properties and their convenience functions
@@ -645,8 +645,7 @@ class DateTimeEdit(DateEdit):
 
     def set_time(self, new_time, focus=False):
 
-        time_changed =  new_time == self._current_time
-
+        time_changed =  not new_time == self._current_time
         if new_time == None:
             self._time_combobox.child.set_text('')
         else:
