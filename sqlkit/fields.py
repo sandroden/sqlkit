@@ -1344,7 +1344,8 @@ class ImageField(VarcharField):
                 self.widget.copy_file = None # Needed only for table
                 
             if update_widget:
-                path = value and os.path.join(self.base_dir, value) or None
+                #path = value and os.path.join(self.base_dir, value) or None
+                path = value and "%s/%s" % (self.base_dir, value) or None
                 self.widget.set_value(path, initial=initial)
 
             if hasattr(self.widget, 'copy_file') and self.widget.copy_file:
