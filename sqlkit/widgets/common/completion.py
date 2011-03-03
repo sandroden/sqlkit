@@ -442,7 +442,7 @@ class SimpleCompletion(object):
             self.autostart_last_length = len(filtering_value)
 
             query = self.compose_select_statement(query, oper, filtering_value)
-            query = self.add_dynamic_filters(query)
+        query = self.add_dynamic_filters(query)
 
         query = query.order_by(*self._order_by).distinct()
         if return_sql:
