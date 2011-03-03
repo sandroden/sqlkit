@@ -223,7 +223,7 @@ Signals
 
    The callback will just receive the widget as argument.
 
-   .. function:: records_selected_cb(sqlwidget):
+   .. function:: record_saved_cb(sqlwidget):
       
       :param sqlwidget: the widget that emitted the signal
 
@@ -403,6 +403,14 @@ The following hooks are defined:
 
        :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
    
+
+.. note:: **Hooks invoked within the session extensions**
+
+      The hooks that are called from within the session extensions, can be
+      called **several times** if there are more sqlwigets sharing the same
+      session (that happens for example each time you open a mask to edit
+      the row of a table i.e.: :ref:`recordinmask`)
+
 .. _on_after_flush:
 
 :on_after_flush: 
@@ -410,12 +418,11 @@ The following hooks are defined:
     run as the signal with the same name from within ``after_flush`` 
     session extension method.
 
-    This hook is completely similar to ``after-flush`` signal, but is meant to
-    be defined in a separate class so that it's easier to propagate
-    validation hooks to a spawned child (i.e.: :ref:`recordinmask`,
-    when a mask right clicking on a record, change something and
-    save). You'll see that ``on_after_flush`` is called ether.
-
+    This hook is completely similar to ``after-flush`` signal, but is meant
+    to be defined in a separate class so that it's easier to propagate
+    validation hooks to a spawned child (i.e.: :ref:`recordinmask`, when
+    opening a mask by right clicking on a table record). You'll see that
+    ``on_after_flush`` is called eather.
 
     From the sqlalchemy documentation: "Note that the session's state is
     still in pre-flush, i.e. *new*, *dirty*, and *deleted* lists still
@@ -427,9 +434,9 @@ The following hooks are defined:
     I end up in some circumstances to split the callback in two phases: one
     that detects if an action is needed from within the
     after_flush/after_commit phase, the second (may be a mail, or any other
-    action) from within the after_flush_postexec, so that I can use the
-    relations. Beware that you may have one call to ``on_after_flush`` and
-    more different calls to ``on_after_commit``
+    action) from within the :ref:`hook on_record_saved <on_record_saved>`,
+    so that I can use the relations. Beware that you may have one call to
+    ``on_after_flush`` and more different calls to ``on_after_commit``
 
     .. function:: on_after_flush_callback(sqlwidget, object, session)
 
@@ -446,19 +453,30 @@ The following hooks are defined:
           correctly setup relation's object
 
 :on_after_flush_postexec: run as the signal with the same name from within
-    after_flush_postexec session extension method
+    ``after_flush_postexec`` session extension method.
 
     As in the precedent hook this is called exactly within the session
     extension method by the same name. When it's run the session will have
     no longer information on session.dirty/session.new/session.delete but
     will have all relations set-up.
 
-    The callback has the same signature as for ``on_after_flush``
+    The callback has the same signature as for :ref:`hook on_after_flush <on_after_flush>`
 
 :on_after_commit: run after commit
     after_commit session extension method
         
-    The callback has the same signature as for ``on_after_flush``
+    The callback has the same signature as for :ref:`hook on_after_flush <on_after_flush>`
+
+.. _on_record_saved:
+
+:on_record_saved: run from within the commit method of the widget, that
+    assures that will be issued just once. It's just equivalent to the
+    signal with the callback has the same signature:
+
+   .. function:: record_saved_cb(sqlwidget):
+      
+      :param sqlwidget: the widget that emitted the signal
+
 
 Hooks for related widgets
 -------------------------

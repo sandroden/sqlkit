@@ -987,6 +987,7 @@ class SqlWidget(gobject.GObject):
 
             self.session.commit()
             self.emit('record-saved', )
+            self.run_hook('on_record_saved')
             self.sb(message, seconds=3)
 
         except (exceptions.DBAPIError, exceptions.FlushError), e:
