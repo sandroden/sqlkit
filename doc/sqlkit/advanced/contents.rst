@@ -10,4 +10,4 @@ These classes are only needed for advanced configurations
    fields
    views
    dbutils
-
+   field_widgets

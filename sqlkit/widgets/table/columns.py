@@ -59,7 +59,9 @@ class GenericColumn(object):
     EXPAND = True
     MIN_DEFAULT_WIDTH = 4
     MAX_DEFAULT_WIDTH = 30
+    PROPERTY = 'text'
     editable = False
+
     
     def __init__(self, master, field_name, title, field=None):
         """
@@ -79,8 +81,8 @@ class GenericColumn(object):
         self.field_name = field_name
         self.column = self.setup_column(title)
         cell = self.setup_cell_renderers()
-        self.column.set_cell_data_func(cell, self.cell_data_func_cb, 'text') 
-        self.column.cells_data_func = [(cell, self.cell_data_func_cb, 'text') ]
+        self.column.set_cell_data_func(cell, self.cell_data_func_cb, self.PROPERTY) 
+        self.column.cells_data_func = [(cell, self.cell_data_func_cb, self.PROPERTY) ]
 
     def setup_column(self, title):
         """
@@ -637,6 +639,77 @@ class DateTimeColumn(DateColumn):
         pass
         #editable.connect('key-press-event')
     
+class ImageColumn(GenericColumn):
+
+    RENDERER = gtk.CellRendererPixbuf
+    RESIZE = True
+    REORDER = False
+    CLICK = True
+    EXPAND = False
+    MIN_DEFAULT_WIDTH = 4
+    MAX_DEFAULT_WIDTH = 30
+    PROPERTY = 'pixbuf'
+    editable = False
+
+    def set_editable(self, editable):
+        pass
+    def cell_set_property(self, cell):
+        pass
+
+    def setup_cell_renderers(self, cell_renderer=None):
+        """
+        setup cell renderers 
+        """
+
+        cell = cell_renderer or self.RENDERER()
+        self.column.pack_start(cell, True)
+        self.cell_set_property(cell)
+
+        return cell
+    
+    def cell_data_func_cb(self, column, cell, model, iter, prop_name):
+        """
+        function set by set_cell_data_func
+        gets the attribute from the field and render an image thumbnail
+        """
+
+        if not column.get_visible():
+            return
+        obj = model.get_value(iter, 0) 
+        ## when the column is not representing a db-column (eg. is a python function)
+        ## we pass the object itself to the function
+        if self.field.persistent:
+            value = getattr(obj, self.field_name)
+        else:
+            value = obj
+            if isinstance(obj, self.master.mapper.class_):
+                value = self.field.clean_value(value)
+
+        cell.set_property('visible', True)        
+
+        ## DB RECORDS
+        if isinstance(obj, self.master.mapper.class_):
+            cell.set_property('visible', True)
+            thumbnail_path = value and self.field.get_thumbnail(value, complete_path=True) or None
+            if thumbnail_path:
+                if cell.get_data('thumbnail_path') != thumbnail_path:
+                    pixbuf = gtk.gdk.pixbuf_new_from_file(thumbnail_path) if thumbnail_path else None
+                    cell.set_property(prop_name, pixbuf)
+                    cell.set_data('thumbnail_path', thumbnail_path)
+            else:
+                cell.set_property(prop_name, None)
+                cell.set_data('thumbnail_path', None)
+
+        ## TOTALS
+        elif hasattr(self.master, 'totals') and isinstance(obj, self.master.totals.total_class):
+            cell.set_property(prop_name, None)
+            cell.set_data('thumbnail_path', None)
+
+        ## HEADERS
+        else:
+            cell.set_property(prop_name, None)
+            cell.set_data('thumbnail_path', None)
+    
 class CellEntry(object):
     """
     An object to store info on editable status
@@ -1181,6 +1254,32 @@ class View(object):
         else:
             action_fk.set_visible(False)
             
+        action_upload_image = self.ui_manager.get_action('/TreePopup/UploadImage')
+        if obj and field_name and self.master.is_image(field_name):
+            action_upload_image.set_visible(True)
+        else:
+            action_upload_image.set_visible(False)
+            
+        action_delete_file = self.ui_manager.get_action('/TreePopup/DeleteFile')
+        action_show_file = self.ui_manager.get_action('/TreePopup/ShowFile')
+        action_save_file = self.ui_manager.get_action('/TreePopup/SaveFile')
+        if obj and field_name and (self.master.is_image(field_name) or
+                               self.master.is_file(field_name)) and \
+                               getattr(obj, field_name):
+            action_delete_file.set_visible(True)
+            action_show_file.set_visible(True)
+            action_save_file.set_visible(True)
+        else:
+            action_delete_file.set_visible(False)
+            action_show_file.set_visible(False)
+            action_save_file.set_visible(False)
+            
+        action_upload_file = self.ui_manager.get_action('/TreePopup/UploadFile')
+        if field_name and self.master.is_file(field_name):
+            action_upload_file.set_visible(True)
+        else:
+            action_upload_file.set_visible(False)
+            
         action_delete = self.ui_manager.get_action('/TreePopup/RecordDelete')
         action_delete.set_sensitive(obj and True or False)
 
@@ -1213,6 +1312,9 @@ class View(object):
 
             elif self.master.is_boolean(field_name):  ## boolean
                 col = BooleanColumn(self.master, field_name, label)
+
+            elif self.master.is_image(field_name):  ## image
+                col = ImageColumn(self.master, field_name, label)
 
             elif self.master.is_date(field_name):   ## Dates
                 col = DateColumn(self.master, field_name, label)

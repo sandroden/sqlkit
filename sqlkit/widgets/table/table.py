@@ -23,8 +23,10 @@ mapper. column.set_cell_data_func on each column will set the value from there.
 
 import sys
 import re
+import os
 import gtk
 import weakref
+import shutil
 import datetime
 
 import gobject
@@ -34,7 +36,7 @@ import sqlalchemy
 import sqlkit
 from sqlkit import debug as dbg, _, exc, fields
 from sqlkit.layout import widgets, get_label
-from sqlkit.misc.utils import Container, str2list
+from sqlkit.misc.utils import Container, str2list, open_file
 import utils as tv_utils
 import cell_renderers
 import totals
@@ -66,7 +68,7 @@ class SqlTable(sqlwidget.SqlWidget):
     __gsignals__ = {
         'button-press-event' : (gobject.SIGNAL_RUN_LAST,
                            gobject.TYPE_BOOLEAN,
-                                # event, obj, field_name, treeview
+                                # event, obj, field_name, treeview, view
                            (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_STRING,
                             gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT),
                            ),
@@ -264,6 +266,11 @@ class SqlTable(sqlwidget.SqlWidget):
             ('Records', None, 'Records'),
             ('MaskView', gtk.STOCK_ZOOM_IN, _('View this record in a Mask'), '<Control>m', None, self.record_in_mask),
             ('MaskViewFKey', gtk.STOCK_LEAVE_FULLSCREEN, _('View this ForeignKey in a Mask'), None, None, self.fkey_record_in_mask),
+            ('UploadImage', None, _('Upload Image'), None, None, self.upload_image),
+            ('UploadFile', None, _('Upload File'), None, None, self.upload_file),
+            ('DeleteFile', None, _('Delete File/Image'), None, None, self.delete_file),
+            ('ShowFile', None, _('Show File/Image'), None, None, self.show_file),
+            ('SaveFile', None, _('Save File/Image'), None, _('Save file locally'), self.save_file),
             ])
         self.actiongroup_table.add_actions([
             ('Export', None, _('Export'), None, None, self.export),
@@ -379,8 +386,10 @@ class SqlTable(sqlwidget.SqlWidget):
         except TypeError, e:
             obj = None
             field_name = None
+            path = None
 
         self._clicked_obj = obj  # should I officially document it?
+        self._clicked_path = path  # should I officially document it?
         self._field_name = field_name  # should I officially document it?
             
         menu = view.pop_menu(treeview, event, obj, field_name)
@@ -632,7 +641,7 @@ class SqlTable(sqlwidget.SqlWidget):
         
         if not obj:
             return
-        
+
         ## casting of value
         field = self.gui_fields[field_name]
         if self.is_fkey(field_name):
@@ -671,7 +680,8 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         
         obj = self.get_current_obj()
-        assert obj is not None, _("no current obj: maybe no record has yet been edited")
+        if obj is None:
+            raise exc.NoCurrentObjError(_("no current obj: maybe no record has yet been edited"))
 
         if field_name == self.currently_edited_field_name:
             if self.cell_entry:
@@ -1264,6 +1274,82 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         self._fk_layout_nick[field_name] = layout_nick
             
+
+    def upload_image(self, action, field_name=None):
+
+        field_name = field_name or self._field_name
+        dialog = dialogs.OpenDialog(title=_('Upload image'), default_filename='')
+        filename = dialog.filename
+        if not filename:
+            return
+        self.initialize_record_editing(self._clicked_path)
+        self.select_path(self._clicked_path)
+        save_path = self.gui_fields[field_name].get_save_path(name=dialog.new_filename or filename,
+                                                              obj=self.current)
+        if os.path.exists(save_path):
+            response = self.dialog(type="ok-cancel",
+                                   text=_("A file with name '%s' already exists.\nOverwrite?") % save_path,
+                                   title=_('Upload name duplication'))
+            if response == gtk.RESPONSE_CANCEL:
+                return
+
+        self.gui_fields[field_name].widget.copy_file = filename
+        self.gui_fields[field_name].widget.new_filename = dialog.new_filename
+        self.set_value(field_name, save_path)
+
+        return save_path
+    
+    def upload_file(self, action):
+        print action
+    
+    def delete_file(self, action, field_name=None):
+        field_name = field_name or self._field_name
+        self.initialize_record_editing(self._clicked_path)
+        self.set_value(field_name, None)
+    
+    def show_file(self, action, field_name=None):
+
+        from sqlkit.layout import image_widget
+        
+        field_name = field_name or self._field_name
+        self.initialize_record_editing(self._clicked_path, force=True, obj=self._clicked_obj)
+        filename = self.gui_fields[field_name].get_value(complete_path=True)
+        if not self.gui_fields[field_name].is_image(filename):
+            open_file(filename)
+            return
+        w = gtk.Window()
+        image = image_widget.ImageWidget()
+        image.props.width = 700
+        image.props.height = 700
+        w.add(image)
+        w.show_all()
+        
+        def change_file(table, obj):
+            if obj:
+                try:
+                    img_path = table.gui_fields[field_name].get_value(complete_path=True)
+                except exc.NoCurrentObjError, e:
+                    if table.records:
+                        table.select_path((0,))
+                        img_path = table.gui_fields[field_name].get_value(complete_path=True)
+                    else:
+                        img_path = None
+                        
+                image.set_image(img_path)
+
+        change_file(self, self.current)
+        self.connect('context-changed', change_file)
+
+    def save_file(self, action, field_name=None):
+
+        import shutil
+        
+        field_name = field_name or self._field_name
+        self.initialize_record_editing(self._clicked_path)
+        orig_filename = self.gui_fields[field_name].get_value(complete_path=True)
+        dialog = dialogs.SaveDialog(default_filename=os.path.basename(orig_filename))
+        shutil.copyfile(orig_filename, dialog.filename)
+
 ###### Misc
     def get_selected_row(self):
         """Return the path of the selected row or None
@@ -1526,14 +1612,4 @@ class ExportDialog(dialogs.SaveDialog):
                             quoting=self.QUOTE or csv.QUOTE_MINIMAL)
         writer.writerows(self.get_rows_func())
         f.close()
-
-
-
-
-
-
-
-
-
-
 

@@ -266,6 +266,9 @@ class LayoutGenerator (object):
 
         if self.master.is_loader(field_name):
             return "m2m"
+
+        if self.master.is_image(field_name):
+            return 'img'
         
         ftype = self.master.get_field_type(field_name)
         widget = self.map_types[ftype]
@@ -303,6 +306,8 @@ class LayoutGenerator (object):
             if m:
                 length = int(m.group(1))
         if length:
+            if self.master.is_image(field_name):
+                return ''
             ## really long field should not eat up all the space
             ## (but you can override this by hand!...)
             if length > 30:

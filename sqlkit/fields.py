@@ -212,6 +212,11 @@ All other field inherit from Field
 .. autoclass:: DateTimeTZField
 .. autoclass:: BooleanField
 .. autoclass:: BooleanNullField
+.. autoclass:: ImageField
+   :members: base_dir, thumbnail_size, default_size,
+             get_value, set_value, clean_value, get_save_path, scale_pixbuf, scale_file,
+             create_thumbnail, get_thumbnail, get_thumbnail_path_with_size
+   
 .. autoclass:: ForeignKeyField
    :members: lookup_value, add_related_object
    
@@ -220,7 +225,9 @@ All other field inherit from Field
 .. autofunction:: std_cleanup
 """
 import re
+import os
 import types
+import shutil
 import warnings
 from datetime import datetime, time, date, timedelta
 from decimal import Decimal
@@ -236,6 +243,7 @@ from sqlkit.db import minspect
 from sqlkit.exc import ValidationError, NotHandledField, NotHandledDefault
 BLANK_OK = False
 
+class ZoomException(Exception): pass
 class FieldChooser(object):
 
     """here we wrap the gtk widget in a double layer:
@@ -293,6 +301,9 @@ class FieldChooser(object):
         if self.info.is_integer(field_name):
             return IntegerField
 
+        if self.info.is_image(field_name):
+            return ImageField
+
         if self.info.is_float(field_name):
             return FloatField
 
@@ -342,7 +353,7 @@ class Field(object):
     Widget = None
     default_def_string = 'ae'
     type = None
-    
+        
     def __init__(self, field_name, field_attrs=None):
         
         """
@@ -461,6 +472,15 @@ class Field(object):
             self._nullable = False
 
     def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True):
+        """
+        Set the value
+        
+        :param value: the value to be set. It will be cleaned.
+        :param initial: if True the ``self.initial_value`` is set as. ``self.initial_value``
+               is used to know if a field has changed
+        :param obj: if passed the attribute is set on the object when the field is set
+        :param update_widget: if True (default) the widget that renders the field is set as well.
+        """
 
         value = self.clean_value(value)
         if initial:
@@ -500,6 +520,9 @@ class Field(object):
             # a validation error is a clear sign the values have been changed, but we propabli don't
             # want to cope with them now
             return True
+        except exc.NoCurrentObjError, e:
+            # if no current Obj, no editing was done
+            return False
     
     def get_default(self):
         """
@@ -1149,6 +1172,266 @@ class BooleanNullField(Field):
             raise ValidationError(msg) 
         return value
     
+class ImageField(VarcharField):
+    """
+    Imge field suitable for VarcharField that hold an image path and should
+    be rendered as image (icon in tables). It's never used when autoloading
+    the database schema (no info on the database tells that a string represent an
+    image path), it can be forced setting info values on the Column:
+
+    :render: image
+    :base_dir: string
+    :thumbnail_size: tuple
+    
+    as in::
+
+      image = Column(String(100), info={'render' : 'image', 'base_dir' : '/path/to/images'}
+    
+    Image field that can create a thumbnail and resize an image into jpeg/png
+    format using gtk.gdk.pixbuf* functions
+    """
+    
+    Widget = 'ImageWidget'
+    type = str
+
+    thumbnail_size = (50, 50)
+    """size of the thumbnail used to render in treeview. Default 50,50. Can be set in
+    Column.info as explained above."""
+
+    base_dir = os.getcwd()
+    """base directory under which all files will be saved. Default is ``os.getcwd()``
+    unless is set at Schema time as shown above.
+    :meth:`get_save_path` will use this to create a complete path. This can be set
+    when defining the Column as shown above.
+    """
+
+    default_size = None
+    """If set it must be a tuple (width, height) and all files uploaded will be
+    default to these dimentions if bigger.
+    """
+
+    def __init__(self, *args, **kw):
+        Field.__init__(self, *args, **kw)
+
+        ## set base_dir from Column.info or os.getpwd()
+        base_dir = self.column.info.get('base_dir', self.base_dir or os.getcwd())
+        base_dir = self.clean_path(base_dir)
+        if base_dir and not os.path.isabs(base_dir):
+            base_dir = os.path.abspath(os.path.join(os.getcwd(), base_dir))
+        self.base_dir = self.clean_path(base_dir)
+        if not os.path.exists(self.base_dir):
+            os.mkdir(self.base_dir)
+
+        self.thumbnail_size = self.column.info.get('thumbnail_size', self.thumbnail_size)
+        
+    def clean_path(self, path):
+        """
+        Return a path w/o backslashes as to be used from windows and linux interchangeably
+
+        ``base_dir`` needs to be "cleaned" in this sense.
+        
+        """
+        #return path and re.sub(r"\\", '/', os.path.abspath(path))
+        return path and re.sub(r"\\", '/', path)
+    
+    def get_value(self, shown=False, complete_path=False):
+        """
+        Return the path to the image
+
+        :param shown: boolean: not meaningful for this field
+        :param complete_path: boolean: compose it with base path
+        
+        """
+        if not hasattr(self, 'widget'):
+            return exc.MissingWidget("%s has no defined 'widget' " % self)
+        value = self.widget.get_value(shown=shown)
+        if value and complete_path:
+            value = value if os.path.isabs(value) else os.path.join(self.base_dir, value)
+        else:
+            value = value and re.sub('^%s/?' % self.base_dir, '', value)
+        return self.clean_path(value)
+
+    def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True,
+                  new_name=None):
+        """
+        Set the value and -if needed- copy the image file inside base_dir possibly
+        resizing it to :attr:`default_size`. When resizing the only possible format is
+        *jpeg* and the name is changed accordingly.
+
+        :param value: the value to be set. It will be cleaned.
+        :param initial: if True the ``self.initial_value`` is set as. ``self.initial_value``
+               is used to know if a field has changed
+        :param obj: if passed the attribute is set on the object when the field is set
+        :param update_widget: if True (default) the widget that renders the field is set as well.
+
+        """
+        if initial:
+            # an intial value comes from db and *is* correct by definition
+            self.initial_value = value
+        else:
+            value = self.clean_value(value)
+
+        if hasattr(self, 'widget'):
+            if initial:
+                self.widget.copy_file = None # Needed only for table
+                
+            if update_widget:
+                path = value and os.path.join(self.base_dir, value) or None
+                self.widget.set_value(path)
+
+            if hasattr(self.widget, 'copy_file') and self.widget.copy_file:
+                # Note if it has 'copy_-file' it also has new_filename that may be empty
+                save_path = self.get_save_path(name=new_name or self.widget.new_filename or value,
+                                               obj=self.master.current)
+                if not os.path.splitext(save_path)[1]:
+                    save_path += os.path.splitext(self.widget.copy_file)[1]
+                if not self.widget.copy_file  == save_path:
+
+                    if self.default_size:
+                        ## I only resize into jpeg format
+                        save_path = os.path.splitext(save_path)[0] + '.jpg'
+                        try:
+                            self.scale_file(self.widget.copy_file, save_path, *self.default_size)
+                        except ZoomException, e:
+                            # Don't resave if not needed.
+                            shutil.copyfile(self.widget.copy_file, save_path)                            
+                    else:
+                        shutil.copyfile(self.widget.copy_file, save_path)
+                value = self.clean_value(save_path) # It can be changed
+
+        if obj:
+            setattr(obj, self.field_name, value)
+
+    def clean_value(self, value, obj=None):
+        """
+        strip self.base_dir from the file if present
+        """
+        if value:
+            return re.sub('^%s/?' % self.base_dir, '', self.get_save_path(value, obj=obj))
+        else:
+            return None
+    
+#     def pil_create_thumbnail(self, filename):
+#         try:
+#             import Image
+#         except ImportError:
+#             return
+#         path = os.path.join(self.base_dir, filename)
+#         name, ext = os.path.splitext(filename)
+#         i = Image.open(path)
+#         i.thumbnail(self.thumbnail_size)
+#         self.thumbnail_path = os.path.join(self.base_dir, name + "_thumb" + ext)
+#         i.save(self.thumbnail_path)
+    
+    def get_save_path(self, name=None, obj=None):
+        """
+        Return a standard save path. You may want to customize it.
+
+        :param name: the name of the file as picked up from the filesystem
+                     or the desired new name for the file
+        :param obj: the object. This may be used to work out the path. It's
+                     not used by default.
+        """
+        if not name:
+            return None
+        obj = obj or self.master.current
+        return self.clean_path(os.path.join(self.base_dir, os.path.basename(name)))
+
+    def scale_pixbuf(self, pixbuf, width=None, height=None):
+        """ 
+        scale pixbuf image with the same ratio so that it fits into self.w/self.h
+
+        :param pixbuf: the pixbuf to scale
+        :param width: the desider width
+        :param height: the desider height
+        """
+        import gtk
+        
+        pw, ph =  pixbuf.get_width(), pixbuf.get_height()
+        ratio = min(width/float(pw), height/float(ph))
+        if ratio > 1:
+            print "I won't scale up"
+            raise ZoomException("Ratio is > 1 (%s)" % ratio)
+        return pixbuf.scale_simple(int(pw*ratio), int(ph*ratio), gtk.gdk.INTERP_BILINEAR)
+
+    def scale_file(self, image_path, dst_path, width, height):
+        """
+        Scale input file into output file. Keep width/height ratio
+        :param image_path: path of the image to resize
+        :param dst_path: new name of the image
+        :param width: the desired width
+        :param height: the desired height
+        """
+        import gtk
+        
+        pixbuf = gtk.gdk.pixbuf_new_from_file(image_path)
+        pixbuf = self.scale_pixbuf(pixbuf, width, height)
+        pixbuf.save(dst_path, 'jpeg')
+
+    def create_thumbnail(self, filename, thumbnail_path=None):
+        """
+        Create a thumbnail that will be used when rendering images in tables. Uses
+        attribute :attr:`thumbnail_size`
+
+        :param filename: the filename to create a thumbnail for
+        """
+        import gtk
+
+        path = os.path.join(self.base_dir, filename)
+        thumbnail_path = thumbnail_path or self.get_thumbnail_path_with_size(filename)
+        pixbuf = gtk.gdk.pixbuf_new_from_file(path)
+        pixbuf = self.scale_pixbuf(pixbuf, *self.thumbnail_size)
+        pixbuf.save(thumbnail_path, 'jpeg')
+    
+    def get_thumbnail(self, path=None, complete_path=False):
+        """
+        Return a thumbnail *path* and create the thumbnail image, if it
+        doesn't already exists
+
+        :param path: the path of the image file. If missing it's found using :meth:`get_value`
+        :param complete_path: return a complete path. Default is to return the path stripped
+               from the :attr:`base_dir`
+        """
+        ## first build the abs path of the image
+        if path and not os.path.isabs(path):
+            path = os.path.join(self.base_dir, path)
+        path = path or self.get_value(complete_path=True)
+
+        if not os.path.exists(path):
+            ## Image does not exists, don't bother with thumbnail
+            return
+        thumbnail_path = self.get_thumbnail_path_with_size(path)
+        
+        if not os.path.exists(thumbnail_path):
+            self.create_thumbnail(path)
+
+        if complete_path:
+            return thumbnail_path
+        else:
+            return self.clean_value(thumbnail_path, thumbnail=True)
+
+    def get_thumbnail_path_with_size(self, filename):
+        """
+        Return the thumbnail name for filename using default size. Place the
+        thumbnail in a subdir of image dir '.thumbnail' used by
+        :meth:`get_thumbnail` and :meth:`create_thumbnail`. The name
+        contains the :attr:`thumbail_size` used to generate it.
+
+        :param filename: the complete filename of the image
+        """
+
+        path = os.path.join(self.base_dir, filename)
+        dir, name = os.path.split(path)
+        name, ext = os.path.splitext(name)
+
+        thumbnail_dir = os.path.join(dir, ".thumbnail")
+        if not os.path.exists(thumbnail_dir):
+            os.mkdir(thumbnail_dir)
+        
+        thumbnail_path = os.path.join(thumbnail_dir, "%s-%sx%s%s" % (name, self.thumbnail_size[0],
+                                                                     self.thumbnail_size[1], ext))
+        return self.clean_path(thumbnail_path)
+
 ##### Misc
 class ForeignKeyField(Field):
     """
@@ -1421,6 +1704,7 @@ class CollectionField(Field):
 
         if obj and not initial:
             setattr(obj, self.field_name, value)
+
 
 def std_cleanup(fn):
     """

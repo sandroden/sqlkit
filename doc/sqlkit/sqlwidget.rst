@@ -191,6 +191,11 @@ Attributes
 
     see :ref:`uimanager`
 
+.. attribute:: relationship_leader
+
+   Th case this sqlwidget is representing a relation of a SqlMask, that
+   SqlMask is referred to as a relationship_leader.
+    
 .. _sqlalchemy: http://www.sqlalchemy.org
 
   

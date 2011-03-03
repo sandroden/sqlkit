@@ -48,6 +48,9 @@ Fields Representation
 +--------------------+--------------------------------------------+--------------------+
 |boolean with null   |:class:`BooleanNullWidget`                  |                    |
 +--------------------+--------------------------------------------+--------------------+
+|image (varchar w/   |:class:`ImageWidget`                        |                    |
+|render=image)       |                                            |                    |
++--------------------+--------------------------------------------+--------------------+
 |foreign key         |:class:`ForeignKeyWidget`                   |                    |
 +--------------------+--------------------------------------------+--------------------+
 |relation (o2m/m2m)  |:class:`CollectionWidget`                   |                    |
@@ -70,6 +73,7 @@ Fields Representation
 .. autoclass:: TimeTZWidget
 .. autoclass:: BooleanWidget
 .. autoclass:: BooleanNullWidget
+.. autoclass:: ImageWidget
 .. autoclass:: ForeignKeyWidget
 .. autoclass:: CollectionWidget
 
@@ -488,6 +492,47 @@ class BooleanNullWidget(BooleanWidget):
                 button.set_inconsistent(True)
 
         return True
+
+class ImageWidget(Widget):
+    """
+    A proxy for :ref:`image_widget` to represent fields that hold file
+    name as images
+    """
+
+    def __init__(self,gtkwidget, field):
+        Widget.__init__(self, gtkwidget, field)
+        gtkwidget.props.strip_dir = field.base_dir.rstrip('/') + '/'
+        gtkwidget.connect('image-selected', self.on_image_selected)
+
+    def on_image_selected(self, imagewidget, filename, new_filename):
+        """
+        Check if the file already exists and in case tell the user.
+        Mark the file for copy when the record will be effectively saved.
+        """
+        if not filename:
+            return
+        save_path = self.field.get_save_path(
+            name=new_filename or filename,
+            obj=self.field.master.current)
+        if os.path.exists(save_path):
+            response = self.master.dialog(
+                type="ok-cancel",
+                text=_("A file with name '%s' already exists. Overwrite?" % save_path),
+                title=_('Upload name conflict'))
+            
+            if response == gtk.RESPONSE_CANCEL:
+                return
+        self.copy_file = self.field.clean_path(filename)
+        self.new_filename = save_path
+    
+    def set_value(self, value):
+
+        self.copy_file = None
+        self.gtkwidget.set_image(value)
+
+    def get_value(self, shown=False):
+
+        return self.field.clean_path(self.gtkwidget.props.image_path)
 
 class ForeignKeyComboboxWidget(Widget):
     """a ComboBoxEntry with 2 columns

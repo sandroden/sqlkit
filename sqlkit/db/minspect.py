@@ -446,6 +446,36 @@ class InspectMapper(Container):
             return issubclass(db_type, (sqltypes.Text))
         return False
 
+    def is_image(self, field_name):
+        """
+        Return true if this field is  date
+        """
+        from sqlkit import fields
+
+        col = self.fields[field_name]['col']
+        try:
+            field = col.info.get('field', None)
+            if field:
+                return issubclass(field, fields.ImageField)
+            return col.info.get('render') == 'image'
+        except AttributeError:
+            pass
+
+    def is_file(self, field_name):
+        """
+        Return true if this field is  date
+        """
+        from sqlkit import fields
+
+        col = self.fields[field_name]['col']
+        try:
+            field = col.info.get('field', None)
+            if field:
+                return issubclass(field, fields.FileField)
+            return col.info.get('render') == 'filename'
+        except AttributeError:
+            pass
+
     def is_nullable(self, field_name):
         """
         Return true if this field is  date
@@ -476,6 +506,8 @@ def get_foreign_info(ForeignKey, names=True):
         else:
             return (fkcol.column.table, fkcol.column)
     
+
+
 
 def get_props_for_delete_orphan(mapper, field_name):
     """

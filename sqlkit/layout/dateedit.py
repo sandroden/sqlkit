@@ -25,6 +25,21 @@
 # mnemonic stuff
 # gobject register no longer needed...
 
+"""
+.. _date_edit:
+
+DateEdit
+========
+
+.. autoclass:: DateEdit
+   :members: __init__, get_date, set_date
+
+.. autoclass:: DateTimeEdit
+   :members: __init__, get_datetime, set_datetime
+   
+"""
+
+
 
 import sys
 import os
@@ -53,6 +68,9 @@ class WrongDateFormat(Exception): pass
  #
  # Returns: a new #GnomeDateEdit widget. 
 class DateEdit(gtk.HBox):
+    """
+    basic gtk widget to edit data
+    """
     __gtype_name__ = 'DateEdit'
     
     __gproperties__ = {

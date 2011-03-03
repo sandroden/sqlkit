@@ -58,6 +58,7 @@ class InvalidValue(ValidationError):
 class CommitError(ValidationError): pass
 class HandledRollback(CommitError): pass
 
+class NoCurrentObjError(Exception): pass
 
 class CancelledAction(Exception): pass
 

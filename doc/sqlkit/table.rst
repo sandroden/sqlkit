@@ -147,7 +147,7 @@ Signals
    
    .. function:: records_displayed_cb(sqlwidget, current):
       
-      :param sqlwidget: the widget the emitted the signal
+      :param sqlwidget: the widget that emitted the signal
       :param current: the obj that was current in the row or the first
              record in the liststore.
 

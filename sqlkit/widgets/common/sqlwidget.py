@@ -20,6 +20,7 @@ import datetime
 import decimal
 import inspect
 import gc
+import shutil
 import warnings
 
 import gtk
@@ -37,7 +38,7 @@ from sqlkit import _, exc, layout, debug as  dbg, fields
 from sqlkit import layout, debug as  dbg
 from sqlkit.layout import map_labels, get_label
 from sqlkit.db import minspect, defaults
-from sqlkit.widgets.common import completion, sqlfilter, layoutgenerator
+from sqlkit.widgets.common import completion, sqlfilter, layoutgenerator, dialogs
 from sqlkit.misc.utils import Container, str2list
 
 NUMBERS = (int, float, decimal.Decimal)
@@ -1901,12 +1902,30 @@ class SqlWidget(gobject.GObject):
 
     def is_boolean(self, field_name):
         """
-        Return true if this field is  date
+        Return true if this field is boolean
         """
         try:
             return self.mapper_info.is_boolean(field_name)
         except AttributeError:
             return self.gui_fields[field_name].type == bool
+
+    def is_image(self, field_name):
+        """
+        Return true if this field is image
+        """
+        try:
+            return self.mapper_info.is_image(field_name)
+        except AttributeError:
+            False
+
+    def is_file(self, field_name):
+        """
+        Return true if this field is image
+        """
+        try:
+            return self.mapper_info.is_file(field_name)
+        except AttributeError:
+            False
 
     def is_nullable(self, field_name):
         """
