@@ -1554,6 +1554,10 @@ class SqlWidget(gobject.GObject):
             self.message(type='error', text=msg)
             self.sb(e.orig)
             return
+        except exceptions.InterfaceError, e:
+            ## the connection may be closed and a retry could restore it
+            if re.search('closed', str(e), re.I):
+                self.records = query.all()
             
         if display:
             self.record_display(check=False)
