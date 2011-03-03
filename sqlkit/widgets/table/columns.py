@@ -746,9 +746,14 @@ class ImageColumn(GenericColumn):
                         if cell.get_data('thumbnail_path') != thumbnail_path:
                             pixbuf = gtk.gdk.pixbuf_new_from_file(thumbnail_path) if thumbnail_path else None
 
-                            cell.set_property('stock-id', None)
                             cell.set_property('pixbuf', pixbuf)
+                            cell.set_property('stock-id', None)
                             cell.set_data('thumbnail_path', thumbnail_path)
+                    else:
+                        cell.set_property('pixbuf', None)
+                        cell.set_property('stock-id', gtk.STOCK_MISSING_IMAGE)
+                        cell.set_data('thumbnail_path', thumbnail_path)
+                        
                 else:
                     cell.set_property('pixbuf', None)
                     cell.set_property('stock-id', 'gtk-file')
@@ -1018,7 +1023,7 @@ class View(object):
     ``main`` and possibly other views. Attribute :attr:`sqlkit.widgets.SqlTable.views` (a
     sqlkit.utils.Container) stores them.
 
-    It can be used to provide different ways to look at the same data
+    It can be used to provide different way to look at the same data
     (e.g. different cell-renderers) or different columns for long ones
 
     """
@@ -1416,7 +1421,7 @@ class View(object):
         """
         Add a column to the view. 
 
-        :param column: the column to be added. It missing a field must be provided 
+        :param column: the column to be added. If empty, a field must be provided 
         :param position: where should the column be inserted
         :param field: an instance of the Field that should be used. In this case a
               column is guessed and built on the fly by :meth:`setup_columns`
