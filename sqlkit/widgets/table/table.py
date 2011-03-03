@@ -1279,6 +1279,10 @@ class SqlTable(sqlwidget.SqlWidget):
             
 
     def upload_image(self, action, field_name=None):
+        """
+        Open a dialog to upoad a file and check if destination already exists.
+        Setup for a copy when record will be saved
+        """
 
         field_name = field_name or self._field_name
         dialog = dialogs.OpenDialog(title=_('Upload image'), default_filename='')
@@ -1287,16 +1291,18 @@ class SqlTable(sqlwidget.SqlWidget):
             return
         self.initialize_record_editing(self._clicked_path)
         self.select_path(self._clicked_path)
-        save_path = self.gui_fields[field_name].get_save_path(name=dialog.new_filename or filename,
-                                                              obj=self.current)
+        save_path = self.gui_fields[field_name].get_save_path(
+                        name=dialog.new_filename or filename,
+                        obj=self.current)
         if os.path.exists(save_path):
-            response = self.dialog(type="ok-cancel",
-                                   text=_("A file with name '%s' already exists.\nOverwrite?") % save_path,
-                                   title=_('Upload name duplication'))
+            response = self.dialog(
+                type="ok-cancel",
+                text=_("A file with name '%s' already exists.\nOverwrite?") % save_path,
+                title=_('Upload name duplication'))
             if response == gtk.RESPONSE_CANCEL:
                 return
 
-        self.gui_fields[field_name].widget.copy_file = filename
+        self.gui_fields[field_name].widget.copy_file = filename # delay the real copy
         self.gui_fields[field_name].widget.new_filename = dialog.new_filename
         self.set_value(field_name, save_path)
 

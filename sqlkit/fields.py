@@ -1212,6 +1212,9 @@ class ImageField(VarcharField):
     """
 
     def __init__(self, *args, **kw):
+
+        import gtk
+
         Field.__init__(self, *args, **kw)
 
         ## set base_dir from Column.info or os.getpwd()
@@ -1225,6 +1228,7 @@ class ImageField(VarcharField):
 
         self.thumbnail_size = self.column.info.get('thumbnail_size', self.thumbnail_size)
         self.default_size = self.column.info.get('default_size', self.default_size)
+        self.image_formats = ["." + x['name'] for x in gtk.gdk.pixbuf_get_formats()] + ['.jpg']
         
     def clean_path(self, path):
         """
@@ -1256,9 +1260,10 @@ class ImageField(VarcharField):
     def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True,
                   new_name=None):
         """
-        Set the value and -if needed- copy the image file inside base_dir possibly
-        resizing it to :attr:`default_size`. When resizing the only possible format is
-        *jpeg* and the name is changed accordingly.
+        Set the value and -if needed- copy the image file inside
+        :attr:`base_dir` possibly resizing it to :attr:`default_size`. When
+        resizing the only possible format is *jpeg* and the name is changed
+        accordingly.
 
         :param value: the value to be set. It will be cleaned.
         :param initial: if True the ``self.initial_value`` is set as. ``self.initial_value``
@@ -1289,9 +1294,9 @@ class ImageField(VarcharField):
                     save_path += os.path.splitext(self.widget.copy_file)[1]
                 if not self.widget.copy_file  == save_path:
 
-                    if self.default_size:
+                    if self.default_size and self.is_image(self.widget.copy_file):
                         ## I only resize into jpeg format
-                        save_path = os.path.splitext(save_path)[0] + '.jpg'
+                        save_path = os.path.splitext(save_path)[0] + '.jpeg'
                         try:
                             self.scale_file(self.widget.copy_file, save_path, *self.default_size)
                         except ZoomException, e:
@@ -1304,6 +1309,13 @@ class ImageField(VarcharField):
         if obj:
             setattr(obj, self.field_name, value)
 
+    def is_image(self, filename):
+        """
+        Return if filename seems an image file, depending on file extension.
+        """
+        ext = os.path.splitext(filename)[1]
+        return ext.lower() in self.image_formats
+    
     def clean_value(self, value, obj=None):
         """
         strip self.base_dir from the file if present
@@ -1352,7 +1364,6 @@ class ImageField(VarcharField):
         pw, ph =  pixbuf.get_width(), pixbuf.get_height()
         ratio = min(width/float(pw), height/float(ph))
         if ratio > 1:
-            print "I won't scale up"
             raise ZoomException("Ratio is > 1 (%s)" % ratio)
         return pixbuf.scale_simple(int(pw*ratio), int(ph*ratio), gtk.gdk.INTERP_BILINEAR)
 
@@ -1379,6 +1390,8 @@ class ImageField(VarcharField):
         """
         import gtk
 
+        if not self.is_image(filename):
+            return
         path = os.path.join(self.base_dir, filename)
         thumbnail_path = thumbnail_path or self.get_thumbnail_path_with_size(filename)
         pixbuf = gtk.gdk.pixbuf_new_from_file(path)

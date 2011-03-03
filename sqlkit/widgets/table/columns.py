@@ -690,25 +690,37 @@ class ImageColumn(GenericColumn):
         ## DB RECORDS
         if isinstance(obj, self.master.mapper.class_):
             cell.set_property('visible', True)
-            thumbnail_path = value and self.field.get_thumbnail(value, complete_path=True) or None
-            if thumbnail_path:
-                if cell.get_data('thumbnail_path') != thumbnail_path:
-                    pixbuf = gtk.gdk.pixbuf_new_from_file(thumbnail_path) if thumbnail_path else None
-                    cell.set_property(prop_name, pixbuf)
-                    cell.set_data('thumbnail_path', thumbnail_path)
+            if value:
+                if self.field.is_image(value):
+                    thumbnail_path = value and self.field.get_thumbnail(value, complete_path=True) or None
+                    if thumbnail_path:
+                        if cell.get_data('thumbnail_path') != thumbnail_path:
+                            pixbuf = gtk.gdk.pixbuf_new_from_file(thumbnail_path) if thumbnail_path else None
+
+                            cell.set_property('stock-id', None)
+                            cell.set_property('pixbuf', pixbuf)
+                            cell.set_data('thumbnail_path', thumbnail_path)
+                else:
+                    cell.set_property('pixbuf', None)
+                    cell.set_property('stock-id', 'gtk-file')
+                    cell.set_data('thumbnail_path', None)
             else:
                 cell.set_property(prop_name, None)
                 cell.set_data('thumbnail_path', None)
+                cell.set_property('stock-id', None)
+                
 
         ## TOTALS
         elif hasattr(self.master, 'totals') and isinstance(obj, self.master.totals.total_class):
             cell.set_property(prop_name, None)
             cell.set_data('thumbnail_path', None)
+            cell.set_property('stock-id', None)
 
         ## HEADERS
         else:
             cell.set_property(prop_name, None)
             cell.set_data('thumbnail_path', None)
+            cell.set_property('stock-id', None)
     
 class CellEntry(object):
     """
