@@ -2254,7 +2254,7 @@ class UnsavedDataDialog(object):
                         
                     iter = self.model.append(None)
                     self.model.set(iter,
-                                   0, "<i>%s</i>" % (utils.clean_for_markup(repr(item))[:25] or
+                                   0, "<i>%s</i>" % (utils.clean_for_markup(repr(item)[:25]) or
                                                      utils.clean_for_markup(item)[:25]),
                                    1, self.clearer("%s" % self.master.get_label(field_name)),
                                    2, self.clearer(old_value),
