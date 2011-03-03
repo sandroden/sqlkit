@@ -1062,8 +1062,11 @@ class SqlTable(sqlwidget.SqlWidget):
           - Tab
           - Button1 on other cell
           - edited callback
-        """
 
+        IMPORTANT: validation is not a way to enforce True validation. This bypasses
+        normal completion mechanism!!!
+
+        """
         new_text = self.cell_entry.get_text()
         field_name = self.currently_edited_field_name
 
@@ -1074,6 +1077,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 return True
 
             try:
+                # The next statement sets a value even if it could not pass completion!!!
                 self.set_current(filter_by={field_name :new_text})
                 return 
             except (exc.NoResultFound, exc.MultipleResultsFound), e:
@@ -1086,7 +1090,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.sb(e)
                 return True
         else:
-            ## 
+            ##
             if self.is_fkey(field_name):
                 if self.cell_entry and self.cell_entry.is_valid():
                     return True

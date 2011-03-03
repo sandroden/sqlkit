@@ -268,7 +268,6 @@ class SimpleCompletion(object):
         :param pop:          don't try to pop the selection (debug purpose)
         :param one:          return the result that should be just one (used internally
                              within check_existance)
-        
         """
         self._apply_filter = apply_filter
         if self.force_enum:
@@ -286,13 +285,24 @@ class SimpleCompletion(object):
             return debug_inline_params(result, bind=None)
 
         self.completion.set_model(None)
+        if not result:
+            try:
+                f = self.master.gui_fields[self.field_name]
+                q = self.filtered_query or self.query
+                result = q.filter_by(**{self.column_lookup.name : f.get_value()})
+            except exc.ValidationError:
+                # ValidationError occurs when f.get_value() fails finding a possible completion
+                return
+
         for obj in result:
             self.append_to_model(obj)
         self.completion.set_model(self.model)
 
         if one and mode == 'exact':  # used by self.check_existance
         ## just one result will be returned even if no check is done that more that one exists
+            # I'm not sure that obj is *always* defined!... I believe so!
             return DictLike(obj)
+
         if pop:
             self.make_completion_to_pop(self.get_entry())
         else: # doctest purpose
@@ -729,6 +739,7 @@ class SimpleCompletion(object):
         Return True if field exists or validates
         """
         text = entry.get_text()
+        
         if not text:
             return True
 
