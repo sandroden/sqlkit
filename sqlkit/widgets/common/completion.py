@@ -371,7 +371,11 @@ class SimpleCompletion(object):
                 match = False
                 ## start mode
                 try:
-                    if self.mode == 'start' and re.search("^%s" %(key), text, re.IGNORECASE):
+                    if not key:
+                        match = True
+                    elif text is None:
+                        match = False
+                    elif self.mode == 'start' and re.search("^%s" %(key), text, re.IGNORECASE):
                         match = True
                     elif re.search(key, text, re.IGNORECASE):  # regexp mode
                         match = True
@@ -463,7 +467,8 @@ class SimpleCompletion(object):
             filtering_value = self.get_displayed_value(value=value)
             self.autostart_last_length = len(filtering_value)
 
-            query = self.compose_select_statement(query, oper, filtering_value)
+            if filtering_value:
+                query = self.compose_select_statement(query, oper, filtering_value)
         query = self.add_dynamic_filters(query)
 
         query = query.order_by(*self._order_by).distinct()
@@ -923,7 +928,6 @@ class FkeyCompletion(SimpleCompletion):
                 query = query.filter(lookup_col.op(oper)(value))
         return query
     
-
     def match_selected_cb(self, wdg, model, iter, field_name):
         """
         after selecting an entry store the value in self.values and set
