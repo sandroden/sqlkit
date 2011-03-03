@@ -28,10 +28,11 @@
 ...   a=gtk.main_iteration()    
 >>> sm.set_value('director_id', 'f', shown=True)
 
->>> sm.completions.director_id.show_possible_completion(sm.widgets['fk=director_id'].entry, 'start', pop=False) 
+## the following will fail with gtk < 2.16 (where a differenfk-entry is defined
+>>> sm.completions.director_id.show_possible_completion(sm.widgets['fk=director_id'], 'start', pop=False) 
 Faenza
 Fellini
->>> sm.completions.director_id.show_possible_completion(sm.widgets['fk=director_id'].entry, 'regexp', pop=False) 
+>>> sm.completions.director_id.show_possible_completion(sm.widgets['fk=director_id'], 'regexp', pop=False) 
 Faenza
 Fellini
 Truffaut

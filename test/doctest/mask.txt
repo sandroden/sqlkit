@@ -191,10 +191,10 @@ L=title ae=title:30-       L=year ae=year:5<
 
 >>> sm.set_value('director_id', 'f', shown=True)
 
->>> sm.completions.director_id.show_possible_completion(sm.widgets['fk=director_id'].entry, 'start', pop=False) 
+>>> sm.completions.director_id.show_possible_completion(sm.widgets['fk=director_id'], 'start', pop=False) 
 Faenza
 Fellini
->>> sm.completions.director_id.show_possible_completion(sm.widgets['fk=director_id'].entry, 'regexp', pop=False) 
+>>> sm.completions.director_id.show_possible_completion(sm.widgets['fk=director_id'], 'regexp', pop=False) 
 Faenza
 Fellini
 Truffaut

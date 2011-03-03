@@ -3,7 +3,6 @@ import sys
 
 import gtk
 
-import layout
 from sqlkit import _
 
 ### utility: stock icons    
@@ -96,6 +95,7 @@ class EasyTreeView(object):
         self.w['Window'].hide()
 
     def _get_layout(self, but, title=None):
+        from sqlkit import layout
         lay = """
           {O tb=gtk-quit  tb=gtk-clear %s}
           TVS=a

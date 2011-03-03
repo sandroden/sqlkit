@@ -737,8 +737,7 @@ class ForeignKeyWidget(Widget):
 
         Widget.__init__(self, *args)
 
-        self.entry  = self.gtkwidget.entry
-        self.button = self.gtkwidget.button
+        self.entry  = self.gtkwidget.entry if hasattr(self.gtkwidget, 'entry') else self.gtkwidget
         self.add_completion()
         self.real_value = True
         self.master.completions[self.field_name] = self.completion
@@ -753,13 +752,13 @@ class ForeignKeyWidget(Widget):
         self.master.completions[self.field_name] = self.completion
 
         ## button connect
-        self.button.connect('button-press-event', self.button_press_cb, self.field_name)
+        self.gtkwidget.connect('completion-requested', self.completion_requested_cb, self.field_name)
         #self.button.connect('clicked', self.on_button_clicked)
 
         ## entry connect
         self.completion.add_callbacks(self.entry)
 
-    def button_press_cb(self, widget, event, field_name):
+    def completion_requested_cb(self, widget, event, field_name):
         """
         Double click -> mode enum
         Simple click <3> -> menu
