@@ -21,7 +21,7 @@ Each Column widget need a 'master' argument that is the SqlWidget
 in editing_started_cb and  edited_cb to set state variables on SqlWidget
 
 .. autoclass:: View
-   :members: add_column, select_path
+   :members: add_column, select_path, start_editing
 
 """
 
@@ -1407,9 +1407,19 @@ class View(object):
         if second_choice:
             return second_choice[0]
 
-    def start_editing(self, path):
+    def start_editing(self, path, field_name=None):
+        """
+        Edit a path/column. Column is passed by its field_name
 
-        col = self.get_first_editable_col()
+        :param path: the path to be edited
+        :param field_name: the field_name of the column, if None, the first editable field
+            that does not have a default
+        """
+
+        if field_name:
+            col = self.tvcolumns[field_name]
+        else:
+            col = self.get_first_editable_col()
         self.treeview.scroll_to_cell(path, col)
         self.treeview.set_cursor(path = path, focus_column = col,  start_editing = True)
         
@@ -1463,16 +1473,3 @@ class View(object):
 
         if path is not None:
             self.treeview.get_selection().select_path(path)
-            
-
-
-
-
-
-
-
-
-
-
-
-

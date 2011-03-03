@@ -17,9 +17,9 @@ the foreign key is used.
 
 
 .. autoclass:: sqlkit.widgets.SqlTable
-   :members: views, totals, edited_row_model_path, create_view,
+   :members: views, totals, edited_path, create_view,
              set_field_list, set_editable, set_opts, select_path,
-             get_selected_path, get_obj_t_path, add_record, set_fk_layout, 
+             get_selected_path, get_obj_at_path, add_record, set_fk_layout, 
              record_in_mask, fkey_record_in_mask, add_row_filter
 
 
