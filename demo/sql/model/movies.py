@@ -45,16 +45,17 @@ class Movie(Base):
     __tablename__  = 'movie'
     id             = Column(Integer, primary_key=True)
     title          = Column(String(60), nullable=False)
-    image          = Column(String(250), info={'render' : 'image', 'base_dir' : './images', 'thumbnail_size' : (30,30)})
+    image          = Column(String(250), info={'render' : 'image',
+                                               'base_dir' : './images',
+                                               'thumbnail_size' : (30,30)})
     description    = Column(String(512))
     year           = Column(Integer())
     date_release   = Column(Date())
     director_id    = Column(Integer, ForeignKey('director.id'), nullable=False,
                             info={'attach_instance': 'director'})
-    score          = Column(Integer, info={'render' :'enum', 'values' : SCORE_VALUES})
-    ## relations
-    # alternative way to set the relation between movies and actors
-    # director       = relation('Director', backref=backref('movies', cascade='all, delete-orphan',))
+    score          = Column(Integer, info={'render' :'enum',
+                                           'values' : SCORE_VALUES})
+
     actors         = relation('Actor', backref='movies', secondary=movie_casting)
     genres         = relation('Genre', backref='movies', secondary=movie_genre)
 
