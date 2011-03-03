@@ -26,8 +26,10 @@
 from datetime import date, datetime
 
 import gtk
+import gobject
 
 from sqlkit import debug as dbg
+from sqlkit.misc import utils
 from sqlkit.widgets.common import sqlwidget
 
 class TotalObj(object):
@@ -43,6 +45,7 @@ class TotalObj(object):
     _sub_color = 'gray92'
     _total_color = 'gray80'
     _fg_color = 'indianred'
+
     def __init__(self, fields, sub=True):
         """
         all fields will be initialized to None
@@ -73,7 +76,7 @@ class TotalObj(object):
             return None
 
     
-class Totals(object):
+class Totals(gobject.GObject):
     """
     An object whose 'compute' method adds TotalObjets to show
     partial totals/grand totals to a table.
@@ -81,6 +84,14 @@ class Totals(object):
     If total_by is a callable, it's evaluated to detect if a partial total
     must be inserted
     """
+
+    __gsignals__ = {
+        'computed': (gobject.SIGNAL_RUN_FIRST,
+                     gobject.TYPE_NONE,
+                     (gobject.TYPE_PYOBJECT,),
+                     )
+        }
+
     total_class = TotalObj
 
     totals = None
@@ -100,6 +111,7 @@ class Totals(object):
         :param treeview: in case 'table' does not have a treeview, you can specify it.
                        Used when total is made for filter_panel.
         """
+        self.__gobject_init__()
         self.table = table
         self.totals = {}
         self._break_field_name = None
@@ -191,7 +203,7 @@ class Totals(object):
         """
         sum values and store result in :attr:`totals` and :attr:`subtotals`
 
-        :param obj: the obj that should be added. It's an instance of table.mapper.class_
+        :param obj: the obj that should be added. It's an instance of ``table.mapper.class_``
         :param model: the model of the treeview
         :param path: the path at which the obj is
         :param iter: the iter at which the obj is
@@ -300,6 +312,7 @@ class Totals(object):
         row = self.insert_total(row=None, after=True)
         if self.break_func:
             self.insert_subtotal(row.iter, after=True if self.hide_total else False)
+        self.emit('computed', utils.ObjLike(self.totals))
 
     def delete_total_rows(self, *args):
         iter_del_list = []
