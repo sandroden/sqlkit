@@ -741,13 +741,12 @@ class SimpleCompletion(object):
             try:
                 if self.master.is_fkey(self.field_name):
                     clean_value = self.master.gui_fields[self.field_name].clean_value(text, input_is_fkey=False)
-                    if not clean_value:
+                    if clean_value == None:
                         raise exc.NoResultFound
 
                     self.master.sb(_("Good match"), seconds=4)
-                    self.master.set_value(self.field_name, getattr(clean_value, self.column_lookup.name),
-                                          fkvalue=text)
-                    ## since on_completion needs an onj that must have all attributes defined in
+                    self.master.set_value(self.field_name, clean_value, fkvalue=text)
+                    ## since on_completion needs an obj that must have all attributes defined in
                     ## self.attrs we trigger the complete tour
                     obj = self.show_possible_completion(None, 'exact', one=True)
                     self.master.run_hook('on_completion', obj, field_name=self.field_name)

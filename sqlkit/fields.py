@@ -1593,8 +1593,15 @@ class ForeignKeyField(Field):
         
     def clean_value(self, value, input_is_fkey=False):
         """
-        return a cleaned value (i.e.: the foreign key)
-        if input_is_fkey=False the text is considered an id, else it's considered a 'search' value
+        Return a cleaned value (i.e.: the foreign key) or None if no value exists.
+        :param input_is_fkey:  If True the text is considered an id, else it's
+               considered a 'search' value
+
+        Note that if input_is_fkey=True not cleaning is performed.
+        This operation is the opposite of lookup_value().
+
+        Note that clean_value only works if the widget with completion is present.
+
         """
         if input_is_fkey:
             return value
@@ -1603,7 +1610,7 @@ class ForeignKeyField(Field):
             self.widget.completion.query, '=', value)
         ret = query.all()
         #ret = self.master.metadata.bind.execute(sql).fetchone()
-        return ret and ret[0]
+        return ret and ret[0][0] or None
 
     def validate(self, value, clean=False):
         """
