@@ -923,10 +923,11 @@ class SqlTable(sqlwidget.SqlWidget):
         ## set defaults
         if not obj:
             for field_name in self.field_list:
-                self.gui_fields[field_name].set_default()
+                self.gui_fields[field_name].set_default(obj=self.current)
 
-        self.records += [self.last_new_obj]  ## adding to records is vital to get fk correctly, in
-                                             ## case this table is a M2M of M2O
+        self.records += [self.last_new_obj]  ## adding to records is vital to get
+                                             ## fk correctly, in case 
+                                             ## this table is a M2M of M2O
         self.commit_inhibited = False
         self._new_record = True
         self.emit('record-new')
@@ -1126,7 +1127,8 @@ class SqlTable(sqlwidget.SqlWidget):
                 if self.cell_entry and self.cell_entry.is_valid():
                     return True
                 if not new_text:
-                    self.set_value(field_name, new_text, initial=False)
+                    # casting '' to None => you're not allowed to use '' as FK...
+                    self.set_value(field_name, None, initial=False)
                     # self.gui_fields[field_name].set_value(None, initial=False,
                     #                                       obj=self.current)                    
                     return True

@@ -665,9 +665,9 @@ class Field(gobject.GObject):
             return
         return value
         
-    def set_default(self):
+    def set_default(self, obj=None):
         try:
-            self.set_value(self.get_default())
+            self.set_value(self.get_default(), obj=obj)
         except NotHandledDefault, e:
             pass
         
