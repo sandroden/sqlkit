@@ -1006,6 +1006,14 @@ class SqlWidget(gobject.GObject):
             self.message(type='error', text=_(msg))
             self.sb(str(e))
 
+        elif isinstance(e, exceptions.ProgrammingError):
+            # TIP: Error while saving into a table w/o permission
+            msg = _("A programming error was received from the backend:\n%s") % e
+            if re.search('permission denied', msg, re.I):
+                msg = "Access was denied while accessing one of the tables (%s)" % e
+            self.message(type='error', text=msg)
+            self.sb(e.orig)
+
         elif isinstance(e, exceptions.DBAPIError):
             # TIP: message in the status bar when a commit error is handled
             self.message(type='error',
@@ -1536,7 +1544,17 @@ class SqlWidget(gobject.GObject):
         if self.is_mask():
             self.current = None
             self.clear(check=False)
-        self.records = query.all()
+        try:
+            self.records = query.all()
+        except exceptions.ProgrammingError, e:
+            # TIP: reloading data from the database
+            msg = _("A programming error was received from the backend:\n%s") % e
+            if re.search('permission denied', msg, re.I):
+                msg = "Access was denied while accessing one of the tables (%s)" % e
+            self.message(type='error', text=msg)
+            self.sb(e.orig)
+            return
+            
         if display:
             self.record_display(check=False)
 
