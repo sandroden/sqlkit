@@ -237,8 +237,10 @@ import warnings
 from datetime import datetime, time, date, timedelta
 from decimal import Decimal
 
+import gobject
 import babel
 from sqlalchemy.schema import ColumnDefault
+from sqlalchemy.orm.interfaces import AttributeExtension
 
 from sqlkit import exc, _
 from sqlkit.misc import localtimezone
@@ -249,6 +251,47 @@ from sqlkit.exc import ValidationError, NotHandledField, NotHandledDefault
 BLANK_OK = False
 
 class ZoomException(Exception): pass
+
+class SignalEmitter(gobject.GObject):
+    """A minimalist gobject used to trace value setting in AttributeExtension
+    
+    """
+    __gsignals__ = {
+         'value-set': (gobject.SIGNAL_RUN_FIRST,
+                       gobject.TYPE_NONE,
+                       (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT,
+                        gobject.TYPE_PYOBJECT, )),
+         # 'value-appended': (gobject.SIGNAL_RUN_FIRST,
+         #               gobject.TYPE_NONE,
+         #               (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT,
+         #                gobject.TYPE_PYOBJECT)),
+         # 'value-removed': (gobject.SIGNAL_RUN_FIRST,
+         #               gobject.TYPE_NONE,
+         #               (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT,
+         #                gobject.TYPE_PYOBJECT)),
+         }
+    def __init__(self):
+        self.__gobject_init__()
+        
+class AttrExt(AttributeExtension):
+    """An AttributeExtension used to trace value setting. Fields of a mask connect to
+    the signal 'value-set' and propagate it. Table's fields don't need to connect as
+    they're always tracing object modification via the cell_data_func callback.
+    """
+    
+    def set(self, state, value, oldvalue, initiator):
+        #print 'value-set', state.obj().__class__.__name__, initiator.key, value
+        self._sk_emitter.emit('value-set', value, oldvalue, state.obj, )
+        return value
+
+    def append(self, state, value, initiator):
+        #self._sk_emitter.emit('value-appended', state.obj(), value)
+        return value
+
+    def remove(self, state, value, initiator):
+        #self._sk_emitter.emit('value-removed', state.obj(), value)
+        return value
+
 class FieldChooser(object):
 
     """here we wrap the gtk widget in a double layer:
@@ -359,7 +402,14 @@ class FieldChooser(object):
 #         raise NotHandledField("Field '%s' is not handled in any way: COL_SPEC: %s" %
 #                               (field_name, filter_attr['col_spec']))
 
-class Field(object):
+
+
+class Field(gobject.GObject):
+    __gsignals__ = {
+         'value-set': (gobject.SIGNAL_RUN_FIRST,
+                       gobject.TYPE_NONE,
+                       (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT)),
+         }
     Widget = None
     default_def_string = 'ae'
     type = None
@@ -368,13 +418,14 @@ class Field(object):
         
         """
         :param field_name:  the name of the field in the db
-        :param field_attrs:     the dict as worked out by InspectMapper. Can be created by hand: that is
-                     usefull when field is not mapped in the database. These attributes may be
+        :param field_attrs: the dict as worked out by InspectMapper.
+                     Can be created by hand: that is useful when field
+                     is not mapped in the database. These attributes may be
                      present:
 
                      :nullable: boolean. If True None is accepted as value
-                     :editable: boolean. If True the value can be edited, if 'column'  is not passed
-                                the field is tuned into not editable
+                     :editable: boolean. If True the value can be edited, if 'column'
+                                is not passed the field is tuned into not editable
                      :length:   used to determine how many chas are needed to represent it
                      :default:  a possible default value
                      :mapper:   the mapper the field is defined into, if any
@@ -389,6 +440,8 @@ class Field(object):
         :param master:      the sqlkit widget: an instance of SqlMask or SqlTable
         """
 
+        self.__gobject_init__()
+        self._ids = {}
         self.field_name = field_name
         self._add_info(field_attrs or {})
         self.initial_value = None
@@ -398,15 +451,17 @@ class Field(object):
         :param def_str:     the definition string in the layout that determined
                      the gtk.Widget (eg.: c=married, e=first_name)
         :param widget:      the miniwidget to be used. Defaults to class-defined self.Widget
-                            the widget can be a string of a Widget derived from ``miniwidget.Widget``
+                            the widget can be a string of a Widget derived from
+                            ``miniwidget.Widget``
         :param gtkwidget:   the gtk widget to be used (already created by Layout)
         
         """
         from sqlkit.widgets.mask import miniwidgets
         from sqlkit.widgets.table import tablewidgets
 
-        ## widget can be a string in which case it it searched for in sqlkit.widgets.mask.miniwidgets
-        ## tis avoids importing miniwidgets at import time and delayes it to this function
+        ## widget can be a string in which case it it searched for in
+        ## sqlkit.widgets.mask.miniwidgets
+        ## this avoids importing miniwidgets at import time and delays it to this function
         if isinstance(widget, basestring):
             Widget = getattr(miniwidgets, widget)
 
@@ -418,15 +473,23 @@ class Field(object):
             ## used in SqlMask
             self.widget = Widget(gtkwidget, self)
             gtkwidget.connect('destroy', self.destroy)
+            self.connect('value-set', self.widget.set_value_cb)
         else:
             ### used in SqlTable
+            ## tables are inherently already listening to changes in the object
+            # via the cell_data_func_cb, so don't need to listen to modifications
             self.widget = tablewidgets.CellWidget(self)
 
     def destroy(self, widget):
+
+        for obj, hid in self._ids.values():
+            obj.disconnect(hid)
+        del self._ids
+        
         try:
             del self.widget
             del self.master
-        except AttributeError:
+        except AttributeError, e:
             pass
             
     def set_master(self, master):
@@ -438,7 +501,31 @@ class Field(object):
           * add related objects
         """
         self.master = master
+        if self.master.is_table():
+            return
+        ## make this field listen to modification in the sqlalchemy object (record) so
+        ## that any change will be reflected in the UI. Here we implement the mask part
+        ## as the table do that inherently via the cell_data_func_cb
         
+        if self.persistent:
+            emitter = SignalEmitter()
+            FieldAttrExt = type(str("attrext_%s" % self.field_name), (AttrExt,),
+                                {'_sk_emitter': emitter})
+            extensions = getattr(self.master.mapper.class_, self.field_name).impl.extensions
+            found = False
+            if extensions is not None:
+                for ext in extensions:
+                    if isinstance(ext, AttrExt):
+                        found = True
+                        emitter = ext._sk_emitter
+                        break
+            if not found:
+                ext = FieldAttrExt()
+                extensions.append(ext)
+            self._emitter = emitter
+            hid = emitter.connect('value-set', self.value_set_cb)
+            self._ids['emitter_value_set'] = (emitter, hid)
+
     def set_nullable(self, value):
         self._nullable = value
         try:
@@ -480,6 +567,27 @@ class Field(object):
         if self.pkey:
             self._nullable = False
 
+    def value_set_cb(self, emitter, value, oldvalue, obj):
+        """
+        Propagate value set from the attribute extension in the mapped class
+        """
+        # the signal we received from the record is not emitted when the
+        # record is firstly built so we are sure it's not 'initial', we
+        # advertise it as 'initial' so that mask won't complain it
+        # was change and ask if it needs saving. It surely does.
+        # 2 situation revela this: 
+        # ./demo -i 02, change d.t.current and commit, next forward, we don't
+        # want to be prompted to save
+        # ./demo 03, right click -> record in mask, change the date in the table
+        # and change selected record, we don't want to be prompted to save
+
+        try:
+            if obj() is self.master.current and value != oldvalue:
+                self.emit('value-set', value, True)
+                self.initial_value = value
+        except AttributeError:
+            pass
+
     def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True):
         """
         Set the value
@@ -494,10 +602,10 @@ class Field(object):
         value = self.clean_value(value, obj=obj)
         if initial:
             self.initial_value = value
-        if hasattr(self, 'widget') and update_widget:
-            self.widget.set_value(value, initial=initial)
         if obj:
             setattr(obj, self.field_name, value)
+        else:
+            self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
         """
@@ -512,7 +620,7 @@ class Field(object):
         """
         sets a value that clears the corresponding widget, can be None or []
         """
-        self.set_value(None)
+        self.set_value(None, initial=True)
 
     def set_completion(self, regexp):
         pass
@@ -659,6 +767,7 @@ class Field(object):
             return fn(self, value)
         new_func.__doc__ = fn.__doc__
         return new_func
+
 class VarcharField(Field):
     """
     The field to represent Strings
@@ -688,11 +797,13 @@ class VarcharField(Field):
             self.initial_value = value
         value = self.clean_value(value)
 
-        if hasattr(self, 'widget') and update_widget:
-            self.widget.set_value(value or '', initial=initial)
+        # if hasattr(self, 'widget') and update_widget:
+        #     self.widget.set_value(value or '', initial=initial)
 
         if obj:
             setattr(obj, self.field_name, value)
+        else:
+            self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
 
@@ -1320,6 +1431,16 @@ class ImageField(VarcharField):
             value = value and re.sub('^%s/?' % self.base_dir, '', value)
         return self.clean_path(value)
 
+    def value_set_cb(self, emitter, value, oldvalue, obj):
+        """
+        Propagate value set from the attribute extension in the mapped class
+        """
+        if obj() is self.master.current:
+            if value == oldvalue:
+                self.set_value(value, initial=False)
+            else:
+                self.set_value(value, initial=True)
+
     def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True,
                   new_name=None):
         """
@@ -1589,7 +1710,7 @@ class ForeignKeyField(Field):
         return value
 
     def set_master(self, master):
-        self.master = master
+        Field.set_master(self, master)
         self._props_for_delete_orphan = minspect.get_props_for_delete_orphan(
             master.mapper, self.field_name)
         
@@ -1650,12 +1771,13 @@ class ForeignKeyField(Field):
         return self.lookup_value(value)
     
     def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True):
+
         if not shown:
             value = self.clean_value(value, input_is_fkey=True)
         if initial:
             self.initial_value = value
-        if hasattr(self, 'widget') and update_widget:
-            self.widget.set_value(value, shown=shown, initial=initial)
+        # if hasattr(self, 'widget') and update_widget:
+        #     self.widget.set_value(value, shown=shown, initial=initial)
 
         if value and not initial:
             ## Rationale: See ex_03 (that uses class_=Movie
@@ -1671,6 +1793,8 @@ class ForeignKeyField(Field):
 
         if obj:
             setattr(obj, self.field_name, value)
+        else:
+            self.emit('value-set', value, initial)
 
     def has_changed(self):
         ## special case, when is empty
@@ -1762,6 +1886,8 @@ class CollectionField(Field):
         Field.__init__(self, *args, **kwargs)
         self.initial_value = []
 
+    def value_set_sb(self, *args):
+        pass
     def set_widget(self,  gtkwidget=None, def_str=None, widget=None):
 
         Field.set_widget(self,  gtkwidget=gtkwidget, def_str=def_str, widget=widget)

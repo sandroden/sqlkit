@@ -410,6 +410,7 @@ class SqlWidget(gobject.GObject):
             mapper = self.dbproxy.get_mapper(mapper, tables)
             
         #self.tables = [mapper.local_table.name]  ## FIXME: what when we have a join?
+        mapper.compile()  # this insures that all attribute gets compile
         return mapper
 
     def _get_metadata(self, metadata, mapper):

@@ -65,6 +65,9 @@ class CellWidget(object):
             ## function columns do not have .table so that won't complete
             pass
         
+    def set_value_cb(self, field, value, shown=False, initial=False):
+        self.set_value(value, initial=initial)   
+
     def set_value(self, value, shown=False, initial=False):
         self.master.set_value(self.field_name, value, shown=shown, initial=initial)
 

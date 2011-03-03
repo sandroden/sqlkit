@@ -189,7 +189,7 @@ L=title ae=title:30-       L=year ae=year:5<
 
 >>> sm.get_value('title')
 
->>> sm.set_value('director_id', 'f', shown=True)
+>>> sm.widgets['fk=director_id'].set_text('f')
 
 >>> sm.completions.director_id.show_possible_completion(sm.widgets['fk=director_id'], 'start', pop=False) 
 Faenza

@@ -26,7 +26,7 @@
 >>> sm.get_value('title')
 >>> while gtk.events_pending():
 ...   a=gtk.main_iteration()    
->>> sm.set_value('director_id', 'f', shown=True)
+>>> sm.widgets['fk=director_id'].set_text('f')
 
 ## the following will fail with gtk < 2.16 (where a differenfk-entry is defined
 >>> sm.completions.director_id.show_possible_completion(sm.widgets['fk=director_id'], 'start', pop=False) 

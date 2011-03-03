@@ -791,10 +791,11 @@ class SqlTable(sqlwidget.SqlWidget):
             if not field.pkey and field.persistent:
                 value = getattr(orig_obj, field.field_name)
                 if interactive:
-                    field.set_value(value, initial=False)
-                else:
+                    self.set_value(field.field_name, value, initial=False)
                     # this way is alternative to editing directly, for some reason it
-                    # deletes the first edited field
+                    # deletes the first edited field::
+                    field.set_value(value, initial=False, obj=new_obj)
+                else:
                     setattr(new_obj, field.field_name, value)
         self.run_hook('on_save_as', orig_obj, new_obj)
     
@@ -1080,10 +1081,11 @@ class SqlTable(sqlwidget.SqlWidget):
     
 ###### Validation
     def cell_validate(self):
-        """
-        validate cell value, return True if ok
-        The cell to be validated is the last visited cell, ie: the one whose field_name, path and cell
-        where set inside text_editing_started_cb
+        """Validate cell value and invoke field.set_value() or invoke completion.
+        Return True if ok.
+        
+        The cell to be validated is the last visited cell, ie: the one whose
+        field_name, path and cell where set inside text_editing_started_cb
         ForeignKey that do not validate should trigger completion
 
         This must be called by:
@@ -1124,7 +1126,9 @@ class SqlTable(sqlwidget.SqlWidget):
                 if self.cell_entry and self.cell_entry.is_valid():
                     return True
                 if not new_text:
-                    self.gui_fields[field_name].set_value(None, initial=False)                    
+                    self.set_value(field_name, new_text, initial=False)
+                    # self.gui_fields[field_name].set_value(None, initial=False,
+                    #                                       obj=self.current)                    
                     return True
                 self.sb(_('Value is not valid, trying completion'))
                 show = self.gui_fields[field_name].widget.completion.show_possible_completion
@@ -1132,7 +1136,9 @@ class SqlTable(sqlwidget.SqlWidget):
                 return False
             else:
                 try:
-                    self.gui_fields[field_name].set_value(new_text, initial=False)
+                    self.set_value(field_name, new_text, initial=False)
+                    # self.gui_fields[field_name].set_value(new_text, initial=False,
+                    #                                       obj=self.current)
                     # A hook in "on_change_value" may trigger a deletion of cell_entry
                     # e.g. a totals.compute(), so let's check again
                     if self.cell_entry:  
@@ -1292,15 +1298,6 @@ class SqlTable(sqlwidget.SqlWidget):
             path = table.get_selected_path()
             model.emit('row-changed', path, model.get_iter(path))
         mask.connect('record-saved', update_table_treeview, self)
-
-        ## let's make sure any changes in the table, after a commit, is reflected
-        ## back in the mask. This prevents a double commit with opposite meaning
-        ## check=False means that after a commit whatever is the sitution in the
-        ## mask will be disreguarded
-        def refresh_mask(table):
-            mask.record_display(check=False)
-            
-        self.connect('record-saved', refresh_mask)
 
         ## signals to keep selection in sync 
         def follow_selection(table, obj, mask):

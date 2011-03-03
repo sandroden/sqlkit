@@ -337,10 +337,10 @@ The following hooks are defined:
     .. function:: on_change_value__field_name(sqlwidget, field_name, value,
                   fkvalue, field)
 
-       :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
+       :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that runs the hook
        :param field_name:  the field_name
        :param value:  the new value
-       :param fkvalue: if field is a ForeignKey, the value shown
+       :param fkvalue: if field is a ForeignKey or enum, the displayed value
        :param field: the field
 
 .. _on_completion:
@@ -350,7 +350,7 @@ The following hooks are defined:
 
     .. function:: on_completion__field_name(sqlwidget, field_name, obj)
 
-       :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
+       :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that runs the hook
        :param field_name:  the field_name
 
        :param obj: the matched object in the completion. This obj has

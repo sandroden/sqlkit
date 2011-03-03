@@ -188,6 +188,10 @@ class Widget(gobject.GObject):
     def set_text(self, state, color):
         self.gtkwidget.modify_text(state, color)
         
+    def set_value_cb(self, field, value, initial=False):
+
+        self.set_value(value, initial=initial)        
+
     def set_value(self, value, shown=False, initial=False):
         """
         Set the value in the widget
@@ -290,12 +294,13 @@ class VarcharWidget(Widget):
         except exc.ValidationError:
             self.master.sb("Value '%s' is not valid" % self.gtkwidget.get_text())
             return
-        self.master.run_hook('on_change_value', value, value, field_name=self.field_name)
+        self.master.run_hook('on_change_value', value, value, self.field,
+                             field_name=self.field_name)
 
     def set_value(self, value, initial=False):
         # Entry
         self.gtkwidget.handler_block(self._id_changed)
-        self.gtkwidget.set_text( str(value) )
+        self.gtkwidget.set_text( str(value or '') )
         self.gtkwidget.handler_unblock(self._id_changed)
         self.emit('value-set', value, initial)
         
@@ -490,7 +495,7 @@ class TextWidget(Widget):
 
     def set_value(self, value, initial=False):
         buff = self.gtkwidget.get_buffer()
-        buff.set_text( value)
+        buff.set_text( value or '')
         self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
@@ -649,9 +654,10 @@ class ImageWidget(Widget):
         """
         if not filename:
             return
-        save_path = self.field.get_save_path(
-            name=new_filename or filename,
-            obj=self.field.master.current)
+        save_path = self.field.get_save_path(name=new_filename or filename,
+                                             obj=self.field.master.current)
+
+        ## existing path
         if os.path.exists(save_path):
             response = self.master.dialog(
                 type="ok-cancel",

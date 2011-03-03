@@ -8,6 +8,12 @@ Backward Incompatibilities
 From version 0.8.6 (first public release) I keep track of backward
 incompatibilities:
 
+0.9.3
+=====
+
+:requirements: sqlalchemy now needs to be at least rel 0.5.4 as we're using
+         AttributeExtension to provide better MVC support
+
 0.9.2
 =====
 

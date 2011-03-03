@@ -118,7 +118,7 @@ def check_sqlalchemy_version(req):
         from pkg_resources import parse_version as pv
         if pv(sqlalchemy.__version__) >= pv(req):
             return  
-        elif pv(sqlalchemy.__version__) < pv('0.5'):
+        elif pv(sqlalchemy.__version__) < pv('0.5.4'):
             return fatal_exit()
         else:
             warning()

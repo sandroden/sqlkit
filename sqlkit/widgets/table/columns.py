@@ -366,6 +366,7 @@ class BooleanColumn(GenericColumn):
         """
         callback that cicle into True/False/(inconsistent if nullable)
         """
+
         self.master.currently_edited_field_name = self.field_name
         self.master.initialize_record_editing(path)
 
@@ -380,7 +381,7 @@ class BooleanColumn(GenericColumn):
         else:
             status = not status
 
-        self.field.set_value(status, initial=False )        
+        self.field.set_value(status, initial=False, obj=obj)
             
         return True
     
