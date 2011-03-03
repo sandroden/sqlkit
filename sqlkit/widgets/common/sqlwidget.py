@@ -1108,22 +1108,11 @@ class SqlWidget(gobject.GObject):
             if sqlwidget.record_has_changed():
                 return True
 
-        is_mask = self.is_mask()
         for field in self.gui_fields:      
             if not field.editable:
                 continue
             try:
-                if is_mask:
-                    ## this part is needed only for mask as in table the cell-renderer does it
-                    ## as soon as you leave the cell
-                    ## if we setattr now the value in the entry cannot reach the object
-                    ## My doubt is that we should probably firstly run the validation
-                    if not isinstance(field, fields.CollectionField):
-                        # CollectionField does not need to be set, it's already set to the list
-                        # and we need not keep the list to the related.records list
-                        setattr(obj, field.field_name, field.get_value())
-
-                if self.has_changed(field.field_name):
+                if field.has_changed():
                     return True
 
             except exc.ValidationError, e:
