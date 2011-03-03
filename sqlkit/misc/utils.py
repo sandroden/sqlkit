@@ -1,4 +1,6 @@
 import re
+import os
+import subprocess
 
 import sqlalchemy
 
@@ -101,6 +103,49 @@ def str2list(list_or_string):
     return list_or_string or []
 
 
+def get_viewer(ext):
+    """
+    return the path of the viewer for extension
+
+    :param ext: extension
+    """
+    import platform
+    import subprocess as sp
+
+    progs = {
+        'pdf' : ('xdg-open', 'gnome-open', 'acroread', 'xpdf', 'gv', ),
+        'odt' : ('xdg-open', 'gnome-open', 'oowriter', ),
+        }
+    # another workig way to invoke the correct application is to use
+    # webbrowser.open_new() but under linux it may switch you to another desktop.
+    if platform.system() == 'Windows' or os.name == "mac":
+        # this is good for local file but for remote files *in PrintTool* only, it shows
+        # an amaizing delay of 15 seconds that you don't have via webbrowser module
+        # I really don't understand why, a simple test in a file doesn't show this delay!
+        return 'start'
+    else:
+        for cmd in progs[ext]:
+            path = sp.Popen('which ' + cmd, shell=True, stdout=sp.PIPE).communicate()[0]
+            if path:
+                return path.strip()
+
+def open_file(filename, viewer=None):
+    """
+    Open file filename with the default application (ext: .pdf or openoffice family)
+
+    :param filename: the name of the file to be opened
+    """
+    if os.name in ('posix', 'mac'):
+        if filename.endswith('pdf'):
+            p =  subprocess.call((viewer or get_viewer('pdf'), filename)) 
+        else:
+            p =  subprocess.call((viewer or get_viewer('odt'), filename))
+    else:
+        # I made some test with call(('start', filename)) but in several
+        # occasion I coudn't get the start command to find the
+        # file. os.startfile() doesn't suffer the same problem.
+        os.startfile(filename)
+
 
 if __name__ == '__main__' :
 
@@ -123,3 +168,4 @@ if __name__ == '__main__' :
     print str2list('uno,due, tre')
     print str2list(['uno','due', 'tre'])
     
+
