@@ -127,6 +127,7 @@ OP_MSGID = {
     'IS NOT FALSE' : _('The boolean is not False'),
     'IS NULL' : _('The value is not set'),
     'IS NOT NULL' : _('The value is set'),
+    'ID' : _("ID equality (don't follow foreign table)"),
 #    '' : _(''),
     }
 
@@ -872,13 +873,13 @@ class FilterFKeyTool(FilterTool):
     def get_suitable_operators(self):
 
         if self.bind_name.startswith('postgres'):
-            return  ['~*', '~', '!~*', '~*' ] + self.STD_OPERATORS
+            return  ['~*', '~', '!~*', '~*' ] + self.STD_OPERATORS + ['ID']
 
         elif self.bind_name.startswith('mysql'):
-            return ['REGEXP' ] + self.STD_OPERATORS
+            return ['REGEXP' ] + self.STD_OPERATORS + ['ID']
 
         else:
-            return ['ICONTAINS' ] + self.STD_OPERATORS
+            return ['ICONTAINS' ] + self.STD_OPERATORS + ['ID']
 
     def get_value(self):
         # no need to clean this value
@@ -896,6 +897,8 @@ class FilterFKeyTool(FilterTool):
         In case field is a fkey, and the destination lookup field is not in
         the mapper, it composes a subselect
         """
+        if op_value == 'ID':
+            return query.filter(self.col == value)
         fdescr = get_description(self.ftable, attr='description')
 
         if op_value == "ILIKE":
