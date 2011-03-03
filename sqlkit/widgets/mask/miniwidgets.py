@@ -166,7 +166,7 @@ class Widget(object):
     def set_text(self, state, color):
         self.gtkwidget.modify_text(state, color)
         
-    def set_value(self, value, shown=False):
+    def set_value(self, value, shown=False, initial=False):
         """
         Set the value in the widget
 
@@ -175,6 +175,8 @@ class Widget(object):
               if True, the displayed value is returned also in any
               case. The difference is only for ForeignKey
               The displayed value may be used for completion purpouses
+        :param initial: not used by miniwidget. Needed for compatibility with
+              tablewidgets where it needs to propagate to master's set_value
         """
         pass
 
@@ -247,7 +249,7 @@ class VarcharWidget(Widget):
         self.master.completions[self.field_name] = self.completion
         self.completion.add_callbacks(self.gtkwidget)
 
-    def set_value(self, value):
+    def set_value(self, value, initial=False):
         # Entry
         self.gtkwidget.set_text( str(value) )
         
@@ -275,7 +277,7 @@ class ReadOnlyWidget(Widget):
         else:
             self.completion = None
 
-    def set_value(self, value, shown=True):
+    def set_value(self, value, shown=True, initial=False):
 
         self.gtkwidget.set_data('value', value)
         string_value = self.field.get_human_value(value)
@@ -307,7 +309,7 @@ class IntegerWidget(VarcharWidget):
         self.gtkwidget.connect('key-press-event', self.on_key_press)
         self.gtkwidget.connect('key-press-event', self.master.digits_check_input_cb  )
                 
-    def set_value(self, value):
+    def set_value(self, value, initial=False):
         self.text_value = self.field.format_value(value)
         self.gtkwidget.set_text(self.text_value)
         
@@ -348,7 +350,7 @@ class DateWidget(Widget):
     def date_changed_cb(self, widget):
         self.invalid = None
 
-    def set_value(self, value):
+    def set_value(self, value, initial=False):
 
         self.invalid = None
         self.gtkwidget.set_property('date', value)
@@ -365,7 +367,7 @@ class TimeWidget(Widget):
     """
     A timezone unaware widget to set time. Very poor widget indeed.
     """
-    def set_value(self, value):
+    def set_value(self, value, initial=False):
         self.gtkwidget.set_text(self.field.format_value(value))
 
     def get_value(self, shown=False):
@@ -384,7 +386,7 @@ class TimeTZWidget(Widget):
 
 class IntervalWidget(Widget):
 
-    def set_value(self, value):
+    def set_value(self, value, initial=False):
         if value and not isinstance(value, timedelta):
             msg = "value for %s must be a timedelta (now: %s)" % (self.field_name, value)
             raise AttributeError(msg)
@@ -409,7 +411,7 @@ class DateTimeWidget(DateWidget):
         self.gtkwidget.set_property('show-time', True)
         self.initial_delta = timedelta(0)
         
-    def set_value(self, value):
+    def set_value(self, value, initial=False):
         ## FIXME: datetime has only time?
         return self.gtkwidget.set_property('datetime', value)
         
@@ -429,7 +431,7 @@ class TextWidget(Widget):
         Widget.__init__(self, *args)
         self.gtkwidget.set_property('wrap-mode', gtk.WRAP_WORD)
 
-    def set_value(self, value):
+    def set_value(self, value, initial=False):
         buff = self.gtkwidget.get_buffer()
         buff.set_text( value)
 
@@ -462,7 +464,7 @@ class BooleanWidget(Widget):
     def on_toggled_cb(self, widget):
         self.master.run_hook('on_activate', self, field_name=self.field_name)
         
-    def set_value(self, value):
+    def set_value(self, value, initial=False):
         self.gtkwidget.set_active(bool(value))
 
     def get_value(self, shown=False):
@@ -477,7 +479,7 @@ class BooleanNullWidget(BooleanWidget):
         self._clicked_id = self.gtkwidget.connect('clicked', self.on_clicked_cb)
         self.gtkwidget.connect_after('toggled', self.on_toggled_cb)
 
-    def set_value(self, value):
+    def set_value(self, value, initial=False):
 
         if value == None:
             self.gtkwidget.set_inconsistent(True)
@@ -548,7 +550,7 @@ class EnumWidget(Widget):
             return True
         i[0] += 1
         
-    def set_value(self, value):
+    def set_value(self, value, initial=False):
         i = [0]
         self.model.foreach(self._find_value, (value, i))
         self.gtkwidget.handler_block(self.notify_id)
@@ -599,7 +601,7 @@ class ImageWidget(Widget):
         self.copy_file = self.field.clean_path(filename)
         self.new_filename = save_path
     
-    def set_value(self, value):
+    def set_value(self, value, initial=False):
 
         self.copy_file = None
         self.gtkwidget.set_image(value)
@@ -655,7 +657,7 @@ class ForeignKeyComboboxWidget(Widget):
         ## the EntryText has been changed. The value may no longe be  valid
         self.real_value = False
 
-    def set_value(self, value):
+    def set_value(self, value, initial=False):
         """We have a 'real_value' that is normally an id or a key and a 'display_value'
         that is the value we want to show
         """
@@ -758,7 +760,7 @@ class ForeignKeyWidget(Widget):
     def is_valid(self):
         return self.real_value
 
-    def set_value(self, value, shown=False):
+    def set_value(self, value, shown=False, initial=False):
         """
         We have a real 'value' that is normally an id or a key and a 'display_value'
         that is the value we want to show
@@ -843,7 +845,7 @@ class CollectionWidget(Widget):
 
         self.master.related.add_element(self.field_name, self.table)
 
-    def set_value(self, value):
+    def set_value(self, value, initial=False):
         self.table.set_records(value)
 
     def get_value(self, shown=False):

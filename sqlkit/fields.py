@@ -496,7 +496,7 @@ class Field(object):
         if initial:
             self.initial_value = value
         if hasattr(self, 'widget') and update_widget:
-            self.widget.set_value(value)
+            self.widget.set_value(value, initial=initial)
         if obj and not initial:
             setattr(obj, self.field_name, value)
 
@@ -542,7 +542,7 @@ class Field(object):
             value = self.master.defaults.get(self.field_name)
         else:
             value = None
-            
+
         if not value:
             try:
                 value = self.default
@@ -687,7 +687,7 @@ class VarcharField(Field):
         value = self.clean_value(value)
 
         if hasattr(self, 'widget') and update_widget:
-            self.widget.set_value(value or '')
+            self.widget.set_value(value or '', initial=initial)
 
         if obj and not initial:
             setattr(obj, self.field_name, value)
@@ -1345,7 +1345,7 @@ class ImageField(VarcharField):
                 
             if update_widget:
                 path = value and os.path.join(self.base_dir, value) or None
-                self.widget.set_value(path)
+                self.widget.set_value(path, initial=initial)
 
             if hasattr(self.widget, 'copy_file') and self.widget.copy_file:
                 # Note if it has 'copy_-file' it also has new_filename that may be empty
@@ -1645,7 +1645,7 @@ class ForeignKeyField(Field):
         if initial:
             self.initial_value = value
         if hasattr(self, 'widget') and update_widget:
-            self.widget.set_value(value, shown=shown)
+            self.widget.set_value(value, shown=shown, initial=initial)
 
         if value and not initial:
             ## Rationale: See ex_03 (that uses class_=Movie
@@ -1776,7 +1776,7 @@ class CollectionField(Field):
         if value is None:
             value = []
         if hasattr(self, 'widget') and update_widget:
-            self.widget.set_value(value)
+            self.widget.set_value(value, initial=initial)
 
         if obj and not initial:
             setattr(obj, self.field_name, value)
