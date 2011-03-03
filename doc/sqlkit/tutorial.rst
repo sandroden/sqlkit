@@ -1,3 +1,5 @@
+.. _tutorial:
+
 ==================
  Sqledit Tutorial
 ==================
@@ -16,46 +18,76 @@ system (but that may be as simple as a double click if you use bundles).
 Installation
 ============
 
-Bundles
----------
+According to you operating system and setup you may find the very easy way
+for you. You may not event need to know which are the dependancies that are
+explained below for the curious ones.
 
-The only possibly difficult part of installation may be the installation of
-the dependencies. To bypass this I also provide binaries that bundle
-together any required software for Linux or Windows (you can download it
-from the `download page`_). Drivers for PostgreSQL, MySQL and sqlite are
-included. Note that there bundles are not updated very frequently.
+Installing under Debian/Ubuntu
+-------------------------------
 
-The hard way
--------------
+If you have a Debian-derived distro at least Debian etch of Ubuntu 9.10 you
+can install as follows:
 
-If you prefer to do it the hard way, or if you meet problems with the
-bundle, or you need more backend drivers, you need to do the following steps.
+  sudo wget http://apt.argolinux.org/sqlkit.list --output-document=/etc/apt/sources.list.d/sqlkit.list
+  sudo wget -O-  http://apt.argolinux.org/dists/lenny/public.key| sudo apt-key add -
+  sudo apt-get update
+ 
+and install it via::
+
+  apt-get install python-sqlkit
+
+I'll try to keep this updated as the official package
+
+Installing under Windows
+------------------------
+
+The easiest way is to use `Windows Package Manager`_ that handles
+dependencies (that can turn usefull for other software too). The
+installation process becomes as easy as:
+
+  * download and install `Windows Package Manager <download>`_
+  * start it, select sqlkit and install
+
+If you want to go the "hard" way you can install all peaces separately but
+still use the Pygtk all-in-one installer (thanks to Dieter Verfaillie):
+
+  * download and install Python_
+  * download and install Pygtk-all-in-one_
+  * download sqlkit_ unzip and install by doing::
+    
+      python setup.py install
+
+    Note that python may not be in the PATH so you may need to write it
+    explicetly.
+  
+Installig under MacOS
+---------------------
+
+You can install and run Sqlkit under MacOS also, installing PyGTK from
+MacPorts. 
 
 Dependencies
 ------------
 
 Sqlkit depends on several packages:
 
-:python: sqledit it's a Python script. It should work with python 2.4 and
+:Python: sqledit it's a Python script. It should work with python 2.4 and
          following. But if you used 2.4 be sure to add the driver for sqlite
          that was added to the main distribution only starting from 2.5.
 
-	 If you use python 2.6 you may have some warning but should just work.
-
 :PyGTK:  any Linux desktop distribution has it already installed, in case
-         it does not have it, it should be trivial to do. In Debian like
+         it does not have it, it should be trivial to do. In Debian-derived
          systems (e.g.: Ubuntu), you simply run::
 
  	     apt-get install python-gtk2
 
-         In a Windows system it's a much more difficult task. Please follow
-         the instructions on the `pygtk site`_
+         In a Windows system it used to be a difficult task but now it's
+         very simple. Please follow the instructions on the `pygtk site`_
 
 :sqlalchemy: this is the core of the sql staff. It's a layer that builds SQL
          statements and invokes the backend drivers. It takes care of
          inspecting the database and so on. You need at least release 0.5 but
-         0.5.4 would be much better. SqlKit has not yet been ported to
-         sqlalchemy 0.6.
+         0.5.4 would be much better.
 
 :python-dateutil: needed for computation on dates, used in filters (e.g: date
          >= 'm-1', means date >= starting of last month), see :ref:`date_filters`.
@@ -68,7 +100,7 @@ Sqlkit depends on several packages:
 :drivers: don't forget to add the driver for the backend of your choice, the
           only driver included is for ``sqlite``, that is the database of
           the demo and is included in the python distribution since python
-          2.5. The bundle has drivers for postgresql and mysql as well.
+          2.5. 
 	  
 
 If you have setuptools installed in your system, you can install whatever
@@ -87,23 +119,6 @@ and mysql::
    pip install psycopg2
    pip install MySQL-python
 
-
-Installing under Debian/Ubuntu
--------------------------------
-
-If you have a Debian like distro I suggest you install sqlalchemy from
-source or via ``easy_install`` or ``pip`` (preferred) and then install the
-Debian package::
-
-  sudo wget http://apt.argolinux.org/sqlkit.list --output-document=/etc/apt/sources.list.d/sqlkit.list
-  sudo wget -O-  http://apt.argolinux.org/dists/lenny/public.key| sudo apt-key add -
-  sudo apt-get update
- 
-and install it via::
-
-  apt-get install python-sqlkit
-
-This as well as the bundles is not as updated as python packages
 
 sqledit/sqlkit
 ==============
@@ -138,7 +153,8 @@ and 3 buttons:
 
 * you can write the url of a database of yours in the entry, e.g.::
 
-    postgres://localhost/dbname
+    postgres://localhost/dbname     # sqlalchemy 5
+    postgresql://localhost/dbname   # sqlalchemy 6+
     sqledit:///db.sqlite
     mysql://name:pass@host/dbname
   
@@ -412,3 +428,6 @@ sandro
 .. _page: http://sqlkit.argolinux.org/sqlkit/filters.html#module-sqlkit.misc.datetools
 .. _`web site`: http://sqlkit.argolinux.org
 .. _`happy to know`: mailto:sandro@e-den.it
+.. _`Windows Package Manager`: http://code.google.com/p/windows-package-manager
+.. _`download`: http://code.google.com/p/windows-package-manager/downloads/detail?name=Npackd-1.14.1.msi&can=2&q=
+
