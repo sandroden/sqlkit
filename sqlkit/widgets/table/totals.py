@@ -121,7 +121,13 @@ class Totals(gobject.GObject):
         self.treeview = treeview or table.treeview
         self.table.modelproxy.connect('model-sorted', lambda proxy, model: self.compute())
         self.table.modelproxy.connect('model-pre-sort', self.delete_total_rows)
+#        self.table.connect('context-changed', self.update)
+#        self.table.connect('records-displayed', self.update)
 
+    def update(self, table, obj=None):
+
+        self.compute()
+        
     def add_total(self,  *field_names, **kw):
         """
         Add a total object each time subtotal changes
@@ -198,7 +204,7 @@ class Totals(gobject.GObject):
         for field_name in self.totals.keys():
             self.totals[field_name]    = 0
             self.subtotals[field_name] = 0
-        
+
     def sum(self, obj, model, path, iter):
         """
         sum values and store result in :attr:`totals` and :attr:`subtotals`
@@ -301,11 +307,9 @@ class Totals(gobject.GObject):
         """
         if not self.totals.keys():
             return
+        self.initialize()
         if not self.table.records:
             return
-        
-        self.initialize()
-
         self.delete_total_rows()
         self.table.modelproxy.modelstore.foreach(self.foreach_ins_func)
 
