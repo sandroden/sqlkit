@@ -210,6 +210,16 @@ class ImageWidget(gtk.VBox):
         
         self._image.set_from_pixbuf(pixbuf)
         
+    def set_stock(self, stock_id, size=gtk.ICON_SIZE_DIALOG):
+        """
+        Set the image via the stock-id
+
+        :param stock-id: a stock-id
+        :param size: the desired image (default: ICON_SIZE_DIALOG)
+        """
+        
+        self._image.set_from_stock(stock_id, size)
+        
     def do_set_property(self, property, value):
 
         if property.name == 'width':
