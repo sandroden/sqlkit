@@ -153,19 +153,20 @@ class Totals(gobject.GObject):
     def add_break(self, field_name, func=None):
         """
         If no ``func`` is provided, a break_func will be setup to insert a subtotal
-        each time field_name changes.
+        each time field_value changes.
 
         Othewise ``func`` will be set as break_function. Break function must have
         this signature::
 
-           def break_func(obj, field_name)
+           def break_func(obj, field_name, path)
 
         see ``func_date_*`` is this module for examples
            
         """
         
         if not func:
-            def subtotal_diff(obj):
+            def subtotal_diff(obj, path):
+                "default subtotal when func not defined"
                 try:
                     return getattr(obj, field_name)
                 except:
@@ -176,7 +177,8 @@ class Totals(gobject.GObject):
                 self.break_func = subtotal_diff
             self._break_field_name = field_name
         else:
-            def subtotal_diff(obj):
+            def subtotal_diff(obj, path):
+                "default subtotal - func IS defined"
                 return func(obj, field_name)
             self.break_func = subtotal_diff
         self.compute()
@@ -188,13 +190,13 @@ class Totals(gobject.GObject):
         func = globals()['func_date_same_%s' % period]
         self.add_break(field_name, func)
 
-    def is_different(self, obj):
+    def is_different(self, obj, path):
 
         if self.prev is None:
-            self.prev = self.break_func(obj)
+            self.prev = self.break_func(obj, path)
             return False
         
-        if self.prev != self.break_func(obj):
+        if self.prev != self.break_func(obj, path):
             return True
         
         return False
@@ -337,9 +339,9 @@ class Totals(gobject.GObject):
         
         """
         obj = self.table.modelproxy.modelstore.get_value(iter, 0)
-        if self.break_func and self.is_different(obj):
+        if self.break_func and self.is_different(obj, path):
             self.insert_subtotal(iter)
-            self.prev = self.break_func(obj)
+            self.prev = self.break_func(obj, path)
             self.reset_subtotals()
         if isinstance(obj, self.table.mapper.class_):
             self.sum(obj, model, path, iter)
