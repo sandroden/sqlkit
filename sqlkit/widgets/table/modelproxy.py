@@ -34,8 +34,9 @@ handled by the model.
 Sorting
 =======
 
-A modelproxy can be sorted via it's order_by() method. This sorting is done
-locally as opposed to the sorting done setting order_by attribute on the table
+A modelproxy can be sorted via it's :attr:`order_by <ModelProxy.order_by`
+method. This sorting is done locally as opposed to the sorting done setting
+:attr:`SqlWidget.order_by` attribute on the table
 
 Signals
 =======
@@ -219,7 +220,6 @@ class ModelProxy(gobject.GObject):
         self.emit('model-changed', self.modelstore)
         
     def fill_listmodel(self):
-
         for record in self.master.records:
             if self.check_visibility(record):
                 self.modelstore.append([record])
@@ -232,7 +232,7 @@ class ModelProxy(gobject.GObject):
         parents = {}
         for record in self.master.records:
             if not self.check_visibility(record):
-                return
+                continue
             field_value = getattr(record, self.tree_field_name)
             parent = parents.get(field_value, None)
             if not parent:
