@@ -498,6 +498,7 @@ class show_widgets(object):
 
 
     def edited_cb_packing(self, cell, path, new_text, user_data):
+
         parent, widget, model, column = user_data
         prop   = model[path][0]
         gtype  = model[path][3]
@@ -515,11 +516,14 @@ class show_widgets(object):
             'guint'     : int,
             'gchararray' : str,
             'gfloat'   : float,
+            'gboolean'   : bool,
             }
             
         # No real edit was made
         if new_text == model[path][column]:
             return
+        if new_text == "False":
+            new_text = False
             
         try:
             value = py_type[gtype](new_text)
