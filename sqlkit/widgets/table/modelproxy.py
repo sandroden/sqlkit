@@ -152,13 +152,16 @@ class ModelProxy(gobject.GObject):
         if isinstance(self.modelstore, gtk.ListStore):
             self.modelstore = gtk.TreeStore(*[self.modelstore.get_column_type(i)
                                              for i in range(self.modelstore.get_n_columns())])
-            self.real_model = self.modelstore
             self._order_id = self.modelstore.connect_after('row-deleted', self.persist_rows_order)
 
         self._tree_field_name = tree_field_name
+        self.model_setup()
+
+    def model_setup(self):
+        
+        self.real_model = self.modelstore
         self.treeview.set_reorderable(True)
         self.treeview.set_model(self.modelstore)
-#        self.master.record_display()
         self.edited_row_model_path = None
         
     def set_listmodel(self, tree_order=None):
@@ -175,13 +178,11 @@ class ModelProxy(gobject.GObject):
             self.modelstore = gtk.ListStore(*[self.modelstore.get_column_type(i)
                                              for i in range(self.modelstore.get_n_columns())])
             self.real_model = self.modelstore
-            self._order_id = self.modelstore.connect('row-inserted', self.rows_reordered_cb)
-
+            #self._order_id = self.modelstore.connect('row-inserted', self.rows_reordered_cb)
+                                                           
         self._tree_field_name = None
         self.treeview.set_reorderable(False)
-        self.treeview.set_model(self.modelstore)
-#        self.master.record_display()
-        self.edited_row_model_path = None
+        self.model_setup()
         
     def block_emit_reorder(func, *args, **kw):
         def new_func(self, *args, **kw):
