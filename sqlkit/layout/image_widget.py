@@ -78,7 +78,7 @@ class ImageWidget(gtk.VBox):
     __gtype_name__ = 'ImageWidget'
 
     __gproperties__ = {
-        'image' : (gobject.TYPE_PYOBJECT,                      # type
+        'image-path' : (gobject.TYPE_PYOBJECT,                      # type
                     'Image',                                   # nick name
                     'The Image currently rendered',            # description
                     gobject.PARAM_READWRITE),                  # flags
@@ -148,13 +148,13 @@ class ImageWidget(gtk.VBox):
             if not ext.lower() in IMAGE_FORMATS:
                 self._image.set_property('stock', gtk.STOCK_FILE)                
                 self.set_data('scale-factor', 1)
-                self.set_data('image', image_path)
+                self.set_data('image-path', image_path)
                 self.emit('image-displayed', image_path, None, None)
                 return
             else:
                 if not os.path.exists(image_path):
                     self._image.set_property('stock', gtk.STOCK_MISSING_IMAGE)
-                    self.set_data('image', image_path)
+                    self.set_data('image-path', image_path)
                     return
                 pixbuf_full = gtk.gdk.pixbuf_new_from_file(image_path)
 
@@ -164,7 +164,7 @@ class ImageWidget(gtk.VBox):
                 else:
                     self.set_data('scale-factor', 1)
 
-        self.set_data('image', image_path)
+        self.set_data('image-path', image_path)
         self._image.set_from_pixbuf(pixbuf)
         self.emit('image-displayed', image_path, pixbuf_full, pixbuf)
 
@@ -204,9 +204,9 @@ class ImageWidget(gtk.VBox):
             self._image.set_size_request(self.props.width, value)
         elif property.name == 'scale':
             self.set_data('scale', value)
-        elif property.name == 'image':
+        elif property.name == 'image-path':
             self.set_image(value)
-            self.set_data('image', value)
+            self.set_data('image-path', value)
         else:
             raise AttributeError, 'unknown property %s' % property.name
             
@@ -218,8 +218,8 @@ class ImageWidget(gtk.VBox):
             return self.get_data('height') or 250
         elif property.name == 'scale':
             return self.get_data('scale')
-        elif property.name == 'image':
-            return self.get_data('image')
+        elif property.name == 'image-path':
+            return self.get_data('image-path')
         elif property.name == 'scale-factor':
             return self.get_data('scale-factor')
         else:
@@ -263,7 +263,7 @@ class ImageWidget(gtk.VBox):
             image2.set_pixbuf(pixbuf_full)
 
         self.connect('image-displayed', update_image)
-        image2.set_image(self.props.image)
+        image2.set_image(self.props.image_path)
 
     def popup_menu(self, event):
 
@@ -280,20 +280,20 @@ class ImageWidget(gtk.VBox):
         self.emit('image-selected', filename, dialog.new_filename)
 
     def delete_image(self, action):
-        self.emit('image-deleted', self.props.image)
+        self.emit('image-deleted', self.props.image_path)
         self.set_image(None)
 
     def zoom_in(self, action):
         w, h = self.props.width, self.props.height
         self.props.width = int(w * 1.2)
         self.props.height = int(h * 1.2)
-        self.set_image(self.props.image)
+        self.set_image(self.props.image_path)
 
     def zoom_out(self, action):
         w, h = self.props.width, self.props.height
         self.props.width = int(w / 1.2)
         self.props.height = int(h / 1.2)
-        self.set_image(self.props.image)
+        self.set_image(self.props.image_path)
 
 
             
