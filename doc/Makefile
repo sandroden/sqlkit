@@ -38,6 +38,7 @@ html:
 	@perl -i -p -e 's/WINVER/$(WINVER)/g' .build/html/misc/download.html
 	@perl -i -p -e 's/LNXVER/$(LNXVER)/g' .build/html/misc/download.html
 	@perl -i -p -e 's/VER/$(VER)/g' .build/html/misc/download.html
+	@perl -i -p -e 's/VER/$(VER)/g' .build/html/sqlkit/tutorial.html
 
 pickle:
 	mkdir -p .build/pickle .build/doctrees

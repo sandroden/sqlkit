@@ -38,22 +38,25 @@ and install it via::
 
 I'll try to keep this updated as the official package
 
+.. _windows-install:
+
 Installing under Windows
 ------------------------
 
-The easiest way is to use `Windows Package Manager`_ that handles
+The easiest way is to use `Windows Package Manager`_  that handles 
 dependencies (that can turn usefull for other software too). The
 installation process becomes as easy as:
 
-  * download and install `Windows Package Manager <download>`_
-  * start it, select sqlkit and install
+  * download and install `Windows Package Manager`_
+  * start it, select sqlkit and install (you may want to select/inistall
+    also the database drivers for PostgreSql and MySQL)
 
 If you want to go the "hard" way you can install all peaces separately but
 still use the Pygtk all-in-one installer (thanks to Dieter Verfaillie):
 
   * download and install Python_
   * download and install Pygtk-all-in-one_
-  * download sqlkit_ unzip and install by doing::
+  * download sqlkit-VER.zip_ unzip and install by doing::
     
       python setup.py install
 
@@ -429,5 +432,7 @@ sandro
 .. _`web site`: http://sqlkit.argolinux.org
 .. _`happy to know`: mailto:sandro@e-den.it
 .. _`Windows Package Manager`: http://code.google.com/p/windows-package-manager
-.. _`download`: http://code.google.com/p/windows-package-manager/downloads/detail?name=Npackd-1.14.1.msi&can=2&q=
-
+.. _download: http://code.google.com/p/windows-package-manager/downloads/detail?name=Npackd-1.14.1.msi&can=2&q=
+.. _Python: http://www.python.org/download/
+.. _pygtk-all-in-one: http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.22/ 
+.. _sqlkit-VER.zip: http://sqlkit.argolinux.org/download/sqlkit-VER.zip
