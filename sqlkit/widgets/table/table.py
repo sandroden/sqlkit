@@ -1348,7 +1348,8 @@ class SqlTable(sqlwidget.SqlWidget):
         self.initialize_record_editing(self._clicked_path)
         orig_filename = self.gui_fields[field_name].get_value(complete_path=True)
         dialog = dialogs.SaveDialog(default_filename=os.path.basename(orig_filename))
-        shutil.copyfile(orig_filename, dialog.filename)
+        if dialog.filename:
+            shutil.copyfile(orig_filename, dialog.filename)
 
 ###### Misc
     def get_selected_row(self):

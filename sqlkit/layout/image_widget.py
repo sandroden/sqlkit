@@ -54,17 +54,19 @@ import os
 
 import gobject
 import gtk
+import weakref
 
 from sqlkit import _
-from sqlkit.widgets.common import dialogs
 
 IMAGE_MENU = '''
 <popup name="ImagePopup">
     <menuitem action="UploadImage" />
     <menuitem action="DeleteImage" />
     <menuitem action="DetachImage" />
+    <menuitem action="SaveImage" />
     <menuitem action="Zoom-in" />
     <menuitem action="Zoom-out" />
+    <menuitem action="ShowName" />    
 </popup>
 '''
 
@@ -106,6 +108,17 @@ class ImageWidget(gtk.VBox):
                     'The scale factor for the pixbuf ',             # description
                     0, 1000, 1,
                     gobject.PARAM_READABLE),                  # flags
+        'show-name' : (gobject.TYPE_BOOLEAN,                           # type
+                    'show-name',                                   # nick name
+                    'The scale factor for the pixbuf ',             # description
+                    False,
+                    gobject.PARAM_READWRITE),                  # flags
+
+        'strip-dir' : (gobject.TYPE_STRING,                           # type
+                    'strip-dir',                                   # nick name
+                    'A dir name to strip from image name when writing in status bar ', 
+                    '',
+                    gobject.PARAM_READWRITE),                  # flags
 
     }
 
@@ -124,6 +137,7 @@ class ImageWidget(gtk.VBox):
     def __init__(self):
         gtk.VBox.__init__(self)
         event = gtk.EventBox()
+        self.status_bar = gtk.Statusbar()
         self._image = gtk.Image()
         self._image.set_tooltip_text(_("Right click on the image area\n to upload an image"))
         self.add(event)
@@ -133,6 +147,7 @@ class ImageWidget(gtk.VBox):
         event.connect('button-press-event', self.button_press_event_cb, self._image)
         self.prepare_actions()
         self.show_all()
+        self.add(self.status_bar)
 
     def set_image(self, image_path):
         """
@@ -140,6 +155,7 @@ class ImageWidget(gtk.VBox):
 
         :param image_path: the path of the image
         """
+        self.sb(image_path)
         if not image_path:
             pixbuf = None
             pixbuf_full = None
@@ -207,6 +223,10 @@ class ImageWidget(gtk.VBox):
         elif property.name == 'image-path':
             self.set_image(value)
             self.set_data('image-path', value)
+        elif property.name == 'show-name':
+            self.status_bar.pros.visibile = value
+        elif property.name == 'strip-dir':
+            self.status_bar.set_data('strip-dir', value)
         else:
             raise AttributeError, 'unknown property %s' % property.name
             
@@ -222,6 +242,10 @@ class ImageWidget(gtk.VBox):
             return self.get_data('image-path')
         elif property.name == 'scale-factor':
             return self.get_data('scale-factor')
+        elif property.name == 'show-name':
+            return self.status_bar.props.visible
+        elif property.name == 'strip-dir':
+            return self.status_bar.get_data('strip-dir') or ''
         else:
             raise AttributeError, 'unknown property %s' % property.name
 
@@ -236,20 +260,22 @@ class ImageWidget(gtk.VBox):
 
         self.actiongroup = gtk.ActionGroup('Image')
         self.actiongroup.add_actions([
-            ('UploadImage', None, _('Upload Image'), None, _('Upload or modify an image'), self.upload_image),
-            ('DeleteImage', None, _('Delete Image'), None, _('Delete the image'), self.delete_image),
+            ('UploadImage', None, _('Upload image'), None, _('Upload or modify an image'), self.upload_image),
+            ('DeleteImage', None, _('Delete image'), None, _('Delete the image'), self.delete_image),
             ('DetachImage', None, _('Image viewer'), None, _('Open separate image viewer'), self.show_image),
+            ('SaveImage', None, _('Save image as'), None, _('Save image as'), self.save_image),
             ('Zoom-in', gtk.STOCK_ZOOM_IN, None, None, None, self.zoom_in),
             ('Zoom-out', gtk.STOCK_ZOOM_OUT, None, None, None, self.zoom_out),
+            ('ShowName', None, _("Show/Hide image name"), None, None, self.toggle_status_bar),
             ],)
         self.ui_manager.insert_action_group(self.actiongroup, 10)
         self.ui_manager.add_ui_from_string(IMAGE_MENU)
 
     def show_image(self, action=None):
         """
-        Open anothre window that will show the same image with possibly at
-        a different zooming. Setup callback to keep the new window updated
-        by the first one.
+        Open another window that will show the same image with at a
+        different zooming. Setup callback to keep the new window updated by
+        the first one.
         """
 
         w = gtk.Window()
@@ -258,11 +284,15 @@ class ImageWidget(gtk.VBox):
         image2.props.width = 700
         image2.props.height = 700
         w.show_all()
+        #self.imgref = weakref.ref(image2)
+        #self.winref= weakref.ref(w)
 
         def update_image(widget, image_path, pixbuf_full, pixbuf):
             image2.set_pixbuf(pixbuf_full)
+            image2.sb(image_path)
 
         self.connect('image-displayed', update_image)
+        image2.props.strip_dir = self.props.strip_dir
         image2.set_image(self.props.image_path)
 
     def popup_menu(self, event):
@@ -272,12 +302,24 @@ class ImageWidget(gtk.VBox):
         
     def upload_image(self, action):
 
+        from sqlkit.widgets.common import dialogs
+
         dialog = dialogs.OpenDialog(title=_('upload image'), default_filename='')
         filename = dialog.filename
         if not filename:
             return
-        self.set_image(filename)
-        self.emit('image-selected', filename, dialog.new_filename)
+        self.set_image(unicode(filename))
+        self.emit('image-selected', filename, unicode(dialog.new_filename or u''))
+
+    def save_image(self, action):
+
+        import shutil
+        from sqlkit.widgets.common import dialogs
+        
+        orig_filename = self.props.image_path
+        dialog = dialogs.SaveDialog(default_filename=os.path.basename(orig_filename))
+        if dialog.filename:
+            shutil.copyfile(orig_filename, dialog.filename)
 
     def delete_image(self, action):
         self.emit('image-deleted', self.props.image_path)
@@ -295,6 +337,21 @@ class ImageWidget(gtk.VBox):
         self.props.height = int(h / 1.2)
         self.set_image(self.props.image_path)
 
+    def toggle_status_bar(self, action):
+        
+        self.status_bar.props.visible = not self.status_bar.props.visible
+        
+    def sb(self,txt):
+        """
+        Push info on Status Bar
+        """
+        if not isinstance(self.status_bar.get_toplevel(), gtk.Window):
+            return
+        if not txt:
+            txt = ''
+        txt = re.sub("^%s" % self.props.strip_dir, '', txt)
+        idx = self.status_bar.get_context_id(txt)
+        msg_id = self.status_bar.push(idx, txt)
 
             
 # finally register our new Type
@@ -310,6 +367,7 @@ if __name__ == '__main__':
     w.show_all()
 #    i.set_image('cal15.png')
     i.set_image('/tmp/la-ragazza-sul-ponte2.jpg')
+
     def dbg(widget, filename):
         print filename
     i.connect('image-selected', dbg) 
