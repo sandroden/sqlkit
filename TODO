@@ -1,3 +1,36 @@
+Ideas list
+==========
+
+* Improve some widgets:
+
+  + multiline editing/viewing under SqlTable  (important)
+  + date/datetime/interval (minor)
+
+* New layout formalism starting from studying the ReST very clean
+  directives. Possibly adding possibility to use glade along with the actual
+  (and preferred) layout system.
+
+* Refactoring with the aim of simplifying. Need to add new tests where
+  possible. Some parts are really old and need cleanup (5-10%), others have
+  grown too big (the two main MegaWidgets).
+
+* Analizing other similar projects to see what they can teach us. Projects
+  to keep into consideration: dabo (wx based, site at http://dabodev.com/),
+  camelot (qt based, site at http://www.python-camelot.com/)
+
+* Now interactive filters only allow AND connectors. It's easy to allow OR
+  instead but I'd like to understand how we can add more flexible intermixing
+  of features. It may be worthwhile to see how Filemaker cope with that or
+  Access. 
+
+* Add a way to store queryies created dinamically by the user
+
+* Add a plugin to work with Quickly
+
+* Study wich are the bottleneck that slow it down with remote db server on a
+  slow line.
+
+
 SqlTable
 ===========
  
@@ -5,20 +38,9 @@ SqlTable
   scorrimento (pietro 3). Molti esempi in rete, uno fra i tanti sunbird, sia
   nell'elenco eventi che nell'elenco task.
 
-* pensare a come permettere di riordinare le righe (ha implicazioni con
-  l'ordinamento del modello sottostante. Ha senso solo se c'è una colonna che
-  memorizza l'ordine nel db)
-
 * pensare come editare i campi a più righe o con righe molto lunghe. Occorre
   creare un popup con il testo e poi sincronizzarlo. Hai idee migliori?
   (Pietro 6)
-
-PyGtkMVC
-==========
-
-Andrebbe aggiunto in alcune parti. In particolare direi nel SqlMask e nel
-filter. Non ho ancora le idee chiare.
-
 
 Vorrei anche aggiungerlo come elemento opzionale in un elemento layout, in
 modo da poter avere on oggetto (dizionario?) che mi rappresenta lo stato del
