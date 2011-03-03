@@ -21,6 +21,7 @@ import gtk
 import gobject
 
 from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.orm.exc import ObjectDeletedError
 
 import sqlkit
 from sqlkit import debug as dbg, exc, _, layout, fields
@@ -259,6 +260,9 @@ class SqlMask(sqlwidget.SqlWidget):
             ])
         self.actiongroup_select.add_actions([
             ('Undo', gtk.STOCK_UNDO, None, None, _('Discard changes'), self.record_undo_cb),
+            # TIP Modify menu entry in the mask to reread a single record from database
+            ('RefreshRecord', gtk.STOCK_REFRESH, _('Refresh this record'), None,
+             _('Reread this record from db'), self.record_refresh_cb),
             ])
         self.actiongroup_delete.add_actions([
             ('Delete', gtk.STOCK_DELETE, None, '', _('Delete this record'), self.record_delete),
@@ -386,6 +390,19 @@ class SqlMask(sqlwidget.SqlWidget):
         self.discard_changes()
         self.record_display(check=False)
         
+    def record_refresh_cb(self, menuItem):
+        """
+        undo possible modification to the mask
+        """
+        self.discard_changes()
+        self.session.expire(self.current)
+        try:
+            self.record_display(check=False)
+        except ObjectDeletedError:
+            # TIP message issued when a refresh is done on a deleted record
+            self.dialog(text=_('The record is no longer present in the database'))
+            self.record_display_next()
+
     def record_mask2obj(self, obj=None, force=False):
         """
         collect data from the mask and set into the object if record_has_changed())
@@ -556,7 +573,12 @@ class SqlMask(sqlwidget.SqlWidget):
             self.emit('record-deleted', obj)
         except exc.HandledRollback, e:
             return
+        self.record_display_next()
             
+    def record_display_next(self):
+        """Display the next (or previous) record after deleting a record
+        """
+
         self.records.pop(self.current_idx)
 
         self.clear_mask(check=False)

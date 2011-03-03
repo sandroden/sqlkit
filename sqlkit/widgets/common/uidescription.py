@@ -94,6 +94,7 @@ MASK_UI = '''
      </menu>
      <menu action="Modify">
         <menuitem action="Undo" position="top" />
+        <menuitem action="RefreshRecord" position="top" />
      </menu>
      
   </menubar>
