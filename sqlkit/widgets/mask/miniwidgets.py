@@ -20,7 +20,7 @@ Fields Representation
 +--------------------+--------------------------------------------+--------------------+
 | field or property  | Mask                                       |Table               |
 +--------------------+--------------------------------------------+--------------------+
-|varchar             |:class:`VarcharWidget`                      |                    |
+||varchar|           |:class:`VarcharWidget`                      |                    |
 |                    |                                            |                    |
 +--------------------+--------------------------------------------+--------------------+
 |text                |:class:`TextWidget`                         |                    |
@@ -88,6 +88,7 @@ You can change default color for not nullable object globally::
 
 You can change the foreground of unsensitive widgets setting NOT_EDITABLE_COLOR
 
+.. |varchar| replace:: :class:`VarcharField <sqlkit.fields.VarcharField>` 
 """
 
 import re

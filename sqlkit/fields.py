@@ -1177,11 +1177,12 @@ class ImageField(VarcharField):
     Imge field suitable for VarcharField that hold an image path and should
     be rendered as image (icon in tables). It's never used when autoloading
     the database schema (no info on the database tells that a string represent an
-    image path), it can be forced setting info values on the Column:
+    image path), it can be forced setting info values on the Column::
 
-    :render: image
-    :base_dir: string
-    :thumbnail_size: tuple
+      render:         image
+      base_dir:       a directory
+      thumbnail_size: tuple (width, height)
+      default_size:   tuple (width height)
     
     as in::
 
@@ -1220,9 +1221,10 @@ class ImageField(VarcharField):
             base_dir = os.path.abspath(os.path.join(os.getcwd(), base_dir))
         self.base_dir = self.clean_path(base_dir)
         if not os.path.exists(self.base_dir):
-            os.mkdir(self.base_dir)
+            os.makedirs(self.base_dir)
 
         self.thumbnail_size = self.column.info.get('thumbnail_size', self.thumbnail_size)
+        self.default_size = self.column.info.get('default_size', self.default_size)
         
     def clean_path(self, path):
         """
