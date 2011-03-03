@@ -1,4 +1,4 @@
-"""mapper/nested select
+"""mapper & fields/nested select
 
 this is an example of a mapper with a nested select.
 

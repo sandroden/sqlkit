@@ -1,4 +1,4 @@
-"""mapper/filter: adding column
+"""mapper & fields/filter: adding column
 
 The output is represented ina tab of the Filter Panel and
 can be customized

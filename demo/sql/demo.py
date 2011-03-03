@@ -110,6 +110,7 @@ if not os.path.exists('model/db.sqlite'):
     init_db()
     
 d = DemoSql(xml=False, debug=True)
+d.tv.collapse_all()
 
 if args:
     d.iconify()

@@ -1,4 +1,4 @@
-"""mapper/filter: grouping
+"""mapper & fields/filter: grouping
 
 The output view of a filter panel can be grouped 
 

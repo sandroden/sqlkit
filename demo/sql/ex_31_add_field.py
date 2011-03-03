@@ -1,4 +1,4 @@
-"""mapper/adding fields
+"""mapper & fields/adding fields
 
 You can add fields to the table by:
 

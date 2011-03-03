@@ -1,4 +1,4 @@
-"""mapper/adding count 
+"""mapper & fields/adding count 
 
 This is an alternative way to add a movie count field that adds a column
 When going this way you cannot filter on the "Movie Count" column

@@ -1,4 +1,4 @@
-"""mapper/adding field in mask
+"""mapper & fields/adding field in mask
 
 A field can be added to a mask as well
 

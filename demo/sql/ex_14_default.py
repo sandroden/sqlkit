@@ -21,4 +21,4 @@ t = SqlTable('movie',  dbproxy=db,     )
 
 
 ## unregister to prevet conflicts in following examples
-del defaults.tables['movie']
+#del defaults.tables['movie']

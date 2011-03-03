@@ -1,4 +1,4 @@
-"""mapper/filter: customize default 
+"""mapper & fields/filter: customize default 
 
 A field can be added to a mask as well
 

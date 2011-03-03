@@ -3,13 +3,15 @@
 these are the base import. All other examples skip the imports that are
 granted by the way execfile is done in 'demo.py'.
 
-The proxy is not needed, is just a way to pass several in a single
-parameter metadata and session
+The proxy is not strictly needed, it's just a way to pass metadata and session 
+in a single argument
 
 Table
 -----
 base editing mode: table view
-passing the tablename triggers the reflection of the table from the database
+When the first argument is a string, it triggets the reflection of the table
+from the database. in this case the image is just rendered as string. Following
+examples show how to change this.
 
 NOT NULL fields are rendered with columns with italic font
 
