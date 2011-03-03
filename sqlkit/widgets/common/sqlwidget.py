@@ -762,7 +762,7 @@ class SqlWidget(gobject.GObject):
         Window = self.widgets['Window']
         w, h = Window.get_size()
 
-        if width <- 0:
+        if width <= 0:
             width = w
 
         if height  <= 0:
