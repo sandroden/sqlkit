@@ -188,7 +188,8 @@ class FilterPanel(object):
         callback on record deletion
         """
         path = self.get_path_for_obj(obj)
-        self.model.remove( self.model.get_iter(path) )
+        if path is not None:
+            self.model.remove(self.model.get_iter(path) )
         
     def record_added_cb(self, mask):
         """
@@ -498,7 +499,7 @@ class FilterPanel(object):
         return path for object
         :param obj: the object for which we neeed the path
         """
-        path_list = [0]
+        path_list = [None]
         def compare(model, path, iter):
             row_obj = model.get_value(iter, 0)
             if row_obj == obj:
