@@ -68,6 +68,8 @@ IMAGE_MENU = '''
 </popup>
 '''
 
+IMAGE_FORMATS = ["." + x['name'] for x in gtk.gdk.pixbuf_get_formats()] + ['.jpg']
+
 class ImageWidget(gtk.VBox):
     """
     Image Widget suitable for basic image viewing. Inherits from VBox
@@ -142,16 +144,25 @@ class ImageWidget(gtk.VBox):
             pixbuf = None
             pixbuf_full = None
         else:
-            if not os.path.exists(image_path):
-                self._image.set_property('stock', gtk.STOCK_MISSING_IMAGE)
-                self.set_data('image', image_path)
-                return
-            pixbuf_full = gtk.gdk.pixbuf_new_from_file(image_path)
-            if self.props.scale in ('AUTOREDUCTION', 'AUTOSCALE'):
-                pixbuf, scale = self.scale_pixbuf(pixbuf_full, w=self.props.width,
-                                                  h=self.props.height)
-            else:
+            ext = os.path.splitext(image_path)[1]
+            if not ext.lower() in IMAGE_FORMATS:
+                self._image.set_property('stock', gtk.STOCK_FILE)                
                 self.set_data('scale-factor', 1)
+                self.set_data('image', image_path)
+                self.emit('image-displayed', image_path, None, None)
+                return
+            else:
+                if not os.path.exists(image_path):
+                    self._image.set_property('stock', gtk.STOCK_MISSING_IMAGE)
+                    self.set_data('image', image_path)
+                    return
+                pixbuf_full = gtk.gdk.pixbuf_new_from_file(image_path)
+
+                if self.props.scale in ('AUTOREDUCTION', 'AUTOSCALE'):
+                    pixbuf, scale = self.scale_pixbuf(pixbuf_full, w=self.props.width,
+                                                      h=self.props.height)
+                else:
+                    self.set_data('scale-factor', 1)
 
         self.set_data('image', image_path)
         self._image.set_from_pixbuf(pixbuf)
