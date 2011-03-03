@@ -10,6 +10,7 @@ opens the demo console or directly an example defined by its number:
 usage: %prog [opts] ex_number
    -N, --no-gtk-debug: gtk debug
    -g, --gtk: gtk debug in window
+   -i, --interactive: set interactive so that ipython can interact
    -t, --test: run all snippets and run t.reload() for each of them
    -o, --offset=n: skip the first 'n' snippets
    -n, --number=l: stop after 'n' snippets
@@ -131,5 +132,21 @@ if opts.test:
                 sys.exit(1)
         
 if __name__ == '__main__':
-    gtk.main()
+    if opts.interactive:
+        try:
+            gtk.set_interactive(True)
+        except AttributeError:
+            print "This version of gtk does'n not have 'set_interactive', sorry."
+            sys.exit(1)
+        try:
+            import IPython
+            from IPython.Shell import IPShellEmbed
+            ipshell = IPShellEmbed([])
+            print "The last opened table is hold in variable 'd.t' (i.e.: demo.table)"
+            ipshell()
+        except ImportError, e:
+            print "Interactive demo needs ipython. Quitting."
+    else:
+        print "Try option -i to try sqlkit interactively"
+        gtk.main()
 
