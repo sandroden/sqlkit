@@ -139,11 +139,11 @@ Attributes
 
 .. attribute:: current
 
-   the object represented by a mask or a possible selected record in a
-   table or None. In the transient in which you are saving a record in a
-   table (when selection changes) ``self.current`` will not already point to
-   the wright obj. Use get_current_obj() instead. This may change as I do
-   found it counter-intuitive...
+   the object represented by a mask or a possible selected record in a table
+   or None. In :class:`SqlTable <sqlkit.widgets.SqlTable>` in the transient
+   in which you are saving a record in a table (when selection changes)
+   ``self.current`` will point to the obj that is to be saved (while the
+   selected object may already be another one).
 
 .. attribute:: field_list
 
