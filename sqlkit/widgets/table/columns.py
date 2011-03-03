@@ -61,7 +61,7 @@ class GenericColumn(object):
     MAX_DEFAULT_WIDTH = 30
     PROPERTY = 'text'
     editable = False
-    #__metaclass__ = dbg.LogTheMethods
+    __metaclass__ = None if not dbg.debug else dbg.LogTheMethods
 
     
     def __init__(self, master, field_name, title, field=None):

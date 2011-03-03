@@ -91,7 +91,7 @@ class SqlWidget(gobject.GObject):
     gui_fields = None
     values = None    # real value for foreign key
                      # (when lookup is displeyed instead)
-#    __metaclass__ = dbg.LogTheMethods
+    __metaclass__ = None if not dbg.debug else dbg.LogTheMethods
     records = None
     last_new_obj = None
 
@@ -283,6 +283,7 @@ class SqlWidget(gobject.GObject):
         """
 
         gobject.GObject.__init__(self)
+        self._ids = {}  # handler for connect to gobjects
         if what:
             if isinstance(what, (basestring, sqlalchemy.Table)):
                 table = what
@@ -347,7 +348,8 @@ class SqlWidget(gobject.GObject):
         self.relationship_path = self._get_relationship_path(relationship_path)
         self.relationship_leader = relationship_leader
         if relationship_leader:
-            relationship_leader.connect('delete-event', self.delete_event_cb)
+            hid = relationship_leader.connect('delete-event', self.delete_event_cb)
+            self._ids['relationship_leader'] = (relationship_leader, hid)
         self.records = []
         self.about_dialog = about_dialog or self.create_about_dialog()
         try:
@@ -377,7 +379,6 @@ class SqlWidget(gobject.GObject):
         for extension in session.extensions:
             if isinstance(extension, SKSessionExtension): 
                 extension.sk_widgets = getattr(extension, 'sk_widgets', []) + [self]
-        self.connect('delete-event', self._clean_session_extensions)
         return session
 
     def _clean_session_extensions(self, *args):
@@ -1395,7 +1396,6 @@ class SqlWidget(gobject.GObject):
         """
         Destroy the widget
         """
-        
         if 'Window' in self.widgets:
             ## This sqlwidget owns a toplevel Window. Destroying that one triggers
             ## delete_event_cb, that emits 'delete'event'
@@ -1403,11 +1403,16 @@ class SqlWidget(gobject.GObject):
             self.widgets['Window'].emit('delete-event', event)
         else:
             self.emit('delete-event')
-
+        
     def delete_event_cb(self, *args):
         """
         Quit operations: check if need to save first
         """
+        self._clean_session_extensions()
+        for obj, hid in self._ids.values():
+            obj.disconnect(hid)
+        del self._ids
+
         try:
             self.record_save()
         except (exc.DialogValidationError, exc.CancelledAction), e:
@@ -1462,6 +1467,8 @@ class SqlWidget(gobject.GObject):
             'mapper',
             'mapper_info',
             'metadata',
+            'modelproxy',
+            'last_new_obj',
             '_mode',
             'naked',
             'nick',
@@ -1483,11 +1490,13 @@ class SqlWidget(gobject.GObject):
             'sql',
 #             'tables',
             '_title',
+            '_filter_panel',
             'ui_browse_id',
             'ui_debug_id',
             'ui_manager',
             'ui_print_id',
             'widgets',
+            'views',
             'xml',
             ]
         for at in attrs:
@@ -2375,11 +2384,3 @@ class ValidationWarningDialog(ValidationErrorDialog):
             raise exc.DialogValidationError
         else:
             pass
-
-
-
-
-
-
-
-

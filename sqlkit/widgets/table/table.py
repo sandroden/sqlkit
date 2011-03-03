@@ -92,7 +92,7 @@ class SqlTable(sqlwidget.SqlWidget):
     to by ``edited_path``. 
     """
 
-    __metaclass__ = dbg.LogTheMethods
+#    __metaclass__ = dbg.LogTheMethods
     currently_edited_field_name = None
     mapper = None
     cell_entry = None

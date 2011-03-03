@@ -37,7 +37,7 @@ class SqlMask(sqlwidget.SqlWidget):
     
     """
 
-    __metaclass__ = dbg.LogTheMethods
+    __metaclass__ = None if not dbg.debug else dbg.LogTheMethods
     labels   = None  # correspondance Label <-> EventBox
     row_count = 0    # number of records in the mapper
     current_idx = 0
@@ -324,7 +324,6 @@ class SqlMask(sqlwidget.SqlWidget):
             raise exc.FieldNotInLayout("field_name: %s" % (field_name))
 
         self.gui_fields[field_name].set_default()
-        
         
     def record_new(self, widget=None, clear=True):
         """

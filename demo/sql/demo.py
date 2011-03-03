@@ -23,6 +23,7 @@ from __future__ import with_statement
 import sys
 import os
 import sqlite3
+import weakref
 from contextlib import closing
 
 pdir = os.path.dirname(os.getcwd())
@@ -76,7 +77,7 @@ class DemoSql(Demo):
         execfile(demo.filename, GLOB)
         self.last_lo = GLOB['t'].lay_obj
         self.last_w  = GLOB['t'].widgets
-        self.t = GLOB['t']
+        self._t = weakref.ref(GLOB['t'])
         try:
             self.t1 = GLOB['t1']
         except:
@@ -94,6 +95,11 @@ class DemoSql(Demo):
 
         return GLOB['t']
 
+    @property
+    def t(self):
+        return self._t()
+    
+    
 if not opts.existent_db and os.path.exists('model/db.sqlite'):
     os.remove('model/db.sqlite')
 if not os.path.exists('model/db.sqlite'):
@@ -108,8 +114,10 @@ if args:
         gtk.main_quit()
 
     try:
-        d.t.connect('delete-event', quit)
-    except AttributeError:
+        hid = d.t.connect('delete-event', quit)
+        d.t._ids['delete_event'] = (d.t, hid)
+    except AttributeError, e:
+        print e
         print "No such example ", args[0]
         sys.exit(1)
 

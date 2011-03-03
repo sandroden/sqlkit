@@ -423,7 +423,6 @@ class Field(object):
             self.widget = tablewidgets.CellWidget(self)
 
     def destroy(self, widget):
-
         try:
             del self.widget
             del self.master

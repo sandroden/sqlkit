@@ -62,7 +62,7 @@ class SimpleCompletion(object):
     An object that hold all the information on how to retrieve possible completions in simple cases
     
     """
-    __metaclass__ = dbg.LogTheMethods
+    __metaclass__ = None if not dbg.debug else dbg.LogTheMethods
     autostart = False
     autostart_last_length = 0
     
@@ -134,7 +134,9 @@ class SimpleCompletion(object):
 
 
         self.master = master
-        self.master.connect('delete-event', self.destroy)
+        self._ids = {}
+        hid = self.master.connect('delete-event', self.destroy)
+        self._ids['master_delete_event'] = (master, hid)
         self.lookup_values = {}
         self.MATCH_OPERATOR = OP.get(self.master.metadata.bind.name, 'ILIKE')
         self.widget = widget
@@ -163,6 +165,11 @@ class SimpleCompletion(object):
         self.match_dict = {}
         
     def destroy(self, sqlwidget):
+
+        for obj, hid in self._ids.values():
+            obj.disconnect(hid)
+        del self._ids
+
         for attr in ('master', 'query', 'mapper', 'filtered_query', 'widget',):
             try:
                 delattr(self, attr)

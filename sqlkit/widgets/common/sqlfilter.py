@@ -155,8 +155,10 @@ class FilterPanel(object):
 
         """
         self.master = master
+        self._ids = {}
         self.dont_record_display = False
-        self.master.connect('delete-event', self.destroy)
+        handler_id = self.master.connect('delete-event', self.destroy)
+        self._ids['master_delete_event'] = (master, handler_id)
         self.get_layout(visible=visible)
         self.row = 0  # counter for position of fields
         self.default_reload = True
@@ -168,8 +170,11 @@ class FilterPanel(object):
         self._last_focused_entry = None
         if master.is_mask():
             self._id_record_selected = master.connect('record-selected', self.record_selected_cb)
-            self.master.connect('record-deleted', self.record_deleted_cb)
-            self.master.connect('record-new', self.record_added_cb)
+            h1 = self.master.connect('record-deleted', self.record_deleted_cb)
+            h2 = self.master.connect('record-new', self.record_added_cb)
+            self._ids['master_record_selected'] = (master, self._id_record_selected)
+            self._ids['master_record_deleted'] = (master, h1)
+            self._ids['master_record_new'] = (master, h2)
         self.prepare_actions()
 
     def record_selected_cb(self, mask):
@@ -420,6 +425,10 @@ class FilterPanel(object):
         return [w for w in self.search_filter_widgets if w.field_name == field_name]
 
     def destroy(self, window=None):
+
+        for obj, hid in self._ids.values():
+            obj.disconnect(hid)
+        del self._ids
 
         if window:
             self.w['Window'].destroy()
