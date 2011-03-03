@@ -17,16 +17,8 @@ the foreign key is used.
 
 
 .. autoclass:: sqlkit.widgets.SqlTable(see_below)
-   :members: create_view, set_field_list, set_editable, set_opts,  select_path,
+   :members: views, totals, create_view, set_field_list, set_editable, set_opts,  select_path,
              add_record, set_fk_layout, record_in_mask, fkey_record_in_mask, add_row_filter
-
-
-Attributes
-==========
-
-.. attribute:: totals
-
-   class for :ref:`totals`: see the specific documentation for further info
 
 .. image:: ../img/menu.png
    :align: right

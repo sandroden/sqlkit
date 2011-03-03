@@ -966,7 +966,7 @@ class View(object):
 
     A View is a set of columns of the SqlTable's that offers a (possibly
     partial) view of the model. Each SqlTable has one mandatory view named
-    ``main`` and possibly other views. Attribute ``views`` (a
+    ``main`` and possibly other views. Attribute :attr:`sqlkit.widgets.SqlTable.views` (a
     sqlkit.utils.Container) stores them.
 
     It can be used to provide different ways to look at the same data
@@ -1303,9 +1303,10 @@ class View(object):
         
         return menu
 
-    def setup_columns(self, field_list=None):
+    def setup_columns(self, field_list=None, position=-1):
         """
         :param field_list: list of field_names or string to be splitted (comma or space separated)
+        :param position: determine the position in the columns where the column will be inserted
         """
 
         for field_name in field_list or self.field_list:
@@ -1346,17 +1347,27 @@ class View(object):
             else:
                 col = VarcharColumn(self.master, field_name, label)
 
-            self.add_column(col)
+            self.add_column(col, position=position)
             
         self.treeview.columns_autosize()
         self.fix_expandable_columns()
             
-    def add_column(self, column, position=-1):
+    def add_column(self, column=None, position=-1, field=None):
         """
-        Add a column to the view
+        Add a column to the view. 
 
-        :param column:
+        :param column: the column to be added. It missing a field must be provided 
+        :param position: where should the column be inserted
+        :param field: an instance of the Field that should be used. In this case a
+              column is guessed and built on the fly by :meth:`setup_columns`
         """
+        if not column:
+            assert field is not None, \
+                   "You must pass a sqlkit.fields.Field instance"
+            self.master.gui_fields[field.field_name] = field
+            self.setup_columns([field.field_name], position=position)
+            return
+
         self.tvcolumns[column.field_name] = column.column
         self.columns[column.field_name] = column
         if position  < 0:

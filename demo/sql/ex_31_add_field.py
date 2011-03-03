@@ -25,18 +25,20 @@ class ObjField(fields.VarcharField):
     def clean_value(self, value):
         return "%(year)s %(title)s" % DictLike(value)
     
-my_field = ObjField('new_column', {'type' : str, 'length' : 30})
 
 
 
 t = SqlTable('movie',    dbproxy=db, order_by='title', )
+t.views['main'].add_column(field=ObjField('new_column', {'length' : 30}), position=0)
 
-## add the fields to gui_fields
-t.gui_fields['new_column'] = my_field
-## create a column
-col = columns.VarcharColumn(t, 'new_column', 'My New Column', field=my_field)
-## add it to the view
-t.views['main'].add_column(col, 0)
+# in sqlkit < 0.9.2 you would have splitted the operations as follows:
+# my_field = ObjField('new_column', {'type' : str, 'length' : 30})
+# ## add the fields to gui_fields
+# t.gui_fields['new_column'] = my_field
+# ## create a column
+# col = columns.VarcharColumn(t, 'new_column', 'My New Column', field=my_field)
+# ## add it to the view
+# t.views['main'].add_column(col, 0)
 
 t.reload()
 

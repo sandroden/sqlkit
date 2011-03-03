@@ -79,6 +79,12 @@ class SqlTable(sqlwidget.SqlWidget):
                            ),
         }
 
+    views = None
+    "A container for the possible :ref:`views`. It always have a default view named ``main``"
+
+    totals = None
+    "class for :ref:`totals`: see the specific documentation for further info"
+    
     __metaclass__ = dbg.LogTheMethods
     currently_edited_field_name = None
     mapper = None
