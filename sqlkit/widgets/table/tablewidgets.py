@@ -1,5 +1,5 @@
 from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion, M2mCompletion
-from sqlkit import _
+from sqlkit import _, exc
 
 class CellWidget(object):
 
@@ -43,8 +43,12 @@ class CellWidget(object):
             self.completion = None
             return
         
-        self.completion = Completion(self.master, self, self.field_name)
-        self.master.completions[self.field_name] = self.completion
+        try:
+            self.completion = Completion(self.master, self, self.field_name)
+            self.master.completions[self.field_name] = self.completion
+        except exc.ColumnWithoutTable, e:
+            ## function columns do not have .table so that won't complete
+            pass
         
     def set_value(self, value, shown=False):
         self.master.set_value(self.field_name, value, shown=shown)

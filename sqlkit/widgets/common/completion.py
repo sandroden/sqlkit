@@ -141,7 +141,10 @@ class SimpleCompletion(object):
         self.field_name = field_name
         self.completion = self.prepare_completion()
         self.column = self.master.mapper_info.fields[field_name]['col']
-        self.table = self.column.table
+        try:
+            self.table = self.column.table
+        except AttributeError:
+            raise exc.ColumnWithoutTable("Column %s does not have .table attribute" % field_name)
         self.format = get_description(self.table, attr='format')
         self.description = tables[self.table.name].description
         self._attrs = tables[self.table.name].attrs
@@ -161,7 +164,10 @@ class SimpleCompletion(object):
         
     def destroy(self, sqlwidget):
         for attr in ('master', 'query', 'mapper', 'filtered_query', 'widget',):
-            delattr(self, attr)
+            try:
+                delattr(self, attr)
+            except AttributeError, e:
+                pass
         
     def set_group_by(self, field_name):
         """

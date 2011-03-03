@@ -70,3 +70,5 @@ class MissingDescriptorField(Exception): pass
 class UnhandledMultipleForeignKeys(Exception): pass
 
 class ParseFilterError(Exception): pass
+class ColumnWithoutTable(Exception): pass
+

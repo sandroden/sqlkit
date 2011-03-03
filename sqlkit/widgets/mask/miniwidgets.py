@@ -218,7 +218,10 @@ class VarcharWidget(Widget):
     def add_completion(self):
         """add completion bindings and liststore
         """
-        self.completion = SimpleCompletion(self.master, self, self.field_name)
+        try:
+            self.completion = SimpleCompletion(self.master, self, self.field_name)
+        except exc.ColumnWithoutTable, e:
+            return
         self.completion.add_completion(self.gtkwidget)
         self.master.completions[self.field_name] = self.completion
         self.completion.add_callbacks(self.gtkwidget)
