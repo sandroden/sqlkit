@@ -99,3 +99,7 @@ refs:
 css:
 	cp static/*css ./.build/html/_static/
 	cp ./static/AnythingSlider/css/page.css ./.build/html/_static/AnythingSlider
+
+refresh:
+	touch sqlkit/tour.rst
+	make

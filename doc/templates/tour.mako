@@ -3,7 +3,13 @@
 
 <%def name="extrahead()">
     <link rel="stylesheet" href="${pathto('_static/tour.css', 1)}" type="text/css" media="screen" />
-    <script type="text/javascript" src="${pathto('_static/preview.js', 1)}"></script>
+     <script type="text/javascript" src="${pathto('_static/imgpreview.js',1)}"></script>
+     <script type="text/javascript">
+       $(document).ready(function(){
+           $('.preview').imgPreview();
+       });
+     </script>
+    
 </%def>
 
 <%def name="prevnextheader()"></%def>
