@@ -1,8 +1,10 @@
+# coding: utf-8
 """\
 :Author: M. Simionato
 :Date: April 2004
 :Title: A much simplified interface to optparse.
-:added description handling f Sandro Dentella by sandro@e-den.it 2008
+
+added description handling  Sandro Dentella by sandro@e-den.it 2008
 
 You should use optionparse in your scripts as follows.
 First, write a module level docstring containing something like this
@@ -31,8 +33,7 @@ or worse, the script will not work as expected.
 import optparse, re, sys
 
 USAGE = re.compile(r'\s*(?P<descr>.*)\s*\s*usage: (?P<usage>.*?)(\n[ \t]*\n|$)',
-                   re.DOTALL)
-#USAGE = re.compile(r'(?s)\s*usage: (.*?)(\n[ \t]*\n|$)')
+                   re.DOTALL|re.UNICODE|re.LOCALE)
 
 def nonzero(self): # will become the nonzero method of optparse.Values       
     "True if options were given"
@@ -53,10 +54,14 @@ def parse(docstring, arglist=None):
     global optionstring
     optionstring = docstring
     match = USAGE.search(optionstring)
-    if not match: raise ParsingError("Cannot find the option string")
-    optlines = match.group('usage').splitlines()
+    if not match:
+        raise ParsingError("Cannot find the option string")
+#    optlines = match.group('usage').splitlines()
+    optlines = re.split('\n\s*(?=[-,])', match.group('usage'))
     try:
-        p = optparse.OptionParser(optlines[0], description=match.group('descr'))
+        descr = match.group('descr')
+        p = optparse.OptionParser(optlines[0], description=descr,
+                                  formatter=IndentedHelpFormatterWithNL() )
         for line in optlines[1:]:
             opt, help=line.split(':')[:2]
             short,long=opt.split(',')[:2]
@@ -65,10 +70,37 @@ def parse(docstring, arglist=None):
                 long=long.split('=')[0]
             else:
                 action='store_true'
-            p.add_option(short.strip(),long.strip(),
-                         action = action, help = help.strip())
+
+            p.add_option(str(short.strip()),str(long.strip()),
+                         action = action, help = re.sub('\s+', ' ', help.strip()))
     except (IndexError,ValueError):
         raise ParsingError("Cannot parse the option string correctly")
     return p.parse_args(arglist)
+
+
+
+class IndentedHelpFormatterWithNL(optparse.IndentedHelpFormatter):
+    """
+    This is part of a class that I read in message:
+    # originally from Tim Chase via comp.lang.python.
+    http://groups.google.com/group/comp.lang.python/browse_frm/thread/e72deee779d9989b/
+    """
+    def format_description(self, description):
+
+        import textwrap
+
+        if not description:
+            return ""
+        desc_width = self.width - self.current_indent
+        indent = " "*self.current_indent
+
+        bits = description.split('\n')
+        formatted_bits = [textwrap.fill(bit, desc_width,
+                                        initial_indent=indent,
+                                        subsequent_indent=indent)
+                          for bit in bits]
+        
+        result = "\n".join(formatted_bits) + "\n"
+        return result
 
 
