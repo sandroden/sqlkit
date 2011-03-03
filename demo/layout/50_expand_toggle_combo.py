@@ -5,7 +5,7 @@
 """
 
 lay = """
-  {>>.a
+  {>>.main
 
       {>>|.a  t=mare      t=montagna
         t=campagna  t=citta

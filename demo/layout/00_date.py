@@ -1,4 +1,4 @@
-"""bricks/date
+"""Bricks/date
 
 uses dateedit a composed custom widget.
 
@@ -19,8 +19,7 @@ w = l.show()
 
 ### NOTE: these settings must follow l.show()!!! 
 date = datetime.datetime(2006, 01, 31)
-l.prop('d=date1', 'time', date  )
-l.prop('d=date2', 'show-time', True)
+l.prop('d=date1', 'date', date  )
 
 o = w['d=date1']
 

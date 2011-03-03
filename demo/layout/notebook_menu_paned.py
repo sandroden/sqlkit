@@ -4,7 +4,7 @@
 import sys
 sys.path.append('../..')
 
-from layout import Layout
+from sqlkit.layout import Layout
 import gtk
 
 simple_menu = """

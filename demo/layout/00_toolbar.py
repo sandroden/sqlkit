@@ -5,8 +5,8 @@ toolbar example. I had to force a width to let the icons to be visible. Otherwis
 
 lay = """
     {O.1 tb=gtk-save tb=gtk-delete tb=gtk-new tb=gtk-quit}
-    {O.2 tb=gtk-save tb=gtk-delete tb=gtk-new tb=gtk-quit}
-    {O.3 tb=gtk-save tb=gtk-delete tb=gtk-new tb=gtk-quit}
+    {O.2 tb=gtk-save-as tb=gtk-file tb=gtk-zoom tb=gtk-zoom-fit}
+    {O.3 tb=gtk-exit tb=gtk-no tb=gtk-ok tb=gtk-cut}
 """
 
 l = Layout(lay)

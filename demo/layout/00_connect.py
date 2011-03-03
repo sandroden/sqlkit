@@ -1,4 +1,4 @@
-"""bricks/connect"""
+"""Bricks/connect"""
 
 
 simple_menu = """

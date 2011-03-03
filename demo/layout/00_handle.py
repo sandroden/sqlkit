@@ -1,9 +1,8 @@
-"""bricks/handleBox
+"""Bricks/handleBox
 
 """
 
 lay = """
-  {B m=file }
   {H {Z  { uno due tre
          b=gtk-ok}
       }
