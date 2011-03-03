@@ -47,7 +47,7 @@ from sqlkit.widgets.table.tablewidgets import CellWidget
 
 class SqlTable(sqlwidget.SqlWidget):
     """
-    Main widget to represent data of a sqlalchemy selectable (SELECT of a TABLE, e JOIN,
+    Main widget to represent data of a sqlalchemy selectable (SELECT of a TABLE or JOIN
     & similar).
 
     A SqlTable can have different :ref:`views <views>` of the same data
@@ -85,6 +85,14 @@ class SqlTable(sqlwidget.SqlWidget):
     totals = None
     "class for :ref:`totals`: see the specific documentation for further info"
     
+    edited_row_model_path = None
+    ## For some reason :meth: is not turned in a link...
+    """The path of the edited row. It's not the output of :meth:`get_selected_path` since when
+    you change the selected row the validation is triggered on the *previuos* selected_row that
+    is pointed to by ``edited_row_model_path``. The format of the path is that used within
+    ``edited`` callback in CellRenderer i.e.: 3:1 and not a tuple as returned by model methods.
+    """
+
     __metaclass__ = dbg.LogTheMethods
     currently_edited_field_name = None
     mapper = None
@@ -558,7 +566,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.modelproxy.tree_field_name:
             return False
         else:
-            row = self.get_selected_row()
+            row = self.get_selected_path()
             if row is None:
                 row = -1
             else:
@@ -967,15 +975,19 @@ class SqlTable(sqlwidget.SqlWidget):
         self.select_path(obj=self._clicked_obj)
         self.record_delete()
 
-    def _get_next_iter(self, new_obj):
+    def _get_next_iter(self, new_obj, child=False):
         """
         create a new row in the next reasonable place:
 
           * the next row for simple liststores
           * the next sibling for treestores
+
+        :param new_obj: the obj to be placed there
+        :param child: (boolean, default False) if True, the new object should be
+                      a child of the current one
           
         """
-        path = self.get_selected_row()
+        path = self.get_selected_path()
         if not path:
             try:
                 return self.modelproxy.modelstore.append([new_obj])
@@ -1085,7 +1097,6 @@ class SqlTable(sqlwidget.SqlWidget):
         # in Masks this is done when set_field is used on record_display
         # here the display is automatic via set_cell_data_func so we have to set
         # initial value when starting editing a record
-        
         if not self.edited_row_model_path or force:
             if not obj:
                 obj = self.get_selected_obj()
@@ -1367,11 +1378,12 @@ class SqlTable(sqlwidget.SqlWidget):
             shutil.copyfile(orig_filename, dialog.filename)
 
 ###### Misc
-    def get_selected_row(self):
+    def get_selected_path(self):
         """Return the path of the selected row or None
 
-        NOTE: treeselection 'changed' signal arrives when the selection changed has
-              already occurred
+        NOTE: treeselection 'changed' signal arrives when the selection change has
+              already occurred. Use :attr:`edited_row_model_path` to get the path that
+              is being currently edited
 
         """
         selection = self.treeview.get_selection()
@@ -1403,7 +1415,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
     def get_selected_obj(self):
         """Return the corrently selected obj. Return None if no selection"""
-        path = self.get_selected_row()
+        path = self.get_selected_path()
 
         if path is None:
             return None
@@ -1441,12 +1453,12 @@ class SqlTable(sqlwidget.SqlWidget):
         ## row that started completion that is not ready for flushing
         ## more: it may be due for substitution!!
 
-        row = self.get_selected_row()
-        assert row is not None
+        path = self.get_selected_path()
+        assert path is not None
         
         obj = self.get_record_no_flush(pk=pk, filter_by=filter_by)
 
-        expired_obj = self.modelproxy.modelstore[row][0]
+        expired_obj = self.modelproxy.modelstore[path][0]
         if expired_obj in self.session:
             self.session.expunge(expired_obj)
         self.records.remove(expired_obj)
@@ -1454,7 +1466,7 @@ class SqlTable(sqlwidget.SqlWidget):
         ## assigning modelproxy.modelstore value will trigger 'editing-canceled'
         self.cell_entry.substitute = True
         self.cell_entry.valid = True
-        self.modelproxy.modelstore[row][0] = obj
+        self.modelproxy.modelstore[path][0] = obj
         
         if not (self.relationship_mode == 'm2m' and not self.m2m_editable):
             path = self.edited_row_model_path
