@@ -197,7 +197,7 @@ class FilterPanel(object):
         self.l.prop('O.a', 'show_arrow', 'FALSE')
         self.l.prop('A=.fld', 'yscale', '0')
         self.l.elements['H.a'].pack_properties['y-options'] = ''
-        self.l.prop('O.a', 'toolbar_style', 'gtk.TOOLBAR_ICONS')
+        self.l.prop('O.a', 'toolbar_style', 'GTK_TOOLBAR_ICONS')
 
         if self.master.is_mask():
             ## TIP: filter page of the filter panel

@@ -1,7 +1,7 @@
 """
-Very very minimal widget to edit intervals in 4 entry
-Mainly used to make test  pass. I gues anybody that need to work with intervals
-should work out a bettere widget an possibly contribute it...
+Very very minimal widget to edit intervals in 4 entries.  Mainly used to
+make test pass. I gues anybody that needs to work with intervals should work
+out a bettere widget and possibly contribute it...
 
 
 """
@@ -15,7 +15,7 @@ from sqlkit import debug as dbg
 
 
 class IntervalEdit(gtk.Alignment):
-    __gtype_name__ = 'IntervalEntry'
+    __gtype_name__ = 'IntervalEdit'
 
     __gproperties__ = {
         'interval' : (gobject.TYPE_PYOBJECT,             # type

@@ -1,5 +1,3 @@
-# $Name:  $ $Revision:  $ $Date: 2005/11/25 12:26:17 $
-
 # Copyright (C) 2005 Sandro Dentella. All rights reserved.
 # e-mail: sandro@e-den.it
 #
@@ -169,7 +167,7 @@ class LWidget(object):
             self.val = label
 
         if tip:
-            self.properties['tooltip'] = tip
+            self.properties['tooltip_text'] = tip
 
     def get_label_and_tip(self):
         """
@@ -248,7 +246,7 @@ class LWidget(object):
         return self.gtkWdg
                           
     def _packing_xml(self, pack_properties, ContGtkClass):
-        # no packing if addind with 'addto'. In that case ContGtkClass
+        # no packing if adding with 'addto'. In that case ContGtkClass
         # is not defined
         if not ContGtkClass:
             return ""
@@ -260,7 +258,7 @@ class LWidget(object):
         xml = ["<packing>"]
         for key, value in pack_properties.iteritems():
             ## tabs label are child of notebook but of a type that
-            ## is not returned by container_class... funcition above
+            ## is not returned by container_class... function above
             if (key == 'type' and ContGtkClass == 'GtkNotebook') \
                    or key.replace('_','-') in allowed_pack_properties:
                  xml.append('  <property name="%s">%s</property>' % (key, value))
@@ -274,7 +272,7 @@ class LWidget(object):
             if True in [child.v_expand for child in self.lw['children_list']]:
                 self.make_v_expandable()
     
-        xml = ['<widget class="%(gtkClass)s" id="%(el_key)s">' % self.lw]
+        xml = ['<object class="%(gtkClass)s" id="%(el_key)s">' % self.lw]
         inner_xml = []
         # write properties with order before
         extra_text = ""
@@ -313,7 +311,7 @@ class LWidget(object):
         if children:
             inner_xml.append(children)
         xml.append(self._offset_txt("\n".join(inner_xml), 2))
-        xml.append("</widget>")
+        xml.append("</object>")
         return "\n".join(xml)
 
     def _children_xml(self):
@@ -345,6 +343,7 @@ class LContainer(LWidget):
     # the difference with LWidget is it has children
     # and the el_def is not written in the layout but created on the fly
     # (Layout._create_container_label). We use it as label
+    class_pack_properties  = {'y-options' : 'fill|expand'}
 
     def __init__(self, el_def, pos, container, children_list=None, elements=None, layout=None):
         LWidget.__init__(self, el_def, pos, container, elements=elements, layout=layout)
@@ -426,9 +425,6 @@ class AlignmentEntry(LContainer):
         ## prepare the names...
 
         entry_str   = "e=%s" % (el_def.replace('A=',''))
-        #print "ENTRY_STR", entry_str
-        ## and create the children
-        #print "EventLabel elements: ", elements.keys()
         wdg = Entry(entry_str,(0,0),    'A', elements=elements, layout=layout)
         self.lw['children_list'] = [ wdg ]
         if self.align == '-':
@@ -465,41 +461,20 @@ class Entry(LWidget):
 
             
 class DateEdit(LWidget):
-    gtkClass = 'Custom'
+    gtkClass = 'DateEdit'
     ## this widget is provided by dateedit module
-    ## it's a pity set_custom_handler should only use str1, str2, int1, int2
-    transpose = {
-        'date' : 'string1',
-        }
-    class_properties = {
-        'creation_function' : 'lay_dateedit',
-        'date' : None,
-        }
             
 class ImageWidget(LWidget):
-    gtkClass = 'Custom'
+    gtkClass = 'ImageWidget'
     ## this widget is provided by image module
-    transpose = {
-        'w'    : 'string1',
-        'h'    : 'string2',
-        }
     class_properties = {
-        'creation_function' : 'lay_image_widget',
         'image' : None,
         }
             
 class DateTimeEdit(LWidget):
-    gtkClass = 'Custom'
+    gtkClass = 'DateTimeEdit'
     ## this widget is provided by dateedit module
-    ## it's a pity set_custom_handler should only use str1, str2, int1, int2
-    transpose = {
-        'time' : 'string1',
-        'show-time' : 'string2',
-        }
     class_properties = {
-        'creation_function' : 'lay_datetimeedit',
-#        'int1' : '',
-#        'int2' : '',
         'time' : None,
         'lower-hour' : 10,
         'upper-hour' : 23,
@@ -591,11 +566,11 @@ class NotebookLabel(Label):
     """This is for the tab of a notebook"""
     gtkClass = 'GtkLabel'
     
-    def _class_specific(self):
-        ## must overwrite any other info
-        self.pack_properties = {
-            'type' : 'tab',
-            }
+    # def _class_specific(self):
+    #     ## must overwrite any other info
+    #     self.pack_properties = {
+    #         'type' : 'tab',
+    #         }
 
 class FrameLabel(Label):
     """This is for the tab of a notebook"""
@@ -691,7 +666,7 @@ class SpinButton(LContainer):
         "update_policy" : 'GTK_UPDATE_ALWAYS',
         "snap_to_ticks" : False,
         "wrap"          : False,
-        "adjustment"    : '0 0 1000 1 10 0',
+#        "adjustment"    : '0 0 1000 1 10 0',
         }
 
 class ToolSpinButton(LContainer):
@@ -742,6 +717,8 @@ class Window(LContainer):
         'gravity' :            'GDK_GRAVITY_NORTH_WEST',
         }    
 
+    def __init__(self, *args, **kw):
+        LContainer.__init__(self, *args, **kw)
 
     def _packing_xml(self, packing_info, ContGtkClass):
         return ''
@@ -802,6 +779,20 @@ class Notebook(LContainer):
     gtkClass = 'GtkNotebook'
     def _class_specific(self):
         self.make_v_expandable()
+
+    def _children_xml(self):
+        txt = ''
+        try: 
+            for obj in self.lw['children_list']:
+                ## incorrect: it would fail f the only sun of a tab is a Label!!!
+                child_type = 'type="tab"' if obj.gtkClass == 'GtkLabel' else ''
+                    
+                child = self._offset_txt(obj.xml(self.gtkClass), 4)
+                txt += "\n<child %s>\n%s\n</child> <!-- closes %s in %s -->\n" % (
+                    child_type, child, obj.lw['el_key'], obj.lw['container'])
+        except:
+            pass
+        return txt
 
 class VPaned(LContainer):
     gtkClass = 'GtkVPaned'
@@ -1052,11 +1043,25 @@ class MenuItem(LContainer):
 
     def _class_specific(self):
         self.properties['label'] = _(self.val)
-        self.properties['use_underline'] = True
+        #self.properties['use_underline'] = True
         
         # specify that we want write label before use_underline
-        self.ordered_properties = ["label", "use_underline"]
+        #self.ordered_properties = ["label", "use_underline"]
         
+    def _children_xml(self):
+        txt = ''
+        try: 
+            for obj in self.lw['children_list']:
+                ## incorrect: it would fail f the only sun of a tab is a Label!!!
+                child_type = 'type="submenu"' if obj.gtkClass == 'GtkMenu' else ''
+                    
+                child = self._offset_txt(obj.xml(self.gtkClass), 4)
+                txt += "\n<child %s>\n%s\n</child> <!-- closes %s in %s -->\n" % (
+                    child_type, child, obj.lw['el_key'], obj.lw['container'])
+        except:
+            pass
+        return txt
+
 #         for f in self.lw['children_list']:
 #             dbg.debug("%s %s" % (self, self.lw['children_list']))
 
@@ -1153,39 +1158,6 @@ _W = {
     }
 
 
-class CustomWidget(object):
-
-    def lay_dateedit(self, str1=None, str2=None):
-
-        import dateedit
-        d = dateedit.DateEdit()
-        d.show()
-        return d
-
-    def lay_datetimeedit(self, str1=None, str2=None):
-
-        import dateedit
-        d = dateedit.DateTimeEdit()
-        d.set_property('show-time', True)
-        d.show()
-        return d
-
-    def lay_image_widget(self, width=None, height=None):
-        """
-        width and height allows to set dimention via img=field_name:w.h
-        """
-        import image_widget
-        i = image_widget.ImageWidget()
-        if width:
-            i.props.width = int(width)
-        if height:
-            i.props.height = int(height)
-        i.show()
-        return i
-
-class MyCustomWidget(CustomWidget):
-    pass
-    
 def custom_widget(glade, function_name, widget_name,
                   str1=None, str2=None, int1=None , int2=None):
     cw = MyCustomWidget()
@@ -1197,11 +1169,7 @@ def register(Class, mod, custom=None, force=False):
     """
     register a class to be used within widgets
     'mod' is the string used in layout
-    'custom' may be a class whose method must correspond to the function
-             used by glade to create the widget. Look in layoutgenerator
-             how to use it
     """
-    global MyCustomWidget
     global _W
     exec "global " +  Class.__name__
     exec "%s = Class" % (Class.__name__)

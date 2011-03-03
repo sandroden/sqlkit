@@ -49,7 +49,7 @@ import locale
 import datetime
 
 import pygtk
-#pygtk.require('2.0')
+pygtk.require('2.0')
 import gobject
 import gtk
 from gtk import gdk
@@ -410,9 +410,9 @@ class DateTimeEdit(DateEdit):
         }
 
     __gsignals__ = {
-        'datetime_changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+        'datetime-changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
                           ()),
-        'time_changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+        'time-changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
                           ()),
         }
     def __init__(self):
@@ -517,8 +517,7 @@ class DateTimeEdit(DateEdit):
         dt = self.get_time()
         self._use_24h_format = use_24h_format
         self.fill_time_combobox(self)
-        self.set_time(dt)
-
+        self._current_time = dt
 
     # get_properties
     def set_lower_hour(self, value):
@@ -650,10 +649,10 @@ class DateTimeEdit(DateEdit):
         else:
             raise AttributeError, 'unknown property %s' % property.name
             
-# finally register our new Type
-if gobject.pygtk_version < (2, 8):
-	    gobject.type_register(DateEdit)
-	    gobject.type_register(DateTimeEdit)
+# # finally register our new Type
+# if gobject.pygtk_version < (2, 8):
+# 	    gobject.type_register(DateEdit)
+# 	    gobject.type_register(DateTimeEdit)
 
 if __name__ == '__main__':
 
@@ -675,5 +674,3 @@ if __name__ == '__main__':
 
     gtk.main()
     
-
-

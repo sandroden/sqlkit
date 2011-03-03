@@ -25,8 +25,13 @@ graphical layout. The main purpose is to be used in designing layout of
 record editor (:ref:`sqlkit`) for db, but it can be used with any other
 program as well.
 
-Layout is not an interactive tool: it uses glade xml to create the GUI, ie:
-it produces xml for glade... this may change in the future.
+Layout is not an interactive tool: it uses gtk.Builder xml to create the GUI, ie:
+it produces xml for gtk.Builder.
+
+.. note:: gtk.Builder
+
+   up to 0.9.1 sqlkit used glade. This dependancy has been dropped in favor
+   of gtk.Builder that is directly available in standard GTK installation.
 
 Care must be used to create names for the elements that are unique in
 the single layout, so as to be able to reach any single object, not only to

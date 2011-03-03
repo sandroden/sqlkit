@@ -1,0 +1,26 @@
+<glade-catalog name="sqlkitplugin" library="gladepython" domain="glade-3" depends="gtk+">
+<init-function>glade_python_init</init-function>
+
+ <glade-widget-classes>
+   <glade-widget-class title="A widget to upload Images" name="ImageWidget" generic-name="image-widget"/>
+   <glade-widget-class title="Date + calendar" name="DateEdit" generic-name="date-edit"/>
+   <glade-widget-class title="DateTime widget" name="DateTimeEdit" generic-name="date-time-edit"/>
+   <glade-widget-class title="FkEntry" name="FkEntry" generic-name="fk-edit"/>
+   <glade-widget-class title="Test" name="Test" generic-name="test"/>
+   <glade-widget-class title="Test2" name="Test2" generic-name="test-2"/>
+   <glade-widget-class title="A Treeview" name="GreedyTreeView" generic-name="date-edit"/>
+ </glade-widget-classes>
+
+ <glade-widget-group name="sqlkit" title="SqlKit fields">
+   <glade-widget-class-ref name="ImageWidget"/>
+   <glade-widget-class-ref name="DateEdit"/>
+   <glade-widget-class-ref name="DateTimeEdit"/>
+   <glade-widget-class-ref name="FkEntry"/>
+   <glade-widget-class-ref name="Test"/>
+   <glade-widget-class-ref name="test2"/>
+ </glade-widget-group>
+ <glade-widget-group name="sqlkit" title="SqlKit containers">
+   <glade-widget-class-ref name="GreedyTreeView"/>
+ </glade-widget-group>
+</glade-catalog>
+     

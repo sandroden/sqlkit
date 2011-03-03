@@ -1,5 +1,3 @@
-# $Name:  $ $Revision: 1.479 $ $Date: 2005/07/11 12:26:17 $
-
 # Copyright (C) 2005 Sandro Dentella. All rights reserved.
 # e-mail: sandro@e-den.it
 #
@@ -30,11 +28,11 @@ import tempfile
 
 import gtk
 import gobject
-import gtk.glade
 
-from sqlkit import debug as dbg  # uncommenting brakes importing....
+from sqlkit import debug as dbg  
 from sqlkit import _
 import widgets
+from sqlkitplugin import *  # A simple way to import all custom widgets, only used by Builder()
 
 class UnbalancedLayoutCurlyBaces(Exception): pass
 class ConnectBeforeShowNotImplemented(Exception): pass
@@ -413,13 +411,12 @@ class Layout(object):
         self.rows, self.cols = max(self.rows, row), max(self.cols, col)
         
     def xml(self, filename=None, tmpfile=None, logfile=None):
-        """Produces the xml for glade to create the GUI, possibly writes it to file"""
+        """Produces the xml for gtk.Builder() to create the GUI, possibly writes it to file"""
 
         start = '<?xml version="1.0" encoding="UTF-8" standalone="no"?> <!--*- mode: nxml -*-->'+\
-        '\n<!DOCTYPE glade-interface SYSTEM "http://glade.gnome.org/glade-2.0.dtd">' +\
-        '\n<glade-interface>\n'
+        '\n<interface>\n'
 
-        end = "\n</glade-interface>"
+        end = "</interface>\n"
 
         # not needed if nested layout
         if self.level > 0:
@@ -456,29 +453,22 @@ class Layout(object):
 
     def show(self,action=None, x=None):
 
-        import tempfile
-        
-        gtk.glade.set_custom_handler(widgets.custom_widget)
         if self.shown:
             self.widgets['Window'].show()
         else:
-            XML = self.xml()
-            fh, fname = tempfile.mkstemp(suffix='.glade', prefix='sqlkit-')
-            self.xml(filename=fname)
-            glade = gtk.glade.XML(fname)
+            self.builder = gtk.Builder()
+
+            xml = self.xml()
             try:
-                os.close(fh)
-            finally:
-                os.remove(fname)
-            # I used to use xml_new_from_buffer till when I realized in some circumstancies it
-            # core dumps if diacritics char are used in the file.
-            # glade = gtk.glade.xml_new_from_buffer(XML,len(XML))
-            glade.signal_autoconnect(self)
+                self.builder.add_from_string(xml)
+            except: # gtk 2.12 of Builder.ad_from_string() need the length
+                self.builder.add_from_string(xml, len(xml))
+                
             self.widgets = {}
             for key, val in self.elements.iteritems():
                 ## if int, that's just a counter 
                 if not isinstance(val, int):
-                    self.widgets[key] = glade.get_widget(key)
+                    self.widgets[key] = self.builder.get_object(key)
             if x:
                 if 'Window' in self.widgets:
                     W = self.widgets['Window']
@@ -486,7 +476,6 @@ class Layout(object):
                         W.connect("delete_event", gtk.main_quit)
                     else:
                         W.connect("delete_event", x)
-#            self.tooltips = gtk.Tooltips()
 
             if action == 'gtk.main':
                 gtk.main()
@@ -496,7 +485,6 @@ class Layout(object):
                 self.addto.add(container_widget)
                 
             self.shown = True
-            #wshow(self.widgets)
             return self.widgets
         
     def gshow(self,action=None, x=None):
@@ -519,7 +507,6 @@ class Layout(object):
                         W.connect("delete_event", gtk.main_quit)
                     else:
                         W.connect("delete_event", x)
-#            self.tooltips = gtk.Tooltips()
 
             if action == 'gtk.main':
                 gtk.main()
@@ -553,7 +540,6 @@ class Layout(object):
                     W.connect("delete_event", gtk.main_quit)
                 else:
                     W.connect("delete_event", x)
-#        self.tooltips = gtk.Tooltips()
         
         if action == 'gtk.main':
             gtk.main()
@@ -570,7 +556,7 @@ class Layout(object):
             else:
                 self.widgets[el_def].set_tooltip_text(text)
         else:
-            self.elements[el_def].properties['tooltip'] = text
+            self.elements[el_def].properties['tooltip_text'] = text
 
     def menu(self, el_def, *args):
         """the dictionary must be a list of tuples (key, signal, handler)

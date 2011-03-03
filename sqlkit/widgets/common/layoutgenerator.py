@@ -77,45 +77,17 @@ for mod in ('m2m', 'm2o', 'o2m', 'o2o'):
     widgets.register_alias(widgets.Alignment, mod)
 
 class FkEdit(widgets.LWidget):
-    gtkClass = 'Custom'
-    class_properties = {
-        'creation_function' : 'fk_edit',
-        }
+    gtkClass = 'FkEntry'
             
 class IntervalEdit(widgets.LWidget):
-    gtkClass = 'Custom'
-    class_properties = {
-        'creation_function' : 'interval_edit',
-        }
+    gtkClass = 'IntervalEdit'
             
 class GreedyTreeView(widgets.LWidget):
-    gtkClass = 'Custom'
-    class_properties = {
-        'creation_function' : 'greedy_treeview',
-        }
+    gtkClass = 'GreedyTreeView'
 
-class MyWidget(widgets.CustomWidget):
-    def fk_edit(self, str1=None, str2=None):
-        from sqlkit.layout import fk_entry
-        fk = fk_entry.FkEdit()
-        fk.show()
-        return fk
-    
-    def interval_edit(self, str1=None, str2=None):
-        from sqlkit.layout import interval_entry
-        ie = interval_entry.IntervalEdit()
-        ie.show()
-        return ie
-        
-    def greedy_treeview(self, str1=None, str2=None):
-        from sqlkit.layout import greedy_treeview
-        gt = greedy_treeview.GreedyTreeView()
-        gt.show()
-        return gt
-    
-widgets.register(FkEdit, 'fk', MyWidget)
-widgets.register(IntervalEdit, 'delta', MyWidget)
-widgets.register(GreedyTreeView, 'TV', MyWidget, force=True)
+widgets.register(FkEdit, 'fk')
+widgets.register(IntervalEdit, 'delta')
+widgets.register(GreedyTreeView, 'TV', force=True)
 
 class LayoutGenerator (object):
     map_types = {
