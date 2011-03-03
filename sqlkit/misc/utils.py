@@ -99,7 +99,7 @@ def str2list(list_or_string):
     """
     
     if isinstance(list_or_string, basestring):
-        return re.split('[ ,]*', list_or_string)
+        return re.split('[ ,]*', list_or_string.strip())
     return list_or_string or []
 
 
