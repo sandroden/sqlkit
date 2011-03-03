@@ -235,6 +235,21 @@ Signals
       
       :param sqlwidget: the widget that emitted the signal
 
+:record-deleted:
+   A record has been deleted. 
+   The callback will receive the widget and the obj.
+
+   .. function:: record_new_cb(sqlwidget, deleted_obj):
+      
+      :param sqlwidget: the widget that emitted the signal	
+      :param deleted_obj: the obje that was deleted
+
+   Note that this signal is emitted only for records deleted explicitly,
+   i.e. records that where the ``current record`` in a mask/table. If a
+   record is deleted as a side effect (e.g.: becouse cascade="delete-orphan"
+   is set) no signal is emitted for that obj.
+
+
 :records-displayed:
    Records have been displayed. This may be after :meth:`SqlWidget.reload`
    or :meth:`SqlWidget.set_records`.

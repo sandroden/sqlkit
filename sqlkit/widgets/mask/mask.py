@@ -523,6 +523,7 @@ class SqlMask(sqlwidget.SqlWidget):
         
         try:
             self.commit(_('Deleted'))
+            self.emit('record-deleted', obj)
         except exc.HandledRollback, e:
             return
             
