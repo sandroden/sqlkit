@@ -35,8 +35,8 @@ for name in ('text','date', 'numbers', 'boolean'):
 t.reload()
 
 
-t = SqlTable(model.AllTypes, dbproxy=db )
-t.reload()
+t1 = SqlTable(model.AllTypes, dbproxy=db )
+t1.reload()
 
 
 

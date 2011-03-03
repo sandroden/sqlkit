@@ -394,6 +394,8 @@ class DateWidget(Widget):
     def __init__(self, *args):
         Widget.__init__(self, *args)
         self.gtkwidget.connect('date-changed', self.date_changed_cb, )
+        self.gtkwidget.date_format = self.field.format_value
+        self.gtkwidget.date_parse = self.field.clean_value
 
     def wrong_format_cb(self, widget, date_string):
         self.invalid = date_string

@@ -53,6 +53,7 @@ pygtk.require('2.0')
 import gobject
 import gtk
 from gtk import gdk
+from babel import dates
 
 from sqlkit import _
 
@@ -106,9 +107,9 @@ class DateEdit(gtk.HBox):
 
         self.locale_setup()
         self.build_layout()
-        
-        self._date_entry.connect('leave-notify-event', self.date_entry_focus_out_event_cb)
-#        self._date_entry.connect('focus-out-event', self.date_entry_focus_out_event_cb)
+
+        hid = self._date_entry.connect('changed', self.date_entry_changed_cb)
+        self._ids = {'date_entry_changed' : (self._date_entry, hid)}
         self._date_button.connect('clicked', self.date_button_clicked_cb)
 
         self._calendar.connect('day-selected', self.day_selected_cb)
@@ -117,8 +118,10 @@ class DateEdit(gtk.HBox):
         self._cal_popup.connect('delete_event', self.delete_popup_cb)
         self._cal_popup.connect('key_press_event', self.key_press_popup_cb)
            
-        self.date_format = '%x'
-
+        self.date_format = 'short'
+        self.date_parse = None
+        self._id_timeout_add = None
+        
     def locale_setup(self):
         if os.name == 'nt' or sys.platform == 'darwin':
             # Todo: fix this for windows
@@ -255,19 +258,38 @@ class DateEdit(gtk.HBox):
         
         
 #####  callback
-    def date_entry_focus_out_event_cb(self, widget, event):
-        # check entry for valid date, reset if not
+    def date_entry_changed_cb(self, entry):
+        # check entry for valid date 
+        if self._id_timeout_add:
+            gobject.source_remove(self._id_timeout_add)
+        
+        # let's delay the check so we can complete our input
+        self._id_timeout_add = gobject.timeout_add(700, self.verify_date, entry)
+
+    def verify_date(self, entry):
+        """Verify the text anc heck if it parses as date, complain if not
+        """
         date_string = self._date_entry.get_text()
         if not date_string:
             self.set_date(None)
-            return
+            return False
         try:
-            new_date = time.strptime(date_string, self.date_format)
-            the_date = datetime.date(new_date.tm_year,new_date.tm_mon,new_date.tm_mday,)
-            self.set_date(the_date, from_focus_out=True)
-        except ValueError, e:
+            if callable(self.date_parse):
+                the_date = self.date_parse(date_string)
+            else:
+                the_date = dates.parse_date(date_string)
+        except Exception, e:
             self.wrong_date_format(e, date_string)
- 
+            return False
+
+        try:
+            self.set_date(the_date, from_focus_out=True)
+        except Exception, e:
+            print e
+            return False
+        entry.modify_base(gtk.STATE_NORMAL, self._default_base)
+        return False
+
     def date_button_clicked_cb(self, widget):
         # Temporarily grab pointer and keyboard on a window we know exists        
         if not self.popup_grab_on_window(widget.window, gtk.get_current_event_time()):
@@ -316,7 +338,10 @@ class DateEdit(gtk.HBox):
 ####### date & gobject
     def wrong_date_format(self, error, date_string):
         self.invalid_date = True
-        self.flash_bg(self._date_entry, 'orangered', 2)
+        colormap = self._date_entry.get_colormap()
+        base_color = colormap.alloc_color('orangered')
+        self._date_entry.modify_base(gtk.STATE_NORMAL, base_color)
+        #self.flash_bg(self._date_entry, 'orangered', 2)
         
     def get_date(self):
 
@@ -345,10 +370,22 @@ class DateEdit(gtk.HBox):
         self.invalid_date = False
         
         # set the time and date string
+        entry, hid = self._ids['date_entry_changed']
+        entry.handler_block(hid)
+
         if new_date:
-            self._date_entry.set_text(new_date.strftime(self.date_format))
+            if callable(self.date_format):
+                try:
+                    self._date_entry.set_text(self.date_format(new_date))
+                except:
+                    self._date_entry.set_text(
+                        dates.format_date(new_date, format='short'))
+            else:
+                self._date_entry.set_text(
+                    dates.format_date(new_date, format=self.date_format))
         else:
             self._date_entry.set_text('')
+        entry.handler_unblock(hid)
 
         if date_changed:
             self._current_date = new_date
