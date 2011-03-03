@@ -83,6 +83,19 @@ Fields Representation
 .. autoclass:: CollectionWidget
 
 
+Signals
+-------
+
+:value-set: a signal emitted each time a value is set (via method
+            :attr:`Widget.set_value`). This signal does not trigger a general change in
+            value as would be for entries a ``changed`` signal. Callback function:
+
+             .. function:: value_set_cb(widget, value, initial):
+
+              :param widget: the Miniwidget that issued the signal
+              :param value: the value that is being set
+              :param initial: (boolean) True if the value is set with initial=True
+
 Colors
 ------
 
@@ -127,10 +140,18 @@ NOT_NULL_COLOR = gtk.gdk.color_parse('#f6ebba')
 NOT_EDITABLE_COLOR = gtk.gdk.color_parse('#333')
 
 
-class Widget(object):
+class Widget(gobject.GObject):
     """
     A proxy between the :ref:`field <fields>` and a real gtk widget
     """
+    __gsignals__ = {
+        'value-set': (gobject.SIGNAL_RUN_FIRST,
+                     gobject.TYPE_NONE,
+                      # args: widget, value, initial
+                     (gobject.TYPE_PYOBJECT, gobject.TYPE_BOOLEAN,),
+                     )
+        }
+
     def __init__(self, gtkwidget, field):
         """
         setup all what is needed in the widget: completion if any and much
@@ -139,6 +160,7 @@ class Widget(object):
         :param gtkwidget: the gtk widget used to display the data
         :param field: the :ref:`field <fields>` from ``sqlkit.fields``
         """
+        self.__gobject_init__()
         self.gtkwidget = gtkwidget
         self.field = field
         self.master = field.master
@@ -257,6 +279,7 @@ class VarcharWidget(Widget):
     def set_value(self, value, initial=False):
         # Entry
         self.gtkwidget.set_text( str(value) )
+        self.emit('value-set', value, initial)
         
     def get_value(self, shown=False):
         value = self.gtkwidget.get_text( )
@@ -292,6 +315,7 @@ class ReadOnlyWidget(Widget):
 #             string_value = str(self.field.format_value(value)) or ''
 
         self.set_label(string_value)
+        self.emit('value-set', value, initial)
 
     def set_label(self, value):
         """
@@ -317,6 +341,7 @@ class IntegerWidget(VarcharWidget):
     def set_value(self, value, initial=False):
         self.text_value = self.field.format_value(value)
         self.gtkwidget.set_text(self.text_value)
+        self.emit('value-set', value, initial)
         
     def get_value(self, shown=False):
         text = self.gtkwidget.get_text( )
@@ -359,6 +384,7 @@ class DateWidget(Widget):
 
         self.invalid = None
         self.gtkwidget.set_property('date', value)
+        self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
 
@@ -374,6 +400,7 @@ class TimeWidget(Widget):
     """
     def set_value(self, value, initial=False):
         self.gtkwidget.set_text(self.field.format_value(value))
+        self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
         
@@ -396,6 +423,7 @@ class IntervalWidget(Widget):
             msg = "value for %s must be a timedelta (now: %s)" % (self.field_name, value)
             raise AttributeError(msg)
         self.gtkwidget.set_property('interval', value)
+        self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
         ## if all values are 0 and initial value is None, return None
@@ -418,7 +446,8 @@ class DateTimeWidget(DateWidget):
         
     def set_value(self, value, initial=False):
         ## FIXME: datetime has only time?
-        return self.gtkwidget.set_property('datetime', value)
+        self.gtkwidget.set_property('datetime', value)
+        self.emit('value-set', value, initial)
         
     def get_value(self, shown=False):
         value = self.gtkwidget.get_property('datetime')
@@ -439,6 +468,7 @@ class TextWidget(Widget):
     def set_value(self, value, initial=False):
         buff = self.gtkwidget.get_buffer()
         buff.set_text( value)
+        self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
         buff = self.gtkwidget.get_buffer()
@@ -471,6 +501,7 @@ class BooleanWidget(Widget):
         
     def set_value(self, value, initial=False):
         self.gtkwidget.set_active(bool(value))
+        self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
         return self.gtkwidget.get_active( )
@@ -497,6 +528,7 @@ class BooleanNullWidget(BooleanWidget):
             self.gtkwidget.set_active(value)
 
             self.gtkwidget.handler_unblock(self._clicked_id)
+        self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
         if self.gtkwidget.get_inconsistent():
@@ -544,6 +576,7 @@ class EnumWidget(Widget):
     def notify_active_cb(self, widget, param):
         self.master.run_hook('on_change_value', self.get_value(), self.get_value(shown=True),
                              self.field, field_name=self.field_name)
+        self.emit('value-set', self.get_value(), False)
         
     def fill_model(self):
         self.model.append((None, ''))
@@ -560,6 +593,7 @@ class EnumWidget(Widget):
         self.model.foreach(self._find_value, (value, i))
         self.gtkwidget.handler_block(self.notify_id)
         self.gtkwidget.set_active(i[0])
+        self.emit('value-set', value, initial)
         if not initial:
             self.master.run_hook('on_change_value', self.get_value(), self.get_value(shown=True),
                              self.field, field_name=self.field_name)
@@ -610,6 +644,7 @@ class ImageWidget(Widget):
 
         self.copy_file = None
         self.gtkwidget.set_image(value)
+        self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
 
@@ -674,9 +709,7 @@ class ForeignKeyComboboxWidget(Widget):
         self.model.clear()
         self.model.append([value, display_value, display_value,''])
         self.gtkwidget.set_active(0)   # which column 
-#        self.real_value = True  ?????
-
-        #self.gtkwidget.set_text( str(value) )
+        self.emit('value-set', value, initial)
         
     def get_value(self, shown=False):
         #dbg.write()
@@ -780,6 +813,7 @@ class ForeignKeyWidget(Widget):
             display_value = self.field.lookup_value(value)
             self.entry.set_text(display_value)
             self.real_value = True  # we can trust this value, has been set by procedures
+        self.emit('value-set', value, initial)
             
     def get_value(self, shown=False):
         if shown:
@@ -852,6 +886,7 @@ class CollectionWidget(Widget):
 
     def set_value(self, value, initial=False):
         self.table.set_records(value)
+        self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
         return self.table.records 
