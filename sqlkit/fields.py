@@ -497,7 +497,7 @@ class Field(object):
             self.initial_value = value
         if hasattr(self, 'widget') and update_widget:
             self.widget.set_value(value, initial=initial)
-        if obj and not initial:
+        if obj:
             setattr(obj, self.field_name, value)
 
     def get_value(self, shown=False):
@@ -689,7 +689,7 @@ class VarcharField(Field):
         if hasattr(self, 'widget') and update_widget:
             self.widget.set_value(value or '', initial=initial)
 
-        if obj and not initial:
+        if obj:
             setattr(obj, self.field_name, value)
 
     def get_value(self, shown=False):
@@ -1003,7 +1003,7 @@ class TimeTZField(TimeField):
                 self.TZ = None
                 self.microsecond = 0
 
-        if obj and not initial:
+        if obj:
             setattr(obj, self.field_name, value)
         
     def get_value(self, shown=False):
@@ -1092,7 +1092,7 @@ class DateTimeField(DateField):
                 self.microsecond = 0
                 self.second = 0
         
-        if obj and not initial:
+        if obj:
             setattr(obj, self.field_name, value)
 
     def format_value(self, value, format=None):
@@ -1657,7 +1657,7 @@ class ForeignKeyField(Field):
             for prop in self._props_for_delete_orphan:
                 self.add_related_object(prop, value)
 
-        if obj and not initial:
+        if obj:
             setattr(obj, self.field_name, value)
 
     def has_changed(self):
@@ -1778,7 +1778,7 @@ class CollectionField(Field):
         if hasattr(self, 'widget') and update_widget:
             self.widget.set_value(value, initial=initial)
 
-        if obj and not initial:
+        if obj:
             setattr(obj, self.field_name, value)
 
 
