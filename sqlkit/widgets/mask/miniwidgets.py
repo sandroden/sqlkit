@@ -171,7 +171,7 @@ class Widget(gobject.GObject):
         self.gtkwidget.connect('destroy', self.destroy)
         self.set_editable(self.field.editable)
 
-        self.set_text(state=gtk.STATE_INSENSITIVE, color=gtk.gdk.color_parse('#333'))
+        self.set_text(state=gtk.STATE_INSENSITIVE, color=NOT_EDITABLE_COLOR)
 
     def set_not_null_style(self, value):
         if value:
