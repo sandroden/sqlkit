@@ -40,7 +40,7 @@
     % endif
     ${self.extrahead()}
 </%def>
-<%def name="extrahead()"></%def>
+<%def name="extrahead()"><!-- extrahead --></%def>
 <!--[if !IE 7]>
 	<style type="text/css">
 		#wrap {display:table;height:100%}

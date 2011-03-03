@@ -53,6 +53,7 @@
            $('.preview').imgPreview();
        });
      </script>
+     ${self.extrahead()}
     </head>
     <body>
         ${next.body()}
