@@ -1,3 +1,28 @@
+# Copyright (C) 2005-2010, Sandro Dentella <sandro@e-den.it>
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
+
+.. autoclass:: Totals
+   :members: totals, subtotals, add_total, add_break, add_date_break, compute, sum
+
+.. autoclass:: TotalObj
+   :members:
+
+"""
+
 from datetime import date, datetime
 
 import gtk
@@ -58,6 +83,17 @@ class Totals(object):
     """
     total_class = TotalObj
 
+    totals = None
+    """
+    A dict whose keys are the field names for which a total/subtotal is to be computed.
+    The values are the totals. It's filled by :meth:`sum` that can be customized.
+    """
+
+    subtotals = None
+    """
+    A dict whose keys are the field names for which a total/subtotal is to be computed
+    The values are the subtotals. It's filled by :meth:`sum` that can be customized.
+    """
     def __init__(self, table, treeview=None):
         """
         :param table:  the tabe for which a total must be generated
@@ -151,7 +187,30 @@ class Totals(object):
             self.totals[field_name]    = 0
             self.subtotals[field_name] = 0
         
-    def sum(self, obj):
+    def sum(self, obj, model, path, iter):
+        """
+        sum values and store result in :attr:`totals` and :attr:`subtotals`
+
+        :param obj: the obj that should be added. It's an instance of table.mapper.class_
+        :param model: the model of the treeview
+        :param path: the path at which the obj is
+        :param iter: the iter at which the obj is
+
+        To customize the behaviour of total you can just customize this
+        method, suppose you want to make it sum flagged objects in table t::
+
+          class BoolTotals(totals.Totals):
+
+              def sum(self, obj, model, path, iter):
+                  if obj.flag:
+                      for field_name in self.totals.keys():
+                          self.totals[field_name]    += getattr(obj, field_name, 0) or 0
+                          self.subtotals[field_name] += getattr(obj, field_name, 0) or 0
+
+          t. = SqlTable(...)
+          t.totals = BoolTotal(t)
+        
+        """
         for field_name in self.totals.keys():
             if field_name in self.table.mapper_info:
                 value = getattr(obj, field_name, 0)
@@ -265,8 +324,8 @@ class Totals(object):
             self.insert_subtotal(iter)
             self.prev = self.break_func(obj)
             self.reset_subtotals()
-        self.sum(obj)
-
+        if isinstance(obj, self.table.mapper.class_):
+            self.sum(obj, model, path, iter)
         
 def func_date_same_day(obj, field_name):
     date = getattr(obj, field_name)

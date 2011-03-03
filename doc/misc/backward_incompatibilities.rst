@@ -12,7 +12,11 @@ incompatibilities:
 =====
 
 :hooks: ``on__field_change`` now pass also the field. The demo snippet
-        already had this arguments but was always None and was not documented
+        already had this arguments but was always None and was not
+        documented
+
+:totals: added model, path, iter to ``sum`` method of totals. Impact only on
+         customized :ref:`totals`
 
 0.9.1
 =====

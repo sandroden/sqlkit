@@ -42,12 +42,6 @@ option ``hide_total`` when declaring the column to sum.
 API
 ---
 
-.. module:: sqlkit.widgets.table.totals
-
-.. autoclass:: Totals
-   :members: add_total, add_break, add_date_break, compute
-
-.. autoclass:: TotalObj
-   :members:
+.. automodule:: sqlkit.widgets.table.totals
 
    
