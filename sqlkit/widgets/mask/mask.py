@@ -464,7 +464,7 @@ class SqlMask(sqlwidget.SqlWidget):
         self.get_toplevel().set_focus(None)
 
         changed = self.record_has_changed()
-        if not new_obj and not changed and not (
+        if not self.current in self.session.new and not new_obj and not changed and not (
             self.unsaved_changes_exist(skip_new=self.current)):
             self.sb(_('Nothing to save'), seconds=4)
             return
@@ -492,10 +492,12 @@ class SqlMask(sqlwidget.SqlWidget):
         self.session.expire(self.current)
         self.record_display(check=False, delay_message=2)
         
-    def record_save_new(self, obj=None):
+    def record_save_new(self, obj=None, commit=True, ask=True):
         """
         create a new record by duplicating the obj
-        :param obj: 
+        :param obj: the obj to be cloned
+        :param commit: (boolean) commit after duplicating
+        :return: the new object
         """
 
         ## if PKey is editable we should add a check that is not the same
@@ -527,32 +529,49 @@ class SqlMask(sqlwidget.SqlWidget):
                                    icon='gtk-dialog-warning')
             if response == gtk.RESPONSE_CANCEL:
                 return
-        else:
+        elif ask:
             msg = _("Do you want to copy all data in a new record?")
             response = self.dialog(type='ok-cancel', text=_(msg) % o2m_list,
                                    icon='gtk-dialog-question')
             if response == gtk.RESPONSE_CANCEL:
                 return
             
-        records = {}
+        records_m2m = {}
         for table_name, table in self.related.iteritems():
             if table.relationship_mode == 'm2m':
-                records[table_name] = table.records
+                records_m2m[table_name] = table.records
 
         old_obj = self.current
         self.record_new(clear=False)
 
         for table_name, table in self.related.iteritems():
-            if table_name in records:
-                table.set_records(records[table_name])
+            if table_name in records_m2m:
+                table.set_records(records_m2m[table_name])
+            else:
+                table.set_records([])
 
-        self.record_mask2obj(obj or self.current, force=True)
-        self.run_hook('on_save_as', old_obj, obj or self.current)
-        try:
-            self.record_save(ask=False, new_obj=True)
-        except exc.ValidationError, e:
-            pass
-        
+        obj = obj or self.current
+        self.record_mask2obj(obj, force=True)
+        for table_name, table in self.related.iteritems():
+            setattr(obj, table_name, table.records)
+            
+        self.run_hook('on_save_as', old_obj, obj)
+
+        ## record_refresh() is not really needed here. You should implement it
+        #  in your own on_save_as, but you should know you need to...
+        for table in self.related:
+            if table.modelproxy.tree_field_name and not table.relationship_mode == 'm2m':
+                table.record_refresh()
+
+        if commit:
+            try:
+                self.record_save(ask=False)
+            except exc.ValidationError, e:
+                pass
+
+        self.emit('record-selected', )
+        return obj
+       
     def record_delete(self, widget=None, interactive=True):
         """
         delete a record

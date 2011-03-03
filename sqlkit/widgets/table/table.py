@@ -774,6 +774,7 @@ class SqlTable(sqlwidget.SqlWidget):
         :param origin: the obj that must be duplicated, it can also belong
              to a different session
         :param interactive: (boolean) if True start editing and use set_value
+        :return: the new object
 
         This can be used as follows in a on_save_as hook::
 
@@ -794,10 +795,11 @@ class SqlTable(sqlwidget.SqlWidget):
                     self.set_value(field.field_name, value, initial=False)
                     # this way is alternative to editing directly, for some reason it
                     # deletes the first edited field::
-                    field.set_value(value, initial=False, obj=new_obj)
+                    #field.set_value(value, initial=False, obj=new_obj)
                 else:
                     setattr(new_obj, field.field_name, value)
         self.run_hook('on_save_as', orig_obj, new_obj)
+        return new_obj
     
     def record_save(self, discard_unchanged=False, discard_new=False, ask=False, skip_check=True):
 
