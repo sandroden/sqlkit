@@ -28,7 +28,7 @@ class SaveDialog(object):
     ACTION = gtk.FILE_CHOOSER_ACTION_SAVE
     ACTION_BUTTON = gtk.STOCK_SAVE
 
-    def __init__(self,  title="Save dialog", default_filename='export.csv'):
+    def __init__(self,  title="Save dialog", default_filename='export.csv', run=True):
         """
         A dialog to export data into a csv file
 
@@ -43,12 +43,15 @@ class SaveDialog(object):
         self.dialog.set_default_response(gtk.RESPONSE_OK)
         if self.ACTION in (gtk.FILE_CHOOSER_ACTION_SAVE, gtk.FILE_CHOOSER_ACTION_SAVE):
             self.dialog.set_current_name(default_filename)
-        self.dialog.set_current_folder(self.current_folder())
         self.filename = None
         
         self.add_filters()
         self.customize()
+        if run:
+            self.run()
     
+    def run(self):
+        self.dialog.set_current_folder(self.current_folder())
         ret = self.dialog.run()
         if ret == gtk.RESPONSE_OK:
             self.write()
