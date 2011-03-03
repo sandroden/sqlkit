@@ -61,6 +61,7 @@ class GenericColumn(object):
     MAX_DEFAULT_WIDTH = 30
     PROPERTY = 'text'
     editable = False
+    #__metaclass__ = dbg.LogTheMethods
 
     
     def __init__(self, master, field_name, title, field=None):
@@ -216,7 +217,7 @@ class GenericColumn(object):
 
     def on_activate(self, editable=None):
         # this is no longer connected to 'activate' signal since I prefere the changed value
-        # be available. I prefere to keep similarit with what happens in a normal
+        # be available. I prefere to keep similarity with what happens in a normal
         # entry where 'activate' means "press Enter". Pressing enter here make it edited.
         # That means it will also be triggered via Tab...
         self.master.run_hook('on_activate', self.field, field_name=self.field_name)
