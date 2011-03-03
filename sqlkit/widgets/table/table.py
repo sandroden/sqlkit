@@ -85,12 +85,12 @@ class SqlTable(sqlwidget.SqlWidget):
     totals = None
     "class for :ref:`totals`: see the specific documentation for further info"
     
-    edited_row_model_path = None
+    edited_path = None
     ## For some reason :meth: is not turned in a link...
-    """The path of the edited row. It's not the output of :meth:`get_selected_path` since when
-    you change the selected row the validation is triggered on the *previuos* selected_row that
-    is pointed to by ``edited_row_model_path``. The format of the path is that used within
-    ``edited`` callback in CellRenderer i.e.: 3:1 and not a tuple as returned by model methods.
+    """The path of the edited row (a tuple). It's not the output of
+    :meth:`get_selected_path` since when you change the selected row the
+    validation is triggered on the *previuos* selected_row that is pointed
+    to by ``edited_path``. 
     """
 
     __metaclass__ = dbg.LogTheMethods
@@ -253,6 +253,14 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         assert view_name in self.views, "Missing view_name: %s" % view_name
         self.views[view_name].set_field_list(field_list)
+
+    def _get_edited_path(self):
+        "return the curretly edited path as a tuple"
+
+        return self.edited_row_model_path and \
+               tuple(int(x) for x in self.edited_row_model_path.split(':'))
+
+    edited_path = property(_get_edited_path)
 
 ###### Actions/UiManager
     def prepare_actions(self):
@@ -1418,7 +1426,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """Return the path of the selected row or None
 
         NOTE: treeselection 'changed' signal arrives when the selection change has
-              already occurred. Use :attr:`edited_row_model_path` to get the path that
+              already occurred. Use :attr:`edited_path` to get the path that
               is being currently edited
 
         """
@@ -1470,7 +1478,6 @@ class SqlTable(sqlwidget.SqlWidget):
         :param path: the modelproxy.modelstore path
         :param all: boolean: only return object of the main class (no totals)
         """
-
         obj = self.modelproxy.modelstore[path][0]
         if isinstance(obj, self.totals.total_class):
             return None
