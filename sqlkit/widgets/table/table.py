@@ -892,6 +892,7 @@ class SqlTable(sqlwidget.SqlWidget):
                                              ## case this table is a M2M of M2O
         self.commit_inhibited = False
         self._new_record = True
+        self.emit('record-new')
         return path
 
     def record_add(self, record):

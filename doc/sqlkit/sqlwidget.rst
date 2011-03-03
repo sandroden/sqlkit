@@ -227,6 +227,14 @@ Signals
       
       :param sqlwidget: the widget that emitted the signal
 
+:record-new:
+   A new record has been added. 
+   The callback will just receive the widget as argument.
+
+   .. function:: record_new_cb(sqlwidget):
+      
+      :param sqlwidget: the widget that emitted the signal
+
 :records-displayed:
    Records have been displayed. This may be after :meth:`SqlWidget.reload`
    or :meth:`SqlWidget.set_records`.

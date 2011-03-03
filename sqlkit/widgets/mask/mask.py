@@ -368,6 +368,7 @@ class SqlMask(sqlwidget.SqlWidget):
             r.records = getattr(self.current, key)
 
         self.current_mode = 'INSERT'
+        self.emit('record-new')
         
     def record_new_idle(self):
         """
