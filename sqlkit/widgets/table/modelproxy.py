@@ -60,6 +60,7 @@ a modelproxy emits signals:
 
 """
 import re
+from decimal import Decimal
 
 import gtk
 import gobject
@@ -272,7 +273,7 @@ class ModelProxy(gobject.GObject):
         # add 1 to prevent trimming 1.000 to 1.
         float_repr = [(float(path[i]+1)/10**(i*3)) for i in range(len(path))]
         ret = reduce(lambda x, y: x+y,  float_repr)
-        return ret
+        return Decimal(str(ret))
 
     def persist_rows_order(self, treemodel=None, path=None, iter=None):
         """
