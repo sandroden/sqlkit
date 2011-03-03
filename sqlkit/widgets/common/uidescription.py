@@ -70,6 +70,7 @@ TREEPOPUP = '''
         <separator name="sep_1" />
         <menuitem action="MaskView" />
         <menuitem action="MaskViewFKey" />
+        <menuitem action="Duplicate" />
         <menuitem action="New" />
         <menuitem action="NewChild" />
         <menuitem action="UploadImage" />

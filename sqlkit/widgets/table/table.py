@@ -271,6 +271,8 @@ class SqlTable(sqlwidget.SqlWidget):
         self.actiongroup_table   = gtk.ActionGroup('Table')
 
         self.actiongroup_insert.add_actions([
+            ('Duplicate', gtk.STOCK_SAVE_AS, _('Duplicate'), None,
+             _('Create a new row as a duplicate of this one'), self.record_save_new_cb),
             ('New', gtk.STOCK_NEW,   None, '', None, self.record_new_cb),
             ('NewChild', gtk.STOCK_NEW,   _('New child row'), '',
              _("Create e new row as child of this one"), self.record_new_child_cb),
@@ -765,9 +767,36 @@ class SqlTable(sqlwidget.SqlWidget):
             return False
         return sqlwidget.SqlWidget.record_has_changed(self)
     
-    def record_save_new(self, ev):
-        ## the problem here is to prevent changes in the already used record
-        raise NotImplementedError
+    def record_save_new(self, origin=None, interactive=True):
+        """
+        Create a new record and copy all data from an origin
+
+        :param origin: the obj that must be duplicated, it can also belong
+             to a different session
+        :param interactive: (boolean) if True start editing and use set_value
+
+        This can be used as follows in a on_save_as hook::
+
+            for row in old.righe:
+                rel_table.record_save_new(origin=row, interactive=False)
+
+        to copy all rows from one record to the other
+        
+        """
+
+        orig_obj = origin or self.get_obj_at_path(self._clicked_path)
+        path, new_obj = self.record_new(start=interactive)
+
+        for field in self.gui_fields:
+            if not field.pkey and field.persistent:
+                value = getattr(orig_obj, field.field_name)
+                if interactive:
+                    field.set_value(value, initial=False)
+                else:
+                    # this way is alternative to editing directly, for some reason it
+                    # deletes the first edited field
+                    setattr(new_obj, field.field_name, value)
+        self.run_hook('on_save_as', orig_obj, new_obj)
     
     def record_save(self, discard_unchanged=False, discard_new=False, ask=False, skip_check=True):
 
@@ -900,7 +929,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.commit_inhibited = False
         self._new_record = True
         self.emit('record-new')
-        return path
+        return path, self.last_new_obj
 
     def record_add(self, record):
         """
@@ -911,7 +940,7 @@ class SqlTable(sqlwidget.SqlWidget):
 #         except Exception:
 #             self.modelproxy.modelstore.append(None, [record])
         sqlwidget.SqlWidget.record_add(self, record)
-        path = self.record_new(obj=record, start=False)
+        path, obj = self.record_new(obj=record, start=False)
         self.edited_row_model_path  =  path
         self.select_path(path)
         self.record_save()
@@ -1026,7 +1055,7 @@ class SqlTable(sqlwidget.SqlWidget):
         :param parent: if defined it's the path of the parent row for the new object 
           
         """
-        path = parent or self.get_selected_path()
+        path = parent or self.get_selected_path() or getattr(self, '_clicked_path', None) 
         if not path:
             try:
                 return self.modelproxy.modelstore.append([new_obj])

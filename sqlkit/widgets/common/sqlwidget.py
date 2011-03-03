@@ -972,12 +972,12 @@ class SqlWidget(gobject.GObject):
         except (exc.DialogValidationError, exc.CancelledAction):
             return True
     
-    def record_save_new(self, ev):
+    def record_save_new_cb(self, action):
         """
         Save the record as a new record, ie letting pk not be set 
         """
-        raise NotImplementedError
-
+        self.record_save_new()
+        
     def record_add(self, record):
         """
         Add a record to the SqlWidget

@@ -290,3 +290,25 @@ Sorting columns can be done in 2 different ways:
         ``s`` when **focus in in the treeview** (i.e. you ave already
         clicked the treeview). Sorting will toggle ascending and descending.
 
+.. _row-duplicating:
+
+Duplicating a row
+=================
+
+The row menu (right click) allows to duplicate a row, it requires some
+understanding of the related issues:
+
+1. Only visible fields are copied
+
+2. Primary keys are not copied
+
+3. If a foreig key is copied and that corresponds to a relation that has 
+   ``cascade='delete-orphan'`` that relation requires an instance to be
+   attached. The field is able to retrieve such instance and attach it only
+   if you configure the model's class properly. You can read more info on
+   the field's method :meth:`add_related_object 
+   <sqlkit.fields.ForeignKeyField.add_related_object>`
+
+As for :ref:`save-as` mask function, there's a hook named 
+:ref:`on_save_as <on_save_as>` that can be used to
+configure proper action to be taken before saving the duplicated row

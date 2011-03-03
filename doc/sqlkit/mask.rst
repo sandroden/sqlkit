@@ -112,3 +112,43 @@ Signals
 
 .. versionadded:: 0.8.8
 
+.. _save-as:
+
+Save as
+=======
+
+Masks have a function *save as new record*, that allows to duplicate a
+record (corresponding to table's :ref:`row duplicating <row-duplicating>`). 
+It's important you understand exactly what it does so that:
+
+ * it nullifyes the primary key, so that a new one will be generated. If the
+   primary key is visible and editable in the mask, it's up to you to delete
+   it or change it according to your needs
+
+ * m2m relations: for each *visible* relation, i.e. each relation that is
+   shown by the mask **and is of type many to many** it copies the
+   records. As an example: actors would be copied in the second film.
+
+   If you want to change the new record in the related table (e.g.: actors)
+   do that **only after saving** otherwise you will also change the cast of
+   the original film, that's different from other fields as table'mode is to
+   save in the same moment you edit.
+
+ * o2m relations: if o2m relations are present a warning is displayed that
+   those fields will not be copied **unless you have an on_save_as hook**
+   that would mean you are already handling this case. 
+
+   Blindly copying the records would *steal* the references from the other
+   record. Just to be explicit: suppose to have a mask of a director with
+   his films, the director is Fellini and the film *La strada*. Duplicating
+   the record "Fellini" with "Fellini 2" should probably be a 1^st step in
+   personalizing some fields. In no way you want to divert the
+   ``director_id`` of the film "La strada" that should continue to point to
+   the original record "Fellini".
+
+ * visible fields are copied from one record to the other. Please note
+   carefully this point: a new empty record is set as current record and
+   each visible fields is furtherly saved in the new record. If a field is
+   not visible that field will not get copied. You may have problems if
+   required fields are not visible. To allow to fill with new values a
+   :ref:`hook <hooks>` is invoked named :ref:`on_save_as <on_save_as>`.

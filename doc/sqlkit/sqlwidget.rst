@@ -369,6 +369,26 @@ The following hooks are defined:
 
               you can also reach field attributes as dict values: obj['nation']. 
    
+.. _on_save_as:
+
+:save_as:
+
+     .. versionadded:: 0.9.3
+
+     this hook is invoked each time a record is saved as a duplicate of
+     another one. After the new record is filled and before it's saved you
+     can customize at your will. Callback function:
+
+     .. function:: on_save_as(sqlwidget, old, new):
+
+        :param sqlwidget: the mask/table that invoked the hook
+	:param old: the old object that was copied 
+	:param new: the new object 
+
+     When this hook is present, no warning on how the copy is handled is
+     raised as it's considered that the programmer has already coped with
+     all the tricky issues.
+
 :on_validation: called when all the values have been collected in the object,
     before calling validation on all fields and related widgets. That's a
     good point to implement any procedure to add automatism's. Within this

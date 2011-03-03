@@ -94,7 +94,7 @@ dependencies::
 and install it as follows (this installs python drivers for PposgreSQL and
 Mysql as well)::
 
-apt-get install python-sqlkit python-psycopg2 python-mysqldb
+  apt-get install python-sqlkit python-psycopg2 python-mysqldb
 
 I'll try to keep this updated as the official package
 
@@ -102,7 +102,7 @@ Windows
 =======
 
 Sqlkit depends on PyGTK. Thanks to  Dieter Verfaillie now it's possible to
-install PyGTK in a single boundle. Detailed information in the tutorial_.
+install PyGTK in a single boundle. Detailed information in the :ref:`tutorial`.
 
 Sqlkit on  Pypi 
 =================

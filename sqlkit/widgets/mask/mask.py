@@ -255,7 +255,7 @@ class SqlMask(sqlwidget.SqlWidget):
 
         self.actiongroup_insert.add_actions([
             ('New', gtk.STOCK_NEW,   None, '', _('Add new record'), self.record_new_cb),
-            ('Save-as', gtk.STOCK_SAVE_AS, None, None, None, self.record_save_new),
+            ('Save-as', gtk.STOCK_SAVE_AS, None, None, None, self.record_save_new_cb),
             ])
         self.actiongroup_select.add_actions([
             ('Undo', gtk.STOCK_UNDO, None, None, _('Discard changes'), self.record_undo_cb),
@@ -474,9 +474,10 @@ class SqlMask(sqlwidget.SqlWidget):
         self.session.expire(self.current)
         self.record_display(check=False, delay_message=2)
         
-    def record_save_new(self, wdg, constraint={}):
+    def record_save_new(self, obj=None):
         """
-        create a new record by cloning the present
+        create a new record by duplicating the obj
+        :param obj: 
         """
 
         ## if PKey is editable we should add a check that is not the same
@@ -485,20 +486,50 @@ class SqlMask(sqlwidget.SqlWidget):
         else:
             tbl = self.tables
         pkey_changed = False
+
         for key in self.mapper_info.get_pkeys(tbl):
-            if key in self.gui_fields and self.is_editable(key):
-                if self.gui_fields[key].has_changed():
-                    pkey_changed = True
+            if key in self.gui_fields:
+                if self.is_editable(key):
+                    if self.gui_fields[key].has_changed():
+                        pkey_changed = True
+            else:
+                pkey_changed = True
                     
         if not pkey_changed:
             self.dialog(text=_("Primary key (%s) didn't change. Refusing to save as new" % key))
             return
-            
-        ## missing handling of Primary Key:
-        ## should I delete the old one? should I look for editable attribute of the
-        ## gtk widget?
 
+        o2m_list = [name for name, table in self.related.iteritems()
+                    if not table.relationship_mode == 'm2m']
+        save_as_is_managed = self.hooks and getattr(self.hooks, 'on_save_as', None)
+        if o2m_list and not save_as_is_managed:
+            msg = "Tables expressing one to many relationship will be left empty (%s)\n" + \
+                  "Read the docs for more informations"
+            response = self.dialog(type='ok-cancel', text=_(msg) % o2m_list,
+                                   icon='gtk-dialog-warning')
+            if response == gtk.RESPONSE_CANCEL:
+                return
+        else:
+            msg = _("Do you want to copy all data in a new record?")
+            response = self.dialog(type='ok-cancel', text=_(msg) % o2m_list,
+                                   icon='gtk-dialog-question')
+            if response == gtk.RESPONSE_CANCEL:
+                return
+            
+        records = {}
+        for table_name, table in self.related.iteritems():
+            if table.relationship_mode == 'm2m':
+                records[table_name] = table.records
+
+        old_obj = self.current
         self.record_new(clear=False)
+
+        for table_name, table in self.related.iteritems():
+            if table_name in records:
+                table.set_records(records[table_name])
+
+        self.record_mask2obj(obj or self.current, force=True)
+        self.run_hook('on_save_as', old_obj, obj or self.current)
         try:
             self.record_save(ask=False, new_obj=True)
         except exc.ValidationError, e:

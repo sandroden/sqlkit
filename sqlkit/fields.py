@@ -1657,10 +1657,12 @@ class ForeignKeyField(Field):
 
         if value and not initial:
             ## Rationale: See ex_03 (that uses class_=Movie
-            # i.e. with definition of relation with backref with delete-orphan). this function is called
-            # all the time we enter a record (not just *new* records).
+            # i.e. with definition of relation with backref with delete-orphan). this function
+            # is called all the time we enter a record (not just *new* records).
 
-            ## TODO/FIXME: thhis is not working for sqla 0.6 as backref is no longer a backref!
+            ## in sqla >= 0.6 therés no way to understand this in an authomatic way, so that
+            ## you are supposed to add 'attach_instance' key to Column's info.
+            ## read more info in add_related_object's docstring
 
             for prop in self._props_for_delete_orphan:
                 self.add_related_object(prop, value)
@@ -1733,7 +1735,8 @@ class ForeignKeyField(Field):
         if not prop:
             return
         # if the backref that requires this is composed, probably things get more difficoult...
-        assert len(prop.mapper.primary_key) ==1, "Sorry, sqlkit doesn't cope with composed primary key in relations with delete-orphan"
+        assert len(prop.mapper.primary_key) == 1, "Sorry, sqlkit doesn't cope with " + \
+                      "composed primary key in relations with delete-orphan"
 
         q = self.master.session.query(prop.mapper).autoflush(False)
         obj = q.get(key)
@@ -1741,6 +1744,7 @@ class ForeignKeyField(Field):
             row_obj = self.master.current
         else:
             row_obj = self.master.get_selected_obj()
+
         setattr(row_obj, prop.key, obj)
         
 class CollectionField(Field):
