@@ -171,7 +171,7 @@ class Demo(object):
         self.model.foreach(self.model_foreach_func)
         return self.snippet_names
         
-    def execute_clicked_cb(self, widget):
+    def execute_clicked_cb(self, widget=None):
         """
         toggle visibility of the window that shows debug
         """

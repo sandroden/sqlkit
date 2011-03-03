@@ -113,9 +113,6 @@ if args:
         print "No such example ", args[0]
         sys.exit(1)
 
-if opts.gtk:
-    l =d.execute_clicked_cb(None)
-
 if opts.test:
     start = opts.offset and int(opts.offset) or 0
     stop = opts.number and start + int(opts.number) or None
@@ -130,6 +127,10 @@ if opts.test:
             print e
             if opts.exit:
                 sys.exit(1)
+
+if opts.gtk:
+    d.execute_clicked_cb
+
         
 if __name__ == '__main__':
     if opts.interactive:
