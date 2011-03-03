@@ -7,6 +7,15 @@ import sqlalchemy
 class Container(object):
     """
     a container for other object that allows iteration and dict-like access
+    Iterating on this correspond to iterating on the *values* (not the keys)::
+
+       for el in m.related: print el
+
+    is equivalent to::
+
+       for el in m.related.values(): print el
+
+    Container has the nice feature that it completes when used interactively under ipython
     """
     def __init__(self, cdict=None):
         """
@@ -26,6 +35,13 @@ class Container(object):
     def keys(self):
         return self._attrs
 
+    def values(self):
+        return [self[at] for at in self._attrs]
+
+    def iteritems(self):
+        for attr in self._attrs:
+            yield attr, self[attr]
+
     def __contains__(self, key):
         return key in self._attrs
  
@@ -36,26 +52,10 @@ class Container(object):
         return self.add_element(key, value)
     
     def __iter__(self):
-        self._n = 0
-        return self
-
-    def next(self):
-        """return the next item in the data set or raise StopIteration"""
-
-        try:
-            r = getattr(self, self._attrs[self._n])
-            self._n += 1
-        except:
-            self._n = 0
-            raise StopIteration
-      
-        return r
+        return iter(self.values())
 
     def __repr__(self):
         return "%s" % self._attrs
-
-    def keys(self):
-        return self._attrs
 
     def get(self, key, default=None):
         return getattr(self, key, default)
