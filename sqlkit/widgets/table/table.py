@@ -724,7 +724,7 @@ class SqlTable(sqlwidget.SqlWidget):
         ## the problem here is to prevent changes in the already used record
         raise NotImplementedError
     
-    def record_save(self, discard_unchanged=False, discard_new=False, ask=False):
+    def record_save(self, discard_unchanged=False, discard_new=False, ask=False, skip_check=True):
 
         """save the record
 
@@ -733,8 +733,11 @@ class SqlTable(sqlwidget.SqlWidget):
 
         see record_validate for constraint explanation
 
-        discard_empty: when record_save is called by reload, an empty record
+        :param discard_empty: when record_save is called by reload, an empty record
                        does not need validation
+        :param ask: if True a dialog box will ask if you really want to save
+        :param skip_check: (boolean) if ask=True and skip_check=True save_unsaved will skip check
+                       of real need to save
 
         """
 
@@ -743,7 +746,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return
 
         if ask:
-            response = self.save_unsaved(skip_check=True, proceed=False)
+            response = self.save_unsaved(skip_check=skip_check, proceed=False)
 
             if response == gtk.RESPONSE_CANCEL:
                 raise exc.CancelledAction
@@ -1165,7 +1168,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         from sqlkit.widgets import SqlMask, SqlTable
         try:
-            quit = self.record_save(ask=True)
+            quit = self.record_save(ask=True, skip_check=False)
         except exc.CancelledAction:
             quit = True
         if quit: 
