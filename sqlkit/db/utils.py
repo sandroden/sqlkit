@@ -103,7 +103,7 @@ from defaults import register_hook, get_hook, register_layout, get_layout, regis
      get_class, unregister_hook, unregister_layout
 
 ########   descriptor
-from sqlkit.misc.utils import Container
+from sqlkit.misc.utils import Container, DictLike, ObjLike
 
 class MissingMetadata(Exception): pass
 
@@ -139,24 +139,6 @@ class Descr(object):
 
     __repr__ = __str__
     
-class DictLike(object):
-    """
-    simple way to enable %(field_name)s lookup in classes
-    used to allow correct use of 'format'. None is casted to empty string
-    """
-    def __init__(self, obj):
-        self.obj = obj
-        
-    def __getitem__(self, key):
-        """
-        Cast all None values to '' otherwise the lookup can be scattered with 'None'
-        as %(field_name)s would render as 'None' a None value
-        """
-        return getattr(self.obj, key, '') or ''
-
-    def __getattr__(self, key):
-        return getattr(self.obj, key)
-
 class Tables(Container):
     def __getitem__(self, key):
         try:

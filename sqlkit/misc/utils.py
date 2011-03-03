@@ -61,6 +61,40 @@ class Container(object):
         return getattr(self, key, default)
 
 
+class DictLike(object):
+    """
+    simple way to enable %(field_name)s lookup in classes
+    used to allow correct use of 'format'. None is casted to empty string
+    """
+    def __init__(self, obj):
+        self.obj = obj
+        
+    def __getitem__(self, key):
+        """
+        Cast all None values to '' otherwise the lookup can be scattered with 'None'
+        as %(field_name)s would render as 'None' a None value
+        """
+        return getattr(self.obj, key, '') or ''
+
+    def __getattr__(self, key):
+        return getattr(self.obj, key)
+
+class ObjLike(object):
+    """
+    Simple way to access keys of a dict as attributes
+    """
+    def __init__(self, dictionary):
+        """
+        :param dictionary: the dictionary whose keys we want to acces as attributes
+        """
+        self.dict = dictionary
+
+    def __getattr__(self, key):
+        try:
+            return self.dict[key]
+        except KeyError, e:
+            return object.__getattr__(self, key)
+            
 def check_sqlalchemy_version(req):
     """
     It only works if pkg_resources is present
