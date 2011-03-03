@@ -32,7 +32,7 @@ import pango
 from decimal import Decimal
 
 import cell_renderers, utils as tv_utils
-from sqlkit import debug as dbg, _, fields
+from sqlkit import debug as dbg, _, exc, fields
 from sqlkit.layout import widgets
 from sqlkit.misc.utils import str2list
 from sqlkit.db.utils import DictLike
@@ -1375,7 +1375,13 @@ class View(object):
         second_choice = []
         for field_name in [c.get_data('field_name') for c in self.treeview.get_columns()]:
             if self.tvcolumns[field_name].get_visible() and self.master.is_editable(field_name):
-                if self.master.gui_fields[field_name].get_default():
+                try:
+                    has_usable_default = self.master.gui_fields[field_name].get_default()
+                except exc.NotHandledDefault, e:
+                    # it's not necessary to fill this value as a default exists even if we're
+                    # not able to handle it
+                    has_usable_default = True
+                if has_usable_default is not None:
                     second_choice += [self.tvcolumns[field_name]]
                 else:
                     return self.tvcolumns[field_name]

@@ -549,7 +549,10 @@ class Field(object):
         return value
         
     def set_default(self):
-        self.set_value(self.get_default())
+        try:
+            self.set_value(self.get_default())
+        except NotHandledDefault, e:
+            pass
         
     def clean_value(self, value):
         """
