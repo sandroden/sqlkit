@@ -317,11 +317,10 @@ class LayoutGenerator (object):
         table_name = m.group(1)
         #dbg.write('table_name:', table_name)
         tbl_field_name = m.group(2)
-
-        table = Table(table_name, self.master.mapper_info.mapper.local_table.engine,
-                      autoload=True)
+        engine = self.master.mapper_info.mapper.local_table.engine
+        table = Table(table_name, engine, autoload=True)
         t1 = type(table.c[tbl_field_name].type)
-        col_spec = table.c[tbl_field_name].type.get_col_spec()
+        col_spec = table.c[tbl_field_name].type.compile(dialect=engine.dialect)
         t = self.master.mapper_info.fields.pytype[t1]
         return (tbl_field_name, t, col_spec)
 

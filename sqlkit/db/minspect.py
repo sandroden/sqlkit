@@ -109,7 +109,8 @@ class InspectMapper(Container):
         col = mapper.c[field_name] 
         
         try:
-            col_spec = mapper.c[field_name].type.get_col_spec()
+            col_spec = mapper.c[field_name].type.compile(
+                dialect=mapper.local.table.metadata.bind.engine.dialect)
         except (NotImplementedError, AttributeError),e:
             col_spec = None
         d = Container({

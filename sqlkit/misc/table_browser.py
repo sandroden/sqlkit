@@ -357,7 +357,8 @@ class TableBrowser(object):
         for c in tbl.c:
             iter2 = self.model.append(iter)
             self.model.set(iter2, self.NAME_COLUMN, c.name )
-            self.model.set(iter2, self.TYPE_COLUMN, c.type.get_col_spec())
+            self.model.set(iter2, self.TYPE_COLUMN, c.type.compile(
+                dialect=tbl.metadata.bind.engine.dialect))
             if c.primary_key:
                 self.model.set(iter2, self.PKEY_COLUMN, 'X' )
             if c.foreign_keys:
