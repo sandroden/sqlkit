@@ -248,32 +248,38 @@ class TableBrowser(object):
         iter = self.model.get_iter(
             wdg.get_path_at_pos(int(ev.x),int(ev.y))[0])
         if self.model.iter_parent(iter):
-            return
+            return 
         table = self.model.get_value(iter,0)
         
+        if  self.model.iter_has_child(iter) and \
+               self.tv.row_expanded(self.model.get_path(iter)):
+            return False
         #table = self.model.get_value(self.model.get_iter(path), 0)
 
         
         menu = self.w['M=popup'] = gtk.Menu()
 
-        ## add to filter
         item = gtk.MenuItem(label=_("Mask") )
         item.connect('activate', self.activate_cb, ('mask', table ))
         menu.append(item)
 
-        ## add to filter
         item = gtk.MenuItem(label=_("Table") )
         item.connect('activate', self.activate_cb, ('table', table ))
         menu.append(item)
 
-        if not self.model.iter_children(iter):
-            ## add to filter
+        if self.model.iter_children(iter) and \
+               self.tv.row_expanded(self.model.get_path(iter)):
+            item = gtk.MenuItem(label=_("Collapse row") )
+            item.connect('activate', self.get_table_info_in_model, table, iter )
+            menu.append(item)
+        else:
             item = gtk.MenuItem(label=_("Table reflection") )
-            item.connect('activate', self.get_table_info_in_model, (table, iter ))
+            item.connect('activate', self.get_table_info_in_model, table, iter )
             menu.append(item)
 
         menu.show_all()
         menu.popup(None, None, None, ev.button, ev.time)
+        return False
 
     def activate_cb(self, wdg, data):
 
@@ -327,10 +333,16 @@ class TableBrowser(object):
             if self.opts.all_tables:
                 self.get_table_info_in_model(None, (table, iter))
 
-    def get_table_info_in_model(self, junk, (table_name, iter)):
+    def get_table_info_in_model(self, junk, table_name, iter):
         """
         fill the model relative to info on table 
         """
+        if  self.model.iter_has_child(iter):
+            if self.tv.row_expanded(self.model.get_path(iter)):
+                self.tv.collapse_row(self.model.get_path(iter))
+            else:
+                self.tv.expand_row(self.model.get_path(iter), True)
+            return False
         
         tbl = sa.Table(table_name, self.dbproxy.metadata, autoload=True)
         index_dict = {}
@@ -345,7 +357,8 @@ class TableBrowser(object):
                 # show order of column in index
                 if not col.name in index_dict:
                     index_dict[col.name] = []
-                index_dict[col.name] += [index.unique and 'UNIQUE_%s.%s' % (i, j) or 'IDX_%s.%s' % (i,j)]
+                index_dict[col.name] += [index.unique and 'UNIQUE_%s.%s' % (i, j)
+                                         or 'IDX_%s.%s' % (i,j)]
 
         ## pkey and count visibility
         self.model.set(iter,

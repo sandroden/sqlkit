@@ -1,3 +1,5 @@
+import os
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Table, Column, ForeignKey
 from sqlalchemy.types import *
@@ -5,22 +7,23 @@ from sqlalchemy.orm import relation, backref
 
 from sqlkit.db.utils import Descr
 from sqlkit.db import proxy
-import os
 
 Base = declarative_base()
 engine = "sqlite:///%s/db.sqlite" % os.path.abspath(os.path.dirname(__file__))
 db = proxy.DbProxy(engine=engine, metadata=Base.metadata)
 
 
-movie_casting = Table('movie_casting' , Base.metadata,
-                      Column('movie_id', Integer, ForeignKey('movie.id')),
-                      Column('actor_id', Integer, ForeignKey('actor.id')),
-                      )
+movie_casting = Table(
+    'movie_casting' , Base.metadata,
+    Column('movie_id', Integer, ForeignKey('movie.id'), primary_key=True),
+    Column('actor_id', Integer, ForeignKey('actor.id'), primary_key=True),
+    )
 
-movie_genre = Table('movie_genre' , Base.metadata,
-                      Column('movie_id', Integer, ForeignKey('movie.id')),
-                      Column('genre_name', Integer, ForeignKey('genre.name')),
-                      )
+movie_genre = Table(
+    'movie_genre' , Base.metadata,
+    Column('movie_id', Integer, ForeignKey('movie.id'), primary_key=True),
+    Column('genre_name', Integer, ForeignKey('genre.name'), primary_key=True),
+    )
 
 SCORE_VALUES = (
     (1, 'Nice'),
@@ -79,7 +82,7 @@ class Actor(Base):
     id             = Column(Integer, primary_key=True)
     first_name     = Column(String(60), nullable=False)
     last_name      = Column(String(60))
-    nation_cod     = Column(ForeignKey('nation.cod'))
+    nation_cod     = Column(String(4), ForeignKey('nation.cod'))
 
     nation         = relation('Nation', backref='actors')
     def __repr__(self):

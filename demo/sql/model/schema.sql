@@ -74,7 +74,7 @@ CREATE TABLE 'actor' (
 id INTEGER NOT NULL, 
 first_name VARCHAR(30) NOT NULL, 
 last_name VARCHAR(30), 
-nation_cod varchar(4) NULL REFERENCES "nation" ("cod"),
+nation_cod VARCHAR(4) REFERENCES "nation" ("cod"),
 PRIMARY KEY (id)
 );
 INSERT INTO "actor" VALUES(1,'Marcello','Mastroianni','IT');
