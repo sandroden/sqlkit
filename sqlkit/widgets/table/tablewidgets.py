@@ -10,6 +10,7 @@ class CellWidget(object):
         
 
         self.add_completion()
+        self._dont_change_real_value = False
 
         self.master.field_widgets[field_name] = self
         
@@ -17,6 +18,14 @@ class CellWidget(object):
         # FIXME: should set label in bold italics...
         pass
 
+    def pop_completion(self):
+        ## self.emit('changed') is needed as the only way to pop the completion
+        ## when you click on the icon to pop the completion you should not invalidate
+        ## self.real_value as it's not an editing action
+        self._dont_change_real_value = True
+        self.entry.emit('changed')
+        self._dont_change_real_value = False
+        
     def get_entry(self):
         # CellWidget has an editable only if we're editing...
         if self.field_name == self.master.currently_edited_field_name:

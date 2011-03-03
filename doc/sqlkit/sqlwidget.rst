@@ -313,10 +313,11 @@ present (due e.g. to a different layout or different field_list)
 
 The following hooks are defined:
 
-:on_change_value__field_name: called any time the value is set using 
-    :meth:`set_value <sqlkit.widgets.common.sqlwidget.SqlWidget.set_value>` without
-    initial=True flag. I.e.: should be called any time a value is changed from
-    the original
+:on_change_value__field_name: called any time the value is set using
+    :meth:`set_value <sqlkit.widgets.common.sqlwidget.SqlWidget.set_value>`
+    without initial=True flag, or the value is changed directly in the
+    entry. I.e.: should be called any time a value is changed from the
+    original. It's **not** change if the value is set (e.g.: on record change)
 
     .. function:: on_change_value__field_name(sqlwidget, field_name, value,
                   fkvalue, field)

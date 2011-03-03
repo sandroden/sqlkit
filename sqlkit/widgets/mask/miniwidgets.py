@@ -267,6 +267,7 @@ class VarcharWidget(Widget):
         Widget.__init__(self, *args)
         self.add_completion()
         self.gtkwidget.connect('key-press-event', self.on_key_press)
+        self._id_changed = self.gtkwidget.connect('changed', self.on_changed)
         
         if self.field.length:
             self.set_max_length(self.field.length)
@@ -282,9 +283,20 @@ class VarcharWidget(Widget):
 
         self.master.run_hook('on_activate', self, field_name=self.field_name)
 
+    def on_changed(self, widget):
+        ## this function is not called when the value is set as initial value
+        try:
+            value = self.get_value()
+        except exc.ValidationError:
+            self.master.sb("Value '%s' is not valid" % self.gtkwidget.get_text())
+            return
+        self.master.run_hook('on_change_value', value, value, field_name=self.field_name)
+
     def set_value(self, value, initial=False):
         # Entry
+        self.gtkwidget.handler_block(self._id_changed)
         self.gtkwidget.set_text( str(value) )
+        self.gtkwidget.handler_unblock(self._id_changed)
         self.emit('value-set', value, initial)
         
     def get_value(self, shown=False):
@@ -343,10 +355,13 @@ class IntegerWidget(VarcharWidget):
         self.gtkwidget.set_alignment(1)
         self.gtkwidget.connect('key-press-event', self.on_key_press)
         self.gtkwidget.connect('key-press-event', self.master.digits_check_input_cb  )
+        self._id_changed = self.gtkwidget.connect('changed', self.on_changed)
                 
     def set_value(self, value, initial=False):
         self.text_value = self.field.format_value(value)
+        self.gtkwidget.handler_block(self._id_changed)
         self.gtkwidget.set_text(self.text_value)
+        self.gtkwidget.handler_unblock(self._id_changed)
         self.emit('value-set', value, initial)
         
     def get_value(self, shown=False):
