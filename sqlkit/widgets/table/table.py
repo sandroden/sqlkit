@@ -1101,7 +1101,10 @@ class SqlTable(sqlwidget.SqlWidget):
             else:
                 try:
                     self.gui_fields[field_name].set_value(new_text, initial=False)
-                    self.cell_entry.valid = True
+                    # A hook in "on_change_value" may trigger a deletion of cell_entry
+                    # e.g. a totals.compute(), so let's check again
+                    if self.cell_entry:  
+                        self.cell_entry.valid = True
                     return True
                 except exc.ValidationError, e:
                     self.cell_entry.valid = False
