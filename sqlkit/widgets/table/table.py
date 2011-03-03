@@ -54,9 +54,8 @@ class SqlTable(sqlwidget.SqlWidget):
     represented in different TreeVies.
 
     A SqlTable can be viewed alone or as part of a composite widget, that is
-    normally a mask with :ref:`relationships`. Each SqlTable (as SqlMask has a ``records``
-    attribute that holds the list of records that it represents, while the model has
-    possibly also other objects as totals and headers.
+    normally a mask with :ref:`relationships`: be sure to understand this
+    part as it's probably one of the more powerfull features of Sqlkit.
 
     SqlTables can have both ListStores or TreeStores. The latter allows to represent
     rows in a hierarchy.
@@ -1320,7 +1319,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
         def disconnect(mask, id):
             self.disconnect(id)
-            del self._fmask
+            if hasattr(self, '_fmask'):
+                del self._fmask
 
         mask.connect('delete-event', disconnect, handler_id)
 
