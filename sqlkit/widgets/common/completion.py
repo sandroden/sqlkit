@@ -305,10 +305,20 @@ class SimpleCompletion(object):
             self.append_to_model(obj)
         self.completion.set_model(self.model)
 
-        if one and mode == 'exact':  # used by self.check_existance
-        ## just one result will be returned even if no check is done that more that one exists
-            # I'm not sure that obj is *always* defined!... I believe so!
-            return DictLike(obj)
+        if one and mode == 'exact':
+            ## 'exact' is used by self.check_existance just one result will
+            ## be returned even if no check is done that more that one exists
+
+            ## 'obj' may not be defined here. It happens when 1. you have a
+            ## filter on completion, 2. you bypass it with Control-Alt,
+            ## 3. select a match that activates the cell correctly. A second
+            ## pass on the same cell, if you try to complete, exact will be
+            ## used an will fail.
+            
+            try:
+                return DictLike(obj)
+            except UnboundLocalError:
+                return
 
         if pop:
             self.make_completion_to_pop(self.get_entry())
