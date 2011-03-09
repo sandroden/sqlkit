@@ -28,13 +28,14 @@ Installing under Debian/Ubuntu
 If you have a Debian-derived distro at least Debian etch of Ubuntu 9.10 you
 can install as follows:
 
-  sudo wget http://apt.argolinux.org/sqlkit.list --output-document=/etc/apt/sources.list.d/sqlkit.list
-  sudo wget -O-  http://apt.argolinux.org/dists/lenny/public.key| sudo apt-key add -
+  sudo echo deb http://ppa.launchpad.net/toobaz/sqlkit/ubuntu lucid main > /etc/apt/sources.list.d/sqlkit
+  sudo add-apt repository ppa:toobaz/sqlkit
   sudo apt-get update
  
-and install it via::
+and install it as follows (this installs python drivers for PostgreSQL and
+Mysql as well)::
 
-  apt-get install python-sqlkit
+  sudo apt-get install python-sqlkit python-psycopg2 python-mysqldb
 
 I'll try to keep this updated as the official package
 

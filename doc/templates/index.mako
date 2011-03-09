@@ -3,7 +3,6 @@
 
 <%def name="extrahead()">
     <link rel="stylesheet" href="${pathto('_static/tour.css', 1)}" type="text/css" media="screen" />
-##    <link rel="stylesheet" href="${pathto('_static/AnythingSlider/css/page.css', 1)}" type="text/css" media="screen" />
     <link rel="stylesheet" href="${pathto('_static/AnythingSlider/css/anythingslider.css', 1)}" type="text/css" media="screen" />
     <link rel="stylesheet" href="${pathto('_static/AnythingSlider/css/theme-cs-portfolio.css', 1)}" type="text/css" media="screen" />
     
@@ -46,14 +45,33 @@
      <div class="sphinxsidebarwrapper">
       <div class="news">
 
-      <h2>Release 0.9 is out</h2>
+      <h2>Release 0.9.3 is out</h2>
       
-      I'm happy to announce that on September, 8 2010 I released 
-      <a href="${pathto('misc/download', )}#download">version 0.9</a> of
+      I'm happy to announce that on March, 3 2011 I released 
+      <a href="${pathto('misc/download', )}#download">version 0.9.3</a> of
 	sqlkit that adds a huge quantity of new features and bug fixes (see 
-	<a href="/download/Changelog">changelog</a>). This release works
-      with sqlalchemy 0.5 and 0.6 that is now a fully supported release.
-	
+	<a href="/download/Changelog">changelog</a>). 
+
+	Support for images and enum-like fields, improved MVC support, added
+	possibility to duplicate a record, improved hook support are among the
+	most important changes.
+
+     </div>
+
+      <div class="news">
+
+      <h2>Next Milestone: Printing</h2>
+      
+      Stay tuned: the next release of sqlkit will be released shortly and will add
+      printing capability to sqlkit via 
+      <a href="http://oootemplate.argolinux.org">a template system based
+      OpenOffice</a>.
+
+      It will be possible to print record or tables by just adding a
+      template written in <tt>.odt</tt> format.
+
+      
+
      </div>
      </div>
 
@@ -87,7 +105,7 @@
 	Key points are the way to design form layout with relationship,
 	completions, validation and filter capabilities that can be done w/o
 	any effort. More than 80 examples ready to use!
-      <a href="${pathto('sqlkit/tour')}">Read more...</a>
+      <a href="${pathto('misc/tour')}">Read more...</a>
    </div>
 </div>
 
@@ -96,8 +114,8 @@
   <li><div class="slider-text">
       <img src="${pathto('_static/images/sqledit_setup.png', 1)}" alt="" />
       The application 'sqledit' can open a great variety of different
-      backends as it's base on sqlalchemy: PostgreSQL, MySQL, sqlite,
-      firebug... You can use it to browse your data or to debug an application
+      backends as it's base on SqlAlchemy: PostgreSQL, MySQL, sqlite,
+      firebird... You can use it to browse your data or to debug an application
       you're developing. The rich configuration capability of sqledit can
       make it grow in a gentle way toward a true application what starts as
       a simple shortcut to some data.
@@ -118,7 +136,8 @@
   </li>
   <li><div class="slider-text">
        <img src="${pathto('_static/images/table.png', 1)}" alt="" />
-       Each database table can be opened in table mode. Each column can be
+       Each database table can be opened in table or mask mode. The image 
+       shows table mode where each column can be
        sorted and it's field can be added to a filter tool.
       </div>
   </li>

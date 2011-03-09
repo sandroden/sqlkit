@@ -2,7 +2,7 @@
    :maxdepth: 3
 
    sqlkit/contents
-   sqlkit/tour
+   misc/tour
 
 .. toctree::
    :maxdepth: 3
@@ -20,5 +20,5 @@
 .. toctree::
    :maxdepth: 1
 
-   sqlkit/tutorial
+   misc/tutorials
 

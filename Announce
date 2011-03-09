@@ -1,21 +1,24 @@
-                      ANNOUNCE: sqlkit 0.9.1
+                      ANNOUNCE: sqlkit 0.9.3
 
-                        September, 28 - 2010
+                        March, 3 - 2011
 
 
-I'm happy to announce release 0.9.1 of sqlkit package for python.
+I'm happy to announce release 0.9.3 of sqlkit package for python.
 
   http://sqlkit.argolinux.org/
 
 This release
 ------------
 
-This release covers 2 main points:
+This is a release with a great number of changes, the main important ones are:
 
-  * sqlkit: a very flexible customization system has been introduced that
-            lets you create a sqlkit program in a ridiculous amount of lines
-
-  * the firebird backend support was tested and added 
+     * Added image/file fields
+     * Added enum-like field
+     * Correctly implemented duplication of records
+     * Removed dependancy on glade
+     * Moved toward a better MVC pattern
+     * Fixed behaviour of hooks that allows better interaction/customization
+     * Many bug fixes
 
 The python package
 ------------------

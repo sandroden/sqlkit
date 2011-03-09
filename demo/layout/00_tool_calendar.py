@@ -1,9 +1,9 @@
 """Bricks/toolbutt calendar
 
-icons can beadded directly to the IconFactory and called as a normal stock
+icons can be added directly to the IconFactory and called as a normal stock
 image as in tb=cal
 
-I Have ont understood how to use themes, thought
+I Have not understood how to use themes, thought
 """
 import os
 from sqlkit import layout

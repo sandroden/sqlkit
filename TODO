@@ -30,20 +30,7 @@ Ideas list
 * Study wich are the bottleneck that slow it down with remote db server on a
   slow line.
 
-
-SqlTable
-===========
- 
-* microwidget per nascondere e rimettere colonne in alto a destra sopra barra
-  scorrimento (pietro 3). Molti esempi in rete, uno fra i tanti sunbird, sia
-  nell'elenco eventi che nell'elenco task.
-
-* pensare come editare i campi a più righe o con righe molto lunghe. Occorre
-  creare un popup con il testo e poi sincronizzarlo. Hai idee migliori?
-  (Pietro 6)
-
-Vorrei anche aggiungerlo come elemento opzionale in un elemento layout, in
-modo da poter avere on oggetto (dizionario?) che mi rappresenta lo stato del
-layout e che se lo modifico mi cambia o stato del layout.
-
+* Add a way to inform user of all items deemed to deletetion when a record
+  is deleted, i.e.: all records that would be deleted by the database or by
+  sqlalchemy itself due to delete-orphan option.
 

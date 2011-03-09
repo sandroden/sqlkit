@@ -1,3 +1,56 @@
+0.9.3
+
+	* table/mask: added possibility to duplicate a record
+        * fields: added
+	        * images as different render options of a varchar field in
+	          model column definition
+                * enum as  varchar field as render option of varchar or
+	          integer field
+		* now fields liste to changes in the model and react
+	          possibly changing the widget, this is an important step
+	          toward a better MVC support
+	* completion: added possibility to add completion to fields that
+	        * normally don't have it (e.g.: numbers)
+		* fix dynamic completion also in enum mode
+		* fixed an invalidation error of the fey key
+        * hooks: * on_change_value now requires one more arg and is issued als
+	           for masks when the value is changed (not when initially set)
+                 * generally more consistent and tested hooks
+        * package: fix in the package that adds demo 
+        * docs: * completely new home page, with slider of features
+                * updated docs on how to install as now all is much easier with
+                  pygtk-all-in-one installer
+                * improved documentation on widgets and fields
+	* dependancies: removed dependancy on glade!!! Now gtk.Builder is used
+        * widgets: 
+                 * fixed a useless dialog that prompted to save when not
+                   needed
+		 * improvement on some error messages
+		 * added signal record-new
+        * table: added api:
+                 * added edited_row_model_path
+		 * get_selected_row()
+		 * get_obj_at_path()
+		 * hide_filed(field_name)
+		 * added possibility to add a row as child of another (when
+	           TreeStore is choosen)
+	* totals: 
+                 * now method sum has model, path and iter also to be able to
+	           build special totals of just some hierarchical level
+		 * added signal 'computed' when the sum is computed
+	* miniwidgets: added signal set-value
+	* layout: 
+	        * now date widget does not expand anymore in useless
+	          mode. defaults to 10 chars
+		* added tooltip do date popup to sy how to abort (Esc!)
+		* fk_key now uses an icon in the widget rather that an arrow
+	          separately
+        * demo: * added option -i that drops you in an interactive ipython
+	          shell if you have it installed
+	* filters: added possibility to filter a foreign key on it's real
+	          value rather than default behaviour of remote value
+        * table browsers: fixed table reflection that was not working ny more
+
 sqlkit - 0.9.2.2 - Feb 1 2011
 	setup: setup tuning in MANIFEST that didn't add demo and tests
 	

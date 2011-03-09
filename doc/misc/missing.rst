@@ -13,10 +13,6 @@ the following:
   - good system to warn people of all orphans when deleting
   - integrate a permission system
 
-moreover I'd like to investigate what kind of integration I can add for
-using PyGtkMVC_
-
-
 I'd be happy to accept any suggestion, patch or contributed feature on
 anything that can make sqlkit more powerful.
 

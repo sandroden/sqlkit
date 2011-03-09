@@ -666,7 +666,7 @@ h1 {
     font-size: 13px;
     margin: 12px -20px 20px 0;
     overflow: hidden;
-    width: 960px;
+    width: 770px;
     color: #a91819;
 }
 .box {
@@ -675,7 +675,7 @@ h1 {
     float: left;
     /* height: 118px; */
     margin: 0 19px 0 0;
-    padding: 9px 0 0 21px;
+    padding: 9px 0 0 10px;
     /* background-color: #ddd; */
     -moz-border-radius: 8px;
     background: url("../_static/sfondo-box.png") no-repeat scroll 0 0 transparent; 

@@ -4,6 +4,10 @@
  Sqledit - the standalone program to browse and edit data
 ==========================================================
 
+Sqledit is an application that can be used by anybody without any
+programming skill. Basically is just needs a target database that 
+can be fed throught a GUI or on the command line.
+
 .. image:: ../img/sqledit.png
    :align: right
    :scale: 40
@@ -15,11 +19,11 @@
    :class: preview
 
 
-Sqledit is a data editor/browser. It may be called on a database and it will
-present a list of all tables that can be selected for editing (choosing 
-:ref:`mask` or :ref:`table`) or for introspection.
+Sqledit is a data editor/browser. At startup it will present a list of all
+tables that can be selected for editing (choosing :ref:`mask` or
+:ref:`table`) or for introspection.
 
-It has several options:
+When run from command line it offers several options:
 
 .. docusage:: ../../bin/sqledit
    :verbatim:
@@ -34,6 +38,8 @@ connection or disable it via a checkbox on the right of the entry.
 The autoconnect mode is really nice but you may experiment hangs till a
 connection timeout if you write a wrong host name.
 
+Since database urls are not nice to write, you can store data in a
+configuration file and call nick names instead.
 
 .sqledit
 ==========
@@ -59,6 +65,13 @@ overwrite.
 In this case 'brasile' shares all options with '2giugno'  but overwrites
 field_list.
 
+Even if you don't want to program in Python you may want to add
+configuration in a more rich way that allowed in ``.sqledit/nicks``. That
+can add for example layout information or information on the relations
+between tables so that a Mask can present a ecord and data related to it.
+
+Let's say that that's a gentle introduction to programming with sqlkit...
+
 .. automodule:: sqlkit.misc.conf
 
 schema browser
@@ -75,7 +88,7 @@ Options
 
 Calling `sqledit` from a command line under a Linux system with bash
 completion you can benefit from the completion that will look for completion
-in the .sqledit/nicks file and will suggest some common url (postgres://,
+in the .sqledit/nicks file and will suggest some common url (postgresql://,
 sqlite://...) 
 
 When primary keys are numeric you probably don't want/need to see them, you

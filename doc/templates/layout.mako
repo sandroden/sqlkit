@@ -170,7 +170,7 @@ ${self.footer()}
 <%def name="testata()">
 <div id="header">
 
-	<div class="logo"><a href="${pathto('sqlkit/tour')}">
+	<div class="logo"><a href="${pathto('misc</tour')}">
        <img src="${pathto('_static/sqlkit.png', 1)}" align="left"  alt="Logo" border="0"/></a>
         </div>
 	<div id="description">Acces to db made easy</div>
@@ -242,8 +242,20 @@ ${self.footer()}
                   title="Sqledit GUI" 
                   >Sqledit GUI</a></li>
 
-            <li><a class="fNiv" href="${pathto('sqlkit/tutorial',)}" title="Tutorial" 
-                  >Tutorial</a></li>
+            <li><a class="fNiv" href="${pathto('misc/tutorials')}" title="Tutorials" 
+                  >Tutorials</a>
+	       <ul>
+		 <li ><a href="${pathto('misc/sqledit')}"
+		       title="Sqledit - the application" 
+		       >Sqledit - the application</a></li>
+		 <li ><a href="${pathto('misc/tour')}"
+		       title="Sqlkit - the features'tour"
+		       >Sqlkit - features' tour</a></li>
+		 <li ><a href="${pathto('misc/sqledit')}"
+		       title="Sqledit - the application" 
+		       >Installing instructions</a></li>
+		</ul> 
+            </li>
 
             <li><a class="fNiv" href="${pathto('layout/contents')}" title="Layout"
                   >Layout</a></li>

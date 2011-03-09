@@ -37,7 +37,7 @@ extensions = ['sphinx.ext.autodoc', 'docusage']
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['templates']
 templates_map = {
-    'sqlkit/tour' : 'tour.mako' ,
+    'misc/tour' : 'tour.mako' ,
     'misc/sqledit' : 'tour.mako' ,
     }
 template_bridge = "builder.builders.MakoBridge"

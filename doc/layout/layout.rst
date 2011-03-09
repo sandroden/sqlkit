@@ -9,7 +9,7 @@ A GUI description language - purpose
    this page needs to be reviewed. While it should be mostly correct
    when ported to rest format has not been reviewed.
    
-   A complete tour of what can be done is available in Tour.py
+   A complete tour of what can be done is available in the demo
 
 
 The class Layout is a class that understands a GUI description
@@ -30,7 +30,7 @@ it produces xml for gtk.Builder.
 
 .. note:: gtk.Builder
 
-   up to 0.9.1 sqlkit used glade. This dependancy has been dropped in favor
+   up to 0.9.2 sqlkit used glade. This dependancy has been dropped in favor
    of gtk.Builder that is directly available in standard GTK installation.
 
 Care must be used to create names for the elements that are unique in

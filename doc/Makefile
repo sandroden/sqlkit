@@ -1,6 +1,6 @@
 # Makefile for Sphinx documentation
 #
-VER           = 0.9.2.2
+VER           = 0.9.3
 DEBVER        = 0.8.6.1-1
 WINVER        = 0.8.6.1
 LNXVER        = 0.9-rc1
@@ -38,7 +38,7 @@ html:
 	@perl -i -p -e 's/WINVER/$(WINVER)/g' .build/html/misc/download.html
 	@perl -i -p -e 's/LNXVER/$(LNXVER)/g' .build/html/misc/download.html
 	@perl -i -p -e 's/VER/$(VER)/g' .build/html/misc/download.html
-	@perl -i -p -e 's/VER/$(VER)/g' .build/html/sqlkit/tutorial.html
+	@perl -i -p -e 's/VER/$(VER)/g' .build/html/misc/tutorial.html
 
 pickle:
 	mkdir -p .build/pickle .build/doctrees
@@ -102,5 +102,5 @@ css:
 	cp ./static/AnythingSlider/css/page.css ./.build/html/_static/AnythingSlider
 
 refresh:
-	touch sqlkit/tour.rst contents.rst misc/download.rst misc/sqledit.rst
+	touch misc/tour.rst misc/download.rst misc/sqledit.rst
 	make

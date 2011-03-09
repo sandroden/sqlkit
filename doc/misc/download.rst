@@ -54,18 +54,17 @@ Read the detailed instructions in the tutorial: :ref:`windows-install`.
 Debian/Ubuntu
 =============
 
-If you want a bleeding edge sqlkit version you'd better install from the
-package distribution. On a Debian lenny or Ubuntu >= 9.04 you can prepare
-dependencies::
+On a Debian lenny or Ubuntu lucid (10.04) and probably also others >= 9.10
+you can prepare dependencies::
 
-  sudo wget http://apt.argolinux.org/sqlkit.list --output-document=/etc/apt/sources.list.d/sqlkit.list
-  sudo wget -O-  http://apt.argolinux.org/dists/lenny/public.key| sudo apt-key add -
+  sudo echo deb http://ppa.launchpad.net/toobaz/sqlkit/ubuntu lucid main > /etc/apt/sources.list.d/sqlkit
+  sudo add-apt repository ppa:toobaz/sqlkit
   sudo apt-get update
  
-and install it as follows (this installs python drivers for PposgreSQL and
+and install it as follows (this installs python drivers for PostgreSQL and
 Mysql as well)::
 
-  apt-get install python-sqlkit python-psycopg2 python-mysqldb
+  sudo apt-get install python-sqlkit python-psycopg2 python-mysqldb
 
 I'll try to keep this updated as the official package
 
