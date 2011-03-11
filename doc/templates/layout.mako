@@ -242,8 +242,9 @@ ${self.footer()}
                   title="Sqledit GUI" 
                   >Sqledit GUI</a></li>
 
-            <li><a class="fNiv" href="${pathto('misc/tutorials')}" title="Tutorials" 
-                  >Tutorials</a>
+            <li><a class="fNiv" href="${pathto('misc/tutorials')}"
+                  title="Support & tutorials" 
+                  >Support & Tutorials</a>
 	       <ul>
 		 <li ><a href="${pathto('misc/sqledit')}"
 		       title="Sqledit - the application" 

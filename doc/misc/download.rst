@@ -54,19 +54,8 @@ Read the detailed instructions in the tutorial: :ref:`windows-install`.
 Debian/Ubuntu
 =============
 
-On a Debian lenny or Ubuntu lucid (10.04) and probably also others >= 9.10
-you can prepare dependencies::
-
-  sudo echo deb http://ppa.launchpad.net/toobaz/sqlkit/ubuntu lucid main > /etc/apt/sources.list.d/sqlkit
-  sudo add-apt repository ppa:toobaz/sqlkit
-  sudo apt-get update
- 
-and install it as follows (this installs python drivers for PostgreSQL and
-Mysql as well)::
-
-  sudo apt-get install python-sqlkit python-psycopg2 python-mysqldb
-
-I'll try to keep this updated as the official package
+Packages are available, read the :ref:`instructions <ubuntu-install>` on how
+to add the repository.
 
 Sqlkit on  Pypi 
 =================
@@ -90,11 +79,6 @@ No one of these command will install the backend driver (psycopg2 for
 postgresql, MySQLdb for mysql,...) that you are supposed to
 install by yourself. Sqlite is included in Python stadard library.
 
-
-Mailing list
-============
-
-You can join our mailing list_
 
 Localization
 ============

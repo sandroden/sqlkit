@@ -1,16 +1,17 @@
                       ANNOUNCE: sqlkit 0.9.3
 
-                        March, 3 - 2011
+                          March, 3 - 2011
 
 
-I'm happy to announce release 0.9.3 of sqlkit package for python.
+I'm happy to announce release 0.9.3 of sqlkit package for Python.
 
   http://sqlkit.argolinux.org/
 
 This release
 ------------
 
-This is a release with a great number of changes, the main important ones are:
+This is a release with a great number of changes and new features, 
+the main important ones are:
 
      * Added image/file fields
      * Added enum-like field
@@ -56,17 +57,16 @@ Main features of sqlkit:
   * very easy way to set defaults
   * possibility to display totals of numeric fields
   * any possible sql constraint can be attached to a Mask or a 
-    Table. It can be expressed a s a normal sqlalchemy query or with 
+    Table. It can be expressed as a normal sqlalchemy query or with 
     django-like syntax
-  * sqledit: python script to edit db
+  * sqledit: the application to edit db
   
 
 Sqlkit is based on:
 -------------------
   * python (>= 2.5)
   * PyGtk	
-  * Sqlalchemy (>= 0.5)
-  * glade
+  * Sqlalchemy (>= 0.5.4)
   * python-dateutil
   * babel (localization)
   * you db driver of choice
@@ -74,12 +74,12 @@ Sqlkit is based on:
 Dowload & more:
 ---------------
 
-  * Download:     http://sqlkit.argolinux.org/sqlkit/download.html
+  * Download:     http://sqlkit.argolinux.org/misc/download.html
                   easy_install sqlkit
   * Source:       hg clone http://hg.argolinux.org/py/sqlkit
   * Google Group: http://groups.google.it/group/sqlkit/
   * Translation:  https://launchpad.net/sqlkit
-  * Tutorial:     http://sqlkit.argolinux.org/sqlkit/tutorial.html
+  * Tutorial:     http://sqlkit.argolinux.org/misc/tutorials.html
   * Changelog:    http://sqlkit.argolinux.org/download/Changelog
-  * License:      GNU GPL
+  * License:      GNU GPLv3
   

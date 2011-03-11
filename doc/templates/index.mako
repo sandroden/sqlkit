@@ -3,12 +3,12 @@
 
 <%def name="extrahead()">
     <link rel="stylesheet" href="${pathto('_static/tour.css', 1)}" type="text/css" media="screen" />
-    <link rel="stylesheet" href="${pathto('_static/AnythingSlider/css/anythingslider.css', 1)}" type="text/css" media="screen" />
-    <link rel="stylesheet" href="${pathto('_static/AnythingSlider/css/theme-cs-portfolio.css', 1)}" type="text/css" media="screen" />
+    <link rel="stylesheet" href="http://apt.argolinux.org/.sk/anythingslider.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="http://apt.argolinux.org/.sk/theme-cs-portfolio.css" type="text/css" media="screen" />
     
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script> 
     <script type="text/javascript" src="${pathto('_static/AnythingSlider/js/jquery.easing.1.2.js', 1)}"></script>
-    <script type="text/javascript" src="${pathto('_static/AnythingSlider/js/jquery.anythingslider.min.js', 1)}"></script>
+    <script type="text/javascript" src="http://apt.argolinux.org/.sk/jquery.anythingslider.min.js"></script>
 
     <script type="text/javascript">
         function formatText(index, panel) {

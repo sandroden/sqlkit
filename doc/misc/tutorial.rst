@@ -22,19 +22,25 @@ According to you operating system and setup you may find the very easy way
 for you. You may not event need to know which are the dependancies that are
 explained below for the curious ones.
 
+.. _ubuntu-install:
+
 Installing under Debian/Ubuntu
 -------------------------------
 
-If you have a Debian-derived distro at least Debian etch of Ubuntu 9.10 you
-can install as follows:
+On Ubuntu lucid (10.04) and probably also others >= 9.10
+you can prepare dependencies::
 
-  sudo echo deb http://ppa.launchpad.net/toobaz/sqlkit/ubuntu lucid main > /etc/apt/sources.list.d/sqlkit
-  sudo add-apt repository ppa:toobaz/sqlkit
-  sudo apt-get update
+  sudo add-apt-repository ppa:toobaz/sqlkit
  
+On Debian::
+
+  echo deb http://ppa.launchpad.net/toobaz/sqlkit/ubuntu lucid main | sudo tee /etc/apt/sources.list.d/sqlkit.list
+  sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 39012CF8
+
 and install it as follows (this installs python drivers for PostgreSQL and
 Mysql as well)::
 
+  sudo apt-get update
   sudo apt-get install python-sqlkit python-psycopg2 python-mysqldb
 
 I'll try to keep this updated as the official package
@@ -159,7 +165,7 @@ and 3 buttons:
 
     postgres://localhost/dbname     # sqlalchemy 5
     postgresql://localhost/dbname   # sqlalchemy 6+
-    sqledit:///db.sqlite
+    sqlite:///db.sqlite
     mysql://name:pass@host/dbname
   
   .. note::
@@ -426,7 +432,7 @@ sandro
 
 
 
-.. _`download page`: http://sqlkit.argolinux.org/sqlkit/download.html
+.. _`download page`: http://sqlkit.argolinux.org/misc/download.html
 .. _`pygtk site`: http://www.pygtk.org
 .. _`sqlalchemy site`: http://www.sqlalchemy.org
 .. _page: http://sqlkit.argolinux.org/sqlkit/filters.html#module-sqlkit.misc.datetools

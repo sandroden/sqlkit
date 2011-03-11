@@ -21,7 +21,7 @@ A typical usage can be::
   from sqlkit.widgets import SqlTable, SqlMask
   from sqlkit import DbProxy
   
-  db = DbProxy(engine='sqledit:///movies.sqlite')
+  db = DbProxy(engine='sqlite:///movies.sqlite')
   t = SqlMask('movie', dbproxy=db, single=True)
      
 that will pop up an editor for the record. Filter panel will be available

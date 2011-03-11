@@ -8,9 +8,6 @@ In this example a table is displayed with gerarchical grouping
 """
 
 from sqlkit.widgets.table.modelproxy import Header, ModelProxy
-from sqlkit.db import proxy
-
-db = proxy.DbProxy(bind="sqlite:///model/db.sqlite")
 
 class MyModel(ModelProxy):
 
