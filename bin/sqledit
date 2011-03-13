@@ -89,7 +89,7 @@ class ConnectionDialog(object):
     URL_SQLKIT='http://sqlkit.argolinux.org/misc/sqledit.html'
     GENERAL_MSG = _("""
     You can indicate the database you want to connect to
-    using an URI in the form as:
+    using an URI in the form of:
     <b>postgres://localhost/dbname</b>
     <b>sqlite:///dbname</b>
     or using password and username:
@@ -145,7 +145,7 @@ class ConnectionDialog(object):
         self.l.widgets['l=errors'].props.wrap = True
         info_auto_try = _("""Try continuosly to connect.
         Nice and usefull but may cause temporary blocks
-        if you write an inexistent hostname
+        if you enter an inexistent hostname
         """)
         self.l.widgets['c=auto'].set_tooltip_text(info_auto_try)
         self.l.widgets['c=auto'].set_active(True)
@@ -157,8 +157,8 @@ class ConnectionDialog(object):
         self.l.widgets['e=url'].connect('activate', self.activate_cb)
         self.set_error_msg('')
         self.add_demo()
-        tip = _('If you write a wrong hostname\nthe application may hang some seconds ' + \
-                'till the natural network timeout. \nUncheck the flag on the right ti disable this feature')
+        tip = _('If you enter a wrong hostname\nthe application may hang some seconds ' + \
+                'till the natural network timeout. \nUncheck the flag on the right to disable this feature')
         self.l.widgets['e=url'].set_tooltip_text(tip)
 
     def changed_cb(self, entry):

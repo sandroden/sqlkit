@@ -355,7 +355,7 @@ class SqlWidget(gobject.GObject):
         try:
             self.show(show)
         except exc.DBAPIError, e:
-            msg = _("Sorry, problems onnecting to remote db. Original error was: \n\n%s" % e)
+            msg = _("Sorry, problems connecting to remote db. Original error was: \n\n%s" % e)
             raise exc.ConnectionError(msg)
             
         if not relationship_leader:

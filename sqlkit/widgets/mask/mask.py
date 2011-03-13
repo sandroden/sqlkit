@@ -534,7 +534,7 @@ class SqlMask(sqlwidget.SqlWidget):
             if response == gtk.RESPONSE_CANCEL:
                 return
         elif ask:
-            msg = _("Do you want to copy all data in a new record?")
+            msg = _("Do you want to copy all data to a new record?")
             response = self.dialog(type='ok-cancel', text=_(msg) % o2m_list,
                                    icon='gtk-dialog-question')
             if response == gtk.RESPONSE_CANCEL:

@@ -856,7 +856,7 @@ class ColumnMenuProxy(object):
         item.connect('activate', self.reload_sort_cb, field_name, 'ASC' )
         if field.persistent:
             item.set_tooltip_text(_("Sort on this column reloading from the database, " + \
-                                    "you can used 's' to sort locally"))
+                                    "you can use 's' to sort locally"))
         else:
             item.set_tooltip_text(_("Sort on this column locally (w/o touching the database)"))
             

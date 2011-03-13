@@ -113,7 +113,7 @@ OP_MSGID = {
     '!~*' : _('Negation of match case insensitive'),
     '=' : _('Equal'),
     '!=' : _('Not equal'),
-    '>' : _('Greater then (after than)'),
+    '>' : _('Greater than (after than)'),
     '>=' : _('Greater or equal'),
     '<' : _('Less than (before then)'),
     '<=' : _('Less than or equal'),

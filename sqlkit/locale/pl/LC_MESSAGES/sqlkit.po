@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2010-05-20 14:11+0200\n"
-"PO-Revision-Date: 2011-03-03 12:40+0100\n"
+"PO-Revision-Date: 2011-03-13 00:08+0100\n"
 "Last-Translator: Sebastian Majka <sebastianmajka@tlen.pl>\n"
 "Language-Team: pl <LL@li.org>\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && "
@@ -132,7 +132,7 @@ msgid "Wrong time format"
 msgstr "Niepoprawny format czasu"
 
 #: sqlkit/fields.py:1336
-#, fuzzy, python-format
+#, fuzzy
 msgid "Value cannot be NULL"
 msgstr "wartość '%s' nie może być użyta dla pola '%s'"
 
@@ -616,12 +616,16 @@ msgid "incomplete date format"
 msgstr "niekompletny format daty"
 
 #: sqlkit/widgets/common/sqlwidget.py:358
-#, python-format
+#, fuzzy, python-format
 msgid ""
-"Sorry, problems onnecting to remote db. Original error was: \n"
+"Sorry, problems connecting to remote db. Original error was: \n"
 "\n"
 "%s"
 msgstr ""
+"Błąd podczas zapisu do bazy danych: \n"
+"czy 'zapisujesz jako nowy' istniejący już rekord?\n"
+"błąd w oryginale: \n"
+"%s"
 
 #: sqlkit/widgets/common/sqlwidget.py:625
 msgid "Hiding field is only supported for Tables"
@@ -832,7 +836,7 @@ msgstr ""
 
 #. TIP Modify menu entry in the mask to reread a single record from database
 #: sqlkit/widgets/mask/mask.py:264
-#, fuzzy, python-format
+#, fuzzy
 msgid "Refresh this record"
 msgstr ""
 "Usunąć ten rekord?\n"
@@ -844,7 +848,7 @@ msgid "Reread this record from db"
 msgstr "Aktualnie pierwszy rekord"
 
 #: sqlkit/widgets/mask/mask.py:268
-#, fuzzy, python-format
+#, fuzzy
 msgid "Delete this record"
 msgstr ""
 "Usunąć ten rekord?\n"
@@ -874,7 +878,7 @@ msgid "Primary key (%s) didn't change. Refusing to save as new"
 msgstr "Klucz główny (%s) nie zmienił się. Odmowa dla zapisu nowego"
 
 #: sqlkit/widgets/mask/mask.py:537
-msgid "Do you want to copy all data in a new record?"
+msgid "Do you want to copy all data to a new record?"
 msgstr ""
 
 #: sqlkit/widgets/mask/mask.py:585 sqlkit/widgets/table/table.py:982
@@ -1126,20 +1130,4 @@ msgstr "Pliki csv"
 #, python-format
 msgid "No current obj for field '%s' in %s"
 msgstr "Nie ma obiektu dla pola '%s' in %s"
-
-#~ msgid ""
-#~ "Error while writing to the database. Possible causes: you are saving \n"
-#~ "an already existent record or deleting"
-#~ " a record that is referenced by "
-#~ "other records. \n"
-#~ "Original error was: \n"
-#~ "%s"
-#~ msgstr ""
-#~ "Błąd podczas zapisu do bazy danych. Możliwe przyczyny: zapisujesz \n"
-#~ "istniejący rekord lub usuwasz rekord, do którego odnoszą się inne. \n"
-#~ "Błąd w oryginale: \n"
-#~ "%s"
-
-#~ msgid "Missing data"
-#~ msgstr "Brakujące dane"
 

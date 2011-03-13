@@ -8,19 +8,16 @@ msgstr ""
 "Project-Id-Version: sqlkit 0.8.5-pre\n"
 "Report-Msgid-Bugs-To: sandro@e-den.it\n"
 "POT-Creation-Date: 2009-01-07 19:38+0100\n"
-"PO-Revision-Date: 2011-03-03 12:51+0200\n"
+"PO-Revision-Date: 2011-03-13 00:08+0100\n"
 "Last-Translator: Sandro <sandro@e-den.it>\n"
 "Language-Team: sqlkit\n"
-"Language: it\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Virtaal 0.5.2\n"
 "Generated-By: Babel 0.9.4\n"
 
 #: bin/sqledit.py:87
-#, fuzzy
 msgid "Connection setup"
 msgstr "Setup della connessione"
 
@@ -135,7 +132,6 @@ msgid "Wrong time format"
 msgstr "Formato di tempo errato"
 
 #: sqlkit/fields.py:1336
-#, fuzzy, python-format
 msgid "Value cannot be NULL"
 msgstr "Il valore non può essere NULLO"
 
@@ -151,11 +147,11 @@ msgstr "La tabella %s non ha una chiave primaria. Non è possibile editarla."
 
 #: sqlkit/layout/dateedit.py:190
 msgid "Press Esc to close or double click a date to select it"
-msgstr ""
+msgstr "Premi 'Esc' per chiudere o fai doppio click su una data per selezionarla"
 
 #: sqlkit/layout/fk_entry.py:25
 msgid "Find allowed values (Control-Enter/Shift-Enter)"
-msgstr ""
+msgstr "Trova i valori permessi (Control-Invio/Maiusc-Invio)"
 
 #: sqlkit/layout/image_widget.py:142
 msgid ""
@@ -618,7 +614,7 @@ msgstr "Formato data incompleto"
 #: sqlkit/widgets/common/sqlwidget.py:358
 #, python-format
 msgid ""
-"Sorry, problems onnecting to remote db. Original error was: \n"
+"Sorry, problems connecting to remote db. Original error was: \n"
 "\n"
 "%s"
 msgstr ""
@@ -867,8 +863,8 @@ msgstr ""
 "come nuovo\""
 
 #: sqlkit/widgets/mask/mask.py:537
-msgid "Do you want to copy all data in a new record?"
-msgstr ""
+msgid "Do you want to copy all data to a new record?"
+msgstr "Vuoi copiare tutti i dati in un nuovo record?"
 
 #: sqlkit/widgets/mask/mask.py:585 sqlkit/widgets/table/table.py:982
 #, python-format
@@ -1094,8 +1090,7 @@ msgstr "L'input eccede la lunghezza massima per il campo %s (%s)"
 
 #: sqlkit/widgets/table/table.py:1284
 msgid "Unsaved data prevent opening a Mask to show the (unsaved) record"
-msgstr ""
-"Dati non salvati bloccano l'apertura della maschera per mostrare il record"
+msgstr "Dati non salvati bloccano l'apertura della maschera per mostrare il record"
 
 #: sqlkit/widgets/table/table.py:1407
 #, python-format
@@ -1121,26 +1116,3 @@ msgstr "file csv"
 msgid "No current obj for field '%s' in %s"
 msgstr "Nessun oggetto corrente per il campo '%s' in %s"
 
-#~ msgid "Disabling printing for lack of \"uno\" module"
-#~ msgstr "Disabilito la stampa per mancanza del modulo 'uno'"
-
-#~ msgid "Template name (%s) cannot be same as output_path (%s)"
-#~ msgstr "Il nome del template (%s) non può essere identico ad 'output_path' (%s)"
-
-#~ msgid "The following variable are missing in the context"
-#~ msgstr "Le seguenti variabili mancano dal contesto."
-
-#~ msgid ""
-#~ "\n"
-#~ "A possible error is that I don't see 'Table1' in your template\n"
-#~ "but I see %s "
-#~ msgstr "Un possibile errore è che non vedo 'Table1' nel tuo template ma vedo %s"
-
-#~ msgid "Print to file"
-#~ msgstr "Stampa su file"
-
-#~ msgid "Pdf files"
-#~ msgstr "file pdf"
-
-#~ msgid "Odt files"
-#~ msgstr "file odt"
