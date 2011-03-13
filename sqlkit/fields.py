@@ -1075,6 +1075,9 @@ class TimeField(DateField):
 
     def clean_value(self, value, obj=None):
 
+        if value in (None, ''):
+            return None
+
         if isinstance(value, basestring):
             try:
                 value = dates.parse_time(value)
@@ -1105,6 +1108,10 @@ class TimeTZField(TimeField):
         self.TZ = None
         
     def clean_value(self, value, obj=None):
+
+        if value in (None, ''):
+            return None
+
         if isinstance(value, basestring):
             value = dates.parse_time(value)
         return value
@@ -1331,11 +1338,8 @@ class EnumField(Field):
         """
         Check if value is in the admitted values
         """
-        if value is None:
-            if not self.nullable:
-                raise exc.ValidationError(_("Value cannot be NULL"))
-            else:
-                return value
+        if value in (None, ''):
+            return None
         if not value in self.keys:
             raise exc.ValidationError(_("Value '%s' is not accepted") % value)
         return value
@@ -1513,6 +1517,9 @@ class ImageField(VarcharField):
         """
         strip self.base_dir from the file if present
         """
+        if value in (None, ''):
+            return None
+
         if value:
             return re.sub('^%s/?' % self.base_dir, '', self.get_save_path(value, obj=obj))
         else:
