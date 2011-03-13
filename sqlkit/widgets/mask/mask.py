@@ -711,7 +711,7 @@ class SqlMask(sqlwidget.SqlWidget):
         if not records and pk:
             records = self.get_by_pk(pk)
             
-        self.records = records
+        self.records = records or []
         # it's handy to set set_records([table.current])
         # that may also be empty
         if records and not records == [None]: 

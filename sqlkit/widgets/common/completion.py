@@ -664,15 +664,17 @@ class SimpleCompletion(object):
 
         ## edit table referenced as foreign key
         if self.master.is_fkey(field_name):
-            item = StockMenuItem(label=_("Edit the referenced table in 'table' mode"), stock='gtk-leave-fullscreen')
-            item.connect('activate', edit_foreign_key_table, (self.master, field_name, 'table'))
+            item = StockMenuItem(label=_("Edit the referenced table in 'table' mode"),
+                                 stock='gtk-leave-fullscreen')
+            item.connect('activate', edit_foreign_key_table, self.master, field_name, 'table')
             label = _("Edit the table from which admitted values are taken in 'table' mode")
             item.set_tooltip_text(label)
             menu.append(item)
 
         if self.master.is_fkey(field_name):
-            item = StockMenuItem(label=_("Edit the referenced table in 'mask' mode"), stock='gtk-leave-fullscreen')
-            item.connect('activate', edit_foreign_key_table, (self.master, field_name, 'mask'))
+            item = StockMenuItem(label=_("Edit the referenced table in 'mask' mode"),
+                                 stock='gtk-leave-fullscreen')
+            item.connect('activate', edit_foreign_key_table, self.master, field_name, 'mask')
             label = _("Edit the table from which admitted values are taken in 'mask' mode")
             item.set_tooltip_text(label)
             menu.append(item)
@@ -1278,7 +1280,7 @@ def debug_liststore(listore):
         print listore.get(iter,0), listore.get(iter,1), listore.get(iter,3)
         j += 1
 
-def edit_foreign_key_table(wdg, (master, field_name, mode)):
+def edit_foreign_key_table(wdg, master, field_name, mode):
     """open a SqlMask to edit the table referenced by this ForeignKey"""
     ## FIXME  - works only with dbproxy
 
