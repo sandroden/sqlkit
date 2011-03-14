@@ -1,25 +1,17 @@
-                      ANNOUNCE: sqlkit 0.9.3
+                      ANNOUNCE: sqlkit 0.9.3.1
 
-                          March, 3 - 2011
+                          March, 13 - 2011
 
 
-I'm happy to announce release 0.9.3 of sqlkit package for Python.
+I'm happy to announce release 0.9.3.1 of sqlkit package for Python.
 
   http://sqlkit.argolinux.org/
 
 This release
 ------------
 
-This is a release with a great number of changes and new features, 
-the main important ones are:
+This release adds the german translation and a couple of minor fixes
 
-     * Added image/file fields
-     * Added enum-like field
-     * Correctly implemented duplication of records
-     * Removed dependancy on glade
-     * Moved toward a better MVC pattern
-     * Fixed behaviour of hooks that allows better interaction/customization
-     * Many bug fixes
 
 The python package
 ------------------

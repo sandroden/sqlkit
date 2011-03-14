@@ -45,11 +45,13 @@
      <div class="sphinxsidebarwrapper">
       <div class="news">
 
-      <h2>Release 0.9.3 is out</h2>
+      <h2>Release 0.9.3.1 is out</h2>
       
-      I'm happy to announce that on March, 3 2011 I released 
-      <a href="${pathto('misc/download', )}#download">version 0.9.3</a> of
-	sqlkit that adds a huge quantity of new features and bug fixes (see 
+      I'm happy to announce that on March, 13 2011 I released 
+      <a href="${pathto('misc/download', )}#download">version 0.9.3.1</a> of
+	sqlkit that adds the german localization as ong as a couple of minor
+      fixes. The previous release 0.9.3
+      added a huge quantity of important new features.
 	<a href="/download/Changelog">changelog</a>). 
 
 	Support for images and enum-like fields, improved MVC support, added

@@ -1,4 +1,11 @@
-0.9.3
+sqlkit - 0.9.3.1 - Mar 11 2011
+
+	* localization: added german localization
+	* mask: fix in set_records() when pk option was used and no record
+	        found
+	* fields: enum field clean_value should not validate NOT NULL
+	
+sqlkit - 0.9.3 - Mar 3 2011
 
 	* table/mask: added possibility to duplicate a record
         * fields: added
