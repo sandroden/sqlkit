@@ -946,7 +946,7 @@ class ColumnMenuProxy(object):
     def add_total_cb(self, menu_item, field_name):
 
         try:
-            self.master.totals.add_total(field_name)
+            self.master.totals.add_total(field_name, quiet=True)
         except AttributeError:
             # mmh this is from filter panel!
             from . import totals

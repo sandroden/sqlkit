@@ -28,7 +28,7 @@ from datetime import date, datetime
 import gtk
 import gobject
 
-from sqlkit import debug as dbg
+from sqlkit import debug as dbg, _
 from sqlkit.misc import utils
 from sqlkit.widgets.common import sqlwidget
 
@@ -140,6 +140,7 @@ class Totals(gobject.GObject):
         self.hide_total = kw.get('hide_total', False)
         for field_name in field_names:
             if not self.table.get_field_type(field_name) in sqlwidget.NUMBERS:
+                self.table.sb(_("Field '%s' is not numeric!!!" % field_name))
                 if not quiet:
                     raise NotImplementedError("%s is not a number" % field_name)
                 return
