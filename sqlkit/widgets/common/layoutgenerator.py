@@ -117,7 +117,7 @@ class LayoutGenerator (object):
 
         if self.master.is_mask():
             if not lay:
-                lay = "\n".join(self.master.field_list)
+                lay = self.create_default_layout()
             self._look_for_explicit(lay)
             self.layout = self._parse_and_complete(lay)
             
@@ -387,5 +387,17 @@ class LayoutGenerator (object):
                 self.fields_in_layout[field_name] = "%s=%s" % (
                     self.get_edit_string(mod), field_name)
 
+    def create_default_layout(self, rows=20):
+        """
+        Create a default layout.
+        Don't display more that 20 attributes in a column.
 
+        """
+        n_fields = len(self.master.field_list)        
+        columns = int(n_fields / rows) + 1
+        lay = []
+        for i in range(0, n_fields, columns):
+            lay += [" ".join(self.master.field_list[i:i+columns])]
+
+        return "\n".join(lay)
 
