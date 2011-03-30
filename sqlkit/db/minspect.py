@@ -26,8 +26,14 @@ SA_TYPE_MAP =  {
     sqlalchemy.types.Text  : str, 
     sqlalchemy.types.UnicodeText  : str, 
     sqlalchemy.types.Boolean  : bool, 
-    sqlalchemy.types.Binary : str, # ????
+    sqlalchemy.types.Binary : str, # ????  TODO: this is probably useless
+                                   # ???? but w/o you get errors browsing a db that uses them...
     }
+
+try:
+    SA_TYPE_MAP[sqlalchemy.types.LargeBinary] = str
+except AttributeError:
+    pass # sqlalchemy < 0.6
 
 PROPERTIES = properties
 class MissingPrimaryKeyError(Exception): pass
