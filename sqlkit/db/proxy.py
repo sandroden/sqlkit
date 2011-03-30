@@ -222,10 +222,14 @@ def table2mapper(table):
 
 def get_default_class(table):
     """
-    Create on the fly a proper class. 'table' is a sqlalchemy.Table object
+    Create on the fly a proper class.
+    utils.get_description() is used to set appropriate __str__ representation
+
+    :param table: a sqlalchemy.Table object
     """
     name = "%s_class" % (table.name)
     format = utils.get_description(table, metadata=table.metadata, attr='format')
+
     def __str__(self):
         try:
             return format % vars(self)
@@ -241,6 +245,7 @@ def get_default_class(table):
 
     name = name.encode('utf-8')
     X = type(name, (object,), {'__repr__' : __repr__, '__str__' : __str__})
+
     return X
 
 

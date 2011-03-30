@@ -202,7 +202,8 @@ class TableDescr(object):
 
     It has the same default as :attr:`format` above.
     """
-
+    # FIXME: here description is an alias for search_field, in completion
+    # description is an alias for format_field...
     pattern = '%\((\w+)\)'
     def __init__(self, table, format=None, pk=None, metadata=None, register=True):
         """
@@ -301,8 +302,6 @@ class TableDescr(object):
         ## first time we meet this table  -> inspect w/ autoload
         return Table(self.table_name, self.metadata, autoload=True)
 
-        
-
     def guess_description(self):
         """look if a description (format) field is defined, if not use introspection
         return the description
@@ -343,9 +342,13 @@ def get_description(table, metadata=None, attr='attrs'):
     """
     return info on table according to data already available
     or guessing by introspection of the table
+
+    :param table: the sa table or table_name for which we search the description
+    :returns: 'attrs' or what defined by 'attr' keywrord arg
     """
 
     table_name = get_table_name(table)
+
     try:
         return getattr(tables[table_name], attr)
     except MissingMetadata, e:
@@ -357,6 +360,9 @@ def get_description_from_sqlkit(table, metadata=None):
     """
     get the description to use in completion and __str__ from database
     table _sqlkit_table
+    
+    :param table: the sa table or table_name for which we search the description
+    :returns: a tuple (search_field, format) that may be (None, None)
     """
     if isinstance(table, Table):
         metadata = table.metadata

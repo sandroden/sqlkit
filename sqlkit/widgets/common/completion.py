@@ -911,6 +911,8 @@ class FkeyCompletion(SimpleCompletion):
         self.description = get_description(self.table, attr='description')
         self.search_field = self.description
         self._attrs = get_description(self.table, attr='attrs', metadata=self.master.metadata)
+        if self.search_field not in self._attrs:
+            self._attrs += [self.search_field]
         self.format    = get_description(self.table, attr='format', metadata=self.master.metadata)
         self._order_by = [self.table_lookup.c[self.description]]
         self.widget = widget
