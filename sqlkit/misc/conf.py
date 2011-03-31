@@ -112,8 +112,7 @@ from sqlalchemy import Table, Column, ForeignKey
 from sqlalchemy.types import *
 from sqlalchemy import orm, sql
 
-from sqlkit.db.utils import Descr
-from sqlkit.db import proxy
+from sqlkit.db import utils, proxy
 
 Base = declarative_base()
 

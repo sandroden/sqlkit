@@ -269,7 +269,10 @@ def start_demo():
         execfile('demo.py', {})
 
 def open_db(exc=False):
-    global db
+    global db, models
+
+    db = None
+
     if getattr(opts,'nick_dir', None):
         os.chdir(opts.nick_dir)
         sys.path.append(opts.nick_dir)
@@ -287,6 +290,10 @@ def open_db(exc=False):
                         models.Base.metadata.create_all()
                 except Exception, e:
                     print e
+                    pass
+                try:
+                    db = models.db
+                except AttributeError:
                     pass
 
             if opts.hooks:
@@ -313,7 +320,7 @@ def program():
     # Don't move this import before parsing opt gtk_debug, it won't work!
     from sqlkit.misc import table_browser
     
-    global opts
+    global opts, tb
 
     if args:
         if re.search('://', args[0]):
@@ -358,13 +365,13 @@ def program():
                          single = False
                      else:
                          single = True
-                     t = table_browser.open_sqlwidget(t, single, opts, db)
+                     tb = table_browser.open_sqlwidget(t, single, opts, db)
              elif opts.configure:
-                 t = table_browser.sqlkit_model(dbproxy=db, single=True)
+                 tb = table_browser.sqlkit_model(dbproxy=db, single=True)
 
              else:
                  title = session.bind.url.database
-                 C = table_browser.TableBrowser(db, title=title, opts=opts, x='quit')    
+                 tb = table_browser.TableBrowser(db, title=title, opts=opts, x='quit')    
 
         except OperationalError, e:
             if opts.debug:
