@@ -103,13 +103,13 @@ True
 >>> q = djs.django2query(query, User.__mapper__, first_name='ed',
 ...                      addresses__provider__provider__icontains='google', OR=True)
 >>> compare(q, query.filter(or_(User.first_name.op('=')('ed'),
-...                              Provider.provider.ilike('%google.com%'))).join(['addresses','provider']))
+...                              Provider.provider.ilike('%google.com%'))).join('addresses','provider'))
 True
 
 >>> q = djs.django2query(query, User.__mapper__, first_name='ed',
 ...                      addresses__provider__country__country__icontains='ITA')
 >>> compare(q, query.filter(and_(User.first_name.op('=')('ed'),
-...           Country.country.ilike('%ITA%'))).join(['addresses','provider','country']))
+...           Country.country.ilike('%ITA%'))).join('addresses','provider','country'))
 True
 
 ## django2sqlalchemy w/ mapper
