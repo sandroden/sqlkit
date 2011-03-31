@@ -1,3 +1,22 @@
+sqlkit - 0.9.3.2 - Mar 31 2011
+
+	* demo: - now the schema is more standard and can be fed to other db
+ 	          backend (but postgresql requires TRUE/FALSE and not 1/0)
+		- the db is created using tempdir
+	* mask: default layout now automatically sqitches to multicolumn
+	        if table has many fields
+	* types: work around to Bytea fields that where not present in
+	        0.5.*
+	* completion: fix the case in which a search_field is defined in
+	        _sqlkit_field. previously this rased an error on
+	        completion.
+	* totals: fix: pressing 't' on the table on a non -numeric field
+	        must not try to generate a total
+	* setup: now creates sqledit suitable for each OS (Mainly now
+	        windows has its own one, the others where already ok)
+	* sqledit: added option --create-tables, to create table after
+	        reading the models
+	
 sqlkit - 0.9.3.1 - Mar 11 2011
 
 	* localization: added german localization
