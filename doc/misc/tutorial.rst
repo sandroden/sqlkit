@@ -73,13 +73,13 @@ still use the Pygtk all-in-one installer (thanks to Dieter Verfaillie):
 Installig under MacOS
 ---------------------
 
-You can install and run Sqlkit under MacOS also, installing PyGTK from
-MacPorts. 
+You can install and run Sqlkit under MacOS also. You can use the all-in-one
+boundle_ (thanks to Anders F. Björklund) or install from MacPorts. 
 
 Dependencies
 ------------
 
-Sqlkit depends on several packages:
+Sqlkit depends on the following packages:
 
 :Python: sqledit it's a Python script. It should work with python 2.4 and
          following. But if you used 2.4 be sure to add the driver for sqlite
@@ -443,3 +443,4 @@ sandro
 .. _Python: http://www.python.org/download/
 .. _pygtk-all-in-one: http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.22/ 
 .. _sqlkit-VER.zip: http://sqlkit.argolinux.org/download/sqlkit-VER.zip
+.. _boundle: http://afb.users.sourceforge.net/zero-install/PyGTK.pkg
