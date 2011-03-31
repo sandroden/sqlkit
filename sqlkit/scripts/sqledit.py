@@ -37,6 +37,7 @@ usage: %prog [options] [[url|nick] table]
    -i, --ipython: if ipython is present it opne an ipython shell
    -C, --create-templates=mode: create in one of these modes: layout,
          hooks, programm, models, all
+   , --create-tables: Create all tables in models define in metadata (models.metadata or Base.metadata)
 """
 
 import sys
@@ -279,6 +280,15 @@ def open_db(exc=False):
         else:
             if opts.models:
                 import models
+                try:
+                    if opts.create_tables:
+                        if not models.Base.metadata.bind:
+                            models.Base.metadata.bind = opts.url
+                        models.Base.metadata.create_all()
+                except Exception, e:
+                    print e
+                    pass
+
             if opts.hooks:
                 import hooks
             if opts.layout:
