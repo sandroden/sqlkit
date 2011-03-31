@@ -1,7 +1,11 @@
+# DISCLAIMER: this file is not mantained. I don't use elixir
+
 import elixir
 from sqlkit.db import proxy
 
-db = proxy.DbProxy(engine="sqlite:///db.sqlite")
+from model import engine
+
+db = proxy.DbProxy(engine=engine)
 __metadata__ = db.metadata
 #__session__ = db.get_session()
 

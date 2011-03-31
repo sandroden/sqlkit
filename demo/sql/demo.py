@@ -54,7 +54,8 @@ import model
 class MissingExampleError(Exception): pass
 
 def init_db():
-    with closing(sqlite3.connect('model/db.sqlite')) as db:
+
+    with closing(sqlite3.connect(model.DB_FILE)) as db:
         with open('model/schema.sql', 'r') as schema:
             db.cursor().executescript(schema.read())
         db.commit()
@@ -104,9 +105,14 @@ class DemoSql(Demo):
             raise MissingExampleError("The example was not found")
     
     
-if not opts.existent_db and os.path.exists('model/db.sqlite'):
-    os.remove('model/db.sqlite')
-if not os.path.exists('model/db.sqlite'):
+if not opts.existent_db and os.path.exists(model.DB_FILE):
+    try:
+        os.remove(model.DB_FILE)
+    except OSError:
+        print "No way to remove file", model.DB_FILE
+        # No write permission - no problem, a temporary db will be created
+        pass
+if not os.path.exists(model.DB_FILE):
     init_db()
     
 d = DemoSql(xml=False, debug=True)
@@ -151,7 +157,7 @@ if __name__ == '__main__':
         try:
             gtk.set_interactive(True)
         except AttributeError:
-            print "This version of gtk does'n not have 'set_interactive', sorry."
+            print "This version of gtk doesn't have 'set_interactive', sorry."
             sys.exit(1)
         try:
             import IPython
@@ -164,4 +170,4 @@ if __name__ == '__main__':
     else:
         print "Try option -i to try sqlkit interactively"
         gtk.main()
-
+    

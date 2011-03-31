@@ -23,7 +23,7 @@ from sqlkit.widgets import SqlTable
 from sqlkit.db import proxy
 import model
 
-db = proxy.DbProxy(bind="sqlite:///model/db.sqlite")
+db = proxy.DbProxy(bind="sqlite:///%s" % model.DB_FILE)
 
 
 t = SqlTable('movie',    dbproxy=db, order_by='title', )

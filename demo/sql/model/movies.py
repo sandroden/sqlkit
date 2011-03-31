@@ -1,4 +1,5 @@
 import os
+import tempfile
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Table, Column, ForeignKey
@@ -9,7 +10,8 @@ from sqlkit.db.utils import Descr
 from sqlkit.db import proxy
 
 Base = declarative_base()
-engine = "sqlite:///%s/db.sqlite" % os.path.abspath(os.path.dirname(__file__))
+DB_FILE = os.path.join(tempfile.gettempdir(), 'db-%s.sqlite' % os.environ.get('USERNAME'))
+engine = "sqlite:///%s" % DB_FILE
 db = proxy.DbProxy(engine=engine, metadata=Base.metadata)
 
 

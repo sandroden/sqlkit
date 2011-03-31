@@ -1,3 +1,7 @@
+## DISCLAIMER: this file is not normally maintained
+
+import os
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Table, Column, String, Date, Integer, Float, \
      Boolean, Numeric, ForeignKey, Unicode
@@ -5,10 +9,9 @@ from sqlalchemy.orm import relation
 
 from sqlkit.db.utils import Descr
 from sqlkit.db import proxy
-import os
+from model import engine
 
 Base = declarative_base()
-engine = "sqlite:///%s/db.sqlite" % os.path.abspath(os.path.dirname(__file__))
 db = proxy.DbProxy(engine=engine, metadata=Base.metadata)
 
 movie_casting = Table('movie_casting' , Base.metadata, autoload=True)

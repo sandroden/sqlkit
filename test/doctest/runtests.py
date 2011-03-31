@@ -5,11 +5,18 @@ import sys
 import doctest
 import sqlite3
 from contextlib import closing
+import tempfile
 
 import babel
 
+pdir = os.path.dirname(os.getcwd())
+ppdir = os.path.dirname(pdir)
+sys.path.insert(0,pdir)    
+sys.path.insert(0,ppdir)    
+
+DB_FILE = os.path.join(tempfile.gettempdir(), 'db-%s.sqlite' % os.environ.get('USERNAME'))
 DB_SCHEMA = '../../demo/sql/model/schema.sql'
-DB_FILE = '../../demo/sql/model/db.sqlite'
+
 def init_db():
     if os.path.exists(DB_FILE):
         os.remove(DB_FILE)
