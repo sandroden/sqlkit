@@ -1300,10 +1300,11 @@ class SqlTable(sqlwidget.SqlWidget):
         self.select_path(obj=obj)
         mask.set_records([obj])
         def update_table_treeview(mask, table):
-            # emitting a 'row-changed', forces the update of the treeview but 
+            # emitting a 'row-changed', forces the update of the treeview 
             model = self.modelproxy.modelstore
             path = table.get_selected_path()
-            model.emit('row-changed', path, model.get_iter(path))
+            if path: # seems selection sometimes is lost
+                model.emit('row-changed', path, model.get_iter(path))
         mask.connect('record-saved', update_table_treeview, self)
 
         ## signals to keep selection in sync 
