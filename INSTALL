@@ -1,4 +1,4 @@
-Dependancies
+Dependencies
 ============
 
 Sqlkit depends on:
@@ -6,7 +6,6 @@ Sqlkit depends on:
   * Python
   * Pygtk
   * sqlalchemy (>=0.5)
-  * glade2
   * dateutils 
   * setuptools
   * the correct driver for your database of choice
@@ -15,15 +14,20 @@ Sqlkit depends on:
 Installation
 ============
 
-please read detail instructions on the web:
+Please read how to install in the web pacge of the installation tutorial
+where tips for the different operative systems are collected:
 
-  http://sqlkit.argolinux.org/sqlkit/download.html
+  http://sqlkit.argolinux.org/misc/tutorial.html
 
+as any python package, provided you have pygtk already installed, you can
+install by just running:
 
-you may also find interesting information on the installation part of the
-tutorial:
+  python setup.py install
 
-  http://sqlkit.argolinux.org/sqlkit/tutorial.html
+it will install the library and a script called 'sqledit'. 
+
+You can make a tour of the featueres from the 'demo' button of sqledit or
+going to demo/sql subdir of the source package and running ./demo.py
 
 Completion
 ==========

@@ -51,7 +51,7 @@ if sys.argv[1] == 'install':
 try:
    import sqlalchemy
 except ImportError:
-   REQUIRES = ['sqlalchemy >= 0.5', ]
+   REQUIRES = ['sqlalchemy >= 0.5.4', ]
 
 try:
    import babel
@@ -86,20 +86,24 @@ except ImportError:
    cmdclass = {}
    
    
-setup(name='sqlkit',
-      version=version,
-      description=__doc__,
-      author='Alessandro Dentella',
-      author_email='sandro@e-den.it',
-      url='http://sqlkit.argolinux.org/',
-      install_requires=REQUIRES,
-      packages = find_packages('.'),
-      scripts=['bin/sqledit'],
-#      package_dir = {'' : 'sqlkit'},
-#      package_data = {'sqlkit' : ['locale']},
-      classifiers= classifiers.split('\n'),
-      include_package_data=True,      
-      zip_safe=False,
-      cmdclass=cmdclass,
-     )
+setup(
+   name='sqlkit',
+   version=version,
+   description=__doc__,
+   author='Alessandro Dentella',
+   author_email='sandro@e-den.it',
+   url='http://sqlkit.argolinux.org/',
+   install_requires=REQUIRES,
+   packages = find_packages('.'),
+   classifiers= classifiers.split('\n'),
+   include_package_data=True,      
+   zip_safe=False,
+   cmdclass=cmdclass,
+   entry_points = {
+      'gui_scripts': [
+         'sqledit = sqlkit.scripts.sqledit:main',
+         ]
+      }
+   
+   )
 

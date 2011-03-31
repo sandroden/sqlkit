@@ -63,7 +63,8 @@ from sqlalchemy.exceptions import OperationalError
 from sqlalchemy.engine import url
 
 import sqlkit
-from sqlkit import _
+from sqlkit import fields, DbProxy, _
+from sqlkit.misc import conf, optionparse
 
 RESPONSE_DEMO = 1
 DEMO_DIRS = [
@@ -297,7 +298,11 @@ def open_db(exc=False):
             sys.exit(1)
         return False
 
-def main():
+def program():
+
+    # Don't move this import before parsing opt gtk_debug, it won't work!
+    from sqlkit.misc import table_browser
+    
     global opts
 
     if args:
@@ -361,45 +366,45 @@ def main():
     
 
 ###### Program
+def main():
+    global opts, args
 
-from sqlkit.misc import optionparse
-opts, args = optionparse.parse(__doc__)
+    opts, args = optionparse.parse(__doc__)
 
-if opts.version:
-    print sqlkit.__version__
-    sys.exit(0)
+    if opts.version:
+        print sqlkit.__version__
+        sys.exit(0)
 
-if opts.gtk_debug:
-    from sqlkit import debug as dbg
-    dbg.trace_class(ok='SqlTable|SqlWidget|SqlMask|Completion')
-    but = 'set_fkey_descr|(lookup|set|get)_value|[el]ne_cb|match_func' + \
-       '|cell_default_cb|cell_bool_cb|_lookup_value|is_fkey'
-    dbg.trace_function(exclude=but)
-    dbg.debug(True, gtk=True)
+    if opts.gtk_debug:
+        from sqlkit import debug as dbg
+        dbg.trace_class(ok='SqlTable|SqlWidget|SqlMask|Completion')
+        but = 'set_fkey_descr|(lookup|set|get)_value|[el]ne_cb|match_func' + \
+           '|cell_default_cb|cell_bool_cb|_lookup_value|is_fkey'
+        dbg.trace_function(exclude=but)
+        dbg.debug(True, gtk=True)
+        import sqlkit
+        
+    program()
 
-import sqlkit
-from sqlkit import debug as dbg, layout, fields, DbProxy
-from sqlkit.misc import conf, optionparse, table_browser
+    if opts.ipython:
+        try:
+            gtk.set_interactive(True)
+        except AttributeError:
+            print "This version of gtk does'n not have 'set_interactive', sorry."
+            sys.exit(1)
+        try:
+            import IPython
+            from IPython.Shell import IPShellEmbed
+            ipshell = IPShellEmbed([])
+            ipshell()
+        except ImportError, e:
+            print "Interactive demo needs ipython. Quitting."
+    else:
+        try:
+            gtk.main()
+        except KeyboardInterrupt:
+            pass
 
-#from sqlkit.db import proxy
+if __name__ == '__main__':
 
-main()
-
-if opts.ipython:
-    try:
-        gtk.set_interactive(True)
-    except AttributeError:
-        print "This version of gtk does'n not have 'set_interactive', sorry."
-        sys.exit(1)
-    try:
-        import IPython
-        from IPython.Shell import IPShellEmbed
-        ipshell = IPShellEmbed([])
-        ipshell()
-    except ImportError, e:
-        print "Interactive demo needs ipython. Quitting."
-else:
-    try:
-        gtk.main()
-    except KeyboardInterrupt:
-        pass
+    main()

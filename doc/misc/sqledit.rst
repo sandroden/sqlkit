@@ -25,7 +25,7 @@ tables that can be selected for editing (choosing :ref:`mask` or
 
 When run from command line it offers several options:
 
-.. docusage:: ../../bin/sqledit
+.. docusage:: ../../sqlkit/scripts/sqledit.py
    :verbatim:
 
 If called without argument it will present a connection dialog:
