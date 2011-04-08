@@ -14,3 +14,4 @@ SQLKit
    browsing
    editing
    advanced/contents
+   ../printing/contents
