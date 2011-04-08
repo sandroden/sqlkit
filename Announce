@@ -1,6 +1,6 @@
-                      ANNOUNCE: sqlkit 0.9.3.1
+                      ANNOUNCE: sqlkit 0.9.3.2
 
-                          March, 13 - 2011
+                          March, 31 - 2011
 
 
 I'm happy to announce release 0.9.3.1 of sqlkit package for Python.
@@ -10,8 +10,10 @@ I'm happy to announce release 0.9.3.1 of sqlkit package for Python.
 This release
 ------------
 
-This release adds the german translation and a couple of minor fixes
-
+An option as been added to sqledit to create tables if the model is
+provided. Mask Sqlwidget now automatically switches to a multicolumn layout
+if no layout is provided and many fields are to be displayed. The setup now
+creates a sqledit executable for Windows as well
 
 The python package
 ------------------
