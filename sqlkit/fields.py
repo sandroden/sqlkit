@@ -459,6 +459,13 @@ class Field(gobject.GObject):
         from sqlkit.widgets.mask import miniwidgets
         from sqlkit.widgets.table import tablewidgets
 
+        ## when set_widget is used to replace 
+        try:
+            obj, hid = self._ids['gtkwidget']
+            obj.disconnect(hid)
+        except KeyError:
+            pass
+            
         ## widget can be a string in which case it it searched for in
         ## sqlkit.widgets.mask.miniwidgets
         ## this avoids importing miniwidgets at import time and delays it to this function
@@ -472,7 +479,8 @@ class Field(gobject.GObject):
         if gtkwidget:
             ## used in SqlMask
             self.widget = Widget(gtkwidget, self)
-            gtkwidget.connect('destroy', self.destroy)
+            self._ids['gtkwidget'] = (gtkwidget,
+                                      gtkwidget.connect('destroy', self.destroy))
             self.connect('value-set', self.widget.set_value_cb)
         else:
             ### used in SqlTable
@@ -484,7 +492,7 @@ class Field(gobject.GObject):
 
         for obj, hid in self._ids.values():
             obj.disconnect(hid)
-        del self._ids
+        self._ids.clear()
         
         try:
             del self.widget

@@ -190,7 +190,7 @@ class Widget(gobject.GObject):
         
     def set_value_cb(self, field, value, initial=False):
 
-        self.set_value(value, initial=initial)        
+        self.set_value(value, initial=initial)
 
     def set_value(self, value, shown=False, initial=False):
         """
