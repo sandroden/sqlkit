@@ -225,6 +225,8 @@ ${self.footer()}
 				 >Relationships</a></li>
 			 </ul>
 		       </li>
+		 <li ><a href="${pathto('sqlkit/printing')}" title="Printing" 
+		       ><span>Printing</span></a></li>
 		 <li ><a href="${pathto('sqlkit/advanced/contents')}" title="Advanced configuration" 
 		       >Advanced configuration</a>
 			 <ul> 

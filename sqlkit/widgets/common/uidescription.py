@@ -20,6 +20,10 @@ GENERAL_UI = '''
         <placeholder name="Save-as">
         </placeholder>
 
+        <separator name="sepprint" />
+        <placeholder name="Print-ph">
+        </placeholder>
+
         <separator name="sep2" />
         <placeholder name="Export">
         </placeholder>
@@ -47,6 +51,19 @@ GENERAL_UI = '''
     </placeholder>
     <toolitem  action="New" />
   </toolbar>
+'''
+
+PRINT_UI = '''
+  <menubar name="Main">
+     <menu action="File">
+       <placeholder name="Print-ph" >
+          <menu action="Print">
+          </menu>
+       </placeholder>  
+     </menu>
+
+  </menubar>
+
 '''
 
 TABLE_UI = '''
@@ -129,8 +146,6 @@ BROWSE_UI = '''
   </toolbar>
 
 '''
-
-PRINT_UI = ""
 
 DEBUG_UI = '''
   <menubar name="Main">

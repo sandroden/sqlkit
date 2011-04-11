@@ -40,6 +40,7 @@ from sqlkit.layout import map_labels, get_label
 from sqlkit.db import minspect, defaults
 from sqlkit.widgets.common import completion, sqlfilter, layoutgenerator, dialogs
 from sqlkit.misc.utils import Container, str2list
+from sqlkit.misc import printing
 
 NUMBERS = (int, float, decimal.Decimal)
 
@@ -366,6 +367,7 @@ class SqlWidget(gobject.GObject):
         self.query = self.session.query(self.mapper)
         self.defaults = defaults.Defaults(self.tables, metadata=self.metadata, local=True)
         self.order_by = order_by
+        self.printing = printing.PrintTool(self)
 
     def _get_session(self, session):
         """
@@ -817,6 +819,7 @@ class SqlWidget(gobject.GObject):
             ])
 
         self.actiongroup_print.add_actions([
+            ('Print', gtk.STOCK_PRINT, None ),            
             ])
 
         self.actiongroup_debug.add_actions([
@@ -839,6 +842,7 @@ class SqlWidget(gobject.GObject):
         self.ui_manager.add_ui_from_string(uidescription.GENERAL_UI)
         self.ui_browse_id = self.ui_manager.add_ui_from_string(uidescription.BROWSE_UI)
         self.ui_debug_id = self.ui_manager.add_ui_from_string(uidescription.DEBUG_UI)
+        self.ui_print_id = self.ui_manager.add_ui_from_string(uidescription.PRINT_UI)
 
         self.ui_manager.insert_action_group(self.actiongroup_general, 10)
         self.ui_manager.insert_action_group(self.actiongroup_insert, 11)
@@ -1679,9 +1683,14 @@ class SqlWidget(gobject.GObject):
 ####### Dialog
     def dialog(self, type='ok-cancel', text='', title='', layout=None, icon='gtk-dialog-question'):
         """
-        pop a dialog modal and transient, type can be:
-        ok, ok-cancel, yes-no, yes-no-cancel, ok-apply-cancel
-        text uses markup
+        pop a dialog modal and transient
+
+        :param type: ok, ok-cancel, yes-no-cancel, ok-apply-cancelx
+        :param text: the text that should be used (uses markup)
+        :param title: the title of the dialog
+        :param layout: a possible layout.Layout specification
+        :param icon: the icon (defaults to 'gtk-dialog-question')
+
         """
         if not layout:
             layout = 'i=%s:6 l=message' % icon
@@ -2172,6 +2181,7 @@ class SqlWidget(gobject.GObject):
             return '<%s: %s>' % (self.__class__.__name__, self.tables)
         except AttributeError, e:
             return '<%s>' % (self.__class__.__name__)
+
 
 
 
