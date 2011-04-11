@@ -30,14 +30,47 @@ or adding variable to it or adding formatting functions (e.g. to transform numbe
 into monetary format), that can be easily done connecting to
 :ref:`context-ready signal <psignals>`.
 
-The default way of filling the context wraps each object into an :ref:`ObjectProxy <obj_proxy>`
+The default way of filling the context wraps each object into an :class:`ObjectProxy``
 that uses :ref:`fields` to present each value in a human readable format, that means also that
 it tries hard to follow foreign keys and substitute values retrieved by :ref:`description`.
 
+Tables: iteration on records
+----------------------------
+
+Oootemplate offers a powerfull way to iterate over lines via the ``++`` syntax.
+It requires you to define a table's name matching an entry in the context. For
+SqlTables the default name for such table is Table1 and all records in the
+table end up there.
+
+For SqlMask the default behaviour is to add an entry in the context for
+each related attribute (eg: *movies* for the *director*'s mask). Each such entry
+holds all the related records as per sqlelchemy class definition. In the director/movie
+example the default context would be::
+
+   context = {
+      'obj' : <Director: my displayed director>,
+      'movies' : [(<Movie: movie1>, <Movie: movie2>)]
+   }
+
+It's up to you to prepare the openoffice file to be used as template with a
+table named ``movies``: you do that interactively editing oowriter's table attributes.
+If you prefere to have to have a different table's name or you need to customize
+the content of the record, you simply connet to 'context-ready' signal and prepare the
+context directly.
+
+ObjProxy
+--------
+
+What stated above is only partially true... each object is wrapped in another object that
+allows you to write ``direct_id`` but really returns what you would really want: a human
+representation of the id exactly as returned by ``field.lookup_value(id)``.
+
+API
+---
 
 .. autoclass:: PrintTool
    :members: __init__, add_menu_entry, prepare_context, template_dir, server, port, output_dir,
-             remote_output_dir, pdf_viewer, odt_viewer, add_to_table
+             remote_output_dir, pdf_viewer, odt_viewer, add_to_table, obj_proxy_class 
 
 .. autoclass:: ObjProxy
    :members: 
@@ -73,8 +106,9 @@ class DownloadException(Exception): pass
 
 class PrintTool(gobject.GObject):
     """
-    a print obj that is able to create a default context to handle to
-    oootemplate 
+    A print obj that is able to create a default context to handle to
+    oootemplate.
+
     """
 
     template_dir = None
@@ -91,7 +125,7 @@ class PrintTool(gobject.GObject):
     """the output dir when server is remote as viewed from client (may be an URL)"""
     
     remote_output_dir = None
-    """the output dir when server is remote as viewed from server (a local file for the server)"""
+    "the output dir when server is remote as viewed from server (a local file for the server)"
     
     pdf_viewer = get_viewer('pdf')
     """the preferred viewer for pdf files"""
@@ -106,6 +140,18 @@ class PrintTool(gobject.GObject):
     proxies = {}
     """the proxies passed to urllib.FancyURLopener (see urllib module documentation)"""
     
+    obj_proxy_class = None
+    """The :class:`ObjProxy` to use to wrap objects. Can be changed any time. You can
+    customize it so that __getattr__ can return fancy personalization of the attributes"""
+
+    preserve_styles = False
+    """Open the template with the ``preserve_styles`` option. It's  mode that allows to have
+    a mix of styles in any singl cell. """
+
+    retrieve = True
+    """Determine if the file must  be retrieved so as to be opened locally or should be
+    be opened remotedly (default True)"""
+
     __gsignals__ = {
         'context-ready' : (gobject.SIGNAL_RUN_LAST,
                            gobject.TYPE_BOOLEAN,
@@ -137,13 +183,15 @@ class PrintTool(gobject.GObject):
             self.master.sb(_('Disabling printing for lack of "uno" module'), seconds=20)
             self.disabled = True
             self.hide()
-
+        self.obj_proxy_class = ObjProxy
         self.look_for_automatic_templates()
         
     def hide(self):
+        "Hide the print meny entries"
         self.master.actiongroup_print.set_visible(False)
         
     def show(self):
+        "Show the print menu entries"
         self.master.actiongroup_print.set_visible(True)
         self.master.actiongroup_print.set_sensitive(True)
         
@@ -205,7 +253,7 @@ class PrintTool(gobject.GObject):
         """
         create a context from master and call template
 
-        :param menuItem:   the entry that was clicked
+        :param menuItem:   the menu entry that was clicked
         :param tempate_name: the template_path to be used on the server
         :param mode:  currently ``pdf`` or ``odt``
         :param server: the name or ip of the openoffice server
@@ -224,7 +272,7 @@ class PrintTool(gobject.GObject):
         ## Context
         context = oo.Context({})
         if self.master.is_mask():
-            context['obj'] = ObjProxy(self.master.current, self.master)
+            context['obj'] = self.obj_proxy_class(self.master.current, self.master)
         else:
             self.add_to_table(context, 'Table1', self.master.records)
 
@@ -235,7 +283,8 @@ class PrintTool(gobject.GObject):
         self.emit('context-ready', context, os.path.split(template_path)[1], self.master)
 
         ## Template & output
-        templ = oo.Template(unicode(template_path), server=server, port=port)
+        templ = oo.Template(unicode(template_path), server=server, port=port,
+                            preserve_styles=self.preserve_styles)
         missing_keys = templ.render(self.prepare_context(context))
         if missing_keys:
             self.debug_missing(missing_keys, templ, context)
@@ -263,9 +312,9 @@ class PrintTool(gobject.GObject):
 
         templ.save_as(remote_output_path)
         templ.close()
-
+        
         ## Show Result
-        self.show_result(remote_output_path, local_output_path)
+        self.show_result(remote_output_path, local_output_path, server)
 
     def get_remote_output_path(self, output_path, server):
         """
@@ -276,24 +325,25 @@ class PrintTool(gobject.GObject):
             return "%s%s%s" % (self.remote_output_dir, self.server_dir_separator, output_path)
         return output_path
 
-    def show_result(self, remote_output_path, local_output_path):
+    def show_result(self, remote_output_path, local_output_path, server):
         """
         Open the resulting file with the best possible viewer/editor
         """
-        ## NOTE: please read the note in function get_viewer to understand why I don't
-        ## use 'start' under windows for remote viewing.
-
-        if self.output_dir and  re.search('http://', self.output_dir):
+        # check that the file exists both if remote...
+        if not server in ('localhost', '127.0.0.1') and \
+        self.output_dir and  re.search('http://', self.output_dir):
             remote_path = "%s/%s" % (self.output_dir, os.path.split(remote_output_path)[1])
             opener = Opener(self.proxies)
             try:
-                opener.retrieve(remote_path, local_output_path)
-            except DownloadException, e:
-                self.master.dialog(text=str(e), type="ok")
+                f = opener.open(remote_path)
+            except DownloadException:
+                self.master.dialog(text="Missing file %s" % remote_path, type="ok")
                 return
-
-        if not os.path.exists(local_output_path):
-            self.master.dialog(text="Manca il file '%s'" % local_output_path, type="ok")
+            if self.retrieve:
+                opener.retrieve(remote_path, local_output_path)
+        # or local 
+        elif not os.path.exists(local_output_path):
+            self.master.dialog(text="Missing file '%s'" % local_output_path, type="ok")
             return
 
         self.open_local_file(local_output_path)
@@ -327,7 +377,7 @@ class PrintTool(gobject.GObject):
                It contains 2 keys:
 
                * 'obj': the current object for mask and normally *None* for tables
-                     (unless an object was edited, in which case it will pooint to that object)
+                     (unless an object was edited, in which case it will point to that object)
                * 'Table1' : the list of record currently loaded in this sqlwidget
         
         You can add any keys but remember to use the correct syntax for tables (a dict
@@ -351,7 +401,7 @@ class PrintTool(gobject.GObject):
                       Defaults to True
         """
         
-        new_list = [ObjProxy(o, master or self.master) for o in obj_list]
+        new_list = [self.obj_proxy_class(o, master or self.master) for o in obj_list]
         if reset:
             context[table_name] = [new_list]
         else:
@@ -370,7 +420,11 @@ class PrintTool(gobject.GObject):
         base, ext = os.path.splitext(file_name)
         default_filename = "%s.%s" % (output_name and base or base+'-output', mode)
 
-        dialog = PrintDialog(title=_('Print to file'), default_filename=default_filename)
+        dialog = PrintDialog(title=_('Print to file'), default_filename=default_filename,
+                             run=False)
+        
+        #dialog.CURRENT_FOLDER = self.remote_output_dir
+        dialog.run()
 
         filename = dialog.filename
         if filename and  not filename.endswith('.%s' % mode):
@@ -413,13 +467,27 @@ class PrintDialog(dialogs.SaveDialog):
         ( _('Odt files'), '*.odt'),
         ( _('All files'), '*.*'),
         )
+    def current_folder(self):
+        return getattr(self, 'CURRENT_FOLDER', None) or dialogs.SaveDialog.current_folder(self)
 
 
 class ObjProxy(object):
     """
     .. _obj_proxy:
     
-    A proxy that knows how to retrieve the field.human_value of attributes
+    A proxy that returns a "human value" for each attribute. The default behaviour
+    is to use the fields defined for
+    the object in the SqlWidget i.e.: field's ``get_human_value``.  You can
+    customize ObjProxy changing ``__getattr__`` or simply adding methods whose
+    name is ``class_name__attribute_name`` as in::
+
+       class MyObjProxy(ObjProxy):
+           def Movie__director_id(self, value):
+               return value.title()
+       table.printing.obj_proxy_class = MyObjProxy
+
+    in this context value is already the value returned by
+    :meth:`sqlkit.fields.Field.get_human_value`
     """
     def __init__(self, obj, master=None):
         if master:
@@ -433,16 +501,19 @@ class ObjProxy(object):
 
         value = getattr(self.obj, key)
         if key in self.gui_fields:
-            return self.gui_fields[key].get_human_value(value)
+            value = self.gui_fields[key].get_human_value(value) 
+
+        if hasattr(self, "%s__%s" % (self.obj.__class__.__name__, key)):
+            return getattr(self, "%s__%s" % (self.obj.__class__.__name__, key))(value)
         else:
             # at present LoaderProperties don't have a gui_field
             return value
 
-
 class Opener(urllib.FancyURLopener):
     
     def http_error_default(self, filename, sock, status, message, response):
-        msg = "Error while retrieving file %s.\nStatus code: %s (%s)" % (filename, status, message)
+        msg = "Error while retrieving file %s.\nStatus code: %s (%s)" % (\
+            filename, status, message)
         raise DownloadException(msg)
 
 

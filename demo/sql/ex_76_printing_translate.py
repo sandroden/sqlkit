@@ -23,6 +23,8 @@ t.printing = MyPrinter(t)
 t.printing.add_menu_entry('Print to pdf', 'movies-translate.odt', mode='pdf',
                           accel="<alt>p",
                           tip="Generate a pdf file with these movies")
+t.printing.add_menu_entry('Print to odt', 'movies-translate.odt', mode='odt',
+                          tip="Generate an odt file with these movies")
 t.reload()
 
 
