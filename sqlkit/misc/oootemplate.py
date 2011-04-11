@@ -229,6 +229,7 @@ import sys
 import datetime
 import subprocess
 import warnings
+import socket
 
 import uno
 from com.sun.star.beans import PropertyValue
@@ -284,11 +285,20 @@ def connect(server='127.0.0.1', port=8100, headless=False):
     resolver = comp_context.ServiceManager.createInstanceWithContext(
         "com.sun.star.bridge.UnoUrlResolver", comp_context)
 
+    cmd = "uno:socket,host=%(server)s,port=%(port)s;urp;StarOffice.ComponentContext" % {
+        'server':server,'port':port}
+
+    if not test_srv_connection(server, port, timeout=3) and \
+           server in ('127.0.0.1', 'localhost'):
+        warnings.warn("Couldn't connect to server: %s:%s - trying to launch it" % (
+            server, port), RuntimeWarning, stacklevel=1)
+        start_oo(server, port, headless)
+        #Wait 3 seconds for openoffice to load.
+        time.sleep(3)
+
     try:
         # Now load the context and you are now connected. You can access OpenOffice
         # via its API mechanism.
-        cmd = "uno:socket,host=%(server)s,port=%(port)s;urp;StarOffice.ComponentContext" % {
-                'server':server,'port':port}
         oo_context = resolver.resolve(cmd)
 
     except NoConnectionException, e:
@@ -298,15 +308,6 @@ def connect(server='127.0.0.1', port=8100, headless=False):
                          RuntimeWarning, stacklevel=1)
             raise
 
-        start_oo(server, port, headless)
-        oo_context = resolver.resolve(cmd)
-            
-        #Wait 3 seconds for openoffice to load.
-        time.sleep(3)
-        #See if we can connect again
-        oo_context = resolver.resolve(
-            "uno:socket,host=%(server)s,port=%(port)s;urp;StarOffice.ComponentContext" % {
-                'server':server,'port':port})
 
     return oo_context
 
@@ -969,4 +970,20 @@ class TableWithStyles(Table):
 # Cursor.CharWeight = com.sun.star.awt.FontWeight.BOLD
     def __repr__(self):
         return '<TT %s %s>' % (self.__class__.__name__, self.name)
+
+def test_srv_connection(host, port, timeout=3):
+    """
+    test TCP connectivity
+    :param host: the host on which the server must be tested
+    :param posrt: the port to test
+    :param timeout: timeout for the socket (default 3)
+    """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(timeout)
+    try:
+        sock.connect((host, int(port)))
+        sock.close()
+        return True
+    except socket.error, err:
+        return False
 
