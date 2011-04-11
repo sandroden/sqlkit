@@ -1,19 +1,22 @@
-                      ANNOUNCE: sqlkit 0.9.3.2
+                      ANNOUNCE: sqlkit 0.9.4
 
-                          March, 31 - 2011
+                          April, 11 - 2011
 
 
-I'm happy to announce release 0.9.3.1 of sqlkit package for Python.
+I'm happy to announce release 0.9.4 of sqlkit package for Python.
 
   http://sqlkit.argolinux.org/
 
 This release
 ------------
 
-An option as been added to sqledit to create tables if the model is
-provided. Mask Sqlwidget now automatically switches to a multicolumn layout
-if no layout is provided and many fields are to be displayed. The setup now
-creates a sqledit executable for Windows as well
+This release adds support for printing from sqlkit using OpenOffice
+templates that in turn uses 'uno' module provided from the OpenOffice
+project and a custom system that allows to write report templates w/o any
+programming know-how. 
+
+This module called 'oootemplate', can be used from any Python program
+independently from the rest of sqlkit.
 
 The python package
 ------------------
@@ -40,7 +43,7 @@ Main features of sqlkit:
 
   * editor of databases in 2 modes: table & mask
   * based on sqlalchemy: can cope with many different databases
-  * very powerfull filtering capabilities:
+  * very powerful filtering capabilities:
         - each field can be used to filter records
 	- filter may span relationship
         - date filtering possible also on relative basis (good for saved 
@@ -65,7 +68,7 @@ Sqlkit is based on:
   * babel (localization)
   * you db driver of choice
 
-Dowload & more:
+Download & more:
 ---------------
 
   * Download:     http://sqlkit.argolinux.org/misc/download.html

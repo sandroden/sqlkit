@@ -1,3 +1,12 @@
+sqlkit - 0.9.4 - Apr 11 2011
+	* printing: This release adds support for printing from sqlkit
+             	using OpenOffice templates that in turn uses 'uno' module provided
+	        from the OpenOffice project and a custom system that allows to
+	        write report templates w/o any programming know-how.
+
+		This system called oootemplates, can be used from any Python program
+		independently from the rest of sqlkit.
+
 sqlkit - 0.9.3.2 - Mar 31 2011
 
 	* demo: - now the schema is more standard and can be fed to other db

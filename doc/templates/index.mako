@@ -45,34 +45,23 @@
      <div class="sphinxsidebarwrapper">
       <div class="news">
 
-      <h2>Release 0.9.3.1 is out</h2>
+      <h2>Release 0.9.4 is out</h2>
       
-      I'm happy to announce that on March, 13 2011 I released 
-      <a href="${pathto('misc/download', )}#download">version 0.9.3.1</a> of
-	sqlkit that adds the german localization as ong as a couple of minor
-      fixes. The previous release 0.9.3
-      added a huge quantity of important new features.
-	<a href="/download/Changelog">changelog</a>). 
+      I'm happy to announce that on April, 11 2011 I released 
+      <a href="${pathto('misc/download', )}#download">version 0.9.4</a> 
+	Sqlkit now provides a very powerful 
+        <a href="${pathto('printing/contents', )}" >template system </a>
 
-	Support for images and enum-like fields, improved MVC support, added
-	possibility to duplicate a record, improved hook support are among the
-	most important changes.
+        that allows to compose the layout with OpenOffice.org. No
+	programming know-how is required to create an effective template, no
+	more headache to get the right layout using OpenOffice's
+	<tt>writer</tt>.
 
+        
      </div>
 
       <div class="news">
 
-      <h2>Next Milestone: Printing</h2>
-      
-      Stay tuned: the next release of sqlkit will be released shortly and will add
-      printing capability to sqlkit via 
-      <a href="http://oootemplate.argolinux.org">a template system based
-      OpenOffice</a>.
-
-      It will be possible to print record or tables by just adding a
-      template written in <tt>.odt</tt> format.
-
-      
 
      </div>
      </div>
