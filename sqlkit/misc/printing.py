@@ -81,6 +81,7 @@ import os
 import re
 import gtk
 import urllib
+import tempfile
 import subprocess
 
 import gobject
@@ -249,23 +250,28 @@ class PrintTool(gobject.GObject):
         return dirname, template_name, template_path
 
         
-    def use_template(self, menuItem, template_path, mode, server, port, output_path):
+    def use_template(self, menuItem=None, template_path=None, mode='pdf',
+                     server=None, port=None, output_path=None, preview=False,
+                     template_name=None):
         """
         create a context from master and call template
 
-        :param menuItem:   the menu entry that was clicked
-        :param tempate_name: the template_path to be used on the server
-        :param mode:  currently ``pdf`` or ``odt``
-        :param server: the name or ip of the openoffice server
-        :param port:  the port on which the server runs
+        :param menuItem:   the menu entry that was clicked. Not needed.
+        :param tempate_path: the template_path to be used on the server. 
+        :param mode:  currently ``pdf`` or ``odt``. Default: pdf.
+        :param server: the name or ip of the openoffice server. Default: self.server
+        :param port:  the port on which the server runs. Default: self.port
         :param output_path: the output name. It can be a callable that will receive 2 args:
 
                 * this PrintTool instance
                 * the template_path
-        
+        :param preview: (Boolean) if ``True``, the local_output_path is a temporary one and
+             the user is not prompted for a position 
+        :param template_name: template_name. If given the template_path is 
         """
         import oootemplate as oo
-
+        if template_name:
+            template_path = self.split_template_name(template_name)[2]
         server = server or self.server 
         port = port or self.port 
         
@@ -296,9 +302,17 @@ class PrintTool(gobject.GObject):
         if callable(output_path):
             output_path = output_path(self, template_path)
 
-
-        remote_output_path = self.get_remote_output_path(output_path, server)
-        local_output_path = self.get_local_output_path(template_path, mode, output_path)
+        
+        if preview:
+            f, local_output_path = tempfile.mkstemp(suffix='.pdf')
+            if not os.name == 'mac':
+                os.close(f)  # under windows if we don't close the file id AdobeReader won't
+                             # open the file claiming it's used by others
+            remote_output_path = self.get_remote_output_path(
+                output_path or 'preview-%s.pdf' % template_name, server)
+        else:
+            local_output_path = self.get_local_output_path(template_path, mode, output_path)
+            remote_output_path = self.get_remote_output_path(output_path, server)
 
         if not local_output_path:
             return
