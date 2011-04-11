@@ -117,6 +117,9 @@ if not os.path.exists(model.DB_FILE):
     
 d = DemoSql(xml=False, debug=True)
 d.tv.collapse_all()
+if not os.access('images/test', os.W_OK):
+    print "WARNING: \n  Missing write permission on 'images' directory"
+    print "  Image upload is not possible\n"
 
 if args:
     d.iconify()
