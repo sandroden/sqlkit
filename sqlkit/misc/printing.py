@@ -116,6 +116,14 @@ class PrintTool(gobject.GObject):
     """The directory where templates are searched for. Default is cwd/templates.
        It's a path significant for the openoffice server
     """
+    local_template_dir = None
+    """The directory where templates are searched for locally in case
+    OpenOffice server is remote . The only need for this variable is to make
+    it possible to :meth:`automagically <__init__>` add templates that show
+    up in the menu entry. The templates that get used are clearly on the
+    machine where OpenOffice is runnning, it does not need to be visible to
+    the client. If defined, will be used just to add meny entry automatically.
+    """
     server = '127.0.0.1'
     """the openoffice server to connect to for printing"""
 
@@ -449,13 +457,17 @@ class PrintTool(gobject.GObject):
         """
         Look if some templates are available and add entries for them
         """
-
-        if not os.path.exists(self.template_dir):
+        
+        if not (os.path.exists(self.template_dir) or (
+            self.local_template_dir and os.path.exists(self.local_template_dir))):
             return
-        for f in os.listdir(self.template_dir):
+
+        for f in os.listdir(self.local_template_dir or self.template_dir):
             if f == "%s.odt" % self.master.nick:
-                self.add_menu_entry("Print to pdf file", f, mode='pdf', action_name=self.master.nick)
-                self.add_menu_entry("Print to odt file", f, mode='odt', action_name=self.master.nick +'pdf')
+                self.add_menu_entry(
+                    "Print to pdf file", f, mode='pdf', action_name=self.master.nick)
+                self.add_menu_entry(
+                    "Print to odt file", f, mode='odt', action_name=self.master.nick +'pdf')
                 
     def open_local_file(self, filename):
         """
