@@ -114,6 +114,7 @@
 
 <ul class="anythingSlider">
   <li><div class="slider-text">
+      <h2>Sqledit</h2>
       <img src="${pathto('_static/images/sqledit_setup.png', 1)}" alt="" />
       The application 'sqledit' can open a great variety of different
       backends as it's base on SqlAlchemy: PostgreSQL, MySQL, sqlite,
@@ -124,12 +125,14 @@
       </div>
   </li>
   <li><div class="slider-text">
+      <h2>Table's list</h2>
       <img src="${pathto('_static/images/sqledit.png', 1)}" alt="" />     
       Each table of the database can be opened in Mask or Table way or
       introspected. 
       </div>
   </li>
   <li><div class="slider-text">
+      <h2>The model (optional)</h2>
       <img src="${pathto('_static/images/director-model.png', 1)}" alt="" />     
       Table fields can be automatically reflected from the database or set
       using sqlalchemy's standard way. Here the example used in the demo for
@@ -137,6 +140,7 @@
       </div>
   </li>
   <li><div class="slider-text">
+      <h2>Table view</h2>
        <img src="${pathto('_static/images/table.png', 1)}" alt="" />
        Each database table can be opened in table or mask mode. The image 
        shows table mode where each column can be
@@ -144,7 +148,8 @@
       </div>
   </li>
   <li><div class="slider-text">
-       <img src="${pathto('_static/images/o2m.png', 1)}" alt="" />
+      <h2>Relationships</h2>
+       <img src="${pathto('_static/images/o2m.png', 1)}" alt=""  /><br>
        Create a form to edit relations is as easy as writing a text layout
        (clearly you must define relations in the model):
        <pre>
@@ -156,6 +161,7 @@
       </div>
   </li>
   <li><div class="slider-text">
+      <h2>Filters</h2>
        <img src="${pathto('_static/images/filter.png', 1)}" alt="" />
        <p>
        Each field of a table/mask even of a related table can be filtered
@@ -167,6 +173,7 @@
       </div>
   </li>
   <li><div class="slider-text">
+      <h2>Contraints</h2>
        <img src="${pathto('_static/images/constraints.png', 1)}" alt="" />
        <p>
 	 Filters and constraints can be programmatically added using a
@@ -176,6 +183,7 @@
       </div>
   </li>
   <li><div class="slider-text">
+      <h2>Mask View</h2>
        <img src="${pathto('_static/images/ragazza.png', 1)}" alt="" /> 
        
        The SqlMask widget shows one record at a time. Any field type will be
@@ -185,6 +193,8 @@
       </div>
   </li>
   <li><div class="slider-text">
+      <h2>Mask view from any row</h2>
+      
        <img src="${pathto('_static/images/rim.png', 1)}" alt="" />
        <p>
        Right click on a record offers a variety of different actions. The most
@@ -193,6 +203,7 @@
       </pre>
       </div>
   <li><div class="slider-text">
+      <h2>Registered layout</h2>
        <img src="${pathto('_static/images/rim-bi.png', 1)}" alt="" />
        <p>
 	 A mask that displays a single record can use a registered layout
@@ -201,6 +212,7 @@
       </div>
   </li>
   <li><div class="slider-text">
+      <h2>Completion</h2>      
       <img src="${pathto('_static/images/completion.png', 1)}" alt="" /> 
       Any foreign key is automatically detected and a widget that implements
       completion on the foreign table is used. Completion is triggered by
@@ -209,6 +221,7 @@
       </div>
   </li>
   <li><div class="slider-text">
+      <h2>Group by on completion</h2>
       <img src="${pathto('_static/images/completion_group_by.png', 1)}" 
 	   align="right" class="align-right" alt="" /> 
       Completion can be programmed in a group-by fasion or constrained in a
@@ -224,18 +237,21 @@
       </div>
   </li>
   <li><div class="slider-text">
+      <h2>Totals</h2>
       <img src="${pathto('_static/images/totals.png', 1)}" alt="" /> 
       Table can display totals and subtotals. Here subtotals w/o totals
       where requested.
       </div>
   </li>
   <li><div class="slider-text">
+      <h2>Trees</h2>
       <img src="${pathto('_static/images/tree-table.png', 1)}" alt="" /> 
       <p>
       Rows can be displayed with a hierarchy
       </div>
   </li>
   <li><div class="slider-text">
+      <h2>Editing joins</h2>
       <img src="${pathto('_static/images/join.png', 1)}" alt="" /> 
       <p>
 	Tables and Masks can show any selectable that you may define with
@@ -252,11 +268,22 @@
       </div>
   </li>
   <li><div class="slider-text">
+      <h2>Computed fields</h2>
       <img src="${pathto('_static/images/add_fields.png', 1)}" alt="" /> 
       <p>
 	You can add computed fields as in this case where the number of
 	movie is computed for each director, you can further sum and sort
 	on those fields.
+      </div>
+  </li>
+  <li><div class="slider-text">
+      <h2>Printing</h2>
+      <img src="${pathto('_static/images/printing.png', 1)}" alt="" /> 
+      <p>
+	Sqlkit provides a very powerful template system that allows to
+	compose the layout with OpenOffice.org. No programming know-how is
+	required to create an effective template, no more headache to get
+	the right layout using OpenOffice's <tt>writer</tt>.
       </div>
   </li>
   <li><div class="slider-text">
