@@ -1402,16 +1402,16 @@ class SqlWidget(gobject.GObject):
         """
         Quit operations: check if need to save first
         """
-        self._clean_session_extensions()
-        for obj, hid in self._ids.values():
-            obj.disconnect(hid)
-        del self._ids
-
         try:
             self.record_save()
         except (exc.DialogValidationError, exc.CancelledAction), e:
             return True
         
+        self._clean_session_extensions()
+        for obj, hid in self._ids.values():
+            obj.disconnect(hid)
+        del self._ids
+
         self.emit('delete-event')
         ## get rid of records automatically created by record_new if they're 
         ## not yet persisted 
