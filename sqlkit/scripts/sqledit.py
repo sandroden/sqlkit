@@ -192,7 +192,7 @@ class ConnectionDialog(object):
             self.set_error_msg(_("Connected to %s") % url_text, 'sea green')
             self.wdict[gtk.RESPONSE_OK].props.sensitive = True
         except Exception, e:
-            self.set_error_msg(e.message, 'red')
+            self.set_error_msg(str(e), 'red')
             self.wdict[gtk.RESPONSE_OK].props.sensitive = False
 
         return 
