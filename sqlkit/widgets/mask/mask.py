@@ -397,6 +397,8 @@ class SqlMask(sqlwidget.SqlWidget):
         undo possible modification to the mask
         """
         self.discard_changes()
+        if not self.current in self.session:
+            return
         self.session.expire(self.current)
         try:
             self.record_display(check=False)
