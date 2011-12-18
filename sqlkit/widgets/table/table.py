@@ -987,21 +987,29 @@ class SqlTable(sqlwidget.SqlWidget):
             self.sb(_('No record selected'))
             return True
 
+        sel = self.treeview.get_selection()
+        model, paths = sel.get_selected_rows()
+
         if interactive:
             text = _("Delete this record?\n(%s)") % self.current
+            iter = model.get_iter(paths[0])
+            if model.iter_has_child(iter):
+                text += "\n" + _("All children will be deleted as well") 
             response = self.dialog(type='ok-cancel', text=text)
             if response == gtk.RESPONSE_CANCEL:
                 return
 
         self.deleting_row = True
 
-        sel = self.treeview.get_selection()
-        model, paths = sel.get_selected_rows()
-
         def do_del(model, path, iter):
             """
             potentially can delete a selection of many rows
             """
+            ## Recursively delete all children, if any
+            if model.iter_has_child(iter):
+                for i in range(model.iter_n_children(iter), 0, -1): # backward
+                    it = model.iter_nth_child(iter, i-1)
+                    do_del(model, model.get_path(it), it)
 
             obj = model[path][0]
             deleted = True
