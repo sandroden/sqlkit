@@ -768,6 +768,12 @@ class ImageColumn(GenericColumn):
         if isinstance(obj, self.master.mapper.class_):
             cell.set_property('visible', True)
             if value:
+                if not self.field.exists(value):
+                    cell.set_property('pixbuf', None)
+                    cell.set_property('stock-id', 'gtk-missing-image')
+                    cell.set_data('thumbnail_path', None)
+                    return
+
                 if self.field.is_image(value):
                     thumbnail_path = value and self.field.get_thumbnail(value, complete_path=True) or None
                     if thumbnail_path:
@@ -1351,6 +1357,15 @@ class View(object):
         action_upload_image = self.ui_manager.get_action('/TreePopup/UploadImage')
         if obj and field_name and self.master.is_image(field_name):
             action_upload_image.set_visible(True)
+
+            # don't show missing images...
+            action_show_image = self.ui_manager.get_action('/TreePopup/ShowFile')
+            filename = getattr(obj, field_name)
+            if obj and filename and self.master.gui_fields[field_name].exists(filename):
+                action_show_image.set_sensitive(True)
+            else:
+                action_show_image.set_sensitive(False)
+
         else:
             action_upload_image.set_visible(False)
             

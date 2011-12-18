@@ -1449,6 +1449,10 @@ class SqlTable(sqlwidget.SqlWidget):
         # if you don't select it, the table mix up values of different rows, probably
         # _clicked_path gets used in wrong ways...
         filename = self.gui_fields[field_name].get_value(complete_path=True)
+        if not os.path.exists(filename):
+            self.message(text=_("File '%s' is not present in the filesystem" % filename),
+                                type='error')
+            return
         if not self.gui_fields[field_name].is_image(filename):
             open_file(filename)
             return

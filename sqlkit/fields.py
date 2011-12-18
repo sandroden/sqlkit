@@ -1522,6 +1522,13 @@ class ImageField(VarcharField):
         ext = os.path.splitext(filename)[1]
         return ext.lower() in self.image_formats
     
+    def exists(self, value=None):
+        "Return True if the file pointed at value exists"
+        value = value or self.get_value()
+        if not value:
+            return False
+        return os.path.exists(os.path.join(self.base_dir, value))
+
     def clean_value(self, value, obj=None):
         """
         strip self.base_dir from the file if present
