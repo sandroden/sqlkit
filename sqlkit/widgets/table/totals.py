@@ -274,7 +274,13 @@ class Totals(gobject.GObject):
     def insert_total(self, row, after=False):
 
         if not row:
-            row = self.table.modelproxy.modelstore[-1]
+            
+            try:
+                # if model[-1] does not exists, no total should be needed...
+                # sometime it happens it it tempted anyhow...
+                row = self.table.modelproxy.modelstore[-1]
+            except IndexError:
+                return
 
         if self.hide_total:
             return row
