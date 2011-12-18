@@ -2,7 +2,7 @@
 Nick extended configuration
 ============================
 
-Sqledit configuration may be extended beyond :file:`.sqledit/nick` file.
+Sqledit configuration may be extended beyond :file:`.sqledit/nicks` file.
 You can add configurations for a nick in a subdirectory of :file:`.sqledit`
 named as the nick itself. Hooks, layout, or a program can be placed directly
 hereq. As an example if you have a nick 'film' defined in
@@ -142,9 +142,8 @@ def read_conf(nick, opts=None):
 
     def loop_on_opts(c, opts, nick=nick):
         """
-        implements "copy" option in .sqleditdb
+        implements "copy" option in .sqledit/nicks
         """
-
         for key, val in c.items(nick):
             if key == 'copy':
                 loop_on_opts(c, opts, nick=val)
@@ -154,8 +153,7 @@ def read_conf(nick, opts=None):
                 continue
             if getattr(lopts, key, None) is None:
                 setattr(opts, key, val)
-        
-
+    
     if os.path.exists(dbconf):
         c = ConfigParser()
         c.read(dbconf)
@@ -165,7 +163,14 @@ def read_conf(nick, opts=None):
             if hasattr(opts, 'url5'):
                 opts.url = opts.url5
 
+        # option 'mask' in the nicks should not prevail over command line opts!
+        # in this case it would prevail due to different key name
+        # and parsing order
+        if getattr(lopts, 'sqltable', None):
+            opts.mask = False
+
         return opts
+
     else:
         raise MissingNickDefinition
 

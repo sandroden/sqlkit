@@ -17,7 +17,7 @@
 """
 usage: %prog [options] [[url|nick] table]
    -u, --url = URL: an url to open (eg postgres://user:pass@host/dbname)
-   -n, --nick = nick: a nick in ~/.sqleditdb
+   -n, --nick = nick: a nick in ~/.sqledit/nicks
    -t, --table = table: open table 'table'
    -m, --mask: open a SqlMask (default is SqlTable)
    -b, --browser: open the table browser reguardless of nick configuration
