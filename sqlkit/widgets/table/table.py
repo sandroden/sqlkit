@@ -256,8 +256,15 @@ class SqlTable(sqlwidget.SqlWidget):
     def _get_edited_path(self):
         "return the curretly edited path as a tuple"
 
-        return self.edited_row_model_path and \
-               tuple(int(x) for x in self.edited_row_model_path.split(':'))
+        try:
+            return self.edited_row_model_path and \
+                   tuple(int(x) for x in self.edited_row_model_path.split(':'))
+        except AttributeError:
+            ## edited_row_model_path may also be already a tuple...
+            if isinstance(self.edited_row_model_path, tuple):
+                return self.edited_row_model_path
+                   
+            
 
     edited_path = property(_get_edited_path)
 
