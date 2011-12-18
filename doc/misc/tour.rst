@@ -283,6 +283,9 @@ Basic assumptions and limitations
    about this, simply I didn't have need for this, nor working cases.  (While
    I was plenty of ideas on other features...)
 
+4. Spaces are not allowed in field names. This comes from the layout syntax
+   definition.
+
 .. _fkey:
 
 ForeignKeys
