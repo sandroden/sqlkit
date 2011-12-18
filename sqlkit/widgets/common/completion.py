@@ -293,6 +293,9 @@ class SimpleCompletion(object):
 
         self.completion.set_model(None)
         if not result:
+            if not hasattr(self, 'column_lookup'):
+                # Nothing to do if it's not a foreign key
+                return
             try:
                 f = self.master.gui_fields[self.field_name]
                 q = self.filtered_query or self.query
