@@ -61,12 +61,15 @@ class InspectMapper(Container):
         ro:   bool. if True no update/insert/delete will be possible
            """
         global SA_TYPE_MAP
+        # FIXME: these import should be avoided!...
+        import sqlalchemy.dialects.postgresql
+        import sqlalchemy.databases
         
         try:
-            # these type so no have a correspondence a base in a SA Type
             SA_TYPE_MAP.update({
                 sqlalchemy.databases.postgres.PGInet  : str, 
                 sqlalchemy.databases.postgres.PGInterval  : datetime.timedelta, 
+                sqlalchemy.dialects.postgresql.base.INTERVAL :  datetime.timedelta, 
                 })
         except Exception, e:
             pass
