@@ -157,12 +157,13 @@ class ModelProxy(gobject.GObject):
             self._order_id = self.modelstore.connect_after('row-deleted', self.persist_rows_order)
 
         self._tree_field_name = tree_field_name
+        self.treeview.set_reorderable(True)
         self.model_setup()
 
     def model_setup(self):
         
         self.real_model = self.modelstore
-        self.treeview.set_reorderable(True)
+#        self.treeview.set_reorderable(True)
         self.treeview.set_model(self.modelstore)
         self.edited_row_model_path = None
         
