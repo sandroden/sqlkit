@@ -702,6 +702,32 @@ class ImageColumn(GenericColumn):
     PROPERTY = 'pixbuf'
     editable = False
 
+    def __init__(self, master, field_name, title, field=None):
+
+        GenericColumn.__init__(self, master, field_name, title, field=None)
+        try:
+            master.treeview.props.has_tooltip = True
+            master.treeview.connect('query-tooltip', self.return_image_path, )
+        except AttributeError:
+            pass
+
+    def return_image_path(self, treeview, x, y, keyboard_mode, tooltip):
+        "Set a tooltip with the file/image name"
+        try:
+            path, column, x_in_cell, y_in_cell = treeview.get_path_at_pos(x,y)
+        except TypeError:
+            return
+        idx = path[0]
+        if not idx: #header
+            return
+        path = tuple([idx-1])
+        model = treeview.get_model()
+        obj = model.get_value(model.get_iter(path), 0)
+        file_path = getattr(obj, self.field_name)
+        if file_path and (column.get_data('field_name') == self.field_name):
+            tooltip.set_text(file_path)
+            return True
+
     def set_editable(self, editable):
         pass
     def cell_set_property(self, cell):
