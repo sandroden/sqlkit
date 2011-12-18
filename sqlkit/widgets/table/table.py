@@ -942,20 +942,22 @@ class SqlTable(sqlwidget.SqlWidget):
         self.emit('record-new')
         return path, self.last_new_obj
 
-    def record_add(self, record):
+    def record_add(self, obj, parent_path=None):
         """
         Add a record to the SqlTable
+
+        :param obj: the object to be added
+        :param parent_path: a possible path of the parent
+        :returns: the new path
         """
-#         try:
-#             self.modelproxy.modelstore.append([record])
-#         except Exception:
-#             self.modelproxy.modelstore.append(None, [record])
-        sqlwidget.SqlWidget.record_add(self, record)
-        path, obj = self.record_new(obj=record, start=False)
+        
+        sqlwidget.SqlWidget.record_add(self, obj)
+        path, obj = self.record_new(obj=obj, start=False, parent=parent_path)
         self.edited_row_model_path  =  path
         self.select_path(path)
         self.record_save()
         self.totals.compute()
+        return path
         
     def unsaved_changes_exist(self, skip_check=False, skip_new=False):
         """collect possible changes and test if save is needed
