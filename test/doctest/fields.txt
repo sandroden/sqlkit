@@ -59,8 +59,12 @@ u'Fellini'
 >>> f.clean_value("%s/%s" % (sql_images, "images/test.jpg"))
 'test.jpg'
 >>> f.clean_value("images/test.jpg")
-'test.jpg'
+'images/test.jpg'
+>>> f.clean_value("./images/test.jpg")
+'images/test.jpg'
 >>> f.clean_value("/images/test.jpg")
+'test.jpg'
+>>> f.clean_value("/my_dir/test.jpg")
 'test.jpg'
 >>> f.clean_value("/tmp/test.jpg")
 'test.jpg'

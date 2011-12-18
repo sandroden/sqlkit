@@ -1431,6 +1431,7 @@ class ImageField(VarcharField):
         
         """
         #return path and re.sub(r"\\", '/', os.path.abspath(path))
+        path = path and os.path.normpath(path)  # strip possible ./
         return path and re.sub(r"\\", '/', path)
     
     def get_value(self, shown=False, complete_path=False):
@@ -1550,14 +1551,19 @@ class ImageField(VarcharField):
         Return a standard save path. You may want to customize it.
 
         :param name: the name of the file as picked up from the filesystem
-                     or the desired new name for the file
+                     or the desired new name for the file. :meth:`clean_value`
+                     call this also for already save path.
         :param obj: the object. This may be used to work out the path. It's
                      not used by default.
         """
         if not name:
             return None
         obj = obj or self.master.current
-        return self.clean_path(os.path.join(self.base_dir, os.path.basename(name)))
+        if os.path.isabs(name):
+            # if name is relative, it's used in clean_value on already correct values
+            # and only base_dir should be added
+            name = os.path.basename(name)
+        return self.clean_path(os.path.join(self.base_dir, name))
 
     def scale_pixbuf(self, pixbuf, width=None, height=None):
         """ 
