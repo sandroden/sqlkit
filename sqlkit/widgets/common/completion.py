@@ -478,7 +478,7 @@ class SimpleCompletion(object):
 
         if not mode == 'enum':
             filtering_value = self.get_displayed_value(value=value)
-            self.autostart_last_length = len(filtering_value)
+            self.autostart_last_length = len(str(filtering_value))
 
             if filtering_value:
                 query = self.compose_select_statement(query, oper, filtering_value)
@@ -538,9 +538,10 @@ class SimpleCompletion(object):
             val = value
         else:
             val = self.master.get_value(self.field_name, shown=True) or ''
-        assert isinstance(val, basestring)
-        self.autostart_last_length = len(val)
-        return self.add_for_LIKE_and_REGEXP(val.strip('\\'))
+
+        self.autostart_last_length = len(str(val))
+        if isinstance(val, basestring):
+            return self.add_for_LIKE_and_REGEXP(val.strip('\\'))
 
     def get_match_operator(self):
         
