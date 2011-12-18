@@ -1,3 +1,18 @@
+sqlkit - 0.9.5 - Dec 18 2011
+
+        * porting to SQLA 0.7+
+	* table: 
+             +  if treestore is used, row deletions of a parent  implies
+                deletion of children
+	     +  on image field, no entry to cshow image if the image is
+                missing
+             + added a tooltip for the image name
+        * docs: minor changes
+        * fields: enum now only suggest empty if null is allowed
+                  fixes in image rendering and fix in path 
+        * sqledit: fix in option parsing (Opt -T)
+	* minor fixes
+
 sqlkit - 0.9.4 - Apr 11 2011
 	* printing: This release adds support for printing from sqlkit
              	using OpenOffice templates that in turn uses 'uno' module provided

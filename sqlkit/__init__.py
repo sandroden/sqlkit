@@ -6,13 +6,13 @@ pygtk.require('2.0')
 
 from sqlkit.misc import utils
 
-__version__ = '0.9.4'
+__version__ = '0.9.5'
 
 
 cwd = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(cwd, 'locale')
 if not os.path.exists(path):
-    # this is tru when we are in the pyinstaller executable
+    # this is true when we are in the pyinstaller executable
     path = os.path.join(os.path.dirname(sys.executable), 'sqlkit', 'locale')
 
 # t = gettext.translation('sqlkit', path)

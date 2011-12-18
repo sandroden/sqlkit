@@ -1,6 +1,6 @@
 # Makefile for Sphinx documentation
 #
-VER           = 0.9.4
+VER           = 0.9.5
 DEBVER        = 0.8.6.1-1
 WINVER        = 0.8.6.1
 LNXVER        = 0.9-rc1
@@ -88,10 +88,10 @@ pdf:    latex
 
 
 galeon: 
-	galeon .build/html/sqlkit/tour.html
+	galeon .build/html/index.html
 
 firefox: 
-	firefox ./.build/html/sqlkit/tour.html
+	firefox .build/html/index.html
 
 chtml:	clean html
 
