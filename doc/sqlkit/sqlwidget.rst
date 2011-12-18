@@ -205,6 +205,14 @@ Signals
 ========
 
 
+:pre-display:
+   A record is about to be displayed.
+
+   .. function:: pre_display_cb(sqlwidget, obj):
+      
+      :param sqlwidget: the widget that emitted the signal
+      :param obj: the object that is about to be displayed
+
 :record-selected:
    A record has been displayed in Mask or selected in Table.
    The callback will just receive the widget as argument.
