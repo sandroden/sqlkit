@@ -1449,7 +1449,7 @@ class ImageField(VarcharField):
             value = value if os.path.isabs(value) else os.path.join(self.base_dir, value)
         else:
             value = value and re.sub('^%s/?' % self.base_dir, '', value)
-        return self.clean_path(value)
+        return self.clean_path(value) or self.initial_value
 
     def value_set_cb(self, emitter, value, oldvalue, obj):
         """
@@ -1480,7 +1480,7 @@ class ImageField(VarcharField):
             # an intial value comes from db and *is* correct by definition
             self.initial_value = value
         else:
-            value = self.clean_value(value)
+            value = self.clean_value(value) or self.initial_value
 
         if hasattr(self, 'widget'):
             if initial:
