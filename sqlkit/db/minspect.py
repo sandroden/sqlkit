@@ -185,8 +185,8 @@ class InspectMapper(Container):
         d = {
             'mapper'  :  property.mapper ,
             'name'        :  str(field_name),
-            'table'       :  property.table,
-            'table_name'       :  property.table.name,
+            'table'       :  property.target,
+            'table_name'       :  property.target.name,
 #            'col'         :  property.mapper.c[field_name] ,
             'db_type'     :  None,   ## FIXME: this is used tor table 
             'type'        :  str,  # FIXME
@@ -520,7 +520,7 @@ def get_foreign_info(ForeignKey, names=True):
     if len(foreign_keys) > 1:
         raise exc.UnhandledMultipleForeignKeys(foreign_keys)
     else:
-        fkcol = foreign_keys[0]
+        fkcol = foreign_keys.copy().pop()  # since 0.7 it's a set, no indexing
         ## table/column name are unicode but they must be string to be
         ##     used as key in dicts
         if names:

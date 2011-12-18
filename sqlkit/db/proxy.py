@@ -15,9 +15,14 @@
 
 import re
 
-from sqlalchemy import Table, MetaData, sql
+from sqlalchemy import Table, MetaData, sql, __version__
 from sqlalchemy.orm import sessionmaker, mapper
 from sqlalchemy.orm.interfaces import SessionExtension
+from pkg_resources import parse_version
+try:
+    from sqlalchemy import event
+except ImportError:
+    pass
 
 from sqlkit import _
 from sqlkit.db import minspect, utils
@@ -71,8 +76,16 @@ class DbProxy(object):
             
     def get_session(self):
         sess = self.Session()
-        extension = SKSessionExtension()
-        sess.extensions += [extension]
+        if parse_version(__version__) < parse_version('0.7'):
+            extension = SKSessionExtension()
+            sess.extensions += [extension]
+        else:
+            emitter = Emitter()
+            sess._sk_emitter = emitter
+            event.listen(sess, 'after_flush', emitter.after_flush)
+            event.listen(sess, 'after_flush_postexec', emitter.after_flush_postexec)
+            event.listen(sess, 'after_commit', emitter.after_commit)
+            
         return sess
 
     def get_table(self, name):
@@ -169,8 +182,16 @@ class DbProxy(object):
         else:
             return T1.join(T2)
 
-class SKSessionExtension(SessionExtension):
 
+class Emitter(object):
+    """Indirection component, needed to propagate session signals to widgets
+
+    SQLA as of 0.7.2 doen not have a way to remove a listener, so an indirection
+    layer is needed 
+    """
+    
+    sk_widgets = None
+    
     def after_flush(self, session, flush_context):
         """
         implement the after-flush signal
@@ -189,9 +210,24 @@ class SKSessionExtension(SessionExtension):
         """
         loop_run_hooks_over_widgets(self, session, 'on_after_commit', 'after-commit')
         
+    def add(self, widget):
+        "Add a sqlkit widget to the list of listenes"
+
+        self.sk_widgets = self.sk_widgets or []
+        self.sk_widgets += [widget]
+        
+    def remove(self, widget):
+        "Add a sqlkit widget to the list of listenes"
+
+        self.sk_widgets.remove(widget)
+        
+
+class SKSessionExtension(Emitter, SessionExtension):
+    pass
+
 def loop_run_hooks_over_widgets(ext, session, hook_name, signal_name=None):
 
-    widgets = getattr(ext, 'sk_widgets', [])
+    widgets = getattr(ext, 'sk_widgets', []) or []
     for sqlwidget in widgets:
         current= sqlwidget.get_current_obj()
         

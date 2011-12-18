@@ -277,7 +277,7 @@ def django2components(mapper_or_table, kw=None):
                     # the name of the column changes while  mappers have the name we expect
                     col0 = getattr(table.columns, joins[0], None)
                 if col0 is not None:
-                    join_args = (col.table, col0 == col0.foreign_keys[0].column)
+                    join_args = (col.table, col0 == col0.foreign_keys.copy().pop().column)
                 else:
                     join_args = False
         else:
@@ -359,7 +359,7 @@ def get_column(prop, attr):
     if isinstance(prop, ColumnProperty):
         col = prop.columns[0]
         if col.foreign_keys:  ## FIXME: Should I consider multiple fkey?
-            return getattr(col.foreign_keys[0].column.table.c, attr)
+            return getattr(col.foreign_keys.copy().pop().column.table.c, attr)
         else:
             return prop.columns[0]  ### FIXME: why colums is a list?
     elif isinstance(prop, PropertyLoader):
@@ -374,7 +374,7 @@ def path2join(path, mapper):
             if isinstance(prop, ColumnProperty):
                 col = prop.columns[0]
                 if col.foreign_keys:  ## FIXME: Should I consider multiple fkey?
-                    table = col.foreign_keys[0].column.table
+                    table = col.foreign_keys.copy().pop().column.table
             elif isinstance(prop, PropertyLoader):
                 table = prop.remote_side[0].table
 

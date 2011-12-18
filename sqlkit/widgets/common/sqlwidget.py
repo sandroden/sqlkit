@@ -28,10 +28,11 @@ import pango
 import gobject
 from babel import numbers
 import sqlalchemy
-from sqlalchemy import exceptions, Table
+from sqlalchemy import exceptions, Table, orm
 from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper, attributes
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.orm.mapper import Mapper
+from pkg_resources import parse_version 
 
 import sqlkit
 from sqlkit import _, exc, layout, debug as  dbg, fields
@@ -378,19 +379,30 @@ class SqlWidget(gobject.GObject):
         if not session:
             session = self.dbproxy.get_session()
 
-        for extension in session.extensions:
-            if isinstance(extension, SKSessionExtension): 
-                extension.sk_widgets = getattr(extension, 'sk_widgets', []) + [self]
+        if parse_version(sqlalchemy.__version__) < parse_version('0.7'):
+            for extension in session.extensions:
+                if isinstance(extension, SKSessionExtension): 
+                    extension.sk_widgets = (getattr(extension, 'sk_widgets') or []) + [self]
+        else:
+            try:
+                session._sk_emitter.add(self)
+            except AttributeError:
+                warning.warn("Session does not have '_sk_emitter', signals after-flush "
+                             "after-commit and after-flush-postexec are not implemented")
+            
         return session
 
     def _clean_session_extensions(self, *args):
         """
         get rid of any mechanism that was built for 
         """
-        from sqlkit.db.proxy import SKSessionExtension
-        for extension in self.session.extensions:
-            if isinstance(extension, SKSessionExtension): 
-                extension.sk_widgets.pop(extension.sk_widgets.index(self))
+        if parse_version(sqlalchemy.__version__) < parse_version('0.7'):
+            from sqlkit.db.proxy import SKSessionExtension
+            for extension in self.session.extensions:
+                if isinstance(extension, SKSessionExtension): 
+                    extension.sk_widgets.pop(extension.sk_widgets.index(self))
+        else:
+            self.session._sk_emitter.remove(self)
         
     def _get_mapper(self, mapper, tables, class_=None):
 
@@ -412,7 +424,10 @@ class SqlWidget(gobject.GObject):
             mapper = self.dbproxy.get_mapper(mapper, tables)
             
         #self.tables = [mapper.local_table.name]  ## FIXME: what when we have a join?
-        mapper.compile()  # this insures that all attribute gets compile
+        if parse_version(sqlalchemy.__version__) < parse_version('0.7'):
+            mapper.compile()  # this insures that all attribute gets compiled
+        else:
+            orm.configure_mappers()
         return mapper
 
     def _get_metadata(self, metadata, mapper):

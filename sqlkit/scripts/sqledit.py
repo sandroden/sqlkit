@@ -60,7 +60,7 @@ if not 'LANG' in os.environ:
 
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exceptions import OperationalError
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.engine import url
 
 import sqlkit

@@ -112,7 +112,7 @@ def check_sqlalchemy_version(req):
         msg = ("You have %s version of sqlalchemy. Sqlkit is tested with " +
               "version newer that %s. You shouldn't have problems " +
               "but we're not sure" )
-        warnings.warn(msg % (SA_VER, req))
+        warnings.warn(msg)
     
     try:
         from pkg_resources import parse_version as pv

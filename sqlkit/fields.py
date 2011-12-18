@@ -234,13 +234,16 @@ import os
 import types
 import shutil
 import warnings
+import weakref
 from datetime import datetime, time, date, timedelta
 from decimal import Decimal
 
 import gobject
 import babel
+import sqlalchemy
 from sqlalchemy.schema import ColumnDefault
 from sqlalchemy.orm.interfaces import AttributeExtension
+from pkg_resources import parse_version 
 
 from sqlkit import exc, _
 from sqlkit.misc import localtimezone
@@ -272,11 +275,19 @@ class SignalEmitter(gobject.GObject):
          }
     def __init__(self):
         self.__gobject_init__()
+
+    def set_cb(self,  obj, value, oldvalue, initiator):
+        "Callback triggered by SQLA events (>= 0.7)"
+
+        self.emit('value-set', value, oldvalue, weakref.ref(obj))
         
 class AttrExt(AttributeExtension):
     """An AttributeExtension used to trace value setting. Fields of a mask connect to
     the signal 'value-set' and propagate it. Table's fields don't need to connect as
     they're always tracing object modification via the cell_data_func callback.
+
+    Only used or SQLA version < 0.7
+
     """
     
     def set(self, state, value, oldvalue, initiator):
@@ -493,7 +504,7 @@ class Field(gobject.GObject):
         for obj, hid in self._ids.values():
             obj.disconnect(hid)
         self._ids.clear()
-        
+
         try:
             del self.widget
             del self.master
@@ -502,11 +513,15 @@ class Field(gobject.GObject):
             
     def set_master(self, master):
         """
-        add a sqlwidget as master of this field. A master may be needed to
+        add a sqlwidget as master of this field. Add a listener to any change to
+        the object so that it can be reflected in the widget.
+
+        The master is also used to
 
           * get defaults
           * validate
           * add related objects
+          
         """
         self.master = master
         if self.master.is_table():
@@ -517,20 +532,35 @@ class Field(gobject.GObject):
         
         if self.persistent:
             emitter = SignalEmitter()
-            FieldAttrExt = type(str("attrext_%s" % self.field_name), (AttrExt,),
-                                {'_sk_emitter': emitter})
-            extensions = getattr(self.master.mapper.class_, self.field_name).impl.extensions
-            found = False
-            if extensions is not None:
-                for ext in extensions:
-                    if isinstance(ext, AttrExt):
-                        found = True
-                        emitter = ext._sk_emitter
-                        break
-            if not found:
-                ext = FieldAttrExt()
-                extensions.append(ext)
-            self._emitter = emitter
+            if parse_version(sqlalchemy.__version__) < parse_version('0.7'):
+            
+                FieldAttrExt = type(str("attrext_%s" % self.field_name), (AttrExt,),
+                                    {'_sk_emitter': emitter})
+                extensions = getattr(self.master.mapper.class_, self.field_name).impl.extensions
+                found = False
+                if extensions is not None:
+                    for ext in extensions:
+                        if isinstance(ext, AttrExt):
+                            found = True
+                            emitter = ext._sk_emitter
+                            break
+                if not found:
+                    ext = FieldAttrExt()
+                    extensions.append(ext)
+                #self._emitter = emitter 
+            else:
+                from sqlalchemy import event
+                # SQLA 0.7 drops support for AttributeExtensions in favor of
+                # signals but does not yet implement event.remove as of
+                # 0.7.2, so an indirection level is still needed
+
+                instrumented_attr = getattr(self.master.mapper.class_, self.field_name)
+                if not hasattr(instrumented_attr, '_sk_emitter'):
+                    instrumented_attr._sk_emitter = emitter
+                    event.listen(instrumented_attr, 'set', emitter.set_cb)
+                else:
+                    emitter = getattr(instrumented_attr, '_sk_emitter')
+
             hid = emitter.connect('value-set', self.value_set_cb)
             self._ids['emitter_value_set'] = (emitter, hid)
 
@@ -576,14 +606,13 @@ class Field(gobject.GObject):
             self._nullable = False
 
     def value_set_cb(self, emitter, value, oldvalue, obj):
-        """
-        Propagate value set from the attribute extension in the mapped class
-        """
+        """Callback when value is set in the SQLA object"""
+
         # the signal we received from the record is not emitted when the
         # record is firstly built so we are sure it's not 'initial', we
         # advertise it as 'initial' so that mask won't complain it
-        # was change and ask if it needs saving. It surely does.
-        # 2 situation revela this: 
+        # was changed and ask if it needs saving. It surely does.
+        # 2 situation reveal this: 
         # ./demo -i 02, change d.t.current and commit, next forward, we don't
         # want to be prompted to save
         # ./demo 03, right click -> record in mask, change the date in the table
@@ -593,9 +622,9 @@ class Field(gobject.GObject):
             if obj() is self.master.current and value != oldvalue:
                 self.emit('value-set', value, True)
                 self.initial_value = value
-        except AttributeError:
+        except AttributeError, e:
             pass
-
+        
     def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True):
         """
         Set the value

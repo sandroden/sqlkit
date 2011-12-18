@@ -1036,7 +1036,8 @@ class ColumnMenuProxy(object):
             self.master.modelproxy.order_by(None)
             order_by = field_name
             if self.master.is_fkey(field_name):
-                ftable = getattr(self.master.mapper.c, field_name).foreign_keys[0].column.table
+                ftable = getattr(self.master.mapper.c, field_name
+                                 ).foreign_keys.copy().pop().column.table
                 fdescr = get_description(ftable, attr='description')
                 order_by = "%s__%s" % (field_name, fdescr)
 
