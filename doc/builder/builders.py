@@ -39,6 +39,8 @@ class MakoBridge(TemplateBridge):
         context['prevtopic'] = context.pop('prev', None)
         context['nexttopic'] = context.pop('next', None)
         context['mako_layout'] = self._map.get(context.get('current_page_name'), 'layout.mako')
+        # sphinx 1.0b2 doesn't seem to be providing _ for some reason...
+        context.setdefault('_', lambda x:x)
         return Template(template, lookup=self.lookup,
             format_exceptions=True, 
             imports=[
