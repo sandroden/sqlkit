@@ -641,7 +641,8 @@ class EnumWidget(Widget):
         self.emit('value-set', self.get_value(), False)
         
     def fill_model(self):
-        self.model.append((None, ''))
+        if self.field.nullable:
+            self.model.append((None, ''))
         for key, value in self.field.values.iteritems():
             self.model.append([key, value])
 
