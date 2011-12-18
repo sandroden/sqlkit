@@ -1435,7 +1435,12 @@ class SqlTable(sqlwidget.SqlWidget):
         from sqlkit.layout import image_widget
         
         field_name = field_name or self._field_name
-        self.initialize_record_editing(self._clicked_path, force=True, obj=self._clicked_obj)
+
+        self.select_path(self._clicked_path)
+        self.initialize_record_editing(self._clicked_path, force=True,
+                                       obj=self.get_obj_at_path(self._clicked_path))
+        # if you don't select it, the table mix up values of different rows, probably
+        # _clicked_path gets used in wrong ways...
         filename = self.gui_fields[field_name].get_value(complete_path=True)
         if not self.gui_fields[field_name].is_image(filename):
             open_file(filename)
