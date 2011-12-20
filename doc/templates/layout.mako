@@ -170,7 +170,7 @@ ${self.footer()}
 <%def name="testata()">
 <div id="header">
 
-	<div class="logo"><a href="${pathto('misc</tour')}">
+	<div class="logo"><a href="${pathto('misc/tour')}">
        <img src="${pathto('_static/sqlkit.png', 1)}" align="left"  alt="Logo" border="0"/></a>
         </div>
 	<div id="description">Acces to db made easy</div>
