@@ -51,7 +51,7 @@ class SqlTable(sqlwidget.SqlWidget):
     & similar).
 
     A SqlTable can have different :ref:`views <views>` of the same data
-    represented in different TreeVies.
+    represented in different TreeViews.
 
     A SqlTable can be viewed alone or as part of a composite widget, that is
     normally a mask with :ref:`relationships`: be sure to understand this

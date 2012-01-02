@@ -447,7 +447,7 @@ class VarcharColumn(GenericColumn):
         if self.field.length:
             try:
                 ## if field has less then 4 chars, position it in the middle
-                if int(length) <= 4:
+                if int(self.field.length) <= 4:
                     cell.set_property('xalign', 0.5)
             except:
                 pass
