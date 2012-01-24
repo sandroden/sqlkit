@@ -28,9 +28,9 @@ it at hand.
 Each sqlwidget has a FilterPanel even if it doesn't show it
 
 .. autoclass:: FilterPanel
-   :members: hide, show, get_tools, reload, set_page, tree, replace_column, add_column
+   :members: hide, show, get_tools, reload, set_page, tree, replace_column, add_column, clear
 .. autoclass:: FilterTool
-   :members: set_value, get_value, set_operator, get_operator
+   :members: set_value, get_value, set_operator, get_operator, destroy
 
 When the filter is used from a SqlTable, the output is displayed directly
 into the SqlTable.  When the filter is used from a SqlMask the output is
@@ -371,6 +371,7 @@ class FilterPanel(object):
         search_path = "%s__%s" % ("__".join(master.relationship_path), field_name)
         if not search_path in self.search_filter_field_names or force:
             widget = get_filter_widget(field_name, self, master, value)
+            widget.search_path = search_path
             self.search_filter_widgets += [ widget]
             self.search_filter_field_names  += [search_path]
 
@@ -608,6 +609,10 @@ class FilterPanel(object):
             self.master.record_display(index=idx)
             self.master.handler_unblock(self._id_record_selected)
     
+    def clear(self):
+        "Destroy all filter widgets matered by this FilterPanel"
+        for w in list(self.search_filter_widgets):
+            w.destroy()
 ##### SQL
     def get_limit(self):
         """
@@ -683,6 +688,15 @@ class FilterTool(object):
         self.widget = FilterWidget(self)
 
     def destroy(self, window=None):
+        "Destroy the FilterToold and related widgets and de-register from FilterPanel"
+        try:
+            self.panel.search_filter_widgets.pop(
+                self.panel.search_filter_widgets.index(self))
+            self.panel.search_filter_field_names.pop(
+                self.panel.search_filter_field_names.index(self.search_path))
+        except AttributeError:
+            pass
+        self.widget.destroy()
         del self.widget
         
 ##### handling
@@ -1066,13 +1080,13 @@ class FilterWidget(object):
         Tbl = self.tool.panel.w['T.fld']
         r = self.tool.panel.row
         c = 0
-        widgets = [ self.field_name_event_box, self.operator, self.check_button ]
+        self.widgets = [ self.field_name_event_box, self.operator, self.check_button ]
         ftype  = self.tool.master.get_field_type(self.tool.field_name)
         
         if self.tool.master.is_enum(self.tool.field_name) or not issubclass(ftype, bool):
-            widgets += [self.field_widget]
+            self.widgets += [self.field_widget]
             
-        for wdg in widgets:
+        for wdg in self.widgets:
             Tbl.attach(wdg, c, c+1, r, r+1, xpadding=4)
             c += 1
         self.tool.panel.row += 1
@@ -1104,6 +1118,11 @@ class FilterWidget(object):
 
         return operator
         
+    def destroy(self):
+        "Destroy all gtk widgets contained in self.widgets"
+        for w in self.widgets:
+            w.destroy()
+
     def set_active(self, active):
         self.check_button.set_active(active)
 
