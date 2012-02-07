@@ -5,6 +5,7 @@
 <%def name="headers()">
     <link rel="stylesheet" href="${pathto('_static/pygments.css', 1)}" type="text/css" />
     <link rel="stylesheet" href="${pathto('_static/sqlkit.css', 1)}" type="text/css" />
+    <link rel="stylesheet" href="${pathto('_static/print.css', 1)}" type="text/css" media="print" />
 
     % if hasdoc('about'):
         <link rel="author" title="${_('About these documents')}" href="${pathto('about')}" />
