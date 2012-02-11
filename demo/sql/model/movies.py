@@ -1,5 +1,7 @@
 import os
 import tempfile
+import atexit
+import shutil
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Table, Column, ForeignKey
@@ -10,7 +12,8 @@ from sqlkit.db.utils import Descr
 from sqlkit.db import proxy
 
 Base = declarative_base()
-DB_FILE = os.path.join(tempfile.gettempdir(), 'db-%s.sqlite' % os.environ.get('USERNAME'))
+DB_DIR = tempfile.mkdtemp()
+DB_FILE = os.path.join(DB_DIR, 'db-%s.sqlite' % os.environ.get('USERNAME'))
 engine = "sqlite:///%s" % DB_FILE
 db = proxy.DbProxy(engine=engine, metadata=Base.metadata)
 
@@ -116,5 +119,8 @@ class AllTypes(Base):
     bool           = Column(Boolean, nullable=False)
     bool_null      = Column(Boolean, nullable=True)
 #    pickle         = Column(PickleType())
-    
-    
+
+def rm_tmpdir():
+    shutil.rmtree( DB_DIR )
+
+atexit.register( rm_tmpdir )

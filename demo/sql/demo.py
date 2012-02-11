@@ -55,6 +55,22 @@ class MissingExampleError(Exception): pass
 
 def init_db():
 
+    if not os.access( model.DB_FILE, os.O_WRONLY ):
+        # No write access - work in a temporary directory
+        curdir = os.path.realpath( os.curdir )
+        tempdir = model.DB_DIR
+        os.chdir( tempdir )
+        dirs = ['model', 'images']
+        for a_dir in ['model', 'images']:
+            os.mkdir( a_dir )
+            for something in os.listdir( os.path.join( curdir, a_dir ) ):
+                real_path = os.path.join (curdir, a_dir, something )
+                os.symlink( real_path, os.path.join( a_dir, something ) )
+        for something in os.listdir( curdir ):
+            if something in dirs:
+                continue
+            real_path = os.path.join( curdir, something )
+            os.symlink( real_path, something )
     with closing(sqlite3.connect(model.DB_FILE)) as db:
         with open('model/schema.sql', 'r') as schema:
             db.cursor().executescript(schema.read())
