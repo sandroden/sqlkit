@@ -52,7 +52,7 @@
     }
 #jMenu li ul li.arrow {
     background: #f5f053 url(../arrow_down.png) no-repeat center center;
-    color: #red;
+    color: #f00;
     height: 6px;
     padding: 0;
     border-bottom: none;

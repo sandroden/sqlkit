@@ -1,5 +1,5 @@
 #content {
-    font-size: 90%
+    font-size: 90%;
     text-align: justify;
 }
 #header, #main_menu, .sphinxsidebar {display: none;}
