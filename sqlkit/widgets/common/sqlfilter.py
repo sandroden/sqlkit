@@ -79,7 +79,7 @@ from datetime import *
 
 import gobject
 import sqlalchemy
-from sqlalchemy.sql import select, Join
+from sqlalchemy.sql import select, Join, or_
 from babel import dates
 
 from sqlkit import debug as dbg, _, exc, fields
@@ -128,6 +128,7 @@ OP_MSGID = {
     'IS NULL' : _('The value is not set'),
     'IS NOT NULL' : _('The value is set'),
     'ID' : _("ID equality (don't follow foreign table)"),
+    'EMPTY OR NULL' : _("The value is NULL or empty"),
 #    '' : _(''),
     }
 
@@ -789,13 +790,16 @@ class FilterTool(object):
                 ## User) will most surely lead to no result
                 query = query.join(*self.master.relationship_path)
 
-        if op_value in ('IS NULL', 'IS NOT NULL',
+        if op_value in ('IS NULL', 'IS NOT NULL', 'EMPTY OR NULL',
                         'IS TRUE', 'IS FALSE', 'IS NOT TRUE', 'IS NOT FALSE'):
             # NULL
             if op_value == 'IS NULL':
                 return query.filter(self.col == None)
             elif op_value == 'IS NOT NULL':
                 return query.filter(self.col != None)
+            elif op_value == 'EMPTY OR NULL':
+                return query.filter(or_(self.col == None, self.col == ''))
+                
 
             # True/False
             if op_value == 'IS TRUE':
@@ -851,7 +855,7 @@ class FilterStringTool(FilterTool):
 
     def get_suitable_operators(self ):
         
-        STD_OPERATORS = self.STR_STD_OPERATORS + self.STD_OPERATORS
+        STD_OPERATORS = self.STR_STD_OPERATORS + ['EMPTY OR NULL'] + self.STD_OPERATORS
 
         if self.bind_name.startswith('postgres'):
             return  ['~*', '~', '!~*', '!~' ] + STD_OPERATORS

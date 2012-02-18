@@ -64,6 +64,7 @@ these operators are recognized::
      'notin'      : 'NOT IN',
      'null'       : 'IS NULL',
      'notnull'    : 'IS NOT NULL',
+     'emptynull'  : 'IS NULL or EMPTY',
      }
 
 and ``icontains`` that at the moment map to regexp operators if they exist

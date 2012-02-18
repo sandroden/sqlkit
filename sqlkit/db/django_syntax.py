@@ -53,6 +53,7 @@ supported lookup
 :eq/neq:            equal / not equal ( = , !=)
 :in/notin:          IN (argument must be a list)/ negated
 :null:              IS NULL / IS NOT NULL (depending if arg is True/False)
+:emptynull:         IS NULL or EMPTY
 
 conjunctions
 ------------
@@ -98,6 +99,7 @@ OPERATORS = {
     'notin'      : 'NOT IN',
     'null'       : 'IS NULL',
     'notnull'    : 'IS NOT NULL',
+    'emptynull'    : 'EMPTY OR NULL',
     }
 
 class DjangoParser(object):
