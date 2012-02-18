@@ -1,22 +1,16 @@
-                      ANNOUNCE: sqlkit 0.9.4
+                      ANNOUNCE: sqlkit 0.9.5
 
-                          April, 11 - 2011
+                          Fab, 7 - 2012
 
 
-I'm happy to announce release 0.9.4 of sqlkit package for Python.
+I'm happy to announce release 0.9.5 of sqlkit package for Python.
 
   http://sqlkit.argolinux.org/
 
 This release
 ------------
 
-This release adds support for printing from sqlkit using OpenOffice
-templates that in turn uses 'uno' module provided from the OpenOffice
-project and a custom system that allows to write report templates w/o any
-programming know-how. 
-
-This module called 'oootemplate', can be used from any Python program
-independently from the rest of sqlkit.
+This release adds support sqlalchemy 0.7+ beside som minor other changes and fixes
 
 The python package
 ------------------

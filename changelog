@@ -1,4 +1,4 @@
-sqlkit - 0.9.5 - Dec 18 2011
+sqlkit - 0.9.5 - Feb 7 2012
 
         * porting to SQLA 0.7+
 	* table: 
@@ -11,6 +11,7 @@ sqlkit - 0.9.5 - Dec 18 2011
         * fields: enum now only suggest empty if null is allowed
                   fixes in image rendering and fix in path 
         * sqledit: fix in option parsing (Opt -T)
+	* filter_panel: it's now possible to get rid of filters already added
 	* minor fixes
 
 sqlkit - 0.9.4 - Apr 11 2011
