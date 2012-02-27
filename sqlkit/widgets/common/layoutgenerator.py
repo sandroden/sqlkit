@@ -178,7 +178,7 @@ class LayoutGenerator (object):
             self.loaders[field_name] = spec
 
         if not spec:
-            spec = self.create_spec(field_name, Field)
+            spec = self.create_spec(field_name, Field, widget)
         
         self.fields_in_layout[field_name] = "%s=%s" % (self.get_edit_string(widget), field_name)
 
@@ -254,11 +254,19 @@ class LayoutGenerator (object):
             widget = 'TXS'
         return widget
 
-    def create_spec(self, field_name, Field):
+    def create_spec(self, field_name, Field, widget_mod):
         """
         create a spec string that decides how long en entry must be
         reflects fom db
+        :param field_name: the field name for which we want to create reasonable specs
+        :param Field: an optional fields.Field instance used to device length
+        :param widget_mod: the widget_modifier used to 
         """
+        if widget_mod == 'TXS':
+            # self.master.is_text() is not reliable at this stage as uses info
+            # of self.field_in_layout that are not available
+            # if TXT= is imposed in layout definition (as opposed to model definition)
+            return ":250.100"
         try:
             length = self.master.mapper_info.fields[field_name]['length']
             col_spec = self.master.mapper_info.fields[field_name]['col_spec'] or ''
@@ -277,8 +285,6 @@ class LayoutGenerator (object):
                 return ":8"
             elif self.master.is_number(field_name):
                 return ":10"
-            elif self.master.is_text(field_name):
-                dim = ":250.100"
             m = re.search('VARCHAR.(\d+).', col_spec)
             if m:
                 length = int(m.group(1))

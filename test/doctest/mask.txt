@@ -21,11 +21,11 @@
 >>> sm.laygen.fields_in_layout
 {'title': 'e=title'}
 
-## TEXT: widget is a text TextWidget
+## TEXT: widget is a text TextWidget, default w/h (250.100) taken from layoutgenerator
 >>> lay = "text"
 >>> sm = SqlMask(AllTypes, dbproxy=db, layout=lay, naked=True, show=False)
 >>> print sm.lay_obj.lay.strip()
-L=text TXS=text
+L=text TXS=text:250.100
 >>> sm.laygen.fields_in_layout
 {'text': 'TX=text'}
 
@@ -41,7 +41,7 @@ L=text e=text
 >>> lay = "TXS=description"
 >>> sm = SqlMask(Movie, dbproxy=db, layout=lay, naked=True, show=False)
 >>> sm.lay_obj.lay
-'L=description TXS=description:30-'
+'L=description TXS=description:250.100'
 >>> sm.laygen.fields_in_layout
 {'description': 'TX=description'}
 
