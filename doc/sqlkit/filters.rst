@@ -44,6 +44,15 @@ each database backend: '~*' for postgresql, REGEXP for mysql and ILIKE for
 the others (well, ILIKE is not present in sqlite but it uses the sqlalchemy
 implementation of ilike) adding leading and trailing '%' symbols.
 
+.. note:: **Shortcut**
+
+  As a shortcut to a tipical pattern (pop a filter panel, add a filter for a
+  field, set a value, reload), it's possible to write a filter string
+  directly in the field and activate the filter/reload operation by
+  Control-Alt-f. This will use ``ILIKE`` as search operator and is enabled
+  where completion is enabled.
+
+
 Adding Filters programmatically
 ===============================
 

@@ -29,6 +29,7 @@ Each sqlwidget has a FilterPanel even if it doesn't show it
 
 .. autoclass:: FilterPanel
    :members: hide, show, get_tools, reload, set_page, tree, replace_column, add_column, clear
+             short_filter
 .. autoclass:: FilterTool
    :members: set_value, get_value, set_operator, get_operator, destroy
 
@@ -325,13 +326,14 @@ class FilterPanel(object):
         """
         self.l.sb(message, seconds=seconds)
         
-    def add_filter(self, active=True, **kwargs):
+    def add_filter(self, active=True, force_=True, **kwargs):
         """
         add a filter using django-like syntax
 
         :param active: make the filter active (default True). This hides the possibility to
             add a filter on a field named ``active``. In this case you can use the longer version
             that is ``active__eq=True``
+        :param force_: force the creation of a new widget, even if one is already present
         :param kwargs: any paramenter allowed per syntax of the django_like syntax as explained
             in the :ref:`chapter on constraints <constraints>`
         
@@ -339,7 +341,7 @@ class FilterPanel(object):
         for key, val in kwargs.iteritems():
             path, op, op_str, value, col, join_args = django2components(self.master.mapper, {key: val})
             master = self.get_related_master(self.master, path)
-            filter_tool = self.add(None, None, col.name, master, force=True)
+            filter_tool = self.add(None, None, col.name, master, force=force_)
             if not filter_tool: 
                 return
             filter_tool.set_active(active)
@@ -449,6 +451,45 @@ class FilterPanel(object):
 
         if page_n == 0 and self._last_focused_entry:
             gobject.idle_add(self._last_focused_entry.grab_focus)
+        
+    def short_filter(self, field_name, relationship_path=None):
+        """Apply a filter getting the value from the table/mask
+
+        This is a shortcut for the longer operation:
+
+          1. add a filter widget
+          2. set a value
+          3. reload
+
+        it is meant to be called from a connect in a (varchar) widget
+        by pressing C-M-f. It will:
+
+          1. add a filter
+          2. get the value for the filter from the text widget
+          3. set that value in the filter widget
+          4. disreguard the value
+          5. launch realod
+          6. disable the filter so that subsequent searches on different fields
+             won't be affected
+        """
+        ##FIME: possible clash of names between related objects
+        if relationship_path:
+            master = self.master.related[relationship_path[0]]
+            value = master.get_value(field_name)
+            key = "%s__%s__icontains" % (master.relationship_path[0], field_name)
+        else:
+            master = self.master
+            value = self.master.get_value(field_name, shown=True)
+            key = field_name + "__icontains"
+            
+        self.add_filter(**{key : value, 'force_' : False})
+        tool = self.get_tools(field_name)[0]
+        tool.set_value(value)
+        tool.set_active(True)
+        initial_value = master.gui_fields[field_name].initial_value
+        master.set_value(field_name, initial_value)
+        self.reload()
+        tool.set_active(False)
         
 ##### reload & TreeView
     def reload(self):

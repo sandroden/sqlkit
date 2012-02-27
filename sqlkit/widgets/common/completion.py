@@ -743,6 +743,10 @@ class SimpleCompletion(object):
         self.show_possible_completion(wdg, mode='regexp', apply_filter=False)
         return True
         
+    def key_entry_ctrl_alt_f(self, wdg, event, data):
+        self.master.filter_panel.short_filter(self.field_name, self.master.relationship_path)
+        return True
+        
     def key_entry_ctrl_shift_Return(self, wdg, event, data):
         self.show_possible_completion(wdg, mode='enum')
         return True

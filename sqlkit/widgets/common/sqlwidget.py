@@ -535,7 +535,7 @@ class SqlWidget(gobject.GObject):
         """
         self.filter_panel.show()
 
-    def add_filter(self, active=True, **kw):
+    def add_filter(self, active=True, force_=True, **kw):
         """
         :param active: boolean: make the filter active/inactive
 
@@ -546,7 +546,7 @@ class SqlWidget(gobject.GObject):
         keyword ``active__eq`` to bypass it.
         
         """
-        self.filter_panel.add_filter(active, **kw)
+        self.filter_panel.add_filter(active, force_=force_, **kw)
         
 ###### Layout
 
