@@ -9,8 +9,6 @@
       ${self.headers()}
 <!-- <link rel="stylesheet" href="http://www.myjqueryplugins.com/plugins/jmenu/demo/jquery/jMenu.jquery.css" type="text/css" /> -->
       <link rel="stylesheet" href="${pathto('_static/jMenu.jquery.css', 1)}" type="text/css" />
-      <script type="text/javascript" src="http://www.myjqueryplugins.com/plugins/jmenu/demo/jquery/jquery.js"></script>
-      <script type="text/javascript" src="http://www.myjqueryplugins.com/plugins/jmenu/demo/jquery/jquery-ui.js"></script>
 
       <!-- <script type="text/javascript" src="http://www.myjqueryplugins.com/plugins/jmenu/demo/jquery/jMenu.jquery.js"></script> -->
 

@@ -20,16 +20,16 @@
 FilterPanel
 ================
 
-The filter panel is the panel where all filter conditions can be written (remeber that
-constraints are different in the sense that are filters applied w/o possibility to remove
-them). It opens as a window separate from the main window so that it's easy to hide or keep
-it at hand.
+The filter panel is the panel where all filter conditions can be written
+(remeber that constraints are different in the sense that are filters
+applied w/o possibility to remove them). It opens as a window separate from
+the main window so that it's easy to hide or keep it at hand.
 
 Each sqlwidget has a FilterPanel even if it doesn't show it
 
 .. autoclass:: FilterPanel
-   :members: hide, show, get_tools, reload, set_page, tree, replace_column, add_column, clear
-             short_filter
+   :members: hide, show, get_tools, reload, set_page, tree, replace_column,
+             add_column, clear, short_filter
 .. autoclass:: FilterTool
    :members: set_value, get_value, set_operator, get_operator, destroy
 
