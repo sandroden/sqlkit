@@ -511,6 +511,14 @@ class TreeView(LWidget):
         
 class TextView(LWidget):
     gtkClass = 'GtkTextView'
+    transpose = {
+        'w' : 'width_request',
+        'h' : 'height_request',
+        }
+    class_properties = {
+        'width_request'  : '280',
+        'height_request'  : '100',
+        }
     def _class_specific(self):
         self.make_v_expandable()
 
