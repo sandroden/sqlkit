@@ -18,5 +18,7 @@
 
 <%def name="footer()">
     ${parent.footer()}
-    <script type="text/javascript" src="searchindex.js"></script>
+  <script type="text/javascript">
+    jQuery(function() { Search.loadIndex("${pathto('searchindex.js', 1)}"); });
+  </script>
 </%def>
