@@ -227,7 +227,7 @@ import os
 import re
 import sys
 import datetime
-import subprocess
+from subprocess import Popen, PIPE
 import warnings
 import socket
 
@@ -256,15 +256,21 @@ def start_oo(server="127.0.0.1", port=8100, headless=False):
     # there's a class implementing all this here:
     # http://www.linuxjournal.com/content/starting-stopping-and-connecting-openoffice-python
     # binary name to invoke
-    program = ['ooffice']
+    ## get oofice or libreoffice. This works on linux only, I guess
+    ooffice = Popen('which ooffice', shell=True, stdout=PIPE).communicate()[0] and 'ooffice'
+    libreoffice = Popen('which libreoffice', shell=True, stdout=PIPE).communicate()[0] and 'libreoffice'
+    program = ooffice or libreoffice
     # basic options needed
     opts = ['-accept="socket,host=%(server)s,port=%(port)s;urp;StarOffice.ServiceManager"' % locals()]
     opts += ['-norestore', '-nologo', '-nocrashreport'] #  -invisible
     if headless:
         opts += ['-headless']
 
-    cmd = " ".join(program + opts)
-    p =  subprocess.Popen(cmd, shell=True) 
+    if re.search('libreoffice', program):
+        ## libreoffice has correctly deprecated -norestore in favor of --norestore & Co.
+        opts = ['-' + opt for opt in opts]
+    cmd = " ".join([program] + opts)
+    Popen(cmd, shell=True) 
 
 def connect(server='127.0.0.1', port=8100, headless=False):
     """
