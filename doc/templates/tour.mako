@@ -17,11 +17,11 @@
 
       <h2>Release 0.9.5 is out</h2>
       
-      I'm happy to announce that on February, 7 2012 I released 
-      <a href="${pathto('misc/download', )}#download">version 0.9.5</a> of
-	sqlkit that adds support for sqlalchemy 0.7+ as wel as some minor
-        improvements (see
-	<a href="/download/Changelog">changelog</a>). 
+      I'm happy to announce that on Feb, 26 2012 I released 
+      <a href="${pathto('misc/download', )}#download">version 0.9.5.1</a> 
+      that improves the filter experience and extends support of print also
+      using libreoffice beside openoffice.
+      (see <a href="/download/Changelog">changelog</a>). 
 	
      </div>
      </div>

@@ -6,7 +6,7 @@ pygtk.require('2.0')
 
 from sqlkit.misc import utils
 
-__version__ = '0.9.5'
+__version__ = '0.9.5.1'
 
 
 cwd = os.path.abspath(os.path.dirname(__file__))

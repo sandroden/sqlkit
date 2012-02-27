@@ -1,16 +1,21 @@
-                      ANNOUNCE: sqlkit 0.9.5
+                      ANNOUNCE: sqlkit 0.9.5.1
 
-                          Fab, 7 - 2012
+                          Feb, 26 - 2012
 
 
-I'm happy to announce release 0.9.5 of sqlkit package for Python.
+I'm happy to announce release 0.9.5.1 of sqlkit package for Python.
 
   http://sqlkit.argolinux.org/
 
 This release
 ------------
 
-This release adds support sqlalchemy 0.7+ beside som minor other changes and fixes
+Some minor improvements in filters: a new filter operator that adds Empty or
+NULL searches (the OR conjunctin was not possible via GUI) and a shortcut to
+the process of selecting a filter, writing in it and reloading:
+Control-Alt-f fron the mask/table *field* entry (as opposed to "from the
+filter's field entry). A fix in the image field whose deletion was not
+working. Now works whith libreoffice as well as openoffice as template engine.
 
 The python package
 ------------------

@@ -1,3 +1,15 @@
+sqlkit - 0.9.5.1 - Feb 23 2012
+
+	* filters: + added shortcut Control-Alt-f to add a filter and reload
+ 	             starting from the field widget
+	           + added "operator" empty or NULL to catch both filter
+	             in one go
+	* layout: minor fix in setting TextView. It was only noticeable
+	           with some themes
+	* images:  fix: the image was never deleted	
+	* templates: now libreoffice is searched for as well if ooffice is missing
+
+
 sqlkit - 0.9.5 - Feb 7 2012
 
         * porting to SQLA 0.7+
