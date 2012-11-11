@@ -852,7 +852,7 @@ class CellEntry(object):
         return valid
 
     def get_text(self):
-        return self.entry.get_text()
+        return unicode(self.entry.get_text())
     
     def __repr__(self):
         return "<CellEntry: (%s) %s>" % (self.valid, self.get_text())

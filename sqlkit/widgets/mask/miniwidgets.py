@@ -305,7 +305,7 @@ class VarcharWidget(Widget):
         self.emit('value-set', value, initial)
         
     def get_value(self, shown=False):
-        value = self.gtkwidget.get_text( )
+        value = unicode(self.gtkwidget.get_text())
         ## don't change from None to '' 
         return value
 
@@ -534,9 +534,8 @@ class TextWidget(Widget):
         buff = self.gtkwidget.get_buffer()
         ts = buff.get_iter_at_offset(0)
         te = buff.get_iter_at_offset(-1)
-        text = buff.get_text(ts, te)
+        text = unicode(buff.get_text(ts, te))
         return text
-        
 
 class BooleanWidget(Widget):
     """
@@ -881,7 +880,7 @@ class ForeignKeyWidget(Widget):
             
     def get_value(self, shown=False):
         if shown:
-            return self.entry.get_text() 
+            return unicode(self.entry.get_text())
         if self.real_value:
             return self.value
         else:
