@@ -695,7 +695,7 @@ class ImageWidget(Widget):
                 text=_("A file with name '%s' already exists. Overwrite?" % save_path),
                 title=_('Upload name conflict'))
             
-            if response == gtk.RESPONSE_CANCEL:
+            if response != gtk.RESPONSE_OK:
                 return
         self.copy_file = self.field.clean_path(filename)
         self.new_filename = save_path

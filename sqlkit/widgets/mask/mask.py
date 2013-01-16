@@ -477,13 +477,13 @@ class SqlMask(sqlwidget.SqlWidget):
 
         if ask:
             response = self.save_unsaved(skip_check=True, proceed=False)
-
-            if response == gtk.RESPONSE_CANCEL:
-                raise exc.CancelledAction
-
+            
             if response == gtk.RESPONSE_NO: 
                 return
             
+            if response not in (gtk.RESPONSE_OK, True):
+                raise exc.CancelledAction
+        
         obj = self.record_mask2obj(self.current, force=new_obj)
                 
         self.record_validate(obj, single_fields=False)
@@ -533,13 +533,13 @@ class SqlMask(sqlwidget.SqlWidget):
                   "Read the docs for more informations"
             response = self.dialog(type='ok-cancel', text=_(msg) % o2m_list,
                                    icon='gtk-dialog-warning')
-            if response == gtk.RESPONSE_CANCEL:
+            if response != gtk.RESPONSE_OK:
                 return
         elif ask:
             msg = _("Do you want to copy all data to a new record?")
             response = self.dialog(type='ok-cancel', text=_(msg) % o2m_list,
                                    icon='gtk-dialog-question')
-            if response == gtk.RESPONSE_CANCEL:
+            if response != gtk.RESPONSE_OK:
                 return
             
         records_m2m = {}
@@ -630,7 +630,7 @@ class SqlMask(sqlwidget.SqlWidget):
             skip_new = self.current
             
         response = self.save_unsaved(skip_check=changed, skip_new=skip_new)
-        if response == gtk.RESPONSE_CANCEL:
+        if response not in (gtk.RESPONSE_OK, True):
             return
             
         self.current_idx = 0
