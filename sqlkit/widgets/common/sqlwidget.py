@@ -2053,10 +2053,10 @@ class SqlWidget(gobject.GObject):
             return self.widgets['Window']
         except KeyError, e:
             try:
+                return self.widgets['T.0'].get_toplevel()
+            except KeyError, e:
                 return self.relationship_leader.get_toplevel()
-            except AttributeError, e:
-                return None
-        
+    
     def fkey_is_valid(self):
         """
         return True if current editable -if exists- has a value that does not need validation
