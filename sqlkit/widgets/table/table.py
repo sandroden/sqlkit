@@ -1277,7 +1277,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self._new_record = False
 
 
-    def record_in_mask(self, widget=None):
+    def record_in_mask(self, widget=None, addto=None, naked=False):
         """
         Open a SqlMask to show self.current if any and to follow selection.
         
@@ -1305,7 +1305,7 @@ class SqlTable(sqlwidget.SqlWidget):
             self._mask().widgets['Window'].present()
             return
         mask = SqlMask(self.mapper, session=self.session, layout=self.layout,
-                       metadata=self.metadata, dbproxy=self.dbproxy, hooks=self.hooks)
+                       metadata=self.metadata, dbproxy=self.dbproxy, hooks=self.hooks, addto=None, naked=False)
         mask.set_mode(self.mode, reset=True)
         mask.mode = '-bd'
         obj = getattr(self, '_clicked_obj', self.get_selected_obj())
