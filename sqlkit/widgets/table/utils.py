@@ -94,6 +94,8 @@ def set_height_request(treeview, rows=None):
     treeview.set_property('height-request', needed_height)
 
     toplevel        = treeview.get_toplevel()
+    if not isinstance(toplevel, gtk.Window):
+        return
     visible_rect    = treeview.get_visible_rect()
     missing_height  = needed_height - visible_rect.height
     new_height      = toplevel.get_allocation().height + missing_height
@@ -183,6 +185,9 @@ def set_optimal_width(treeview, max_pixels=None):
 
     toplevel = treeview.get_toplevel()
 
+    if not isinstance(toplevel, gtk.Window):
+        return
+    
     # ... then we can take the size...
 
     new_width = toplevel.size_request()[0]
