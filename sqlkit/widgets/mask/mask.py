@@ -81,7 +81,7 @@ class SqlMask(sqlwidget.SqlWidget):
         """
         add mouse wheel support
         """
-        if not self.widgets['Window']:
+        if not 'Window' in self.widgets:
             return
             
         def scroll_event_cb(widget, event):
