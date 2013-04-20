@@ -163,11 +163,16 @@ if __name__ == '__main__':
             print "This version of gtk doesn't have 'set_interactive', sorry."
             sys.exit(1)
         try:
-            import IPython
-            from IPython.Shell import IPShellEmbed
-            ipshell = IPShellEmbed([])
             print "The last opened table is hold in variable 'd.t' (i.e.: demo.table)"
-            ipshell()
+            import IPython
+            shell = IPython.Shell.IPShell(argv=[])
+            shell.mainloop()
+            # from IPython.Shell import IPShellEmbed
+            # ipshell = IPShellEmbed([])
+            # ipshell()
+        except AttributeError, e:
+            from IPython import embed
+            embed()
         except ImportError, e:
             print "Interactive demo needs ipython. Quitting."
     else:
