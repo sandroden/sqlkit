@@ -39,7 +39,7 @@ SqlWidget and a metadata, an object is provided -``dbproxy``- that can be
 initialized from the engine specification::
 
   from sqlkit.widgets import SqlMask, SqlTable
-  from sqlkit import dbproxy
+  from sqlkit import DbProxy
   db = proxy.DbProxy(engine="sqlite:///model/movies.sqlite")
   SqlTable("movies", dbproxy=db)
 
