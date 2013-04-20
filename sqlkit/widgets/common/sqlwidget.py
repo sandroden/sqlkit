@@ -765,12 +765,12 @@ class SqlWidget(gobject.GObject):
     
     def get_table_labels(self):
         """
-        get labels and tips from the db is they exists
+        get labels and tips from the db if they exists
         """
         from sqlkit.db.utils import get_labels_and_tips_from_sqlkit
         if self.tables:
             for table in [t.name for t in self.mapper.tables]:
-                self.label_map.update( get_labels_and_tips_from_sqlkit(table, metadata=self.metadata))
+                self.label_map.update( get_labels_and_tips_from_sqlkit(table, metadata=self.metadata, class_=self.mapper.class_))
             
     def resize(self, width, height):
         """

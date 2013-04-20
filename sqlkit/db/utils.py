@@ -384,19 +384,20 @@ def get_description_from_sqlkit(table, metadata=None):
         descr = (None, None)
     return descr
 
-def get_labels_and_tips_from_sqlkit(table, metadata=None):
+def get_labels_and_tips_from_sqlkit(table, metadata=None, class_=None):
     """
     get the labels and tips to use in label_map from
     table _sqlkit_field
     """
+    from sqlkit.db.sqlkit_model import get_classes
+
     if isinstance(table, Table):
         metadata = table.metadata
         table_name = table.name
     else:
         table_name = table
         
-    from sqlkit.db.sqlkit_model import get_classes
-    table_class, field_class = get_classes(metadata.bind)
+    table_class, field_class = get_classes(bind=metadata.bind, class_=class_)
 
     if not metadata.bind.has_table(field_class.__tablename__):
         return {}

@@ -67,9 +67,13 @@ import utils
 
 Base = declarative_base()
 
-def get_classes(bind):
+def get_classes(bind=None, class_=None):
 
     global SqlkitTable, SqlkitFields
+    
+    if not bind:
+        bind = class_.metadata.bind
+
     try:
         return SqlkitTable, SqlkitFields
     except:
