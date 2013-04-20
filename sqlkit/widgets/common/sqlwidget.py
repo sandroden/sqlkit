@@ -387,7 +387,7 @@ class SqlWidget(gobject.GObject):
             try:
                 session._sk_emitter.add(self)
             except AttributeError:
-                warning.warn("Session does not have '_sk_emitter', signals after-flush "
+                warnings.warn("Session does not have '_sk_emitter', signals after-flush "
                              "after-commit and after-flush-postexec are not implemented")
             
         return session
