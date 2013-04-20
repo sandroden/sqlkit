@@ -996,7 +996,7 @@ class SqlTable(sqlwidget.SqlWidget):
             if model.iter_has_child(iter):
                 text += "\n" + _("All children will be deleted as well") 
             response = self.dialog(type='ok-cancel', text=text)
-            if response == gtk.RESPONSE_CANCEL:
+            if response != gtk.RESPONSE_OK:
                 return
 
         self.deleting_row = True
