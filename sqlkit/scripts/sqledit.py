@@ -37,7 +37,7 @@ usage: %prog [options] [[url|nick] table]
    -i, --ipython: if ipython is present it opne an ipython shell
    -C, --create-templates=mode: create in one of these modes: layout,
          hooks, programm, models, all
-   , --create-tables: Create all tables in models define in metadata (models.metadata or Base.metadata)
+   , --create-tables: Create all tables in models defined in metadata (models.metadata or Base.metadata)
 """
 
 import sys
@@ -272,7 +272,6 @@ def open_db(exc=False):
     global db, models
 
     db = None
-
     if getattr(opts,'nick_dir', None):
         os.chdir(opts.nick_dir)
         sys.path.append(opts.nick_dir)
@@ -282,25 +281,26 @@ def open_db(exc=False):
             sys.exit()
         else:
             if opts.models:
-                import models
+                VARS = {}
+                execfile('models.py', VARS)
                 try:
                     if opts.create_tables:
-                        if not models.Base.metadata.bind:
+                        if not VARS.get(Base).metadata.bind:
                             models.Base.metadata.bind = opts.url
                         models.Base.metadata.create_all()
                 except Exception, e:
                     print e
                     pass
                 try:
-                    db = models.db
+                    db = VARS.get('db') 
                 except AttributeError:
                     pass
 
             if opts.hooks:
-                import hooks
+                execfile('hooks.py', {})
+
             if opts.layout:
-                import layout
-            
+                execfile('layout.py', {})
     try:
         db = DbProxy(bind=opts.url)
         db.metadata.bind.connect()
