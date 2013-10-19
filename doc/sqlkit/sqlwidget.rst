@@ -40,7 +40,7 @@ initialized from the engine specification::
 
   from sqlkit.widgets import SqlMask, SqlTable
   from sqlkit import DbProxy
-  db = proxy.DbProxy(engine="sqlite:///model/movies.sqlite")
+  db = DbProxy(engine="sqlite:///model/movies.sqlite")
   SqlTable("movies", dbproxy=db)
 
 below you can see some alternatives that would work as well::
