@@ -12,11 +12,17 @@ not 28th of march!
 
 Allowed chars are::
 
-  [-+ diwWmMyY @>]
+  [-+ diwWmMyY @>{}]
 
 letters refer to a moment of time (start/end of month, year, week) or period
-according to use: the forst token is a moment of time, the further ones are
-periods.
+according to use: the first token is a moment of time, the further ones are
+periods. 
+
+You can possibily add as a last tocken a set of week days that the 
+computed date should shift to help in setting date as (first working date 
+after 16 of month - in Italy we pay several taxes on that day ;-)
+
+.. versionadded:: 0.9.6
 
   :d: today
   :i: yesterday ('ieri' in italian, 'y' was already used by year)
@@ -82,6 +88,7 @@ Other examples
 
   :m-1: beginnning of last month
   :M+1: end of next month
+  :m+15 {12345}  first working day after 16th 
 
 """
 
@@ -159,11 +166,15 @@ def string2date(string):
     in the docstring
 
     """
-    try:
-        # first try a normal parsing via babel
-        return dates.parse_date(string, locale=dates.default_locale())
-    except:
-        pass
+    # Babel is crazy and accept something as: m+1 +2w {2345}
+    if not '{' in string:
+        try:
+            # first try a normal parsing via babel
+            ret = dates.parse_date(string, locale=dates.default_locale())
+            return ret
+        except:
+            pass
+        
 
     ## add spaces to math simbols, not in starting position, only if not
     ## preceded by spaces
@@ -171,7 +182,13 @@ def string2date(string):
     data = re.split(' +', re.sub(PAT_ADD_SPACES, r' \1', string).strip())
     ##
     end_month = 'M' in data[0]
-    
+    # A shift is a set of week day numbers in curly braces where computed date will be shifted
+    # Used to get "the first monday" after computed day
+    if '{' in data[-1]:
+        allowed_day_numbers = data[-1].strip('{}')
+        data.pop(-1)
+    else:
+        allowed_day_numbers = ''
     try:
         computed, last_period = transform(data[0])
 
@@ -189,9 +206,31 @@ def string2date(string):
 
     except Exception, e:
         raise WrongRelativeDateFormat(str(e))
-    
+
+    # Apply shifting
+    computed = get_suitable_day(computed, allowed_day_numbers)
+
     return computed
     
+def get_suitable_day(day, allowed_week_day_numbers, reverse=False):
+    """Return the next/previous day whose weeknumber is within to_shift
+    
+    :param day: a datetime.date
+    :param allowed_week_day_numbers: a set of weekday numbers allowed
+    :param reverse: Boolean, it Tru, allowed numbers are looked for in the 
+               future, else in the past
+    """
+    day_week_day_number = int(day.strftime('%w'))
+    if not allowed_week_day_numbers:
+        return day
+    allowed_day_numbers = [int(x) for x in allowed_week_day_numbers]
+
+    for j in range(7): 
+        shifted = day + timedelta(days=j)
+        shifted_week_day_number = int(shifted.strftime('%w'))
+        if shifted_week_day_number in allowed_day_numbers:
+            return shifted
+    return shifted
 
 def transform(token, start=None, last_period=None, further=False):
     """transform token into a date
@@ -275,3 +314,5 @@ def transform(token, start=None, last_period=None, further=False):
 def get_end_of_month(date):
     date = date.replace(day=1)
     return date + relativedelta(months=+1, days=-1)
+
+
