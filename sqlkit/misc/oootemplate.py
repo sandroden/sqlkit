@@ -1,4 +1,4 @@
-# Copyright (C) 2009-2010-2011, Sandro Dentella <sandro@e-den.it>
+# Copyright (C) 2009-2010-2011-2012, Alessandro Dentella <sandro@e-den.it>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,6 +12,22 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# The image handlig has been possible thanks to the explanation contained here:
+# http://www.oooforum.org/forum/viewtopic.phtml?t=14979 (Explained by Danny B.!!!)
+# previous URL uses a library I could not find but a python port should be within:
+# http://rooibos.googlecode.com/svn-history/r211/trunk/rooibos/converters/ImageConverter.py
+
+# oo tutorial: http://www.openoffice.org/api/basic/man/tutorial/tutorial.pdf (A.D. 2000)
+
+# http://it.libreofficeforum.org/node/3617
+#    oProvider = createUnoService("com.sun.star.graphic.GraphicProvider")
+#    Dim oPropsIN(0) as new com.sun.star.beans.PropertyValue
+#    oPropsIN(0).Name  = "URL"
+#    oPropsIN(0).Value = sFileURL
+#    getGraphFromUrl = oProvider.queryGraphic(oPropsIN())
+# http://www.oooforum.org/forum/viewtopic.phtml?t=23538
+# http://user.services.openoffice.org/en/forum/viewtopic.php?f=20&t=42344
 
 """
 .. _oootemplate:
@@ -226,6 +242,7 @@ Table
 import os
 import re
 import sys
+import uuid
 import datetime
 from subprocess import Popen, PIPE
 import warnings
@@ -233,6 +250,7 @@ import socket
 
 import uno
 from com.sun.star.beans import PropertyValue
+from com.sun.star.awt import Size
 
 NoConnectionException = uno.getClass("com.sun.star.connection.NoConnectException")
 OutOfBoundsException = uno.getClass("com.sun.star.lang.IndexOutOfBoundsException")
@@ -678,6 +696,53 @@ class Template():
             found.String = new_text
             found = self.document.findNext( found.End, self.search)
 
+    def insert_img(self, placeholder, path, width, height, hOrient = 'left'):
+        """
+        Insert an Image instead of placeholder
+
+        :param placeholder: the marker that should be substituted
+        :param path: the image path (as seen bythe system, not by OO)
+        :param with: the with
+        :param height: the height
+        :param hOrient: left|right|center a possible horizontal placement (default: left)
+
+        This is just a partial implementation of a way to handle images from the template
+        For the time being you need to set size and image name programmatically.
+
+        """
+        # 1^ step: embed the image and get back the internal URL used by OO
+        internal_URL = loadGraphicIntoDocument(self.document, uno.systemPathToFileUrl(path),)
+
+        # 2^ step: create a generic imge (TextGraphicObject)
+        img = makeGraphicObject(self.document, width, height, hOrient)
+
+        # 3^ step: set it's URL to the internal url of the embedded image
+        img.GraphicURL = internal_URL
+
+        # 4^ Go and substitute the placeholder with the image
+        self.replace_placeholder_with_image(placeholder, img)
+
+    def replace_placeholder_with_image(self, placeholder, img):
+        """
+        find placeholder and substitute it with an image
+        """
+
+        cursor = self.document.Text.createTextCursor()
+        search = self.document.createSearchDescriptor()
+        search.SearchString = placeholder
+        found = self.document.findFirst( search )
+        cell_or_txt = found.Cell or found.getText()
+
+        cursor = cell_or_txt.createTextCursor()
+        m = re.search('(?P<match>%s)' % placeholder, cell_or_txt.String)
+
+        cursor.gotoStart(False)
+        cursor.goRight(m.start('match'), False)
+        cursor.goRight(m.end('match') - m.start('match'), True)
+
+        cell_or_txt.insertTextContent(cursor, img, True)
+        return cell_or_txt
+    
     def save_as(self, filename, local=None):
         """
         save the template using save_as capability of openoffice.
@@ -992,4 +1057,61 @@ def test_srv_connection(host, port, timeout=3):
         return True
     except socket.error, err:
         return False
+
+# The following function have been copied and adopted from 
+# http://rooibos.googlecode.com/svn-history/r211/trunk/rooibos/converters/ImageConverter.py
+
+def loadGraphicIntoDocument(document, url, internal_name=None):
+   """ Get the BitmapTable from this document.
+   It is a service that maintains a list of bitmaps that are internal
+   to the document.
+
+   :param document: the oo document
+   :param url: the URL of the document as seen by ooffice (file:///...)
+   :param internal_name: any string. Not usefull unless you plan to retrieve it
+             by document.getbyName()
+   :return: the internal URL that can be used with any graphic object
+   """
+   oBitmaps = document.createInstance( "com.sun.star.drawing.BitmapTable" )
+
+   #Add an external graphic to the BitmapTable of this document.
+   internal_name = internal_name  or str(uuid.uuid1())
+   oBitmaps.insertByName( internal_name, url )
+
+   #Now ask for it back.
+   #What we get back is an different Url that points to a graphic
+   #which is inside this document, and remains with the document.
+   cNewUrl = oBitmaps.getByName( internal_name)
+
+   return cNewUrl 
+
+def makeGraphicObject(document, width, height, hOrient):
+    """
+    generate a generic TextGraphicObject (no path for the moment) and set
+    it's main properties
+
+    :param document: the writer document
+    :param width: the width of the image
+    :param height: the height of the image
+    :param hOrient: the orientation of the image: left|right|center
+    """
+    
+    # the GraphicObjectShape result in an image that is not resizable interactively
+    #img = oDoc.createInstance( "com.sun.star.drawing.GraphicObjectShape" )
+
+    # a TextGraphicObject is an object that is resizable interactively
+    img = document.createInstance(u'com.sun.star.text.TextGraphicObject')
+    img.AnchorType = 'AT_PARAGRAPH'
+    img.HoriOrient = 0
+    size = Size()
+    size.Width = width
+    size.Height = height
+    img.Size = size
+    img.AnchorType = 'AT_PARAGRAPH'
+    img.HoriOrient = {
+        'left': 0,
+        'right': 1,
+        'center': 2
+    }[hOrient]
+    return img 
 
