@@ -1601,6 +1601,12 @@ class ImageField(VarcharField):
             # if name is relative, it's used in clean_value on already correct values
             # and only base_dir should be added
             name = os.path.basename(name)
+
+        ## when resizing the final extension is .jpeg! (NOT jpg)
+        if self.default_size and self.is_image(name):
+            basename, ext = os.path.splitext(name)
+            name = basename + '.jpeg'
+
         return self.clean_path(os.path.join(self.base_dir, name))
 
     def scale_pixbuf(self, pixbuf, width=None, height=None):
