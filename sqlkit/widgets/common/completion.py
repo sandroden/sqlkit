@@ -33,7 +33,7 @@ from copy import copy
 import gtk
 from gobject import markup_escape_text
 
-from sqlalchemy import text, select, Table, exceptions
+from sqlalchemy import text, select, Table
 from sqlalchemy.sql import and_, or_, not_
 from sqlalchemy.orm import class_mapper, mapper
 

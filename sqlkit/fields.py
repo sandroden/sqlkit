@@ -1735,7 +1735,7 @@ class ForeignKeyField(Field):
 
         """
         from sqlkit.db.utils import tables, get_description, DictLike
-        from sqlalchemy import text, select, Table, exceptions
+        from sqlalchemy import text, select, Table, exc
 
         if field_value is None:
             return ''
@@ -1753,7 +1753,7 @@ class ForeignKeyField(Field):
             sql = select(fields, self.column_lookup == field_value)
             try:
                 all = self.table.metadata.bind.execute(sql).fetchall()
-            except (exceptions.DBAPIError), e:
+            except (sqlalchemy.exc.DBAPIError), e:
                 if hasattr(self, 'master'):
                     self.master.sb(e)
                 return None

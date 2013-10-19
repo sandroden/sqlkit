@@ -28,7 +28,7 @@ import pango
 import gobject
 from babel import numbers
 import sqlalchemy
-from sqlalchemy import exceptions, Table, orm
+from sqlalchemy import Table, orm
 from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper, attributes
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.orm.mapper import Mapper
@@ -1024,7 +1024,7 @@ class SqlWidget(gobject.GObject):
             self.run_hook('on_record_saved')
             self.sb(message, seconds=3)
 
-        except (exceptions.DBAPIError, exceptions.FlushError), e:
+        except (sqlalchemy.exc.DBAPIError, sqlalchemy.exc.FlushError), e:
             if not self.commit_error_handler(e):
                 self.session.rollback()
                 raise exc.HandledRollback(str(e))
@@ -1034,13 +1034,13 @@ class SqlWidget(gobject.GObject):
         communicate the problem to the user
         return True to prevent rollback
         """
-        if isinstance(e, exceptions.IntegrityError):
+        if isinstance(e, sqlalchemy.exc.IntegrityError):
             # TIP: message in the status bar when a commit error is handled
             msg = _("Error while writing to the database. \nOriginal error was: \n%s") % e
             self.message(type='error', text=_(msg))
             self.sb(str(e))
 
-        elif isinstance(e, exceptions.ProgrammingError):
+        elif isinstance(e, sqlalchemy.exc.ProgrammingError):
             # TIP: Error while saving into a table w/o permission
             msg = _("A programming error was received from the backend:\n%s") % e
             if re.search('permission denied', msg, re.I):
@@ -1048,14 +1048,14 @@ class SqlWidget(gobject.GObject):
             self.message(type='error', text=msg)
             self.sb(e.orig)
 
-        elif isinstance(e, exceptions.DBAPIError):
+        elif isinstance(e, sqlalchemy.exc.DBAPIError):
             # TIP: message in the status bar when a commit error is handled
             self.message(type='error',
                          text=_("%s - Dirty objects: %s - New objects: %s") % \
                          (str(e.orig),len(self.session.dirty),len(self.session.new)))
             self.sb(e.orig)
 
-        elif isinstance(e, exceptions.FlushError):
+        elif isinstance(e, sqlalchemy.exc.FlushError):
             # TIP: message in the status bar when a commit error is handled
             msg = _("Error while writing to the database: \n" \
                     "are you 'saving as new' an already known record?\n" + \
@@ -1540,10 +1540,11 @@ class SqlWidget(gobject.GObject):
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
         """
         from sqlkit.db.django_syntax import django2query
+        
         if limit:
             self.limit = limit
 
-        query = self.query.filter(None)
+        query = self.query.filter()
 
         ## order_by
         if order_by:
@@ -1575,7 +1576,7 @@ class SqlWidget(gobject.GObject):
             self.clear(check=False)
         try:
             self.records = query.all()
-        except exceptions.ProgrammingError, e:
+        except sqlalchemy.exc.ProgrammingError, e:
             # TIP: reloading data from the database
             msg = _("A programming error was received from the backend:\n%s") % e
             if re.search('permission denied', msg, re.I):
@@ -1583,7 +1584,7 @@ class SqlWidget(gobject.GObject):
             self.message(type='error', text=msg)
             self.sb(e.orig)
             return
-        except exceptions.InterfaceError, e:
+        except sqlalchemy.exc.InterfaceError, e:
             ## the connection may be closed and a retry could restore it
             if re.search('closed', str(e), re.I):
                 self.records = query.all()

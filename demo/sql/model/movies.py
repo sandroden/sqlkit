@@ -77,7 +77,7 @@ class Movie(Base):
 
 class Genre(Base):
     __tablename__ = 'genre'
-    name     = Column(Unicode(55, assert_unicode=False), primary_key=True)
+    name     = Column(Unicode(55), primary_key=True)
     
     def __repr__(self):
         return u'<Genre "%s">' % self.name
@@ -105,8 +105,8 @@ class AllTypes(Base):
     varchar10      = Column(String(10), nullable=False)
     varchar200     = Column(String(200))
     text           = Column(Text())
-    uni            = Column(Unicode(10, assert_unicode=False))
-    uni_text       = Column(UnicodeText(assert_unicode=False), nullable=False)
+    uni            = Column(Unicode(10, ))
+    uni_text       = Column(UnicodeText(), nullable=False)
     date           = Column(Date())
     datetime       = Column(DateTime(timezone=False))
     datetime_tz    = Column(DateTime(timezone=True))
