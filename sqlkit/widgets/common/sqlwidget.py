@@ -1154,7 +1154,7 @@ class SqlWidget(gobject.GObject):
             dialog = UnsavedDataDialog(self)
             response = dialog.run()
 
-            if response == gtk.RESPONSE_CANCEL:
+            if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
                 pass
 
             if response == gtk.RESPONSE_YES:
@@ -2396,7 +2396,7 @@ class ValidationWarningDialog(ValidationErrorDialog):
         self.dialog.destroy()
 
         self.error_dict = {}
-        if response == gtk.RESPONSE_CANCEL:
+        if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
             raise exc.DialogValidationError
         else:
             pass

@@ -832,7 +832,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if ask:
             response = self.save_unsaved(skip_check=skip_check, proceed=False)
 
-            if response == gtk.RESPONSE_CANCEL:
+            if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
                 raise exc.CancelledAction
 
             if response == gtk.RESPONSE_NO: 
@@ -1430,7 +1430,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 type="ok-cancel",
                 text=_("A file with name '%s' already exists.\nOverwrite?") % save_path,
                 title=_('Upload name duplication'))
-            if response == gtk.RESPONSE_CANCEL:
+            if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
                 return
 
         self.gui_fields[field_name].widget.copy_file = filename # delay the real copy

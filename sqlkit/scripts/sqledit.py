@@ -204,7 +204,7 @@ class ConnectionDialog(object):
     def run(self):
         global opts
         response = self.dialog.run()
-        if response == gtk.RESPONSE_CANCEL:
+        if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
             sys.exit()
         elif response == RESPONSE_DEMO:
             start_demo()
