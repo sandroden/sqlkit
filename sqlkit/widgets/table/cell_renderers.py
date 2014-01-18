@@ -12,7 +12,15 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
     Can also edit datetime but the popup will just change the date, not allow
     to edit the time
     """
-
+    
+    __gproperties__ = {
+         'editing-canceled' : (gobject.TYPE_BOOLEAN,                        # type
+                               'editing canceled',                         # nick name
+                               'Indicates whether editing on the cell has been canceled.', # description
+                               False,                                        # default value
+                               gobject.PARAM_READWRITE)                   # flags
+    }
+    
     datetime = None
     def __init__(self, datetime, pos=None, wdg=None, cell_area=None, fmt_func=None):
 

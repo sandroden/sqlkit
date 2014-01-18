@@ -1,10 +1,19 @@
 import gtk
+import gobject
 
 
 class CellTextView(gtk.TextView, gtk.CellEditable):
 
     __gtype_name__ = "CellTextView"
 
+    __gproperties__ = {
+         'editing-canceled' : (gobject.TYPE_BOOLEAN,                        # type
+                               'editing canceled',                         # nick name
+                               'Indicates whether editing on the cell has been canceled.', # description
+                               False,                                        # default value
+                               gobject.PARAM_READWRITE)                   # flags
+    }
+    
     def do_editing_done(self, *args):
         self.remove_widget()
 
