@@ -419,7 +419,7 @@ class SqlMask(sqlwidget.SqlWidget):
             self.session.add(obj)
 
         # mask2obj ensures that the object used for validation is updated from the mask
-        # record_valildate that is run just after mask2object requires validation_errors/warnings
+        # record_validate that is run just after mask2obj requires validation_errors/warnings
         # be present
         self.validation_errors = {}
         self.validation_warnings = {}

@@ -41,9 +41,9 @@ if opts.gtk:
     from sqlkit import debug as dbg
     dbg.debug(True)
     dbg.debug(True, gtk=True)
-    dbg.trace_class(ok='SqlTable|SqlWidget|SqlMask|Completion')
+    dbg.trace_class(ok='SqlTable|SqlWidget|SqlMask|Completion|Field')
     but = 'set_fkey_descr|(lookup|get)_value' + \
-        '|lookup_value|is_fkey'
+        '|lookup_value|is_fkey|type'
     dbg.trace_function(exclude=but)
 
 from demo_tour import Demo
