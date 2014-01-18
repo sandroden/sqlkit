@@ -18,14 +18,14 @@ sqlkit - 0.9.5.1 - Feb 23 2012
 	             in one go
 	* layout: minor fix in setting TextView. It was only noticeable
 	           with some themes
-	* images:  fix: the image was never deleted	
+	* images:  fix: the image was never deleted
 	* templates: now libreoffice is searched for as well if ooffice is missing
 
 
 sqlkit - 0.9.5 - Feb 7 2012
 
         * porting to SQLA 0.7+
-	* table: 
+	* table:
              +  if treestore is used, row deletions of a parent  implies
                 deletion of children
 	     +  on image field, no entry to cshow image if the image is
@@ -33,7 +33,7 @@ sqlkit - 0.9.5 - Feb 7 2012
              + added a tooltip for the image name
         * docs: minor changes
         * fields: enum now only suggest empty if null is allowed
-                  fixes in image rendering and fix in path 
+                  fixes in image rendering and fix in path
         * sqledit: fix in option parsing (Opt -T)
 	* filter_panel: it's now possible to get rid of filters already added
 	* minor fixes
@@ -65,14 +65,14 @@ sqlkit - 0.9.3.2 - Mar 31 2011
 	        windows has its own one, the others where already ok)
 	* sqledit: added option --create-tables, to create table after
 	        reading the models
-	
+
 sqlkit - 0.9.3.1 - Mar 11 2011
 
 	* localization: added german localization
 	* mask: fix in set_records() when pk option was used and no record
 	        found
 	* fields: enum field clean_value should not validate NOT NULL
-	
+
 sqlkit - 0.9.3 - Mar 3 2011
 
 	* table/mask: added possibility to duplicate a record
