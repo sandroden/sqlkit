@@ -413,7 +413,7 @@ def sqlkit_model(item=None, dbproxy=None, single=False):
         Base.metadata.bind = db.metadata.bind
         if not db.metadata.bind.has_table('_sqlkit_table'):
             response = dialog_create_continue()
-            if response != gtk.RESPONSE_OK:
+            if response == gtk.RESPONSE_CANCEL:
                 sys.exit(0)
             else:    
                 Base.metadata.create_all()

@@ -831,12 +831,12 @@ class SqlTable(sqlwidget.SqlWidget):
 
         if ask:
             response = self.save_unsaved(skip_check=skip_check, proceed=False)
-            
-            if response == gtk.RESPONSE_NO: 
-                return True  # Only used in record_in_mask, better would be a exc.NegativeAnswer
-            if response not in (gtk.RESPONSE_OK, True):
+
+            if response == gtk.RESPONSE_CANCEL:
                 raise exc.CancelledAction
 
+            if response == gtk.RESPONSE_NO: 
+                return True  # Only used in record_in_mask, better would be a exc.NegativeAnswer
             
         obj = self.get_current_obj()
 
@@ -1430,7 +1430,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 type="ok-cancel",
                 text=_("A file with name '%s' already exists.\nOverwrite?") % save_path,
                 title=_('Upload name duplication'))
-            if response != gtk.RESPONSE_OK:
+            if response == gtk.RESPONSE_CANCEL:
                 return
 
         self.gui_fields[field_name].widget.copy_file = filename # delay the real copy

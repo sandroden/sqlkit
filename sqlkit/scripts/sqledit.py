@@ -204,18 +204,18 @@ class ConnectionDialog(object):
     def run(self):
         global opts
         response = self.dialog.run()
-        if response == RESPONSE_DEMO:
+        if response == gtk.RESPONSE_CANCEL:
+            sys.exit()
+        elif response == RESPONSE_DEMO:
             start_demo()
             self.dialog.destroy()
             return response
-        elif response == gtk.RESPONSE_OK:
+        else:
             opts.url = self.l.widgets['e=url'].get_text()
             if open_db():
                 self.dialog.destroy()
             else:
                 pass
-        else:
-            sys.exit()
         return response
 
     def add_demo(self):

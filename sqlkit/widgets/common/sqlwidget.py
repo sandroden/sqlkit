@@ -1153,18 +1153,20 @@ class SqlWidget(gobject.GObject):
         if self.unsaved_changes_exist(skip_new=skip_new) or skip_check:
             dialog = UnsavedDataDialog(self)
             response = dialog.run()
-            
+
+            if response == gtk.RESPONSE_CANCEL:
+                pass
+
             if response == gtk.RESPONSE_YES:
                 if proceed:
                     self.record_save(ask=False)
+            
             ## you don't want to save. Let's prevent a delayed commit
             ## we don't need to care about deleted becouse when you delete
             ## the commit is immediate
-            elif response == gtk.RESPONSE_NO:
+            if response == gtk.RESPONSE_NO:
                 self.discard_changes()
-            else:
-                pass
-        
+     
         return response
 
     def discard_changes(self):
@@ -2394,7 +2396,7 @@ class ValidationWarningDialog(ValidationErrorDialog):
         self.dialog.destroy()
 
         self.error_dict = {}
-        if response != gtk.RESPONSE_OK:
+        if response == gtk.RESPONSE_CANCEL:
             raise exc.DialogValidationError
         else:
             pass
