@@ -1424,7 +1424,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.select_path(self._clicked_path)
         save_path = self.gui_fields[field_name].get_save_path(
                         name=dialog.new_filename or filename,
-                        obj=self.current)
+                        obj=self.current, new=True)
         if os.path.exists(save_path):
             response = self.dialog(
                 type="ok-cancel",

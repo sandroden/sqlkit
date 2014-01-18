@@ -706,6 +706,7 @@ class Field(gobject.GObject):
                     raise NotHandledDefault
         if not isinstance(value, self.type):
             return
+
         return value
         
     def set_default(self, obj=None):
@@ -1429,10 +1430,9 @@ class ImageField(VarcharField):
     """
 
     default_size = None
-    """If set it must be a tuple (width, height) and all files uploaded will be
+    """If set it must be a tuple (width, height) and all **uploaded** files will be
     default to these dimentions if bigger.
     """
-
     def __init__(self, *args, **kw):
 
         import gtk
@@ -1523,7 +1523,7 @@ class ImageField(VarcharField):
                 self.widget.set_value(path, initial=initial)
 
             if hasattr(self.widget, 'copy_file') and self.widget.copy_file:
-                # Note if it has 'copy_-file' it also has new_filename that may be empty
+                # Note if it has 'copy_file' it also has new_filename that may be empty
                 save_path = self.get_save_path(name=new_name or self.widget.new_filename or value,
                                                obj=self.master.current)
                 if not os.path.splitext(save_path)[1]:
@@ -1584,26 +1584,31 @@ class ImageField(VarcharField):
 #         self.thumbnail_path = os.path.join(self.base_dir, name + "_thumb" + ext)
 #         i.save(self.thumbnail_path)
     
-    def get_save_path(self, name=None, obj=None):
+    def get_save_path(self, name=None, obj=None, new=False):
         """
         Return a standard save path. You may want to customize it.
+        
 
         :param name: the name of the file as picked up from the filesystem
                      or the desired new name for the file. :meth:`clean_value`
                      call this also for already save path.
         :param obj: the object. This may be used to work out the path. It's
                      not used by default.
+        :param new: if ``True``, the obj is currently uploaded, name mangle should happen
+
         """
         if not name:
             return None
         obj = obj or self.master.current
+
         if os.path.isabs(name):
             # if name is relative, it's used in clean_value on already correct values
             # and only base_dir should be added
             name = os.path.basename(name)
 
-        ## when resizing the final extension is .jpeg! (NOT jpg)
-        if self.default_size and self.is_image(name):
+        # when resizing the final extension is .jpeg! (NOT jpg)
+        # Don't rename on already existent field names
+        if new and self.default_size and self.is_image(name):
             basename, ext = os.path.splitext(name)
             name = basename + '.jpeg'
 

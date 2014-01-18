@@ -1,3 +1,15 @@
+sqlkit - 0.9.6 - Nov 2013
+
+	* porting: works with sqlalchemy 0.8+
+	* filters: added possibility to use alternative set of filters by
+   	           UNION, EXCEPT and INTERCEPT
+	* images: fix a bug that made some images disappear on resize
+	          ATTENTION: adds a backword incompatibility. If you have 
+	          inherited from ImageField, you need to add arg ``new``
+	          in the signature
+
+	* dialogs: now Esc works as Cancel
+
 sqlkit - 0.9.5.1 - Feb 23 2012
 
 	* filters: + added shortcut Control-Alt-f to add a filter and reload

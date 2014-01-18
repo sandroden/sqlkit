@@ -685,8 +685,8 @@ class ImageWidget(Widget):
         """
         if not filename:
             return
-        save_path = self.field.get_save_path(name=new_filename or filename,
-                                             obj=self.field.master.current)
+        save_path = self.field.get_save_path(
+            name=new_filename or filename, obj=self.field.master.current, new=True)
 
         ## existing path
         if os.path.exists(save_path):
