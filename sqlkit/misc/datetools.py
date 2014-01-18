@@ -88,7 +88,7 @@ Other examples
 
   :m-1: beginnning of last month
   :M+1: end of next month
-  :m+15 {12345}  first working day after 16th 
+  :m+15 {12345}:  first working day after 16th 
 
 """
 
