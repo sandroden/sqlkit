@@ -146,6 +146,15 @@ datetime.date(2007, 11, 30)
 >>> dt.string2dates('@y +1')
 (datetime.date(2008, 1, 1), datetime.date(2008, 12, 31))
 
+>>> dt.string2dates('@d')
+(datetime.date(2007, 6, 2), datetime.date(2007, 6, 3))
+
+>>> dt.string2dates('@d+1')
+(datetime.date(2007, 6, 3), datetime.date(2007, 6, 4))
+
+>>> dt.string2dates('@2d-1')
+(datetime.date(2007, 6, 1), datetime.date(2007, 6, 3))
+
 # Not implemented
 #>>> dt.string2dates('@m')
 

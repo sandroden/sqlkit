@@ -25,7 +25,8 @@ after 16 of month - in Italy we pay several taxes on that day ;-)
 .. versionadded:: 0.9.6
 
   :d: today
-  :i: yesterday ('ieri' in italian, 'y' was already used by year)
+  :D: tomorrow (as end of today, see below for upper case semantics)
+  :i: yesterday (``ieri`` in italian, ``y`` was already used by ``year``)
 
   :w: beginning of week
   :W: end of week
@@ -106,7 +107,7 @@ DATE_PATTERN = re.compile("""
     (?P<period>[imMdDyYwW])?
     (?P<math2>[+-][0-9]*)?
     $""",    re.VERBOSE)
-CHARS = re.compile('[-+dimMwWyY>]')
+CHARS = re.compile('[-+dDimMwWyY>]')
 TEST = False
 TODAY = date.today()
 
@@ -267,10 +268,12 @@ def transform(token, start=None, last_period=None, further=False):
     except TypeError:
         math = None
     
-    if period == 'd':
+    if period in ('d', 'D'):
         computed = start
         if math is not None:
             computed = computed + relativedelta(days=+math)
+        if period == 'D':
+            computed = computed +  relativedelta(days=+1)
 
     if period == 'i':
         computed = start - timedelta(days=1)
