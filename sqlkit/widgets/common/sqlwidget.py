@@ -1546,7 +1546,10 @@ class SqlWidget(gobject.GObject):
         if limit:
             self.limit = limit
 
-        query = self.query.filter()
+        try:
+            query = self.query.filter()
+        except TypeError: # SQLAlchemy < 0.7.8
+            query = self.query.filter(None)
 
         ## order_by
         if order_by:
