@@ -1,6 +1,6 @@
 # Makefile for Sphinx documentation
 #
-VER           = 0.9.5.1
+VER           = 0.9.6.1
 DEBVER        = 0.8.6.1-1
 WINVER        = 0.8.6.1
 LNXVER        = 0.9-rc1
@@ -79,7 +79,7 @@ linkcheck:
 	      "or in .build/linkcheck/output.txt."
 
 rsync:	html
-	rsync -r --delete --progress --stats .build/html/ www3:docs/sqlkit/
+	rsync -r --delete --progress --stats .build/html/ sqlkit.argolinux.org:docs/sqlkit/
 
 pdf:    latex
 	cd .build/latex; make all-pdf

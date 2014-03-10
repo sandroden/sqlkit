@@ -10,7 +10,7 @@ Sqlkit depends on:
 
        * Python (>= 2.5,  < 3)
        * Pygtk
-       * sqlalchemy (>=0.5.4). Rel 0.9.5 is the first sqlkit release
+       * sqlalchemy (>=0.5.4, <0.9). Rel 0.9.5 is the first sqlkit release
          that works with sqlalchemy 0.7+. 
        * python-dateutils 
        * setuptools

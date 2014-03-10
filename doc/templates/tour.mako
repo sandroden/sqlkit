@@ -15,13 +15,15 @@
      <div class="sphinxsidebarwrapper">
       <div class="news">
 
-      <h2>Release 0.9.5 is out</h2>
+      <h2>Release 0.9.6 is out</h2>
       
-      I'm happy to announce that on Feb, 26 2012 I released 
-      <a href="${pathto('misc/download', )}#download">version 0.9.5.1</a> 
-      that improves the filter experience and extends support of print also
-      using libreoffice beside openoffice.
+      I'm happy to announce that on Jan, 18 2014 I released 
+      <a href="${pathto('misc/download', )}#download">version 0.9.6</a> 
+      that ports sqlkit to SQLAlchemy rel 0.8+ (<0.9) and adds many minor
+      fixes 
+						   
       (see <a href="/download/Changelog">changelog</a>). 
+
 	
      </div>
      </div>

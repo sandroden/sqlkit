@@ -1,15 +1,23 @@
-sqlkit - 0.9.6 - Nov 2013
+sqlkit - 0.9.6.1 - Mar, 10 2014
 
-	* porting: works with sqlalchemy 0.8+
-	* filters: added possibility to use alternative set of filters by
-   	           UNION, EXCEPT and INTERCEPT
+	* fix porting to work for  sqlalchemy < 0.7.8
+	
+sqlkit - 0.9.6 - Jan 2014
+
+	* porting: works with sqlalchemy 0.8
 	* images: fix a bug that made some images disappear on resize
 	          ATTENTION: adds a backword incompatibility. If you have 
 	          inherited from ImageField, you need to add arg ``new``
 	          in the signature
-
 	* dialogs: now Esc works as Cancel
-
+	* unicode: fixed unicode conversion from db
+	* sqledit: improved import so that it won't crash python2.7 in
+	           corner cases ('layout' imported from sqledit conf)
+	* filters: added a syntax to refer to (e.g.) working days after a
+	           certain date
+	*          Added 'D' as alias for 'end of today'
+	* oootemplate: added possibility to embed images (partial implementation)
+	
 sqlkit - 0.9.5.1 - Feb 23 2012
 
 	* filters: + added shortcut Control-Alt-f to add a filter and reload
