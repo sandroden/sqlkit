@@ -1983,11 +1983,13 @@ class CollectionField(Field):
         return None
 
     def clean_value(self, value, obj=None):
-        from copy import copy
-        
+
         if value is None:
             value = []
-        return copy(value)
+        # here was copy(value) but it brakes with m2m and python2.7
+        # as it multiplies the instance. eg actor.movies = [film1, film1, film1, film1 ]
+        # I think it was a leftover when this function was clean_initial_value
+        return value
 
     def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True):
 
