@@ -104,6 +104,13 @@ FILTER_MENU = '''
   </menu>
 </menubar>
 '''
+FILTER_RELATED_ACTION = '''
+<menubar name="FilterMain">
+   <menu action="FilterMenu">
+     <menuitem action="Related_%s" />
+  </menu>
+</menubar>
+'''
 OP_MSGID = {
     'REGEXP' : _('Match as regexp'),
     'match' : _('Match as LIKE, "%" automatically added'),
@@ -286,9 +293,29 @@ class FilterPanel(object):
         header = self.l.widgets['V.menu']
         menu    = self.ui_manager.get_widget('/FilterMain')
         header.add(menu)
+        self.related_tools_menu_entries()
         #header.add(toolbar)
 
+    def related_tools_menu_entries(self):
+        "Add menu entry for related tools"
+        
+        self.actiongroup_related   = gtk.ActionGroup('Related')
+        self.ui_manager.insert_action_group(self.actiongroup_related, 8)
 
+        for related in self.master.related.keys():
+            self.actiongroup_related.add_actions([
+            ('Related_%s' % related, None, _('Add filter on related:') + related, None,
+             _("Add filter for related attribute: %s") % related,
+             self.add_related_filter),
+                ], related)
+            self.ui_manager.add_ui_from_string(FILTER_RELATED_ACTION % related)
+            
+
+    def add_related_filter(self, action, field_name):
+        "callback function for menu action"
+        
+        self.add_filter(**{field_name : None, 'force_' : False})
+        
     def go_to_filter(self, action):
         
         self.set_page('filter')
@@ -341,7 +368,7 @@ class FilterPanel(object):
         for key, val in kwargs.iteritems():
             path, op, op_str, value, col, join_args = django2components(self.master.mapper, {key: val})
             master = self.get_related_master(self.master, path)
-            filter_tool = self.add(None, None, col.name, master, force=force_)
+            filter_tool = self.add(None, None, col.key, master, force=force_)
             if not filter_tool: 
                 return
             filter_tool.set_active(active)
@@ -708,12 +735,15 @@ class FilterTool(object):
             self.table = self.db_spec['table']
 
         prop = self.master.mapper.get_property(self.field_name)
-        cols = prop.columns
-        
-        if len(cols) >= 2:
-            msg = """I'm not able to understand which column you want here:  field_name '%s' has
-            several columns: %s""" % (self.field_name, prop.columns)
-            raise NotImplementedError(msg)
+        try:
+            cols = prop.columns
+
+            if len(cols) >= 2:
+                msg = """I'm not able to understand which column you want here:  field_name '%s' has
+                several columns: %s""" % (self.field_name, prop.columns)
+                raise NotImplementedError(msg)
+        except AttributeError:
+            pass  # relationship don't have a columns attribute
 
         if isinstance(self.master.mapper.local_table, Join):
             ## FIXME: no aliasing in this case
@@ -721,7 +751,10 @@ class FilterTool(object):
         else:
             ## Note: here self.table can be the alias of self.master.mapper_info.field[field_name].table
             if self.table is not None:
-                self.col = self.table.c[self.field_name]
+                try:
+                    self.col = self.table.c[self.field_name]
+                except KeyError:
+                    self.col = getattr(master.mapper.class_, self.field_name)
             else:
                 ## no aliasing here: is any possible to alias a _Label/expression?
                 self.col = self.db_spec['col']
@@ -1056,6 +1089,65 @@ class FilterEnumTool(FilterTool):
         
         return query
 
+class RelationTool(FilterTool):
+    """Basic filter for relation
+    Just a filter on existance of related records
+    """
+    def is_filter_value(self, value):
+        return False
+    
+    def get_suitable_operators(self):
+
+        return ['IS NULL', 'IS NOT NULL']
+
+    def get_value(self):
+        value = self.widget.get_value() 
+        return value
+    
+    def set_value(self, value):
+        """
+        set the value of the filter. It can be a string or an object (eg. a date())
+        """
+        if value:
+            self.set_operator("IS NULL", True)
+        else:
+            self.set_operator("IS NOT NULL", False)
+            
+    def set_operator(self, op, value=None):
+        """
+        Set the active operator entry in ComboBox/OptionMenu for operator choice
+        :param op: the operator
+        :param value: the value of the operator 
+
+        """
+        ## NOTE: add_filter(movie=None) is equivalent to
+        ##       add_filter(movie__null=True)
+
+        if op == '=':
+            if value == None:
+                self.widget.set_operator("IS NULL", True)
+            else:
+                raise SyntaxError(_("use <field_name>__null=True|False construct"))
+        elif op == 'IS NULL' and value is True:
+            self.widget.set_operator("IS NULL", True)
+        else:
+            self.widget.set_operator("IS NOT NULL", True)
+
+
+    def _compose_field_whereclause(self, query, value, op_value):
+        """return a sql whereclause for field
+
+        In case field is a fkey, and the destination lookup field is not in
+        the mapper, it composes a subselect
+        """
+        from sqlalchemy.sql import not_
+        
+        if op_value == 'IS NULL':
+            return query.filter(self.col == None)
+        elif op_value == 'IS NOT NULL':
+            return query.filter(self.col.any())
+        return query
+
 def get_filter_widget(field_name, panel, master, value=None):
     """
     return an instance of a proper FilterTool according to type
@@ -1068,6 +1160,9 @@ def get_filter_widget(field_name, panel, master, value=None):
     elif master.is_fkey(field_name):
         return FilterFKeyTool(*args)
 
+    elif master.is_loader(field_name):
+        return RelationTool(*args)
+    
     elif master.is_enum(field_name):
         return FilterEnumTool(*args)
     
@@ -1128,7 +1223,9 @@ class FilterWidget(object):
         self.widgets = [ self.field_name_event_box, self.operator, self.check_button ]
         ftype  = self.tool.master.get_field_type(self.tool.field_name)
         
-        if self.tool.master.is_enum(self.tool.field_name) or not issubclass(ftype, bool):
+        
+        if not self.tool.master.is_loader(self.tool.field_name) and (
+               self.tool.master.is_enum(self.tool.field_name) or not issubclass(ftype, bool)):
             self.widgets += [self.field_widget]
             
         for wdg in self.widgets:

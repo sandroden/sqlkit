@@ -252,7 +252,11 @@ def django2components(mapper_or_table, kw=None):
         try:
             col = getattr(table.columns, attr)
         except AttributeError, e:
-            col = getattr(mapper.c, attr)
+            try:
+                col = getattr(mapper.c, attr)
+            except AttributeError, e2:
+                col = getattr(mapper.class_, attr)
+                
         value = kw[attr]
 
     else:  # data_gte=today() -- address__city__country__in=['Italy','France']
@@ -287,7 +291,10 @@ def django2components(mapper_or_table, kw=None):
             try:
                 col = getattr(table.columns, attr)
             except AttributeError, e:
-                col = getattr(mapper.c, attr)
+                try:
+                    col = getattr(mapper.c, attr)
+                except AttributeError:
+                    col = getattr(mapper.class_, attr)
             #col = table.columns[attr]
 
     op = OPERATORS[op_str]

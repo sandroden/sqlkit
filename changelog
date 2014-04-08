@@ -2,6 +2,10 @@ sqlkit - 0.9.6.1 - Mar, 10 2014
 
 	* fix porting to work for  sqlalchemy < 0.7.8
 	
+sqlkit - 0.9.7 - Not released
+	* filters: added possibility to use alternative set of filters by
+   	           UNION, EXCEPT and INTERCEPT
+
 sqlkit - 0.9.6 - Jan 2014
 
 	* porting: works with sqlalchemy 0.8

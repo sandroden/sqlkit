@@ -40,6 +40,21 @@ Truffaut
 >>> n = sm.reload()
 >>> t = SqlTable(AllTypes, dbproxy=db, naked=True, show=False)
 
+## filters on relationship (have/doesn't have records)
+>>> sm = SqlMask(Director, dbproxy=db, naked=True, show=True)
+>>> sm.filter_panel.add_filter(movies=True)
+>>> sm.reload()
+9
+>>> sm.filter_panel.clear()
+>>> sm.filter_panel.add_filter(movies__null=False)
+>>> sm.reload()
+9
+>>> sm.filter_panel.clear()
+>>> sm.filter_panel.add_filter(movies__null=True)
+>>> sm.reload()
+0
+
+
 ## Filters
 >>> sm = SqlMask(AllTypes, dbproxy=db, naked=True, show=False)
 >>> sm.add_filter(integer__gte=1)

@@ -13,6 +13,13 @@ accepted. A filter panel handles the filters that may also belong to related
 table: in that case a join will be built when selecting (read the note on 
 selecting through joins in :ref:`relationships`)
 
+Filters widgets appear in the Filter Panel by clicking on the label of the
+field (Mask View) or by clicking on the column label and selecting ``add
+filter`` in the Table View. You can add a minimalist filter on the existance
+of related records (e.g.: ``director.movies``) from the drop-down menu of
+the Filter Panel. This filter cannot be added from the mask as there is no a
+label for such attribute.
+
 As you can see in the image a filter panel gives also the opportunity to
 limit the query. Any filter can be enabled or disabled by clicking on it's
 toggle.
@@ -24,8 +31,8 @@ the Filter Panel's Output page:
 .. image:: ../img/filter-output.png
    :align:  right
 
-Each record is shown with it's __str__ representation that can be set in the
-way described in :ref:`description`.
+Each record is shown with it's ``__str__`` representation that can be set in
+the way described in :ref:`description`.
 
 In this Output Page it's possible to set a field and have records grouped by
 that field::
