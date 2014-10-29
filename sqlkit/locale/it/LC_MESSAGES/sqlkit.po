@@ -2,19 +2,21 @@
 # Copyright (C) 2009 ORGANIZATION
 # This file is distributed under the same license as the sqlkit project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
-# Sandro Dentella <sandro@e-den.it>, 2009, 2010, 2011.
+# Sandro Dentella <sandro@e-den.it>, 2009, 2010, 2011, 2014.
 msgid ""
 msgstr ""
 "Project-Id-Version: sqlkit 0.8.5-pre\n"
 "Report-Msgid-Bugs-To: sandro@e-den.it\n"
 "POT-Creation-Date: 2009-01-07 19:38+0100\n"
-"PO-Revision-Date: 2011-03-13 00:08+0100\n"
-"Last-Translator: Sandro <sandro@e-den.it>\n"
-"Language-Team: sqlkit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"PO-Revision-Date: 2014-04-08 19:06+0200\n"
+"Last-Translator: Sandro Dentella <sandro@e-den.it>\n"
+"Language-Team: Thundersystems\n"
+"Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Virtaal 0.7.1\n"
 "Generated-By: Babel 0.9.4\n"
 
 #: bin/sqledit.py:87
@@ -185,7 +187,7 @@ msgstr "Apri un visualizzatore separato"
 
 #: sqlkit/layout/image_widget.py:276
 msgid "Save image as"
-msgstr "Mostra/Nascondi il percorso dell'immagine"
+msgstr "Salva immagine"
 
 #: sqlkit/layout/image_widget.py:279
 msgid "Show/Hide image name"
@@ -1115,4 +1117,3 @@ msgstr "file csv"
 #, python-format
 msgid "No current obj for field '%s' in %s"
 msgstr "Nessun oggetto corrente per il campo '%s' in %s"
-

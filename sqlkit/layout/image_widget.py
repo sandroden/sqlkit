@@ -327,6 +327,10 @@ class ImageWidget(gtk.VBox):
         from sqlkit.widgets.common import dialogs
         
         orig_filename = self.props.image_path
+        if not orig_filename:
+            # TODO: should communicate that no file was found...
+            return
+
         dialog = dialogs.SaveDialog(default_filename=os.path.basename(orig_filename))
         if dialog.filename:
             shutil.copyfile(orig_filename, dialog.filename)

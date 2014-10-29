@@ -1,7 +1,10 @@
 sqlkit - 0.9.6.1 - Mar, 10 2014
 
 	* fix porting to work for  sqlalchemy < 0.7.8
-	
+	* filters: added filter on has/don't have related attributes
+	* fields: fixed clean_value of collection
+	* image: fixed italian translation + error when saveinga "None" image
+
 sqlkit - 0.9.7 - Not released
 	* filters: added possibility to use alternative set of filters by
    	           UNION, EXCEPT and INTERCEPT
