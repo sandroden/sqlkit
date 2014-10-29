@@ -51,7 +51,7 @@ if sys.argv[1] == 'install':
 try:
    import sqlalchemy
 except ImportError:
-   REQUIRES = ['sqlalchemy >= 0.5.4, < 0.7', ]
+   REQUIRES = ['sqlalchemy >= 0.6.1, < 1', ]
 
 try:
    import babel

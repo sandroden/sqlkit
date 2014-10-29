@@ -106,7 +106,7 @@ class InspectMapper(Container):
         for prop in props:
             if isinstance(prop, properties.ColumnProperty):
                 self._add_field(prop.key, self.mapper, property=prop)
-            elif isinstance(prop, properties.PropertyLoader):
+            elif isinstance(prop, properties.RelationshipProperty):
                 self._add_loader_field(prop.key, self.mapper, property=prop)
                 
     def _add_field(self, field_name, mapper, property=None):
@@ -349,7 +349,7 @@ class InspectMapper(Container):
             return False
 
         prop = self.fields[field_name]['property']
-        if isinstance(prop, properties.PropertyLoader):
+        if isinstance(prop, properties.RelationshipProperty):
             return True
         return False
 
@@ -571,7 +571,7 @@ def get_props_for_delete_orphan(mapper, field_name):
         else:
             props = []
             for pr in mapper.iterate_properties:
-                if isinstance(pr, properties.RelationProperty):
+                if isinstance(pr, properties.RelationshipProperty):
                     if pr.direction.name in ('MANYTOONE',):
                         for col in pr.local_remote_pairs[0]:
                             # I can't use col in p.local_remote_pairs

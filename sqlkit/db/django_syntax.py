@@ -35,7 +35,7 @@ directly with SQLAlchemy syntax, and surely there are situations where that's
 necesssary, nevertheless there are situations where this syntax allows to obtain the
 same result in less and more readeable code, probably just one line.
 
-All of these functions act on a mapper becouse it has info on PropertyLoaders. In completion,
+All of these functions act on a mapper becouse it has info on RelationshipPropertys. In completion,
 the mapper is used to follow the *join_path* even if the query (a ``sqlalchemy.select``),
 will not be issued on a ``session.query`` object
 
@@ -72,7 +72,7 @@ from copy import deepcopy
 from sqlalchemy.sql.expression import ColumnElement, ClauseList 
 from sqlalchemy.sql import and_, or_, not_
 from sqlalchemy import Table
-from sqlalchemy.orm import ColumnProperty, PropertyLoader, class_mapper
+from sqlalchemy.orm import ColumnProperty, RelationshipProperty, class_mapper
 from sqlalchemy.types import Date, DateTime
 
 from sqlkit.misc.datetools import string2dates
@@ -305,7 +305,7 @@ def django2components(mapper_or_table, kw=None):
 
 def get_foreign_column(mapper, path=None, attr=None):
     """
-    follow PropertyLoaders chain to get the last referenced column
+    follow RelationshipPropertys chain to get the last referenced column
     """
     path = deepcopy(path)
     if not mapper:
@@ -371,7 +371,7 @@ def get_column(prop, attr):
             return getattr(col.foreign_keys.copy().pop().column.table.c, attr)
         else:
             return prop.columns[0]  ### FIXME: why colums is a list?
-    elif isinstance(prop, PropertyLoader):
+    elif isinstance(prop, RelationshipProperty):
         return getattr(prop.mapper.local_table.c, attr)  
     
 def path2join(path, mapper):
@@ -384,7 +384,7 @@ def path2join(path, mapper):
                 col = prop.columns[0]
                 if col.foreign_keys:  ## FIXME: Should I consider multiple fkey?
                     table = col.foreign_keys.copy().pop().column.table
-            elif isinstance(prop, PropertyLoader):
+            elif isinstance(prop, RelationshipProperty):
                 table = prop.remote_side[0].table
 
             join = join.join(table)

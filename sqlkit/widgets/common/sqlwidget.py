@@ -458,7 +458,7 @@ class SqlWidget(gobject.GObject):
     def _parse_fields(self, field_list):
         if not field_list:
             ### if no layout was defined and no field_list was passed
-            ### we don't add PropertyLoader (ManyToMany relations):
+            ### we don't add RelationProperty (ManyToMany relations):
             ### we would't know where to represent them.
             ###
             ### If a layout was defined, we add propertyLoader only for SqlMask

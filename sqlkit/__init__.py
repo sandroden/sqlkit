@@ -26,4 +26,4 @@ from db.proxy import DbProxy
 import exc
 
 
-utils.check_sqlalchemy_version('0.5.4')
+utils.check_sqlalchemy_version('0.6.1')

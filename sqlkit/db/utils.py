@@ -431,7 +431,7 @@ def get_differences(obj):
     this function uses ``sqlalchemy.orm.attributes.get_history`` but differs in 2 ways:
 
       * it only yield *changed* values
-      * it returns the simple value (not a list) if the property is not a RelationProperty
+      * it returns the simple value (not a list) if the property is not a RelationshipProperty
         with direction MANYTOMANY or ONETOMANY (i.e.a collection)
     
     """
@@ -451,7 +451,7 @@ def get_differences(obj):
         if new or old:
             ## Not sure about this code. I don't want to have to cope with
             ## a list if there is no need for that (i.e. is not a collection)
-            if isinstance(prop, orm.properties.RelationProperty) and (
+            if isinstance(prop, orm.properties.RelationshipProperty) and (
                 prop.direction.name in ('MANYTOMANY', 'ONETOMANY')):
                 yield prop.key, old, new
             else:
@@ -488,7 +488,7 @@ def get_history(obj, field_name, session=None):
                     # sqla 0.5.0 -> 0.5.1
                     new, unchanged, old =  orm.attributes.get_history(
                         orm.attributes.instance_state(obj), prop.key)
-                if isinstance(prop, orm.properties.RelationProperty) and (
+                if isinstance(prop, orm.properties.RelationshipProperty) and (
                     prop.direction.name in ('MANYTOMANY', 'ONETOMANY')):
                     return new, unchanged, old
                 else:
@@ -517,7 +517,7 @@ def get_fields(table, metadata=None, name=True):
     must be provided as well.
 
     If a registered class is found, all properties are returned, i.e. also
-    relation properties (PropertyLoaders). This may change...?
+    relation properties (RelationProperties). This may change...?
     """
     # first try if a registered class exists
     class_ = get_class(table)
