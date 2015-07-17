@@ -85,6 +85,7 @@ import tempfile
 import subprocess
 
 import gobject
+from babel import numbers
 
 from sqlkit import _
 from sqlkit.widgets.common import dialogs
@@ -104,6 +105,200 @@ MENU_ENTRY = """
 
 class PrintAbortException(Exception): pass
 class DownloadException(Exception): pass
+
+class Context(object):
+    """
+    A context used to render a template. It contains both the data and the way to
+    substitute variable with the data.
+
+    """
+
+    translate = None
+    """A translation dict. Whenever a variable pattern is found in a
+    document, it will be searched for in this dictionary to see if it should
+    be translated before sarching in the context.  The goal is to allow
+    short variable names in template for narrow cells even if the real
+    attribute name in the program is longer. e.g.::
+
+       context.translate['a'] = 'client.user.address'
+       context.translate['mq'] = 'minimum_quantity_in_store'
+
+    would allow to write ``$u.city``  instead of ``$client.user.addres.city``
+    and ``$mq`` instead of ``$minimum_quantity_in_store``
+    """
+    def __init__(self, content, lazy=True):
+        """
+        :param content: a dict with keys the variable names
+
+        :param lazy: boolean. If True (default) invokes
+               _implement_lazy_tables to allow the list of objects for a
+               table rendered to be directly set as value of the table_name
+               entry (rather than a list of lists). See
+               :ref:`example` ``Table1`` is lazy ``Table2`` is not.
+
+               The goal is to prevent common errors rather than promoting
+               lazy writing. When you only have a single list of objects you
+               may easily forget that you may have more than one.
+
+               The assumption is that you don't normally have lists as values
+               of context (other that for tables). While probably true, should
+               you need lists as contetxt values, you can just set lazy=False.
+
+        """
+        self.content= content
+        if lazy:
+            self._implement_lazy_tables()
+        self.translate = {}
+
+    def __getitem__(self, key):
+        
+        #import ipdb; ipdb.set_trace()
+        return self.content[key]
+        # print "Getitem", key, self.content[key]
+        # try:
+        #     return self.value2string(self.content[key], key)
+        # except:
+    
+    def __setitem__(self, key, value):
+        self.content[key] = value
+    
+    def __contains__(self, key):
+        return key in self.content
+
+    def _implement_lazy_tables(self):
+        """
+        implement a lazy context where lists are directly values of
+        contents[Table_name] rather then conten[Table_name] = ((...),)
+        """
+        for key, value in self.content.iteritems():
+            if isinstance(value, (list, tuple)) and len(value):
+                if not isinstance(value[0], (list, tuple)):
+                    self.content[key] = (value, )
+                    
+    def sub(self, match=None, key=None):
+        """
+        Substitution used in normal find & replace on the whole document.
+        The match must have a group named 'var_name'
+        
+        :param match: the match resulting from re.match. if match is None the key
+                      is taken from m.group('var_name')
+        :param key:   just usefull for debugging purpose. 
+        """
+        if not key:
+            assert match is not None
+            key = match.group('var_name')
+            
+        key = self.translate.get(key, key)
+            
+        try:
+            value = self.content[key] 
+            value = unicode(self.value2string(value, key))
+            return value
+        except KeyError, e:
+            return self._deep_sub(None, *key.split('.'))
+
+    def sub_cell(self, match, record_index, table_name, list_num):
+        """
+        Substitution used for cell values. Specialized version of sub that
+        knows how to retrieve data from the object of the cell.
+
+        :param match:         a match that have groups named 'var_name' and 'match'
+        :param record_index:  the index of the record in the table's list
+        :param table_name:    the openoffice name of the table
+        :param list_num:      the odered number of the list in the table (starts from 1).
+                              
+
+        """
+        assert table_name in self.content, "%s not in context" % self.table_name
+
+        key  = match.group('var_name')
+        key = self.translate.get(key, key)
+        match =  match.group('match').replace('$', r'\$')
+        try:
+            ## the object where we get the values are in a list
+            obj = self.content[table_name][list_num][record_index]
+            value = unicode(self.value2string(getattr(obj, key), key))
+
+            return unicode(match.sub(value))
+
+        except (KeyError, AttributeError), e:
+            return self._deep_sub(obj, *key.split('.'))
+
+    def _deep_sub(self, obj, key, *tokens ):
+        """
+        search a value in nested structure (eg.: user.name, rs.address.city)
+        """
+        key = self.translate.get(key, key)
+        test_split = key.split('.')
+        if len(test_split) > 1:
+            return self._deep_sub(obj, *(test_split + list(tokens)))
+        try:
+            if obj:
+                value = getattr(obj, key)
+            else:
+                value = self.content[key]
+        except (KeyError, AttributeError), e:
+            self.missing_keys[key] = None
+            return "Missing Key " + key
+
+        for tk in tokens:
+            try:
+                value = getattr(value, tk)
+            except AttributeError, e:
+                self.missing_keys[tk] =  "%s.%s (%s)" % (key, tk, value)
+                value = "No attr %s in %s" % (tk, value)
+
+        return unicode(self.value2string(value, key))
+
+    def _get_records_len(self, table_name, list_num):
+        """
+        return the number of records that must be rendered for this table
+        """
+        try:
+            return len(self.content[table_name][list_num])
+        except KeyError:
+            print "No TableName %s in context" % table_name
+            return 0
+
+    def value2string(self, value, key):
+        """
+        :param value: the value found in context
+        :param key: the key used to retrieve the value. Note that it is ony
+            partially usefull as it can be a key of the context or an attribute
+            name of an object containted in the context or in a row
+
+        customize the value from the context.
+        You are supposed to customize this method that currently only
+        trasforms a date in a locale compliant form (if locale is set)
+        """
+        ## Don't write 'None' for None...
+        if value is None:
+            return ''
+
+        if isinstance(value, datetime.date):
+            return value.strftime('%x')
+
+        if isinstance(value, (int, Decimal, float)):
+            return numbers.format_decimal(value, format="#,###.00")
+        
+        return value
+
+    def reset_missing(self):
+        """
+        reset list of key missing in the context
+        """
+        self.missing_keys = {}
+
+    def update(self, d):
+        """
+        Add dict ``d`` to content of this context
+
+        :param d: the dict I want to add to context
+        """
+        self.content.update(d)
+
+    def __str__(self):
+        return "%s" % self.content
 
 class PrintTool(gobject.GObject):
     """
@@ -185,13 +380,14 @@ class PrintTool(gobject.GObject):
         gobject.GObject.__init__(self)
         self.master = master
         self.template_dir = self.template_dir or os.path.abspath(os.path.join(os.curdir, 'templates'))
-        try:
-            import uno
-            self.disabled = False
-        except ImportError:
-            self.master.sb(_('Disabling printing for lack of "uno" module'), seconds=20)
-            self.disabled = True
-            self.hide()
+        # try:
+        #     import uno
+        #     self.disabled = False
+        # except ImportError:
+        #     self.master.sb(_('Disabling printing for lack of "uno" module'), seconds=20)
+        #     self.disabled = True
+        #     self.hide()
+        self.disabled = False
         self.obj_proxy_class = ObjProxy
         self.look_for_automatic_templates()
         
@@ -277,14 +473,15 @@ class PrintTool(gobject.GObject):
              the user is not prompted for a position 
         :param template_name: template_name. If given the template_path is 
         """
-        import oootemplate as oo
+        #import oootemplate as oo
+        from . import appypod
         if template_name:
             template_path = self.split_template_name(template_name)[2]
         server = server or self.server 
         port = port or self.port 
         
         ## Context
-        context = oo.Context({})
+        context = Context({})
         if self.master.is_mask():
             context['obj'] = self.obj_proxy_class(self.master.current, self.master)
         else:
@@ -297,46 +494,52 @@ class PrintTool(gobject.GObject):
         self.emit('context-ready', context, os.path.split(template_path)[1], self.master)
 
         ## Template & output
-        templ = oo.Template(unicode(template_path), server=server, port=port,
-                            preserve_styles=self.preserve_styles)
-        missing_keys = templ.render(self.prepare_context(context))
-        if missing_keys:
-            self.debug_missing(missing_keys, templ, context)
-
-        ## Output
-        # when the server is remote, the output file is created remotely (remote_output_path)
-        # downloaded  and saved (local_output_path) via http, and opened locally
-
         if callable(output_path):
-            output_path = output_path(self, template_path)
+            output_path = output_path(self, template_path, mode=mode)
+        templ = appypod.AppyPodTemplate(unicode(template_path), context.content)
+        templ.save_as(output_path)
+
+        # templ = oo.Template(unicode(template_path), server=server, port=port,
+        #                     preserve_styles=self.preserve_styles)
+        # missing_keys = templ.render(self.prepare_context(context))
+        # if missing_keys:
+        #     self.debug_missing(missing_keys, templ, context)
+
+        # ## Output
+        # # when the server is remote, the output file is created remotely (remote_output_path)
+        # # downloaded  and saved (local_output_path) via http, and opened locally
+
+        # if callable(output_path):
+        #     output_path = output_path(self, template_path)
 
         
-        if preview:
-            f, local_output_path = tempfile.mkstemp(suffix='.pdf')
-            if not os.name == 'mac':
-                os.close(f)  # under windows if we don't close the file id AdobeReader won't
-                             # open the file claiming it's used by others
-            remote_output_path = self.get_remote_output_path(
-                output_path or 'preview-%s.pdf' % template_name, server)
-        else:
-            local_output_path = self.get_local_output_path(template_path, mode, output_path)
-            remote_output_path = self.get_remote_output_path(output_path, server)
+        # if preview:
+        #     f, local_output_path = tempfile.mkstemp(suffix='.pdf')
+        #     if not os.name == 'mac':
+        #         os.close(f)  # under windows if we don't close the file id AdobeReader won't
+        #                      # open the file claiming it's used by others
+        #     remote_output_path = self.get_remote_output_path(
+        #         output_path or 'preview-%s.pdf' % template_name, server)
+        # else:
+        #     local_output_path = self.get_local_output_path(template_path, mode, output_path)
+        #     remote_output_path = self.get_remote_output_path(output_path, server)
 
-        if not local_output_path:
-            return
+        # if not local_output_path:
+        #     return
 
-        if server in ('localhost', '127.0.0.1'):
-            if local_output_path == template_path:
-                self.master.message(_("Template name (%s) cannot be same as output_path (%s)") % (
-                    template_path, output_path), type='ok')
-                return
-            remote_output_path = local_output_path
+        # if server in ('localhost', '127.0.0.1'):
+        #     if local_output_path == template_path:
+        #         self.master.message(_("Template name (%s) cannot be same as output_path (%s)") % (
+        #             template_path, output_path), type='ok')
+        #         return
+        #     remote_output_path = local_output_path
 
-        templ.save_as(remote_output_path)
-        templ.close()
+        # templ.save_as(remote_output_path)
+        # templ.close()
         
         ## Show Result
-        self.show_result(remote_output_path, local_output_path, server)
+        #self.show_result(remote_output_path, local_output_path, server)
+        self.show_result(None, output_path, server)
 
     def get_remote_output_path(self, output_path, server):
         """
