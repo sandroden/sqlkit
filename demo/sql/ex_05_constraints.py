@@ -25,5 +25,3 @@ t1.add_constraint(director__nation='IT', year__lte=2000, OR=True)
 # filter_condition = or_(nation.op('=')('IT'), t1.mapper.c['year'].op('<=')(2000))
 # t1.query = t1.query.join('director').reset_joinpoint().filter(filter_condition)
 t1.reload()
-
-

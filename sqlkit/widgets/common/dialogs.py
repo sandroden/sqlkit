@@ -23,8 +23,8 @@ from sqlkit import _
 class SaveDialog(object):
 
     FILTER_FILES = (
-        ( _('All files'), '*.*'),
-        )
+        (_('All files'), '*.*'),
+    )
     ACTION = gtk.FILE_CHOOSER_ACTION_SAVE
     ACTION_BUTTON = gtk.STOCK_SAVE
 
@@ -36,31 +36,30 @@ class SaveDialog(object):
         """
 
         self.dialog = gtk.FileChooserDialog(title,
-                                       None,
-                                       self.ACTION,
-                                       (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                                        self.ACTION_BUTTON, gtk.RESPONSE_OK))
+                                            None,
+                                            self.ACTION,
+                                            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                                             self.ACTION_BUTTON, gtk.RESPONSE_OK))
         self.dialog.set_default_response(gtk.RESPONSE_OK)
         if self.ACTION in (gtk.FILE_CHOOSER_ACTION_SAVE, gtk.FILE_CHOOSER_ACTION_SAVE):
             self.dialog.set_current_name(default_filename)
         self.filename = None
-        
+
         self.add_filters()
         self.customize()
         if run:
             self.run()
-    
+
     def run(self):
         self.dialog.set_current_folder(self.current_folder())
         ret = self.dialog.run()
         if ret == gtk.RESPONSE_OK:
             self.write()
         self.dialog.destroy()
-        
 
     def customize(self):
         pass
-    
+
     def add_filters(self):
 
         for name, pattern in self.FILTER_FILES:
@@ -81,7 +80,7 @@ class SaveDialog(object):
             CURRENT_FOLDER = os.path.join(os.environ['USERPROFILE'], 'Desktop')
 
         return CURRENT_FOLDER
-        
+
     def write(self):
         self.filename = self.dialog.get_filename()
         return
@@ -91,8 +90,8 @@ class OpenDialog(SaveDialog):
     ACTION = gtk.FILE_CHOOSER_ACTION_OPEN
     ACTION_BUTTON = gtk.STOCK_OPEN
     FILTER_FILES = (
-        ( _('All files'), '*.*'),
-        )
+        (_('All files'), '*.*'),
+    )
 
     def add_filters(self):
         SaveDialog.add_filters(self)
@@ -101,14 +100,13 @@ class OpenDialog(SaveDialog):
         image_filter.add_pixbuf_formats()
         self.dialog.add_filter(image_filter)
         self.dialog.set_filter(image_filter)
-        
+
         file_filter = gtk.FileFilter()
         file_filter.set_name(_('Documents'))
         for ext in ('odt', 'ods', 'odp', 'ott', 'ots', 'doc', 'dot',
-                    'xls', 'xlsx', 'ppt', 'pps'): 
+                    'xls', 'xlsx', 'ppt', 'pps'):
             file_filter.add_pattern("*." + ext)
         self.dialog.add_filter(file_filter)
-        
 
     def customize(self):
 
@@ -137,7 +135,7 @@ class OpenDialog(SaveDialog):
         ## openoffice previewer
         if filename and re.match('\.(odt|odp|ods|odg|ots|ott)', ext):
             return self.openoffice_preview(filename, file_chooser, preview)
-        
+
         ##  image previewer
         try:
             pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(filename, 128, 128)

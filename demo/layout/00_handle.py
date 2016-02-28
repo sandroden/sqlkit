@@ -14,4 +14,3 @@ lay = """
 
 l = Layout(lay, opts='s')
 w = l.show()
-

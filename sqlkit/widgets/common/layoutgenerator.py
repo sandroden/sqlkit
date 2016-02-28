@@ -78,10 +78,10 @@ for mod in ('m2m', 'm2o', 'o2m', 'o2o'):
 
 class FkEdit(widgets.LWidget):
     gtkClass = 'FkEntry'
-            
+
 class IntervalEdit(widgets.LWidget):
     gtkClass = 'IntervalEdit'
-            
+
 class GreedyTreeView(widgets.LWidget):
     gtkClass = 'GreedyTreeView'
 
@@ -91,26 +91,26 @@ widgets.register(GreedyTreeView, 'TV', force=True)
 
 class LayoutGenerator (object):
     map_types = {
-        datetime.datetime     : 'dt',
-        datetime.date         : 'd',
-        datetime.time         : 'ae', 
-        datetime.timedelta    : 'delta', 
-        bool                  : 'c',
-        int                   : 'ae',
-        float                 : 'ae',
-        str                   : 'ae',
-        unicode               : 'ae',
-        decimal.Decimal       : 'ae',
-        }
-    
-    def __init__ (self, master, naked=False, lay=None):
+        datetime.datetime: 'dt',
+        datetime.date: 'd',
+        datetime.time: 'ae',
+        datetime.timedelta: 'delta',
+        bool: 'c',
+        int: 'ae',
+        float: 'ae',
+        str: 'ae',
+        unicode: 'ae',
+        decimal.Decimal: 'ae',
+    }
+
+    def __init__(self, master, naked=False, lay=None):
         """
         fields: an InspectMapper object
         """
         self.master = master
 
         if lay:
-            lay = re.sub('#.*\n','', lay)
+            lay = re.sub('#.*\n', '', lay)
 
         self.loaders = {}
         self.fields_in_layout = {}  # {'first_name': 'e=first_name', 'date': 'd=date'}
@@ -120,13 +120,13 @@ class LayoutGenerator (object):
                 lay = self.create_default_layout()
             self._look_for_explicit(lay)
             self.layout = self._parse_and_complete(lay)
-            
+
         else:
             self.layout = lay or self.create_for_table()
 
         if not naked:
             self._add_default_buttons()
-            
+
     def _parse_and_complete(self, lay):
         """parse the layout and substitute all field_name with:
 
@@ -154,7 +154,7 @@ class LayoutGenerator (object):
         """, re.VERBOSE | re.MULTILINE)
 
         return p2.sub(self._sub, lay)
-    
+
     def _sub(self, m):
         """called from inside regexp
         """
@@ -170,32 +170,32 @@ class LayoutGenerator (object):
             Field = self.master.gui_field_mapping.get(field_name, None)
         else:
             Field = None
-            
+
         widget = mod or self.get_widget(field_name, Field)
         spec = m.group('spec') or ''
-        
+
         if self.master.is_loader(field_name):
             self.loaders[field_name] = spec
 
         if not spec:
             spec = self.create_spec(field_name, Field, widget)
-        
+
         self.fields_in_layout[field_name] = "%s=%s" % (self.get_edit_string(widget), field_name)
 
         if m.group('equal') == '==':
             ## implement the request to provide a way prevent layoutgenerator from creating the label
             ## == inhibits creation of label.
             return m.group(0).replace('==', '=')
-        
+
         return "L=%s %s=%s%s" % (field_name, widget, field_name, spec)
 
     def needs_parsing(self, field_name, mod):
 
         #         if field_name not in self.master.field_list or mod in ('L','le', 'm2m', 'o2m','m2o'):
         #             return m.group(0)
-    
+
         needs = False
-        if mod in ('L','le', 'm2m', 'o2m','m2o'):
+        if mod in ('L', 'le', 'm2m', 'o2m', 'm2o'):
             needs = False
 
         elif field_name in self.master.field_list:
@@ -205,7 +205,7 @@ class LayoutGenerator (object):
             needs = True
 
         return needs
-        
+
     def get_edit_string(self, mod):
         """
         return the real modifier that handle editing
@@ -218,8 +218,7 @@ class LayoutGenerator (object):
             return 'TX'
         else:
             return mod
-        
-        
+
     def get_widget(self, field_name, Field=None):
         """
         choose appropriate widget to represent this field
@@ -230,9 +229,8 @@ class LayoutGenerator (object):
             widget_str = getattr(Field, 'default_def_string')
             if widget_str:
                 return widget_str
-            
 
-        #self.used_field_dict[field_name] = 
+        #self.used_field_dict[field_name] =
 
         if self.master.is_fkey(field_name):
             ## ForeignKey for foreign key
@@ -243,13 +241,13 @@ class LayoutGenerator (object):
 
         if self.master.is_image(field_name):
             return 'img'
-        
+
         if self.master.is_enum(field_name):
             return 'aC'
-        
+
         ftype = self.master.get_field_type(field_name)
         widget = self.map_types[ftype]
-        
+
         if self.master.is_text(field_name):
             widget = 'TXS'
         return widget
@@ -270,14 +268,14 @@ class LayoutGenerator (object):
         try:
             length = self.master.mapper_info.fields[field_name]['length']
             col_spec = self.master.mapper_info.fields[field_name]['col_spec'] or ''
-            db_type  = self.master.mapper_info.fields[field_name]['db_type']
+            db_type = self.master.mapper_info.fields[field_name]['db_type']
         except AttributeError:
             length = Field.length if hasattr(Field, 'length') else None
-            
+
         if self.master.is_fkey(field_name) or self.master.is_loader(field_name):
             ### FIXME: should I set the length of the foreign key?
             return ''
-        
+
         if not length:
             if self.master.is_integer(field_name):
                 return ":8"
@@ -298,14 +296,13 @@ class LayoutGenerator (object):
             ## now alignment: this will ensure it will grow
             ##  if more space is given to the window via rezising
             spec = ":%s" % length
-            if length> 20:
+            if length > 20:
                 spec += "-"
             #  else:
             #      spec += "<"
             return spec
         return ''
-                    
-        
+
     def register(self, field_name):
         """regiter field_name as a field_name of a table to be found and reflected
         field_name must be of the form table.field_name
@@ -330,7 +327,7 @@ class LayoutGenerator (object):
         t = self.master.mapper_info.fields.pytype[t1]
         return (tbl_field_name, t, col_spec)
 
-    def _add_default_buttons (self):
+    def _add_default_buttons(self):
         # a 'naked' mask is a mask w/o buttons. Maybe buttons are define by the
         # programmer inside the layout, maybe are not desired
 
@@ -340,12 +337,12 @@ class LayoutGenerator (object):
         sb=StBar
         """ % (self.layout)
 #        {A.external {S {p { %s}}}}
-    
+
     def create_for_table(self):
         """
         A minimal layout for nested sqlwidget
         """
-        
+
         lay = """
           TVS=tree
           {A.icons {H.icons %s}}          
@@ -375,9 +372,9 @@ class LayoutGenerator (object):
         for token in lay.split():
             m = pat.match(token)
             if m:
-                field_name     = m.group('field_name')  # to be verified
-                mod        = m.group('mod')
-                spec       = m.group('spec')
+                field_name = m.group('field_name')  # to be verified
+                mod = m.group('mod')
+                spec = m.group('spec')
                 field_list = m.group('field_list')
 
                 if field_name not in self.master.field_list:
@@ -389,7 +386,7 @@ class LayoutGenerator (object):
                         self.loaders[field_name]['rows'] = int(spec)
                     if field_list:
                         self.loaders[field_name]['field_list'] = field_list
-                    
+
                 self.fields_in_layout[field_name] = "%s=%s" % (
                     self.get_edit_string(mod), field_name)
 
@@ -399,11 +396,10 @@ class LayoutGenerator (object):
         Don't display more that 20 attributes in a column.
 
         """
-        n_fields = len(self.master.field_list)        
+        n_fields = len(self.master.field_list)
         columns = int(n_fields / rows) + 1
         lay = []
         for i in range(0, n_fields, columns):
             lay += [" ".join(self.master.field_list[i:i+columns])]
 
         return "\n".join(lay)
-

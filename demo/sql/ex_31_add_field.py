@@ -18,18 +18,17 @@ from sqlkit.widgets.table import columns
 from sqlkit.db.utils import DictLike
 
 class ObjField(fields.VarcharField):
+
     """
     A field that presents the obj 
     """
     @fields.std_cleanup
     def clean_value(self, value):
         return "%(year)s %(title)s" % DictLike(value)
-    
-
 
 
 t = SqlTable('movie',    dbproxy=db, order_by='title', )
-t.views['main'].add_column(field=ObjField('new_column', {'length' : 30}), position=0)
+t.views['main'].add_column(field=ObjField('new_column', {'length': 30}), position=0)
 
 # in sqlkit < 0.9.2 you would have splitted the operations as follows:
 # my_field = ObjField('new_column', {'type' : str, 'length' : 30})
@@ -41,4 +40,3 @@ t.views['main'].add_column(field=ObjField('new_column', {'length' : 30}), positi
 # t.views['main'].add_column(col, 0)
 
 t.reload()
-

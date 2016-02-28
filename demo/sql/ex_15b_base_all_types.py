@@ -32,9 +32,7 @@ lay = """
 
 
 t = SqlTable(model.AllTypes, rows=5, dbproxy=db, layout=lay, field_list='varchar10,varchar200,text')
-t.create_view(name='numbers', treeview=t.widgets['TV=numbers'], field_list='integer,varchar10,float,numeric')
+t.create_view(name='numbers', treeview=t.widgets[
+              'TV=numbers'], field_list='integer,varchar10,float,numeric')
 t.create_view(name='dates', treeview=t.widgets['TV=dates'], field_list='date,datetime,interval')
 t.reload()
-
-
-

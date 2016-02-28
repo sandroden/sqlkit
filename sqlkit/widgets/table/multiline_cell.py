@@ -7,13 +7,14 @@ class CellTextView(gtk.TextView, gtk.CellEditable):
     __gtype_name__ = "CellTextView"
 
     __gproperties__ = {
-         'editing-canceled' : (gobject.TYPE_BOOLEAN,                        # type
-                               'editing canceled',                         # nick name
-                               'Indicates whether editing on the cell has been canceled.', # description
-                               False,                                        # default value
-                               gobject.PARAM_READWRITE)                   # flags
+        'editing-canceled': (gobject.TYPE_BOOLEAN,                        # type
+                             'editing canceled',                         # nick name
+                             # description
+                             'Indicates whether editing on the cell has been canceled.',
+                             False,                                        # default value
+                             gobject.PARAM_READWRITE)                   # flags
     }
-    
+
     def do_editing_done(self, *args):
         self.remove_widget()
 
@@ -42,12 +43,12 @@ class MultilineCellRenderer(gtk.CellRendererText):
         self._in_editor_menu = False
         self.treeview = sqlwidget.treeview
         self.sqlwidget = sqlwidget
-        
+
     def _on_editor_focus_out_event(self, editor, *args):
 
         if self._in_editor_menu:
             return
-        
+
     def _on_editor_key_press_event(self, editor, event):
 
         if event.state & (gtk.gdk.SHIFT_MASK | gtk.gdk.CONTROL_MASK):
@@ -58,7 +59,7 @@ class MultilineCellRenderer(gtk.CellRendererText):
             editor.remove_widget()
 
             if event.keyval in (gtk.keysyms.Tab,):
-                self.treeview.emit('key-press-event', event )
+                self.treeview.emit('key-press-event', event)
 
         elif event.keyval == gtk.keysyms.Escape:
             editor.remove_widget()
@@ -66,6 +67,7 @@ class MultilineCellRenderer(gtk.CellRendererText):
 
     def _on_editor_populate_popup(self, editor, menu):
         self._in_editor_menu = True
+
         def on_menu_unmap(menu, self):
             self._in_editor_menu = False
         menu.connect("unmap", on_menu_unmap, self)
@@ -74,7 +76,7 @@ class MultilineCellRenderer(gtk.CellRendererText):
         editor = CellTextView()
         editor.modify_font(self.props.font_desc)
         editor.set_text(self.props.text)
-        editor.set_size_request(cell_area.width *2, cell_area.height * 2)
+        editor.set_size_request(cell_area.width * 2, cell_area.height * 2)
         editor.set_border_width(min(self.props.xpad, self.props.ypad))
         editor.set_data("path", path)
         editor.connect("focus-out-event", self._on_editor_focus_out_event)

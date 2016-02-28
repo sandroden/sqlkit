@@ -69,7 +69,7 @@ by default. It's possible to use ``OR`` operator adding ``OR=True``  argument.
 """
 from copy import deepcopy
 
-from sqlalchemy.sql.expression import ColumnElement, ClauseList 
+from sqlalchemy.sql.expression import ColumnElement, ClauseList
 from sqlalchemy.sql import and_, or_, not_
 from sqlalchemy import Table
 from sqlalchemy.orm import ColumnProperty, RelationshipProperty, class_mapper
@@ -79,36 +79,38 @@ from sqlkit.misc.datetools import string2dates
 from sqlkit.db import utils
 
 OPERATORS = {
-    'icontains'  : 'icontains',
-    'notlike'    : 'not like',
-    'like'       : 'like',
-    'ilike'      : 'ilike',
-    'notilike'   : 'not ilike',
-    'iregexp'    : '~*',
-    'regexp'     : '~',
-    'notiregexp' : '!~*',
-    'notregexp'  : '!~',
-    'lt'         : '<',
-    'gt'         :  '>',
-    'lte'        : '<=',
-    'gte'        : '>=',
-    'eq'         : '=',
-    'neq'        : '!=',
-    'equal'      : '=',
-    'in'         : 'IN',
-    'notin'      : 'NOT IN',
-    'null'       : 'IS NULL',
-    'notnull'    : 'IS NOT NULL',
-    'emptynull'    : 'EMPTY OR NULL',
-    }
+    'icontains': 'icontains',
+    'notlike': 'not like',
+    'like': 'like',
+    'ilike': 'ilike',
+    'notilike': 'not ilike',
+    'iregexp': '~*',
+    'regexp': '~',
+    'notiregexp': '!~*',
+    'notregexp': '!~',
+    'lt': '<',
+    'gt':  '>',
+    'lte': '<=',
+    'gte': '>=',
+    'eq': '=',
+    'neq': '!=',
+    'equal': '=',
+    'in': 'IN',
+    'notin': 'NOT IN',
+    'null': 'IS NULL',
+    'notnull': 'IS NOT NULL',
+    'emptynull': 'EMPTY OR NULL',
+}
 
 class DjangoParser(object):
+
     """
     Parser for django-like syntax.
-    
+
     Parses a django-like argument to compose a sqlalchemy
     ColumnList/ColumnElement object to be used in queries
     """
+
     def __init__(self, mapper_or_table=None, query=None, OR=False, aliased=False, outer=False):
         """
         A sqlalchemy.Table object
@@ -127,7 +129,7 @@ class DjangoParser(object):
             class_ = utils.get_class(self.table.name)
             if class_:
                 self.mapper = class_mapper(class_)
-                                     
+
         else:
             self.mapper = mapper_or_table
             self.table = self.mapper.local_table
@@ -146,7 +148,7 @@ class DjangoParser(object):
             join_path, op, op_str, value, col, join_args = django2components(self.mapper, kw=kw)
         else:
             join_path, op, op_str, value, col, join_args = django2components(self.table, kw=kw)
-            
+
         self.joins += [join_path]
 
         if op_str == 'icontains':
@@ -157,16 +159,16 @@ class DjangoParser(object):
                 sql = col.op('REGEXP')(value)
             else:
                 sql = col.ilike("%%%s%%" % value.strip('%'))
-                
+
         elif op_str == 'null':
-            sql = col == value  ## True | False
-        elif op_str == 'ilike': # SA manages difference where there is no ILIKE operator
+            sql = col == value  # True | False
+        elif op_str == 'ilike':  # SA manages difference where there is no ILIKE operator
             sql = col.ilike(value)
-        elif op_str == 'notilike': # SA manages difference where there is no ILIKE operator
+        elif op_str == 'notilike':  # SA manages difference where there is no ILIKE operator
             sql = not_(col.ilike(value))
-        elif op_str == 'in': 
+        elif op_str == 'in':
             sql = col.in_(value)
-        elif op_str == 'notin': 
+        elif op_str == 'notin':
             sql = not_(col.in_(value))
         elif self.is_date(col):
             if isinstance(value, basestring):
@@ -174,20 +176,20 @@ class DjangoParser(object):
             else:
                 start, stop = value, None
             if stop:
-                sql = col.op('>=')(start)  &  col.op('<=')(stop)
+                sql = col.op('>=')(start) & col.op('<=')(stop)
             else:
                 sql = col.op(op)(start)
         else:
             sql = col.op(op)(value)
 
         self.expressions += [sql]
-            
+
     def is_date(self, col):
 
         if isinstance(col.type, (Date, DateTime)):
             return True
         return False
-        
+
     def sql(self):
         if self.OR:
             sql = or_(*self.expressions)
@@ -203,10 +205,10 @@ class DjangoParser(object):
                 else:
                     self.query = self.query.join(aliased=self.aliased, *path).reset_joinpoint()
 
-        return self.query.filter(self.sql() )
+        return self.query.filter(self.sql())
 
 #######  Functions  ############
-    
+
 def django2components(mapper_or_table, kw=None):
     """
     Split a single argument/value into a tuple of 5 components:
@@ -219,7 +221,7 @@ def django2components(mapper_or_table, kw=None):
       :join_args: args for a query.join. At present is only returned for first_step joins and is
                 a tuple (Table, join_condition). Is None when no join is needed and is False
                 if the len(path) > 1 (as in address__city__country__in=...)
-      
+
     return: joins, op, op_str, value, col, join_args
     Es.::
 
@@ -229,23 +231,23 @@ def django2components(mapper_or_table, kw=None):
      (['user_id'], '=', 'eq', 'ed', Column('first_name', String(length=50, convert_unicode=False, assert_unicode=None), table=<user>),
            (Table('user', MetaData(Engine(sqlite://)), ...),
             ,<sqlalchemy.sql.expression._BinaryExpression object at 0x8859cec>)))
-    
+
 
     """
     if isinstance(mapper_or_table, Table):
         mapper = None
-        
+
         table = mapper_or_table
     else:
         mapper = mapper_or_table
         table = mapper.local_table
-        
+
     name = kw.keys()[0]
     value = kw[name]
     tokens = name.split('__')
     joins = []
     join_args = None
-    
+
     if len(tokens) == 1:  # field_name='abc'
         op_str = 'eq'
         attr = tokens[0]
@@ -256,7 +258,7 @@ def django2components(mapper_or_table, kw=None):
                 col = getattr(mapper.c, attr)
             except AttributeError, e2:
                 col = getattr(mapper.class_, attr)
-                
+
         value = kw[attr]
 
     else:  # data_gte=today() -- address__city__country__in=['Italy','France']
@@ -265,12 +267,12 @@ def django2components(mapper_or_table, kw=None):
         else:
             op_str = 'eq'
         attr = tokens.pop()
-        if tokens: # may be consumed by now...
+        if tokens:  # may be consumed by now...
             joins = deepcopy(tokens)
             col = get_foreign_column(mapper, path=tokens, attr=attr)
 
             if len(joins) > 1:
-            ## I'm not going to calculate join conditions for longer path... too complex now
+                ## I'm not going to calculate join conditions for longer path... too complex now
                 join_args = False
             else:
                 ## this is used in 2 cases: the join on a foreign key, so that order_by can work
@@ -334,11 +336,11 @@ def django2query(query, mapper_or_class, OR=False, aliased=False, OUTER=False, *
         mapper = mapper_or_class
     else:
         mapper = class_mapper(mapper_or_class)
-        
+
     parser = DjangoParser(mapper, query, OR=OR, aliased=aliased, outer=OUTER)
 
-    for key,val in kw.iteritems():
-        parser.parse( {key:val})
+    for key, val in kw.iteritems():
+        parser.parse({key: val})
 
     return parser.compose()
 
@@ -357,8 +359,8 @@ def django2sqlalchemy(mapper=None, table=None, OR=False, **kw):
     else:
         parser = DjangoParser(mapper, query=None, OR=OR)
 
-    for key,val in kw.iteritems():
-        parser.parse( {key:val})
+    for key, val in kw.iteritems():
+        parser.parse({key: val})
     return parser.sql(), parser.joins
 
 def get_column(prop, attr):
@@ -367,13 +369,13 @@ def get_column(prop, attr):
     """
     if isinstance(prop, ColumnProperty):
         col = prop.columns[0]
-        if col.foreign_keys:  ## FIXME: Should I consider multiple fkey?
+        if col.foreign_keys:  # FIXME: Should I consider multiple fkey?
             return getattr(col.foreign_keys.copy().pop().column.table.c, attr)
         else:
-            return prop.columns[0]  ### FIXME: why colums is a list?
+            return prop.columns[0]  # FIXME: why colums is a list?
     elif isinstance(prop, RelationshipProperty):
-        return getattr(prop.mapper.local_table.c, attr)  
-    
+        return getattr(prop.mapper.local_table.c, attr)
+
 def path2join(path, mapper):
     table = mapper.local_table
     join = table
@@ -382,7 +384,7 @@ def path2join(path, mapper):
             prop = mapper.get_property(token)
             if isinstance(prop, ColumnProperty):
                 col = prop.columns[0]
-                if col.foreign_keys:  ## FIXME: Should I consider multiple fkey?
+                if col.foreign_keys:  # FIXME: Should I consider multiple fkey?
                     table = col.foreign_keys.copy().pop().column.table
             elif isinstance(prop, RelationshipProperty):
                 table = prop.remote_side[0].table
@@ -405,9 +407,3 @@ def get_regexp_op(bind_name, op_str, value):
         return 'REGEXP', value
     else:
         return 'like', '%' + value + '%'
-    
-
-
-
-
-

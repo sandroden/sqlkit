@@ -13,5 +13,3 @@ lay = """
 
 t = SqlMask(model.Movie, dbproxy=db, layout=lay)
 t.completions.title.filter(title__icontains='a')
-
-

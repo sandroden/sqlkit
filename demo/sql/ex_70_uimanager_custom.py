@@ -7,7 +7,7 @@ self.actiongroup_general and a gtk.UIManager called self.ui_manager.
 
 """
 
-CUSTOM='''
+CUSTOM = '''
   <popup name="TreePopup">
     <menuitem action="CustomAction" position="top" />
   </popup>
@@ -21,6 +21,5 @@ view = t.views['main']
 
 view.actiongroup_view.add_actions([
     ('CustomAction', None, 'Tell me sir...', None, None, custom_action_cb),
-    ])
+])
 view.ui_manager.add_ui_from_string(CUSTOM)
-

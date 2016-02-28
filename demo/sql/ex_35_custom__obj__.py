@@ -10,6 +10,7 @@ from sqlkit.widgets.table import columns
 from sqlkit.db.utils import DictLike
 
 class Director(fields.VarcharField):
+
     """
     A field that counts the movies
     """
@@ -18,7 +19,7 @@ class Director(fields.VarcharField):
     @fields.std_cleanup
     def clean_value(self, value):
         ## missing a field_name attribute on obj the objct itselt is passed
-        return "Customized: %s" % value.last_name 
+        return "Customized: %s" % value.last_name
 
 
 LAYOUT = """
@@ -26,7 +27,7 @@ LAYOUT = """
   last_name
 """
 
-t = SqlMask(model.Director, dbproxy=db, layout=LAYOUT,   )
+t = SqlMask(model.Director, dbproxy=db, layout=LAYOUT,)
 t.filter_panel.replace_column(Director)
 t.filter_panel.show()
 t.filter_panel.reload()

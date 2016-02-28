@@ -255,7 +255,8 @@ from com.sun.star.awt import Size
 NoConnectionException = uno.getClass("com.sun.star.connection.NoConnectException")
 OutOfBoundsException = uno.getClass("com.sun.star.lang.IndexOutOfBoundsException")
 IllegalArgumentException = uno.getClass("com.sun.star.lang.IllegalArgumentException")
-class WrongTemplateName(Exception): pass
+class WrongTemplateName(Exception):
+    pass
 
 #class OOExecuteException(Exception): pass
 
@@ -276,11 +277,13 @@ def start_oo(server="127.0.0.1", port=8100, headless=False):
     # binary name to invoke
     ## get oofice or libreoffice. This works on linux only, I guess
     ooffice = Popen('which ooffice', shell=True, stdout=PIPE).communicate()[0] and 'ooffice'
-    libreoffice = Popen('which libreoffice', shell=True, stdout=PIPE).communicate()[0] and 'libreoffice'
+    libreoffice = Popen('which libreoffice', shell=True, stdout=PIPE).communicate()[
+        0] and 'libreoffice'
     program = ooffice or libreoffice
     # basic options needed
-    opts = ['-accept="socket,host=%(server)s,port=%(port)s;urp;StarOffice.ServiceManager"' % locals()]
-    opts += ['-norestore', '-nologo', '-nocrashreport'] #  -invisible
+    opts = [
+        '-accept="socket,host=%(server)s,port=%(port)s;urp;StarOffice.ServiceManager"' % locals()]
+    opts += ['-norestore', '-nologo', '-nocrashreport']  # -invisible
     if headless:
         opts += ['-headless']
 
@@ -288,32 +291,32 @@ def start_oo(server="127.0.0.1", port=8100, headless=False):
         ## libreoffice has correctly deprecated -norestore in favor of --norestore & Co.
         opts = ['-' + opt for opt in opts]
     cmd = " ".join([program] + opts)
-    Popen(cmd, shell=True) 
+    Popen(cmd, shell=True)
 
 def connect(server='127.0.0.1', port=8100, headless=False):
     """
     connect to server, returning the oo_context
 
-	:param server: a server name
-	:param port:   the port to connect to
-	:param headless: if False, disables the headless mode.
-						
+        :param server: a server name
+        :param port:   the port to connect to
+        :param headless: if False, disables the headless mode.
+
     """
     import time
 
     # Import the OpenOffice Component Context.
     comp_context = uno.getComponentContext()
-    
+
     # Now access the UnoUrlResolver service. This will allow you to connect
     # to OpenOffice.org program.
     resolver = comp_context.ServiceManager.createInstanceWithContext(
         "com.sun.star.bridge.UnoUrlResolver", comp_context)
 
     cmd = "uno:socket,host=%(server)s,port=%(port)s;urp;StarOffice.ComponentContext" % {
-        'server':server,'port':port}
+        'server': server, 'port': port}
 
     if not test_srv_connection(server, port, timeout=3) and \
-           server in ('127.0.0.1', 'localhost'):
+            server in ('127.0.0.1', 'localhost'):
         warnings.warn("Couldn't connect to server: %s:%s - trying to launch it" % (
             server, port), RuntimeWarning, stacklevel=1)
         start_oo(server, port, headless)
@@ -329,14 +332,14 @@ def connect(server='127.0.0.1', port=8100, headless=False):
         # Launching openoffice
         if server not in ('127.0.0.1', 'localhost'):
             warnings.warn("couldn't connect to server: %s:%s" % (server, port),
-                         RuntimeWarning, stacklevel=1)
+                          RuntimeWarning, stacklevel=1)
             raise
-
 
     return oo_context
 
 
 class Template():
+
     """
     The class template that connects to a server (or starts a local one), read a
     document, parses the document to find tables
@@ -344,16 +347,17 @@ class Template():
 
     DEFAULT_VARIABLE_PATTERN = '(?P<match>\$(?P<var_name>[^ ,\n-\)\t]+))'
     DEFAULT_VARIABLE_PATTERN_OO = '$[^ ,\n\-)\t]+'
-    DEFAULT_MULTI_LINE_MARKER = '(?P<match>\+\+)'  # a re.match pattern i.e. starts from beginning of string
+    # a re.match pattern i.e. starts from beginning of string
+    DEFAULT_MULTI_LINE_MARKER = '(?P<match>\+\+)'
 
-    VARIABLE_PATTERN    = None
+    VARIABLE_PATTERN = None
     """the pattern for python variable detection. it's a regular expression read
     :attr:`set_pattern` for details"""
 
     VARIABLE_PATTERN_OO = None
     """the pattern for openoffice variable detection. read :attr:`set_pattern` for details """
 
-    MULTI_LINE_MARKER   = None
+    MULTI_LINE_MARKER = None
     """the pattern used to tel when a multiline line starts. Defaults to ++"""
 
     oo_context = None
@@ -396,20 +400,20 @@ class Template():
         self.search.SearchCaseSensitive = True
         self.search.SearchWords = True
 
-        self.VARIABLE_PATTERN    = re.compile(self.DEFAULT_VARIABLE_PATTERN)
+        self.VARIABLE_PATTERN = re.compile(self.DEFAULT_VARIABLE_PATTERN)
         """the pattern for python variable detection. It's a regular expression,
         read ``set_pattern`` for details"""
 
         self.VARIABLE_PATTERN_OO = self.DEFAULT_VARIABLE_PATTERN_OO
         """the pattern for openoffice variable detection. read ``set_pattern`` for details """
 
-        self.MULTI_LINE_MARKER   = self.DEFAULT_MULTI_LINE_MARKER
+        self.MULTI_LINE_MARKER = self.DEFAULT_MULTI_LINE_MARKER
         """the pattern used to tel when a multiline line starts. Defaults to ++"""
-        
+
     def set_pattern(self, pattern, oo_pattern):
         """
         Set the pattern to detect what is a variable to be substituted
-        
+
         :param pattern: the pattern with syntax suitable for module ``re`` module.
              It must define at least 2 groups: ``var_name`` and ``match`` pointing
              respectively to the name of the  variable and the whole match.
@@ -424,41 +428,40 @@ class Template():
     def open_doc(self, filename, oo_context):
         """ 
         open the template file and return the document
-        
+
         Se url sbagliato ::
 
           SystemError: pyuno runtime is not initialized, (the pyuno.bootstrap needs
           to be called before using any uno classes)
           WARNING: Failure executing file: <test.py>
-        
+
         """
         url = self.filename_to_url(filename)
         desktop = oo_context.ServiceManager.createInstanceWithContext(
-                "com.sun.star.frame.Desktop", oo_context)
+            "com.sun.star.frame.Desktop", oo_context)
 
         prop_ro = PropertyValue('ReadOnly', 0, True, 0)
-        prop_h  = PropertyValue('Hidden', 0, True, 0)
+        prop_h = PropertyValue('Hidden', 0, True, 0)
         try:
             document = desktop.loadComponentFromURL(url, "_blank", 0, (prop_ro, prop_h, ))
         except IllegalArgumentException, e:
             msg = "Original error: '%s'\nTemplate may have a wrong name: %s" % (str(e), filename)
             raise WrongTemplateName(msg)
-        
-            
+
         return document
 
     def filename_to_url(self, filename):
-        
+
         # This will not always work if the server is remote: it depends on the OSs
         # eg.: under windows would become file://C:/... that has no meaning in a *nix server
         #url = uno.systemPathToFileUrl(filename)
-        # 
+        #
         if not re.search('://', filename):
             url = u'file://%s' % filename
         else:
             url = unicode(filename)
         return url
-    
+
     def get_tables(self):
         """
         returns a table_dict {table_name:table_obj} containing all tables found
@@ -491,11 +494,11 @@ class Template():
 
         for table_name, table in self.tables.iteritems():
             table.render(context)
-            
+
         self.find_and_replace(context)
 
         return context.missing_keys
-        
+
     def find_and_replace(self, context, search_obj=None):
         """
         This function searches and replaces. Create search, call function findFirst,
@@ -504,15 +507,15 @@ class Template():
         pattern = self.VARIABLE_PATTERN
         (search_obj or self.search).SearchString = self.VARIABLE_PATTERN_OO
 
-        found = self.document.findFirst( self.search )
+        found = self.document.findFirst(self.search)
 
         while found:
             m = pattern.match(found.String)
             new_text = pattern.sub(context.sub(m), found.String)
             found.String = new_text
-            found = self.document.findNext( found.End, self.search)
+            found = self.document.findNext(found.End, self.search)
 
-    def insert_img(self, placeholder, path, width, height, hOrient = 'left'):
+    def insert_img(self, placeholder, path, width, height, hOrient='left'):
         """
         Insert an Image instead of placeholder
 
@@ -546,7 +549,7 @@ class Template():
         cursor = self.document.Text.createTextCursor()
         search = self.document.createSearchDescriptor()
         search.SearchString = placeholder
-        found = self.document.findFirst( search )
+        found = self.document.findFirst(search)
         cell_or_txt = found.Cell or found.getText()
 
         cursor = cell_or_txt.createTextCursor()
@@ -558,7 +561,7 @@ class Template():
 
         cell_or_txt.insertTextContent(cursor, img, True)
         return cell_or_txt
-    
+
     def save_as(self, filename, local=None):
         """
         save the template using save_as capability of openoffice.
@@ -567,29 +570,29 @@ class Template():
                detect the file type as in regular openoffice use.
         """
         document = self.document
-        
+
         path, file_ = os.path.split(filename)
         name, extension = os.path.splitext(file_)
 
         if extension == '.odt':
             url = self.filename_to_url(filename)
-            document.storeToURL(url,())
+            document.storeToURL(url, ())
         elif extension == '.pdf':
             url = self.filename_to_url(filename)
-            prop = PropertyValue( "FilterName" , 0, "writer_pdf_Export" , 0 )
+            prop = PropertyValue("FilterName", 0, "writer_pdf_Export", 0)
             document.storeToURL(url, (prop,))
         else:
             filename = filename+'.odt'
             print 'Unsupported Extension "%s", saving as "%s"' % (extension, filename)
             url = self.filename_to_url(filename)
-            document.storeAsURL(url,())
+            document.storeAsURL(url, ())
 
     #     if local:
     #         self.save_local(filename, local)
 
     # def save_local(remote_path, local_path):
     #     """
-    #     Retrieve the remote 
+    #     Retrieve the remote
     #     """
     def close(self):
         """
@@ -598,10 +601,12 @@ class Template():
         self.document.close(True)
 ####
 class Table():
+
     """ table object
     detail on the API exposed by uno:
     http://api.openoffice.org/docs/common/ref/com/sun/star/table/module-ix.html
     """
+
     def __init__(self, oo_table, template):
         """
         :param oo_table: the openoffice table object
@@ -612,11 +617,11 @@ class Table():
         self.name = oo_table.Name
         self.rows = self.table.getRows()
         self.template = template
-        
+
     def _get_rows_num(self):
         return self.table.Rows.Count
 
-    rows_num    = property(_get_rows_num)
+    rows_num = property(_get_rows_num)
 
     def __str__(self):
         return "Table Object"
@@ -652,7 +657,7 @@ class Table():
                     self.set_text(c, r+offset, re.sub(self.template.MULTI_LINE_MARKER, '', text))
 
                     row_data = self.get_row(r+offset, data_array=True)
-                    offset += self._render_rows(r+offset, row_data, context, list_num) 
+                    offset += self._render_rows(r+offset, row_data, context, list_num)
                     list_num += 1
 
     def _render_rows(self, r, row_data, context, list_num):
@@ -670,16 +675,16 @@ class Table():
             for k, value in enumerate(row_data):
                 ## a cell can have more variables  | $d.first_name $d.last_name | $year |
                 def sub(m):
-                    return context.sub_cell(m, record_index=j-r, 
-                                     table_name=self.name, list_num=list_num)                    
+                    return context.sub_cell(m, record_index=j-r,
+                                            table_name=self.name, list_num=list_num)
 
                 text = pattern.sub(sub, value)
 
                 self.set_text(k, j, text)
 
-        self.del_rows(j+1) # this row deletes the row with ++$obj...
+        self.del_rows(j+1)  # this row deletes the row with ++$obj...
 
-        return n_records -1 # we added n_records and deleted 1
+        return n_records - 1  # we added n_records and deleted 1
 
     def get_row(self, r, data_array=True):
         """
@@ -689,9 +694,9 @@ class Table():
         :param data_array: return a tuple of the data instead. If ``False`` an Openoffice
                            ``CellRange`` object is returned
         """
-        assert r < self.rows_num, "Max row index for table %s is %s (requested %s)"% (
+        assert r < self.rows_num, "Max row index for table %s is %s (requested %s)" % (
             self.name, self.rows_num-1, r)
-        
+
         ## I wasn't able to find a way to get the maximum number of columns
         ## table.Rows.Count returns the number of columns of the first row.
         for c in xrange(30):
@@ -700,29 +705,30 @@ class Table():
             except OutOfBoundsException:
                 break
                 pass
-            
+
         if data_array:
             return row.DataArray[0]
         else:
             return row
-                
+
     def get_text(self, c, r):
-        return self.table.getCellByPosition(c,r).getString()
+        return self.table.getCellByPosition(c, r).getString()
 
     def set_text(self, c, r, value):
-        self.table.getCellByPosition(c,r).setString(value)
+        self.table.getCellByPosition(c, r).setString(value)
 
     def __repr__(self):
         return '<%s %s>' % (self.__class__.__name__, self.name)
 
 class TableWithStyles(Table):
+
     """
     A Table that clones rows preserving style info even if several different styles
     are used within the same cell. This process is slower so it's not active by default:
     set Template's arg ``preserve_styles`` to True to enable it (see ex. N. 5).
-    
+
     """
-    
+
     def render(self, context):
         """
         render the table with the context
@@ -741,7 +747,7 @@ class TableWithStyles(Table):
                     self.replace_marker(c, r+offset)
 
                     row_data = self.get_row(r+offset, data_array=True)
-                    offset += self._render_rows(r+offset, row_data, context, list_num) 
+                    offset += self._render_rows(r+offset, row_data, context, list_num)
                     list_num += 1
 
     def _render_rows(self, r, row_data, context, list_num):
@@ -752,7 +758,7 @@ class TableWithStyles(Table):
 
         n_records = context._get_records_len(self.name, list_num)
         pattern = self.template.VARIABLE_PATTERN
-        self.clone_rows(r, n_records -1)
+        self.clone_rows(r, n_records - 1)
 
         j = 0
         for j in range(r, r + n_records):
@@ -761,28 +767,28 @@ class TableWithStyles(Table):
                     self.sub_text_in_cell(k, j, context, record_index=j-r, list_num=list_num)
                 except OutOfBoundsException:
                     pass
-            
-        return n_records -1 # we added n_records -1
+
+        return n_records - 1  # we added n_records -1
 
     def sub_text_in_cell(self, c, r, context, record_index, list_num):
         # substitution that preserves the style of the caractes
-        cell = self.table.getCellByPosition(c,r)
+        cell = self.table.getCellByPosition(c, r)
         cursor = cell.createTextCursor()
         ## a cell can have more variables  | $d.first_name $d.last_name | $year |
         while True:
-            m = re.search(self.template.VARIABLE_PATTERN,cell.String)
+            m = re.search(self.template.VARIABLE_PATTERN, cell.String)
             if not m:
                 break
             cursor.gotoStart(False)
             cursor.goRight(m.start('match'), False)
             cursor.goRight(m.end('match') - m.start('match'), True)
-            new_text = context.sub_cell(m, record_index=record_index, 
+            new_text = context.sub_cell(m, record_index=record_index,
                                         table_name=self.name, list_num=list_num)
             cell.insertString(cursor, new_text, True)
 
     def replace_marker(self, c, r):
 
-        cell = self.table.getCellByPosition(c,r)
+        cell = self.table.getCellByPosition(c, r)
         m = re.search(self.template.MULTI_LINE_MARKER, cell.String)
         if not m:
             return
@@ -803,7 +809,7 @@ class TableWithStyles(Table):
         ## Let us fill with the same content
         controller = self.template.document.getCurrentController()
         view_cursor = controller.getViewCursor()
-        
+
         for c in xrange(300):
             try:
                 src_cell = self.table.getCellByPosition(c, index + count)
@@ -811,15 +817,15 @@ class TableWithStyles(Table):
                 break
             view_cursor.gotoRange(src_cell.Text, False)
             transferable = controller.getTransferable()
-            
-            for j in range(index , index + count ):
+
+            for j in range(index, index + count):
                 try:
                     dst_cell = self.table.getCellByPosition(c, j)
                 except OutOfBoundsException:
                     break
                 view_cursor.gotoRange(dst_cell.Text, False)
                 controller.insertTransferable(transferable)
-                
+
     def clone_rows_dispatcher(self, index, count):
         """
         Insert `count` rows just before position `index`
@@ -832,7 +838,7 @@ class TableWithStyles(Table):
         # select any text, whe run from within uno in headless mode
         self.table.Rows.insertByIndex(index, count)
         dispatcher = self.template.oo_context.ServiceManager.createInstance(
-             'com.sun.star.frame.DispatchHelper')
+            'com.sun.star.frame.DispatchHelper')
         controller = self.template.document.getCurrentController()
         frame = controller.getFrame()
 
@@ -840,7 +846,7 @@ class TableWithStyles(Table):
         src_cell = self.table.getCellByPosition(0, index + count)
         view_cursor = controller.getViewCursor()
         view_cursor.gotoRange(src_cell.Text, False)
-            
+
         dispatcher.executeDispatch(frame, ".uno:EntireRow", "", 0, tuple())
         dispatcher.executeDispatch(frame, ".uno:Copy", "", 0, tuple())
 
@@ -848,10 +854,8 @@ class TableWithStyles(Table):
             dst_cell = self.table.getCellByPosition(0, index + j)
             view_cursor.gotoRange(dst_cell.Text, False)
             dispatcher.executeDispatch(frame, ".uno:Paste", "", 0, tuple())
-            
-#    clone_rows = clone_rows_dispatcher
-    
 
+#    clone_rows = clone_rows_dispatcher
 
 
 # Cursor.CharWeight = com.sun.star.awt.FontWeight.BOLD
@@ -874,32 +878,32 @@ def test_srv_connection(host, port, timeout=3):
     except socket.error, err:
         return False
 
-# The following function have been copied and adopted from 
+# The following function have been copied and adopted from
 # http://rooibos.googlecode.com/svn-history/r211/trunk/rooibos/converters/ImageConverter.py
 
 def loadGraphicIntoDocument(document, url, internal_name=None):
-   """ Get the BitmapTable from this document.
-   It is a service that maintains a list of bitmaps that are internal
-   to the document.
+    """ Get the BitmapTable from this document.
+    It is a service that maintains a list of bitmaps that are internal
+    to the document.
 
-   :param document: the oo document
-   :param url: the URL of the document as seen by ooffice (file:///...)
-   :param internal_name: any string. Not usefull unless you plan to retrieve it
-             by document.getbyName()
-   :return: the internal URL that can be used with any graphic object
-   """
-   oBitmaps = document.createInstance( "com.sun.star.drawing.BitmapTable" )
+    :param document: the oo document
+    :param url: the URL of the document as seen by ooffice (file:///...)
+    :param internal_name: any string. Not usefull unless you plan to retrieve it
+              by document.getbyName()
+    :return: the internal URL that can be used with any graphic object
+    """
+    oBitmaps = document.createInstance("com.sun.star.drawing.BitmapTable")
 
-   #Add an external graphic to the BitmapTable of this document.
-   internal_name = internal_name  or str(uuid.uuid1())
-   oBitmaps.insertByName( internal_name, url )
+    #Add an external graphic to the BitmapTable of this document.
+    internal_name = internal_name or str(uuid.uuid1())
+    oBitmaps.insertByName(internal_name, url)
 
-   #Now ask for it back.
-   #What we get back is an different Url that points to a graphic
-   #which is inside this document, and remains with the document.
-   cNewUrl = oBitmaps.getByName( internal_name)
+    #Now ask for it back.
+    #What we get back is an different Url that points to a graphic
+    #which is inside this document, and remains with the document.
+    cNewUrl = oBitmaps.getByName(internal_name)
 
-   return cNewUrl 
+    return cNewUrl
 
 def makeGraphicObject(document, width, height, hOrient):
     """
@@ -911,7 +915,7 @@ def makeGraphicObject(document, width, height, hOrient):
     :param height: the height of the image
     :param hOrient: the orientation of the image: left|right|center
     """
-    
+
     # the GraphicObjectShape result in an image that is not resizable interactively
     #img = oDoc.createInstance( "com.sun.star.drawing.GraphicObjectShape" )
 
@@ -929,5 +933,4 @@ def makeGraphicObject(document, width, height, hOrient):
         'right': 1,
         'center': 2
     }[hOrient]
-    return img 
-
+    return img

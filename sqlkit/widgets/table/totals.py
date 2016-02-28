@@ -33,6 +33,7 @@ from sqlkit.misc import utils
 from sqlkit.widgets.common import sqlwidget
 
 class TotalObj(object):
+
     """
     A simple class that represents the object holding the totals and a way to represent it
 
@@ -64,7 +65,7 @@ class TotalObj(object):
         """
         if value is not None:
             cell.set_property('markup', "<b><i>%s</i></b>" % (value))
-        
+
         # set color only if we have a value
         if hasattr(self, field_name):
             cell.set_property('foreground', self._fg_color)
@@ -75,8 +76,9 @@ class TotalObj(object):
         except AttributeError:
             return None
 
-    
+
 class Totals(gobject.GObject):
+
     """
     An object whose 'compute' method adds TotalObjets to show
     partial totals/grand totals to a table.
@@ -90,7 +92,7 @@ class Totals(gobject.GObject):
                      gobject.TYPE_NONE,
                      (gobject.TYPE_PYOBJECT,),
                      )
-        }
+    }
 
     total_class = TotalObj
 
@@ -105,6 +107,7 @@ class Totals(gobject.GObject):
     A dict whose keys are the field names for which a total/subtotal is to be computed
     The values are the subtotals. It's filled by :meth:`sum` that can be customized.
     """
+
     def __init__(self, table, treeview=None):
         """
         :param table:  the tabe for which a total must be generated
@@ -127,11 +130,11 @@ class Totals(gobject.GObject):
     def update(self, table, obj=None):
 
         self.compute()
-        
+
     def add_total(self,  *field_names, **kw):
         """
         Add a total object each time subtotal changes
-        
+
         :param field_names: a list of field_names for which we want a total
         :param quiet: boolean. If True silently fail if the field is not a number
         :param hide_total: boolean. If True gran total will not be shown (only subtotals)
@@ -147,7 +150,7 @@ class Totals(gobject.GObject):
             self.totals[field_name] = 0
             self.subtotals[field_name] = 0
         self.compute()
-            
+
     def del_total(self, field_name):
         del self.totals[field_name]
 
@@ -162,9 +165,9 @@ class Totals(gobject.GObject):
            def break_func(obj, field_name, path)
 
         see ``func_date_*`` is this module for examples
-           
+
         """
-        
+
         if not func:
             def subtotal_diff(obj, path):
                 "default subtotal when func not defined"
@@ -196,16 +199,16 @@ class Totals(gobject.GObject):
         if self.prev is None:
             self.prev = self.break_func(obj, path)
             return False
-        
+
         if self.prev != self.break_func(obj, path):
             return True
-        
+
         return False
 
     def initialize(self):
         self.prev = None
         for field_name in self.totals.keys():
-            self.totals[field_name]    = 0
+            self.totals[field_name] = 0
             self.subtotals[field_name] = 0
 
     def sum(self, obj, model, path, iter):
@@ -230,14 +233,14 @@ class Totals(gobject.GObject):
 
           t. = SqlTable(...)
           t.totals = BoolTotal(t)
-        
+
         """
         for field_name in self.totals.keys():
             if field_name in self.table.mapper_info:
                 value = getattr(obj, field_name, 0)
             else:
                 value = self.table.gui_fields[field_name].clean_value(obj)
-            self.totals[field_name]    += value or 0
+            self.totals[field_name] += value or 0
             self.subtotals[field_name] += value or 0
 
     def reset_subtotals(self):
@@ -252,10 +255,10 @@ class Totals(gobject.GObject):
                 piter = self.table.modelproxy.modelstore.insert_after(iter)
             except TypeError:
                 piter = self.table.modelproxy.modelstore.insert_after(None, iter)
-                
+
         else:
             try:
-                piter = self.table.modelproxy.modelstore.insert_before(iter)            
+                piter = self.table.modelproxy.modelstore.insert_before(iter)
             except TypeError:
                 piter = self.table.modelproxy.modelstore.insert_before(None, iter)
 
@@ -270,11 +273,11 @@ class Totals(gobject.GObject):
         for field_name in self.totals:
             setattr(tot, field_name, self.subtotals[field_name])
         return row, tot
-    
+
     def insert_total(self, row, after=False):
 
         if not row:
-            
+
             try:
                 # if model[-1] does not exists, no total should be needed...
                 # sometime it happens it it tempted anyhow...
@@ -289,10 +292,10 @@ class Totals(gobject.GObject):
         for field_name in self.totals:
             setattr(tot, field_name, self.totals[field_name])
         return row
-    
+
     def remove(self, iter):
         self.table.modelproxy.modelstore.remove(iter)
-        
+
     def preserve_selection(func):
         def new_func(self):
             self.table.commit_inhibited = True
@@ -332,18 +335,18 @@ class Totals(gobject.GObject):
         self.table.modelproxy.modelstore.foreach(self.foreach_del_func, iter_del_list)
         for iter in iter_del_list:
             self.remove(iter)
-        
+
     def foreach_del_func(self, model, path,  iter, iter_del_list):
         """
-        
+
         """
         obj = self.table.modelproxy.modelstore.get_value(iter, 0)
         if isinstance(obj, self.total_class):
             iter_del_list += [iter]
-        
+
     def foreach_ins_func(self, model, path,  iter):
         """
-        
+
         """
         obj = self.table.modelproxy.modelstore.get_value(iter, 0)
         if self.break_func and self.is_different(obj, path):
@@ -352,7 +355,7 @@ class Totals(gobject.GObject):
             self.reset_subtotals()
         if isinstance(obj, self.table.mapper.class_):
             self.sum(obj, model, path, iter)
-        
+
 def func_date_same_day(obj, field_name):
     date = getattr(obj, field_name)
     if isinstance(date, datetime):
@@ -384,6 +387,6 @@ def func_date_same_year(obj, field_name):
 def func_date_same_quarter(obj, field_name):
     date = getattr(obj, field_name)
     if date:
-        return date.year, divmod(date.month -1, 3)[0]
+        return date.year, divmod(date.month - 1, 3)[0]
     else:
         return None

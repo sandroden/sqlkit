@@ -31,27 +31,27 @@ FK_COLOR = gtk.gdk.color_parse('navyblue')
 LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
 
 class SqlMask(sqlwidget.SqlWidget):
+
     """
     SqlMask is the widget that displays one record at a time and buttons to
     browse data, save/delete records. SqlMask is inherited from
     :class:`sqlkit.widgets.common.sqlwidget.SqlWidget`
-    
+
     """
 
     __metaclass__ = None if not dbg.debug else dbg.LogTheMethods
-    labels   = None  # correspondance Label <-> EventBox
+    labels = None  # correspondance Label <-> EventBox
     row_count = 0    # number of records in the mapper
     current_idx = 0
     current = None
     current_mode = None
     __gsignals__ = {
-        'pre-display' : (gobject.SIGNAL_RUN_LAST,
-                         gobject.TYPE_BOOLEAN,
-                         # 
-                         (gobject.TYPE_PYOBJECT,),
-                         ),
-        }
-
+        'pre-display': (gobject.SIGNAL_RUN_LAST,
+                        gobject.TYPE_BOOLEAN,
+                        #
+                        (gobject.TYPE_PYOBJECT,),
+                        ),
+    }
 
     def __init__(self, *args, **kw):
         """
@@ -68,26 +68,26 @@ class SqlMask(sqlwidget.SqlWidget):
 ###### Layout
     def _get_layout(self, lay, naked):
 
-        self.lay_obj, self.widgets  = sqlwidget.SqlWidget._get_layout(self, lay, naked)
+        self.lay_obj, self.widgets = sqlwidget.SqlWidget._get_layout(self, lay, naked)
 
         self._add_click_for_filter()
         self._add_color_to_labels()
         self._add_tips()
         self._add_wheel_support()
-        
-        return self.lay_obj, self.widgets  
-        
+
+        return self.lay_obj, self.widgets
+
     def _add_wheel_support(self):
         """
         add mouse wheel support
         """
         if not 'Window' in self.widgets:
             return
-            
+
         def scroll_event_cb(widget, event):
             if not self.actiongroup_browse.get_sensitive():
                 return
-            
+
             if event.direction == gtk.gdk.SCROLL_UP:
                 return self.record_display(incr=-1)
             else:
@@ -110,7 +110,7 @@ class SqlMask(sqlwidget.SqlWidget):
 
         for field_name in self.mapper_info.fields.keys():
             if field_name in self.labels:
-                lbl    = self.labels[field_name]
+                lbl = self.labels[field_name]
                 ev_wdg = self.labels[field_name].parent
 
                 ev_wdg.connect('enter-notify-event', ene_cb)
@@ -118,7 +118,7 @@ class SqlMask(sqlwidget.SqlWidget):
                 lbl.modify_fg(gtk.STATE_PRELIGHT, LBL_HOOVER_STYLE)
 
                 ## label FK_COLOR to tell it's a foreign key
-                if self.mapper_info.fields[field_name]['fkey'] :
+                if self.mapper_info.fields[field_name]['fkey']:
                     #dbg.write("FK", field_name)
                     self.labels[field_name].modify_fg(gtk.STATE_NORMAL, FK_COLOR)
                 else:
@@ -148,7 +148,7 @@ class SqlMask(sqlwidget.SqlWidget):
         make labels clickable for filter panel
         """
 
-        ## all EventBox 
+        ## all EventBox
         self.labels = {}
         for field_name in self.mapper_info.fields.keys():
             lbl_name_wdg = "l=%s" % field_name
@@ -158,7 +158,7 @@ class SqlMask(sqlwidget.SqlWidget):
             else:
                 #dbg.write("Missing event_box for %s" % (field_name))
                 pass
-    
+
         ## add click that pops filter_panel
         for field_name, label in self.labels.iteritems():
             event_box = label.parent
@@ -171,7 +171,8 @@ class SqlMask(sqlwidget.SqlWidget):
         if display_idx is None:
             display_idx = self.current_idx or 0
 
-        self.ui_manager.get_action('/Main/Go/Forward').set_sensitive(display_idx+1 < len(self.records))
+        self.ui_manager.get_action(
+            '/Main/Go/Forward').set_sensitive(display_idx+1 < len(self.records))
         self.ui_manager.get_action('/Main/Go/Back').set_sensitive(display_idx > 0)
 
     def setup_field_validation(self, field_list=None):
@@ -193,12 +194,12 @@ class SqlMask(sqlwidget.SqlWidget):
             self.gui_fields = {}
 
         field_chooser = fields.FieldChooser(self.mapper_info, self.widgets,
-                                     gui_field_mapping=getattr(self, 'gui_field_mapping', None))
+                                            gui_field_mapping=getattr(self, 'gui_field_mapping', None))
 
         for field_name, widget_key in self.laygen.fields_in_layout.iteritems():
             widget = self.widgets[widget_key]
             db_spec = self.mapper_info.fields.get(field_name, None)
-            
+
             Field = field_chooser.get_field(field_name, db_spec, widget_key)
             field = Field(field_name, db_spec)
 
@@ -206,10 +207,10 @@ class SqlMask(sqlwidget.SqlWidget):
             # the widget may already be created (by layout.Layout)
             gtk_widget = self.widgets.get(widget_key, None)
             field.set_widget(gtkwidget=gtk_widget, def_str=widget_key)
-            
+
             self.field_widgets[field_name] = field.widget
             self.gui_fields[field_name] = field
-            
+
     def button_press_event_cb(self, widget, event, field_name):
         """
         callback of click on labels
@@ -217,8 +218,8 @@ class SqlMask(sqlwidget.SqlWidget):
         if event.button == 3:
             self.show_field_info(None, field_name)
         else:
-            self.filter_panel.add(widget, event, field_name, self)        
-        
+            self.filter_panel.add(widget, event, field_name, self)
+
     def set_frame_label(self, frame_name, markup_label, opts='bi'):
         """
         Add a label to the frame whose key in self.widgets is 'frame_key'.
@@ -226,14 +227,14 @@ class SqlMask(sqlwidget.SqlWidget):
         :param frame_name: the key in :attr:`self.widgets`
         :param markup_label: the label with possible markup
         :param opts: a combination of b (bold) and i (italic). Default: 'bi'
-        
+
         In example 15::
 
           LAYOUT = '''
            {|.number .. }
            ...
           '''
-          
+
         m.set_frame_label('number', 'Number')
         """
 
@@ -246,7 +247,7 @@ class SqlMask(sqlwidget.SqlWidget):
             markup_label = "<b>%s</b>" % markup_label
 
         frame.get_property('label-widget').set_markup(markup_label)
-        
+
 ###### Actions/UiManager
     def prepare_actions(self):
         """
@@ -257,16 +258,16 @@ class SqlMask(sqlwidget.SqlWidget):
         self.actiongroup_insert.add_actions([
             ('New', gtk.STOCK_NEW,   None, '', _('Add new record'), self.record_new_cb),
             ('Save-as', gtk.STOCK_SAVE_AS, None, None, None, self.record_save_new_cb),
-            ])
+        ])
         self.actiongroup_select.add_actions([
             ('Undo', gtk.STOCK_UNDO, None, None, _('Discard changes'), self.record_undo_cb),
             # TIP Modify menu entry in the mask to reread a single record from database
             ('RefreshRecord', gtk.STOCK_REFRESH, _('Refresh this record'), None,
              _('Reread this record from db'), self.record_refresh_cb),
-            ])
+        ])
         self.actiongroup_delete.add_actions([
             ('Delete', gtk.STOCK_DELETE, None, '', _('Delete this record'), self.record_delete),
-            ])
+        ])
 
     def prepare_uimanager(self):
         """
@@ -274,7 +275,7 @@ class SqlMask(sqlwidget.SqlWidget):
         """
 
         from sqlkit.widgets.common import uidescription
-        
+
         sqlwidget.SqlWidget.prepare_uimanager(self)
 
         self.ui_manager.add_ui_from_string(uidescription.MASK_UI)
@@ -285,14 +286,14 @@ class SqlMask(sqlwidget.SqlWidget):
         """
         set the value of any field present in ``gui_fields``. Uses field.set_value
         if ``initial`` is False, run ``on_change_value``
-        
+
 
         :param  field_name: the field_name to be changed
         :param  field_value: the new value
         :param  fkvalue: a possible foreign key value. It's here just  for compatibility with SqlTable's one
         :param  initial: a boolean indicating if it's an initial value (passed to field)
         :param  shown: a boolean indicating if the  value is the displayed value (passed to field)
-        
+
         """
 
         if field_name not in self.gui_fields:
@@ -301,11 +302,10 @@ class SqlMask(sqlwidget.SqlWidget):
         field = self.gui_fields[field_name]
         field.set_value(field_value, initial=initial, shown=shown)
 
-        
         if not initial:
             fkvalue = fkvalue if fkvalue is not None else field.get_value(shown=True)
             self.run_hook('on_change_value', field_value, fkvalue, field, field_name=field_name)
-    
+
     def get_value(self, field_name, shown=False):
         """
         return the value from the widget
@@ -330,7 +330,7 @@ class SqlMask(sqlwidget.SqlWidget):
             raise exc.FieldNotInLayout("field_name: %s" % (field_name))
 
         self.gui_fields[field_name].set_default()
-        
+
     def record_new(self, widget=None, clear=True):
         """
         prepare a new object and set
@@ -358,11 +358,11 @@ class SqlMask(sqlwidget.SqlWidget):
         self.current = self.get_new_object()
         self.last_new_obj = self.current
         self.records += [self.current]
-        self.current_idx = len(self.records) -1
-        self.sb(_("New record %s") % (self.current_idx +1))
+        self.current_idx = len(self.records) - 1
+        self.sb(_("New record %s") % (self.current_idx + 1))
         if 'i' in self._mode:
             self.actiongroup_update.set_sensitive(True)
-            
+
         ## the following lines ensure that in presence of
         ## related tables any 'related.records' is exactly 'current.related'
         ## (e.g. m.related.movies.records is m.current.movies).  This is
@@ -375,7 +375,7 @@ class SqlMask(sqlwidget.SqlWidget):
 
         self.current_mode = 'INSERT'
         self.emit('record-new')
-        
+
     def record_new_idle(self):
         """
         record_new has been asked with idle_add from __init__
@@ -391,7 +391,7 @@ class SqlMask(sqlwidget.SqlWidget):
         """
         self.discard_changes()
         self.record_display(check=False)
-        
+
     def record_refresh_cb(self, menuItem):
         """
         undo possible modification to the mask
@@ -415,7 +415,7 @@ class SqlMask(sqlwidget.SqlWidget):
         if not obj:
             return obj
 
-        if obj not in self.session: ## it should never happen, really... why do we need?
+        if obj not in self.session:  # it should never happen, really... why do we need?
             self.session.add(obj)
 
         # mask2obj ensures that the object used for validation is updated from the mask
@@ -431,10 +431,11 @@ class SqlMask(sqlwidget.SqlWidget):
                 try:
                     value = field.get_value()
                     if field.editable:
-                        field.validate( value , clean=True)
+                        field.validate(value, clean=True)
 
                     if field.persistent:   # persisted fields, mask2obj has already cleaned  them
-                        field.set_value(self.get_value(field_name), initial=False, obj=obj, update_widget=False)
+                        field.set_value(
+                            self.get_value(field_name), initial=False, obj=obj, update_widget=False)
 
                 except exc.ValidationError, e:
                     self.add_validation_error(e, field_name=field_name)
@@ -468,9 +469,9 @@ class SqlMask(sqlwidget.SqlWidget):
         changed = self.record_has_changed()
         if changed or new_obj or (
             self.current in self.session.new and self.session.is_modified(self.current)
-            ) or (self.unsaved_changes_exist(skip_new=self.current)):
+        ) or (self.unsaved_changes_exist(skip_new=self.current)):
             pass
-        
+
         else:
             self.sb(_('Nothing to save'), seconds=4)
             return
@@ -481,23 +482,23 @@ class SqlMask(sqlwidget.SqlWidget):
             if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
                 raise exc.CancelledAction
 
-            if response == gtk.RESPONSE_NO: 
+            if response == gtk.RESPONSE_NO:
                 return
-            
+
         obj = self.record_mask2obj(self.current, force=new_obj)
-                
+
         self.record_validate(obj, single_fields=False)
-            
+
         try:
             self.commit()
         except exc.HandledRollback, e:
             return
-            
+
         self.last_new_obj = None
-        
+
         self.session.expire(self.current)
         self.record_display(check=False, delay_message=2)
-        
+
     def record_save_new(self, obj=None, commit=True, ask=True):
         """
         create a new record by duplicating the obj
@@ -520,7 +521,7 @@ class SqlMask(sqlwidget.SqlWidget):
                         pkey_changed = True
             else:
                 pkey_changed = True
-                    
+
         if not pkey_changed:
             self.dialog(text=_("Primary key (%s) didn't change. Refusing to save as new" % key))
             return
@@ -541,7 +542,7 @@ class SqlMask(sqlwidget.SqlWidget):
                                    icon='gtk-dialog-question')
             if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
                 return
-            
+
         records_m2m = {}
         for table_name, table in self.related.iteritems():
             if table.relationship_mode == 'm2m':
@@ -560,7 +561,7 @@ class SqlMask(sqlwidget.SqlWidget):
         self.record_mask2obj(obj, force=True)
         for table_name, table in self.related.iteritems():
             setattr(obj, table_name, table.records)
-            
+
         self.run_hook('on_save_as', old_obj, obj)
 
         ## record_refresh() is not really needed here. You should implement it
@@ -577,12 +578,12 @@ class SqlMask(sqlwidget.SqlWidget):
 
         self.emit('record-selected', )
         return obj
-       
+
     def record_delete(self, widget=None, interactive=True):
         """
         delete a record
         """
-            
+
         if interactive:
             text = _("Delete this record?\n(%s)") % self.current
             response = self.dialog(type='ok-cancel', text=text)
@@ -594,14 +595,14 @@ class SqlMask(sqlwidget.SqlWidget):
         else:
             self.session.delete(obj)
         self.last_new_obj = None
-        
+
         try:
             self.commit(_('Deleted'))
             self.emit('record-deleted', obj)
         except exc.HandledRollback, e:
             return
         self.record_display_next()
-            
+
     def record_display_next(self):
         """Display the next (or previous) record after deleting a record
         """
@@ -612,12 +613,12 @@ class SqlMask(sqlwidget.SqlWidget):
         if not self.records:
             self.record_new()
         else:
-            if self.current_idx  > len(self.records) -1:
+            if self.current_idx > len(self.records) - 1:
                 self.current_idx -= 1
             self.record_display(index=self.current_idx)
-    
+
 ###### Validation
-###### Record browsing 
+###### Record browsing
     def reload(self, **kw):
         """
         Reload the data
@@ -628,11 +629,11 @@ class SqlMask(sqlwidget.SqlWidget):
             skip_new = False
         else:
             skip_new = self.current
-            
+
         response = self.save_unsaved(skip_check=changed, skip_new=skip_new)
         if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
             return
-            
+
         self.current_idx = 0
         length = sqlwidget.SqlWidget.reload(self, **kw)
         if not length:
@@ -664,7 +665,7 @@ class SqlMask(sqlwidget.SqlWidget):
         if index is not None:
             display_idx = index
         else:
-            display_idx = (self.current_idx or 0) + incr 
+            display_idx = (self.current_idx or 0) + incr
 
         try:
             assert display_idx >= 0  # no negative indexes
@@ -672,15 +673,14 @@ class SqlMask(sqlwidget.SqlWidget):
             self.clear_mask(check=False)
             self.current_idx = display_idx
             self.current = obj
-            msg_info = "%s/%s" % (display_idx +1, len(self.records))
+            msg_info = "%s/%s" % (display_idx + 1, len(self.records))
         except (IndexError, AssertionError), e:
-            msg_info = "%s/%s" % (self.current_idx +1, len(self.records))
+            msg_info = "%s/%s" % (self.current_idx + 1, len(self.records))
             if incr >= 0:
                 self.sb(_('Already last record') + msg_info)
             else:
                 self.sb(_('Already first record') + msg_info)
             return None
-
 
         gobject.timeout_add(delay_message * 1000, self.sb, msg_info)
 
@@ -688,11 +688,11 @@ class SqlMask(sqlwidget.SqlWidget):
 
         for field in self.gui_fields:
             if field.persistent:
-            #if field.field_name in self.mapper_info:
+                #if field.field_name in self.mapper_info:
                 value = getattr(obj, field.field_name)
             else:
                 value = field.clean_value(obj)
-                
+
             self.set_value(field.field_name, value, initial=True)
 
         self._set_arrows_sensitivness(display_idx)
@@ -712,11 +712,11 @@ class SqlMask(sqlwidget.SqlWidget):
 
         if not records and pk:
             records = self.get_by_pk(pk)
-            
+
         self.records = records or []
         # it's handy to set set_records([table.current])
         # that may also be empty
-        if records and not records == [None]: 
+        if records and not records == [None]:
             self.record_display(index=index)
         self.record_refresh()
 
@@ -736,26 +736,26 @@ class SqlMask(sqlwidget.SqlWidget):
             return
 
         self.current = None
-        
+
         for field in self.gui_fields:
             self.clear_value(field.field_name)
 
     clear = clear_mask
-    
+
     def record_forward_cb(self, widget):
         """
         display the next record in the mapper"""
 
         self.grab_focus(widget)
         return self.record_display(incr=1)
-    
+
     def record_back_cb(self, widget):
         """
         display the previous record in the mapper"""
-        
+
         self.grab_focus(widget)
         return self.record_display(incr=-1)
-    
+
 ####### Misc
     def get_widget(self, field_name):
         """
@@ -775,6 +775,3 @@ class SqlMask(sqlwidget.SqlWidget):
         return True if current editable -if exists- has a value that does not need validation
         """
         return self.gui_fields[field_name].widget.is_valid()
-
-
-

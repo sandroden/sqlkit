@@ -31,7 +31,8 @@ import gobject
 import pango
 from decimal import Decimal
 
-import cell_renderers, utils as tv_utils
+import cell_renderers
+import utils as tv_utils
 from sqlkit import debug as dbg, _, exc, fields
 from sqlkit.layout import widgets
 from sqlkit.misc.utils import str2list
@@ -63,7 +64,6 @@ class GenericColumn(object):
     editable = False
     __metaclass__ = None if not dbg.debug else dbg.LogTheMethods
 
-    
     def __init__(self, master, field_name, title, field=None):
         """
         Generic column with cell render setup
@@ -78,25 +78,25 @@ class GenericColumn(object):
         if not field:
             field = self.master.gui_fields[field_name]
         self.field = field
-        self.title  = title
+        self.title = title
         self.field_name = field_name
         self.column = self.setup_column(title)
         cell = self.setup_cell_renderers()
-        self.column.set_cell_data_func(cell, self.cell_data_func_cb, self.PROPERTY) 
-        self.column.cells_data_func = [(cell, self.cell_data_func_cb, self.PROPERTY) ]
+        self.column.set_cell_data_func(cell, self.cell_data_func_cb, self.PROPERTY)
+        self.column.cells_data_func = [(cell, self.cell_data_func_cb, self.PROPERTY)]
 
     def setup_column(self, title):
         """
         setup column 
         """
-        
-        column = gtk.TreeViewColumn(title.replace('_',' '))
+
+        column = gtk.TreeViewColumn(title.replace('_', ' '))
         column.set_data('field_name', self.field_name)  # used when reordering columns
         column.set_resizable(self.RESIZE)
         column.set_expand(self.EXPAND)
         column.set_reorderable(self.REORDER)
         column.set_clickable(self.CLICK)
-        
+
         column.set_expand(self.is_expandable())
         column.connect('clicked', self.clicked_cb)
         self.add_header_widget(column)
@@ -111,7 +111,6 @@ class GenericColumn(object):
         self.column.pack_start(cell, True)
         self.cell_set_property(cell)
 
-        
         ## connect
         cell.connect('edited', self.edited_cb)
         cell.connect('editing-started', self.editing_started_cb)
@@ -123,7 +122,7 @@ class GenericColumn(object):
     def edited_cb(self, cell, path, new_text):
         """
         callback on signal 'edited' on cell_renderer. 
-        
+
         """
         ## NOTE: modelstore.clear will trigger text_edited_cb!!!
         if self.master.deleting_row:
@@ -143,7 +142,7 @@ class GenericColumn(object):
         self.master.currently_edited_field_name = self.field_name
         self.master.initialize_record_editing(path)
         return True
-    
+
     def cell_data_func_cb(self, column, cell, model, iter, prop_name):
         """
         function set by set_cell_data_func
@@ -152,7 +151,7 @@ class GenericColumn(object):
 
         if not column.get_visible():
             return
-        obj = model.get_value(iter, 0) 
+        obj = model.get_value(iter, 0)
         ## when the column is not representing a db-column (eg. is a python function)
         ## we pass the object itself to the function
         if self.field.persistent:
@@ -162,13 +161,13 @@ class GenericColumn(object):
             if isinstance(obj, self.master.mapper.class_):
                 value = self.field.clean_value(value)
 
-        cell.set_property('visible', True)        
+        cell.set_property('visible', True)
 
         ## DB RECORDS
         if isinstance(obj, self.master.mapper.class_):
-            cell.set_property('visible', True)        
+            cell.set_property('visible', True)
             formatted_value = self.field.format_value(value)
-            cell.set_property(prop_name, formatted_value)        
+            cell.set_property(prop_name, formatted_value)
             cell.set_property('foreground-set', False)
             cell.set_property('cell-background-set', False)
             cell.set_property('editable', self.editable)
@@ -184,8 +183,8 @@ class GenericColumn(object):
                     obj.set_value_and_colors(cell, self.field.format_value(value), self.field_name)
             else:
                 cell.set_property('visible', False)
-                    
-            cell.set_property('editable', False)        
+
+            cell.set_property('editable', False)
 
         ## HEADERS
         else:
@@ -201,13 +200,12 @@ class GenericColumn(object):
             # assigning a value to modelstore, triggers 'editing-canceled'
             self.master.cell_entry.substitute = False
             return
-        
+
         self.master.set_value(self.field_name, self.field.initial_value)
         self.master.cell_entry = None
 
         self.master.sb(_("Editing canceled. Restoring original value"), seconds=3)
-        
-        
+
     def editable_connects(self, editable):
         """
         add here possible connect
@@ -221,20 +219,19 @@ class GenericColumn(object):
         # entry where 'activate' means "press Enter". Pressing enter here make it edited.
         # That means it will also be triggered via Tab...
         self.master.run_hook('on_activate', self.field, field_name=self.field_name)
-        
+
     def clicked_cb(self, column):
         """
         popup the menu on the header of the column
         """
-        event =   gtk.gdk.Event(gtk.gdk.BUTTON_PRESS)
+        event = gtk.gdk.Event(gtk.gdk.BUTTON_PRESS)
         event.button = 1
         treeview = column.get_tree_view()
         view = treeview.get_data('view')
         view.menu.popup_col_menu(event, treeview, self.field_name)
-        
+
         return True
-    
-    
+
 
 #### auxiliary
     def set_editable(self, editable):
@@ -243,7 +240,7 @@ class GenericColumn(object):
 
         :param editable: boolean
         """
-        self.editable = editable 
+        self.editable = editable
         for cell in self.column.get_cell_renderers():
             cell.set_property('editable', editable)
 
@@ -251,13 +248,13 @@ class GenericColumn(object):
         """
         set cell properties
         """
-        
+
         if self.field.editable and 'u' in self.master.mode:
             self.set_editable(True)
             cell.set_property('editable-set', True)
         else:
             cell.set_property('editable', False)
-                
+
     def add_header_widget(self, column):
         """
         Add a header that accepts tooltips and bold labels for mandatory columns
@@ -270,7 +267,7 @@ class GenericColumn(object):
 
         ## bold italic
         if self.field.persistent and not self.field.nullable and not self.field.default:
-                label.set_markup('<b><i>%s</i></b>' % label_text)
+            label.set_markup('<b><i>%s</i></b>' % label_text)
 
         # Tooltip
         if help_text:
@@ -315,8 +312,6 @@ class GenericColumn(object):
 
         return width
 
-    
-
     def __repr__(self):
         return "<%s: %s >" % (self.__class__.__name__, self.field_name)
 
@@ -345,16 +340,16 @@ class BooleanColumn(GenericColumn):
 
         self.column.pack_start(cell, True)
         self.column.set_data('cell', cell)
-        
+
         ## connect
-        cell.connect('editing-canceled', self.editing_canceled_cb) # ???
+        cell.connect('editing-canceled', self.editing_canceled_cb)  # ???
         cell.connect('toggled', self.toggled_signal_cb, self.master.modelproxy.modelstore)
-            
+
         self.column.set_cell_data_func(cell, self.cell_data_func_cb)
         self.column.cells_data_func = [(cell, self.cell_data_func_cb)]
         cell.fixed_width = True
-        return  cell
-        
+        return cell
+
     def cell_set_property(self, cell):
 
         if self.field.editable:
@@ -375,17 +370,20 @@ class BooleanColumn(GenericColumn):
 
         if self.field.nullable:
             # status may be True/False/None - I want to cicle
-            if   status == True:    status = False
-            elif status == False:   status = None
-            elif status == None:    status = True
+            if status == True:
+                status = False
+            elif status == False:
+                status = None
+            elif status == None:
+                status = True
         else:
             status = not status
 
         #self.field.set_value(status, initial=False, obj=obj)
         self.master.set_value(self.field_name, status, initial=False)
-            
+
         return True
-    
+
     def cell_data_func_cb(self, column, cell, model, iter, prop_name):
         """
         function set by set_cell_data_func for nullable boolean
@@ -393,33 +391,34 @@ class BooleanColumn(GenericColumn):
 
         if not column.get_visible():
             return
-        
-        obj = model.get_value(iter, 0) 
+
+        obj = model.get_value(iter, 0)
         value = getattr(obj, self.field_name)
 
         ## DB RECORDS
         if isinstance(obj, self.master.mapper.class_):
-            cell.set_property('active', value)        
-            cell.set_property('visible', True)       
+            cell.set_property('active', value)
+            cell.set_property('visible', True)
             cell.set_property('activatable', self.editable)
 
             if value is None:
                 cell.set_property('inconsistent', True)
-            else:    
+            else:
                 cell.set_property('inconsistent', False)
 
         ## TOTALS
         elif isinstance(obj, self.master.totals.total_class):
-            cell.set_property('visible', False)        
-            cell.set_property('activatable', False)        
-        
+            cell.set_property('visible', False)
+            cell.set_property('activatable', False)
+
 class VarcharColumn(GenericColumn):
+
     """
     A renderer that expands only large fields and that centers text if it's little
     Cell renderer is choosen according to VarChar or Text
     """
     __metaclass__ = dbg.LogTheMethods
-    
+
     def setup_cell_renderers(self, cell_renderer=None):
 
         width = self.get_width()
@@ -435,7 +434,7 @@ class VarcharColumn(GenericColumn):
         GenericColumn.setup_cell_renderers(self, cell_renderer=cell)
         cell.set_property('ellipsize', pango.ELLIPSIZE_END)
         cell.set_data('width', width)
-        
+
         self.set_alignment(cell)
         return cell
 
@@ -443,7 +442,7 @@ class VarcharColumn(GenericColumn):
         """
         Set alignment of text in the cell
         """
-        
+
         if self.field.length:
             try:
                 ## if field has less then 4 chars, position it in the middle
@@ -451,21 +450,20 @@ class VarcharColumn(GenericColumn):
                     cell.set_property('xalign', 0.5)
             except:
                 pass
-        return  cell
-
+        return cell
 
     def editing_started_cb(self, cell, editable, path):
         """
         prepare the editable, completion and validation
         """
-        
+
         self.master.currently_edited_field_name = self.field_name
         self.master.cell_entry = CellEntry(editable, cell, path, self.field_name)
         editable.connect('remove-widget', self.remove_widget_cb)
         editable.connect('key-press-event', self.master.keypress_event_cb)
         editable.connect('focus-out-event', self.focus_out_cb, cell, path)
         self.editable_connects(editable)
-        
+
         self.master.fkey_value = editable.get_text()
 
         if hasattr(self.master.field_widgets[self.field_name], 'completion'):
@@ -474,11 +472,11 @@ class VarcharColumn(GenericColumn):
             if completion and not isinstance(self.field, fields.TextField):
                 completion.add_completion(editable)
                 completion.add_callbacks(editable)
-            
+
         ## MAX LENGTH: not enforce for fkey as the field is not the real value but the shown one
         if not self.field.fkey:
             self.master.field_widgets[self.field_name].field.widget.set_max_length()
-                
+
         self.master.initialize_record_editing(path)
         self.master.commit_inhibited = False
         return True
@@ -498,12 +496,12 @@ class VarcharColumn(GenericColumn):
             widget.activate()
 
 class MultilineColumn(VarcharColumn):
+
     """
     A renderer able to show and edit in multiline mode. Very basic...
     """
     MIN_DEFAULT_WIDTH = 40
 
-    
     def setup_cell_renderers(self, cell_renderer=None):
 
         width = self.get_width()
@@ -537,13 +535,14 @@ class MultilineColumn(VarcharColumn):
         pass
 
 class NumericColumn(VarcharColumn):
+
     """
     A renderer similar to varchar but with different expand options
     and with right justification
     """
-    
+
     def get_width(self):
-        
+
         if self.master.col_width and self.field_name in self.master.col_width:
             width = self.master.col_width.get(self.field_name, )
         else:
@@ -561,9 +560,10 @@ class NumericColumn(VarcharColumn):
     def editable_connects(self, editable):
 
         #VarcharColumn.on_activate(self, editable)
-        editable.connect('key-press-event', self.master.digits_check_input_cb  )            
+        editable.connect('key-press-event', self.master.digits_check_input_cb)
 
 class FKeyColumn(VarcharColumn):
+
     """
     A renderer that shows the value instead of the id
     """
@@ -573,7 +573,7 @@ class FKeyColumn(VarcharColumn):
 
         VarcharColumn.cell_set_property(self, cell)
         cell.set_property('foreground', 'navyblue')
-        
+
     def cell_data_func_cb(self, column, cell, model, iter, prop_name):
         """
         cell_data_function used by column that have fkey
@@ -583,11 +583,11 @@ class FKeyColumn(VarcharColumn):
             return
 
         obj = model.get_value(iter, 0)
-        
+
         if not obj:
             return
-        
-        cell.set_property('visible', True)        
+
+        cell.set_property('visible', True)
 
         ## DB RECORDS
         if isinstance(obj, self.master.mapper.class_):
@@ -604,7 +604,7 @@ class FKeyColumn(VarcharColumn):
         ## TOTALS
         elif hasattr(self.master, 'totals') and isinstance(obj, self.master.totals.total_class):
             cell.set_property('text', '')
-            cell.set_property('editable', False)        
+            cell.set_property('editable', False)
 
         ## HEADER
         else:
@@ -612,7 +612,7 @@ class FKeyColumn(VarcharColumn):
             cell.set_property('editable', False)
 
     def editing_started_cb(self, cell, editable, path):
-        
+
         VarcharColumn.editing_started_cb(self, cell, editable, path)
         model = self.column.get_tree_view().get_model()
         obj = model.get_value(model.get_iter(path), 0)
@@ -627,21 +627,21 @@ class DateColumn(VarcharColumn):
     """
 
     MIN_DEFAULT_WIDTH = 10
-    
+
     def editable_connects(self, editable):
 
         pass
         #editable.connect('key-press-event')
-    
+
 class DateTimeColumn(DateColumn):
 
     MIN_DEFAULT_WIDTH = 16
-    
+
     def editable_connects(self, editable):
 
         pass
         #editable.connect('key-press-event')
-    
+
 class EnumColumn(VarcharColumn):
 
     RENDERER = gtk.CellRendererText
@@ -663,11 +663,11 @@ class EnumColumn(VarcharColumn):
             return
 
         obj = model.get_value(iter, 0)
-        
+
         if not obj:
             return
-        
-        cell.set_property('visible', True)        
+
+        cell.set_property('visible', True)
 
         ## DB RECORDS
         if isinstance(obj, self.master.mapper.class_):
@@ -683,7 +683,7 @@ class EnumColumn(VarcharColumn):
         ## TOTALS
         elif hasattr(self.master, 'totals') and isinstance(obj, self.master.totals.total_class):
             cell.set_property('text', '')
-            cell.set_property('editable', False)        
+            cell.set_property('editable', False)
 
         ## HEADER
         else:
@@ -714,11 +714,11 @@ class ImageColumn(GenericColumn):
     def return_image_path(self, treeview, x, y, keyboard_mode, tooltip):
         "Set a tooltip with the file/image name"
         try:
-            path, column, x_in_cell, y_in_cell = treeview.get_path_at_pos(x,y)
+            path, column, x_in_cell, y_in_cell = treeview.get_path_at_pos(x, y)
         except TypeError:
             return
         idx = path[0]
-        if not idx: #header
+        if not idx:  # header
             return
         path = tuple([idx-1])
         model = treeview.get_model()
@@ -730,6 +730,7 @@ class ImageColumn(GenericColumn):
 
     def set_editable(self, editable):
         pass
+
     def cell_set_property(self, cell):
         pass
 
@@ -743,7 +744,7 @@ class ImageColumn(GenericColumn):
         self.cell_set_property(cell)
 
         return cell
-    
+
     def cell_data_func_cb(self, column, cell, model, iter, prop_name):
         """
         function set by set_cell_data_func
@@ -752,7 +753,7 @@ class ImageColumn(GenericColumn):
 
         if not column.get_visible():
             return
-        obj = model.get_value(iter, 0) 
+        obj = model.get_value(iter, 0)
         ## when the column is not representing a db-column (eg. is a python function)
         ## we pass the object itself to the function
         if self.field.persistent:
@@ -762,7 +763,7 @@ class ImageColumn(GenericColumn):
             if isinstance(obj, self.master.mapper.class_):
                 value = self.field.clean_value(value)
 
-        cell.set_property('visible', True)        
+        cell.set_property('visible', True)
 
         ## DB RECORDS
         if isinstance(obj, self.master.mapper.class_):
@@ -775,10 +776,12 @@ class ImageColumn(GenericColumn):
                     return
 
                 if self.field.is_image(value):
-                    thumbnail_path = value and self.field.get_thumbnail(value, complete_path=True) or None
+                    thumbnail_path = value and self.field.get_thumbnail(
+                        value, complete_path=True) or None
                     if thumbnail_path:
                         if cell.get_data('thumbnail_path') != thumbnail_path:
-                            pixbuf = gtk.gdk.pixbuf_new_from_file(thumbnail_path) if thumbnail_path else None
+                            pixbuf = gtk.gdk.pixbuf_new_from_file(
+                                thumbnail_path) if thumbnail_path else None
 
                             cell.set_property('pixbuf', pixbuf)
                             cell.set_property('stock-id', None)
@@ -787,7 +790,7 @@ class ImageColumn(GenericColumn):
                         cell.set_property('pixbuf', None)
                         cell.set_property('stock-id', gtk.STOCK_MISSING_IMAGE)
                         cell.set_data('thumbnail_path', thumbnail_path)
-                        
+
                 else:
                     cell.set_property('pixbuf', None)
                     cell.set_property('stock-id', 'gtk-file')
@@ -796,7 +799,6 @@ class ImageColumn(GenericColumn):
                 cell.set_property(prop_name, None)
                 cell.set_data('thumbnail_path', None)
                 cell.set_property('stock-id', None)
-                
 
         ## TOTALS
         elif hasattr(self.master, 'totals') and isinstance(obj, self.master.totals.total_class):
@@ -809,8 +811,9 @@ class ImageColumn(GenericColumn):
             cell.set_property(prop_name, None)
             cell.set_data('thumbnail_path', None)
             cell.set_property('stock-id', None)
-    
+
 class CellEntry(object):
+
     """
     An object to store info on editable status
     Mainly needed to check if validation is required with FKey fields and m2m nested tables
@@ -820,11 +823,12 @@ class CellEntry(object):
 
       * a cell exists
       * the cell is not valid
-      
+
     CellEntry is destroyed within 'remove-widget' signal callback of the editable
 
     FIXME: should probably be simplified being it only needed for FKey Columns/m2m
     """
+
     def __init__(self, editable, cell, path, field_name):
 
         self.entry = editable
@@ -840,28 +844,29 @@ class CellEntry(object):
         else:
             ## this is just a hack to force cell_validate() when browsing away
             self.valid = False
-            
+
         self.substitute = False
 
     def on_editable_change(self, widget):
         self.valid = False
 
     def is_valid(self):
-        
+
         valid = self.valid or self.text == self.entry.get_text()
         return valid
 
     def get_text(self):
         return unicode(self.entry.get_text())
-    
+
     def __repr__(self):
         return "<CellEntry: (%s) %s>" % (self.valid, self.get_text())
 
 class ColumnMenuProxy(object):
+
     def __init__(self, master, view):
         self.master = master
         self.view = view
-        
+
 #### column menu
     def popup_col_menu(self, ev, treeview, field_name):
 
@@ -880,35 +885,35 @@ class ColumnMenuProxy(object):
             label_str = _("Add a filter on '%s'") % field_name_localized
             item = StockMenuItem(label=label_str, stock='gtk-find')
     #        item.connect('activate', self.filter_panel.add, ev, field_name )
-            item.connect('activate', self.master.filter_panel.add, ev, field_name, self.master )
+            item.connect('activate', self.master.filter_panel.add, ev, field_name, self.master)
             menu.append(item)
 
         ## sort
         item = gtk.ImageMenuItem('gtk-sort-ascending')
-        item.connect('activate', self.reload_sort_cb, field_name, 'ASC' )
+        item.connect('activate', self.reload_sort_cb, field_name, 'ASC')
         if field.persistent:
-            item.set_tooltip_text(_("Sort on this column reloading from the database, " + \
+            item.set_tooltip_text(_("Sort on this column reloading from the database, " +
                                     "you can use 's' to sort locally"))
         else:
             item.set_tooltip_text(_("Sort on this column locally (w/o touching the database)"))
-            
+
         menu.append(item)
 
         item = gtk.ImageMenuItem('gtk-sort-descending')
-        item.connect('activate', self.reload_sort_cb, field_name, 'DESC' )
+        item.connect('activate', self.reload_sort_cb, field_name, 'DESC')
         menu.append(item)
 
         ## hide
         # TIP: column menu opt
         item = StockMenuItem(label=_("Hide this column"), stock='gtk-close')
-        item.connect('activate', self.hide_fields_cb, field_name, self.view )
+        item.connect('activate', self.hide_fields_cb, field_name, self.view)
         menu.append(item)
 
         ## totals
         if field.type in (int, float, Decimal) and not isinstance(field, fields.ForeignKeyField):
             # TIP: column menu opt
             item = gtk.MenuItem(label=_("Create total"))
-            item.connect('activate', self.add_total_cb, field_name )
+            item.connect('activate', self.add_total_cb, field_name)
             menu.append(item)
 
         menu.append(gtk.SeparatorMenuItem())
@@ -918,13 +923,13 @@ class ColumnMenuProxy(object):
         else:
             # TIP: column menu total
             item = gtk.MenuItem(label=_("Subtotal on %s") % (field_name_localized))
-            item.connect('activate', self.add_subtotal_cb, field_name )
+            item.connect('activate', self.add_subtotal_cb, field_name)
             menu.append(item)
-        
+
         ## info
         # TIP: column menu opt
         item = gtk.ImageMenuItem('gtk-info')
-        item.connect('activate', self.master.show_field_info, field_name )
+        item.connect('activate', self.master.show_field_info, field_name)
         menu.append(item)
 
         menu.show_all()
@@ -943,7 +948,7 @@ class ColumnMenuProxy(object):
         item_hide = gtk.MenuItem(label=_("Hide field"))
         menu.append(item_show)
         menu.append(item_hide)
-        
+
         self.menu_show = gtk.Menu()
         self.menu_hide = gtk.Menu()
 
@@ -955,26 +960,26 @@ class ColumnMenuProxy(object):
             m = gtk.MenuItem(field_name_localized)
             m.connect('activate', self.hide_fields_cb, field_name)
             self.menu_hide.append(m)
-            
+
         item_hide.set_submenu(self.menu_hide)
         menu.show_all()
 
     def hide_fields_cb(self, menuItem, field_name, view):
         view.hide_fields(field_name)
-        
+
     def menu_add_date_total_break(self, menu, field_name):
 
         def add_break_date_cb(menu_item, field_name, period):
             self.master.totals.add_date_break(field_name, period)
 
-        periods = [('day',_('day')), ('week',_('week')), ('month',_('month')),
-                   ('quarter',_('quarter')), ('year',_('year'))]
+        periods = [('day', _('day')), ('week', _('week')), ('month', _('month')),
+                   ('quarter', _('quarter')), ('year', _('year'))]
 
         for period, trad in periods:
             item = gtk.MenuItem(label=_("Subtotals by %s") % trad)
             item.connect('activate', add_break_date_cb, field_name, period)
             menu.append(item)
-        
+
     def add_total_cb(self, menu_item, field_name):
 
         try:
@@ -985,8 +990,7 @@ class ColumnMenuProxy(object):
             self.master.totals = totals.Totals(self.master,
                                                treeview=self.master.filter_panel.view.treeview)
             self.master.totals.add_total(field_name)
-            
-        
+
     def add_subtotal_cb(self, menu_item, field_name):
         self.master.totals.add_break(field_name)
 
@@ -1003,7 +1007,7 @@ class ColumnMenuProxy(object):
             view.actiongroup_view.add_actions([
                 (action_name, None, self.master.get_label(field_name, gtk_label=True),
                  None, None, view.show_column,),
-                ], field_name)
+            ], field_name)
 
             menu_def = '''
               <popup name="TreePopup">
@@ -1018,9 +1022,9 @@ class ColumnMenuProxy(object):
             view.ui_manager.add_ui_from_string(menu_def)
         else:
             action.set_visible(not action.get_visible())
-            
+
         view.hide_column(field_name)
-        
+
     def reload_sort_cb(self, widget, field_name, direction):
 
         from sqlkit.db.utils import tables, get_description
@@ -1041,14 +1045,13 @@ class ColumnMenuProxy(object):
                 fdescr = get_description(ftable, attr='description')
                 order_by = "%s__%s" % (field_name, fdescr)
 
-
             if direction == 'DESC':
                 order_by += ' DESC'
 
             self.master.order_by = order_by
             self.master.reload_cb(None)
-        
-    
+
+
 class View(object):
 
     """
@@ -1062,6 +1065,7 @@ class View(object):
     (e.g. different cell-renderers) or different columns for long ones
 
     """
+
     def __init__(self, master, name, treeview=None, field_list=None, cell_renderers=None, ro=False):
         """
         :param master: the SqlTable this view belongs to
@@ -1096,7 +1100,7 @@ class View(object):
 
         self.treeview.set_enable_search(False)
         self.treeview.show_all()
-        
+
         self.treeview.set_rules_hint(True)
         # set selection mode
         treeselection = self.treeview.get_selection()
@@ -1123,7 +1127,7 @@ class View(object):
                              #('mod2', gtk.gdk.MOD2_MASK),
                              ('mod3', gtk.gdk.MOD3_MASK),
                              ('mod4', gtk.gdk.MOD4_MASK),
-                             ('mod5', gtk.gdk.MOD5_MASK),]:
+                             ('mod5', gtk.gdk.MOD5_MASK), ]:
             if event.state & mask:
                 mods.append(prefix)
 
@@ -1139,23 +1143,23 @@ class View(object):
             field_name = "-" + field_name
         self.master.modelproxy.order_by(field_name)
         self.master.totals.add_break(field_name)
-        
+
     def key_tree_shift_B(self, treeview, event):
         "brake: get rid of subtotals"
-        
+
         field_name = self.get_field_name_from_pointer(treeview)
         if self.master.modelproxy._order_list == [(field_name, True)]:
             field_name = "-" + field_name
         self.master.modelproxy.order_by(field_name)
         self.master.totals.break_func = None
         self.master.totals.compute()
-        
+
     def key_tree_f(self, treeview, event):
         "filter: add a filter for this column"
         field_name = self.get_field_name_from_pointer(treeview)
         if field_name and field_name in self.master.mapper_info:
             self.master.filter_panel.add(None, None, field_name, self.master)
-        
+
     def key_tree_h(self, treeview, event):
         "hide: hide this column"
         field_name = self.get_field_name_from_pointer(treeview)
@@ -1168,31 +1172,31 @@ class View(object):
         if self.master.modelproxy.get_order() == (field_name, True):
             field_name = "-" + field_name
         self.master.modelproxy.order_by(field_name)
-        
+
     def key_tree_t(self, treeview, event):
         "totals: add total to the column"
 
         field_name = self.get_field_name_from_pointer(treeview)
         self.menu.add_total_cb(None, field_name)
-        
+
     def key_tree_v(self, treeview, event):
         """toggle row visibility if a function has been set via
         :meth:`sqlkit.common.SqlTable.add_row_filter` """
 
         self.master.modelproxy._filter_rows = not self.master.modelproxy._filter_rows
         self.master.record_refresh()
-        
+
     def key_tree_shift_Z(self, treeview, event):
         """zoom-fit
         I would have preferred Control-z but it's kidnapped by global action shortcut
         """
         self.on_zoom_fit(self)
-        
+
     def get_field_name_from_pointer(self, treeview=None):
 
         x, y, modifier_state = self.treeview.window.get_pointer()
         try:
-            path, column, x_in_cell, y_in_cell = self.treeview.get_path_at_pos(x,y)
+            path, column, x_in_cell, y_in_cell = self.treeview.get_path_at_pos(x, y)
             #iter = self.master.modelproxy.modelstore.get_iter(path)
             field_name = column.get_data('field_name')
             return field_name
@@ -1239,18 +1243,18 @@ class View(object):
                 ## is already known, just make it visible
                 self.tvcolumns[field_name].set_property('visible', True)
             else:
-                raise NotImplementedError("Column %s is not kown in self.mapper_info.fields" % field_name)
+                raise NotImplementedError(
+                    "Column %s is not kown in self.mapper_info.fields" % field_name)
         for field_name in orig_field_list:
             if field_name not in field_list:
                 self.tvcolumns[field_name].set_property('visible', False)
-            
+
         prev = None
         for field_name in field_list:
             self.treeview.move_column_after(self.tvcolumns[field_name], prev)
             prev = self.tvcolumns[field_name]
-            
+
         self.field_list = field_list
-        
 
     def hide_fields(self, field_name_list):
         """
@@ -1262,7 +1266,7 @@ class View(object):
         """
 
         field_name_list = str2list(field_name_list)
-        
+
         if len(field_name_list) == 0:
             field_name_list = self.hidden_fields
 
@@ -1273,7 +1277,6 @@ class View(object):
 
         for field_name in field_name_list:
             self.menu.menu_add_toggle_column(field_name, self)
-
 
     def on_zoom_fit(self, widget=None, *args):
 
@@ -1293,17 +1296,17 @@ class View(object):
         if fix_it:
             for key, col in self.tvcolumns.iteritems():
                 col.set_property('expand', True)
-            
+
     def hide_column(self, field_name):
 
         self.tvcolumns[field_name].set_property('visible', False)
         self.master.sb(_("Right click on this table to show the column again"), seconds=10)
-        
+
     def show_column(self, item, field_name):
-        
+
         self.menu.menu_add_toggle_column(field_name, self)
         self.tvcolumns[field_name].set_property('visible', True)
-        
+
     def create_column_menu(self):
 
         from sqlkit.widgets.common import uidescription
@@ -1314,18 +1317,17 @@ class View(object):
         if self.master.is_toplevel():
             self.master.widgets['Window'].add_accel_group(self.accel_group)
 
-
         self.actiongroup_view = gtk.ActionGroup('View')
         self.actiongroup_view.add_actions([
             ('ExportView', None, _('Export'), None, _('Export these data into csv format'),
              self.master.export),
-            ], self.name)
+        ], self.name)
         self.actiongroup_view.add_actions([
             ('Zoom-fit', gtk.STOCK_ZOOM_FIT, None, '<Control>z',
              _('Adapt width of columns to data'), self.on_zoom_fit),
             ('ShowColumns', None, _('Show field')),  # menuitem
             ('HideColumns', None, _('Hide field')),  # menuitem
-            ])
+        ])
 
         try:
             self.ui_manager.insert_action_group(self.master.actiongroup_table, 10)
@@ -1340,13 +1342,12 @@ class View(object):
         self.ui_manager.add_ui_from_string(COLUMN_MENU)
         self.menu = ColumnMenuProxy(self.master, self)
 
-
     def pop_menu(self, treeview, event, obj, field_name):
 
         ## enable/disable menu entries
         action = self.ui_manager.get_action('/TreePopup/MaskView')
         action.set_sensitive(obj and True or False)
-            
+
         action_fk = self.ui_manager.get_action('/TreePopup/MaskViewFKey')
         if field_name and self.master.gui_fields[field_name].fkey:
             action_fk.set_visible(True)
@@ -1354,7 +1355,7 @@ class View(object):
             action_fk.set_property('label', _("View '%s' in a Mask") % label)
         else:
             action_fk.set_visible(False)
-            
+
         action_upload_image = self.ui_manager.get_action('/TreePopup/UploadImage')
         if obj and field_name and self.master.is_image(field_name):
             action_upload_image.set_visible(True)
@@ -1369,21 +1370,20 @@ class View(object):
 
         else:
             action_upload_image.set_visible(False)
-            
+
         action_new_child = self.ui_manager.get_action('/TreePopup/NewChild')
         if self.master.modelproxy.is_tree():
             new = self.ui_manager.get_action('/TreePopup/New').get_visible()
             action_new_child.set_visible(new)
         else:
             action_new_child.set_visible(False)
-            
 
         action_delete_file = self.ui_manager.get_action('/TreePopup/DeleteFile')
         action_show_file = self.ui_manager.get_action('/TreePopup/ShowFile')
         action_save_file = self.ui_manager.get_action('/TreePopup/SaveFile')
         if obj and field_name and (self.master.is_image(field_name) or
-                               self.master.is_file(field_name)) and \
-                               getattr(obj, field_name):
+                                   self.master.is_file(field_name)) and \
+                getattr(obj, field_name):
             action_delete_file.set_visible(True)
             action_show_file.set_visible(True)
             action_save_file.set_visible(True)
@@ -1391,13 +1391,13 @@ class View(object):
             action_delete_file.set_visible(False)
             action_show_file.set_visible(False)
             action_save_file.set_visible(False)
-            
+
         action_upload_file = self.ui_manager.get_action('/TreePopup/UploadFile')
         if field_name and self.master.is_file(field_name):
             action_upload_file.set_visible(True)
         else:
             action_upload_file.set_visible(False)
-            
+
         action_delete = self.ui_manager.get_action('/TreePopup/RecordDelete')
         action_delete.set_sensitive(obj and True or False)
 
@@ -1406,7 +1406,7 @@ class View(object):
             self._field_name = field_name
             menu = self.ui_manager.get_widget('/TreePopup')
             menu.popup(None, None, None, event.button, event.time)
-        
+
         return menu
 
     def setup_columns(self, field_list=None, position=-1):
@@ -1416,7 +1416,7 @@ class View(object):
         """
 
         for field_name in field_list or self.field_list:
-            
+
             if field_name in widgets.info:
                 label = widgets.info[field_name][0]
             else:
@@ -1426,41 +1426,41 @@ class View(object):
             if self.cell_renderers and field_name in self.cell_renderers:
                 col = self.cell_renderers.get(field_name)(field_name, label)
 
-            elif self.master.is_fkey(field_name) :   ## FKey
+            elif self.master.is_fkey(field_name):  # FKey
                 col = FKeyColumn(self.master, field_name, label)
 
-            elif self.master.is_image(field_name):  ## image
+            elif self.master.is_image(field_name):  # image
                 col = ImageColumn(self.master, field_name, label)
 
-            elif self.master.is_enum(field_name):  ## image
+            elif self.master.is_enum(field_name):  # image
                 col = EnumColumn(self.master, field_name, label)
 
-            elif self.master.is_boolean(field_name):  ## boolean
+            elif self.master.is_boolean(field_name):  # boolean
                 col = BooleanColumn(self.master, field_name, label)
 
-            elif self.master.is_date(field_name):   ## Dates
+            elif self.master.is_date(field_name):  # Dates
                 col = DateColumn(self.master, field_name, label)
 
-            elif self.master.is_datetime(field_name):  ## Datetime
+            elif self.master.is_datetime(field_name):  # Datetime
                 col = DateTimeColumn(self.master, field_name, label)
 
-            elif self.master.is_number(field_name):  ## Number
+            elif self.master.is_number(field_name):  # Number
                 col = NumericColumn(self.master, field_name, label)
 
-            elif self.master.is_text(field_name):  ## Multiline
+            elif self.master.is_text(field_name):  # Multiline
                 col = MultilineColumn(self.master, field_name, label)
 
-            elif self.master.is_string(field_name):  ## Varchar
+            elif self.master.is_string(field_name):  # Varchar
                 col = VarcharColumn(self.master, field_name, label)
 
             else:
                 col = VarcharColumn(self.master, field_name, label)
 
             self.add_column(col, position=position)
-            
+
         self.treeview.columns_autosize()
         self.fix_expandable_columns()
-            
+
     def add_column(self, column=None, position=-1, field=None):
         """
         Add a column to the view. 
@@ -1472,25 +1472,25 @@ class View(object):
         """
         if not column:
             assert field is not None, \
-                   "You must pass a sqlkit.fields.Field instance"
+                "You must pass a sqlkit.fields.Field instance"
             self.master.gui_fields[field.field_name] = field
             self.setup_columns([field.field_name], position=position)
             return
 
         self.tvcolumns[column.field_name] = column.column
         self.columns[column.field_name] = column
-        if position  < 0:
+        if position < 0:
             self.treeview.append_column(column.column)
         else:
             self.treeview.insert_column(column.column, position)
         if self.read_only:
             column.set_editable(False)
-        
+
     def get_first_editable_col(self):
         """
         return the first visible col to position the cursor on
         """
-        
+
         columns = self.treeview.get_columns()
         second_choice = []
         for field_name in [c.get_data('field_name') for c in self.treeview.get_columns()]:
@@ -1522,8 +1522,8 @@ class View(object):
         else:
             col = self.get_first_editable_col()
         self.treeview.scroll_to_cell(path, col)
-        self.treeview.set_cursor(path = path, focus_column = col,  start_editing = True)
-        
+        self.treeview.set_cursor(path=path, focus_column=col,  start_editing=True)
+
     def get_selected_path(self):
         """Return the path of the selected row or None
 
@@ -1541,11 +1541,10 @@ class View(object):
             return rows[0]
         else:
             return None
-    
+
     def __str__(self):
         return "<View: %s>" % self.name
 
-    
     def select_path(self, path=None, obj=None, sync=True):
         """
         Select path ``path``. If path is null and obj is not null try finding path at which is obj
@@ -1562,7 +1561,7 @@ class View(object):
                 return True
 
         ## let's find out the real path for the object. The object may be in a
-        ## TreeStore's deeper level or some totals may shift it 
+        ## TreeStore's deeper level or some totals may shift it
 
         if path is None and obj:
             path_list = []

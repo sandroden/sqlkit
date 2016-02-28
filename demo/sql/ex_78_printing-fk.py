@@ -19,5 +19,3 @@ lay = """
 t = SqlMask(model.Movie, layout=lay, dbproxy=db)
 t.printing.add_menu_entry('Print to pdf', 'movie-fk.odt', mode='pdf', accel='<Alt>p')
 t.reload()
-
-

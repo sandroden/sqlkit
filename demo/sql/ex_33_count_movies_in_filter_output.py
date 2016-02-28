@@ -10,6 +10,7 @@ from sqlkit.widgets.table import columns
 from sqlkit.db.utils import DictLike
 
 class CountMovies(fields.IntegerField):
+
     """
     A field that counts the movies
     """
@@ -18,7 +19,7 @@ class CountMovies(fields.IntegerField):
         ## missing a field_name attribute on obj the objct itselt is passed
         return len(value.movies)
 
-count_movies = CountMovies('n_movies', {'length' : 4})
+count_movies = CountMovies('n_movies', {'length': 4})
 
 
 t = SqlMask(model.Director, dbproxy=db)
@@ -27,4 +28,3 @@ t.gui_fields['n_movies'] = count_movies
 t.filter_panel.view.add_column(col)
 t.filter_panel.show()
 t.filter_panel.reload()
-

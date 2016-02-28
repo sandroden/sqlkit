@@ -14,13 +14,13 @@ def unset_real_size(window, event):
 
     window.set_data('real width', None)
     window.set_data('real height', None)
-    
+
     handler = window.get_data('configure handler')
     if handler:
         # The callback is now useless; remove it.
         window.disconnect(handler)
         window.set_data('configure handler', None)
-    
+
 def ensure_configure_handler(window):
     """Ensure that unset_real_size is called.
     """
@@ -45,15 +45,15 @@ def set_width(window, width):
 
     window.set_data('real width', width)
 
-    height = get_height(window)        
+    height = get_height(window)
     window.resize(width, height)
-    
+
 def set_height(window, height):
     ensure_configure_handler(window)
 
     window.set_data('real height', height)
 
-    width = get_width(window)        
+    width = get_width(window)
     window.resize(width, height)
 
 
@@ -71,37 +71,37 @@ def set_height_request(treeview, rows=None):
         if rows > 30:
             rows = 30
 
-    column      = treeview.get_column(0)
+    column = treeview.get_column(0)
     cell_height = column.cell_get_size()[4]
     if not cell_height:
         while gtk.events_pending():
             gtk.main_iteration()
         cell_height = column.cell_get_size()[4]
-        
+
     spacing = treeview.style_get_property('vertical-separator')
 
     needed_height = cell_height * rows + (spacing) * (rows-1)
     top_widget = column.get_property('widget')
     if top_widget:
-       top_height = top_widget.get_allocation().height
+        top_height = top_widget.get_allocation().height
     else:
         top_height = cell_height
- 
+
     needed_height += top_height
 
     dbg.write('needed', needed_height, 'spacing', spacing)
 
     treeview.set_property('height-request', needed_height)
 
-    toplevel        = treeview.get_toplevel()
+    toplevel = treeview.get_toplevel()
     if not isinstance(toplevel, gtk.Window):
         return
-    visible_rect    = treeview.get_visible_rect()
-    missing_height  = needed_height - visible_rect.height
-    new_height      = toplevel.get_allocation().height + missing_height
+    visible_rect = treeview.get_visible_rect()
+    missing_height = needed_height - visible_rect.height
+    new_height = toplevel.get_allocation().height + missing_height
 #   print "toplevel:", toplevel, "old:", toplevel.get_allocation().height, "new:", new_height
     set_height(toplevel, new_height)
-    
+
 def get_string_exact_width(context, string):
     """
     (render and) Return width of a string in given context.
@@ -131,8 +131,8 @@ def get_string_width(context, string=None, chars_num=80):
         pango_width = metrics.get_approximate_char_width()*chars_num
         width = pango.PIXELS(pango_width)
         return width
-        
-def get_screen_width(effective = True):
+
+def get_screen_width(effective=True):
     """
     Ugly hack. Couldn't find anything better. And in fact it's not strange,
     since GNOME HIGs apparently don't like this.
@@ -151,7 +151,7 @@ def get_screen_width(effective = True):
             width = sizes[2]
             return width
 
-    
+
 def set_optimal_width(treeview, max_pixels=None):
     """
     Set optimal width of the treeview, based on width request by cellrenderers.
@@ -165,14 +165,14 @@ def set_optimal_width(treeview, max_pixels=None):
     If called after, it supposes that, if there is something on the left and on
     the right, the treeview and all its parents have horizontal expand property
     set.
-    """    
+    """
 
     widget = treeview
-    
+
     scrolledwindows = []
     scrolledwindows_policies = []
     scrolledwindows_hscrollbars = []
-    
+
     while widget:
         # The ScrolledWindows stop propagation of queue_redraws, unless they
         # have the scrollbars disabled, so here we disable them...
@@ -187,7 +187,7 @@ def set_optimal_width(treeview, max_pixels=None):
 
     if not isinstance(toplevel, gtk.Window):
         return
-    
+
     # ... then we can take the size...
 
     new_width = toplevel.size_request()[0]
@@ -204,9 +204,9 @@ def set_optimal_width(treeview, max_pixels=None):
     # ... and put together the total size.
 
     new_width += bars_width
- 
+
     available = get_screen_width()
-    
+
     if toplevel.window:
         allocation = toplevel.window.get_frame_extents()
         border = allocation.width - get_width(toplevel)
@@ -215,16 +215,15 @@ def set_optimal_width(treeview, max_pixels=None):
         # Guess (Ubuntu's metacity's default theme and settings)
         border = 10
 
-    extra = new_width + border - available 
+    extra = new_width + border - available
 
     if extra > 0:
         new_width -= extra
 #        print "extra", extra
-        
 
     set_width(toplevel, new_width)
     return
- 
+
 def zoom_to_fit(treeview, resize=True):
     """Take a treeview (presumably from a sqlmask) and, for each column asking
     a fixed size, reset space request criterion to content only (not database
@@ -243,7 +242,7 @@ def zoom_to_fit(treeview, resize=True):
 
     if resize:
         set_optimal_width(treeview)
-        
+
     treeview.columns_autosize()
 
 def set_all_nonfilling(wid, level):
@@ -282,7 +281,6 @@ def set_all_nonfilling(wid, level):
     except:
         pass
     wid.seen = True
-     
 
     for other in next_level:
         set_all_nonfilling(other, level-1)
@@ -295,10 +293,10 @@ def set_this_filling(wid):
     while wid:
         newwid = wid.get_parent()
         if gobject.type_is_a(wid, gtk.Alignment):
-            wid.set_property('yscale',1)
+            wid.set_property('yscale', 1)
             dbg.write("setting yscale:", wid)
         if gobject.type_is_a(newwid, gtk.Table):
-            newwid.child_set_property(wid, 'y-options', gtk.FILL|gtk.EXPAND)
+            newwid.child_set_property(wid, 'y-options', gtk.FILL | gtk.EXPAND)
             dbg.write("setting y-options:", wid)
         wid = newwid
 
@@ -307,7 +305,7 @@ def print_debug(wid):
     Print debug information about packing of a widget and its superiors.
     """
     dbg.write("starting with", wid)
-    number = 1 
+    number = 1
     while wid:
         newwid = wid.get_parent()
         number += 1
@@ -323,9 +321,9 @@ def print_debug(wid):
             pass
         try:
             dbg.write(newwid.get_property('n-rows'), newwid.get_property('n-columns'))
-            dbg.write(newwid.child_get_property(wid, 'left-attach'), newwid.child_get_property(wid, 'top-attach'), newwid.child_get_property(wid, 'right-attach'), newwid.child_get_property(wid, 'bottom-attach'))
+            dbg.write(newwid.child_get_property(wid, 'left-attach'), newwid.child_get_property(wid, 'top-attach'),
+                      newwid.child_get_property(wid, 'right-attach'), newwid.child_get_property(wid, 'bottom-attach'))
             dbg.write(newwid.get_children())
         except:
             pass
         wid = newwid
-

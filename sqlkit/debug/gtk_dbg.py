@@ -1,8 +1,10 @@
 import gtk
-import gobject, pango
+import gobject
+import pango
 from sqlkit.layout import layout
 import debug as dbg
-import re, os
+import re
+import os
 import inspect
 import tokenize
 import keyword
@@ -10,7 +12,7 @@ import time
 from gobject import markup_escape_text
 
 class wshow(object):
-    
+
     def __init__(self, widget, lvl=0, mode='print', model=None, parent=None):
         self.mode = mode
         self.parent = parent
@@ -25,14 +27,14 @@ class wshow(object):
             if lvl == 0:
                 self.parent = model.append(None)
             self.add_to_model(widget, iter=self.parent)
-            
+
         self.scan(widget)
 
     def printa(self, widget, iter=None, parent=None):
         if self.mode == 'print':
             print "%s%s %s %s" % (" "*self.lvl*3,
                                   widget.name, widget.__class__, widget)
-            return 
+            return
         elif self.model:
             return self.add_to_model(widget, iter=iter, parent=parent)
 
@@ -45,23 +47,23 @@ class wshow(object):
             text = "(%s)" % widget.get_text()
         except:
             text = ''
-            
+
         self.model.set(new,
                        0, "%s %s" % ((widget.name or '').strip(), text),
                        1, self.get_class_str(widget),
                        2, self.get_class_img(widget),
                        3, widget,
                        4, widget.get_property('visible'),
-                       ) 
+                       )
         return new
-            
+
     def get_class_str(self, obj):
         c = str(obj.__class__)
-        m = re.search('gtk.([A-Z][A-Za-z]+)',c)
+        m = re.search('gtk.([A-Z][A-Za-z]+)', c)
         if m:
             return m.group(1)
         else:
-            m = re.search('dateedit.([A-Z][A-Za-z]+)',c)            
+            m = re.search('dateedit.([A-Z][A-Za-z]+)', c)
             if m:
                 return m.group(1)
             else:
@@ -70,7 +72,7 @@ class wshow(object):
     def get_class_img(self, obj):
         c = str(obj.__class__)
         pat = '(?:gtk|dateedit).([A-Z][A-Za-z]+)'
-        re_result = re.search(pat,c)
+        re_result = re.search(pat, c)
         if re_result:
             name = re_result.group(1)
         else:
@@ -80,10 +82,7 @@ class wshow(object):
         if not os.path.exists(pix_name):
             return
         pixbuf = gtk.gdk.pixbuf_new_from_file(pix_name)
-        return  pixbuf
-
-    
-
+        return pixbuf
 
     def scan(self, widget):
         """
@@ -100,7 +99,7 @@ class wshow(object):
                 children = reversed(widget.get_children())
         except:
             pass
-        
+
         for sun in children:
             new = self.printa(sun, parent=self.parent)
             ogg = wshow(sun, lvl=self.lvl+1, mode=self.mode, model=self.model,
@@ -110,6 +109,7 @@ class wshow(object):
         self.d = d
 
 class show_widgets(object):
+
     """ pops a TreeView to show widget hierarchy"""
 
     def __init__(self, widget=None, lay=True, window=None):
@@ -129,7 +129,7 @@ class show_widgets(object):
 
         if not lay:
             return (False, False)
-        
+
         lay = """
         {B m=file } {O tb=gtk-quit }
           {N.external 
@@ -138,21 +138,21 @@ class show_widgets(object):
         self.l = layout.Layout(lay, opts="s", title='Widget Tree')
         self.w = self.l.show()
         self.w['Window'].set_size_request(300, 500)
-        
+
         self.notebook = self.w['N.external']
         table = self.notebook.get_parent()
         table.child_set_property(self.notebook, 'y-options', gtk.FILL | gtk.EXPAND)
 
         self.page_number = 1
-        
+
         self.l.connect(('tb=gtk-quit', 'clicked',
                         lambda l: self.w['Window'].destroy()))
 
         # key accelerators
         self.accel_group = gtk.AccelGroup()
-        self.accel_group.connect_group(ord('q'), 
-                                       gtk.gdk.CONTROL_MASK, 
-                                       gtk.ACCEL_LOCKED, 
+        self.accel_group.connect_group(ord('q'),
+                                       gtk.gdk.CONTROL_MASK,
+                                       gtk.ACCEL_LOCKED,
                                        self.delete)
         self.w['Window'].add_accel_group(self.accel_group)
 
@@ -182,16 +182,16 @@ class show_widgets(object):
                     Item = gtk.MenuItem(class_)
                     sub_menu2.append(Item)
                     Item.set_submenu(menu)
-                                     
+
                 lbl = "%s" % (window.child.name)
-                
+
                 m = gtk.MenuItem(lbl)
                 menu.append(m)
             else:
                 m = gtk.MenuItem(lbl)
                 sub_menu.append(m)
             m.connect('activate', self.add_tab_and_tree, window)
-        
+
         self.w['M=file'].show_all()
         return self.l, self.w
 
@@ -209,7 +209,7 @@ class show_widgets(object):
         cell_bool.connect('toggled', self.toggle_visibility, model)
         cell_text1 = gtk.CellRendererText()
         cell_text2 = gtk.CellRendererText()
-        cell_pix1  = gtk.CellRendererPixbuf()
+        cell_pix1 = gtk.CellRendererPixbuf()
 
         tvc1.pack_start(cell_pix1, False)
         tvc1.pack_start(cell_text1, False)
@@ -233,28 +233,28 @@ class show_widgets(object):
         show = model[path][4]
         widget.set_property('visible', not show)
         model[path][4] = not show
-        
+
     def add_tab_and_tree(self, menu_item, toplevel):
         #dbg.write(toplevel)
         lbl = toplevel.title
         if not lbl:
             lbl = str(toplevel)
-            
+
         tv = self.add_new_book(toplevel, lbl)
         model = self.create_model(tv)
         self.fill_model(toplevel, model)
         tv.expand_all()
         return True
-    
+
     def add_new_book(self, widget, lbl):
         self.page_number += 1
         tv = gtk.TreeView()
         scrolled = gtk.ScrolledWindow()
         scrolled.add(tv)
-        
+
         eventBox = self.create_custom_tab(lbl, scrolled)
         self.notebook.append_page(scrolled, eventBox)
-        
+
         # Set the new page
         pages = gtk.Notebook.get_n_pages(self.notebook)
         self.notebook.set_current_page(pages - 1)
@@ -268,7 +268,7 @@ class show_widgets(object):
         tabBox = gtk.HBox(False, 2)
         tabLabel = gtk.Label(text)
 
-        tabButton=gtk.Button()
+        tabButton = gtk.Button()
         tabButton.connect('clicked', self.remove_book, child)
 
         #Add a picture on a button
@@ -294,15 +294,14 @@ class show_widgets(object):
         image.set_from_stock(gtk.STOCK_CLOSE, gtk.ICON_SIZE_MENU)
         gtk.Button.set_relief(button, gtk.RELIEF_NONE)
         #gtk.Button.set_focus_on_click(button,False)
-        settings = gtk.Widget.get_settings (button)
-        (w,h) = gtk.icon_size_lookup_for_settings (settings, gtk.ICON_SIZE_MENU)
-        gtk.Widget.set_size_request (button, w + 4, h + 4)
+        settings = gtk.Widget.get_settings(button)
+        (w, h) = gtk.icon_size_lookup_for_settings(settings, gtk.ICON_SIZE_MENU)
+        gtk.Widget.set_size_request(button, w + 4, h + 4)
         image.show()
         iconBox.pack_start(image, True, False, 0)
         button.add(iconBox)
         iconBox.show()
         return
-
 
     # Remove a page from the notebook
     def remove_book(self, button, child):
@@ -313,7 +312,6 @@ class show_widgets(object):
         # This forces the widget to redraw itself.
         self.notebook.queue_draw_area(0, 0, -1, -1)
 
-
     def remove_current_book(self, *arguments, **keywords):
         page = self.notebook.get_current_page()
         if page != -1:
@@ -321,44 +319,42 @@ class show_widgets(object):
         return True
 
     # Remove a page from the notebook
-  
-    
-    def delete(self,*args):
+
+    def delete(self, *args):
         #dbg.write()
         self.w['Window'].destroy()
         return True
-    
+
     def pop_menu(self, widget, ev):
         try:
             self.w['M=popup'].destroy()
         except:
             pass
 
-        
         self.w['M=popup'] = gtk.Menu()
         menu = self.w['M=popup']
 
         ## info on properties
         item = gtk.MenuItem(label="properties")
-        item.connect('activate', self.show_widget_properties, widget )
+        item.connect('activate', self.show_widget_properties, widget)
         menu.append(item)
 
         ## info on pack
         item = gtk.MenuItem(label="packing")
-        item.connect('activate', self.show_widget_packing, widget )
+        item.connect('activate', self.show_widget_packing, widget)
         menu.append(item)
 
         ## info on properties
         item = gtk.MenuItem(label="signal")
-        item.connect('activate', self.show_widget_signal, widget )
+        item.connect('activate', self.show_widget_signal, widget)
         menu.append(item)
 
         menu.show_all()
         menu.popup(None, None, None, ev.button, ev.time)
 
-    def show_widget_properties(self, menu, widget ):
+    def show_widget_properties(self, menu, widget):
         props = gobject.list_properties(widget)
-        cols = ['name','value','owner_type', 'value_type','nick' ]
+        cols = ['name', 'value', 'owner_type', 'value_type', 'nick']
         a = TreeInfoLayout(cols)
         cell = a.tvc[1].get_cell_renderers()[0]
         cell.set_property('editable', True)
@@ -366,9 +362,9 @@ class show_widgets(object):
         cell.connect('edited', self.edited_cb, (widget, a.model, 1))
         a.w['Window'].set_title("%s - %s" % (
             widget.name or '',
-            re.search("'(.*)'",str(widget.__class__)).group(1)
-            )
-                                )
+            re.search("'(.*)'", str(widget.__class__)).group(1)
+        )
+        )
         m = a.model
         for i in props:
             #dbg.write(i)
@@ -376,9 +372,9 @@ class show_widgets(object):
             m.set(iter,
                   0, i.name,
                   4, i.nick,
-                  2, re.search(' ([a-zA-Z]+)', str(i.owner_type)).group(1), 
+                  2, re.search(' ([a-zA-Z]+)', str(i.owner_type)).group(1),
                   3, re.search(' ([a-zA-Z]+)', str(i.value_type)).group(1),
-                 )
+                  )
             default = getattr(i, 'default_value', '')
             try:
                 ## eg: pattern is write only, so no get_property()...
@@ -390,7 +386,7 @@ class show_widgets(object):
                     val = "%s (%s)" % (val, default)
             except:  # default may have unideco decode errors...
                 pass
-                
+
             if i.name not in 'user-data':
                 m.set(iter,
                       1, val,
@@ -401,14 +397,14 @@ class show_widgets(object):
               0, 'self',
               1, widget)
 
-    def show_widget_signal(self, menu, widget, model=None ):
+    def show_widget_signal(self, menu, widget, model=None):
 
         if not model:
             cols = ['name']
             a = TreeInfoLayout(cols)
             a.tv.expand_all()
             model = a.model
-            
+
         signals = get_widget_signals(widget)
 
         prev_class = None
@@ -417,33 +413,33 @@ class show_widgets(object):
             if not cls == prev_class:
                 iter = model.append(None)
                 cls_iter = iter
-                model.set(iter,   0, cls )
-                
+                model.set(iter,   0, cls)
+
             iter = model.append(cls_iter)
-            model.set(iter,   0, signal )
+            model.set(iter,   0, signal)
             prev_class = cls
 
     def edited_cb(self, cell, path, new_text, user_data):
 
         widget, model, column = user_data
         model[path][column] = new_text
-        prop   = model[path][0]
-        gtype  = model[path][3]
+        prop = model[path][0]
+        gtype = model[path][3]
 
         #dbg.write('widget.set_property(%s, %s)' % (new_text,prop)   )
         py_type = {
-            'gboolean' : bool,
-            'gint'     : int,
-            'guint'     : int,
-            'gchararray' : str,
-            'gfloat'   : float,
-            }
+            'gboolean': bool,
+            'gint': int,
+            'guint': int,
+            'gchararray': str,
+            'gfloat': float,
+        }
         if new_text == "False":
             new_text = False
         widget.set_property(prop, py_type[gtype](new_text))
-        
+
         return
-    
+
     def show_widget_packing(self, menu, widget):
         parent = widget.get_parent()
         # This was the first version:
@@ -457,7 +453,7 @@ class show_widgets(object):
             return dialog
 
         props = parent.list_child_properties()
-        cols = ['name','value','owner_type', 'value_type','nick' ]
+        cols = ['name', 'value', 'owner_type', 'value_type', 'nick']
         a = TreeInfoLayout(cols)
         cell = a.tvc[1].get_cell_renderers()[0]
         cell.set_property('editable', True)
@@ -465,9 +461,9 @@ class show_widgets(object):
 
         a.w['Window'].set_title("%s - %s" % (
             widget.name or '',
-            re.search("'(.*)'",str(widget.__class__)).group(1)
-            )
-                                )
+            re.search("'(.*)'", str(widget.__class__)).group(1)
+        )
+        )
         m = a.model
 
         for prop in props:
@@ -475,9 +471,9 @@ class show_widgets(object):
             m.set(iter,
                   0, prop.name,
                   4, prop.nick,
-                  2, re.search(' ([a-zA-Z]+)', str(prop.owner_type)).group(1), 
+                  2, re.search(' ([a-zA-Z]+)', str(prop.owner_type)).group(1),
                   3, re.search(' ([a-zA-Z]+)', str(prop.value_type)).group(1),
-                 )
+                  )
             try:
                 default = prop.default_value
             except:
@@ -490,63 +486,64 @@ class show_widgets(object):
                 None
             if val != default and default != '':
                 val = "%s (%s)" % (val, default)
-                
+
             if prop.name not in 'user-data':
                 m.set(iter,
                       1, val,
                       )
 
-
     def edited_cb_packing(self, cell, path, new_text, user_data):
 
         parent, widget, model, column = user_data
-        prop   = model[path][0]
-        gtype  = model[path][3]
+        prop = model[path][0]
+        gtype = model[path][3]
 
         def enforce_int(x):
             if int(x) in range(8):
                 return int(xx)
             else:
                 return ''
-            
+
         py_type = {
             # Ugly way to require a number smaller than 8.
-            'GtkAttachOptions' : enforce_int,
-            'gint'     : int,
-            'guint'     : int,
-            'gchararray' : str,
-            'gfloat'   : float,
-            'gboolean'   : bool,
-            }
-            
+            'GtkAttachOptions': enforce_int,
+            'gint': int,
+            'guint': int,
+            'gchararray': str,
+            'gfloat': float,
+            'gboolean': bool,
+        }
+
         # No real edit was made
         if new_text == model[path][column]:
             return
         if new_text == "False":
             new_text = False
-            
+
         try:
             value = py_type[gtype](new_text)
         except:
             # The text can not be interpreted as the given type!
-            value = self.edited_fallback_dialog(gtype, widget, prop, parent.child_get_property(widget, prop))
+            value = self.edited_fallback_dialog(
+                gtype, widget, prop, parent.child_get_property(widget, prop))
 
         # Now the value is valid.
         parent.child_set_property(widget, prop, value)
-            
+
         # Whatever happened, just show (nicely) the actual value:
         model[path][column] = str(parent.child_get_property(widget, prop))
         return
-        
+
     def edited_fallback_dialog(self, gtype, widget, prop_name, current_value):
         """If the value for a particular property is not valid, this method is
         called to get an appropriate value. It can be tought how to act with
         different gtypes by adding "elif" tests.
         """
         if gtype == 'GtkAttachOptions':
-            dialog = gtk.Dialog(title=prop_name, flags=gtk.DIALOG_MODAL, buttons =('gtk-close',4))
-            dialog.set_size_request(200,-1)
-            checkbuttons = [gtk.CheckButton('Expand'), gtk.CheckButton('Shrink'), gtk.CheckButton('Fill')]
+            dialog = gtk.Dialog(title=prop_name, flags=gtk.DIALOG_MODAL, buttons=('gtk-close', 4))
+            dialog.set_size_request(200, -1)
+            checkbuttons = [
+                gtk.CheckButton('Expand'), gtk.CheckButton('Shrink'), gtk.CheckButton('Fill')]
             for index in range(3):
                 dialog.vbox.pack_start(checkbuttons[index])
                 single_value = bool(int(current_value) & 2**index)
@@ -562,24 +559,24 @@ class show_widgets(object):
         # If we don't know kow to treat the gtype, just stick to current value
         return current_value
 
-        
     def show_widget_connect(self):
         pass
-    
+
     def button_press_cb(self, wdg, ev):
         if ev.button == 3:
             model = wdg.get_model()
             iter = model.get_iter(wdg.get_path_at_pos(int(ev.x), int(ev.y))[0])
-            widget = model.get_value(iter,3)
+            widget = model.get_value(iter, 3)
             #dbg.write("Type: %s" % type(widget))
             self.pop_menu(widget, ev)
-    
+
     def fill_model(self, toplevel, model):
 
         model.clear()
         i = wshow(toplevel, mode='', model=model)
 
 class TreeInfoLayout(object):
+
     def __init__(self, cols, tv=None, model=None):
         if tv:
             self.tv = tv
@@ -594,7 +591,7 @@ class TreeInfoLayout(object):
 
         self.tv = self.w['TV=a']
         self.l.connect(('tb=gtk-quit', 'clicked',
-                            lambda l: self.w['Window'].destroy()))
+                        lambda l: self.w['Window'].destroy()))
 
         if not model:
             self.model = gtk.TreeStore(*[str for i in cols])
@@ -604,11 +601,10 @@ class TreeInfoLayout(object):
         self.tv.set_model(self.model)
 
         self.tvc = {}
-        for i,col in enumerate(cols):
+        for i, col in enumerate(cols):
             self.tvc[i] = gtk.TreeViewColumn(col, gtk.CellRendererText(), text=i)
             self.tvc[i].set_sort_column_id(i)
             self.tv.append_column(self.tvc[i])
-
 
     def _get_layout(self):
         lay = """
@@ -617,10 +613,11 @@ class TreeInfoLayout(object):
         """
         #dbg.write()
         return layout.Layout(lay, opts="s")
-    
+
 SimpleTreeView = TreeInfoLayout
 
 class ShowMapperInfo(object):
+
     def __init__(self, InspectMapper):
         self.info = InspectMapper
         cols = ['name', 'col__spec', 'pkey', 'fkey', 'Null', 'editable', 'table', ]
@@ -641,54 +638,55 @@ class ShowMapperInfo(object):
                 I = getattr(self.info, f)
                 sun = self.model.append(iter[I['table_name']])
                 self.model.set(sun,
-                          0, I['name'],
-                          1, I['col_spec'],
-                          5, I['editable'],
+                               0, I['name'],
+                               1, I['col_spec'],
+                               5, I['editable'],
                                )
                 if I['pkey']:
                     self.model.set(sun,
-                          2, I['pkey'],
+                                   2, I['pkey'],
                                    )
                 if I['fkey']:
                     self.model.set(sun,
-                          3, "%s.%s" % (get_foreign_info(I['fkey']))
+                                   3, "%s.%s" % (get_foreign_info(I['fkey']))
                                    )
                 if not I['nullable']:
                     self.model.set(sun,
-                          4, 'NOT NULL',
+                                   4, 'NOT NULL',
 
-                          )
+                                   )
                 self.model.set(sun, 6, I['table'])
-        
+
 class ShowClassInfo(object):
+
     def __init__(self, obj):
-        cols = ['what', 'value', 'type' ]
+        cols = ['what', 'value', 'type']
         self.colors = {
-            'dict' : 'red',
-            'list' : 'blue',
-            'int'  : 'seagreen',
-            'NoneType'  : 'gray60',
+            'dict': 'red',
+            'list': 'blue',
+            'int': 'seagreen',
+            'NoneType': 'gray60',
             'tuple': 'darkslategray',
-            }
+        }
         self.exclude = [
             "wrapper_descriptor",
-#            "module",
+            #            "module",
             "method_descriptor",
             "member_descriptor",
-#            "instancemethod",
+            #            "instancemethod",
             "builtin_function_or_method",
             "frame",
             "classmethod",
             "classmethod_descriptor",
             "_Environ",
-#            "MemoryError",
+            #            "MemoryError",
             "_Printer",
             "_Helper",
             "getset_descriptor",
             "weakref",
             "cell",
-            "staticmethod"            
-            ]
+            "staticmethod"
+        ]
         self.model = gtk.TreeStore(str, str, str, object, str)
         self.treeLayout = TreeInfoLayout(cols, model=self.model)
         self.tv = self.treeLayout.tv
@@ -703,12 +701,11 @@ class ShowClassInfo(object):
         key_col = self.tv.get_column(0)
         cell = key_col.get_cell_renderers()[0]
         key_col.set_attributes(cell, markup=0)
-        
+
         type_col = self.tv.get_column(2)
         cell = type_col.get_cell_renderers()[0]
         cell.set_property('style', pango.STYLE_ITALIC)
         type_col.set_attributes(cell, markup=2)
-        
 
         value_col = self.tv.get_column(1)
         value_col.set_max_width(200)
@@ -716,7 +713,7 @@ class ShowClassInfo(object):
         for i in range(2):
             col = self.tv.get_column(i)
             col.set_resizable(True)
-        
+
         self.tv.connect('button-press-event', self.add_to_model_cb)
         self.treeselection.connect('changed', self.selection_changed_cb)
 
@@ -724,23 +721,23 @@ class ShowClassInfo(object):
         model, iter = ts.get_selected()
         if not iter:
             return
-        value = model.get_value(iter,4)
+        value = model.get_value(iter, 4)
         if not value:
             return
         txt = []
         txt.insert(0, value)
         while True:
-            iter=model.iter_parent(iter)
+            iter = model.iter_parent(iter)
             if not iter:
                 break
             path = self.model.get_path(iter)
-            value = model.get_value(iter,4)
+            value = model.get_value(iter, 4)
             if value:
-                txt.insert(0,value)
-            
+                txt.insert(0, value)
+
         msg = ".".join(txt)
         self.treeLayout.l.sb(msg)
-        
+
     def add_to_model(self, obj, position=None):
         iter = {}
         if obj == '':
@@ -748,12 +745,12 @@ class ShowClassInfo(object):
                 it = self.model.append(position)
                 self.model.set(it,
                                0, key,
-                               1, eval(key), 
+                               1, eval(key),
                                )
 
         class_name = obj.__class__.__name__
-        if class_name in ('NoneType','str', 'bool', 'type','datetime.date', 
-                          'datetime.datetime', 'datetime.time','int'):
+        if class_name in ('NoneType', 'str', 'bool', 'type', 'datetime.date',
+                          'datetime.datetime', 'datetime.time', 'int'):
             ## it reset the value but not trimmed to 100 chars
             self.model.set(position,
                            1, str(obj))
@@ -766,37 +763,37 @@ class ShowClassInfo(object):
                 it = self.model.append(position)
                 self.add_row(it, val, str(key), val.__class__.__name__, type(val))
 
-        elif class_name in ('list','tuple'):
-            for pos,val in enumerate(obj):
+        elif class_name in ('list', 'tuple'):
+            for pos, val in enumerate(obj):
                 it = self.model.append(position)
                 self.add_row(it, val, pos, val.__class__.__name__, type(val))
 
         elif inspect.ismethod(obj):
             self.info_method(obj)
         else:
-            for i in ['module','callable', 'globals', 'attribute']:
+            for i in ['module', 'callable', 'globals', 'attribute']:
                 iter[i] = self.model.append(position)
                 self.model.set(iter[i],
                                0, i,
                                )
             iter['builtin'] = self.model.append(iter['callable'])
             self.model.set(iter['builtin'],
-                           0,'builtin')
+                           0, 'builtin')
 
             iter['methods'] = self.model.append(iter['callable'])
             self.model.set(iter['methods'],
-                           0,'methods')
+                           0, 'methods')
 
             for j in dir(obj):
                 self.show_obj(obj, j, iter)
-                
+
         for k in ['builtin', 'methods'] + iter.keys():
             try:
                 if not self.model.iter_has_child(iter[k]):
                     self.model.remove(iter[k])
             except:
                 pass
-            
+
     def show_obj(self, obj, attr_name, iter):
 
         attr = getattr(obj, attr_name, None)
@@ -810,7 +807,7 @@ class ShowClassInfo(object):
         elif class_name in ['instancemethod', 'method-wrapper']:
             it = self.model.append(iter['methods'])
             #dbg.write(attr_name, class_name, self.model.get_path(it))
-            
+
         elif class_name in self.exclude:
             it = self.model.append(iter['builtin'])
             #dbg.write(attr_name, class_name, self.model.get_path(it))
@@ -822,10 +819,8 @@ class ShowClassInfo(object):
             it = self.model.append(iter['attribute'])
             #dbg.write(attr_name, class_name, self.model.get_path(it))
 
+        self.add_row(it, attr, attr_name, class_name, t)
 
-        self.add_row( it, attr, attr_name, class_name, t)
-
-    
     def add_row(self, iter, attr, attr_name, class_name, t):
         fmt = "<span foreground='maroon'>%s</span>"
         self.model.set(iter,
@@ -834,42 +829,40 @@ class ShowClassInfo(object):
                        2, fmt % t.__name__,
                        3, attr,  # object TreeColumn
                        4, attr_name,
-                       )  
-        
+                       )
+
     def add_color(self, attr_name, class_name, attr):
         fmt = "<span foreground='%(col)s'>%(attr_name)s</span>"
         fmt_dict = {
-            'col' : self.colors.setdefault(class_name,'slategray'),
-            'attr_name' : re.sub('[<>]', '', str(attr_name))
-            }
+            'col': self.colors.setdefault(class_name, 'slategray'),
+            'attr_name': re.sub('[<>]', '', str(attr_name))
+        }
         return fmt % fmt_dict
 
-    
     def add_to_model_cb(self, wdg, ev):
         if ev.button != 3:
             return False
         iter = self.model.get_iter(
             wdg.get_path_at_pos(int(ev.x), int(ev.y))[0])
-        obj = self.model.get_value(iter,3)
+        obj = self.model.get_value(iter, 3)
         self.add_to_model(obj, position=iter)
 
         path = self.model.get_path(iter)
         self.tv.expand_to_path(path)
 
-
     def info_method(self, obj):
         """show info on method 'obj' using text widget"""
-        l = layout.Layout('TXS=a:700.400',opts="V")
-        w=l.show()
+        l = layout.Layout('TXS=a:700.400', opts="V")
+        w = l.show()
         buff = w['TX=a'].get_buffer()
         self.configure_buffer(buff)
         txt = []
         try:
-            txt.extend("# defined at line %s of file:\n# %s\n# module: %s\n\n" %(
+            txt.extend("# defined at line %s of file:\n# %s\n# module: %s\n\n" % (
                 inspect.getsourcelines(obj)[1],
                 inspect.getfile(obj),
                 inspect.getmodule(obj),
-                ))
+            ))
         except TypeError:
             txt.extend("Built-in function/method or class")
 
@@ -882,7 +875,7 @@ class ShowClassInfo(object):
         iter = buf.get_iter_at_offset(0)
         #print buf.get_tag_table()
         last_erow, last_ecol = 0, 0
-        was_newline = False # multiline statement detection
+        was_newline = False  # multiline statement detection
         old_str = None
         for x in tokenize.generate_tokens(layout.misc.InputStream(data).readline):
             # x has 5-tuples
@@ -909,26 +902,26 @@ class ShowClassInfo(object):
             last_ecol = ecol
 
             if tok_type == tokenize.COMMENT:
-                was_newline = True # newline is in tok_str included.
+                was_newline = True  # newline is in tok_str included.
                 buf.insert_with_tags_by_name(iter, tok_str, 'source', 'comment')
                 old_str = tok_str
                 continue
-            
+
             if tok_str.startswith('"""'):
                 buf.insert_with_tags_by_name(iter, tok_str, 'source', 'docstring')
                 old_str = tok_str
                 continue
-                
+
             if old_str == 'def':
                 buf.insert_with_tags_by_name(iter, tok_str, 'source', 'function')
                 old_str = tok_str
                 continue
-                
+
             if old_str == 'class':
                 buf.insert_with_tags_by_name(iter, tok_str, 'source', 'class')
                 old_str = tok_str
                 continue
-                
+
             elif tok_type == tokenize.NAME or tok_str == 'self':
                 if tok_str in keyword.kwlist + ['self']:
                     buf.insert_with_tags_by_name(iter, tok_str, 'source', 'keyword')
@@ -954,24 +947,27 @@ class ShowClassInfo(object):
         tag.set_property('pixels_above_lines', 0)
         tag.set_property('pixels_below_lines', 0)
         tag = buf.create_tag('keyword', foreground='mediumorchid',
-                                weight=pango.WEIGHT_BOLD)
+                             weight=pango.WEIGHT_BOLD)
         tag = buf.create_tag('string', foreground='royalblue4')
         tag = buf.create_tag('function', foreground='blue')
         tag = buf.create_tag('docstring', foreground='indianred')
         tag = buf.create_tag('class', foreground='#007F00')
         tag = buf.create_tag('comment', foreground='red',
-                                       style=pango.STYLE_ITALIC)
-        
+                             style=pango.STYLE_ITALIC)
+
 
 class InputStream(object):
+
     """ Simple Wrapper for File-like objects. [c]StringIO doesn't provide
         a readline function for use with generate_tokens.
         Using a iterator-like interface doesn't succeed, because the readline
         function isn't used in such a context. (see <python-lib>/tokenize.py)
     """
+
     def __init__(self, data):
-        self.__data = [ '%s\n' % x for x in data.splitlines() ]
+        self.__data = ['%s\n' % x for x in data.splitlines()]
         self.__lcount = 0
+
     def readline(self):
         try:
             line = self.__data[self.__lcount]
@@ -982,6 +978,7 @@ class InputStream(object):
         return line
 
 class ShowLogs(object):
+
     def __init__(self, model=None, show=False):
         if model is None:
             self.get_layout(show)
@@ -991,13 +988,13 @@ class ShowLogs(object):
             from layout import misc
         except:
             from sqlkit.layout import misc
-            
+
         global iter
         self.last_indent = 0
         iter = {}
         self.indent = {}
         ## method, args, caller, line
-        cols = ['meth','class', 'time', 'caller', 'line',
+        cols = ['meth', 'class', 'time', 'caller', 'line',
                 'ret code', 'class', 'args', 'all_args', 'tooltips']
         self.easytv = misc.EasyTreeView(
             cols, sort=False, show=show, but='tb=gtk-close tb=gtk-open', title="GTK debug")
@@ -1016,7 +1013,7 @@ class ShowLogs(object):
             ('tb=gtk-open', 'clicked', lambda w, : self.easytv.tv.expand_all()),
             ('tb=gtk-close', 'clicked', lambda w, : self.easytv.tv.collapse_all()),
             ('tb=gtk-clear', 'clicked', self.model_clear),
-            )
+        )
 
         self.iter = {}
         self.easytv.w['Window'].set_geometry_hints(
@@ -1032,28 +1029,28 @@ class ShowLogs(object):
             self.add_tooltips()
         except:
             pass
-        
+
     def get_tooltip(self, meth, args, ret, caller, line, time):
-        ret  = re.sub('[<>]','', str(ret))
-        args = re.sub('[<>]','', str(args))
+        ret = re.sub('[<>]', '', str(ret))
+        args = re.sub('[<>]', '', str(args))
 
         try:
             caller = ".".join(caller.split('.')[-2:])
         except:
             pass
-        caller = re.sub('[<>]','', str(caller))
+        caller = re.sub('[<>]', '', str(caller))
 
         txt = "<i>%(meth)s</i>(<tt>%(args)s</tt>)\n<b>%(ret)s</b>\n" + \
               "<i>%(caller)s:%(line)s</i>\n%(time)s"
-        return txt  % (locals())
-    
+        return txt % (locals())
+
     def button_press_cb(self, wdg, ev):
         if ev.button != 3:
             return False
         iter = self.model.get_iter(
             wdg.get_path_at_pos(int(ev.x), int(ev.y))[0])
-        obj = self.model.get_value(iter,6)
-        meth = self.model.get_value(iter,0)
+        obj = self.model.get_value(iter, 6)
+        meth = self.model.get_value(iter, 0)
         meth = re.sub('<[^>]*>', '', meth)
         Hmeth = "_H_%s" % meth
         if Hmeth in dir(obj):
@@ -1085,18 +1082,18 @@ class ShowLogs(object):
                     pass
         obj = attr
 
-        l = layout.Layout('TXS=a:700.400',opts="V")
-        w=l.show()
+        l = layout.Layout('TXS=a:700.400', opts="V")
+        w = l.show()
         buff = w['TX=a'].get_buffer()
-        
+
         self.configure_buffer(buff)
         txt = []
         try:
-            txt.extend("# defined at line %s of file:\n# %s\n# module: %s\n\n" %(
+            txt.extend("# defined at line %s of file:\n# %s\n# module: %s\n\n" % (
                 inspect.getsourcelines(obj)[1],
                 inspect.getfile(obj),
                 inspect.getmodule(obj),
-                ))
+            ))
         except TypeError:
             txt.extend("Built-in function/method or class")
 
@@ -1115,7 +1112,7 @@ class ShowLogs(object):
         iter = buf.get_iter_at_offset(0)
         #print buf.get_tag_table()
         last_erow, last_ecol = 0, 0
-        was_newline = False # multiline statement detection
+        was_newline = False  # multiline statement detection
         old_str = None
         for x in tokenize.generate_tokens(misc.InputStream(data).readline):
             # x has 5-tuples
@@ -1142,26 +1139,26 @@ class ShowLogs(object):
             last_ecol = ecol
 
             if tok_type == tokenize.COMMENT:
-                was_newline = True # newline is in tok_str included.
+                was_newline = True  # newline is in tok_str included.
                 buf.insert_with_tags_by_name(iter, tok_str, 'source', 'comment')
                 old_str = tok_str
                 continue
-            
+
             if tok_str.startswith('"""'):
                 buf.insert_with_tags_by_name(iter, tok_str, 'source', 'docstring')
                 old_str = tok_str
                 continue
-                
+
             if old_str == 'def':
                 buf.insert_with_tags_by_name(iter, tok_str, 'source', 'function')
                 old_str = tok_str
                 continue
-                
+
             if old_str == 'class':
                 buf.insert_with_tags_by_name(iter, tok_str, 'source', 'class')
                 old_str = tok_str
                 continue
-                
+
             elif tok_type == tokenize.NAME or tok_str == 'self':
                 if tok_str in keyword.kwlist + ['self']:
                     buf.insert_with_tags_by_name(iter, tok_str, 'source', 'keyword')
@@ -1187,18 +1184,14 @@ class ShowLogs(object):
         tag.set_property('pixels_above_lines', 0)
         tag.set_property('pixels_below_lines', 0)
         tag = buf.create_tag('keyword', foreground='mediumorchid',
-                                weight=pango.WEIGHT_BOLD)
+                             weight=pango.WEIGHT_BOLD)
         tag = buf.create_tag('string', foreground='royalblue4')
         tag = buf.create_tag('function', foreground='blue')
         tag = buf.create_tag('docstring', foreground='indianred')
         tag = buf.create_tag('class', foreground='#007F00')
         tag = buf.create_tag('comment', foreground='red',
-                                       style=pango.STYLE_ITALIC)
-        
+                             style=pango.STYLE_ITALIC)
 
-        
-        
-    
     def model_clear(self, butt):
         self.model.clear()
         self.iter = {}
@@ -1206,7 +1199,7 @@ class ShowLogs(object):
     def get_there(self, model, path, iter):
         self.easytv.tv.scroll_to_cell(path)
         self.easytv.tv.expand_to_path(path)
-        
+
     def show(self):
         self.easytv.show()
 
@@ -1216,7 +1209,7 @@ class ShowLogs(object):
     def conf(self, but='^$', only='.*'):
         self.but = re.compile(but)
         self.only = re.compile(only)
-        
+
     def log(self, obj, but='^$', only='.*'):
         #but = re.compile(but)
         #only = re.compile(only)
@@ -1235,15 +1228,14 @@ class ShowLogs(object):
                     logmethod(attr), anInstance, anInstance.__class__)
 
     def add(self, txt='', Class='', line=None,
-              caller='', meth=None, indent=0, args=[], ret=None,
-              class_obj=None):
+            caller='', meth=None, indent=0, args=[], ret=None,
+            class_obj=None):
         """adds to the TreeModel. If a method is called from another, its line
         will be a sun of the previous and the color will be changed with
         markup
         """
-        col = {0: 'navyblue', 1:'slateblue', 2:'red', 3: 'seagreen',
-               4: 'gray50', 5: 'gray60', 6: 'gray65', 7:'gray70'}
-
+        col = {0: 'navyblue', 1: 'slateblue', 2: 'red', 3: 'seagreen',
+               4: 'gray50', 5: 'gray60', 6: 'gray65', 7: 'gray70'}
 
         if self.but.search(meth):
             return
@@ -1257,7 +1249,7 @@ class ShowLogs(object):
 
         self.last_indent = indent
 
-        if indent == 0:  
+        if indent == 0:
             self.iter[indent] = self.model.append(None)
         else:
             self.iter[indent] = self.model.append(self.iter.get(indent-1, None))
@@ -1270,17 +1262,17 @@ class ShowLogs(object):
         # elapsed time is totally wrong!!!
         elapsed_time = "%.3f - %.4f" % (now - self.time, now - self.last_time)
         args = ", ".join([str(f) for f in args])
-        self.model.set(  self.iter[indent],
-                         0, meth_str,
-                         1, Class,
-#                         2, txt,
-                         2, elapsed_time,
-                         3, caller,
-                         4, line,
-                         6, class_obj,
-                         7, args,
-                         8, args,
-                         )
+        self.model.set(self.iter[indent],
+                       0, meth_str,
+                       1, Class,
+                       #                         2, txt,
+                       2, elapsed_time,
+                       3, caller,
+                       4, line,
+                       6, class_obj,
+                       7, args,
+                       8, args,
+                       )
         self.last_time = now
         ## args to the functions are written one per line, the first is already
         ## written, now the other come...
@@ -1291,7 +1283,6 @@ class ShowLogs(object):
         self.indent[meth] = indent
         #print "self.indent[%s] = %s" % (meth, indent)
         return self.iter[indent]
-
 
     def write(self, niter=None, txt='', line=None, mode=None, parent=None,
               caller='', meth=None, indent=None, args=[], ret=None, Class=''):
@@ -1313,24 +1304,24 @@ class ShowLogs(object):
                     iter = self.model.append(self.iter[indent])
                 except KeyError:
                     iter = self.model.append(None)
-        color={
-            'dict' : 'green',
-            'value' : 'seagreen',
-            'write' : 'blue',
-            }
-        meth = re.sub('(.*)\.(.*)',r'\2', str(meth))
+        color = {
+            'dict': 'green',
+            'value': 'seagreen',
+            'write': 'blue',
+        }
+        meth = re.sub('(.*)\.(.*)', r'\2', str(meth))
         meth_str = "<span foreground='%s'>%s</span>" % (
             color[mode], markup_escape_text(meth))
 
         now = time.time()
-        self.model.set(  iter,
-                         0, "(%s)" % meth_str,
-                         1, Class,
-                         7, txt,
-                         3, caller,
-                         4, line,
-                         2, "%.3f - %.4f" % (now - self.time, now - self.last_time)
-            )
+        self.model.set(iter,
+                       0, "(%s)" % meth_str,
+                       1, Class,
+                       7, txt,
+                       3, caller,
+                       4, line,
+                       2, "%.3f - %.4f" % (now - self.time, now - self.last_time)
+                       )
         self.last_time = now
 
         return iter
@@ -1349,7 +1340,7 @@ class ShowLogs(object):
 def get_widget_signals(item, result=None):
     """
     get all widget signals of an object and return a list of tuples: (class, signal_name)
-    
+
     """
 
     from inspect import isclass
@@ -1363,16 +1354,15 @@ def get_widget_signals(item, result=None):
         class_name = type(item).__class__.__name__
         for base in item.__class__.__bases__[1:]:
             get_widget_signals(base, result_list)
-            
+
     signals = list(gobject.signal_list_names(item))
     signals.sort()
 
     for signal in signals:
         result_list += (class_name, signal)
 
-
     try:
-        item =  gobject.type_parent(item)
+        item = gobject.type_parent(item)
         get_widget_signals(item, result=result_list)
     except RuntimeError:
         pass
@@ -1381,19 +1371,19 @@ def get_widget_signals(item, result=None):
 def get_widget_signals(item, result=None, indent=0):
     """
     get all widget signals of an object and return a list of tupes: (class, signale_name)
-    
+
     """
 
     from inspect import isclass
     import gobject
 
-    DONT_GO =(
+    DONT_GO = (
         object,
         type,
         gobject.GType,
         gobject.GInterface,
         gobject.GObjectMeta,
-        )
+    )
     result_list = result or []
 
 #    if item in DONT_GO or type(item) is gobject.GType:
@@ -1401,7 +1391,6 @@ def get_widget_signals(item, result=None, indent=0):
         return result
 
     offset = " " * indent
-    
 
     if isclass(item):
         class_name = item.__name__
@@ -1410,19 +1399,17 @@ def get_widget_signals(item, result=None, indent=0):
 
     signals = list(gobject.signal_list_names(item))
     signals.sort()
-    
+
     for signal in signals:
         result_list += [(class_name, signal)]
-
-
 
     if not isclass(item):
         for base in item.__class__.__bases__:
             result_list = get_widget_signals(
-                base, result=result_list, indent=indent+4)            
+                base, result=result_list, indent=indent+4)
 
     try:
-        item =  gobject.type_parent(item)
+        item = gobject.type_parent(item)
         return get_widget_signals(item, result=result_list, indent=indent + 4)
     except RuntimeError:
         return result_list

@@ -1,9 +1,9 @@
 import time as _time
 import datetime
 ZERO = datetime.timedelta(0)
-STDOFFSET = datetime.timedelta(seconds = -_time.timezone)
+STDOFFSET = datetime.timedelta(seconds=-_time.timezone)
 if _time.daylight:
-    DSTOFFSET = datetime.timedelta(seconds = -_time.altzone)
+    DSTOFFSET = datetime.timedelta(seconds=-_time.altzone)
 else:
     DSTOFFSET = STDOFFSET
 
@@ -35,4 +35,3 @@ class LocalTimezone(datetime.tzinfo):
         return tt.tm_isdst > 0
 
 Local = LocalTimezone()
-

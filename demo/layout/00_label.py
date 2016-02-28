@@ -15,7 +15,7 @@ lay = """
 """
 
 lt = Layout(lay, opts='T', title="Table")
-lt.prop('e=short_lbl','xalign',1)
+lt.prop('e=short_lbl', 'xalign', 1)
 #lt.xml("/tmp/g.glade")
 #lt.prop('e=short_lbl2','max-length',2)
 w = lt.show()
@@ -32,6 +32,5 @@ w['Window'].show_all()
 # propriet`a viene fatta guardando l... quindi
 
 
-l = lt 
+l = lt
 #l = lv
-

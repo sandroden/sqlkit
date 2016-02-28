@@ -16,5 +16,3 @@ lay = """
 t = SqlMask(model.Movie, dbproxy=db, layout=lay)
 t.related.genres.completions.name.autostart = 2
 t.related.genres.completions.name.force_enum = True
-
-

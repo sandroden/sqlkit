@@ -3,8 +3,8 @@ import re
 import datetime
 import decimal
 
-import sqlalchemy 
-from  sqlalchemy.orm import properties
+import sqlalchemy
+from sqlalchemy.orm import properties
 import sqlalchemy.types as sqltypes
 
 from sqlkit import debug as dbg, exc
@@ -12,36 +12,38 @@ from sqlkit.misc.utils import Container
 from sqlalchemy.sql import expression
 
 
-SA_TYPE_MAP =  {
-    sqlalchemy.types.String : str,
-    sqlalchemy.types.Unicode : str,
-    sqlalchemy.types.Integer  : int,
-    sqlalchemy.types.SmallInteger  : int,
-    sqlalchemy.types.Float  : float,
-    sqlalchemy.types.DateTime  : datetime.datetime,
-    sqlalchemy.types.Date  : datetime.date,
-    sqlalchemy.types.Interval  : datetime.timedelta,
-    sqlalchemy.types.Time  : datetime.time,
-    sqlalchemy.types.Numeric : decimal.Decimal,
-    sqlalchemy.types.Text  : str, 
-    sqlalchemy.types.UnicodeText  : str, 
-    sqlalchemy.types.Boolean  : bool, 
-    sqlalchemy.types.Binary : str, # ????  TODO: this is probably useless
-                                   # ???? but w/o you get errors browsing a db that uses them...
-    }
+SA_TYPE_MAP = {
+    sqlalchemy.types.String: str,
+    sqlalchemy.types.Unicode: str,
+    sqlalchemy.types.Integer: int,
+    sqlalchemy.types.SmallInteger: int,
+    sqlalchemy.types.Float: float,
+    sqlalchemy.types.DateTime: datetime.datetime,
+    sqlalchemy.types.Date: datetime.date,
+    sqlalchemy.types.Interval: datetime.timedelta,
+    sqlalchemy.types.Time: datetime.time,
+    sqlalchemy.types.Numeric: decimal.Decimal,
+    sqlalchemy.types.Text: str,
+    sqlalchemy.types.UnicodeText: str,
+    sqlalchemy.types.Boolean: bool,
+    sqlalchemy.types.Binary: str,  # ????  TODO: this is probably useless
+    # ???? but w/o you get errors browsing a db that uses them...
+}
 
 try:
     SA_TYPE_MAP[sqlalchemy.types.LargeBinary] = str
 except AttributeError:
-    pass # sqlalchemy < 0.6
+    pass  # sqlalchemy < 0.6
 
 PROPERTIES = properties
-class MissingPrimaryKeyError(Exception): pass
+class MissingPrimaryKeyError(Exception):
+    pass
 
 class InspectMapper(Container):
+
     """inspect a mapper and gather all info on fields normally used.
     Adds attributes for each field_name pointing to a dictionary with:
-    
+
     table_name  (string)
     name        (string)
     table       (sqlalchemy Table obj)
@@ -52,8 +54,8 @@ class InspectMapper(Container):
     property    the property used to access these data
     """
     field_list = None  # list of field_names in the mapper (all possible tables)
-    props  = None  # dict of properties 
-    pkeys  = None  # dict table:[pkey1,...]
+    props = None  # dict of properties
+    pkeys = None  # dict table:[pkey1,...]
 
     def __init__(self, mapper, noup=None):
         """
@@ -61,16 +63,16 @@ class InspectMapper(Container):
         ro:   bool. if True no update/insert/delete will be possible
            """
         global SA_TYPE_MAP
-        
+
         try:
             # FIXME: these import should be avoided!...
             import sqlalchemy.dialects.postgresql
             import sqlalchemy.databases
             SA_TYPE_MAP.update({
-                sqlalchemy.databases.postgres.PGInet  : str, 
-                sqlalchemy.databases.postgres.PGInterval  : datetime.timedelta, 
-                sqlalchemy.dialects.postgresql.base.INTERVAL :  datetime.timedelta, 
-                })
+                sqlalchemy.databases.postgres.PGInet: str,
+                sqlalchemy.databases.postgres.PGInterval: datetime.timedelta,
+                sqlalchemy.dialects.postgresql.base.INTERVAL:  datetime.timedelta,
+            })
         except Exception, e:
             pass
 
@@ -85,7 +87,6 @@ class InspectMapper(Container):
         self.n = 0
         self.loop_on_props()
 
-                              
     def get_py_type(self, Type, field_name):
         for typ in (Type,) + Type.__mro__:
             try:
@@ -95,63 +96,61 @@ class InspectMapper(Container):
 
         msg = "Couldn't resolve SA type for field_name '%s' %s" % (field_name, Type)
         raise NotImplementedError(msg)
-        
-        
+
     def loop_on_props(self):
         """Add field gathering info from the mapper 
         At the mome we only use properties that are 
         """
         props = self.mapper.iterate_properties
-        
+
         for prop in props:
             if isinstance(prop, properties.ColumnProperty):
                 self._add_field(prop.key, self.mapper, property=prop)
             elif isinstance(prop, properties.RelationshipProperty):
                 self._add_loader_field(prop.key, self.mapper, property=prop)
-                
+
     def _add_field(self, field_name, mapper, property=None):
         if field_name in self:
             dbg.write("%s precedentemente definito, cerchi guai..." % field_name)
             return
-        
-        self.field_list += [ field_name ]
-        col = mapper.c[field_name] 
-        
+
+        self.field_list += [field_name]
+        col = mapper.c[field_name]
+
         try:
             col_spec = mapper.c[field_name].type.compile(
                 dialect=mapper.local.table.metadata.bind.engine.dialect)
-        except (NotImplementedError, AttributeError),e:
+        except (NotImplementedError, AttributeError), e:
             col_spec = None
         d = Container({
-            'name'        :  str(field_name),
-            'col'         :  col ,
-            'db_type'     :  type(col.type), 
-            'type'        :  self.get_py_type(type(col.type), field_name),
-            'col_spec'    :  col_spec,
-            'property'    :  property,
-            'fkey'        :  False,
-            'mapper'      :  mapper,
-            })
+            'name':  str(field_name),
+            'col':  col,
+            'db_type':  type(col.type),
+            'type':  self.get_py_type(type(col.type), field_name),
+            'col_spec':  col_spec,
+            'property':  property,
+            'fkey':  False,
+            'mapper':  mapper,
+        })
         try:
             d['length'] = col.type.length
         except:
             d['length'] = None
 
         if isinstance(col, (expression._Label, expression.Function)):
-            d['table'] =   None
-            d['table_name'] =   None
-            d['default']     =  None
-            d['pkey']        =  False
-            d['nullable']    =  True
-            d['editable']    =  False            
+            d['table'] = None
+            d['table_name'] = None
+            d['default'] = None
+            d['pkey'] = False
+            d['nullable'] = True
+            d['editable'] = False
         else:
-            d['table']       =  col.table
-            d['table_name']  =  col.table.name
-            d['default']     =  col.default
-            d['pkey']        =  col.primary_key
-            d['nullable']    =  col.nullable
-            d['editable']    =  field_name not in self.noup
-
+            d['table'] = col.table
+            d['table_name'] = col.table.name
+            d['default'] = col.default
+            d['pkey'] = col.primary_key
+            d['nullable'] = col.nullable
+            d['editable'] = field_name not in self.noup
 
         if d['table'] is not None and col.table.name not in self.table_mappers:
             #dbg.write("%s %s" % (mapper.local_table.name, self.table_mappers))
@@ -182,35 +181,34 @@ class InspectMapper(Container):
         if field_name in self:
             dbg.write("%s precedentemente definito, cerchi guai..." % field_name)
             return
-        
-        self.field_list += [ field_name ]
+
+        self.field_list += [field_name]
 
         d = {
-            'mapper'  :  property.mapper ,
-            'name'        :  str(field_name),
-            'table'       :  property.target,
-            'table_name'       :  property.target.name,
-#            'col'         :  property.mapper.c[field_name] ,
-            'db_type'     :  None,   ## FIXME: this is used tor table 
-            'type'        :  str,  # FIXME
-            'col_spec'    :  None,
-#            'is_serial'   :  False,
-            'property'    :  property,
-            'fkey'        :  False,
-            'default'     :  None,
-            'pkey'        :  None,
-            'nullable'    :  True,
-#            'mapper'      :  mapper,
-            'editable'        :  True,
-#            'direction'   :  mapper.props[field_name].direction
-#            'remote_attr' : [c.name for c in property.remote_side]
-            }
+            'mapper':  property.mapper,
+            'name':  str(field_name),
+            'table':  property.target,
+            'table_name':  property.target.name,
+            #            'col'         :  property.mapper.c[field_name] ,
+            'db_type':  None,  # FIXME: this is used tor table
+            'type':  str,  # FIXME
+            'col_spec':  None,
+            #            'is_serial'   :  False,
+            'property':  property,
+            'fkey':  False,
+            'default':  None,
+            'pkey':  None,
+            'nullable':  True,
+            #            'mapper'      :  mapper,
+            'editable':  True,
+            #            'direction'   :  mapper.props[field_name].direction
+            #            'remote_attr' : [c.name for c in property.remote_side]
+        }
 
         try:
             d['length'] = mapper.c[field_name].type.length
         except:
             d['length'] = None
-
 
         table_name = getattr(mapper.local_table, 'name', None)
         if table_name and table_name not in self.table_mappers:
@@ -224,7 +222,7 @@ class InspectMapper(Container):
         """Return all the field_names in the mapper but not loaders
         """
         ret = []
-        for m in self._tables(mode='mapper' ):
+        for m in self._tables(mode='mapper'):
             ret += m.c.keys()
         return ret
 
@@ -247,10 +245,10 @@ class InspectMapper(Container):
     def __getitem__(self, item):
         #print "item", item, type(item)
         return getattr(self, str(item))
-    
+
     def __len__(self):
         return len(self.field_list)
-    
+
     def _tables(self, mode='name'):
         """return the table_names of the tables in the mapper
         if mode='mapper', returns the mappers
@@ -258,9 +256,9 @@ class InspectMapper(Container):
         """
         #dbg.write(self.table_mappers)
         if mode == 'name':
-            first_table = self.mapper.local_table.name 
-            ret = [t for t in self.table_mappers.keys() if t != first_table ]
-            return [ first_table ] + ret
+            first_table = self.mapper.local_table.name
+            ret = [t for t in self.table_mappers.keys() if t != first_table]
+            return [first_table] + ret
             #dbg.write(self.table_mappers.keys())
             #return self.table_mappers.keys()
         else:
@@ -268,30 +266,30 @@ class InspectMapper(Container):
             ret = [t[1] for t in self.table_mappers.values()
                    if t[1] != first_mapper]
             #dbg.write([t[1] for t in self.table_mappers.values()])
-            return [ first_mapper ] + ret
-            
+            return [first_mapper] + ret
+
     def table_fields(self, table_name):
         """list of all field_names in 'table' """
-        return [f for f in self.field_list if self[f]['table_name'] == table_name ]
-    
+        return [f for f in self.field_list if self[f]['table_name'] == table_name]
+
     def prop_fields(self, table_name):
         """list of all field_names in 'table' linked as propperty prop"""
         table_name = [p[2] for p in self.props if p[0] == table_name][0]
         return self.table_fields(table_name)
-    
+
     def get_mapper(self, table_name):
         """return the mapper of that table"""
         dbg.write('table_mappers', self.table_mappers)
         return self.table_mappers[table_name][1]
-    
+
 #     def mapper(self, table_name):
 #         """return the mapper of that table"""
 #         return self.table_mappers[table_name][1]
-    
+
     def get_class(self, table_name):
         """return the class of that table"""
         return self.table_mappers[table_name][0]
-    
+
     def get_pkeys(self, table_name):
         """return the list of the pkeys for that table"""
         try:
@@ -299,7 +297,7 @@ class InspectMapper(Container):
         except KeyError:
             raise MissingPrimaryKeyError("%s does not seem to have a PKey" %
                                          table_name)
-        
+
     def get_join_cnd(self):
         tables = self._tables(mode='mapper')
         return get_join_cnd(tables)
@@ -318,13 +316,13 @@ class InspectMapper(Container):
         or tells Python to stop"""
         if self.n is None:
             self.n = -1
-          
+
         try:
             self.n += 1
             r = getattr(self, self.field_list[self.n])
         except:
             raise StopIteration
-      
+
         if not r:
             raise StopIteration
         return r
@@ -509,7 +507,7 @@ class InspectMapper(Container):
 
     def __str__(self):
         return "InspectMapper for keys: %s" % self.keys()
-        
+
     def __repr__(self):
         return "<InspectMapper for keys: %s>" % self.keys()
 
@@ -530,8 +528,6 @@ def get_foreign_info(ForeignKey, names=True):
             return (str(fkcol.column.table.name), str(fkcol.column.name))
         else:
             return (fkcol.column.table, fkcol.column)
-    
-
 
 
 def get_props_for_delete_orphan(mapper, field_name):
@@ -584,4 +580,3 @@ def get_props_for_delete_orphan(mapper, field_name):
                                 except AttributeError, e:
                                     pass
             return tuple(props)
-

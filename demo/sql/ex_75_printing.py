@@ -18,5 +18,3 @@ t.printing.add_menu_entry('Print to pdf', 'movies.odt', mode='pdf',
                           tip="Generate a pdf file with these movies")
 t.printing.connect('context-ready', debug_context)
 t.reload()
-
-

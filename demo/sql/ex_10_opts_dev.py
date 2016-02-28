@@ -7,9 +7,8 @@ default is False.
 t = SqlTable('movie',
              dbproxy=db,
              order_by='director_id',
-             dev = True,
-         )
+             dev=True,
+             )
 
 
 t.reload()
-

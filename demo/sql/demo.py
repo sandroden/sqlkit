@@ -28,8 +28,8 @@ from contextlib import closing
 
 pdir = os.path.dirname(os.getcwd())
 ppdir = os.path.dirname(pdir)
-sys.path.insert(0,pdir)    
-sys.path.insert(0,ppdir)    
+sys.path.insert(0, pdir)
+sys.path.insert(0, ppdir)
 
 import sqlkit
 from sqlkit.misc import optionparse
@@ -51,32 +51,34 @@ from sqlkit.widgets import SqlMask, SqlTable
 from sqlkit.db import proxy, defaults, utils
 import model
 
-class MissingExampleError(Exception): pass
+class MissingExampleError(Exception):
+    pass
 
 def init_db():
 
-    if not os.access( model.DB_FILE, os.O_WRONLY ):
+    if not os.access(model.DB_FILE, os.O_WRONLY):
         # No write access - work in a temporary directory
-        curdir = os.path.realpath( os.curdir )
+        curdir = os.path.realpath(os.curdir)
         tempdir = model.DB_DIR
-        os.chdir( tempdir )
+        os.chdir(tempdir)
         dirs = ['model', 'images']
         for a_dir in ['model', 'images']:
-            os.mkdir( a_dir )
-            for something in os.listdir( os.path.join( curdir, a_dir ) ):
-                real_path = os.path.join (curdir, a_dir, something )
-                os.symlink( real_path, os.path.join( a_dir, something ) )
-        for something in os.listdir( curdir ):
+            os.mkdir(a_dir)
+            for something in os.listdir(os.path.join(curdir, a_dir)):
+                real_path = os.path.join(curdir, a_dir, something)
+                os.symlink(real_path, os.path.join(a_dir, something))
+        for something in os.listdir(curdir):
             if something in dirs:
                 continue
-            real_path = os.path.join( curdir, something )
-            os.symlink( real_path, something )
+            real_path = os.path.join(curdir, something)
+            os.symlink(real_path, something)
     with closing(sqlite3.connect(model.DB_FILE)) as db:
         with open('model/schema.sql', 'r') as schema:
             db.cursor().executescript(schema.read())
         db.commit()
 
 class DemoSql(Demo):
+
     def load_module(self, demo):
         ### fill text: src, notes, and xml
         self.insert_source(demo.body, self.src)
@@ -91,16 +93,15 @@ class DemoSql(Demo):
             'db': model.db,
             'model': model,
 
-            }
+        }
         execfile(demo.filename, GLOB)
         self.last_lo = GLOB['t'].lay_obj
-        self.last_w  = GLOB['t'].widgets
+        self.last_w = GLOB['t'].widgets
         self._t = weakref.ref(GLOB['t'])
         try:
             self.t1 = GLOB['t1']
         except:
             pass
-            
 
         #self.xml.set_text(GLOB['l'].xml())
         self.create_widget_tree(toplevel=GLOB['t'].widgets['Window'])
@@ -119,8 +120,8 @@ class DemoSql(Demo):
             return self._t()
         except AttributeError:
             raise MissingExampleError("The example was not found")
-    
-    
+
+
 if not opts.existent_db and os.path.exists(model.DB_FILE):
     try:
         os.remove(model.DB_FILE)
@@ -130,7 +131,7 @@ if not opts.existent_db and os.path.exists(model.DB_FILE):
         pass
 if not os.path.exists(model.DB_FILE):
     init_db()
-    
+
 d = DemoSql(xml=False, debug=True)
 d.tv.collapse_all()
 if not os.access('images', os.W_OK):
@@ -140,6 +141,7 @@ if not os.access('images', os.W_OK):
 if args:
     d.iconify()
     d.load_module_by_idx(args[0])
+
     def quit(widget):
         gtk.main_quit()
 
@@ -170,7 +172,7 @@ if opts.test:
 if opts.gtk:
     d.execute_clicked_cb
 
-        
+
 if __name__ == '__main__':
     if opts.interactive:
         try:
@@ -194,4 +196,3 @@ if __name__ == '__main__':
     else:
         print "Try option -i to try sqlkit interactively"
         gtk.main()
-    

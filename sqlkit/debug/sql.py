@@ -17,7 +17,7 @@ def get_create_statement(meta, dialect='postgres'):
 
     """
     # http://www.sqlalchemy.org/trac/wiki/FAQ#HowcanIgettheCREATETABLEDROPTABLEoutputasastring
-    
+
     from sqlalchemy import create_engine, Table
     from StringIO import StringIO
 
@@ -26,12 +26,12 @@ def get_create_statement(meta, dialect='postgres'):
         buf.write(";\n")
 
     dialect = dialect or 'postgres'
-    
+
     buf = StringIO()
 
     if sqlalchemy.__version__ <= '0.6':
         executor = lambda s, p="": buf.write(s+p)
-        
+
     engine = create_engine("%s://" % dialect, strategy='mock',
                            executor=executor)
 
@@ -51,12 +51,12 @@ def debug_inline_params(stmt, bind=None):
         stmt = stmt.statement
     else:
         if bind is None:
-            bind = stmt.bind 
+            bind = stmt.bind
 
     compiler = bind.dialect.statement_compiler(bind.dialect, stmt)
     compiler.bindtemplate = "%%(%(name)s)s"
     compiler.compile()
-    return compiler.string % dict((k,repr(v)) for k,v in compiler.params.items())
+    return compiler.string % dict((k, repr(v)) for k, v in compiler.params.items())
 
 def get_table_definition(table, sql=None, meta=None, dialect=None):
     """
@@ -70,7 +70,7 @@ def get_table_definition(table, sql=None, meta=None, dialect=None):
     :param dialect: the dialect. Used by meta option (default: postgres)
     """
     # SQLAlchemy 0.6 has clause constructs representing DDL operations, so the operation is much simpler:
-    # 
+    #
     # from sqlalchemy.schema import CreateTable
     # print CreateTable(mytable)
 
@@ -93,7 +93,6 @@ def get_table_definition(table, sql=None, meta=None, dialect=None):
     def sub(m):
         tables[m.group('name')] = m.group('table_def')
 
-    c=re.compile(PAT, re.DOTALL)
+    c = re.compile(PAT, re.DOTALL)
     c.sub(sub, sql)
     return tables[table]
-

@@ -243,7 +243,7 @@ import babel
 import sqlalchemy
 from sqlalchemy.schema import ColumnDefault
 from sqlalchemy.orm.interfaces import AttributeExtension
-from pkg_resources import parse_version 
+from pkg_resources import parse_version
 
 from sqlkit import exc, _
 from sqlkit.misc import localtimezone
@@ -253,26 +253,29 @@ from sqlkit.db import minspect
 from sqlkit.exc import ValidationError, NotHandledField, NotHandledDefault
 BLANK_OK = False
 
-class ZoomException(Exception): pass
+class ZoomException(Exception):
+    pass
 
 class SignalEmitter(gobject.GObject):
+
     """A minimalist gobject used to trace value setting in AttributeExtension
-    
+
     """
     __gsignals__ = {
-         'value-set': (gobject.SIGNAL_RUN_FIRST,
-                       gobject.TYPE_NONE,
-                       (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT,
-                        gobject.TYPE_PYOBJECT, )),
-         # 'value-appended': (gobject.SIGNAL_RUN_FIRST,
-         #               gobject.TYPE_NONE,
-         #               (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT,
-         #                gobject.TYPE_PYOBJECT)),
-         # 'value-removed': (gobject.SIGNAL_RUN_FIRST,
-         #               gobject.TYPE_NONE,
-         #               (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT,
-         #                gobject.TYPE_PYOBJECT)),
-         }
+        'value-set': (gobject.SIGNAL_RUN_FIRST,
+                      gobject.TYPE_NONE,
+                      (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT,
+                       gobject.TYPE_PYOBJECT, )),
+        # 'value-appended': (gobject.SIGNAL_RUN_FIRST,
+        #               gobject.TYPE_NONE,
+        #               (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT,
+        #                gobject.TYPE_PYOBJECT)),
+        # 'value-removed': (gobject.SIGNAL_RUN_FIRST,
+        #               gobject.TYPE_NONE,
+        #               (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT,
+        #                gobject.TYPE_PYOBJECT)),
+    }
+
     def __init__(self):
         self.__gobject_init__()
 
@@ -280,8 +283,9 @@ class SignalEmitter(gobject.GObject):
         "Callback triggered by SQLA events (>= 0.7)"
 
         self.emit('value-set', value, oldvalue, weakref.ref(obj))
-        
+
 class AttrExt(AttributeExtension):
+
     """An AttributeExtension used to trace value setting. Fields of a mask connect to
     the signal 'value-set' and propagate it. Table's fields don't need to connect as
     they're always tracing object modification via the cell_data_func callback.
@@ -289,7 +293,7 @@ class AttrExt(AttributeExtension):
     Only used or SQLA version < 0.7
 
     """
-    
+
     def set(self, state, value, oldvalue, initiator):
         #print 'value-set', state.obj().__class__.__name__, initiator.key, value
         self._sk_emitter.emit('value-set', value, oldvalue, state.obj, )
@@ -311,7 +315,7 @@ class FieldChooser(object):
         * widget for edit
 
     w:           the widget dictionary retuner by Layout
-        
+
     """
 
     def __init__(self, info, widgets=None, gui_field_mapping=None):
@@ -335,14 +339,14 @@ class FieldChooser(object):
         def_str:     the definition string in the layout that determined
                      the gtk.Widget (eg.: c=married, e=first_name)
                      as extracted by layoutgen and set in laygen.fields_in_layout dictionary
-        """        
+        """
 
         if field_name in self.gui_field_mapping:
             return self.gui_field_mapping.get(field_name)
 
         assert field_attrs is not None, \
-               "field_name '%s' has no attributes and is not present in gui_fields" % field_name
-        col =  field_attrs.get('col', None)
+            "field_name '%s' has no attributes and is not present in gui_fields" % field_name
+        col = field_attrs.get('col', None)
         if col is not None:
             try:
                 return col.info['field']
@@ -358,7 +362,7 @@ class FieldChooser(object):
 
         if self.info.is_loader(field_name):
             return CollectionField
-        
+
         if self.info.is_enum(field_name):
             return EnumField
 
@@ -385,7 +389,7 @@ class FieldChooser(object):
                 return BooleanNullField
             else:
                 return BooleanField
-            
+
         if self.info.is_interval(field_name):
             return IntervalField
 
@@ -401,9 +405,9 @@ class FieldChooser(object):
             else:
                 return DateTimeField
 
-        if (self.info.is_text(field_name) and not def_str.startswith('e=')) or (def_str.startswith('TX') ):
+        if (self.info.is_text(field_name) and not def_str.startswith('e=')) or (def_str.startswith('TX')):
             return TextField
-        
+
         if self.info.is_string(field_name):
             return VarcharField
 
@@ -414,19 +418,17 @@ class FieldChooser(object):
 #                               (field_name, filter_attr['col_spec']))
 
 
-
 class Field(gobject.GObject):
     __gsignals__ = {
-         'value-set': (gobject.SIGNAL_RUN_FIRST,
-                       gobject.TYPE_NONE,
-                       (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT)),
-         }
+        'value-set': (gobject.SIGNAL_RUN_FIRST,
+                      gobject.TYPE_NONE,
+                      (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT)),
+    }
     Widget = None
     default_def_string = 'ae'
     type = None
-        
+
     def __init__(self, field_name, field_attrs=None):
-        
         """
         :param field_name:  the name of the field in the db
         :param field_attrs: the dict as worked out by InspectMapper.
@@ -445,7 +447,7 @@ class Field(gobject.GObject):
                      :property: the sqlalchemy property the field has in the mapper
                      :column:   the sqlalchemy column the field maps to
                      :table:    the table the field is defined in, if any
-                     
+
         :param def_str:     the definition string in the layout that determined
                      the gtk.Widget (eg.: c=married, e=first_name)
         :param master:      the sqlkit widget: an instance of SqlMask or SqlTable
@@ -465,27 +467,27 @@ class Field(gobject.GObject):
                             the widget can be a string of a Widget derived from
                             ``miniwidget.Widget``
         :param gtkwidget:   the gtk widget to be used (already created by Layout)
-        
+
         """
         from sqlkit.widgets.mask import miniwidgets
         from sqlkit.widgets.table import tablewidgets
 
-        ## when set_widget is used to replace 
+        ## when set_widget is used to replace
         try:
             obj, hid = self._ids['gtkwidget']
             obj.disconnect(hid)
         except KeyError:
             pass
-            
+
         ## widget can be a string in which case it it searched for in
         ## sqlkit.widgets.mask.miniwidgets
         ## this avoids importing miniwidgets at import time and delays it to this function
         if isinstance(widget, basestring):
             Widget = getattr(miniwidgets, widget)
 
-        if def_str and  def_str.startswith('ro='):
+        if def_str and def_str.startswith('ro='):
             widget = miniwidgets.ReadOnlyWidget
-            
+
         Widget = widget or getattr(miniwidgets, self.Widget)
         if gtkwidget:
             ## used in SqlMask
@@ -510,7 +512,7 @@ class Field(gobject.GObject):
             del self.master
         except AttributeError, e:
             pass
-            
+
     def set_master(self, master):
         """
         add a sqlwidget as master of this field. Add a listener to any change to
@@ -521,7 +523,7 @@ class Field(gobject.GObject):
           * get defaults
           * validate
           * add related objects
-          
+
         """
         self.master = master
         if self.master.is_table():
@@ -529,11 +531,11 @@ class Field(gobject.GObject):
         ## make this field listen to modification in the sqlalchemy object (record) so
         ## that any change will be reflected in the UI. Here we implement the mask part
         ## as the table do that inherently via the cell_data_func_cb
-        
+
         if self.persistent:
             emitter = SignalEmitter()
             if parse_version(sqlalchemy.__version__) < parse_version('0.7'):
-            
+
                 FieldAttrExt = type(str("attrext_%s" % self.field_name), (AttrExt,),
                                     {'_sk_emitter': emitter})
                 extensions = getattr(self.master.mapper.class_, self.field_name).impl.extensions
@@ -547,7 +549,7 @@ class Field(gobject.GObject):
                 if not found:
                     ext = FieldAttrExt()
                     extensions.append(ext)
-                #self._emitter = emitter 
+                #self._emitter = emitter
             else:
                 from sqlalchemy import event
                 # SQLA 0.7 drops support for AttributeExtensions in favor of
@@ -575,7 +577,7 @@ class Field(gobject.GObject):
         return self._nullable
 
     nullable = property(get_nullable, set_nullable)
-    
+
     def set_editable(self, value):
         self._editable = value
         try:
@@ -587,21 +589,22 @@ class Field(gobject.GObject):
         return self._editable
 
     editable = property(get_editable, set_editable)
-    
+
     def _add_info(self, field_attrs):
         """
         read docs in __init__
         """
-        self._nullable =  field_attrs.get('nullable', True)  # don't trigger now widget.set_bg()
-        self._editable =  field_attrs.get('editable', 'property' in field_attrs and field_attrs['property'] or False)
-        self.length   =  field_attrs.get('length', None)
-        self.default  =  field_attrs.get('default', None)
-        self.mapper   =  field_attrs.get('mapper', None)
-        self.pkey     =  field_attrs.get('pkey', None)
-        self.fkey     =  field_attrs.get('fkey', None)
-        self.property =  field_attrs.get('property', None)
-        self.column   =  field_attrs.get('col', None)
-        self.table    =  field_attrs.get('table', None)
+        self._nullable = field_attrs.get('nullable', True)  # don't trigger now widget.set_bg()
+        self._editable = field_attrs.get(
+            'editable', 'property' in field_attrs and field_attrs['property'] or False)
+        self.length = field_attrs.get('length', None)
+        self.default = field_attrs.get('default', None)
+        self.mapper = field_attrs.get('mapper', None)
+        self.pkey = field_attrs.get('pkey', None)
+        self.fkey = field_attrs.get('fkey', None)
+        self.property = field_attrs.get('property', None)
+        self.column = field_attrs.get('col', None)
+        self.table = field_attrs.get('table', None)
         if self.pkey:
             self._nullable = False
 
@@ -612,7 +615,7 @@ class Field(gobject.GObject):
         # record is firstly built so we are sure it's not 'initial', we
         # advertise it as 'initial' so that mask won't complain it
         # was changed and ask if it needs saving. It surely does.
-        # 2 situation reveal this: 
+        # 2 situation reveal this:
         # ./demo -i 02, change d.t.current and commit, next forward, we don't
         # want to be prompted to save
         # ./demo 03, right click -> record in mask, change the date in the table
@@ -624,11 +627,11 @@ class Field(gobject.GObject):
                 self.initial_value = value
         except AttributeError, e:
             pass
-        
+
     def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True):
         """
         Set the value
-        
+
         :param value: the value to be set. It will be cleaned.
         :param initial: if True the ``self.initial_value`` is set as. ``self.initial_value``
                is used to know if a field has changed
@@ -683,7 +686,7 @@ class Field(gobject.GObject):
         except exc.NoCurrentObjError, e:
             # if no current Obj, no editing was done
             return False
-    
+
     def get_default(self):
         """
         return the default value for this object
@@ -708,13 +711,13 @@ class Field(gobject.GObject):
             return
 
         return value
-        
+
     def set_default(self, obj=None):
         try:
             self.set_value(self.get_default(), obj=obj)
         except NotHandledDefault, e:
             pass
-        
+
     def clean_value(self, value, obj=None):
         """
         return a value of the correct type, if needed parse it with
@@ -733,7 +736,7 @@ class Field(gobject.GObject):
 
         """
         return value
-   
+
     def format_value(self, value, format=None):
         """
         return a **string representation** of the value according to current
@@ -742,7 +745,7 @@ class Field(gobject.GObject):
         :param value: the value to be formatted (must already be casted to correct type)
         """
         return value
-    
+
     def validate(self, value, clean=False):
         """
         check if the current value is accepted and call
@@ -751,11 +754,11 @@ class Field(gobject.GObject):
         """
         if not clean:
             try:
-                value = self.clean_value(value) 
+                value = self.clean_value(value)
 
             except Exception, e:
-                msg = "Field %s could not validate value '%s': error was: %s" 
-                raise exc.ValidationError(_(msg % (field_name, e) ))
+                msg = "Field %s could not validate value '%s': error was: %s"
+                raise exc.ValidationError(_(msg % (field_name, e)))
 
         if value is None and not self.nullable and not self.default:
             raise exc.NotNullableFieldError(self.field_name, master=self.master)
@@ -769,9 +772,9 @@ class Field(gobject.GObject):
         return the value or a translation in human readable for foreign key
         """
         return self.format_value(value, format=format)
-        
+
     def _get_persistent(self):
-        
+
         try:
             return self._persistent
         except AttributeError:
@@ -779,7 +782,7 @@ class Field(gobject.GObject):
             return self._persistent
 
     persistent = property(_get_persistent)
-        
+
     def __repr__(self):
         return "<%s - %s >" % (self.__class__.__name__, self.field_name)
 
@@ -803,6 +806,7 @@ class Field(gobject.GObject):
                     return len(value.movies)
 
         """
+
         def new_func(self, value):
             ## standard cleanup: values can
             if isinstance(value, (basestring, types.NoneType, self.type)):
@@ -813,6 +817,7 @@ class Field(gobject.GObject):
         return new_func
 
 class VarcharField(Field):
+
     """
     The field to represent Strings
 
@@ -825,10 +830,11 @@ class VarcharField(Field):
     will be set NULL or left empty. Regardless of this value the value is left untouched if
     it already exists.
     """
+
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
         self.blank_ok = BLANK_OK
-        
+
     def clean_value(self, value, obj=None):
         if value == '' and not self.blank_ok:
             if not self.initial_value == '':
@@ -854,15 +860,16 @@ class VarcharField(Field):
 
         value = Field.get_value(self, shown)
         if value == '' and (self.initial_value is None or (
-            ## it's very annoying that a db with '' value is turned into None if I don't do anything!
-            ## self.blank_ok should only set behaviour of NEW objects
-            self.blank_ok is False and not self.initial_value == '')):
+                ## it's very annoying that a db with '' value is turned into None if I don't do anything!
+                ## self.blank_ok should only set behaviour of NEW objects
+                self.blank_ok is False and not self.initial_value == '')):
             return None
         return value
 
 
 ##### Numbers
 class IntegerField(Field):
+
     """
     The fields to handle interegers
     """
@@ -872,12 +879,12 @@ class IntegerField(Field):
 
     format = None
     """How to represent integers. Default: '#,###' """
-    
+
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
         self.format = "#,###"
         self.locale = babel.default_locale('LC_NUMERIC')
-        
+
     def clean_value(self, value, obj=None):
         if value in (None, ''):
             return None
@@ -897,7 +904,7 @@ class IntegerField(Field):
         if value is None:
             return ''
         return numbers.format_decimal(value, format=format or self.format, locale=self.locale)
-        
+
     @classmethod
     def std_cleanup(cls, fn):
         """
@@ -918,6 +925,7 @@ class IntegerField(Field):
                     return len(value.movies)
 
         """
+
         def new_func(self, value):
             ## standard cleanup: values can
             if isinstance(value, (basestring, types.NoneType, self.type, long)):
@@ -927,22 +935,23 @@ class IntegerField(Field):
         new_func.__doc__ = fn.__doc__
         return new_func
 class FloatField(IntegerField):
+
     """
     The fields to handle floats
     """
     Widget = 'FloatWidget'
     type = float
     length = 10
-    
+
     format = None
     """How to represent integers. Default: None """
-    
+
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
         #self.format = "#.###,000"
         self.format = None
         self.locale = babel.default_locale('LC_NUMERIC')
-        
+
     def clean_value(self, value, obj=None):
         if value in (None, ''):
             return None
@@ -957,13 +966,14 @@ class FloatField(IntegerField):
             except Exception, e:
                 raise exc.ValidationError(e)
             return value
-        
+
     def format_value(self, value, format=None):
         if value is None:
             return ''
         return numbers.format_decimal(value, format=format or self.format, locale=self.locale)
-        
+
 class DecimalField(IntegerField):
+
     """
     The fields to handle Numeric Fields
     """
@@ -976,33 +986,32 @@ class DecimalField(IntegerField):
 
     format = None
     """How to represent integers. Default: '#,###.00' (The number of 0 determined by ``scale`` """
-    
-    
+
     def __init__(self, *args, **kw):
         """
         If column is defined precision and scale from column will be used. 
         You need to set precision and scale after the field is created otherwise
         """
         Field.__init__(self, *args, **kw)
-        
+
         if self.column is not None:
             self.precision = self.column.type.precision or 8
             self.scale = self.column.type.scale or 2
         else:
             self.precision = 8
             self.scale = 2
-            
+
         self.format = "#,###.%s" % ('0' * self.scale)
         self.format_f = "%%.%sf" % self.scale
         self.locale = babel.default_locale('LC_NUMERIC')
-        
+
     def clean_value(self, value, obj=None):
         if value in (None, ''):
             return None
         else:
             try:
                 if isinstance(value, basestring):
-                ## why there's no parse_Decimal in babel?
+                    ## why there's no parse_Decimal in babel?
                     fl = self.format_f % numbers.parse_decimal(value, locale=self.locale)
                     value = Decimal(fl)
                 elif isinstance(value, Decimal):
@@ -1018,7 +1027,7 @@ class DecimalField(IntegerField):
             except Exception, e:
                 raise exc.ValidationError(e)
             return value
-        
+
     def format_value(self, value, format=None):
         if value is None:
             return ''
@@ -1044,6 +1053,7 @@ class DecimalField(IntegerField):
                     return len(value.movies)
 
         """
+
         def new_func(self, value):
             ## standard cleanup: values can
             if isinstance(value, (basestring, types.NoneType, self.type, int)):
@@ -1062,6 +1072,7 @@ class TextField(VarcharField):
 
 ##### Time/Dates
 class DateField(Field):
+
     """
     The fields to handle datets
     """
@@ -1071,7 +1082,7 @@ class DateField(Field):
     """The format used to represent dates. Default: ``short``"""
 
     type = date
-        
+
     def __init__(self, *args, **kw):
         Field.__init__(self, *args, **kw)
         self.format = 'short'
@@ -1094,16 +1105,17 @@ class DateField(Field):
         except Exception, e:
             raise exc.ValidationError(e)
         return value
-    
+
     def format_value(self, value, format=None):
 
         if not value:
             return ''
 
         return dates.format_date(value, format=format or self.format, locale=self.locale)
-        
-        
+
+
 class TimeField(DateField):
+
     """
     The fields to handle times w/o timezone
     """
@@ -1125,17 +1137,18 @@ class TimeField(DateField):
                 except Exception, e:
                     raise exc.ValidationError(e)
         return value
-        
+
     def format_value(self, value, format=None):
         if not value:
             return ''
-        
+
         if not isinstance(value, time):
             value = self.clean_value(value)
 
         return dates.format_time(value, format=format or self.format, locale=self.locale)
 
 class TimeTZField(TimeField):
+
     """
     The fields to handle times with timezone
     """
@@ -1144,7 +1157,7 @@ class TimeTZField(TimeField):
     def __init__(self, *args, **kwargs):
         TimeField.__init__(self, *args, **kwargs)
         self.TZ = None
-        
+
     def clean_value(self, value, obj=None):
 
         if value in (None, ''):
@@ -1153,12 +1166,12 @@ class TimeTZField(TimeField):
         if isinstance(value, basestring):
             value = dates.parse_time(value)
         return value
-        
+
     def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True):
 
         TimeField.set_value(self, value, initial=initial, obj=obj,
                             update_widget=update_widget)
-        
+
         if initial:
             if value:
                 self.TZ = value.tzinfo
@@ -1178,10 +1191,11 @@ class TimeTZField(TimeField):
 
         if value is None:
             return None
-        value = time(*[int(i) for i in re.split('[.:]', value)]) 
+        value = time(*[int(i) for i in re.split('[.:]', value)])
         return value.replace(tzinfo=self.TZ, microsecond=self.microsecond)
 
 class IntervalField(Field):
+
     """
     The fields to handle times with interval
     """
@@ -1189,6 +1203,7 @@ class IntervalField(Field):
     type = timedelta
 
 class DateTimeField(DateField):
+
     """
     The fields to handle datetimes w/o timezone
     """
@@ -1199,7 +1214,7 @@ class DateTimeField(DateField):
         DateField.__init__(self, *args, **kwargs)
         self.microsecond = 0
         self.second = 0
-        
+
     def clean_value(self, value, add_second=False, add_microsecond=False, obj=None):
         """
         parse and return a clean value (ie: a datetime)
@@ -1216,17 +1231,17 @@ class DateTimeField(DateField):
             try:
                 date_value = dates.parse_date(tmp_date[0], locale=self.locale)
             except Exception, e:
-                raise exc.ValidationError(_('Wrong date format: %s' % tmp_date[0] ))
+                raise exc.ValidationError(_('Wrong date format: %s' % tmp_date[0]))
 
             try:
                 if len(tmp_date) > 1:
-                    time_list = [int(i) for i in re.split('[:.]', tmp_date[1]) ]
+                    time_list = [int(i) for i in re.split('[:.]', tmp_date[1])]
                 else:
                     time_list = []
                 time_value = time(*time_list)
 
             except Exception, e:
-                raise exc.ValidationError(_('Wrong time format' ))
+                raise exc.ValidationError(_('Wrong time format'))
 
             value = datetime.combine(date_value, time_value)
 
@@ -1235,14 +1250,14 @@ class DateTimeField(DateField):
                 value = value.replace(second=self.second)
             if add_microsecond:
                 value = value.replace(microsecond=self.microsecond)
-            
+
         return value
 
     def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True):
 
         Field.set_value(self, value, initial=initial, obj=obj,
                         update_widget=update_widget)
-        
+
         if initial:
             if value:
                 self.TZ = value.tzinfo
@@ -1252,14 +1267,14 @@ class DateTimeField(DateField):
                 self.TZ = None
                 self.microsecond = 0
                 self.second = 0
-        
+
     def format_value(self, value, format=None):
 
         if not value:
             return ''
-        
+
         return dates.format_datetime(value, format=format or self.format, locale=self.locale)
-        
+
     def get_value(self, shown=False):
 
         value = Field.get_value(self, shown)
@@ -1269,8 +1284,9 @@ class DateTimeField(DateField):
             value = value.replace(microsecond=self.microsecond)
 
         return value
-        
+
 class DateTimeTZField(DateTimeField):
+
     """
     The fields to handle datetimes with timezone
     """
@@ -1280,7 +1296,7 @@ class DateTimeTZField(DateTimeField):
         DateTimeField.__init__(self, *args, **kwargs)
         self.TZ = None
         self.microsecond = 0
-        
+
     def clean_value(self, value, add_second=False, add_microsecond=False, obj=None):
 
         value = DateTimeField.clean_value(self, value, add_second, add_microsecond)
@@ -1289,7 +1305,7 @@ class DateTimeTZField(DateTimeField):
             ## Local will return a tzinfo with the timezone of the system
             ## it will be added to bypass the limitation of dateedit
             self.TZ = localtimezone.Local
-        
+
         if value:
             if value.tzinfo:
                 return value
@@ -1309,6 +1325,7 @@ class DateTimeTZField(DateTimeField):
 
 ##### Boolean
 class BooleanField(Field):
+
     """
     A field to handle booleans that does not allow NULL
     """
@@ -1322,14 +1339,15 @@ class BooleanField(Field):
             value = False
         if value not in (True, False):
             msg = "Null value not admittable for field %s" % self.field_name
-            raise ValidationError(msg) 
+            raise ValidationError(msg)
         return value
-    
+
     def clear_value(self):
         ## should I check the default here?
         self.set_value(False)
 
 class BooleanNullField(Field):
+
     """
     A field to handle booleans that allows NULL
     """
@@ -1340,10 +1358,11 @@ class BooleanNullField(Field):
     def clean_value(self, value, obj=None):
         if value not in (True, False, None):
             msg = "Null value not admissable for field %s" % self.field_name
-            raise ValidationError(msg) 
+            raise ValidationError(msg)
         return value
-    
+
 class EnumField(Field):
+
     """
     A field to handle a set of allowed values. You set ``values`` in the
     ``info`` column dict or setting :attr:`values`. Setting info column's
@@ -1357,12 +1376,12 @@ class EnumField(Field):
     keys = None
     """A list of allowe values in the orederd set by the programmer.
     Used to set the order of the Combo Box"""
-    
+
     values = None
     """A dict: keys are the allowed values, values are te corresponding
     descriptions. It's up to the programmer to set this list appropriately.
     """
-    
+
     def __init__(self, *args, **kw):
 
         Field.__init__(self, *args, **kw)
@@ -1394,8 +1413,9 @@ class EnumField(Field):
             return exc.MissingWidget("%s has no defined 'widget' " % self)
         return self.widget.get_value(shown=shown)
 
-        
+
 class ImageField(VarcharField):
+
     """
     Imge field suitable for VarcharField that hold an image path and should
     be rendered as image (icon in tables). It's never used when autoloading
@@ -1406,15 +1426,15 @@ class ImageField(VarcharField):
       base_dir:       a directory
       thumbnail_size: tuple (width, height)
       default_size:   tuple (width height)
-    
+
     as in::
 
       image = Column(String(100), info={'render' : 'image', 'base_dir' : '/path/to/images'}
-    
+
     Image field that can create a thumbnail and resize an image into jpeg/png
     format using gtk.gdk.pixbuf* functions
     """
-    
+
     Widget = 'ImageWidget'
     type = str
 
@@ -1433,6 +1453,7 @@ class ImageField(VarcharField):
     """If set it must be a tuple (width, height) and all **uploaded** files will be
     default to these dimentions if bigger.
     """
+
     def __init__(self, *args, **kw):
 
         import gtk
@@ -1451,25 +1472,25 @@ class ImageField(VarcharField):
         self.thumbnail_size = self.column.info.get('thumbnail_size', self.thumbnail_size)
         self.default_size = self.column.info.get('default_size', self.default_size)
         self.image_formats = ["." + x['name'] for x in gtk.gdk.pixbuf_get_formats()] + ['.jpg']
-        
+
     def clean_path(self, path):
         """
         Return a path w/o backslashes as to be used from windows and linux interchangeably
 
         ``base_dir`` needs to be "cleaned" in this sense.
-        
+
         """
         #return path and re.sub(r"\\", '/', os.path.abspath(path))
         path = path and os.path.normpath(path)  # strip possible ./
         return path and re.sub(r"\\", '/', path)
-    
+
     def get_value(self, shown=False, complete_path=False):
         """
         Return the path to the image
 
         :param shown: boolean: not meaningful for this field
         :param complete_path: boolean: compose it with base path
-        
+
         """
         if not hasattr(self, 'widget'):
             return exc.MissingWidget("%s has no defined 'widget' " % self)
@@ -1478,7 +1499,7 @@ class ImageField(VarcharField):
             value = value if os.path.isabs(value) else os.path.join(self.base_dir, value)
         else:
             value = value and re.sub('^%s/?' % self.base_dir, '', value)
-        return self.clean_path(value) 
+        return self.clean_path(value)
 #        return self.clean_path(value) or self.initial_value
 
     def value_set_cb(self, emitter, value, oldvalue, obj):
@@ -1511,12 +1532,12 @@ class ImageField(VarcharField):
             self.initial_value = value
         else:
             #value = self.clean_value(value) or self.initial_value
-            value = self.clean_value(value) 
+            value = self.clean_value(value)
 
         if hasattr(self, 'widget'):
             if initial:
-                self.widget.copy_file = None # Needed only for table
-                
+                self.widget.copy_file = None  # Needed only for table
+
             if update_widget:
                 #path = value and os.path.join(self.base_dir, value) or None
                 path = value and "%s/%s" % (self.base_dir, value) or None
@@ -1528,7 +1549,7 @@ class ImageField(VarcharField):
                                                obj=self.master.current)
                 if not os.path.splitext(save_path)[1]:
                     save_path += os.path.splitext(self.widget.copy_file)[1]
-                if not self.widget.copy_file  == save_path:
+                if not self.widget.copy_file == save_path:
 
                     if self.default_size and self.is_image(self.widget.copy_file):
                         ## I only resize into jpeg format
@@ -1537,10 +1558,10 @@ class ImageField(VarcharField):
                             self.scale_file(self.widget.copy_file, save_path, *self.default_size)
                         except ZoomException, e:
                             # Don't resave if not needed.
-                            shutil.copyfile(self.widget.copy_file, save_path)                            
+                            shutil.copyfile(self.widget.copy_file, save_path)
                     else:
                         shutil.copyfile(self.widget.copy_file, save_path)
-                value = self.clean_value(save_path, obj=obj) # It can be changed
+                value = self.clean_value(save_path, obj=obj)  # It can be changed
 
         if obj and self.persistent:
             if not value == getattr(obj, self.field_name):
@@ -1552,7 +1573,7 @@ class ImageField(VarcharField):
         """
         ext = os.path.splitext(filename)[1]
         return ext.lower() in self.image_formats
-    
+
     def exists(self, value=None):
         "Return True if the file pointed at value exists"
         value = value or self.get_value()
@@ -1571,7 +1592,7 @@ class ImageField(VarcharField):
             return re.sub('^%s/?' % self.base_dir, '', self.get_save_path(value, obj=obj))
         else:
             return None
-    
+
 #     def pil_create_thumbnail(self, filename):
 #         try:
 #             import Image
@@ -1583,11 +1604,11 @@ class ImageField(VarcharField):
 #         i.thumbnail(self.thumbnail_size)
 #         self.thumbnail_path = os.path.join(self.base_dir, name + "_thumb" + ext)
 #         i.save(self.thumbnail_path)
-    
+
     def get_save_path(self, name=None, obj=None, new=False):
         """
         Return a standard save path. You may want to customize it.
-        
+
 
         :param name: the name of the file as picked up from the filesystem
                      or the desired new name for the file. :meth:`clean_value`
@@ -1623,8 +1644,8 @@ class ImageField(VarcharField):
         :param height: the desider height
         """
         import gtk
-        
-        pw, ph =  pixbuf.get_width(), pixbuf.get_height()
+
+        pw, ph = pixbuf.get_width(), pixbuf.get_height()
         ratio = min(width/float(pw), height/float(ph))
         if ratio > 1:
             raise ZoomException("Ratio is > 1 (%s)" % ratio)
@@ -1639,7 +1660,7 @@ class ImageField(VarcharField):
         :param height: the desired height
         """
         import gtk
-        
+
         pixbuf = gtk.gdk.pixbuf_new_from_file(image_path)
         pixbuf = self.scale_pixbuf(pixbuf, width, height)
         pixbuf.save(dst_path, 'jpeg')
@@ -1660,7 +1681,7 @@ class ImageField(VarcharField):
         pixbuf = gtk.gdk.pixbuf_new_from_file(path)
         pixbuf = self.scale_pixbuf(pixbuf, *self.thumbnail_size)
         pixbuf.save(thumbnail_path, 'jpeg')
-    
+
     def get_thumbnail(self, path=None, complete_path=False):
         """
         Return a thumbnail *path* and create the thumbnail image, if it
@@ -1679,7 +1700,7 @@ class ImageField(VarcharField):
             ## Image does not exists, don't bother with thumbnail
             return
         thumbnail_path = self.get_thumbnail_path_with_size(path)
-        
+
         if not os.path.exists(thumbnail_path):
             self.create_thumbnail(path)
 
@@ -1705,19 +1726,20 @@ class ImageField(VarcharField):
         thumbnail_dir = os.path.join(dir, ".thumbnail")
         if not os.path.exists(thumbnail_dir):
             os.mkdir(thumbnail_dir)
-        
+
         thumbnail_path = os.path.join(thumbnail_dir, "%s-%sx%s%s" % (name, self.thumbnail_size[0],
                                                                      self.thumbnail_size[1], ext))
         return self.clean_path(thumbnail_path)
 
 ##### Misc
 class ForeignKeyField(Field):
+
     """
     A field to handle foreign keys
     """
     Widget = 'ForeignKeyWidget'
     type = str
-    
+
     def __init__(self, *args, **kwargs):
         Field.__init__(self, *args, **kwargs)
 
@@ -1751,8 +1773,8 @@ class ForeignKeyField(Field):
         try:
             return self.lookup_values[self.field_name][field_value]
         except Exception, e:
-            descr_fields =  get_description(self.table_lookup)
-            format =        get_description(self.table_lookup, attr='format')
+            descr_fields = get_description(self.table_lookup)
+            format = get_description(self.table_lookup, attr='format')
             fields = [self.table_lookup.columns[f_name] for f_name in descr_fields]
 
             sql = select(fields, self.column_lookup == field_value)
@@ -1791,7 +1813,7 @@ class ForeignKeyField(Field):
         Field.set_master(self, master)
         self._props_for_delete_orphan = minspect.get_props_for_delete_orphan(
             master.mapper, self.field_name)
-        
+
     def clean_value(self, value, input_is_fkey=False, obj=None):
         """
         Return a cleaned value (i.e.: the foreign key) or None if no value exists.
@@ -1806,7 +1828,7 @@ class ForeignKeyField(Field):
         """
         if input_is_fkey:
             return value
-        
+
         query = self.widget.completion.compose_select_statement(
             self.widget.completion.query, '=', value)
         ret = query.all()
@@ -1822,8 +1844,8 @@ class ForeignKeyField(Field):
         try:
             value = self.clean_value(value, input_is_fkey=clean)
         except Exception, e:
-            msg = "Field %s could not validate value '%s': error was: %s" 
-            raise exc.ValidationError(_(msg % (self.field_name, value, e) ))
+            msg = "Field %s could not validate value '%s': error was: %s"
+            raise exc.ValidationError(_(msg % (self.field_name, value, e)))
 
         if value is None and not self.nullable:
             raise exc.NotNullableFieldError(self.field_name, master=self.master)
@@ -1831,7 +1853,7 @@ class ForeignKeyField(Field):
         self.master.run_hook('on_field_validation', value, self, field_name=self.field_name)
 
         return value
-        
+
     def get_value(self, shown=False):
 
         if not hasattr(self, 'widget'):
@@ -1847,7 +1869,7 @@ class ForeignKeyField(Field):
         if isinstance(value, (list, tuple)):
             return str([self.lookup_value(v) for v in value])
         return self.lookup_value(value)
-    
+
     def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True):
 
         if not shown:
@@ -1879,7 +1901,7 @@ class ForeignKeyField(Field):
         ## special case, when is empty
         if self.initial_value is None and self.widget.get_value(shown=True) == '':
             return False
-        
+
         if hasattr(self.widget, 'real_value') and self.widget.real_value == False:
             return True
         else:
@@ -1894,7 +1916,7 @@ class ForeignKeyField(Field):
             value = self.master.defaults.get(self.field_name)
         else:
             value = None
-            
+
         if not value:
             try:
                 value = self.default
@@ -1910,7 +1932,7 @@ class ForeignKeyField(Field):
         if not isinstance(value, self.type):
             pass
         return value
-        
+
     def add_related_object(self, prop, key):
         """
         Add an object to fullfill the  constraint on delete-orphan 
@@ -1941,7 +1963,7 @@ class ForeignKeyField(Field):
             return
         # if the backref that requires this is composed, probably things get more difficoult...
         assert len(prop.mapper.primary_key) == 1, "Sorry, sqlkit doesn't cope with " + \
-                      "composed primary key in relations with delete-orphan"
+            "composed primary key in relations with delete-orphan"
 
         q = self.master.session.query(prop.mapper).autoflush(False)
         obj = q.get(key)
@@ -1951,8 +1973,9 @@ class ForeignKeyField(Field):
             row_obj = self.master.get_selected_obj()
 
         setattr(row_obj, prop.key, obj)
-        
+
 class CollectionField(Field):
+
     """
     A field that manages a collection of objects
     Used in OneToMany or ManyToMany db fields.
@@ -1967,11 +1990,12 @@ class CollectionField(Field):
 
     def value_set_sb(self, *args):
         pass
+
     def set_widget(self,  gtkwidget=None, def_str=None, widget=None):
 
         Field.set_widget(self,  gtkwidget=gtkwidget, def_str=def_str, widget=widget)
         self.widget.table.connect('after_commit', self.set_initial_value)
-        
+
     def set_initial_value(self, widget, obj, session):
         """
         after_commit the 'new' initial value is the new value...
@@ -2022,10 +2046,11 @@ def std_cleanup(fn):
                 return len(value.movies)
 
     """
+
     def new_func(self, value, obj=None):
         ## standard cleanup: values can
         if isinstance(value, (basestring, types.NoneType, self.type)) or \
-               self.type == int and isinstance(value,long):
+                self.type == int and isinstance(value, long):
             return super(self.__class__, self).clean_value(value)
         ## custom one
         return fn(self, value)

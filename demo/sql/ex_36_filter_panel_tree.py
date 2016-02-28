@@ -20,4 +20,3 @@ t.modelproxy.tree_field_name = 'director_id'
 t.filter_panel.add_column('year')
 t.filter_panel.show()
 t.filter_panel.reload()
-

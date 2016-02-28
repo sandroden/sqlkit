@@ -20,11 +20,10 @@ def after_flush_cb(sqlwidget, obj, session):
         print "Updated objects: %s" % o
         for field_name, old, new in get_differences(o):
             print "%s: %s ==> %s" % (field_name, old, new)
-        
+
     for o in session.deleted:
         print "Deleted objects: %s" % o
 
 
 t.connect('after-flush', after_flush_cb)
 t.reload()
-

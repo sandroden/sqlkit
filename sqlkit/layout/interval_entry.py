@@ -18,12 +18,13 @@ class IntervalEdit(gtk.Alignment):
     __gtype_name__ = 'IntervalEdit'
 
     __gproperties__ = {
-        'interval' : (gobject.TYPE_PYOBJECT,             # type
-                    'Interval',                          # nick name
-                    'The interval currently selected',   # description
-                    gobject.PARAM_READWRITE),            # flags
+        'interval': (gobject.TYPE_PYOBJECT,             # type
+                     'Interval',                          # nick name
+                     'The interval currently selected',   # description
+                     gobject.PARAM_READWRITE),            # flags
 
-        }
+    }
+
     def __init__(self):
         gtk.Alignment.__init__(self)
         self.hbox = gtk.HBox()
@@ -39,18 +40,18 @@ class IntervalEdit(gtk.Alignment):
             self.seconds.set_tooltip_text('Seconds')
         except:
             pass
-        
-        self._align = gtk.Alignment(0,0,0,0)
+
+        self._align = gtk.Alignment(0, 0, 0, 0)
 
         self.add(self.hbox)
-        for name in ('days', 'hours',): # 'minutes', 'seconds'):
+        for name in ('days', 'hours',):  # 'minutes', 'seconds'):
             widget = getattr(self, name)
             widget.set_property('width_chars', 8)
             widget.set_alignment(1)
             self.hbox.add(widget)
 
         self.show_all()
-        
+
         self.connect('realize', self.set_packing)
 
     def set_packing(self, other):
@@ -66,7 +67,7 @@ class IntervalEdit(gtk.Alignment):
         hours, spare = divmod(interval.seconds, 3600)
         minutes, seconds = divmod(spare, 60)
         return days, hours, minutes, seconds
-        
+
     def do_set_property(self, property, value):
         if property.name == 'interval':
             days, hours, minutes, seconds = self.split_interval(value)
@@ -74,13 +75,12 @@ class IntervalEdit(gtk.Alignment):
             self.hours.set_text("%.2d:%.2d:%.2d" % (hours, minutes, seconds))
             #self.minutes.set_text(str(minutes))
             #self.seconds.set_text(str(seconds))
-            
+
     def do_get_property(self, property):
         if property.name == 'interval':
-            
+
             days = self.days.get_text() or 0
             hours = self.hours.get_text() or '0:0:0'
-        
 
             sep = "[:.]"
             H = "(?P<hours>\d+)"
@@ -92,12 +92,10 @@ class IntervalEdit(gtk.Alignment):
                 hours, minutes, seconds = m.groups()
             except:
                 ## FIXME: I should propagate an error
-                hours, minutes, seconds = [0,0,0]
-                
+                hours, minutes, seconds = [0, 0, 0]
+
             value = timedelta(days=int(days),
                               hours=int(hours or 0),
                               minutes=int(minutes or 0),
                               seconds=int(seconds or 0))
             return value
-            
-

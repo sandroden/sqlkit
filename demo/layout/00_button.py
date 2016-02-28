@@ -15,7 +15,3 @@ l = Layout(lay, opts="V")
 #l.xml('/tmp/b.xml')
 #w = l.show()
 w = l.show()
-
-
-        
-    

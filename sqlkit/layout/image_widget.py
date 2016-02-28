@@ -73,6 +73,7 @@ IMAGE_MENU = '''
 IMAGE_FORMATS = ["." + x['name'] for x in gtk.gdk.pixbuf_get_formats()] + ['.jpg']
 
 class ImageWidget(gtk.VBox):
+
     """
     Image Widget suitable for basic image viewing. Inherits from VBox
     """
@@ -80,58 +81,58 @@ class ImageWidget(gtk.VBox):
     __gtype_name__ = 'ImageWidget'
 
     __gproperties__ = {
-        'image-path' : (gobject.TYPE_PYOBJECT,                      # type
-                    'Image',                                   # nick name
-                    'The Image currently rendered',            # description
-                    gobject.PARAM_READWRITE),                  # flags
+        'image-path': (gobject.TYPE_PYOBJECT,                      # type
+                       'Image',                                   # nick name
+                       'The Image currently rendered',            # description
+                       gobject.PARAM_READWRITE),                  # flags
 
-        'scale' : (gobject.TYPE_STRING,                        # type
-                    'Autoscale',                               # nick name
-                    'True if the image should autoscale',      # description
-                    'AUTOREDUCTION',                           # default value
-                    gobject.PARAM_READWRITE),                  # flags
+        'scale': (gobject.TYPE_STRING,                        # type
+                  'Autoscale',                               # nick name
+                  'True if the image should autoscale',      # description
+                  'AUTOREDUCTION',                           # default value
+                  gobject.PARAM_READWRITE),                  # flags
 
-        'width' : (gobject.TYPE_INT,                           # type
-                    'width',                                   # nick name
-                    'The width of the image area',             # description
-                    1, 10000, 250,
-                    gobject.PARAM_READWRITE),                  # flags
+        'width': (gobject.TYPE_INT,                           # type
+                  'width',                                   # nick name
+                  'The width of the image area',             # description
+                  1, 10000, 250,
+                  gobject.PARAM_READWRITE),                  # flags
 
-        'height' : (gobject.TYPE_INT,                          # type
-                    'height',                                  # nick name
-                    'The height of the image area',            # description
-                    1, 10000, 250,
-                    gobject.PARAM_READWRITE),                  # flags
+        'height': (gobject.TYPE_INT,                          # type
+                   'height',                                  # nick name
+                   'The height of the image area',            # description
+                   1, 10000, 250,
+                   gobject.PARAM_READWRITE),                  # flags
 
-        'scale-factor' : (gobject.TYPE_FLOAT,                           # type
-                    'scale-factor',                                   # nick name
-                    'The scale factor for the pixbuf ',             # description
-                    0, 1000, 1,
-                    gobject.PARAM_READABLE),                  # flags
-        'show-name' : (gobject.TYPE_BOOLEAN,                           # type
-                    'show-name',                                   # nick name
-                    'The scale factor for the pixbuf ',             # description
-                    False,
-                    gobject.PARAM_READWRITE),                  # flags
+        'scale-factor': (gobject.TYPE_FLOAT,                           # type
+                         'scale-factor',                                   # nick name
+                         'The scale factor for the pixbuf ',             # description
+                         0, 1000, 1,
+                         gobject.PARAM_READABLE),                  # flags
+        'show-name': (gobject.TYPE_BOOLEAN,                           # type
+                      'show-name',                                   # nick name
+                      'The scale factor for the pixbuf ',             # description
+                      False,
+                      gobject.PARAM_READWRITE),                  # flags
 
-        'strip-dir' : (gobject.TYPE_STRING,                           # type
-                    'strip-dir',                                   # nick name
-                    'A dir name to strip from image name when writing in status bar ', 
-                    '',
-                    gobject.PARAM_READWRITE),                  # flags
+        'strip-dir': (gobject.TYPE_STRING,                           # type
+                      'strip-dir',                                   # nick name
+                      'A dir name to strip from image name when writing in status bar ',
+                      '',
+                      gobject.PARAM_READWRITE),                  # flags
 
     }
 
     __gsignals__ = {
-        'image-selected' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                            (gobject.TYPE_STRING, gobject.TYPE_STRING),
-                          ),                          
-        'image-displayed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                            (gobject.TYPE_STRING,  gobject.TYPE_PYOBJECT ,
-                             gobject.TYPE_PYOBJECT ),
-                          ),                          
-        'image-deleted' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                            (gobject.TYPE_STRING,))
+        'image-selected': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                           (gobject.TYPE_STRING, gobject.TYPE_STRING),
+                           ),
+        'image-displayed': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                            (gobject.TYPE_STRING,  gobject.TYPE_PYOBJECT,
+                             gobject.TYPE_PYOBJECT),
+                            ),
+        'image-deleted': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                          (gobject.TYPE_STRING,))
     }
 
     def __init__(self):
@@ -162,7 +163,7 @@ class ImageWidget(gtk.VBox):
         else:
             ext = os.path.splitext(image_path)[1]
             if not ext.lower() in IMAGE_FORMATS:
-                self._image.set_property('stock', gtk.STOCK_FILE)                
+                self._image.set_property('stock', gtk.STOCK_FILE)
                 self.set_data('scale-factor', 1)
                 self.set_data('image-path', image_path)
                 self.emit('image-displayed', image_path, None, None)
@@ -192,10 +193,10 @@ class ImageWidget(gtk.VBox):
         :param w: the desired width
         :param h: the desired height
         """
-        pw, ph =  pixbuf.get_width(), pixbuf.get_height()
+        pw, ph = pixbuf.get_width(), pixbuf.get_height()
         w, h = w or self.get_property('width'), h or self.get_property('height')
         ratio = min(w/float(pw), h/float(ph))
-        if ratio >= 1 and self.props.scale  == 'AUTOREDUCTION':
+        if ratio >= 1 and self.props.scale == 'AUTOREDUCTION':
             self.set_data('scale-factor', 1)
             return pixbuf, 1
         self.set_data('scale-factor', ratio)
@@ -207,9 +208,9 @@ class ImageWidget(gtk.VBox):
 
         :param pixbuf: the gtk.gdk.Pixbuf
         """
-        
+
         self._image.set_from_pixbuf(pixbuf)
-        
+
     def set_stock(self, stock_id, size=gtk.ICON_SIZE_DIALOG):
         """
         Set the image via the stock-id
@@ -217,9 +218,9 @@ class ImageWidget(gtk.VBox):
         :param stock-id: a stock-id
         :param size: the desired image (default: ICON_SIZE_DIALOG)
         """
-        
+
         self._image.set_from_stock(stock_id, size)
-        
+
     def do_set_property(self, property, value):
 
         if property.name == 'width':
@@ -239,7 +240,7 @@ class ImageWidget(gtk.VBox):
             self.status_bar.set_data('strip-dir', value)
         else:
             raise AttributeError, 'unknown property %s' % property.name
-            
+
     def do_get_property(self, property):
 
         if property.name == 'width':
@@ -270,14 +271,17 @@ class ImageWidget(gtk.VBox):
 
         self.actiongroup = gtk.ActionGroup('Image')
         self.actiongroup.add_actions([
-            ('UploadImage', None, _('Upload image'), None, _('Upload or modify an image'), self.upload_image),
-            ('DeleteImage', None, _('Delete image'), None, _('Delete the image'), self.delete_image),
-            ('DetachImage', None, _('Image viewer'), None, _('Open separate image viewer'), self.show_image),
+            ('UploadImage', None, _('Upload image'), None,
+             _('Upload or modify an image'), self.upload_image),
+            ('DeleteImage', None, _('Delete image'), None,
+             _('Delete the image'), self.delete_image),
+            ('DetachImage', None, _('Image viewer'), None,
+             _('Open separate image viewer'), self.show_image),
             ('SaveImage', None, _('Save image as'), None, _('Save image as'), self.save_image),
             ('Zoom-in', gtk.STOCK_ZOOM_IN, None, None, None, self.zoom_in),
             ('Zoom-out', gtk.STOCK_ZOOM_OUT, None, None, None, self.zoom_out),
             ('ShowName', None, _("Show/Hide image name"), None, None, self.toggle_status_bar),
-            ],)
+        ],)
         self.ui_manager.insert_action_group(self.actiongroup, 10)
         self.ui_manager.add_ui_from_string(IMAGE_MENU)
 
@@ -309,7 +313,7 @@ class ImageWidget(gtk.VBox):
 
         menu = self.ui_manager.get_widget('/ImagePopup')
         menu.popup(None, None, None, event.button, event.time)
-        
+
     def upload_image(self, action):
 
         from sqlkit.widgets.common import dialogs
@@ -325,7 +329,7 @@ class ImageWidget(gtk.VBox):
 
         import shutil
         from sqlkit.widgets.common import dialogs
-        
+
         orig_filename = self.props.image_path
         if not orig_filename:
             # TODO: should communicate that no file was found...
@@ -352,10 +356,10 @@ class ImageWidget(gtk.VBox):
         self.set_image(self.props.image_path)
 
     def toggle_status_bar(self, action):
-        
+
         self.status_bar.props.visible = not self.status_bar.props.visible
-        
-    def sb(self,txt):
+
+    def sb(self, txt):
         """
         Push info on Status Bar
         """
@@ -367,12 +371,12 @@ class ImageWidget(gtk.VBox):
         idx = self.status_bar.get_context_id(txt)
         msg_id = self.status_bar.push(idx, txt)
 
-            
+
 # finally register our new Type
 if gobject.pygtk_version < (2, 8):
-	    gobject.type_register(ImageWidget)
+    gobject.type_register(ImageWidget)
 
-        
+
 if __name__ == '__main__':
 
     w = gtk.Window()
@@ -384,7 +388,5 @@ if __name__ == '__main__':
 
     def dbg(widget, filename):
         print filename
-    i.connect('image-selected', dbg) 
+    i.connect('image-selected', dbg)
     gtk.main()
-
-    

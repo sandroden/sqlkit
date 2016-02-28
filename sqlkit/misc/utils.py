@@ -5,6 +5,7 @@ import subprocess
 import sqlalchemy
 
 class Container(object):
+
     """
     a container for other object that allows iteration and dict-like access
     Iterating on this correspond to iterating on the *values* (not the keys)::
@@ -17,6 +18,7 @@ class Container(object):
 
     Container has the nice feature that it completes when used interactively under ipython
     """
+
     def __init__(self, cdict=None):
         """
         cdict may be a dictionary that will be used to initialize the Container
@@ -44,13 +46,13 @@ class Container(object):
 
     def __contains__(self, key):
         return key in self._attrs
- 
+
     def __getitem__(self, key):
         return getattr(self, key)
-    
+
     def __setitem__(self, key, value):
         return self.add_element(key, value)
-    
+
     def __iter__(self):
         return iter(self.values())
 
@@ -62,13 +64,15 @@ class Container(object):
 
 
 class DictLike(object):
+
     """
     simple way to enable %(field_name)s lookup in classes
     used to allow correct use of 'format'. None is casted to empty string
     """
+
     def __init__(self, obj):
         self.obj = obj
-        
+
     def __getitem__(self, key):
         """
         Cast all None values to '' otherwise the lookup can be scattered with 'None'
@@ -80,9 +84,11 @@ class DictLike(object):
         return getattr(self.obj, key)
 
 class ObjLike(object):
+
     """
     Simple way to access keys of a dict as attributes
     """
+
     def __init__(self, dictionary):
         """
         :param dictionary: the dictionary whose keys we want to acces as attributes
@@ -94,7 +100,7 @@ class ObjLike(object):
             return self.dict[key]
         except KeyError, e:
             return object.__getattr__(self, key)
-            
+
 def check_sqlalchemy_version(req):
     """
     It only works if pkg_resources is present
@@ -110,14 +116,14 @@ def check_sqlalchemy_version(req):
     def warning():
         import warnings
         msg = ("You have %s version of sqlalchemy. Sqlkit is tested with " +
-              "version newer that %s. You shouldn't have problems " +
-              "but we're not sure" )
+               "version newer that %s. You shouldn't have problems " +
+               "but we're not sure")
         warnings.warn(msg)
-    
+
     try:
         from pkg_resources import parse_version as pv
         if pv(sqlalchemy.__version__) >= pv(req):
-            return  
+            return
         elif pv(sqlalchemy.__version__) < pv('0.5.4'):
             return fatal_exit()
         else:
@@ -131,7 +137,7 @@ def str2list(list_or_string):
     """
     input parsing common func
     """
-    
+
     if isinstance(list_or_string, basestring):
         return re.split('[ ,]*', list_or_string.strip())
     return list_or_string or []
@@ -147,9 +153,9 @@ def get_viewer(ext):
     import subprocess as sp
 
     progs = {
-        'pdf' : ('xdg-open', 'gnome-open', 'acroread', 'xpdf', 'gv', ),
-        'odt' : ('xdg-open', 'gnome-open', 'oowriter', ),
-        }
+        'pdf': ('xdg-open', 'gnome-open', 'acroread', 'xpdf', 'gv', ),
+        'odt': ('xdg-open', 'gnome-open', 'oowriter', ),
+    }
     # another workig way to invoke the correct application is to use
     # webbrowser.open_new() but under linux it may switch you to another desktop.
     if platform.system() == 'Windows' or os.name == "mac":
@@ -171,9 +177,9 @@ def open_file(filename, viewer=None):
     """
     if os.name in ('posix', 'mac'):
         if filename.endswith('pdf'):
-            p =  subprocess.call((viewer or get_viewer('pdf'), filename)) 
+            p = subprocess.call((viewer or get_viewer('pdf'), filename))
         else:
-            p =  subprocess.call((viewer or get_viewer('odt'), filename))
+            p = subprocess.call((viewer or get_viewer('odt'), filename))
     else:
         # I made some test with call(('start', filename)) but in several
         # occasion I coudn't get the start command to find the
@@ -181,7 +187,7 @@ def open_file(filename, viewer=None):
         os.startfile(filename)
 
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
 
     c = Container()
     c.add_element('uno', 1)
@@ -192,14 +198,12 @@ if __name__ == '__main__' :
     c['quattro'] = 4
     print c.due
     for x in c:
-        if x>2:
+        if x > 2:
             break
         print x
-        
+
     for x in c:
         print x
 
     print str2list('uno,due, tre')
-    print str2list(['uno','due', 'tre'])
-    
-
+    print str2list(['uno', 'due', 'tre'])

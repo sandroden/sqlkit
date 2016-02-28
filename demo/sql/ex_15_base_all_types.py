@@ -29,14 +29,11 @@ lay = """
          
 """
 
-t = SqlMask(model.AllTypes, layout=lay, dbproxy=db )
-for name in ('text','date', 'numbers', 'boolean'):
+t = SqlMask(model.AllTypes, layout=lay, dbproxy=db)
+for name in ('text', 'date', 'numbers', 'boolean'):
     t.set_frame_label(name, name)
 t.reload()
 
 
-t1 = SqlTable(model.AllTypes, dbproxy=db )
+t1 = SqlTable(model.AllTypes, dbproxy=db)
 t1.reload()
-
-
-

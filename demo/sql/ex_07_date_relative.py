@@ -18,7 +18,7 @@ t = SqlTable('movie', dbproxy=db, geom=(600, 400))
 t.add_filter(date_release__gte='y-1 +2m')
 t.reload()
 
-t2 = SqlTable('movie', dbproxy=db,  geom=(600,400))
+t2 = SqlTable('movie', dbproxy=db,  geom=(600, 400))
 t2.add_filter(date_release__gte='y-5 > y-2')
 t2.reload()
 

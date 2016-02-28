@@ -1,3 +1,2 @@
-__all__ = [ 'SqlMask']
+__all__ = ['SqlMask']
 from mask import SqlMask
-

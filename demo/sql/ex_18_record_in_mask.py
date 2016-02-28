@@ -8,10 +8,9 @@ foreign key and selecting "edit foreign key"
 
 Here both of them have been requested programmatically
 """
-        
 
 
-t = SqlTable(model.Movie, dbproxy=db )
+t = SqlTable(model.Movie, dbproxy=db)
 t.record_in_mask()
 t.fkey_record_in_mask(field_name='director_id')
 

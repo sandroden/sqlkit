@@ -32,11 +32,11 @@ from sqlalchemy import Table, orm
 from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper, attributes
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.orm.mapper import Mapper
-from pkg_resources import parse_version 
+from pkg_resources import parse_version
 
 import sqlkit
-from sqlkit import _, exc, layout, debug as  dbg, fields
-from sqlkit import layout, debug as  dbg
+from sqlkit import _, exc, layout, debug as dbg, fields
+from sqlkit import layout, debug as dbg
 from sqlkit.layout import map_labels, get_label
 from sqlkit.db import minspect, defaults
 from sqlkit.widgets.common import completion, sqlfilter, layoutgenerator, dialogs
@@ -46,6 +46,7 @@ from sqlkit.misc import printing
 NUMBERS = (int, float, decimal.Decimal)
 
 class SqlWidget(gobject.GObject):
+
     """
     The main widget used to edit a table or sqlalchemy selectable, i.e. almost everything you can
     express as table or for which you can provide a mapper or a mapped class.
@@ -54,45 +55,45 @@ class SqlWidget(gobject.GObject):
     """
     #### Signals
     __gsignals__ = {
-        'record-selected' : (gobject.SIGNAL_RUN_LAST,
-                           gobject.TYPE_BOOLEAN,
-                           (),
-                           ),
-        'record-saved'   : (gobject.SIGNAL_RUN_LAST,
-                           gobject.TYPE_BOOLEAN,
-                           (),
-                           ),
-        'record-new'   :   (gobject.SIGNAL_RUN_LAST,
-                           gobject.TYPE_BOOLEAN,
-                           (),
-                           ),
+        'record-selected': (gobject.SIGNAL_RUN_LAST,
+                            gobject.TYPE_BOOLEAN,
+                            (),
+                            ),
+        'record-saved': (gobject.SIGNAL_RUN_LAST,
+                         gobject.TYPE_BOOLEAN,
+                         (),
+                         ),
+        'record-new':   (gobject.SIGNAL_RUN_LAST,
+                         gobject.TYPE_BOOLEAN,
+                         (),
+                         ),
         'record-deleted':  (gobject.SIGNAL_RUN_LAST,
-                           gobject.TYPE_BOOLEAN,
-                           (gobject.TYPE_PYOBJECT,),
-                           ),
-        'records-displayed' : (gobject.SIGNAL_RUN_LAST,
-                           gobject.TYPE_BOOLEAN,
-                           (),
-                           ),
-        'after-flush' :    (gobject.SIGNAL_RUN_LAST,
-                           gobject.TYPE_BOOLEAN,
-                            # object, session
-                           (gobject.TYPE_PYOBJECT , gobject.TYPE_PYOBJECT ),
+                            gobject.TYPE_BOOLEAN,
+                            (gobject.TYPE_PYOBJECT,),
                             ),
-        'after-commit' :    (gobject.SIGNAL_RUN_LAST,
+        'records-displayed': (gobject.SIGNAL_RUN_LAST,
+                              gobject.TYPE_BOOLEAN,
+                              (),
+                              ),
+        'after-flush':    (gobject.SIGNAL_RUN_LAST,
                            gobject.TYPE_BOOLEAN,
-                            # object, session
-                           (gobject.TYPE_PYOBJECT , gobject.TYPE_PYOBJECT ),
-                            ),
-        'delete-event' : (gobject.SIGNAL_RUN_LAST,
-                           gobject.TYPE_BOOLEAN,
-                           (),
+                           # object, session
+                           (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT),
                            ),
+        'after-commit':    (gobject.SIGNAL_RUN_LAST,
+                            gobject.TYPE_BOOLEAN,
+                            # object, session
+                            (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT),
+                            ),
+        'delete-event': (gobject.SIGNAL_RUN_LAST,
+                         gobject.TYPE_BOOLEAN,
+                         (),
+                         ),
 
-                            }
+    }
     gui_fields = None
     values = None    # real value for foreign key
-                     # (when lookup is displeyed instead)
+    # (when lookup is displeyed instead)
     __metaclass__ = None if not dbg.debug else dbg.LogTheMethods
     records = None
     last_new_obj = None
@@ -100,17 +101,17 @@ class SqlWidget(gobject.GObject):
     def __init__(self, what=None,
                  mapper=None,
                  ## geometry
-                 layout = None,
-                 layout_nick = 'default',
+                 layout=None,
+                 layout_nick='default',
                  naked=False,
-                 geom=(-1,-1),
+                 geom=(-1, -1),
                  rows=10,
                  addto=None,
-                 gui_field_mapping = None,
+                 gui_field_mapping=None,
                  title=None,
                  show=True,
                  icons='',
-                 col_width = None,
+                 col_width=None,
                  # SQL
                  table=None,
                  tables=None,
@@ -120,29 +121,28 @@ class SqlWidget(gobject.GObject):
                  noup=[],
                  sql=None,
                  constraint={},
-                 dbproxy = None,
+                 dbproxy=None,
                  order_by=None,
                  limit=200,
                  field_list=None,
                  session=None,
-                 metadata = None,
-                 ignore_fields = None,
-                 hide_fields = None,
+                 metadata=None,
+                 ignore_fields=None,
+                 hide_fields=None,
                  ## more
                  single=False,
                  nick=None,
-                 about_dialog = None,
+                 about_dialog=None,
                  dev=False,
                  xml=False,
-                 relationship_mode = 'SINGLE',
-                 relationship_path = None,
-                 relationship_leader = None,
+                 relationship_mode='SINGLE',
+                 relationship_path=None,
+                 relationship_leader=None,
                  format=None,
-                 label_map = None,
-                 hooks = None,
+                 label_map=None,
+                 hooks=None,
                  mode='biud',
                  ):
-
         """
         :param what: this is the table/mapper/class to be displayed. You are
            encouraged to use it as first argument. The keyword 'what' is
@@ -276,7 +276,7 @@ class SqlWidget(gobject.GObject):
            function 
 
         :param relationship_mode: SINGLE, m2m, m2o, o2m
-              
+
         :param relationship_path: the path needed to join two tables. See sqlalchemy on 'quering
                   with joins'. Used by filter_panel to setup join condition when filtering
                   when relationship_mode is not SINGLE. May be a list or a string:
@@ -297,12 +297,12 @@ class SqlWidget(gobject.GObject):
             frame = sys._getframe(2)
             info = "Called by '%s' in %s:%s" % (frame.f_code.co_name,
                                                 frame.f_code.co_filename, frame.f_lineno)
-            warnings.warn("Use of table/tables/class_/mapper keyword is now Depecated\n" +\
+            warnings.warn("Use of table/tables/class_/mapper keyword is now Depecated\n" +
                           "place table/class_/mapper as first argument\n%s" % info,
                           DeprecationWarning, stacklevel=3)
-                
+
         if gui_field_mapping:
-            self.gui_field_mapping = gui_field_mapping 
+            self.gui_field_mapping = gui_field_mapping
         self._format_dict = format
         self.related = Container()
         self.gui_fields = Container(self.gui_fields)
@@ -313,7 +313,7 @@ class SqlWidget(gobject.GObject):
         self.col_width = col_width
         self.xml = xml
         self.dev = dev
-        # used in self.reload() to prevent expose loop 
+        # used in self.reload() to prevent expose loop
         self.reloading = dbg.TraceIt(False, name='reloading')
         self.geom = geom
         self.addto = addto
@@ -327,7 +327,7 @@ class SqlWidget(gobject.GObject):
         self.tables = self._get_table(tables)
         self.session = self._get_session(session)
         self.hooks = hooks or defaults.get_hook(self.tables, instance=True, nick=layout_nick)
-        self.nick= self.get_nick(nick)
+        self.nick = self.get_nick(nick)
         self.set_mode(mode, delay=True)
         self.ro = ro
         if ro:
@@ -336,16 +336,16 @@ class SqlWidget(gobject.GObject):
         self.rows = rows
         self.hidden_fields = hide_fields or []
         self.mapper_info = self.get_fields()
-        self.layout   = layout or self._get_layout_from_nick(layout_nick)
+        self.layout = layout or self._get_layout_from_nick(layout_nick)
         self.field_list = self._parse_fields(field_list)
         self.ignored_fields = self._set_ignored_fields(ignore_fields)
         self._title = self._create_title(title)
 
         ## create the interface and add obvious constraints
         self.naked = naked
-        self.sql   = sql
+        self.sql = sql
         self.single = single
-        self.limit=limit
+        self.limit = limit
         self.relationship_mode = relationship_mode
         self.relationship_path = self._get_relationship_path(relationship_path)
         self.relationship_leader = relationship_leader
@@ -359,9 +359,9 @@ class SqlWidget(gobject.GObject):
         except exc.DBAPIError, e:
             msg = _("Sorry, problems connecting to remote db. Original error was: \n\n%s" % e)
             raise exc.ConnectionError(msg)
-            
+
         if not relationship_leader:
-            self._filter_panel =  sqlfilter.FilterPanel(self, visible=False)
+            self._filter_panel = sqlfilter.FilterPanel(self, visible=False)
         if hide_fields:
             self.hide_fields(hide_fields)
         self.set_format(format)
@@ -381,15 +381,15 @@ class SqlWidget(gobject.GObject):
 
         if parse_version(sqlalchemy.__version__) < parse_version('0.7'):
             for extension in session.extensions:
-                if isinstance(extension, SKSessionExtension): 
+                if isinstance(extension, SKSessionExtension):
                     extension.sk_widgets = (getattr(extension, 'sk_widgets') or []) + [self]
         else:
             try:
                 session._sk_emitter.add(self)
             except AttributeError:
                 warnings.warn("Session does not have '_sk_emitter', signals after-flush "
-                             "after-commit and after-flush-postexec are not implemented")
-            
+                              "after-commit and after-flush-postexec are not implemented")
+
         return session
 
     def _clean_session_extensions(self, *args):
@@ -399,30 +399,30 @@ class SqlWidget(gobject.GObject):
         if parse_version(sqlalchemy.__version__) < parse_version('0.7'):
             from sqlkit.db.proxy import SKSessionExtension
             for extension in self.session.extensions:
-                if isinstance(extension, SKSessionExtension): 
+                if isinstance(extension, SKSessionExtension):
                     extension.sk_widgets.pop(extension.sk_widgets.index(self))
         else:
             self.session._sk_emitter.remove(self)
-        
+
     def _get_mapper(self, mapper, tables, class_=None):
 
         from sqlkit.db.utils import get_class
 
         if not mapper and not class_ and get_class(tables):
             class_ = get_class(tables)
-        
+
         if mapper:
             return mapper
         elif class_:
             mapper = class_mapper(class_)
             ## this grants that a class_ that was registered *before* a binding
             ## was active (eg: from sqledit when you only have models.py in nick dir)
-            ## gets a correct one. Mailiy needed to automante sqledir nicks 
+            ## gets a correct one. Mailiy needed to automante sqledir nicks
             if not mapper.local_table.metadata.bind and self.dbproxy.metadata:
                 mapper.local_table.metadata.bind = self.dbproxy.metadata.bind
         else:
             mapper = self.dbproxy.get_mapper(mapper, tables)
-            
+
         #self.tables = [mapper.local_table.name]  ## FIXME: what when we have a join?
         if parse_version(sqlalchemy.__version__) < parse_version('0.7'):
             mapper.compile()  # this insures that all attribute gets compiled
@@ -439,14 +439,14 @@ class SqlWidget(gobject.GObject):
             ## FIXME: no good in general? what if you have more that
             ## one metadata in the same session?... boh
             return mapper.local_table.metadata
-        
+
     def _get_table(self, tables):
         from sqlalchemy.sql import Join
-        
+
         if isinstance(tables, Table):
             return tables.name
         if tables:
-            return tables.split()[0]  ## FIXME: works for 1 single table
+            return tables.split()[0]  # FIXME: works for 1 single table
         if self.mapper:
             if isinstance(self.mapper.local_table, Join):
                 name = "%s_%s" % (self.mapper.local_table.left, self.mapper.local_table.right)
@@ -467,7 +467,7 @@ class SqlWidget(gobject.GObject):
                 get_the_keys = self.mapper_info.all_keys
             else:
                 get_the_keys = self.mapper_info.keys
-                
+
             if self.dev:
                 new_field_list = get_the_keys()
             else:
@@ -476,12 +476,12 @@ class SqlWidget(gobject.GObject):
                 ## i.e.: if you have city_id that references a city I want
                 ## to see it, but I don't want to see a sequence normally.
                 new_field_list = [f for f in get_the_keys()
-                          if not f == 'id' or self.mapper_info.fields[f]['fkey'] ]
+                                  if not f == 'id' or self.mapper_info.fields[f]['fkey']]
 
         else:
-            new_field_list = str2list(field_list) 
+            new_field_list = str2list(field_list)
         return new_field_list
-    
+
     def _get_relationship_path(self, path):
         """
         relationship_path is the path needed to get from the main sqlwiget to here:
@@ -494,9 +494,9 @@ class SqlWidget(gobject.GObject):
         self.m2m_editable = False
         if not path:
             return []
-        
+
         return str2list(path)
-        
+
     def get_pk(self):
         """
         return the pkeys of the primarytable
@@ -508,7 +508,7 @@ class SqlWidget(gobject.GObject):
         fill self.gui_fields with fileds.Field objects
         """
         raise NotImplementedError
-    
+
 ###### Filters/constraints
     def add_constraint(self, OR=False, **kwargs):
         """
@@ -528,7 +528,7 @@ class SqlWidget(gobject.GObject):
         """
         from sqlkit.db.django_syntax import django2query
         self.query = django2query(self.query, self.mapper, OR=OR, **kwargs)
-        
+
     def add_filter_cb(self, event=None, visible=True):
         """
         Pop a Filter Panel, called from menu item
@@ -544,10 +544,10 @@ class SqlWidget(gobject.GObject):
 
         If you have a field_name named 'active', the active parameter will hide it. Use
         keyword ``active__eq`` to bypass it.
-        
+
         """
         self.filter_panel.add_filter(active, force_=force_, **kw)
-        
+
 ###### Layout
 
     def _get_layout(self, lay, naked):
@@ -558,10 +558,10 @@ class SqlWidget(gobject.GObject):
         """
         self.run_hook('on_pre_layout')
         self.get_table_labels()
-        
+
         self.laygen = layoutgenerator.LayoutGenerator(self, naked=naked, lay=lay)
         lay = self.laygen.layout
-        self.lay_obj = layout.Layout(lay, addto=self.addto,label_map=self.label_map,
+        self.lay_obj = layout.Layout(lay, addto=self.addto, label_map=self.label_map,
                                      title=self._title, opts='T-')
 
         if self.xml:
@@ -588,9 +588,9 @@ class SqlWidget(gobject.GObject):
                 self.resize(*self.geom)
 
         self.setup_field_validation()
-        
+
         return (self.lay_obj, self.widgets)
-    
+
     def _get_layout_from_nick(self, nick):
         """
         return a layout for table/nick nick
@@ -600,21 +600,21 @@ class SqlWidget(gobject.GObject):
             return
         from sqlkit.db import get_layout
 
-        ## FIXME: self.master.tables is not really defined. Mau be a string or a list 
+        ## FIXME: self.master.tables is not really defined. Mau be a string or a list
         return get_layout(self.tables, nick=nick or 'default')
 
     def show(self, show):
         """
         create the widget and go on displaying the layout
         """
-        self.lay_obj, self.widgets  = self._get_layout(self.layout, self.naked,)
+        self.lay_obj, self.widgets = self._get_layout(self.layout, self.naked,)
         self.prepare_actions()
         self.prepare_uimanager()
         self.set_mode()
-            
+
         ## only render when dimentions are complete
         lcontainer_name = self.lay_obj.container().el_def
-        el_def = re.sub(':.*','', lcontainer_name)
+        el_def = re.sub(':.*', '', lcontainer_name)
 
         if show:
             self.widgets[el_def].show()
@@ -629,18 +629,18 @@ class SqlWidget(gobject.GObject):
 
         if not ignored_list:
             return None
-        
+
         for field_name in ignored_list:
             if field_name in self.field_list:
                 self.field_list.remove(field_name)
 
         return ignored_list
-        
+
     def hide_fields(self, *args):
         """
         """
         self.dialog(type="ok", text=_("Hiding field is only supported for Tables"))
-        
+
     def _get_noup(self, noup=None):
         """return noup set of field_name that are not updateable"""
 
@@ -663,14 +663,15 @@ class SqlWidget(gobject.GObject):
                     self._noup.add(x)
                 else:
                     self._noup.add(x)
-                    
+
         try:
-            self.set_mode() # forces tables to reset editable on columns
+            self.set_mode()  # forces tables to reset editable on columns
         except AttributeError:
             ## actiongroup is not yet ready, but mode will be forced later anyhow
             pass
 
     noup = property(_get_noup, _set_noup)
+
     def get_nick(self, nick):
         if not nick:
             if self.tables:
@@ -678,7 +679,7 @@ class SqlWidget(gobject.GObject):
             else:
                 nick = self.mapper.tables[0].name
         return nick
-            
+
     def get_fields(self):
         """Fields is a dictionary with info on the fields derived from the
         db via the mapper (inspecting it)
@@ -690,14 +691,14 @@ class SqlWidget(gobject.GObject):
                 if field_name in info:
                     info.fields[field_name]['length'] = value
         return info
-        
+
     def _get_filter_panel(self):
 
         if self.relationship_leader:
             return self.relationship_leader.filter_panel
         else:
             return self._filter_panel
-        
+
     filter_panel = property(_get_filter_panel)
 
     def _set_title(self, title):
@@ -705,16 +706,16 @@ class SqlWidget(gobject.GObject):
         if self.is_toplevel():
             self.widgets['Window'].set_title(title)
         self._title = title
-        
+
     def _get_title(self):
-        
+
         if self.is_toplevel():
             return self.widgets['Window'].get_title()
         else:
             return getattr(self, '_title', None)
-        
+
     title = property(_get_title, _set_title)
-            
+
     def grab_focus(self, widget):
         """
         make sure the focus is grabbed so that all validation-related triggers
@@ -724,7 +725,7 @@ class SqlWidget(gobject.GObject):
         sqlwidget = self.relationship_leader or self
         save_widget = sqlwidget.ui_manager.get_widget('/Main/File')
         save_widget.grab_focus()
-        
+
     def sb(self, text, seconds=10, delay=False):
         """
         Write on the status bar if present in this  sqlwidget or in the ``relationship_leader``
@@ -758,11 +759,11 @@ class SqlWidget(gobject.GObject):
     def _create_title(self, title=None):
         if not title:
             try:
-                title=self.table
+                title = self.table
             except:
-                title= self.mapper_info.get_primary_table()
+                title = self.mapper_info.get_primary_table()
         return gobject.markup_escape_text(title)
-    
+
     def get_table_labels(self):
         """
         get labels and tips from the db if they exists
@@ -770,8 +771,9 @@ class SqlWidget(gobject.GObject):
         from sqlkit.db.utils import get_labels_and_tips_from_sqlkit
         if self.tables:
             for table in [t.name for t in self.mapper.tables]:
-                self.label_map.update( get_labels_and_tips_from_sqlkit(table, metadata=self.metadata, class_=self.mapper.class_))
-            
+                self.label_map.update(get_labels_and_tips_from_sqlkit(
+                    table, metadata=self.metadata, class_=self.mapper.class_))
+
     def resize(self, width, height):
         """
         Resize the window. It accepts also -1 as value in which case sets
@@ -784,62 +786,68 @@ class SqlWidget(gobject.GObject):
         if width <= 0:
             width = w
 
-        if height  <= 0:
+        if height <= 0:
             height = h
-            
+
         gobject.idle_add(Window.resize, width, height)
-        
+
     def gquit(self, *args):
         gtk.main_quit()
-                       
+
 ###### Actions/UiManager
     def prepare_actions(self):
         """
         Prepare action needed by UIManager
         """
         self.actiongroup_general = gtk.ActionGroup('General')
-        self.actiongroup_update  = gtk.ActionGroup('Update')
-        self.actiongroup_insert  = gtk.ActionGroup('Insert')
-        self.actiongroup_delete  = gtk.ActionGroup('Delete')
-        self.actiongroup_select  = gtk.ActionGroup('Select')
-        self.actiongroup_browse  = gtk.ActionGroup('Browse')
-        self.actiongroup_print   = gtk.ActionGroup('Print')    
-        self.actiongroup_debug   = gtk.ActionGroup('Debug')    
+        self.actiongroup_update = gtk.ActionGroup('Update')
+        self.actiongroup_insert = gtk.ActionGroup('Insert')
+        self.actiongroup_delete = gtk.ActionGroup('Delete')
+        self.actiongroup_select = gtk.ActionGroup('Select')
+        self.actiongroup_browse = gtk.ActionGroup('Browse')
+        self.actiongroup_print = gtk.ActionGroup('Print')
+        self.actiongroup_debug = gtk.ActionGroup('Debug')
 
         tip = _('Show all the differences that should be saved to database')
         self.actiongroup_general.add_actions([
-            ('File', None, 'File' ),
-            ('Modify', None, _('Modify') ),
-            ('Go', None, _('Go') ),
-            ('Tools', None, _('Tools') ),
-            ('Help', None, _('Help') ),
+            ('File', None, 'File'),
+            ('Modify', None, _('Modify')),
+            ('Go', None, _('Go')),
+            ('Tools', None, _('Tools')),
+            ('Help', None, _('Help')),
 
             ('Quit', gtk.STOCK_QUIT, None, '<Ctrl>q', None, self.delete_event_cb),
             ('About', gtk.STOCK_ABOUT, None, None, None, self.about_dialog_cb),
-            ('PendingDifferences', None, _('Pending Differences'), None, tip, self.pending_differences_cb),
-            ])
+            ('PendingDifferences', None, _('Pending Differences'),
+             None, tip, self.pending_differences_cb),
+        ])
 
         self.actiongroup_update.add_actions([
-            ('Save', gtk.STOCK_SAVE, None, '<Ctrl>s', _('Save current record'), self.record_save_cb),
-            ])
-            
+            ('Save', gtk.STOCK_SAVE, None, '<Ctrl>s',
+             _('Save current record'), self.record_save_cb),
+        ])
+
         self.actiongroup_browse.add_actions([
-            ('Filters', gtk.STOCK_FIND, _('Filter panel'), None, _('Add filter panel'), self.add_filter_cb),
+            ('Filters', gtk.STOCK_FIND, _('Filter panel'),
+             None, _('Add filter panel'), self.add_filter_cb),
             ('Reload', gtk.STOCK_REFRESH, _("Reload"), '<Ctrl>r', _('Reload from the database'),
              self.reload_cb),
-            ])
+        ])
         self.actiongroup_select.add_actions([
-            ('Forward', gtk.STOCK_GO_FORWARD, None, '<Alt>f', _('Go to next record'), self.record_forward_cb),
-            ('Back',   gtk.STOCK_GO_BACK, None, '<Alt>b', _('Go to previous record'), self.record_back_cb),
-            ])
+            ('Forward', gtk.STOCK_GO_FORWARD, None, '<Alt>f',
+             _('Go to next record'), self.record_forward_cb),
+            ('Back',   gtk.STOCK_GO_BACK, None, '<Alt>b',
+             _('Go to previous record'), self.record_back_cb),
+        ])
 
         self.actiongroup_print.add_actions([
-            ('Print', gtk.STOCK_PRINT, None ),            
-            ])
+            ('Print', gtk.STOCK_PRINT, None),
+        ])
 
         self.actiongroup_debug.add_actions([
-            ('Gtk-tree', gtk.STOCK_EXECUTE, _('Inspect widgets'), '<Ctrl><Alt>i', None, self.show_widget_info),
-            ])
+            ('Gtk-tree', gtk.STOCK_EXECUTE, _('Inspect widgets'),
+             '<Ctrl><Alt>i', None, self.show_widget_info),
+        ])
 
     def prepare_uimanager(self):
         """
@@ -872,7 +880,7 @@ class SqlWidget(gobject.GObject):
         ## pack menu and toolbar if it's a toplevel
         if 'V.header' in self.widgets:
             header = self.widgets['V.header']
-            menu    = self.ui_manager.get_widget('/Main')
+            menu = self.ui_manager.get_widget('/Main')
             toolbar = self.ui_manager.get_widget('/TbMain')
             header.add(menu)
             header.add(toolbar)
@@ -940,7 +948,7 @@ class SqlWidget(gobject.GObject):
         if mode:
             if isinstance(mode, set):
                 if not reset:
-                    self._mode = mode 
+                    self._mode = mode
             elif mode.startswith('+'):
                 ## add a permission
                 for x in mode.replace('+', ''):
@@ -968,14 +976,14 @@ class SqlWidget(gobject.GObject):
 
     def get_mode(self):
         return self._mode
-    
+
     mode = property(get_mode, set_mode)
-                
+
 ###### Saving
     def record_delete(self, widget=None):
         """invokes the validator before DELETing a record"""
         pass
-    
+
     def record_save_cb(self, widget, event=None):
         """Save the record and invokes the validator before UPDATE/INSERT a record
         """
@@ -984,7 +992,7 @@ class SqlWidget(gobject.GObject):
             self.record_save()
         except (exc.DialogValidationError, exc.CancelledAction), e:
             pass
-    
+
     def record_new_cb(self, widget, event=None):
         """Save the record and invokes the validator before UPDATE/INSERT a record
         """
@@ -992,13 +1000,13 @@ class SqlWidget(gobject.GObject):
             self.record_new()
         except (exc.DialogValidationError, exc.CancelledAction):
             return True
-    
+
     def record_save_new_cb(self, action):
         """
         Save the record as a new record, ie letting pk not be set 
         """
         self.record_save_new()
-        
+
     def record_add(self, record):
         """
         Add a record to the SqlWidget
@@ -1051,14 +1059,14 @@ class SqlWidget(gobject.GObject):
         elif isinstance(e, sqlalchemy.exc.DBAPIError):
             # TIP: message in the status bar when a commit error is handled
             self.message(type='error',
-                         text=_("%s - Dirty objects: %s - New objects: %s") % \
-                         (str(e.orig),len(self.session.dirty),len(self.session.new)))
+                         text=_("%s - Dirty objects: %s - New objects: %s") %
+                         (str(e.orig), len(self.session.dirty), len(self.session.new)))
             self.sb(e.orig)
 
         elif isinstance(e, sqlalchemy.exc.FlushError):
             # TIP: message in the status bar when a commit error is handled
-            msg = _("Error while writing to the database: \n" \
-                    "are you 'saving as new' an already known record?\n" + \
+            msg = _("Error while writing to the database: \n"
+                    "are you 'saving as new' an already known record?\n" +
                     "original error was: \n%s") % e
             self.message(type='error', text=_(msg))
             self.sb(e)
@@ -1077,35 +1085,35 @@ class SqlWidget(gobject.GObject):
 
         ## to be overwritten by Mask & Table
         return NotImplementedError
-    
+
     def set_value(self, field_name, field_value, fkvalue=None, initial=False, shown=False):
         """
         set the value of any field present in ``gui_fields``. Uses field.set_value
         if ``initial`` is False, run ``on_change_value``
-        
+
 
         :param  field_name: the field_name to be changed
         :param  field_value: the new value
         :param  fkvalue: a possible foreign key value. It's here just  for compatibility with SqlTable's one
         :param  initial: a boolean indicating if it's an initial value (passed to field)
         :param  shown: a boolean indicating if the  value is the displayed value (passed to field)
-        
+
         """
 
         #to be overwritten by Mask & Table
         return NotImplementedError
-    
+
     def has_changed(self, field_name):
         """
         return the value from the widget
         """
-        
+
         if field_name not in self.gui_fields:
             dbg.write("%s Non in gui_fields %s" % (field_name, self.gui_fields.keys()))
             raise sqlkit.exc.FieldNotInLayout("field_name: %s" % (field_name))
 
         field = self.gui_fields[field_name]
-        
+
         return field.has_changed()
 
     def record_has_changed(self):
@@ -1117,17 +1125,17 @@ class SqlWidget(gobject.GObject):
         ## eg: a new item is added to the session, no editing is done. A reload is issued
         ## I want to avoid the dialog: do you want to save?
         ## session.dirty would (correctly) say a commit is needed
-        
+
         if not self.current:
             return False
 
         obj = self.current
-        
+
         for sqlwidget in self.related:
             if sqlwidget.record_has_changed():
                 return True
 
-        for field in self.gui_fields:      
+        for field in self.gui_fields:
             if not field.editable:
                 continue
             try:
@@ -1160,13 +1168,13 @@ class SqlWidget(gobject.GObject):
             if response == gtk.RESPONSE_YES:
                 if proceed:
                     self.record_save(ask=False)
-            
+
             ## you don't want to save. Let's prevent a delayed commit
             ## we don't need to care about deleted becouse when you delete
             ## the commit is immediate
             if response == gtk.RESPONSE_NO:
                 self.discard_changes()
-     
+
         return response
 
     def discard_changes(self):
@@ -1180,11 +1188,11 @@ class SqlWidget(gobject.GObject):
         for obj in self.session.new:
             # when you have several objects in the session.new this test *IS* needed since
             # the first one expunge may cause another one to be expunged too.
-            if obj in self.session.new:  
+            if obj in self.session.new:
                 self.session.expunge(obj)
 
-        self.last_new_obj = None  ## FIXME: unsure...
-        
+        self.last_new_obj = None  # FIXME: unsure...
+
     def unsaved_changes_exist(self, skip_new=False, skip_check=False):
         """
         check if session needs committing by looking dirty, deleted and new
@@ -1208,37 +1216,37 @@ class SqlWidget(gobject.GObject):
                     return True
 
         return False
-    
+
 ###### Validation
     def digits_check_input_cb(self, widget, event):
         """
         prevents the possibility of inputting wrong chars
         """
-        key = gtk.gdk.keyval_name (event.keyval)
+        key = gtk.gdk.keyval_name(event.keyval)
 
         if key in ('KP_Decimal',) and numbers.get_decimal_symbol() == ",":
             event = gtk.gdk.Event(gtk.gdk.KEY_PRESS)
             event.keyval = gtk.keysyms.comma
             event.window = widget.window
-            
+
             widget.emit('key-press-event', event)
-            return  True
+            return True
 
         if key in ('KP_Enter',):
             event = gtk.gdk.Event(gtk.gdk.KEY_PRESS)
             event.keyval = gtk.keysyms.Return
             event.window = widget.window
-            
+
             widget.emit('key-press-event', event)
-            return  True
+            return True
 
         if (event.state | gtk.gdk.CONTROL_MASK):
-            return 
-   
-        KEYPAD_KEYS = '(KP_[0-9]|KP_Add|KP_Decimal|KP_Subtract|comma'
-        ONLYDIGITS="%s|[0-9.,]|BackSpace|Left|Right|F1|period|Tab|Up|Down|Return|Esc)"
+            return
 
-        if not re.match (ONLYDIGITS % KEYPAD_KEYS, key):
+        KEYPAD_KEYS = '(KP_[0-9]|KP_Add|KP_Decimal|KP_Subtract|comma'
+        ONLYDIGITS = "%s|[0-9.,]|BackSpace|Left|Right|F1|period|Tab|Up|Down|Return|Esc)"
+
+        if not re.match(ONLYDIGITS % KEYPAD_KEYS, key):
             self.sb(_('Char %s is not accepted in numeric context') % key)
             return True
 
@@ -1254,7 +1262,7 @@ class SqlWidget(gobject.GObject):
         # masks pass throught mask2obj that creates self.validation_errors. I must not discard it
         # in the other cases I neeed to start from zero
         if single_fields or related:
-            self.validation_errors   = {}
+            self.validation_errors = {}
             self.validation_warnings = {}
 
         if obj is None:
@@ -1266,7 +1274,7 @@ class SqlWidget(gobject.GObject):
             self.validation_errors.update(
                 sqlwidget.record_validate(related=sqlwidget.relationship_path))
             self.validation_warnings.update(sqlwidget.validation_warnings)
-            
+
         if single_fields:
             self.record_validate_fields(obj)
 
@@ -1278,12 +1286,12 @@ class SqlWidget(gobject.GObject):
         if related:
             return self.validation_errors
 
-        if self.validation_errors: # just one error dialog
+        if self.validation_errors:  # just one error dialog
             dialog = ValidationErrorDialog(self)
             dialog.run()
             #self.validation_error_dialog()
-    
-        if self.validation_warnings: # just one error dialog
+
+        if self.validation_warnings:  # just one error dialog
             dialog = ValidationWarningDialog(self)
             dialog.run()
 
@@ -1297,13 +1305,13 @@ class SqlWidget(gobject.GObject):
         """
         if not field_name:
             ## TIP: the general validation for the record
-            field_name = _('record validation') # a key to be used in self.validation_errors
+            field_name = _('record validation')  # a key to be used in self.validation_errors
 
         if isinstance(error, basestring):
             error_message = error
         else:
             error_message = str(error)
-            
+
         if isinstance(error, exc.ValidationWarning):
             error_dict = self.validation_warnings
         else:
@@ -1319,12 +1327,12 @@ class SqlWidget(gobject.GObject):
     def add_not_null_error(self, field_name):
         """
         simple way to add a not nullable field error
-        
+
         :param field_name: the field_name that cannot be nullable
         """
         error = exc.NotNullableFieldError(field_name, master=self)
         self.add_validation_error(error, field_name)
-        
+
     def record_validate_fields(self, obj):
         """
         Validate any fields in self.gui_fields
@@ -1336,15 +1344,15 @@ class SqlWidget(gobject.GObject):
             try:
                 if field.mapper:   # persisted fields, mask2obj has already cleaned  them
                     value = getattr(obj, field_name)
-                    self.gui_fields[field_name].validate( value , clean=True)
+                    self.gui_fields[field_name].validate(value, clean=True)
                 else:              # fields only present in the GUI, value is not in obj
                     value = self.gui_fields[field_name].get_value()
-                    self.gui_fields[field_name].validate( value , clean=True)
+                    self.gui_fields[field_name].validate(value, clean=True)
 
             except exc.ValidationError, e:
                 self.add_validation_error(e, field_name=field_name)
 
-        
+
 ###### Hooks
     def run_hook(self, mode, *args, **kw):
         """
@@ -1362,7 +1370,7 @@ class SqlWidget(gobject.GObject):
         else:
             self.run_hook(mode, climb=False, *args, **kw)  # hooks defined for the related table
             hook_name = "%s__%s" % (mode, '__'.join(self.relationship_path))
-            sqlwidget = self.relationship_leader 
+            sqlwidget = self.relationship_leader
 
         if 'field_name' in kw:
             hook_name += "__%(field_name)s" % kw
@@ -1372,7 +1380,7 @@ class SqlWidget(gobject.GObject):
                 return getattr(sqlwidget.hooks, hook_name)(sqlwidget, kw['field_name'], *args)
             else:
                 return getattr(sqlwidget.hooks, hook_name)(sqlwidget, *args)
-    
+
 ###### Callback
     def clear_cb(self, *args):
         self.clear()
@@ -1383,7 +1391,7 @@ class SqlWidget(gobject.GObject):
         """
         self.grab_focus(widget)
         try:
-            self.reload( )
+            self.reload()
         except exc.DialogValidationError, e:
             return True
 
@@ -1400,7 +1408,7 @@ class SqlWidget(gobject.GObject):
         _add_actions_to_button from failing
         """
         pass
-    
+
     def destroy(self):
         """
         Destroy the widget
@@ -1412,7 +1420,7 @@ class SqlWidget(gobject.GObject):
             self.widgets['Window'].emit('delete-event', event)
         else:
             self.emit('delete-event')
-        
+
     def delete_event_cb(self, *args):
         """
         Quit operations: check if need to save first
@@ -1421,15 +1429,15 @@ class SqlWidget(gobject.GObject):
             self.record_save()
         except (exc.DialogValidationError, exc.CancelledAction), e:
             return True
-        
+
         self._clean_session_extensions()
         for obj, hid in self._ids.values():
             obj.disconnect(hid)
         del self._ids
 
         self.emit('delete-event')
-        ## get rid of records automatically created by record_new if they're 
-        ## not yet persisted 
+        ## get rid of records automatically created by record_new if they're
+        ## not yet persisted
         if self.current and self.current in self.session.new:
             self.session.expunge(self.current)
 
@@ -1497,7 +1505,7 @@ class SqlWidget(gobject.GObject):
             'session',
             'single',
             'sql',
-#             'tables',
+            #             'tables',
             '_title',
             '_filter_panel',
             'ui_browse_id',
@@ -1507,13 +1515,13 @@ class SqlWidget(gobject.GObject):
             'widgets',
             'views',
             'xml',
-            ]
+        ]
         for at in attrs:
             try:
                 delattr(self, at)
             except (NameError, AttributeError), e:
                 pass
-#        ## .sb() may have added a collback with 
+#        ## .sb() may have added a collback with
 #        self.relationship_leader = None
         gc.collect()
 
@@ -1521,12 +1529,12 @@ class SqlWidget(gobject.GObject):
 
         dialog = UnsavedDataDialog(self, type_='ok', msg=_('Unsaved differences'), expanded=True)
         response = dialog.run()
-        
-###### Record browsing 
+
+###### Record browsing
     def clear(self, widget=None):
         """clear the mask for a new record"""
         pass
-    
+
     def reload(self, limit=None, display=True, order_by=None, OR=False, **kwargs):
         """
         reload the data from the database taking all filter/constraints into
@@ -1542,19 +1550,19 @@ class SqlWidget(gobject.GObject):
         sql may be a tuple (sql_statement, bind_params) or just a sql_statement
         """
         from sqlkit.db.django_syntax import django2query
-        
+
         if limit:
             self.limit = limit
 
         try:
             query = self.query.filter()
-        except TypeError: # SQLAlchemy < 0.7.8
+        except TypeError:  # SQLAlchemy < 0.7.8
             query = self.query.filter(None)
 
         ## order_by
         if order_by:
             self.order_by = order_by
-            
+
         if self.order_by:
             if self._order_by_join_args:
                 query = query.reset_joinpoint().join(self._order_by_join_args)
@@ -1572,7 +1580,7 @@ class SqlWidget(gobject.GObject):
 
         if self.limit:
             query = query.limit(self.limit)
-                
+
         self.session.expunge_all()
         self.last_new_obj = None
 
@@ -1593,7 +1601,7 @@ class SqlWidget(gobject.GObject):
             ## the connection may be closed and a retry could restore it
             if re.search('closed', str(e), re.I):
                 self.records = query.all()
-            
+
         if display:
             self.record_display(check=False)
 
@@ -1618,7 +1626,7 @@ class SqlWidget(gobject.GObject):
         """
         if not records and pk:
             records = self.get_by_pk(pk)
-            
+
         self.records = records
         self.last_new_obj = None
         self.record_refresh()
@@ -1629,9 +1637,9 @@ class SqlWidget(gobject.GObject):
         """
 
         query = self.query.autoflush(False)
-        record = query.filter_by(**{str(self.get_pk()[0]) : pk}).all()
+        record = query.filter_by(**{str(self.get_pk()[0]): pk}).all()
         return record
-    
+
     def record_refresh(self):
         """to be overloaded: 
         """
@@ -1643,15 +1651,15 @@ class SqlWidget(gobject.GObject):
 
 #         sql = "%s = :%s" % (field, field)
 #         bind_parameters = {field : value}
-        
+
 #         self.reload(  (sql, bind_parameters)  )
-    
+
     def get_new_object(self, session=True, obj=None):
         """create a new object from the class of the mapper and  place it in the session
 
         :param session: (boolean) if True, add to session
         :param obj: the new obj (default None: it will be created an empty self.mapper.class_ instance)
-        
+
         """
         new_obj = obj or self.mapper.class_()
 
@@ -1675,7 +1683,8 @@ class SqlWidget(gobject.GObject):
 
                 #col0 = getattr(self.mapper.class_, field_name)
                 ## try to add a join for an order by on a field in a related table
-                joins, op, op_str, value, col, join_args = django2components(self.mapper, { field_name: None})
+                joins, op, op_str, value, col, join_args = django2components(
+                    self.mapper, {field_name: None})
                 #assert col0 == col, "django2components does not lead to the same result as getattr"
                 if join_args:
                     ## it will be evaluated at reload-time
@@ -1698,7 +1707,7 @@ class SqlWidget(gobject.GObject):
         return self._order_by
 
     order_by = property(_get_order_by, _set_order_by)
-    
+
 ####### Dialog
     def dialog(self, type='ok-cancel', text='', title='', layout=None, icon='gtk-dialog-question'):
         """
@@ -1713,7 +1722,6 @@ class SqlWidget(gobject.GObject):
         """
         if not layout:
             layout = 'i=%s:6 l=message' % icon
-            
 
         dialog, l = self.lay_obj.dialog(layout=layout, title=title,
                                         type=type, show=False)
@@ -1727,7 +1735,7 @@ class SqlWidget(gobject.GObject):
         response = dialog.run()
         dialog.destroy()
         return response
-    
+
     def message(self, text='', type='question'):
         self.response = None
         dialog = self.lay_obj.message(text=text, type=type)
@@ -1735,14 +1743,14 @@ class SqlWidget(gobject.GObject):
         self.response = dialog.run()
         dialog.destroy()
         return dialog
-    
+
     def about_dialog_cb(self, menuItem):
         """
         The about dialog
         """
         self.about_dialog.run()
         self.about_dialog.destroy()
-        
+
     def create_about_dialog(self):
         """
         Create a default AboutDialog
@@ -1750,7 +1758,7 @@ class SqlWidget(gobject.GObject):
         def func(dialog, link, user_data):
             import webbrowser
             webbrowser.open(link)
-            
+
         about_dialog = gtk.AboutDialog()
         gtk.about_dialog_set_url_hook(func, None)
         about_dialog.set_authors(["Sandro Dentella <sandro@e-den.it>"])
@@ -1761,7 +1769,7 @@ class SqlWidget(gobject.GObject):
         about_dialog.set_website_label("http://sqlkit.argolinux.org")
         return about_dialog
         #dialog.show()
-        
+
 
 ###### Misc
     def export(self, menuItem):
@@ -1790,6 +1798,7 @@ class SqlWidget(gobject.GObject):
         """retrieve a record and set it as current
         """
         raise NotImplemented
+
     def set_format(self, format_dict):
         """
         set_format(format_dict). format_dict is a dictionary whose key is the
@@ -1818,12 +1827,11 @@ class SqlWidget(gobject.GObject):
 
         for widget in self.related:
             widget.set_format(format_dict)
-            
-        
+
     def add_temporary_item(self, item, menu, position=0, separator=False):
         """
         .. _add_temporary_item:
-          
+
         Adds an action to a menu and removes it with 'selection-done'
 
         :param item: the gtk.MenuItem that must be added
@@ -1833,7 +1841,7 @@ class SqlWidget(gobject.GObject):
         """
         if not menu:
             return
-        
+
         def remove_widget_cb(menu, item):
             menu.remove(item)
 
@@ -1842,28 +1850,28 @@ class SqlWidget(gobject.GObject):
         menu.connect('selection-done', remove_widget_cb, item)
         if separator:
             self.add_temporary_item(gtk.SeparatorMenuItem(), menu, position=position+1)
-        
+
 ###### Checks
     def is_mask(self, obj=False):
         """
         Return True if the sqlwidget is a Sqlmask
         """
-        ## bad way to prevent chicken and eggs import problems 
+        ## bad way to prevent chicken and eggs import problems
         from sqlkit.widgets import SqlMask
-        if obj == False: ## obj may be an empty str: ''
+        if obj == False:  # obj may be an empty str: ''
             obj = self
         return isinstance(obj, SqlMask)
-    
+
     def is_table(self, obj=False):
         """
         Return True if the sqlwidget is a SqlTable
         """
-        ## bad way to prevent chicken and eggs import problems 
+        ## bad way to prevent chicken and eggs import problems
         from sqlkit.widgets import SqlTable
-        if obj == False: ## obj may be an empty str: ''
+        if obj == False:  # obj may be an empty str: ''
             obj = self
         return isinstance(obj, SqlTable)
-    
+
     def is_fkey(self, field_name):
         """
         return True if this field is a foreign key
@@ -2025,16 +2033,15 @@ class SqlWidget(gobject.GObject):
             return 'i' in self._mode
         elif 'u' in self._mode:
             return 'u' in self._mode
-            
-        return False
 
+        return False
 
     def is_text(self, field_name):
         """
         Return true if this field is Text or was forced gtk.Text
         """
         import sqlalchemy.types as sqltypes
-        
+
         try:
             if self.laygen.fields_in_layout[field_name].startswith('TX'):
                 return True
@@ -2050,7 +2057,7 @@ class SqlWidget(gobject.GObject):
         return a boolean indicating if the widget is a toplevel widget
         """
         return 'Window' in self.widgets
-    
+
     def get_toplevel(self):
         """
         return the toplevel for this SqlWidget
@@ -2062,14 +2069,14 @@ class SqlWidget(gobject.GObject):
                 return self.widgets['T.0'].get_toplevel()
             except KeyError, e:
                 return self.relationship_leader.get_toplevel()
-    
+
     def fkey_is_valid(self):
         """
         return True if current editable -if exists- has a value that does not need validation
         """
         ## Overridden by SqlMask/SqlTable
         raise NotImplementedError
-    
+
     def get_current_obj(self):
         """
         Return the corrently edited obj. Note that in Table widgets,
@@ -2078,20 +2085,20 @@ class SqlWidget(gobject.GObject):
         """
         ## Overridden by SqlMask/SqlTable
         raise NotImplementedError
-    
+
 ###### debug
     def show_mapper_info(self, *args):
         from sqlkit.debug import gtk_dbg
         gtk_dbg.ShowMapperInfo(self.mapper_info)
-        
+
     def show_widget_info(self, *args):
         from sqlkit.debug import gtk_dbg
         gtk_dbg.show_widgets(self.widgets['Window'])
-        
+
     def show_class_info(self, *args):
         from sqlkit.debug import gtk_dbg
-        gtk_dbg.ShowClassInfo(self) 
-        
+        gtk_dbg.ShowClassInfo(self)
+
     def mostra(self, what):
         """
         debug: show all attribute of an object
@@ -2100,25 +2107,24 @@ class SqlWidget(gobject.GObject):
             obj = self.records[what]
         else:
             obj = what
-            
+
         for attr in self.field_list:
             print attr, getattr(obj, attr)
-            
-    
 
     def show_field_info(self, wdg, field_name):
         """
         Pop a dialog to give info on the selected field
         """
 
-        dialog, lay = self.lay_obj.dialog(layout="TVS=info", type='ok', title="Info on %s" % field_name)
+        dialog, lay = self.lay_obj.dialog(
+            layout="TVS=info", type='ok', title="Info on %s" % field_name)
 
         tv = lay.widgets['TV=info']
         model = gtk.ListStore(str, str)
         tv.set_model(model)
         tv.set_property('width-request', 210)
         tv.set_property('height-request', 320)
-        
+
         cell1 = gtk.CellRendererText()
         cell2 = gtk.CellRendererText()
 
@@ -2128,7 +2134,7 @@ class SqlWidget(gobject.GObject):
         tv.append_column(tc1)
         tv.append_column(tc2)
         tv.show_all()
-        
+
         for key in ('table_name', 'name', 'db_type', 'col_spec', 'fkey', 'default',
                     'pkey', 'nullable', 'editable', 'length'):
             miter = model.append()
@@ -2147,10 +2153,10 @@ class SqlWidget(gobject.GObject):
                               0,  key,
                               1, self.mapper_info.fields[field_name][key])
             except AttributeError:
-                    model.set(miter,
-                              0,  key,
-                              1, getattr(self.gui_fields[field_name], key, ''))
-                
+                model.set(miter,
+                          0,  key,
+                          1, getattr(self.gui_fields[field_name], key, ''))
+
         try:
             cell = self.tvcolumns[field_name].get_cell_renderers()[0]
             model.set(model.append(), 0,  'width', 1, cell.get_data('width'))
@@ -2165,8 +2171,7 @@ class SqlWidget(gobject.GObject):
         dialog.show_all()
         response = dialog.run()
         dialog.destroy()
-        
-        
+
     def session_show(self, k=None):
         """just for debugging 
         """
@@ -2185,13 +2190,13 @@ class SqlWidget(gobject.GObject):
             return l
         else:
             return l[k]
-        
+
     def record_show_changes(self):
         if self.record_has_changed():
             for field in self.gui_fields:
                 if field.has_changed():
                     print "OLD: %s   NEW: %s" % (field.initial_value, field.get_value())
-                    
+
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.tables)
 
@@ -2202,19 +2207,19 @@ class SqlWidget(gobject.GObject):
             return '<%s>' % (self.__class__.__name__)
 
 
-
-
 class UnsavedDataDialog(object):
+
     """
     A dialog that allows to see which data have been modifiedx
     """
+
     def __init__(self, master, type_="yes-no-cancel", msg=None, expanded=False):
         self.master = master
         general_msg = msg or _("Save unsaved data?")
         layout = "{v { i=gtk-dialog-question:6 l=msg}  {>%s.details TVS=details} }"
 
         self.dialog, l = master.lay_obj.dialog(title=_("Unsaved data"),
-            type=type_, text=general_msg,  layout=layout %  (expanded and '>' or ''))
+                                               type=type_, text=general_msg,  layout=layout % (expanded and '>' or ''))
 
         tv = l.widgets['TV=details']
         expander = l.widgets['X.details']
@@ -2225,11 +2230,11 @@ class UnsavedDataDialog(object):
             self.fill_model()
         else:
             expander.connect("notify::expanded", self.fill_model)
-        
+
         tv.set_model(self.model)
         tv.set_property('width-request', 600)
         tv.set_property('height-request', 150)
-        
+
         cell0 = gtk.CellRendererText()
         cell1 = gtk.CellRendererText()
         cell2 = gtk.CellRendererText()
@@ -2254,11 +2259,10 @@ class UnsavedDataDialog(object):
         return response
 
     def fill_model(self, *args):
-        
         """
         Dialog to allow analysis of changed data
         """
-        from sqlkit.db import utils 
+        from sqlkit.db import utils
         if self.master.is_mask():
             try:
                 self.master.record_mask2obj(self.master.get_current_obj())
@@ -2266,24 +2270,24 @@ class UnsavedDataDialog(object):
                 exc.ValidationError(e)
 
         if self.master.session.dirty or (
-            self.master.record_has_changed() and self.master.current not in self.master.session.new):
+                self.master.record_has_changed() and self.master.current not in self.master.session.new):
             dirty_iter = self.model.append(None)
             self.model.set(dirty_iter, 0, '<b>%s</b>' % _('Modified'))
 
             for item in self.master.session.dirty:
                 for field_name, old, new in utils.get_differences(item):
                     if item.__class__ is self.master.mapper.class_ and (
-                        field_name in self.master.gui_fields):
-                        
+                            field_name in self.master.gui_fields):
+
                         field = self.master.gui_fields[field_name]
 
-                        old_value = old and utils.clean_for_markup(field.get_human_value(old)) 
-                        new_value = new and utils.clean_for_markup(field.get_human_value(new)) 
+                        old_value = old and utils.clean_for_markup(field.get_human_value(old))
+                        new_value = new and utils.clean_for_markup(field.get_human_value(new))
                     else:
                         ## FIXME: we could also look for better representation in related widgets
                         old_value = utils.clean_for_markup(old)
                         new_value = utils.clean_for_markup(new)
-                        
+
                     iter = self.model.append(None)
                     self.model.set(iter,
                                    0, "<i>%s</i>" % (utils.clean_for_markup(repr(item)[:25]) or
@@ -2301,8 +2305,7 @@ class UnsavedDataDialog(object):
                 self.model.set(iter,
                                0, "<i>%s</i>" % utils.clean_for_markup(item.__class__.__name__),
                                2, "%s" % utils.clean_for_markup(item))
-                
-                
+
         if self.master.session.new:
             new_iter = self.model.append(None)
             self.model.set(new_iter, 0, '<b>%s</b>' % _('New'))
@@ -2311,13 +2314,13 @@ class UnsavedDataDialog(object):
                 self.model.set(iter,
                                0, "<i>%s</i>" % utils.clean_for_markup(item.__class__.__name__),
                                3, "%s" % utils.clean_for_markup(item))
-                
+
     def clearer(self, value):
         """
         return a string representation of '' vs. None so that user
         understands what is changing when just a 
         """
-        from sqlkit.db import utils 
+        from sqlkit.db import utils
         if value == '':
             return utils.clean_for_markup('<%s>' % _("empty string: ''"))
         if value is None:
@@ -2327,32 +2330,32 @@ class UnsavedDataDialog(object):
 
 class ValidationErrorDialog(object):
 
-    GENERAL_MSG = _('Errors are present in the record. \nCorrect them now, to continue \nor delete the record')
+    GENERAL_MSG = _(
+        'Errors are present in the record. \nCorrect them now, to continue \nor delete the record')
     TITLE = _("Validation errors")
     TYPE = 'ok'
     ERROR_DICT = 'validation_errors'
     IMAGE = 'gtk-dialog-error'
-    
+
     def __init__(self, master):
         """
         represent the errors in self.validation_errors and raise ValidationError
         to correctly propagate the error upwards
         """
         self.master = master
-        
 
         layout = """i=%s:6 l=general:<
                     TVS=details -""" % self.IMAGE
-        
+
         self.dialog, lay = master.lay_obj.dialog(layout=layout, type=self.TYPE, title=self.TITLE)
         lay.widgets['l=general'].set_text(self.GENERAL_MSG)
-        
+
         tv = lay.widgets['TV=details']
         model = gtk.ListStore(str, str)
         tv.set_model(model)
         tv.set_property('width-request', 420)
         tv.set_property('height-request', 150)
-        
+
         cell1 = gtk.CellRendererText()
         cell2 = gtk.CellRendererText()
 
@@ -2384,7 +2387,7 @@ class ValidationErrorDialog(object):
                 if i == 0:
                     model.set(iter, 0, "<b>%s</b>" % self.master.get_label(key))
                 model.set(iter, 1, "<i>%s</i>" % err)
-            
+
 
 class ValidationWarningDialog(ValidationErrorDialog):
 
@@ -2393,7 +2396,7 @@ class ValidationWarningDialog(ValidationErrorDialog):
     TYPE = 'ok-cancel'
     ERROR_DICT = 'validation_warnings'
     IMAGE = 'gtk-dialog-warning'
-    
+
     def run(self):
         response = self.dialog.run()
         self.dialog.destroy()

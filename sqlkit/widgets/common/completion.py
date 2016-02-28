@@ -51,28 +51,29 @@ from sqlkit.debug.sql import debug_inline_params
 # match_function filters using re.search from the listore to fill in the completion
 #
 OP = {
-    'sqlite' : 'LIKE',
-    'postgres'     : '~*',
-    'postgresql'     : '~*',
-    'mysql'  : 'ILIKE',
-    }
+    'sqlite': 'LIKE',
+    'postgres': '~*',
+    'postgresql': '~*',
+    'mysql': 'ILIKE',
+}
 
 class SimpleCompletion(object):
+
     """
     An object that hold all the information on how to retrieve possible completions in simple cases
-    
+
     """
     __metaclass__ = None if not dbg.debug else dbg.LogTheMethods
     autostart = False
     autostart_last_length = 0
-    
+
     VALUE_COL = 0
     DESCRIPTION_COL = 0
     MARKUP_COL = 0
     OBJ_COL = 1
     MATCH_COL = 2
     SEARCH_COL = 0
-        
+
     group_by = None
     """
     The field_name on which the output should be grouped.
@@ -102,7 +103,6 @@ class SimpleCompletion(object):
     """
 
     def __init__(self, master, widget, field_name):
-
         """completion is the way we can find possible completions of text in
         a cell.  In case the edited field has a Foreign Key constraint
         completion will follow the table/field to retrieve the possible
@@ -129,9 +129,8 @@ class SimpleCompletion(object):
              with a description field, for the user benefit. The real value
              of the field will be hold there.
         self.master.gui_fields (mask wdgets): the mapping field_name -> widget
-        
-        """
 
+        """
 
         self.master = master
         self._ids = {}
@@ -156,14 +155,14 @@ class SimpleCompletion(object):
         self._group_by = None
         self._order_by = [self.column]
         self._dynamic_filters = None
-        self.mapper = self.master.mapper # used to track path relationship
+        self.mapper = self.master.mapper  # used to track path relationship
         self.force_enum = False
         self.displaying_completion = False
 #        self.query = self.master.session.query(getattr(self.master.mapper.class_, self.field_name)).autoflush(False)
         self.query = self.master.session.query(*self.columns).autoflush(False)
         self.filtered_query = None
         self.match_dict = {}
-        
+
     def destroy(self, sqlwidget):
 
         for obj, hid in self._ids.values():
@@ -175,7 +174,7 @@ class SimpleCompletion(object):
                 delattr(self, attr)
             except AttributeError, e:
                 pass
-        
+
     def set_group_by(self, field_name):
         """
         Modify the way output is presented adding a group field.
@@ -196,7 +195,7 @@ class SimpleCompletion(object):
 
         self._group_by = field_name
         self._order_by = [self.table.columns[f] for f in [field_name, self.description]]
-        
+
     def get_group_by(self):
 
         return self._group_by
@@ -205,16 +204,16 @@ class SimpleCompletion(object):
         return self.widget.get_entry()
 
     group_by = property(get_group_by, set_group_by)
-    entry    = property(get_entry)
+    entry = property(get_entry)
 
     def _get_attrs(self):
         return self._attrs
-    
+
     def _set_attrs(self, attrs):
         self._attrs = attrs
         self.columns = [getattr(self.mapper.class_, field_name) for field_name in attrs]
         self.query = self.master.session.query(*self.columns).autoflush(False)
-        
+
     attrs = property(_get_attrs, _set_attrs)
 
     def prepare_completion(self):
@@ -239,12 +238,12 @@ class SimpleCompletion(object):
         completion.set_match_func(self.match_func)
         self.model = self.prepare_model()
         completion.set_model(self.model)
-        
+
         return completion
 
     def prepare_model(self):
         return gtk.ListStore(str, object, bool)
-    
+
     def add_completion(self, entry):
         """ add a completionEntry to an Entry
         """
@@ -255,13 +254,13 @@ class SimpleCompletion(object):
         entry.connect('key-press-event', self.keypress_event_cb,  self.field_name)
         entry.connect('key-release-event', self.keypress_event_cb,  self.field_name, 'release')
 
-        
+
 ### Filling & popping the completion
     def show_possible_completion(self, widget, mode, apply_filter=True, pop=True, sb=True,
                                  value=None, return_sql=False, one=False):
         """
         fill in a ListStore to use with completion, fetch data from db
-        
+
         :param mode: determines the match of the already typed text:
 
            :start: only matching data starting with typed text
@@ -281,7 +280,7 @@ class SimpleCompletion(object):
             mode = 'enum'
         self.mode = mode
         if sb:
-            # TIP: status bar 
+            # TIP: status bar
             self.master.sb(_("search mode: %s") % mode)
         self.model.clear()
         self._prev_group_by_value = None
@@ -299,7 +298,7 @@ class SimpleCompletion(object):
             try:
                 f = self.master.gui_fields[self.field_name]
                 q = self.filtered_query or self.query
-                result = q.filter_by(**{self.column_lookup.name : f.get_value()})
+                result = q.filter_by(**{self.column_lookup.name: f.get_value()})
             except exc.ValidationError:
                 # ValidationError occurs when f.get_value() fails finding a possible completion
                 return
@@ -317,7 +316,7 @@ class SimpleCompletion(object):
             ## 3. select a match that activates the cell correctly. A second
             ## pass on the same cell, if you try to complete, exact will be
             ## used an will fail.
-            
+
             try:
                 return DictLike(obj)
             except UnboundLocalError:
@@ -325,7 +324,7 @@ class SimpleCompletion(object):
 
         if pop:
             self.make_completion_to_pop(self.get_entry())
-        else: # doctest purpose
+        else:  # doctest purpose
             for row in self.model:
                 print self.model.get_value(row.iter, 1)
 
@@ -335,7 +334,7 @@ class SimpleCompletion(object):
         """
         return self.show_possible_completion(None, mode, return_sql=True, value=value,
                                              apply_filter=apply_filter)
-    
+
     def match_func(self, completion, key, iter):
         """
         When editing, this function limits the visible entry of the model
@@ -346,7 +345,7 @@ class SimpleCompletion(object):
         ## popup
         text = self.model.get_value(iter, self.SEARCH_COL)
         prev = getattr(self, '_prev_match_value', None)
-        
+
         if self.mode == 'enum':
             return True
 
@@ -359,19 +358,18 @@ class SimpleCompletion(object):
 
         return self.match_dict.get(self.model.get_path(iter), False)
 
-
     def model_set_match_col(self, key):
         """
         set MATCH_COL to be returned by match_func in a 2 pass process:
-        
+
         """
         miter_dict = {}
         i = 0
         for row in self.model:
             value = self.model.get_value(row.iter, self.VALUE_COL)
-            text  = self.model.get_value(row.iter, self.SEARCH_COL)
-            obj   = self.model.get_value(row.iter, self.OBJ_COL)
-            descr   = self.model.get_value(row.iter, self.DESCRIPTION_COL)
+            text = self.model.get_value(row.iter, self.SEARCH_COL)
+            obj = self.model.get_value(row.iter, self.OBJ_COL)
+            descr = self.model.get_value(row.iter, self.DESCRIPTION_COL)
 
             path = self.model.get_path(row.iter)
             if value is None:
@@ -388,13 +386,13 @@ class SimpleCompletion(object):
                         match = True
                     elif text is None:
                         match = False
-                    elif self.mode == 'start' and re.search("^%s" %(key), text, re.IGNORECASE):
+                    elif self.mode == 'start' and re.search("^%s" % (key), text, re.IGNORECASE):
                         match = True
                     elif re.search(key, text, re.IGNORECASE):  # regexp mode
                         match = True
                 except re.error, e:
                     match = False
-                    
+
                 if match and self._group_by:
                     ## switch ON the display of group by label in completion
                     try:
@@ -403,9 +401,10 @@ class SimpleCompletion(object):
                         print "Probable missing value for %s" % text
                     except KeyError:
                         ## FIXME but I have not uderstood why I need it.
-                        # I get here when -after accepting a completion- I go back and delete some chars
+                        # I get here when -after accepting a completion- I go back and delete some
+                        # chars
                         pass
-                    
+
                 self.match_dict[path] = match
 
         for path, val in miter_dict.values():
@@ -434,8 +433,8 @@ class SimpleCompletion(object):
         # read note in widget.pop_completion()
         self.widget.pop_completion()
         ## we don't want selection to prevent autocompletion from deleting already written text
-        entry.select_region(-1,-1)
-        
+        entry.select_region(-1, -1)
+
 ### Call back
     def match_selected_cb(self, wdg, model, iter, field_name):
         """
@@ -451,7 +450,7 @@ class SimpleCompletion(object):
 
         value = model.get(iter, self.VALUE_COL)[0]
         obj = model.get_value(iter, self.OBJ_COL)
-        
+
         self.master.set_value(field_name, value, fkvalue=None, initial=False)
         ## here field.set_value is not yet needed. It's there just in case the field has some
         ## validation logic
@@ -487,7 +486,7 @@ class SimpleCompletion(object):
         query = query.order_by(*self._order_by).distinct()
         if return_sql:
             return query
-        
+
         return query.all()
 
     def get_values(self, mode, value):
@@ -521,7 +520,7 @@ class SimpleCompletion(object):
             sorted(values)
 
         self.possible_values = values
-        
+
     def compose_select_statement(self, query, oper, value):
 
         if oper:
@@ -529,9 +528,9 @@ class SimpleCompletion(object):
                 query = query.filter(self.column.ilike(value))
             else:
                 query = query.filter(self.column.op(oper)(value))
-            
+
         return query
-    
+
     def get_displayed_value(self, value=None):
 
         if value is not None:
@@ -544,7 +543,7 @@ class SimpleCompletion(object):
             return self.add_for_LIKE_and_REGEXP(val.strip('\\'))
 
     def get_match_operator(self):
-        
+
         ## FIXME: pretty stupid at the moment...
         if self.mode == 'start':
             oper = self.MATCH_OPERATOR
@@ -558,13 +557,13 @@ class SimpleCompletion(object):
         return oper
 
     def add_for_LIKE_and_REGEXP(self, value):
-        """add a % simbol to get expansion if completion is attempted in LIKE mode""" 
+        """add a % simbol to get expansion if completion is attempted in LIKE mode"""
 
         if self.MATCH_OPERATOR in ('LIKE', 'ILIKE'):
             if self.mode == 'start':
                 if not value.endswith('%'):
                     value += '%'
-                
+
             if self.mode == 'regexp':
                 if not value.startswith('%'):
                     value = '%' + value + '%'
@@ -575,12 +574,12 @@ class SimpleCompletion(object):
                     value = '^' + value
 
         return value
-    
+
     def add_dynamic_filters(self, query):
         """
         Add dinamic filters set with ``.filter``
         """
-        if not self._dynamic_filters  or not self._apply_filter:
+        if not self._dynamic_filters or not self._apply_filter:
             return query
 
         ## substitute values
@@ -589,10 +588,10 @@ class SimpleCompletion(object):
         dynamic_filters = self._dynamic_filters[1:]
 
         for key, val in dynamic_filters:
-            value =  self.parse_value(val)   # get a possible dynamic filter
+            value = self.parse_value(val)   # get a possible dynamic filter
             if value:
                 kw[key] = value
-        
+
         if kw:
             return django2query(query, self.mapper, OR=OR, **kw)
         else:
@@ -607,19 +606,19 @@ class SimpleCompletion(object):
         """
         if self.displaying_completion:
             return
-        
+
         if self.autostart:
             text = self.master.get_value(self.field_name, shown=True)
             length = len(text or '')
 
             if (not self.autostart_last_length  and length >= self.autostart) \
-                   or (length + 1 < self.autostart_last_length):
+                    or (length + 1 < self.autostart_last_length):
                 autostart = self.autostart
                 self.autostart = False
                 self.show_possible_completion(self.widget.get_entry(), 'regexp')
                 self.autostart = autostart
         return True
-    
+
     def pop_menu(self, wdg, ev, field_name, num_button=3):
         """pops a menu with chooices of different completion::
               - regexp
@@ -627,7 +626,7 @@ class SimpleCompletion(object):
         """
         from sqlkit.widgets.table.tablewidgets import CellWidget
         from sqlkit.layout.misc import StockMenuItem
-        
+
         if not ev.button == num_button:
             return False
 
@@ -636,18 +635,17 @@ class SimpleCompletion(object):
         except:
             pass
 
-        
         self.master.widgets['M=popup'] = gtk.Menu()
         menu = self.master.widgets['M=popup']
         ## info on field
-        
-        item = StockMenuItem(label="info on %s" % field_name.replace('_','__'), stock='gtk-info')
-        gtk.MenuItem(label="info on %s" % field_name.replace('_','__'))
+
+        item = StockMenuItem(label="info on %s" % field_name.replace('_', '__'), stock='gtk-info')
+        gtk.MenuItem(label="info on %s" % field_name.replace('_', '__'))
         item.connect('activate', self.master.show_field_info, field_name)
         label = _("Show all info on this field, db type & Co.")
         item.set_tooltip_text(label)
         menu.append(item)
-        
+
         ## possible values regexp
         # TIP: menu enty in menu on right click on down arro in fkey completion widget
         item = gtk.MenuItem(label=_("Show possible values: regexp  - Ctrl-Enter"))
@@ -685,8 +683,9 @@ class SimpleCompletion(object):
 
         menu.show_all()
         menu.popup(None, None, None, ev.button, ev.time)
-        
+
         return True
+
     def keypress_event_cb(self, wdg, event, data=None, when='before'):
         """trigger various callback to keypress
         Set in miniwidgets or in text_editing_started_cb
@@ -709,13 +708,13 @@ class SimpleCompletion(object):
                              #('mod2', gtk.gdk.MOD2_MASK),
                              ('mod3', gtk.gdk.MOD3_MASK),
                              ('mod4', gtk.gdk.MOD4_MASK),
-                             ('mod5', gtk.gdk.MOD5_MASK),]:
+                             ('mod5', gtk.gdk.MOD5_MASK), ]:
             if event.state & mask:
                 mods.append(prefix)
 
         ksym = '_'.join(mods + [ksym])
         #dbg.write('ksym', ksym, 'mods', mods)
-        
+
         if when == 'release':
             self.autostart_completion()
             return
@@ -726,35 +725,35 @@ class SimpleCompletion(object):
     def key_entry_F1(self, wdg, event, data):
         self.show_possible_completion(wdg, mode='regexp')
         return False
-    
+
     def key_entry_shift_Return(self, wdg, event, data):
         self.show_possible_completion(wdg, mode='start')
         return True
-        
+
     def key_entry_shift_alt_Return(self, wdg, event, data):
         self.show_possible_completion(wdg, mode='start', apply_filter=False)
         return True
-        
+
     def key_entry_ctrl_Return(self, wdg, event, data):
         self.show_possible_completion(wdg, mode='regexp')
         return True
-        
+
     def key_entry_ctrl_alt_Return(self, wdg, event, data):
         self.show_possible_completion(wdg, mode='regexp', apply_filter=False)
         return True
-        
+
     def key_entry_ctrl_alt_f(self, wdg, event, data):
         self.master.filter_panel.short_filter(self.field_name, self.master.relationship_path)
         return True
-        
+
     def key_entry_ctrl_shift_Return(self, wdg, event, data):
         self.show_possible_completion(wdg, mode='enum')
         return True
-        
+
     def key_entry_ctrl_shift_alt_Return(self, wdg, event, data):
         self.show_possible_completion(wdg, mode='enum', apply_filter=False)
         return True
-        
+
     def key_entry_Return(self, wdg, event, data):
         #
         return not self.check_existance(wdg)
@@ -771,12 +770,12 @@ class SimpleCompletion(object):
         Return True if field exists or validates
         """
         text = entry.get_text()
-        
+
         if not text:
             return True
 
         if self.master.is_fkey(self.field_name) or (
-            self.master.relationship_mode == 'm2m' and not self.master.m2m_editable):
+                self.master.relationship_mode == 'm2m' and not self.master.m2m_editable):
             ## check if the text entered was in fact a complete and legal fkey
             ## or unique field (for m2m)
             if self.master.fkey_is_valid(self.field_name):
@@ -786,7 +785,8 @@ class SimpleCompletion(object):
                 return True
             try:
                 if self.master.is_fkey(self.field_name):
-                    clean_value = self.master.gui_fields[self.field_name].clean_value(text, input_is_fkey=False)
+                    clean_value = self.master.gui_fields[
+                        self.field_name].clean_value(text, input_is_fkey=False)
                     if clean_value == None:
                         raise exc.NoResultFound
 
@@ -803,7 +803,7 @@ class SimpleCompletion(object):
                     self.show_possible_completion(entry, mode='regexp', sb=False)
                     self.master.cell_entry.valid = False
                     return False
-                    
+
             except (exc.NoResultFound, exc.MultipleResultsFound), e:
                 self.master.sb(_("No exact match, trying regexp completion"), seconds=4)
                 self.show_possible_completion(entry, mode='regexp', sb=False)
@@ -814,14 +814,14 @@ class SimpleCompletion(object):
         """
         check if the object exists and .one(), but don't trigger .flush()
         """
-        filter_cnd = {str(self.field_name) : value}
+        filter_cnd = {str(self.field_name): value}
         query = self.master.session.query(table2mapper(self.table)).autoflush(False)
-        return query.filter_by( **filter_cnd ).one()
-        
+        return query.filter_by(**filter_cnd).one()
+
     def filter(self, OR=False, main_query=False, **kwargs):
         """
         :param main_query: add the filter to the main query
-        
+
         Add filters to the completion. Filters must be expressed in django-like syntax
         Value can be in the form ``$field_name`` (see below)::
 
@@ -857,7 +857,7 @@ class SimpleCompletion(object):
              This in general is the main SqlMask holding possibly different m2m
              tables. This makes it possible for rows in an m2m table to complete
              only with values related to the referring header.
-             
+
         """
 
         kw_dyn_list = [OR]
@@ -868,7 +868,7 @@ class SimpleCompletion(object):
             if isinstance(val, basestring) and val.startswith('$'):
                 keys += [key]
                 kw_dyn_list += [(key, re.sub('^\$', '', val))]
-                
+
         for key in keys:
             kwargs.pop(key)
 
@@ -881,26 +881,26 @@ class SimpleCompletion(object):
                                                    self.mapper, OR=OR, **kwargs)
 
         self._dynamic_filters = kw_dyn_list
-        
+
     def parse_value(self, value):
         """
         return value after 2 substitutions as described in .filter()
 
         """
         if isinstance(value, str):
-            
+
             if value.startswith('main.'):
-                value = value.replace('main.','')
+                value = value.replace('main.', '')
                 value = self.master.relationship_leader.get_value(value)
             else:
                 value = self.master.get_value(value)
         return value
-        
 
     def __str__(self):
         return "<SimpleCompletion: %s>" % self.field_name
-        
+
 class FkeyCompletion(SimpleCompletion):
+
     """
     A completion that follows foreign key to get values to complete and to substitute for lookup.
     Inherits from :class:`SimpleCompletion`
@@ -911,7 +911,7 @@ class FkeyCompletion(SimpleCompletion):
     OBJ_COL = 3
     MATCH_COL = 4
     SEARCH_COL = 5
-        
+
     def __init__(self, master, widget, *args, **kw):
         SimpleCompletion.__init__(self, master, widget, *args, **kw)
         self.table, self.column = get_foreign_info(self.master, self.field_name, names=False)
@@ -921,14 +921,15 @@ class FkeyCompletion(SimpleCompletion):
         self._attrs = get_description(self.table, attr='attrs', metadata=self.master.metadata)
         if self.search_field not in self._attrs:
             self._attrs += [self.search_field]
-        self.format    = get_description(self.table, attr='format', metadata=self.master.metadata)
+        self.format = get_description(self.table, attr='format', metadata=self.master.metadata)
         self._order_by = [self.table_lookup.c[self.description]]
         self.widget = widget
         class_ = utils.get_class(self.table_lookup)
         if class_:
             self.mapper = class_mapper(class_)
         else:
-            class Tbl(object): pass
+            class Tbl(object):
+                pass
             self.mapper = mapper(Tbl, self.table_lookup)
         self.columns = [getattr(self.mapper.class_, field_name) for field_name in self.attrs]
         self.query = self.master.session.query(*self.columns).autoflush(False)
@@ -939,7 +940,7 @@ class FkeyCompletion(SimpleCompletion):
     def prepare_model(self):
         ## last col is for markup
         return gtk.ListStore(object, str, str, object, bool, str)
-            
+
     def compose_select_statement(self, query, oper, value):
 
         if oper:
@@ -949,7 +950,7 @@ class FkeyCompletion(SimpleCompletion):
             else:
                 query = query.filter(lookup_col.op(oper)(value))
         return query
-    
+
     def match_selected_cb(self, wdg, model, iter, field_name):
         """
         after selecting an entry store the value in self.values and set
@@ -964,7 +965,7 @@ class FkeyCompletion(SimpleCompletion):
 
         value = model.get(iter, self.VALUE_COL)[0]
         obj = model.get_value(iter, self.OBJ_COL)
-        
+
         fkvalue = model.get(iter, self.DESCRIPTION_COL)[0]
 
         self.master.set_value(field_name, value, fkvalue=fkvalue, initial=False)
@@ -988,10 +989,10 @@ class FkeyCompletion(SimpleCompletion):
         obj_list = []
 
         ## FIXME what if we have a multiple pkey?
-        fvalue  = getattr(obj, self.attrs[0])
+        fvalue = getattr(obj, self.attrs[0])
 #        fdescr  = getattr(obj, self.description)
         fsearch = getattr(obj, self.search_field)
-        
+
         Obj = DictLike(obj)
         description = unicode((self.format % Obj)).strip()
         m_iter = self.get_iter(obj)
@@ -1017,7 +1018,7 @@ class FkeyCompletion(SimpleCompletion):
 
             self._prev_group_by_value = new_value
             ## the row is NOT a ??
-            if new_value is not None and  new_value == prev:
+            if new_value is not None and new_value == prev:
                 return self.model.append(self._prev_group_by_iter)
 
             else:
@@ -1026,25 +1027,24 @@ class FkeyCompletion(SimpleCompletion):
                 self._prev_group_by_iter = None
                 self.model.set(m_iter,
                                self.DESCRIPTION_COL, new_value,
-                               self.MARKUP_COL,   "<b><i>%s</i></b>" % markup_escape_text(new_value),
+                               self.MARKUP_COL,   "<b><i>%s</i></b>" % markup_escape_text(
+                                   new_value),
                                self.MATCH_COL,       True,
                                )
                 m_iter = self.model.append(None)
             return m_iter
-                    
-            
+
     def get_obj_no_flush(self, value):
         """
         check if the object exists and .one(), but don't trigger .flush()
         """
-        
-        filter_cnd = {str(self.description) : value}
+
+        filter_cnd = {str(self.description): value}
         query = self.master.session.query(table2mapper(self.table)).autoflush(False)
-        return query.filter_by( **filter_cnd ).one()
-        
+        return query.filter_by(**filter_cnd).one()
+
 #     def compose_binary_expression(self, **kwargs):
 #         return compose_binary_expression(self.table, **kwargs)
-
 
     def get_filtered_clause_list(self, **kw):
         """
@@ -1053,14 +1053,15 @@ class FkeyCompletion(SimpleCompletion):
         use table to build the clause. That means we cannot follow any
         further relationship.
         """
-        
+
         clause_list, path = django2sqlalchemy(table=self.table, **kw)
         return clause_list
 
     def __str__(self):
         return "<FkeyCompletion: %s>" % self.field_name
-        
+
 class EnumCompletion(SimpleCompletion):
+
     """
     A completion that shows enum alternatives.
     Inherits from :class:`SimpleCompletion`
@@ -1069,18 +1070,19 @@ class EnumCompletion(SimpleCompletion):
     DESCRIPTION_COL = 1
     SEARCH_COL = 1
     MARKUP_COL = 1
-        
+
     def __init__(self, master, widget, *args, **kw):
         SimpleCompletion.__init__(self, master, widget, *args, **kw)
         self.widget = widget
         self._needs_recalculating = False
+
     def get_entry(self):
         return self.widget.entry
 
     def prepare_model(self):
         ## last col is for markup
         return gtk.ListStore(object, str, )
-            
+
     def match_selected_cb(self, wdg, model, iter, field_name):
         """
         after selecting an entry store the value in self.values and set
@@ -1094,7 +1096,7 @@ class EnumCompletion(SimpleCompletion):
         #         if more fields are present more columns get written
 
         value = model.get(iter, self.VALUE_COL)[0]
-        
+
         fkvalue = model.get(iter, self.DESCRIPTION_COL)[0]
 
         self.master.set_value(field_name, value, fkvalue=fkvalue, initial=False)
@@ -1112,7 +1114,7 @@ class EnumCompletion(SimpleCompletion):
                                  value=None, return_sql=False, one=False):
         """
         fill in a ListStore to use with completion, fetch data from db
-        
+
         :param mode: determines the match of the already typed text:
 
            :start: only matching data starting with typed text
@@ -1132,7 +1134,7 @@ class EnumCompletion(SimpleCompletion):
             mode = 'enum'
         self.mode = mode
         if sb:
-            # TIP: status bar 
+            # TIP: status bar
             self.master.sb(_("search mode: %s") % mode)
         self.model.clear()
 
@@ -1144,15 +1146,16 @@ class EnumCompletion(SimpleCompletion):
         self.completion.set_model(self.model)
 
         if one and mode == 'exact':  # used by self.check_existance
-        ## just one result will be returned even if no check is done that more that one exists
+            ## just one result will be returned even if no check is done that more that one exists
             # I'm not sure that obj is *always* defined!... I believe so!
             return DictLike(obj)
 
         if pop:
             self.make_completion_to_pop(self.get_entry())
-        else: # doctest purpose
+        else:  # doctest purpose
             for row in self.model:
                 print self.model.get_value(row.iter, 1)
+
     def append_to_model(self, idx, text):
         """
         add to the model that has 6 cols
@@ -1167,14 +1170,13 @@ class EnumCompletion(SimpleCompletion):
         """
         check if the object exists and .one(), but don't trigger .flush()
         """
-        
-        filter_cnd = {str(self.description) : value}
+
+        filter_cnd = {str(self.description): value}
         query = self.master.session.query(table2mapper(self.table)).autoflush(False)
-        return query.filter_by( **filter_cnd ).one()
-        
+        return query.filter_by(**filter_cnd).one()
+
 #     def compose_binary_expression(self, **kwargs):
 #         return compose_binary_expression(self.table, **kwargs)
-
 
     def get_filtered_clause_list(self, **kw):
         """
@@ -1183,14 +1185,15 @@ class EnumCompletion(SimpleCompletion):
         use table to build the clause. That means we cannot follow any
         further relationship.
         """
-        
+
         clause_list, path = django2sqlalchemy(table=self.table, **kw)
         return clause_list
 
     def __str__(self):
         return "<FkeyCompletion: %s>" % self.field_name
-        
+
 class M2mCompletion(FkeyCompletion):
+
     """
     A completion that completes on the whole line: each field can be used to choose the same
     record. It's not possible in this mode to compose a new record field by field.
@@ -1201,14 +1204,14 @@ class M2mCompletion(FkeyCompletion):
     Inherits from :class:`FkeyCompletion`
 
     """
-    
+
     VALUE_COL = 0
     DESCRIPTION_COL = 1
     MARKUP_COL = 2
     OBJ_COL = 3
     MATCH_COL = 4
     SEARCH_COL = 5
-        
+
     def __init__(self, *args, **kw):
 
         SimpleCompletion.__init__(self, *args, **kw)
@@ -1216,11 +1219,12 @@ class M2mCompletion(FkeyCompletion):
         self.query = self.master.session.query(self.master.mapper.class_).autoflush(False)
 
         if self.master.is_fkey(self.field_name):
-            table_lookup_real, column_lookup = get_foreign_info(self.master, self.field_name, names=False)
+            table_lookup_real, column_lookup = get_foreign_info(
+                self.master, self.field_name, names=False)
             self.table_lookup = table_lookup_real.alias()
             self.column_lookup = self.table_lookup.c[column_lookup.name]
             self.search_field = get_description(table_lookup_real.name, attr='description',
-                                               metadata=self.master.metadata)
+                                                metadata=self.master.metadata)
             self.sql_join = (self.column == self.column_lookup)
         else:
             self.table_lookup, self.column_lookup = self.table, self.column
@@ -1232,13 +1236,12 @@ class M2mCompletion(FkeyCompletion):
         self.columns = [getattr(self.master.mapper.class_, field_name) for field_name in self.attrs]
         self.search_column = self.table_lookup.c[self.search_field]
         self.columns += [self.search_column]
-        
+
         self.query = self.master.session.query(*self.columns).autoflush(False)
-        
+
         if self.master.is_fkey(self.field_name):
             self.query = self.query.join((self.table_lookup, self.sql_join)).reset_joinpoint()
 
-        
     def match_selected_cb(self, wdg, model, iter, field_name):
         """
         after selecting an entry store the value in self.values and set
@@ -1255,7 +1258,7 @@ class M2mCompletion(FkeyCompletion):
         ## when the Table is used to render a m2m field
         ## we don't want to "create" a new match, just pick an old one
         ## and use that one
-            
+
         try:
             self.master.set_current(pk=value)
         except Exception, e:
@@ -1265,7 +1268,7 @@ class M2mCompletion(FkeyCompletion):
         self.displaying_completion = False
         self.master.run_hook('on_completion', obj, field_name=self.field_name)
         return True
-        
+
     def filter(self, **kwargs):
         """
         """
@@ -1277,17 +1280,17 @@ class M2mCompletion(FkeyCompletion):
 
     def _filter_single(self, **kwargs):
         FkeyCompletion.filter(self, **kwargs)
-        
+
     def __str__(self):
         return "<M2mCompletion: %s>" % self.field_name
-        
+
 
 ### Functions
 def debug_liststore(listore):
     j = 0
     for l in listore:
         iter = listore.get_iter_from_string(str(j))
-        print listore.get(iter,0), listore.get(iter,1), listore.get(iter,3)
+        print listore.get(iter, 0), listore.get(iter, 1), listore.get(iter, 3)
         j += 1
 
 def edit_foreign_key_table(wdg, master, field_name, mode):
@@ -1295,7 +1298,7 @@ def edit_foreign_key_table(wdg, master, field_name, mode):
     ## FIXME  - works only with dbproxy
 
     from sqlkit.widgets import SqlMask, SqlTable
-    
+
     ftable, fkey = get_foreign_info(master, field_name)
     if mode == 'mask':
         m = SqlMask(ftable, dbproxy=master.dbproxy)
@@ -1306,12 +1309,10 @@ def edit_foreign_key_table(wdg, master, field_name, mode):
             pass
     else:
         SqlTable(ftable, dbproxy=master.dbproxy)
-    
+
 def get_foreign_info(master, field_name, names=True):
 
     from sqlkit.db.minspect import get_foreign_info
 
     foreign_keys = master.mapper_info.fields[field_name]['fkey']
     return get_foreign_info(foreign_keys, names=names)
-
-

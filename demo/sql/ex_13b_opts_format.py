@@ -11,10 +11,9 @@ It's possible to force a different representation setting 'format' and possibly
 t = SqlTable('movie',
              dbproxy=db,
              order_by='director_id',
-             rows = 15,
-             format = {'year': '#'}, # don't use group separator
-         )
+             rows=15,
+             format={'year': '#'},  # don't use group separator
+             )
 
 
 t.reload()
-

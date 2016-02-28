@@ -10,7 +10,6 @@ with that name. If both are present, the more specific apply.
 """
 
 
-
 trad = """
 nome	Nome proprio	Label doesn't show this text since it does not have sensitivity
 e=nome	Nome	Label doesn't ...
@@ -26,5 +25,3 @@ simple_menu = """
 l = Layout(simple_menu)
 
 w = l.show()
-
-

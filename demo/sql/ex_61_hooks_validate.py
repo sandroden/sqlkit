@@ -10,6 +10,7 @@ from sqlkit.exc import ValidationError
 from sqlkit.db.utils import get_differences
 
 class Validation(object):
+
     def on_validation(self, mask):
 
         changed = False
@@ -21,7 +22,6 @@ class Validation(object):
             raise ValidationError("I don't want you to change anything!!!")
 
 t = SqlMask(model.Movie, dbproxy=db, hooks=Validation())
-t.gui_fields.description.blank = True  #don't try to change '' in None
+t.gui_fields.description.blank = True  # don't try to change '' in None
 
 t.reload()
-

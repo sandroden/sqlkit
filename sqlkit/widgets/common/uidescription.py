@@ -155,4 +155,3 @@ DEBUG_UI = '''
 
   </menubar>
 '''
-

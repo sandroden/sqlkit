@@ -133,7 +133,7 @@ from datetime import timedelta, time
 import gtk
 import gobject
 
-from sqlkit import debug as  dbg, _, exc
+from sqlkit import debug as dbg, _, exc
 from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion
 
 NOT_NULL_COLOR = gtk.gdk.color_parse('#f6ebba')
@@ -141,22 +141,23 @@ NOT_EDITABLE_COLOR = gtk.gdk.color_parse('#333')
 
 
 class Widget(gobject.GObject):
+
     """
     A proxy between the :ref:`field <fields>` and a real gtk widget
     """
     __gsignals__ = {
         'value-set': (gobject.SIGNAL_RUN_FIRST,
-                     gobject.TYPE_NONE,
+                      gobject.TYPE_NONE,
                       # args: widget, value, initial
-                     (gobject.TYPE_PYOBJECT, gobject.TYPE_BOOLEAN,),
-                     )
-        }
+                      (gobject.TYPE_PYOBJECT, gobject.TYPE_BOOLEAN,),
+                      )
+    }
 
     def __init__(self, gtkwidget, field):
         """
         setup all what is needed in the widget: completion if any and much
         more for complex cases as :class:`CollectionWidget`
-        
+
         :param gtkwidget: the gtk widget used to display the data
         :param field: the :ref:`field <fields>` from ``sqlkit.fields``
         """
@@ -184,10 +185,10 @@ class Widget(gobject.GObject):
 
     def set_bg(self, state, color):
         self.gtkwidget.modify_base(state, color)
-        
+
     def set_text(self, state, color):
         self.gtkwidget.modify_text(state, color)
-        
+
     def set_value_cb(self, field, value, initial=False):
 
         self.set_value(value, initial=initial)
@@ -234,8 +235,8 @@ class Widget(gobject.GObject):
         if the fields is not editable, the widget cannot be editable
         """
         editable = self.field.editable and editable
-        self.gtkwidget.set_property('sensitive', editable) 
-        
+        self.gtkwidget.set_property('sensitive', editable)
+
     def add_completion(self):
         """add completion bindings and liststore
 
@@ -257,13 +258,13 @@ class Widget(gobject.GObject):
         ## when you click on the icon to pop the completion you should not invalidate
         ## self.real_value as it's not an editing action
         self.gtkwidget.emit('changed')
-        
+
     def __repr__(self):
         return "<%s - %s >" % (self.__class__.__name__, self.field_name)
 
 class VarcharWidget(Widget):
     #  to prevent to change NULL to '' and viceversa
-    #  we store the value when setting it 
+    #  we store the value when setting it
     #  and compare it when getting
 
     def __init__(self, *args):
@@ -272,16 +273,16 @@ class VarcharWidget(Widget):
         self.add_completion()
         self.gtkwidget.connect('key-press-event', self.on_key_press)
         self._id_changed = self.gtkwidget.connect('changed', self.on_changed)
-        
+
         if self.field.length:
             self.set_max_length(self.field.length)
- 
+
     def on_key_press(self, widget, event):
         ksym = gtk.gdk.keyval_name(event.keyval)
-        
+
         if not ksym == 'Return':
             return
-        
+
         if event.state & (gtk.gdk.CONTROL_MASK | gtk.gdk.SHIFT_MASK):
             return
 
@@ -300,13 +301,13 @@ class VarcharWidget(Widget):
     def set_value(self, value, initial=False):
         # Entry
         self.gtkwidget.handler_block(self._id_changed)
-        self.gtkwidget.set_text( str(value or '') )
+        self.gtkwidget.set_text(str(value or ''))
         self.gtkwidget.handler_unblock(self._id_changed)
         self.emit('value-set', value, initial)
-        
+
     def get_value(self, shown=False):
         value = unicode(self.gtkwidget.get_text())
-        ## don't change from None to '' 
+        ## don't change from None to ''
         return value
 
     def set_max_length(self, length=None):
@@ -314,15 +315,15 @@ class VarcharWidget(Widget):
         if length is None:
             length = self.field.length
         self.gtkwidget.set_max_length(length)
-        
+
 class ReadOnlyWidget(Widget):
 
     def __init__(self, *args):
 
         Widget.__init__(self, *args)
         self.gtkwidget.set_property('xpad', 0)
-        self.gtkwidget.set_property('sensitive', True) 
-        self.gtkwidget.set_property('selectable', True) 
+        self.gtkwidget.set_property('sensitive', True)
+        self.gtkwidget.set_property('selectable', True)
         if self.master.is_fkey(self.field_name):
             self.completion = FkeyCompletion(self.master, self, self.field_name)
         else:
@@ -352,34 +353,34 @@ class ReadOnlyWidget(Widget):
 
     def set_max_length(self, max):
         pass
-    
+
 class IntegerWidget(VarcharWidget):
 
     def __init__(self, *args):
         Widget.__init__(self, *args)
         self.gtkwidget.set_alignment(1)
         self.gtkwidget.connect('key-press-event', self.on_key_press)
-        self.gtkwidget.connect('key-press-event', self.master.digits_check_input_cb  )
+        self.gtkwidget.connect('key-press-event', self.master.digits_check_input_cb)
         self._id_changed = self.gtkwidget.connect('changed', self.on_changed)
-                
+
     def set_value(self, value, initial=False):
         self.text_value = self.field.format_value(value)
         self.gtkwidget.handler_block(self._id_changed)
         self.gtkwidget.set_text(self.text_value)
         self.gtkwidget.handler_unblock(self._id_changed)
         self.emit('value-set', value, initial)
-        
+
     def get_value(self, shown=False):
-        text = self.gtkwidget.get_text( )
+        text = self.gtkwidget.get_text()
         return self.field.clean_value(text)
 
 class FloatWidget(IntegerWidget):
-    
+
     def get_value(self, shown=False):
         ## the representation of a float normally trims it, so, if I know I have not changed
         ## anything I return the old value
 
-        text = self.gtkwidget.get_text( )
+        text = self.gtkwidget.get_text()
 
         if self.text_value == text:
             return self.field.initial_value
@@ -390,6 +391,7 @@ class DecimalWidget(IntegerWidget):
     pass
 
 class DateWidget(Widget):
+
     """
     A widget that uses :class:`DateEdit <sqlkit.layout.dateedit.DateEdit>`
     widget to represent a date.
@@ -413,7 +415,6 @@ class DateWidget(Widget):
         self.master.run_hook('on_change_value', date, date,
                              self.field, field_name=self.field_name)
         self.emit('value-set', date, False)
-        
 
     def set_value(self, value, initial=False):
 
@@ -432,23 +433,26 @@ class DateWidget(Widget):
             return value
 
 class TimeWidget(Widget):
+
     """
     A timezone unaware widget to set time. Very poor widget indeed.
     """
+
     def set_value(self, value, initial=False):
         self.gtkwidget.set_text(self.field.format_value(value))
         self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
-        
-        value = self.gtkwidget.get_text() 
+
+        value = self.gtkwidget.get_text()
 
         if not value:
             return None
-        value = time(*[int(i) for i in re.split('[.:]', value)]) 
+        value = time(*[int(i) for i in re.split('[.:]', value)])
         return self.field.clean_value(value)
 
 class TimeTZWidget(Widget):
+
     """
     A timezone aware widget to set time. Should have a TimeZone chooser but does not yet
     """
@@ -465,12 +469,13 @@ class IntervalWidget(Widget):
     def get_value(self, shown=False):
         ## if all values are 0 and initial value is None, return None
 
-        value = self.gtkwidget.get_property('interval') 
+        value = self.gtkwidget.get_property('interval')
         if value == timedelta(0) and self.field.initial_value == None:
             return None
         return value
 
 class DateTimeWidget(DateWidget):
+
     """
     A timezone unaware widget to set datetime. Very poor widget indeed.
     Uses :class:`DateTimeEdit <sqlkit.layout.dateedit.DateTimeEdit>`.
@@ -479,14 +484,14 @@ class DateTimeWidget(DateWidget):
     def __init__(self, *args):
         Widget.__init__(self, *args)
         self._datetime_changed_id = self.gtkwidget.connect('datetime-changed',
-                                                       self.date_changed_cb, )
+                                                           self.date_changed_cb, )
         self._date_changed_id = self.gtkwidget.connect('date-changed',
                                                        self.date_changed_cb, )
         self._time_changed_id = self.gtkwidget.connect('time-changed',
                                                        self.date_changed_cb, )
         self.gtkwidget.set_property('show-time', True)
         self.initial_delta = timedelta(0)
-        
+
     def date_changed_cb(self, widget):
 
         self.invalid = None
@@ -496,7 +501,7 @@ class DateTimeWidget(DateWidget):
         self.emit('value-set', datetime, False)
 
     def set_value(self, value, initial=False):
-        
+
         self.gtkwidget.handler_block(self._date_changed_id)
         self.gtkwidget.handler_block(self._datetime_changed_id)
         self.gtkwidget.handler_block(self._time_changed_id)
@@ -508,13 +513,14 @@ class DateTimeWidget(DateWidget):
         self.gtkwidget.handler_unblock(self._date_changed_id)
         self.gtkwidget.handler_unblock(self._datetime_changed_id)
         self.gtkwidget.handler_unblock(self._time_changed_id)
-        
+
     def get_value(self, shown=False):
         value = self.gtkwidget.get_property('datetime')
         value = self.field.clean_value(value, add_second=True, add_microsecond=True)
-        return value 
+        return value
 
 class DateTimeTZWidget(DateTimeWidget):
+
     """
     A timezone aware widget to set datetime. Should have a TimeZone chooser but does not yet
     """
@@ -527,7 +533,7 @@ class TextWidget(Widget):
 
     def set_value(self, value, initial=False):
         buff = self.gtkwidget.get_buffer()
-        buff.set_text( value or '')
+        buff.set_text(value or '')
         self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
@@ -538,6 +544,7 @@ class TextWidget(Widget):
         return text
 
 class BooleanWidget(Widget):
+
     """
     Null value is not admittable
 
@@ -559,18 +566,20 @@ class BooleanWidget(Widget):
         self.master.run_hook('on_activate', self, field_name=self.field_name)
         self.master.run_hook('on_change_value', self.get_value(), self.get_value(),
                              self.field, field_name=self.field_name)
-        
+
     def set_value(self, value, initial=False):
         self.gtkwidget.set_active(bool(value))
         self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
-        return self.gtkwidget.get_active( )
-        
+        return self.gtkwidget.get_active()
+
 class BooleanNullWidget(BooleanWidget):
+
     """
     This gtkwidget is placed in inconsinstent state to represent NULL
     """
+
     def __init__(self, *args):
         Widget.__init__(self, *args)
         self._clicked_id = self.gtkwidget.connect('clicked', self.on_clicked_cb)
@@ -595,8 +604,8 @@ class BooleanNullWidget(BooleanWidget):
         if self.gtkwidget.get_inconsistent():
             return None
         else:
-            return self.gtkwidget.get_active( )
-            
+            return self.gtkwidget.get_active()
+
     def on_clicked_cb(self, button):
         """
         a toggle function that loops through inconsinstent state also
@@ -619,9 +628,11 @@ class BooleanNullWidget(BooleanWidget):
         return True
 
 class EnumWidget(Widget):
+
     """
     A proxy for a ComboBox
     """
+
     def __init__(self, gtkwidget, field):
 
         Widget.__init__(self, gtkwidget, field)
@@ -638,7 +649,7 @@ class EnumWidget(Widget):
         self.master.run_hook('on_change_value', self.get_value(), self.get_value(shown=True),
                              self.field, field_name=self.field_name)
         self.emit('value-set', self.get_value(), False)
-        
+
     def fill_model(self):
         if self.field.nullable:
             self.model.append((None, ''))
@@ -649,7 +660,7 @@ class EnumWidget(Widget):
         if model.get_value(iter, 0) == value:
             return True
         i[0] += 1
-        
+
     def set_value(self, value, initial=False):
         i = [0]
         self.model.foreach(self._find_value, (value, i))
@@ -666,14 +677,15 @@ class EnumWidget(Widget):
             else:
                 return self.model.get_value(index, 0)
         return None
-    
+
 class ImageWidget(Widget):
+
     """
     A proxy for :ref:`image_widget` to represent fields that hold file
     name as images
     """
 
-    def __init__(self,gtkwidget, field):
+    def __init__(self, gtkwidget, field):
         Widget.__init__(self, gtkwidget, field)
         gtkwidget.props.strip_dir = field.base_dir.rstrip('/') + '/'
         gtkwidget.connect('image-selected', self.on_image_selected)
@@ -694,12 +706,12 @@ class ImageWidget(Widget):
                 type="ok-cancel",
                 text=_("A file with name '%s' already exists. Overwrite?" % save_path),
                 title=_('Upload name conflict'))
-            
+
             if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
                 return
         self.copy_file = self.field.clean_path(filename)
         self.new_filename = save_path
-    
+
     def set_value(self, value, initial=False):
 
         self.copy_file = None
@@ -711,6 +723,7 @@ class ImageWidget(Widget):
         return self.field.clean_path(self.gtkwidget.props.image_path)
 
 class ForeignKeyComboboxWidget(Widget):
+
     """a ComboBoxEntry with 2 columns
 
     In any case for the moment we need to click on a choice from the completion
@@ -723,11 +736,10 @@ class ForeignKeyComboboxWidget(Widget):
         ## see completion.append_to_model() to understand the meaning of these 4 columns
         # add to a model that has 4 cols:
         #       0: the value to be used as foreign key
-        #       1: the value to be shown in the entry 
+        #       1: the value to be shown in the entry
         #       2: data to be shown in the dropdown
         #       3: a dictionary of all fields in the returned row
         #          this can be used to set additional fields
-                    
 
         self.model = gtk.ListStore(object, str, str, object)
 
@@ -741,16 +753,16 @@ class ForeignKeyComboboxWidget(Widget):
             'key-press-event', self.completion.keypress_event_cb, self.field_name)
         self.entry = self.gtkwidget.child
         completion = self.completion.prepare_completion(self.field_name, mode='regexp',
-                                                               match_col=2)
+                                                        match_col=2)
         completion.set_model(self.model)
         self.entry.set_completion(completion)
-        self.gtkwidget.connect('notify::popup-shown', self.on_popup)        
+        self.gtkwidget.connect('notify::popup-shown', self.on_popup)
 
     def on_popup(self, widget, params):
         """the popup should be empty. We force the completion instead
         """
         self.completion.show_possible_completion(self.gtkwidget, mode='regexp')
-            
+
         return True
 
     def clean_real_value(self, *args):
@@ -767,10 +779,10 @@ class ForeignKeyComboboxWidget(Widget):
                 value = ''
 
         self.model.clear()
-        self.model.append([value, display_value, display_value,''])
-        self.gtkwidget.set_active(0)   # which column 
+        self.model.append([value, display_value, display_value, ''])
+        self.gtkwidget.set_active(0)   # which column
         self.emit('value-set', value, initial)
-        
+
     def get_value(self, shown=False):
         #dbg.write()
 
@@ -781,9 +793,10 @@ class ForeignKeyComboboxWidget(Widget):
         idx = self.gtkwidget.get_active()
         value, display_value, descr, obj_dict = self.model[idx]
 
-        return  value
+        return value
 
 class ForeignKeyWidget(Widget):
+
     """A ComboBoxEntry that displays a represention of the referenced record
     rather that the referece. I.e.: it shows last_name/first_name of a director
     rather than the `id` of the record in the directors' table.
@@ -797,7 +810,7 @@ class ForeignKeyWidget(Widget):
 
         Widget.__init__(self, *args)
 
-        self.entry  = self.gtkwidget.entry if hasattr(self.gtkwidget, 'entry') else self.gtkwidget
+        self.entry = self.gtkwidget.entry if hasattr(self.gtkwidget, 'entry') else self.gtkwidget
         self.add_completion()
         self.real_value = True
         self.master.completions[self.field_name] = self.completion
@@ -813,7 +826,8 @@ class ForeignKeyWidget(Widget):
         self.master.completions[self.field_name] = self.completion
 
         ## button connect
-        self.gtkwidget.connect('completion-requested', self.completion_requested_cb, self.field_name)
+        self.gtkwidget.connect(
+            'completion-requested', self.completion_requested_cb, self.field_name)
         #self.button.connect('clicked', self.on_button_clicked)
 
         ## entry connect
@@ -831,16 +845,15 @@ class ForeignKeyWidget(Widget):
             if event.type == gtk.gdk._2BUTTON_PRESS:
                 # cancel reques by first simple click
                 gobject.source_remove(self.idle_id)
-                    
+
                 mode = 'enum'
             else:
                 mode = 'regexp'
-        
+
             self.idle_id = gobject.idle_add(
                 self.completion.show_possible_completion, self.entry, mode)
-                
-        return True
 
+        return True
 
     def on_key_press(self, widget, event, when='press'):
 
@@ -857,7 +870,7 @@ class ForeignKeyWidget(Widget):
         self._dont_change_real_value = True
         self.entry.emit('changed')
         self._dont_change_real_value = False
-        
+
     def is_valid(self):
         return self.real_value
 
@@ -877,7 +890,7 @@ class ForeignKeyWidget(Widget):
             self.entry.set_text(display_value)
             self.real_value = True  # we can trust this value, has been set by procedures
         self.emit('value-set', value, initial)
-            
+
     def get_value(self, shown=False):
         if shown:
             return unicode(self.entry.get_text())
@@ -891,6 +904,7 @@ class ForeignKeyWidget(Widget):
                 return None
 
 class CollectionWidget(Widget):
+
     """
     A SqlTable widget that represents a collection of records. This is used to represent
     a property that in turn holds a relation. E.g.:  ``director.movies`` movies being a
@@ -900,8 +914,9 @@ class CollectionWidget(Widget):
 
     It maintains the same session so that a single commit will save parent and children.
     """
+
     def __init__(self, *args):
-        
+
         Widget.__init__(self, *args)
         table = self.field.table
 
@@ -909,34 +924,34 @@ class CollectionWidget(Widget):
         loader_spec = self.master.laygen.loaders[self.field_name]
 
         direction = self.field.property.direction.name
-        if direction  == 'MANYTOMANY':
+        if direction == 'MANYTOMANY':
             direction = "m2m"
         elif direction == 'ONETOMANY':
             direction = "o2m"
 
         self.table = SqlTable(
             table.name,
-            geom = (-1, -1),
-            rows = loader_spec.get('rows', 5),
-            mapper = self.field.mapper,
+            geom=(-1, -1),
+            rows=loader_spec.get('rows', 5),
+            mapper=self.field.mapper,
             session=self.master.session,
             metadata=self.master.metadata,
             dbproxy=self.master.dbproxy,
             naked=True,
             mode=self.master.mode,
-            format = filter_related(self.master._format_dict, self.field_name),
-            col_width = filter_related(self.master.col_width, self.field_name),
-            field_list = loader_spec.get('field_list', None),
+            format=filter_related(self.master._format_dict, self.field_name),
+            col_width=filter_related(self.master.col_width, self.field_name),
+            field_list=loader_spec.get('field_list', None),
             addto=self.gtkwidget,
-            ignore_fields = [c.name for c in self.field.property.remote_side],
-            dev = self.master.dev,
-            relationship_leader = self.master,
-            relationship_mode = direction,
-            relationship_path = self.master.relationship_path + [self.field_name],
-            label_map = self.prepare_label_map()
-            )
-        
-        # We generally want a table to expand if possible        
+            ignore_fields=[c.name for c in self.field.property.remote_side],
+            dev=self.master.dev,
+            relationship_leader=self.master,
+            relationship_mode=direction,
+            relationship_path=self.master.relationship_path + [self.field_name],
+            label_map=self.prepare_label_map()
+        )
+
+        # We generally want a table to expand if possible
         parent = self.gtkwidget.get_parent()
         if parent:
             prop_names = [prop.name for prop in parent.list_child_properties()]
@@ -952,7 +967,7 @@ class CollectionWidget(Widget):
         self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
-        return self.table.records 
+        return self.table.records
 
     def prepare_label_map(self):
         """

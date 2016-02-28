@@ -13,7 +13,7 @@ class Director(elixir.Entity):
     last_name = elixir.Field(elixir.String(60))
     first_name = elixir.Field(elixir.String(60))
     nation = elixir.Field(elixir.String(6))
-    
+
     movies = elixir.OneToMany('Movie', inverse='director')
     elixir.using_options(tablename='director')
     elixir.using_options(metadata=__metadata__)
@@ -28,7 +28,7 @@ class Movie(elixir.Entity):
     date_release = elixir.Field(elixir.Date())
     director = elixir.ManyToOne('Director', inverse='movies')
     actors = elixir.ManyToMany('Actor', inverse='movies', tablename='movie_casting')
-    genres = elixir.ManyToMany('Genre', inverse='movies', tablename='movie_genre')   
+    genres = elixir.ManyToMany('Genre', inverse='movies', tablename='movie_genre')
     elixir.using_options(tablename='movie')
 
     def __repr__(self):
@@ -38,7 +38,7 @@ class Genre(elixir.Entity):
     name = elixir.Field(elixir.Unicode(15), primary_key=True)
     movies = elixir.ManyToMany('Movie')
     elixir.using_options(tablename='genre')
-    
+
     def __repr__(self):
         return u'<Genre "%s">' % self.name
 
@@ -48,4 +48,3 @@ class Actor(elixir.Entity):
     elixir.using_options(tablename='actor')
 
 elixir.setup_all()
-

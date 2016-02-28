@@ -46,6 +46,7 @@ from sqlkit.widgets.table.columns import View
 from sqlkit.widgets.table.tablewidgets import CellWidget
 
 class SqlTable(sqlwidget.SqlWidget):
+
     """
     Main widget to represent data of a sqlalchemy selectable (SELECT of a TABLE or JOIN
     & similar).
@@ -65,25 +66,25 @@ class SqlTable(sqlwidget.SqlWidget):
     """
 #### Signals
     __gsignals__ = {
-        'button-press-event' : (gobject.SIGNAL_RUN_LAST,
-                           gobject.TYPE_BOOLEAN,
-                                # event, obj, field_name, treeview, view
-                           (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_STRING,
-                            gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT),
-                           ),
-        'context-changed' : (gobject.SIGNAL_RUN_LAST,
-                           gobject.TYPE_BOOLEAN,
-                                # current (or None)
-                           (gobject.TYPE_PYOBJECT,),
-                           ),
-        }
+        'button-press-event': (gobject.SIGNAL_RUN_LAST,
+                               gobject.TYPE_BOOLEAN,
+                               # event, obj, field_name, treeview, view
+                               (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_STRING,
+                                gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT),
+                               ),
+        'context-changed': (gobject.SIGNAL_RUN_LAST,
+                            gobject.TYPE_BOOLEAN,
+                            # current (or None)
+                            (gobject.TYPE_PYOBJECT,),
+                            ),
+    }
 
     views = None
     "A container for the possible :ref:`views`. It always have a default view named ``main``"
 
     totals = None
     "class for :ref:`totals`: see the specific documentation for further info"
-    
+
     edited_path = None
     ## For some reason :meth: is not turned in a link...
     """The path of the edited row (a tuple). It's not the output of
@@ -98,7 +99,8 @@ class SqlTable(sqlwidget.SqlWidget):
     cell_entry = None
     cell_renderers = None
 #    commit_allowed = dbg.TraceIt(True, name='commit_allowed', mode='rw')
-#### Init & Layout         
+#### Init & Layout
+
     def __init__(self, *args, **kwargs):
 
         self.views = Container()
@@ -116,17 +118,18 @@ class SqlTable(sqlwidget.SqlWidget):
         self._fk_layout_nick = {}
         self.run_hook('on_init')
         self._new_record = None
-        
+
     def _get_layout(self, lay, naked):
 
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
         self.treeview = self.widgets["TV=tree"]
         self.widgets['S=tree'].set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         ## from now on, the real field_list is the one in the View
-        self.views['main'] = self.create_view(name='main', field_list = self.field_list, treeview=self.treeview)
-        ## let tree use all the available space... 
+        self.views['main'] = self.create_view(
+            name='main', field_list=self.field_list, treeview=self.treeview)
+        ## let tree use all the available space...
         if not self.naked:
-            self.lay_obj.prop('A.external','yscale',1)
+            self.lay_obj.prop('A.external', 'yscale', 1)
 
         if self.rows:
             gobject.idle_add(self.set_rows)
@@ -143,14 +146,14 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         if 'A.icons' not in self.widgets:
             return
-        
+
         self.lay_obj.prop(
             ('A.icons', 'xscale', 0),
             ('A.icons', 'xalign', 0),
             ('A.icons', 'top-padding', 0),
             ('A.icons', 'bottom-padding', 0),
             ('A.icons', 'left-padding', 0)
-            )
+        )
         ## just icons, no text
         if self.icons:
             for b in self.icons.split(" "):
@@ -163,7 +166,6 @@ class SqlTable(sqlwidget.SqlWidget):
                 image, label = hbox.get_children()
                 label.set_text('')
 
-        
     def setup_field_validation(self, field_list=None):
         """
         Create sqlkit.fields.Field object: one for each handled field
@@ -196,7 +198,7 @@ class SqlTable(sqlwidget.SqlWidget):
         is a view of the filtered records.
 
         All the views of a SqlTable share the same model.
-        
+
         :param view: the name of the view
         :param treeview: the treeview
         :param field_list: a list of field_name for which we want the view
@@ -212,7 +214,7 @@ class SqlTable(sqlwidget.SqlWidget):
         sqlwidget.SqlWidget.show(self, show)
         self.views['main'].create_column_menu()
         self.views['main'].menu.fill_menu_hide_fields()
-        
+
     def set_rows(self, rows=None, view=None, view_name=None):
         """
         set number of treeview visible rows to "rows"
@@ -242,7 +244,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         assert view_name in self.views, "Missing view_name: %s" % view_name
         self.views[view_name].hide_fields(field_name_list)
-        
+
     def set_field_list(self, field_list, view_name='main'):
         """
         Set field of visible columns. Accepts both a list or a string (space or comma separated)
@@ -258,13 +260,11 @@ class SqlTable(sqlwidget.SqlWidget):
 
         try:
             return self.edited_row_model_path and \
-                   tuple(int(x) for x in self.edited_row_model_path.split(':'))
+                tuple(int(x) for x in self.edited_row_model_path.split(':'))
         except AttributeError:
             ## edited_row_model_path may also be already a tuple...
             if isinstance(self.edited_row_model_path, tuple):
                 return self.edited_row_model_path
-                   
-            
 
     edited_path = property(_get_edited_path)
 
@@ -275,7 +275,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         sqlwidget.SqlWidget.prepare_actions(self)
 
-        self.actiongroup_table   = gtk.ActionGroup('Table')
+        self.actiongroup_table = gtk.ActionGroup('Table')
 
         self.actiongroup_insert.add_actions([
             ('Duplicate', gtk.STOCK_SAVE_AS, _('Duplicate'), None,
@@ -283,34 +283,37 @@ class SqlTable(sqlwidget.SqlWidget):
             ('New', gtk.STOCK_NEW,   None, '', None, self.record_new_cb),
             ('NewChild', gtk.STOCK_NEW,   _('New child row'), '',
              _("Create e new row as child of this one"), self.record_new_child_cb),
-            ])
+        ])
         self.actiongroup_delete.add_actions([
             ('Delete', gtk.STOCK_DELETE, None, '<Control>k', None, self.record_delete),
             ('RecordDelete', gtk.STOCK_DELETE, None, None, None, self.record_delete3),
-            ])
+        ])
 
         self.actiongroup_table.add_actions([
             ('Zoom-fit', gtk.STOCK_ZOOM_FIT, None, '<Control>z', None, self.on_zoom_fit),
             ('ShowColumns', None, _('Show field')),  # menuitem
             ('HideColumns', None, _('Hide field')),  # menuitem
-#            ('VisibleColumns', None, None),          # menu
-#            ('HiddenColumns', None, None),           # menu
+            #            ('VisibleColumns', None, None),          # menu
+            #            ('HiddenColumns', None, None),           # menu
             ('Records', None, 'Records'),
-            ('MaskView', gtk.STOCK_ZOOM_IN, _('View this record in a Mask'), '<Control>m', None, self.record_in_mask),
-            ('MaskViewFKey', gtk.STOCK_LEAVE_FULLSCREEN, _('View this ForeignKey in a Mask'), None, None, self.fkey_record_in_mask),
+            ('MaskView', gtk.STOCK_ZOOM_IN, _('View this record in a Mask'),
+             '<Control>m', None, self.record_in_mask),
+            ('MaskViewFKey', gtk.STOCK_LEAVE_FULLSCREEN,
+             _('View this ForeignKey in a Mask'), None, None, self.fkey_record_in_mask),
             ('UploadImage', None, _('Upload Image'), None, None, self.upload_image),
             ('UploadFile', None, _('Upload File'), None, None, self.upload_file),
             ('DeleteFile', None, _('Delete File/Image'), None, None, self.delete_file),
             ('ShowFile', None, _('Show File/Image'), None, None, self.show_file),
             ('SaveFile', None, _('Save File/Image'), None, _('Save file locally'), self.save_file),
-            ])
+        ])
         self.actiongroup_table.add_actions([
             ('Export', None, _('Export'), None, None, self.export),
-            ], 'main')
+        ], 'main')
+
     def prepare_uimanager(self):
 
         from sqlkit.widgets.common import uidescription
-        
+
         sqlwidget.SqlWidget.prepare_uimanager(self)
         self.ui_manager.insert_action_group(self.actiongroup_table, 1)
 
@@ -330,7 +333,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 else:
                     col.set_editable(False)
     mode = property(sqlwidget.SqlWidget.get_mode, set_mode)
-        
+
 #### callbacks treeview
     def selection_changed_cb(self, treeselection):
         """
@@ -341,7 +344,7 @@ class SqlTable(sqlwidget.SqlWidget):
             del self._clicked_obj
         except AttributeError:
             pass
-        
+
         # selection changes in several different ways:
 
         # 1. no selection -> selection of existing row
@@ -359,7 +362,7 @@ class SqlTable(sqlwidget.SqlWidget):
             if not isinstance(obj, self.mapper.class_):
                 # we have visited a total or something else
                 return
-            
+
             if obj or len(self.records):
                 self.emit('context-changed', obj or self.records[0])
         ## commit_allowed is a flag that prevents .commit() if a new object
@@ -377,20 +380,20 @@ class SqlTable(sqlwidget.SqlWidget):
                 path = self.edited_row_model_path
                 self.edited_row_model_path = None
                 self.treeview.get_selection().select_path(path)
-                self.edited_row_model_path = path                
+                self.edited_row_model_path = path
                 return True
 
         self.emit('record-selected')
         if self.get_selected_obj() or len(self.records):
             self.emit('context-changed', self.get_selected_obj() or self.records[0])
         return False
-    
+
     def select_cursor_row_cb(self, treeview, start_editing, user_data):
         return False
-    
+
     def cursor_changed_cb(self, treeview, view):
         return False
-        
+
     def show_column(self, menuItem, field_name, view_name='main'):
 
         view = self.views[view_name]
@@ -403,14 +406,15 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.cell_entry and not self.cell_entry.is_valid():
             if not self.cell_validate():
                 return True
-            
+
         ## emit button-press-event of the sqlwidget: event, field_name, value
         #  this happens before the selection gets changed so we cannot use get_selected_obj()
 
         try:
-            path, column, x_in_cell, y_in_cell = treeview.get_path_at_pos(int(event.x),int(event.y))
+            path, column, x_in_cell, y_in_cell = treeview.get_path_at_pos(
+                int(event.x), int(event.y))
             iter = self.modelproxy.modelstore.get_iter(path)
-            obj = self.modelproxy.modelstore.get_value(iter,0)
+            obj = self.modelproxy.modelstore.get_value(iter, 0)
             if isinstance(obj, self.totals.total_class):
                 obj = None
             field_name = column.get_data('field_name')
@@ -423,10 +427,10 @@ class SqlTable(sqlwidget.SqlWidget):
         self._clicked_obj = obj  # should I officially document it?
         self._clicked_path = path  # should I officially document it?
         self._field_name = field_name  # should I officially document it?
-            
+
         menu = view.pop_menu(treeview, event, obj, field_name)
         self.emit('button-press-event', event, obj, field_name, menu, treeview)
-        
+
         if event.button == 3:
             return True
         return False
@@ -436,7 +440,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if selection has changed with a click on a toggle cell, turn that
         cell into insensitive to prevent changeing the value
         """
-        
+
         ## I want the first click on the table to just change the selection, not the value
         ## the problem is that toggled signal happens *before* change in selection, so that
         ## all normal checks based on selection_changed are not yet at work
@@ -450,16 +454,17 @@ class SqlTable(sqlwidget.SqlWidget):
         if not path == selected_path and self.gui_fields[field_name].type == bool:
             if column.get_data('cell').get_property('mode') == gtk.CELL_RENDERER_MODE_ACTIVATABLE:
                 column.get_data('cell').set_property('mode', gtk.CELL_RENDERER_MODE_INERT)
-                gobject.idle_add(column.get_data('cell').set_property, 'mode', gtk.CELL_RENDERER_MODE_ACTIVATABLE)
-        
+                gobject.idle_add(
+                    column.get_data('cell').set_property, 'mode', gtk.CELL_RENDERER_MODE_ACTIVATABLE)
+
     def on_zoom_fit(self, widget, *args):
 
         tv_utils.zoom_to_fit(self.treeview, resize=True)
 
-#### event handling 
+#### event handling
     def keyrelease_event_cb(self, wdg, event, data=None):
         return self.length_control(wdg, data)
-    
+
     def keypress_event_cb(self, wdg, event, view=None):
 
         if isinstance(wdg, gtk.TreeView):
@@ -477,7 +482,7 @@ class SqlTable(sqlwidget.SqlWidget):
                              #('mod2', gtk.gdk.MOD2_MASK),
                              ('mod3', gtk.gdk.MOD3_MASK),
                              ('mod4', gtk.gdk.MOD4_MASK),
-                             ('mod5', gtk.gdk.MOD5_MASK),]:
+                             ('mod5', gtk.gdk.MOD5_MASK), ]:
             if event.state & mask:
                 mods.append(prefix)
 
@@ -498,7 +503,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 path = (len(treeview.get_model()) - 1,)
             gobject.idle_add(self.treeview.set_cursor, path, columns[-1], True)
         return True
-    
+
     def key_tree_Tab(self, treeview, event):
         path, col = self.treeview.get_cursor()
         if not path:
@@ -515,20 +520,20 @@ class SqlTable(sqlwidget.SqlWidget):
             next_column = columns[colnum + 1]
             next_field_name = next_column.get_data('field_name')
             gobject.idle_add(self.treeview.set_cursor, path,
-                             next_column, self.get_direct_edit(next_field_name) )
+                             next_column, self.get_direct_edit(next_field_name))
         else:
             tmodel = self.treeview.get_model()
             titer = tmodel.iter_next(tmodel.get_iter(path))
             if titer is None:
                 titer = tmodel.get_iter_first()
             path = tmodel.get_path(titer)
-            
+
             next_column = columns[0]
             next_field_name = next_column.get_data('field_name')
             gobject.idle_add(self.treeview.set_cursor, path, next_column,
-                             self.get_direct_edit(next_field_name) )
+                             self.get_direct_edit(next_field_name))
         return False
-    
+
     def key_tree_ctrl_n(self, treeview, event):
 
         if not 'i' in self.mode:
@@ -540,7 +545,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return True
 
         return False
-        
+
     def key_tree_ctrl_c(self, treeview, event):
 
         if not self.modelproxy.is_tree():
@@ -554,7 +559,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return True
 
         return False
-        
+
     def key_tree_ctrl_s(self, treeview, event):
 
         if self.current in self.session.new and 'i' not in self.mode:
@@ -570,7 +575,7 @@ class SqlTable(sqlwidget.SqlWidget):
         except exc.ValidationError:
             pass
         return False
-        
+
     def key_tree_ctrl_k(self, treeview, event):
 
         if self.current not in self.session.new and 'd' not in self.mode:
@@ -579,20 +584,20 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.record_delete(treeview)
         return False
-    
+
     def key_tree_ctrl_x(self, treeview, event):
-        
+
         return self.key_tree_ctrl_k(treeview, event)
-    
+
     def key_tree_ctrl_r(self, treeview, event):
 
-        if  'b' not in self.mode:
+        if 'b' not in self.mode:
             self.sb(_("browsing of new records is disabled. Sorry"))
             return
 
         self.reload_cb(treeview)
         return True
-    
+
     def key_tree_Down(self, treeview, event):
 
         if self.modelproxy.tree_field_name:
@@ -629,9 +634,9 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         ksym = gtk.gdk.keyval_name(event.keyval)
         if ksym in ('Tab',):
-#             ## FIXME: Down and Return should behave differently if the completion is visible
-#             if ksym in ('Down'): # and widget.get_completion().get_property('visible'):
-#                 return False
+            #             ## FIXME: Down and Return should behave differently if the completion is visible
+            #             if ksym in ('Down'): # and widget.get_completion().get_property('visible'):
+            #                 return False
 
             if self.cell_entry and not self.cell_entry.is_valid():
                 if not self.cell_validate():
@@ -650,7 +655,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if not self.mapper_info.fields[field_name]['type'] in NO_EDIT:
             return True
         return False
-        
+
 #### callbacks columns
     def editable_keypress_cb(self, widget, event):
         """
@@ -669,7 +674,7 @@ class SqlTable(sqlwidget.SqlWidget):
             self.record_new(parent=self._clicked_path)
         except (exc.DialogValidationError, exc.CancelledAction):
             return True
-    
+
 ###### Saving
     def set_value(self, field_name, value, path=None, fkvalue=None, initial=False, shown=False):
         """
@@ -681,7 +686,7 @@ class SqlTable(sqlwidget.SqlWidget):
         :param fkvalue: the value is handled as a primary key.  Used from
               completion and from gui_fields/tablewidget
         :param initial: if initial=False, the possible ``on_change_hook`` is not called
-        
+
 
         """
         ## note: self.current cannot be used. We don't want the currently selected obj
@@ -692,7 +697,7 @@ class SqlTable(sqlwidget.SqlWidget):
             obj = self.get_current_obj()
         else:
             obj = self.get_obj_at_path(path=path)
-        
+
         if not obj:
             return
 
@@ -732,7 +737,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         shown: show the lookup value instead of the eal value
         """
-        
+
         obj = self.get_current_obj()
         if obj is None:
             raise exc.NoCurrentObjError(_("no current obj: maybe no record has yet been edited"))
@@ -742,8 +747,8 @@ class SqlTable(sqlwidget.SqlWidget):
                 text = self.cell_entry.get_text()
                 if self.is_fkey(field_name):
                     if shown:
-                    ## we can be here becouse a clean_value triggered it. So don't pass there a
-                    ## second time. If you ask for 'shown' I give you shown.
+                        ## we can be here becouse a clean_value triggered it. So don't pass there a
+                        ## second time. If you ask for 'shown' I give you shown.
                         return text
                     else:
                         #return self.gui_fields[field_name].clean_value(text, input_is_fkey=False)
@@ -769,11 +774,11 @@ class SqlTable(sqlwidget.SqlWidget):
         self.sb(_("Total N. of records: %s") % (len(self.records)), seconds=None)
 
     def record_has_changed(self):
-        
+
         if self.edited_row_model_path is None:
             return False
         return sqlwidget.SqlWidget.record_has_changed(self)
-    
+
     def record_save_new(self, origin=None, interactive=True):
         """
         Create a new record and copy all data from an origin
@@ -789,7 +794,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 rel_table.record_save_new(origin=row, interactive=False)
 
         to copy all rows from one record to the other
-        
+
         """
 
         orig_obj = origin or self.get_obj_at_path(self._clicked_path)
@@ -807,9 +812,8 @@ class SqlTable(sqlwidget.SqlWidget):
                     setattr(new_obj, field.field_name, value)
         self.run_hook('on_save_as', orig_obj, new_obj)
         return new_obj
-    
-    def record_save(self, discard_unchanged=False, discard_new=False, ask=False, skip_check=True):
 
+    def record_save(self, discard_unchanged=False, discard_new=False, ask=False, skip_check=True):
         """save the record
 
         Detects if any editing has been done consulting self.edited_row_model_path set
@@ -825,7 +829,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         """
 
-        if self.edited_row_model_path is None: # no editing done
+        if self.edited_row_model_path is None:  # no editing done
             dbg.write('no self.edited_row_model_path, nothing to save', self.edited_row_model_path)
             return
 
@@ -835,9 +839,9 @@ class SqlTable(sqlwidget.SqlWidget):
             if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
                 raise exc.CancelledAction
 
-            if response == gtk.RESPONSE_NO: 
+            if response == gtk.RESPONSE_NO:
                 return True  # Only used in record_in_mask, better would be a exc.NegativeAnswer
-            
+
         obj = self.get_current_obj()
 
         if discard_unchanged or (discard_new and obj in self.session.new):
@@ -860,18 +864,18 @@ class SqlTable(sqlwidget.SqlWidget):
                 return
 
         ## if the obj is new, you need to validate it anyhow: it was not changed but didn't start
-        ## from a validated point    
+        ## from a validated point
         if not self.record_has_changed() and obj not in self.session.new:
             self.edited_row_model_path = None
             return
 
         self.record_validate(obj)
-            
+
         ## in m2m case we don't want to commit now. We would trigger a commit of the
         ## record represented in the SqlMask that may not yet be validated
 
         if self.relationship_leader and (
-            self.relationship_leader.current in self.session.new):
+                self.relationship_leader.current in self.session.new):
             # TIP: when saving m2m, we delay till leader record will be saved
             self.sb(_('delaying saving when main record will be saved'))
             self.delayed = True
@@ -885,7 +889,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.modelproxy.modelstore.remove(iter)
                 self.sb(_("Record has NOT been saved"), seconds=100)
             self.delayed = True
-            
+
         self.last_new_obj = None
         self._new_record = False
 
@@ -904,9 +908,9 @@ class SqlTable(sqlwidget.SqlWidget):
         :param obj: 
         :param parent: if defined it's a tuple representing a path.
                       The new row must be a child of ``parent``
-        
+
         """
-        ## I want to avoid generating a new obj if an object was created 
+        ## I want to avoid generating a new obj if an object was created
         ## and not modified (as when you press Down Arrow several times
         ## beyond the lower row)
         if not self.record_has_changed():
@@ -922,7 +926,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         ## scroll_to_cell will trigger selection_changed_cb
         ## when the new_obj has been added but not yet edited.
-        ## we inhibit this 
+        ## we inhibit this
         self.commit_inhibited = True
 
         treeiter = self._get_next_iter(self.last_new_obj, parent=parent)
@@ -934,9 +938,9 @@ class SqlTable(sqlwidget.SqlWidget):
             for field_name in self.field_list:
                 self.gui_fields[field_name].set_default(obj=self.current)
 
-        self.records += [self.last_new_obj]  ## adding to records is vital to get
-                                             ## fk correctly, in case 
-                                             ## this table is a M2M of M2O
+        self.records += [self.last_new_obj]  # adding to records is vital to get
+        ## fk correctly, in case
+        ## this table is a M2M of M2O
         self.commit_inhibited = False
         self._new_record = True
         self.emit('record-new')
@@ -950,22 +954,22 @@ class SqlTable(sqlwidget.SqlWidget):
         :param parent_path: a possible path of the parent
         :returns: the new path
         """
-        
+
         sqlwidget.SqlWidget.record_add(self, obj)
         path, obj = self.record_new(obj=obj, start=False, parent=parent_path)
-        self.edited_row_model_path  =  path
+        self.edited_row_model_path = path
         self.select_path(path)
         self.record_save()
         self.totals.compute()
         return path
-        
+
     def unsaved_changes_exist(self, skip_check=False, skip_new=False):
         """collect possible changes and test if save is needed
 
         :param skip_check: we already know it needs saving. Passed to unsaved_changes_exists
         :param skip_new: skip_new may be an object whose changes we disregard (see unsaved_changes_exist)
         :return: False if cancel is pressed
-        
+
         """
 
         if not skip_check and not self.record_has_changed():
@@ -973,9 +977,9 @@ class SqlTable(sqlwidget.SqlWidget):
                 self.session.expunge(self.last_new_obj)
                 del self.last_new_obj
                 self.last_new_obj = None
-                
+
         return sqlwidget.SqlWidget.unsaved_changes_exist(self, skip_new=skip_new)
-        
+
     def record_delete(self, widget=None, interactive=True):
         """
         Delete a row and corresponding record
@@ -994,7 +998,7 @@ class SqlTable(sqlwidget.SqlWidget):
             text = _("Delete this record?\n(%s)") % self.current
             iter = model.get_iter(paths[0])
             if model.iter_has_child(iter):
-                text += "\n" + _("All children will be deleted as well") 
+                text += "\n" + _("All children will be deleted as well")
             response = self.dialog(type='ok-cancel', text=text)
             if response != gtk.RESPONSE_OK:
                 return
@@ -1007,13 +1011,13 @@ class SqlTable(sqlwidget.SqlWidget):
             """
             ## Recursively delete all children, if any
             if model.iter_has_child(iter):
-                for i in range(model.iter_n_children(iter), 0, -1): # backward
+                for i in range(model.iter_n_children(iter), 0, -1):  # backward
                     it = model.iter_nth_child(iter, i-1)
                     do_del(model, model.get_path(it), it)
 
             obj = model[path][0]
             deleted = True
-            
+
             if self.relationship_mode == 'SINGLE':
                 if obj in self.session.new:
                     self.session.expunge(obj)
@@ -1024,7 +1028,7 @@ class SqlTable(sqlwidget.SqlWidget):
                     self.commit()
                 except exc.HandledRollback, e:
                     deleted = False
-                        
+
             else:
                 ## we're in M2M relationship or equivalent:
                 ## we don't want to delete the object, just delete the relationship
@@ -1038,7 +1042,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 self._new_record = None
                 if obj in self.records:
                     self.records.remove(obj)
-        
+
         sel.selected_foreach(do_del)
 
         ## select the same row or the preceding
@@ -1046,22 +1050,21 @@ class SqlTable(sqlwidget.SqlWidget):
         if row_n >= len(model):
             row_n -= 1
 
-            
         if len(model):  # prevent warning for empty models
             sel.select_path(row_n)
-        
+
         self.deleting_row = False
         self.totals.compute()
-        
+
         self.sb(_("Total N. of records: %s") % len(self.records), seconds=None)
         return True
-    
+
     def record_delete3(self, item):
         """
         Delete a record clicked with left click from menu item. In this case
         self._clicked_obj is used rather than selected one.
         """
-        
+
         self.select_path(obj=self._clicked_obj)
         self.record_delete()
 
@@ -1074,9 +1077,9 @@ class SqlTable(sqlwidget.SqlWidget):
 
         :param new_obj: the obj to be placed there
         :param parent: if defined it's the path of the parent row for the new object 
-          
+
         """
-        path = parent or self.get_selected_path() or getattr(self, '_clicked_path', None) 
+        path = parent or self.get_selected_path() or getattr(self, '_clicked_path', None)
         if not path:
             try:
                 return self.modelproxy.modelstore.append([new_obj])
@@ -1090,7 +1093,8 @@ class SqlTable(sqlwidget.SqlWidget):
                 return new_iter
             parent_iter = self.modelproxy.modelstore.iter_parent(current_iter)
             if parent_iter:
-                new_iter = self.modelproxy.modelstore.insert_after(parent_iter, current_iter, [new_obj])
+                new_iter = self.modelproxy.modelstore.insert_after(
+                    parent_iter, current_iter, [new_obj])
             else:
                 try:
                     return self.modelproxy.modelstore.insert_after(current_iter, [new_obj])
@@ -1098,12 +1102,12 @@ class SqlTable(sqlwidget.SqlWidget):
                     return self.modelproxy.modelstore.insert_after(None, current_iter, [new_obj])
 
         return new_iter
-    
+
 ###### Validation
     def cell_validate(self):
         """Validate cell value and invoke field.set_value() or invoke completion.
         Return True if ok.
-        
+
         The cell to be validated is the last visited cell, ie: the one whose
         field_name, path and cell where set inside text_editing_started_cb
         ForeignKey that do not validate should trigger completion
@@ -1129,8 +1133,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
             try:
                 # The next statement sets a value even if it could not pass completion!!!
-                self.set_current(filter_by={field_name :new_text})
-                return 
+                self.set_current(filter_by={field_name: new_text})
+                return
             except (exc.NoResultFound, exc.MultipleResultsFound), e:
                 ## if there's no match, try completion
                 dbg.write("No match: try completion")
@@ -1149,7 +1153,7 @@ class SqlTable(sqlwidget.SqlWidget):
                     # casting '' to None => you're not allowed to use '' as FK...
                     self.set_value(field_name, None, initial=False)
                     # self.gui_fields[field_name].set_value(None, initial=False,
-                    #                                       obj=self.current)                    
+                    #                                       obj=self.current)
                     return True
                 self.sb(_('Value is not valid, trying completion'))
                 show = self.gui_fields[field_name].widget.completion.show_possible_completion
@@ -1164,7 +1168,7 @@ class SqlTable(sqlwidget.SqlWidget):
                     #                                       obj=self.current)
                     # A hook in "on_change_value" may trigger a deletion of cell_entry
                     # e.g. a totals.compute(), so let's check again
-                    if self.cell_entry:  
+                    if self.cell_entry:
                         self.cell_entry.text = new_text
                         self.cell_entry.valid = True
                     return True
@@ -1172,8 +1176,7 @@ class SqlTable(sqlwidget.SqlWidget):
                     self.cell_entry.valid = False
                     self.sb(str(e), seconds=8)
                     return False
-        
-        
+
     def length_control(self, wdg, field_name):
         if self.mapper_info.fields[field_name]['type'] is not str:
             return False
@@ -1181,10 +1184,10 @@ class SqlTable(sqlwidget.SqlWidget):
         text = wdg.get_text()
         lstr = len(text)
         if length:
-            if lstr > length :
+            if lstr > length:
                 wdg.set_text(re.sub('.$', '', text))
                 # TIP: check in input field length %s %s -> field_name length
-                self.sb(_("Input exceeded max %s length (%s)") % (field_name,length))
+                self.sb(_("Input exceeded max %s length (%s)") % (field_name, length))
                 return True
         return False
 
@@ -1195,9 +1198,9 @@ class SqlTable(sqlwidget.SqlWidget):
         if self.cell_entry and self.cell_entry.is_valid():
             return True
         return False
-    
 
-###### Record browsing 
+
+###### Record browsing
     def initialize_record_editing(self, path, force=False, obj=None):
         """
         register the path of the editing and initialize all validation fields
@@ -1211,47 +1214,47 @@ class SqlTable(sqlwidget.SqlWidget):
                 obj = self.get_selected_obj()
             if obj:
                 for field in self.gui_fields:
-                    if field.persistent: # only mapped fields need initialize
+                    if field.persistent:  # only mapped fields need initialize
                         value = getattr(obj, field.field_name)
                         self.gui_fields[field.field_name].set_value(value, obj=obj, initial=True)
 
         self.edited_row_model_path = path
-        
+
     def clear(self, *args, **kwargs):
 
         self.modelproxy.modelstore.clear()
-    
+
     def reload_cb(self, widget, *args):
         """
         this is the real callback: C-r and toolbutton 
         """
 
         self.grab_focus(widget)
-        
+
         if hasattr(self, 'filter_panel'):
             self.filter_panel.reload_cb(None)
         else:
             self.reload()
-    
+
     def reload(self, *args, **kwargs):
 
         try:
             self.record_save(discard_unchanged=True)
         except exc.ValidationError:
             return
-        
+
 #        self.session.clear()
         self.commit_inhibited = True
         self.clear()
-        start_time=datetime.datetime.now()
+        start_time = datetime.datetime.now()
 
         ret = sqlwidget.SqlWidget.reload(self, *args, **kwargs)
         self.edited_row_model_path = None
         self.commit_inhibited = False
         self.totals.compute()
         self.cell_entry = None
-        end_time=datetime.datetime.now()
-        delta=end_time-start_time
+        end_time = datetime.datetime.now()
+        delta = end_time-start_time
         msg = "Startup: %s,%s secondi" % (delta.seconds, delta.microseconds/100000)
         self.sb(msg, seconds=3)
         self.session.rollback()
@@ -1260,15 +1263,15 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self._new_record = False
         return ret
-                                         
+
     def record_refresh(self):
         """
         when self.refresh is called other programs have selected the records
         """
         self.edited_row_model_path = None  # must be set *before* clear()
-                                # to inhibit selection_changed_cp
+        # to inhibit selection_changed_cp
         self.modelproxy.fill_model(clear=True)
-                
+
         self.totals.compute()
         self.treeview.columns_autosize()
         sqlwidget.SqlWidget.record_refresh(self)
@@ -1276,11 +1279,10 @@ class SqlTable(sqlwidget.SqlWidget):
             self.emit('context-changed', self.get_selected_obj() or self.records[0])
         self._new_record = False
 
-
     def record_in_mask(self, widget=None, addto=None, naked=False):
         """
         Open a SqlMask to show self.current if any and to follow selection.
-        
+
         Hooks are set on the newly created mask so that validation is retained
         Remember to set any possible configuration of the table in an ``on_init``
         hook so that it will be propagated.
@@ -1297,7 +1299,7 @@ class SqlTable(sqlwidget.SqlWidget):
             quit = self.record_save(ask=True, skip_check=False)
         except exc.CancelledAction:
             quit = True
-        if quit: 
+        if quit:
             self.sb(_('Unsaved data prevent opening a Mask to show the (unsaved) record'))
             return
 
@@ -1313,15 +1315,16 @@ class SqlTable(sqlwidget.SqlWidget):
             del self._clicked_obj
         except AttributeError:
             pass
-        
+
         self.select_path(obj=obj)
         mask.set_records([obj])
         ## update value in the table, when updated in mask
+
         def update_table_treeview(mask, table):
-            # emitting a 'row-changed', forces the update of the treeview 
+            # emitting a 'row-changed', forces the update of the treeview
             model = self.modelproxy.modelstore
             path = table.get_selected_path()
-            if path: # seems selection sometimes is lost
+            if path:  # seems selection sometimes is lost
                 model.emit('row-changed', path, model.get_iter(path))
         record_save_id = mask.connect('record-saved', update_table_treeview, self)
 
@@ -1330,7 +1333,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         self.connect('delete-event', disconnect_table, record_save_id)
 
-        ## signals to keep selection in sync 
+        ## signals to keep selection in sync
         def follow_selection(table, obj, mask):
             if mask.record_has_changed():
                 mask.record_save(ask=True)
@@ -1364,8 +1367,8 @@ class SqlTable(sqlwidget.SqlWidget):
 
         ftable = self.completions[field_name].table
 
-        mask = SqlMask(ftable.name, session=self.session, dbproxy=self.dbproxy, 
-                       metadata=self.metadata, 
+        mask = SqlMask(ftable.name, session=self.session, dbproxy=self.dbproxy,
+                       metadata=self.metadata,
                        layout_nick=self._fk_layout_nick.get(field_name, 'default'),
                        )
         mask.set_mode(self.mode, reset=True)
@@ -1375,7 +1378,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if obj:
             mask.set_records(pk=getattr(obj, field_name))
 
-        ## signals to keep selection in sync 
+        ## signals to keep selection in sync
         def follow_selection(table, obj, mask):
             if obj and self.get_selected_obj():
                 if mask.record_has_changed():
@@ -1407,7 +1410,6 @@ class SqlTable(sqlwidget.SqlWidget):
         :param layout_nick: the nick name of the layout to be used a 'layout_nick'
         """
         self._fk_layout_nick[field_name] = layout_nick
-            
 
     def upload_image(self, action, field_name=None):
         """
@@ -1423,8 +1425,8 @@ class SqlTable(sqlwidget.SqlWidget):
         self.initialize_record_editing(self._clicked_path)
         self.select_path(self._clicked_path)
         save_path = self.gui_fields[field_name].get_save_path(
-                        name=dialog.new_filename or filename,
-                        obj=self.current, new=True)
+            name=dialog.new_filename or filename,
+            obj=self.current, new=True)
         if os.path.exists(save_path):
             response = self.dialog(
                 type="ok-cancel",
@@ -1433,24 +1435,24 @@ class SqlTable(sqlwidget.SqlWidget):
             if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
                 return
 
-        self.gui_fields[field_name].widget.copy_file = filename # delay the real copy
+        self.gui_fields[field_name].widget.copy_file = filename  # delay the real copy
         self.gui_fields[field_name].widget.new_filename = dialog.new_filename
         self.set_value(field_name, save_path)
 
         return save_path
-    
+
     def upload_file(self, action):
         print action
-    
+
     def delete_file(self, action, field_name=None):
         field_name = field_name or self._field_name
         self.initialize_record_editing(self._clicked_path)
         self.set_value(field_name, None)
-    
+
     def show_file(self, action, field_name=None):
 
         from sqlkit.layout import image_widget
-        
+
         field_name = field_name or self._field_name
 
         self.select_path(self._clicked_path)
@@ -1461,7 +1463,7 @@ class SqlTable(sqlwidget.SqlWidget):
         filename = self.gui_fields[field_name].get_value(complete_path=True)
         if not os.path.exists(filename):
             self.message(text=_("File '%s' is not present in the filesystem" % filename),
-                                type='error')
+                         type='error')
             return
         if not self.gui_fields[field_name].is_image(filename):
             open_file(filename)
@@ -1472,7 +1474,7 @@ class SqlTable(sqlwidget.SqlWidget):
         image.props.height = 700
         w.add(image)
         w.show_all()
-        
+
         def change_file(table, obj):
             if obj:
                 try:
@@ -1483,7 +1485,7 @@ class SqlTable(sqlwidget.SqlWidget):
                         img_path = table.gui_fields[field_name].get_value(complete_path=True)
                     else:
                         img_path = None
-                        
+
                 image.set_image(img_path)
 
         change_file(self, self.current)
@@ -1492,7 +1494,7 @@ class SqlTable(sqlwidget.SqlWidget):
     def save_file(self, action, field_name=None):
 
         import shutil
-        
+
         field_name = field_name or self._field_name
         self.initialize_record_editing(self._clicked_path)
         orig_filename = self.gui_fields[field_name].get_value(complete_path=True)
@@ -1519,7 +1521,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return rows[0]
         else:
             return None
-    
+
     def get_current_obj(self):
         """
         Return the corrently edited (not just selected!!) obj or obj at path.
@@ -1570,14 +1572,14 @@ class SqlTable(sqlwidget.SqlWidget):
         ie: in the row currently selected
         This is mainly used in completion callback for m2m relationship_mode
         """
-        
+
         ## I really need not to flush, since in this moment there is a new object in the
         ## row that started completion that is not ready for flushing
         ## more: it may be due for substitution!!
 
         path = self.get_selected_path()
         assert path is not None
-        
+
         obj = self.get_record_no_flush(pk=pk, filter_by=filter_by)
 
         expired_obj = self.modelproxy.modelstore[path][0]
@@ -1589,7 +1591,7 @@ class SqlTable(sqlwidget.SqlWidget):
         self.cell_entry.substitute = True
         self.cell_entry.valid = True
         self.modelproxy.modelstore[path][0] = obj
-        
+
         if not (self.relationship_mode == 'm2m' and not self.m2m_editable):
             path = self.edited_row_model_path
             self.initialize_record_editing(path, force=True, obj=obj)
@@ -1606,11 +1608,11 @@ class SqlTable(sqlwidget.SqlWidget):
         elif filter_by:
             obj = query.filter_by(**filter_by).one()
         return obj
-        
+
     def set_opts(self, icons=True, scroll='xy', width=None):
         """
         Modify default appearance of some features:
-        
+
         :param scroll: eliminate scrollbars (values: x|y|xy|None)
         :param icons: allows to disable icons in a m2m relationship
         :param width: set the maximum width of the widget
@@ -1631,28 +1633,28 @@ class SqlTable(sqlwidget.SqlWidget):
                 ypolicy = gtk.POLICY_NEVER
             else:
                 ypolicy = gtk.POLICY_AUTOMATIC
-                
+
             self.widgets['S=tree'].set_policy(xpolicy, ypolicy)
 
         if width:
             self.treeview.set_property('width_request', width)
-            
+
     def export(self, menuItem, view_name='main'):
         """
         export visible data in csv format
         """
-        
+
         def foreach_handler(model, path, iter, ret):
             ## NOTE: when this function return a True value, iteration terminates!!!
             obj = model.get_value(iter, 0)
             view = self.views[view_name]
             field_list = [c.get_data('field_name') for c in view.treeview.get_columns()
                           if c.get_property('visible')]
-                          
+
             ## getattr(obj, f, obj): obj is used when the column does not have a 1-1 mapping
             ## to an attribute as happens for FunctionColumn that show a function out of the
             ## record
-            ret += [[self.gui_fields[f].get_human_value(getattr(obj, f, obj)) for f in field_list ]]
+            ret += [[self.gui_fields[f].get_human_value(getattr(obj, f, obj)) for f in field_list]]
 
         def get_all_rows():
             ret = []
@@ -1662,7 +1664,7 @@ class SqlTable(sqlwidget.SqlWidget):
         dialog = ExportDialog(get_all_rows, title=_("Export in csv file"),
                               default_filename="%s-export.csv" % self.nick)
 
-        return 
+        return
 
     def select_path(self, path=None, obj=None):
         """
@@ -1674,7 +1676,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """
 
         return self.views['main'].select_path(path=path, obj=obj)
-            
+
     def add_record(self, obj):
         """
         Add record to the model and setup all what is needed
@@ -1702,7 +1704,7 @@ class SqlTable(sqlwidget.SqlWidget):
         model.foreach(count, a)
 
         return a[0]
-                
+
     def add_row_filter(self, func):
         """
         Add a filter that selects which rows should be displayed
@@ -1712,7 +1714,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         self.modelproxy._filter_rows = True
         self.modelproxy._check_func = func
-        
+
 #### completion
 
     def set_editable(self, editable=True):
@@ -1728,13 +1730,13 @@ class SqlTable(sqlwidget.SqlWidget):
         self.m2m_editable = editable
         for field in self.gui_fields:
             field.widget.add_completion(editable=editable)
-        
+
 class ExportDialog(dialogs.SaveDialog):
 
     FILTER_FILES = (
-        ( _('Csv files'), '*.csv'),
-        ( _('All files'), '*.*'),
-        )
+        (_('Csv files'), '*.csv'),
+        (_('All files'), '*.*'),
+    )
 
     DELIMITER = ','
     QUOTE = None
@@ -1750,7 +1752,7 @@ class ExportDialog(dialogs.SaveDialog):
 
         self.get_rows_func = get_rows_func
         dialogs.SaveDialog.__init__(self, *args, **kwargs)
-        
+
     def write(self):
 
         import csv
@@ -1762,4 +1764,3 @@ class ExportDialog(dialogs.SaveDialog):
                             quoting=self.QUOTE or csv.QUOTE_MINIMAL)
         writer.writerows(self.get_rows_func())
         f.close()
-

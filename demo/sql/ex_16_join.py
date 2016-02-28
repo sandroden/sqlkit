@@ -7,7 +7,6 @@ a composition between table and field_name
 
 """
 
-t = SqlTable("movie director", dbproxy=db )
-t.add_filter(director_nation='IT') # NOTE director_nation
+t = SqlTable("movie director", dbproxy=db)
+t.add_filter(director_nation='IT')  # NOTE director_nation
 t.reload()
-

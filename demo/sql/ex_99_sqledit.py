@@ -8,5 +8,4 @@ It's normally called directly from the command line with the name 'sqledit'
 """
 
 from sqlkit.misc.table_browser import TableBrowser
-t=TableBrowser(db, title="Sqledit: the script")    
-
+t = TableBrowser(db, title="Sqledit: the script")

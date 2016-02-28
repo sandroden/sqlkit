@@ -23,4 +23,3 @@ t = SqlMask(model.Director, dbproxy=db, layout=lay_director,
 t.related.movies.layout = lay_movie
 
 t.reload()
-

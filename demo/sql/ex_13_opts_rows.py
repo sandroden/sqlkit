@@ -7,9 +7,8 @@ Depending on style.
 t = SqlTable('movie',
              dbproxy=db,
              order_by='director_id',
-             rows = 15,
-         )
+             rows=15,
+             )
 
 
 t.reload()
-

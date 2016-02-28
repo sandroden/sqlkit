@@ -78,7 +78,7 @@ class Defaults(object):
         """
         Set a default and find at runtime (when setting default) which is the
         correct value (pk) based on attr and value
-        
+
         :param field_name: the field_name for wich we set the default
         :param attr: the attribute to look for in the foreign table
         :param value: the value in the foreign key 
@@ -87,7 +87,7 @@ class Defaults(object):
         ## let's delay the moment...
         def get_by_description():
             from sqlkit.db.minspect import get_foreign_info
-            from sqlalchemy.sql import select            
+            from sqlalchemy.sql import select
 
             global tables
             table = self.metadata.tables[self.table_name]
@@ -105,12 +105,11 @@ class Defaults(object):
                 #tables[self.table_name][field_name] = None
                 self.tdict[field_name] = None
             return self.tdict[field_name]
-        
-        self.set_defaults( {field_name : get_by_description})
-    
+
+        self.set_defaults({field_name: get_by_description})
+
     today = datetime.date.today
     now = datetime.datetime.now
-
 
     def get(self, field_name):
         """
@@ -138,7 +137,7 @@ def get_default(table_name, field_name):
     """
     if isinstance(table_name, sqlalchemy.Table):
         table_name = table_name.name
-        
+
     try:
         value = tables[table_name][field_name]
     except KeyError, e:
@@ -173,10 +172,10 @@ def register_hook(table, hook, nick='default'):
     from inspect import isclass
 
     global hooks
-    
+
     if not isclass(hook):
         hook = hook.__class__
-    
+
     table_name = get_table_name(table)
     hook_dict = hooks.get(table_name, {})
     hook_dict[nick] = hook
@@ -220,7 +219,7 @@ def get_hook(table, instance=False, nick='default'):
         hook = table_hooks[nick]
     except (KeyError, TypeError), e:
         return None
-    
+
     if instance:
         hook = hook()
     return hook
@@ -254,9 +253,9 @@ def get_layout(table, nick='default'):
 
     :param table: the table to register the layout for. May be a sqlakchemy.Table or a string
     :param nick: the nick used for this layout 
-    
+
     """
-    
+
     global layout_dict
     table_name = get_table_name(table)
 
@@ -282,7 +281,7 @@ def register_class(class_, table=None, nick='default'):
 
     if not table:
         table = class_.__table__
-        
+
     table_name = get_table_name(table)
     table_class_dict = class_dict.get(table_name, {})
     table_class_dict[nick] = class_
@@ -294,9 +293,9 @@ def get_class(table, nick='default'):
 
     :param table: the table to register the layout for. May be a sqlakchemy.Table or a string
     :param nick: the nick used for this layout 
-    
+
     """
-    
+
     global class_dict
     table_name = get_table_name(table)
 
@@ -305,5 +304,3 @@ def get_class(table, nick='default'):
         return table_class_dict[nick]
     except (KeyError, TypeError), e:
         return None
-
-

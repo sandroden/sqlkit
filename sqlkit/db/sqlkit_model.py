@@ -70,7 +70,7 @@ Base = declarative_base()
 def get_classes(bind=None, class_=None):
 
     global SqlkitTable, SqlkitFields
-    
+
     if not bind:
         bind = class_.metadata.bind
 
@@ -85,22 +85,22 @@ def get_classes(bind=None, class_=None):
             SQLKIT_FIELD = '_sqlkit_field'
 
         class SqlkitTable(Base, utils.Descr):
-            __tablename__  = SQLKIT_TABLE
-            name           = Column(String(100), primary_key=True)
-            search_field   = Column(String(50))
-            format         = Column(String(150))
+            __tablename__ = SQLKIT_TABLE
+            name = Column(String(100), primary_key=True)
+            search_field = Column(String(50))
+            format = Column(String(150))
 
         class SqlkitFields(Base, utils.Descr):
             __tablename__ = SQLKIT_FIELD
-            table_name    = Column(String(100), ForeignKey('%s.name' % SQLKIT_TABLE),
-                                   primary_key=True)
-            name          = Column(String(100), primary_key=True)
-            description   = Column(String(100))
-            help_text     = Column(String(300))
-            regexp        = Column(String(100))
-            autostart     = Column(Integer)
-            default       = Column(String(200))
-            table         = relation('SqlkitTable', backref='attributes',
-                                     primaryjoin = table_name == SqlkitTable.name)
+            table_name = Column(String(100), ForeignKey('%s.name' % SQLKIT_TABLE),
+                                primary_key=True)
+            name = Column(String(100), primary_key=True)
+            description = Column(String(100))
+            help_text = Column(String(300))
+            regexp = Column(String(100))
+            autostart = Column(Integer)
+            default = Column(String(200))
+            table = relation('SqlkitTable', backref='attributes',
+                             primaryjoin=table_name == SqlkitTable.name)
 
         return SqlkitTable, SqlkitFields

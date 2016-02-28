@@ -67,8 +67,10 @@ from ConfigParser import ConfigParser, NoSectionError
 
 import sqlalchemy
 
-class MissingNickDefinition(Exception): pass
-class Opts(object): pass
+class MissingNickDefinition(Exception):
+    pass
+class Opts(object):
+    pass
 
 ## Default program.py
 TEMPLATE_PROGRAM = """\
@@ -136,7 +138,7 @@ def read_conf(nick, opts=None):
 
     if opts is None:
         opts = Opts()
-        
+
     dbconf = os.path.join(os.path.expanduser('~'), '.sqledit', 'nicks')
     lopts = deepcopy(opts)
 
@@ -147,13 +149,13 @@ def read_conf(nick, opts=None):
         for key, val in c.items(nick):
             if key == 'copy':
                 loop_on_opts(c, opts, nick=val)
-        
+
         for key, val in c.items(nick):
             if key == 'copy':
                 continue
             if getattr(lopts, key, None) is None:
                 setattr(opts, key, val)
-    
+
     if os.path.exists(dbconf):
         c = ConfigParser()
         c.read(dbconf)
@@ -206,7 +208,7 @@ def read_conf_in_dir(nick, opts):
         if 'layout.py' in files:
             opts.layout = 'layout.py'
 
-    
+
 def create_templates(opts):
     """
     Create templates for these
@@ -225,7 +227,7 @@ def create_templates(opts):
         if os.path.exists(filename):
             print "File %s already exists, skipping creation" % filename
         open(filename, 'w').write(TEMPLATE_LAYOUT)
-    
+
     if models:
         filename = os.path.join(dir_nick, 'models.py')
         if os.path.exists(filename):
@@ -237,12 +239,9 @@ def create_templates(opts):
         if os.path.exists(filename):
             print "File %s already exists, skipping creation" % filename
         open(filename, 'w').write(TEMPLATE_HOOKS)
-    
+
     if program:
         filename = os.path.join(dir_nick, 'program.py')
         if os.path.exists(filename):
             print "File %s already exists, skipping creation" % filename
         open(filename, 'w').write(TEMPLATE_PROGRAM)
-    
-    
-    

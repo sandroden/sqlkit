@@ -73,15 +73,16 @@ who changed the value of that variable, in the form::
   
 """
 
-import sys, re
+import sys
+import re
 import new
 # I had to hide this import inside functions otherwise import of sqlkit broke.
-#from sqlkit.layout import misc  
+#from sqlkit.layout import misc
 import pango
 import inspect
 import time
 import inspect
-from  pdb import set_trace
+from pdb import set_trace
 import gobject
 
 CLASS_INCLUDE = '^.*$'
@@ -90,10 +91,13 @@ FUNCTION_INCLUDE = re.compile('.*')
 FUNCTION_EXCLUDE = re.compile('^$')
 
 class FakeLogger(object):
-    def add(self, *args,**kw):
+
+    def add(self, *args, **kw):
         pass
+
     def write(self, *args, **kw):
-         write(*args, **kw)
+        write(*args, **kw)
+
     def ret(self, iter, value):
         return value
 
@@ -104,11 +108,11 @@ DBG = False
 def test():
     global DBG
     print "DBG:", DBG
-    
+
 def debug(x=None, gtk=False):
     global DBGLogger
     global DBG
-    
+
     if gtk == True:
         DBGLogger = get_gtk_logger(show=True)
 
@@ -116,19 +120,19 @@ def debug(x=None, gtk=False):
         DBG = 1
     if x is False:
         DBG = 0
-    if isinstance(x , int):
+    if isinstance(x, int):
         DBG = x
 
-    
+
 def write(*text, **kwargs):
     global DBG
     global DBGLogger
     if 'filter' not in kwargs:
         filter = None
-    
+
     if 'sfilter' not in kwargs:
         sfilter = None
-    
+
     if 'direct' not in kwargs:
         kwargs['direct'] = False
 
@@ -136,49 +140,49 @@ def write(*text, **kwargs):
         meth = caller()
     else:
         meth = kwargs['meth']
-        
+
     if 'called_by' not in kwargs:
         called_by = ''
     else:
         called_by = kwargs['called_by']
-        
+
     if DBG == 0:
         return
     if not text:
         ### FIXME: should go to DBGLogger...?
         print "%s (line %s) locals(): \n%s" % (caller(), caller(mode='lineno'),
-                          dshow(caller(mode='loc', level=2), ret=True,
-                                filter=filter, sfilter=sfilter,mute=True))
-                                               
+                                               dshow(caller(mode='loc', level=2), ret=True,
+                                                     filter=filter, sfilter=sfilter, mute=True))
+
         return
-    
+
     txt = ""
     for i in text:
         txt += " " + str(i)
 
     if not kwargs['direct'] and DBGLogger:
         try:
-            instance=caller(mode='instance')
+            instance = caller(mode='instance')
             Class_str = instance.nick
         except Exception, e:
             Class_str = ''
-        
+
         DBGLogger.write(txt=txt, line=caller(mode='lineno'), meth=meth,
                         mode='write', Class=Class_str, caller=called_by)
     else:
         #print "dbg.write: QUI 2, DBGLogger:", DBGLogger, "direct:", kwargs['direct']
         print "%s (line %s): %s" % (caller(), caller(mode='lineno'), txt)
-    
+
 # def single_write(txt, called_by='', meth='', direct=False, **args):
 #     """similar to write but accept just one text arg and some more args"""
 #     global DBG
 #     global DBGLogger
 #     if 'filter' not in args:
 #         filter = None
-    
+
 #     if 'sfilter' not in args:
 #         sfilter = None
-    
+
 #     if DBG == 0:
 #         return
 #     if direct and DBGLogger:
@@ -188,7 +192,6 @@ def write(*text, **kwargs):
 #         print "%s (line %s): %s" % (caller(), caller(mode='lineno'), txt)
 
 
-    
 def caller(mode=None, level=2):
     """
     mode can be:
@@ -202,17 +205,16 @@ def caller(mode=None, level=2):
 
     if mode == 'lineno':
         return frame.f_lineno
-    
+
     if mode == 'loc':
         return frame.f_locals
 
     caller = frame.f_code.co_name
     class_name = ''
 
-
     try:
         a = frame.f_locals['self'].__class__
-        class_name =  re.search("'(.*)'", str(a)).group(1) + "."
+        class_name = re.search("'(.*)'", str(a)).group(1) + "."
 
         if mode == 'Class':
             return a
@@ -223,20 +225,20 @@ def caller(mode=None, level=2):
     except:
         pass
     return "%s%s" % (class_name, caller)
-    
+
 def show_caller(filter=None, sfilter=None, loc=True):
     if DBG != 0:
         if loc:
             Locals = dshow(caller(mode='loc', level=3), ret=True,
-                           filter=filter, sfilter=sfilter,mute=True)
+                           filter=filter, sfilter=sfilter, mute=True)
         else:
             Locals = ''
-            
+
         print "%s called from: %s (line %s) \n%s" % (
             caller(),
-            caller(level=3), caller(level=3, mode='lineno'), Locals )
-            
-    
+            caller(level=3), caller(level=3, mode='lineno'), Locals)
+
+
 def dshow(diz, filter=None, sfilter=None, mute=False, ret=False, name=None):
     """print a dictionary in a friendly way
     filter:  only print keys that match 'filter'
@@ -250,7 +252,7 @@ def dshow(diz, filter=None, sfilter=None, mute=False, ret=False, name=None):
     if not mute:
         txt += [caller()]
     filtered = {}
-    for k,v in diz.iteritems():
+    for k, v in diz.iteritems():
         if filter:
             if not re.search(filter, k):
                 continue
@@ -264,12 +266,12 @@ def dshow(diz, filter=None, sfilter=None, mute=False, ret=False, name=None):
     else:
         try:
             iter = DBGLogger.write(meth=caller(), txt=name, mode='dict')
-            for k,v in filtered.iteritems():
+            for k, v in filtered.iteritems():
                 DBGLogger.write(meth=k, txt=v, mode='value', parent=iter)
         except:
             print "\n".join(txt)
 
-    
+
 def ddir(obj, filter=None, sfilter=None, mute=False, ret=False):
     """print dir of an object in a readable fasion
     filter:  only print keys that match 'filter'
@@ -296,10 +298,10 @@ def ddir(obj, filter=None, sfilter=None, mute=False, ret=False):
     else:
         print "\n".join(txt)
 
-    
+
 def warning(text):
     print text
-    
+
 def sql_debug(sql, params):
     msg = re.sub(':(?P<a>\S+)', '\'%(\g<a>)s\'', sql)
     #sd.debug("%s %s" % (DBG, params))
@@ -311,48 +313,48 @@ indent = 0
 
 ### Trace
 class TraceIt(object):
-     """A data descriptor that sets and returns values
-        normally and prints a message logging their access.
-        Usi it in code like this::
 
-           rowCommit = dbg.TraceIt(True, name='rowCommit', mode='rw')
+    """A data descriptor that sets and returns values
+       normally and prints a message logging their access.
+       Usi it in code like this::
 
-     and use it as a normal variable.  You'll get lines in your output stating
-     who changed the value of that variable, in the form::
+          rowCommit = dbg.TraceIt(True, name='rowCommit', mode='rw')
 
-     __str__/function_name:  old_value => new_value
-     __get__/function_name:  value
+    and use it as a normal variable.  You'll get lines in your output stating
+    who changed the value of that variable, in the form::
 
-     """
+    __str__/function_name:  old_value => new_value
+    __get__/function_name:  value
 
-     def __init__(self, initval=None, name='var', mode='rw'):
-         self.read = False
-         if re.search('r', mode):
-             self.read = True
-             
-         self.write = False
-         if re.search('w', mode):
-             self.write = True
-             
-         self.val = initval
-         self.name = name
+    """
 
-     def __get__(self, obj, objtype):
+    def __init__(self, initval=None, name='var', mode='rw'):
+        self.read = False
+        if re.search('r', mode):
+            self.read = True
 
-         if self.read:
-             Caller = re.sub('.*\.([^\.]+$)', r'\1', caller(level=2))
-             write("%s read %s" % (self.name, self.val),
-                 called_by=Caller, meth='%s - r/%s' % (self.name, Caller))
+        self.write = False
+        if re.search('w', mode):
+            self.write = True
 
-         return self.val
+        self.val = initval
+        self.name = name
 
-     def __set__(self, obj, val):
-         if self.write:
-             Caller= re.sub('.*\.([^\.]+$)', r'\1', caller(level=2))
-             write("%s: %s -> %s" % (self.name, self.val, val),
-                 called_by=Caller, meth='%s - w/%s' % (self.name,Caller))
-         self.val = val
+    def __get__(self, obj, objtype):
 
+        if self.read:
+            Caller = re.sub('.*\.([^\.]+$)', r'\1', caller(level=2))
+            write("%s read %s" % (self.name, self.val),
+                  called_by=Caller, meth='%s - r/%s' % (self.name, Caller))
+
+        return self.val
+
+    def __set__(self, obj, val):
+        if self.write:
+            Caller = re.sub('.*\.([^\.]+$)', r'\1', caller(level=2))
+            write("%s: %s -> %s" % (self.name, self.val, val),
+                  called_by=Caller, meth='%s - w/%s' % (self.name, Caller))
+        self.val = val
 
 
 ### from a recepe in ASP:
@@ -370,7 +372,7 @@ def trace_class(ok=None, ko=None):
 
     if ko:
         CLASS_EXCLUDE = ko
-        
+
 def trace_function(exclude=None, include='.*'):
     """set pattern for functions/methods that should not be traced"""
 
@@ -382,28 +384,28 @@ def trace_function(exclude=None, include='.*'):
 
     if not include == '.*':
         FUNCTION_INCLUDE = re.compile(exclude)
-    
+
 def logmethod(methodname):
-    def _method(self,*argl,**argd):
+    def _method(self, *argl, **argd):
         global indent
         global DBGLogger
         global DBG
-        
+
         #print "DBG", methodname,  argl, argd
         #parse the arguments and create a string representation
         #import pdb; pdb.set_trace()
         args = []
         for item in argl:
             args.append('%s' % str(item))
-        for key,item in argd.items():
-            args.append('%s=%s' % (key,str(item)))
-        argstr = ','.join(args)   
-        
-        caller1 = caller(level=1).replace('._method','')
+        for key, item in argd.items():
+            args.append('%s=%s' % (key, str(item)))
+        argstr = ','.join(args)
+
+        caller1 = caller(level=1).replace('._method', '')
         caller2 = caller(level=2)
         caller_class = caller1
         caller_meth = caller2
-        
+
         try:
             class_str = self.nick
         except:
@@ -412,19 +414,19 @@ def logmethod(methodname):
             iter = DBGLogger.add(Class=class_str, meth=methodname, indent=indent,
                                  caller=caller_meth, line=caller(mode='lineno'),
                                  args=args, class_obj=caller(mode='Class'))
-        
+
         indent += 1
         # do the actual method call
         try:
-            f = getattr(self,'_H_%s' % methodname)
+            f = getattr(self, '_H_%s' % methodname)
 
-            returnval = f(*argl,**argd)
-            
+            returnval = f(*argl, **argd)
+
             indent -= 1
         except Exception, e:
             DBGLogger.add(Class=class_str, meth=str(e.__class__), indent=indent,
-                                 caller=methodname, line=caller(mode='lineno'),
-                                 args=[e], class_obj=caller(mode='Class'))
+                          caller=methodname, line=caller(mode='lineno'),
+                          args=[e], class_obj=caller(mode='Class'))
             indent -= 1
             raise
 
@@ -434,18 +436,19 @@ def logmethod(methodname):
                 DBGLogger.ret(iter, str(returnval))
 
         return returnval
-    
+
     return _method
 
 
 class LogTheMethods(gobject.GObjectMeta):
+
     def __new__(cls, classname, bases, classdict):
         global DBG
         if re.search(CLASS_INCLUDE, classname):
             if not re.search(CLASS_EXCLUDE, classname):
                 pass
         else:
-            return type.__new__(cls,classname,bases,classdict)
+            return type.__new__(cls, classname, bases, classdict)
 
         meths = {}
 
@@ -464,11 +467,11 @@ class LogTheMethods(gobject.GObjectMeta):
                 continue
 
             if callable(item) and FUNCTION_INCLUDE.match(attr) and  not \
-                   FUNCTION_EXCLUDE.match(attr):
-                if '_H_%s'%attr not in meths: # prevent infinite loop
-                    classdict['_H_%s'%attr] = item    # rebind the method
-                    classdict[attr] = logmethod(attr) # replace  by wrapper
-                    classdict[attr].__doc__ = item.__doc__ # replace  by wrapper
+                    FUNCTION_EXCLUDE.match(attr):
+                if '_H_%s' % attr not in meths:  # prevent infinite loop
+                    classdict['_H_%s' % attr] = item    # rebind the method
+                    classdict[attr] = logmethod(attr)  # replace  by wrapper
+                    classdict[attr].__doc__ = item.__doc__  # replace  by wrapper
 
         ret = type.__new__(cls, classname, bases, classdict)
 
@@ -482,4 +485,3 @@ def get_gtk_logger(show=True):
 def get_logger():
     global DBGLogger
     return DBGLogger
-

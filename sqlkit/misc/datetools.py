@@ -96,10 +96,11 @@ Other examples
 import re
 from dateutil.relativedelta import relativedelta
 from datetime import date, timedelta
-from babel import dates 
+from babel import dates
 from sqlkit import _
 
-class WrongRelativeDateFormat(Exception): pass
+class WrongRelativeDateFormat(Exception):
+    pass
 
 DATE_PATTERN = re.compile("""
     (?P<double>@)?
@@ -117,12 +118,12 @@ def today():
         return TODAY
     else:
         return date.today()
-    
+
 def string2dates(string):
     """
     return a tuple of date values (start, end) that translates 'string'
     end may be None if 'string' does not imply a period.
-    
+
     Firstly a babel.dated.parse_date is attempted, if it fails
     math as described in the doctring of the module is applied
 
@@ -139,14 +140,14 @@ def string2dates(string):
         return dates.parse_date(string, locale=dates.default_locale()), None
     except:
         pass
-    
+
 #     m = re.search(CHARS, string)
 #     if not m:
 #         return string, None
 
     if '@' in string:
         m = re.match('@(\d?)(([ymdw]).*)', string)
-        n, base, period  = m.groups()
+        n, base, period = m.groups()
         string = "%s > %s" % (base.lower(), base.upper())
         if n:
             string += " +%s%s" % (int(n)-1, period)
@@ -159,8 +160,8 @@ def string2dates(string):
         if not data[1]:
             raise WrongRelativeDateFormat(_('Incomplete date format'))
 
-        return ( string2date(data[0]), string2date(data[1] or None))
-        
+        return (string2date(data[0]), string2date(data[1] or None))
+
 def string2date(string):
     """
     return a date represented by a string applying math syntax as described
@@ -175,7 +176,6 @@ def string2date(string):
             return ret
         except:
             pass
-        
 
     ## add spaces to math simbols, not in starting position, only if not
     ## preceded by spaces
@@ -196,7 +196,7 @@ def string2date(string):
         for token in data[1:]:
             computed, last_period = transform(token, start=computed,
                                               last_period=last_period, further=True)
-            
+
             ## I want to stick to end of month as much as possible: if we're in june, 2nd
             #  M-1m must return end of may: 31 NOT 30!!!
             if end_month:
@@ -212,10 +212,10 @@ def string2date(string):
     computed = get_suitable_day(computed, allowed_day_numbers)
 
     return computed
-    
+
 def get_suitable_day(day, allowed_week_day_numbers, reverse=False):
     """Return the next/previous day whose weeknumber is within to_shift
-    
+
     :param day: a datetime.date
     :param allowed_week_day_numbers: a set of weekday numbers allowed
     :param reverse: Boolean, it Tru, allowed numbers are looked for in the 
@@ -226,7 +226,7 @@ def get_suitable_day(day, allowed_week_day_numbers, reverse=False):
         return day
     allowed_day_numbers = [int(x) for x in allowed_week_day_numbers]
 
-    for j in range(7): 
+    for j in range(7):
         shifted = day + timedelta(days=j)
         shifted_week_day_number = int(shifted.strftime('%w'))
         if shifted_week_day_number in allowed_day_numbers:
@@ -252,28 +252,27 @@ def transform(token, start=None, last_period=None, further=False):
 
     if not period and last_period:
         period = last_period
-        
+
     last_period = period.lower()
-    
 
     if m.group('math'):
         math = m.group('math')
     else:
         math = m.group('math2')
-    
+
     if math == '-':
         math = -1
     try:
         math = int(math)
     except TypeError:
         math = None
-    
+
     if period in ('d', 'D'):
         computed = start
         if math is not None:
             computed = computed + relativedelta(days=+math)
         if period == 'D':
-            computed = computed +  relativedelta(days=+1)
+            computed = computed + relativedelta(days=+1)
 
     if period == 'i':
         computed = start - timedelta(days=1)
@@ -287,11 +286,10 @@ def transform(token, start=None, last_period=None, further=False):
             computed = computed + relativedelta(weeks=+math)
         if period == 'W':
             computed = computed + relativedelta(weeks=+1, days=-1)
-            
 
     if period in ('m', 'M'):
         if not further:
-            computed =  start.replace(day=1)
+            computed = start.replace(day=1)
         else:
             computed = start
         if math is not None:
@@ -299,7 +297,7 @@ def transform(token, start=None, last_period=None, further=False):
 
         if period == 'M':
             computed = computed + relativedelta(months=+1, days=-1)
-            
+
     if period in ('y', 'Y'):
         j = int(start.strftime('%j'))
         if not further:
@@ -310,12 +308,9 @@ def transform(token, start=None, last_period=None, further=False):
             computed = computed + relativedelta(years=+math)
         if period == 'Y':
             computed = computed + relativedelta(years=+1, days=-1)
-            
 
     return (computed, last_period)
 
 def get_end_of_month(date):
     date = date.replace(day=1)
     return date + relativedelta(months=+1, days=-1)
-
-

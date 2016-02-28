@@ -70,25 +70,25 @@ from sqlkit.misc import conf, optionparse
 RESPONSE_DEMO = 1
 DEMO_DIRS = [
     os.path.join('demo', 'sql'),
-    os.path.join( os.path.dirname(os.getcwd()), 'demo', 'sql'),
+    os.path.join(os.path.dirname(os.getcwd()), 'demo', 'sql'),
     '/usr/share/doc/python-sqlkit/demo/sql',
-    ]
+]
 try:
     ## this is needed so that this file can be 'execfile-ed' in the 'docusage'
     ## directive of the documentation. In that context __file__ is not defined
     DEMO_DIRS += [
-        os.path.join( os.path.dirname(__file__), 'demo', 'sql'),
-        os.path.join( os.path.dirname(os.path.dirname(__file__)), 'demo', 'sql'),
-        os.path.join( os.path.dirname(sqlkit.__file__), 'demo', 'sql'),
-        os.path.join( os.path.dirname(os.path.dirname(sqlkit.__file__)), 'demo', 'sql'),
-        ]
+        os.path.join(os.path.dirname(__file__), 'demo', 'sql'),
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), 'demo', 'sql'),
+        os.path.join(os.path.dirname(sqlkit.__file__), 'demo', 'sql'),
+        os.path.join(os.path.dirname(os.path.dirname(sqlkit.__file__)), 'demo', 'sql'),
+    ]
 except:
     pass
 
 class ConnectionDialog(object):
     TITLE = _('Connection setup') + "(sqlkit %s)" % sqlkit.__version__
-    URL_DB_BACKEND='http://www.sqlalchemy.org/docs/dialects/index.html'
-    URL_SQLKIT='http://sqlkit.argolinux.org/misc/sqledit.html'
+    URL_DB_BACKEND = 'http://www.sqlalchemy.org/docs/dialects/index.html'
+    URL_SQLKIT = 'http://sqlkit.argolinux.org/misc/sqledit.html'
     GENERAL_MSG = _("""
     You can indicate the database you want to connect to
     using an URI in the form of:
@@ -113,20 +113,20 @@ class ConnectionDialog(object):
         from sqlkit.layout import layout
         self.wdict = {}
         self.dialog, self.l = layout.dialog(mode=0,
-            layout=lay, type=False, butts=None, title=self.TITLE)
+                                            layout=lay, type=False, butts=None, title=self.TITLE)
 
         BUTTS = (
             (_('Run Demo'), RESPONSE_DEMO),
             (gtk.STOCK_OK, gtk.RESPONSE_OK),
             (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL),
-            )
+        )
 
         for icon, response in BUTTS:
             self.wdict[response] = self.dialog.add_button(icon, response)
 
         self.wdict[gtk.RESPONSE_OK].props.sensitive = False
         self.wdict[RESPONSE_DEMO].props.sensitive = False
-        
+
         self.dialog.set_default_response(gtk.RESPONSE_OK)
 
         self.l.widgets['l=general'].set_markup(self.GENERAL_MSG)
@@ -154,17 +154,17 @@ class ConnectionDialog(object):
         self.l.connect(
             ('lb=backend_help', 'clicked', self.clicked_cb),
             ('lb=sqledit', 'clicked', self.clicked_cb),
-            )
+        )
         self.l.widgets['e=url'].connect('changed', self.changed_cb)
         self.l.widgets['e=url'].connect('activate', self.activate_cb)
         self.set_error_msg('')
         self.add_demo()
-        tip = _('If you enter a wrong hostname\nthe application may hang some seconds ' + \
+        tip = _('If you enter a wrong hostname\nthe application may hang some seconds ' +
                 'till the natural network timeout. \nUncheck the flag on the right to disable this feature')
         self.l.widgets['e=url'].set_tooltip_text(tip)
 
     def changed_cb(self, entry):
-        
+
         global opts
         url_text = entry.get_text()
         try:
@@ -172,9 +172,9 @@ class ConnectionDialog(object):
         except Exception, e:
             self.wdict[gtk.RESPONSE_OK].props.sensitive = False
             return
-        self.set_error_msg("" )
+        self.set_error_msg("")
         if URL.drivername and URL.database and (URL.host or (
-            URL.drivername == 'sqlite' and os.path.exists(URL.database))):
+                URL.drivername == 'sqlite' and os.path.exists(URL.database))):
             opts.url = url_text
             ## a checkbox determines if we try continuosly
             auto = self.l.widgets['c=auto'].get_active()
@@ -183,7 +183,7 @@ class ConnectionDialog(object):
         else:
             self.wdict[gtk.RESPONSE_OK].props.sensitive = False
             opts.url = None
-        
+
     def activate_cb(self, entry):
         url_text = entry.get_text()
         self.set_error_msg(_("Attempting to connect to %s") % url_text)
@@ -195,12 +195,12 @@ class ConnectionDialog(object):
             self.set_error_msg(str(e), 'red')
             self.wdict[gtk.RESPONSE_OK].props.sensitive = False
 
-        return 
-        
+        return
+
     def clicked_cb(self, widget):
         import webbrowser
         webbrowser.open(widget.get_uri())
-        
+
     def run(self):
         global opts
         response = self.dialog.run()
@@ -221,27 +221,26 @@ class ConnectionDialog(object):
     def add_demo(self):
 
         demo_message = _('A complete demo of all the features of the sqlkit package')
-        demo_missing = _('The demo was not found, if you know where it is,\n' + \
+        demo_missing = _('The demo was not found, if you know where it is,\n' +
                          'run it manually: python demo.py')
         if find_demo():
             self.wdict[RESPONSE_DEMO].props.sensitive = True
             self.wdict[RESPONSE_DEMO].set_tooltip_text(demo_message)
         else:
             self.wdict[RESPONSE_DEMO].set_tooltip_text(demo_missing)
-            
 
     def set_error_msg(self, text, color='black'):
         from gobject import markup_escape_text
 
         markup = '<span foreground="%s">%s</span>' % (color, markup_escape_text(text))
         self.l.widgets['l=errors'].set_markup(markup)
-        
+
 
 def find_demo():
     """
     find the demo dir looking in fixed positions or in module sqlkit.demo
     """
-    
+
     found_demo = None
     for demo_dir in DEMO_DIRS:
         demo_program = os.path.join(demo_dir, 'demo.py')
@@ -272,7 +271,7 @@ def open_db(exc=False):
     global db, models
 
     db = None
-    if getattr(opts,'nick_dir', None):
+    if getattr(opts, 'nick_dir', None):
         os.chdir(opts.nick_dir)
         sys.path.append(opts.nick_dir)
         if opts.run and not opts.browser:
@@ -292,7 +291,7 @@ def open_db(exc=False):
                     print e
                     pass
                 try:
-                    db = VARS.get('db') 
+                    db = VARS.get('db')
                 except AttributeError:
                     pass
 
@@ -319,7 +318,7 @@ def program():
 
     # Don't move this import before parsing opt gtk_debug, it won't work!
     from sqlkit.misc import table_browser
-    
+
     global opts, tb
 
     if args:
@@ -328,7 +327,7 @@ def program():
         else:
             opts.nick = args[0]
 
-    if len(args) >1:
+    if len(args) > 1:
         opts.table = args[1]
 
     if opts.create_templates:
@@ -358,20 +357,20 @@ def program():
         session = db.get_session()
 
         try:
-             if opts.table and not opts.browser:
-                 tables = re.split('[ ,]+', opts.table)
-                 for t in tables:
-                     if len(tables) > 1:
-                         single = False
-                     else:
-                         single = True
-                     tb = table_browser.open_sqlwidget(t, single, opts, db)
-             elif opts.configure:
-                 tb = table_browser.sqlkit_model(dbproxy=db, single=True)
+            if opts.table and not opts.browser:
+                tables = re.split('[ ,]+', opts.table)
+                for t in tables:
+                    if len(tables) > 1:
+                        single = False
+                    else:
+                        single = True
+                    tb = table_browser.open_sqlwidget(t, single, opts, db)
+            elif opts.configure:
+                tb = table_browser.sqlkit_model(dbproxy=db, single=True)
 
-             else:
-                 title = session.bind.url.database
-                 tb = table_browser.TableBrowser(db, title=title, opts=opts, x='quit')    
+            else:
+                title = session.bind.url.database
+                tb = table_browser.TableBrowser(db, title=title, opts=opts, x='quit')
 
         except OperationalError, e:
             if opts.debug:
@@ -380,7 +379,6 @@ def program():
                 print e.orig
                 sys.exit(1)
 
-    
 
 ###### Program
 def main():
@@ -396,11 +394,11 @@ def main():
         from sqlkit import debug as dbg
         dbg.trace_class(ok='SqlTable|SqlWidget|SqlMask|Completion')
         but = 'set_fkey_descr|(lookup|set|get)_value|[el]ne_cb|match_func' + \
-           '|cell_default_cb|cell_bool_cb|_lookup_value|is_fkey'
+            '|cell_default_cb|cell_bool_cb|_lookup_value|is_fkey'
         dbg.trace_function(exclude=but)
         dbg.debug(True, gtk=True)
         import sqlkit
-        
+
     program()
 
     if opts.ipython:

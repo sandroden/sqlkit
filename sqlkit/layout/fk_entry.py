@@ -14,10 +14,9 @@ if gtk.gtk_version >= (2, 16):
         __gtype_name__ = 'FkEntry'
 
         __gsignals__ = {
-            'completion-requested' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                           (gobject.TYPE_PYOBJECT,)),                          
+            'completion-requested': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                                     (gobject.TYPE_PYOBJECT,)),
         }
-
 
         def __init__(self):
             gtk.Entry.__init__(self)
@@ -36,8 +35,8 @@ else:
         __gtype_name__ = 'FkEntry'
 
         __gsignals__ = {
-            'completion-requested' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                           (gobject.TYPE_PYOBJECT,)),                          
+            'completion-requested': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                                     (gobject.TYPE_PYOBJECT,)),
         }
 
         def __init__(self):
@@ -47,8 +46,8 @@ else:
             # the date button
             self.button = gtk.Button()
 
-            self._align_entry = gtk.Alignment(1,0,1,0)
-            self._align_arrow = gtk.Alignment(0,0,0,0)
+            self._align_entry = gtk.Alignment(1, 0, 1, 0)
+            self._align_arrow = gtk.Alignment(0, 0, 0, 0)
 
             self._align_entry.add(self.entry)
             self._align_arrow.add(self.button)
@@ -65,7 +64,6 @@ else:
 
             self.button.connect('button-press-event', self.button_press_cb)
 
-
             self.connect('realize', self.set_packing)
 
         def button_press_cb(self, button, event):
@@ -79,5 +77,3 @@ else:
             props = [prop.name for prop in parent.list_child_properties()]
             if 'y-options' in props:
                 parent.child_set_property(self, 'y-options', 0)
-
-

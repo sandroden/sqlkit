@@ -24,7 +24,7 @@ class Hooks(object):
 
         sqlwidget.completions.director_id.group_by = 'nation'
         sqlwidget.gui_fields.year.format = '#'
-        
+
         if sqlwidget.is_mask():
             button = sqlwidget.widgets['b=ciao']
             button.connect('clicked', self.button_clicked_cb)
@@ -49,4 +49,3 @@ t.reload()
 # clean up to prevent conflicts with following examplesx
 defaults.unregister_hook('movie', )
 defaults.unregister_layout('movie',)
-

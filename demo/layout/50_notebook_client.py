@@ -18,8 +18,6 @@ lay = """
       }
 """
 
-   
 
 l = Layout(lay)
 w = l.show()
-

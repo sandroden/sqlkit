@@ -15,4 +15,3 @@ def pressed(wdg, event):
 
 w['e=nome'].connect('key_press_event', pressed)
 w['E=nome'].connect('button-press-event', pressed)
-

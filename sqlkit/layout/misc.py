@@ -5,12 +5,12 @@ import gtk
 
 from sqlkit import _
 
-### utility: stock icons    
+### utility: stock icons
 SK_ICONS = (
     ('cal15.png', 'sk-calendar'),
     ('keys.png', 'sk-pkeys'),
     ('table-load.png', 'sk-table-load'),
-    )
+)
 
 
 def add_stock_icons(*icon_list):
@@ -34,15 +34,16 @@ def add_stock_icons(*icon_list):
 add_stock_icons(*SK_ICONS)
 
 class StockMenuItem(gtk.ImageMenuItem):
-    
+
     def __init__(self, label, stock, size=gtk.ICON_SIZE_MENU):
         gtk.ImageMenuItem.__init__(self, label)
-        image = gtk.Image()        
+        image = gtk.Image()
         image.set_from_stock(stock, size)
         self.set_image(image)
         self.show_all()
 
 class EasyTreeView(object):
+
     def __init__(self, cols, tv=None, model=None, sort=True,
                  resize=True, show=True, but='', title='EasyTreeView'):
         if tv:
@@ -52,10 +53,10 @@ class EasyTreeView(object):
             self.l.prop('Window', 'visible', show)
             self.w = self.l.show()
             self.tv = self.w['TV=a']
-            
+
             self.l.connect(
                 ('tb=gtk-quit', 'clicked', lambda l: self.w['Window'].destroy()),
-                )
+            )
 
         self.columns = []
         self.column_names = []
@@ -105,15 +106,17 @@ class EasyTreeView(object):
 
 
 class InputStream(object):
+
     """ Simple Wrapper for File-like objects. [c]StringIO doesn't provide
         a readline function for use with generate_tokens.
         Using a iterator-like interface doesn't succeed, because the readline
         function isn't used in such a context. (see <python-lib>/tokenize.py)
     """
+
     def __init__(self, data):
-        self.__data = [ '%s\n' % x for x in data.splitlines() ]
+        self.__data = ['%s\n' % x for x in data.splitlines()]
         self.__lcount = 0
-        
+
     def readline(self):
         try:
             line = self.__data[self.__lcount]
@@ -122,4 +125,3 @@ class InputStream(object):
             line = ''
             self.__lcount = 0
         return line
-

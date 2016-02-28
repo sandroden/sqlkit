@@ -11,28 +11,25 @@ simple_menu = """
 """
 
 
-
 l = Layout(simple_menu, opts="Vs")
 l.tip('b=registra', 'Questo deve essere un nome')
 
 
 w = l.show()
-l.tip('b=chiudi', 'Chiudi tutto')  
+l.tip('b=chiudi', 'Chiudi tutto')
 def di_ciao(*args):
     for i, val in enumerate(args):
         print i, val
 
 
-
 l.menu('m=_File',
-    ('fine' , 'activate', gtk.main_quit),
-    ('inizio' , 'activate', di_ciao, ),
-    ('gtk-open' , 'activate', gtk.main_quit, )
-    )   
+       ('fine', 'activate', gtk.main_quit),
+       ('inizio', 'activate', di_ciao, ),
+       ('gtk-open', 'activate', gtk.main_quit, )
+       )
 
 #print l.elements.keys
 l.connect(
     ('b=chiudi', 'clicked', gtk.main_quit),
     ('b=registra', 'clicked', di_ciao, 'uno', 'due'),
-    )
-
+)

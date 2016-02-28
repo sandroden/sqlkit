@@ -36,21 +36,21 @@ class Hooks(object):
         print "Changed: ", sqlwidget, field_name, value, fkvalue
 
     on_change_value__varchar10 = \
-    on_change_value__date = \
-    on_change_value__time = \
-    on_change_value__datetime = \
-    on_change_value__integer = \
-    on_change_value__float = \
-    on_change_value__numeric = \
-    on_change_value__bool = \
-    on_change_value__bool_null = on_change_value__text
+        on_change_value__date = \
+        on_change_value__time = \
+        on_change_value__datetime = \
+        on_change_value__integer = \
+        on_change_value__float = \
+        on_change_value__numeric = \
+        on_change_value__bool = \
+        on_change_value__bool_null = on_change_value__text
 
-t = SqlMask(model.AllTypes, layout=lay, dbproxy=db, hooks=Hooks() )
+t = SqlMask(model.AllTypes, layout=lay, dbproxy=db, hooks=Hooks())
 
-for name in ('text','date', 'numbers', 'boolean'):
+for name in ('text', 'date', 'numbers', 'boolean'):
     t.set_frame_label(name, name)
 t.reload()
 
 
-t1 = SqlTable(model.AllTypes, dbproxy=db, hooks=Hooks() )
+t1 = SqlTable(model.AllTypes, dbproxy=db, hooks=Hooks())
 t1.reload()

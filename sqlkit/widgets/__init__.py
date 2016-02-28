@@ -1,3 +1,3 @@
 
 from mask import SqlMask
-from table.table import  SqlTable  #, Header, ModelProxy
+from table.table import SqlTable  # , Header, ModelProxy

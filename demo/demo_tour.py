@@ -15,24 +15,27 @@ from sqlkit.layout import Layout, layout
 from sqlkit import debug as dbg
 
 (
-   TITLE_COLUMN,
-   MODULE_COLUMN,
-   DEMO_COLUMN,
-   ITALIC_COLUMN,
-   MAPPED,
-   TOOLTIP,
+    TITLE_COLUMN,
+    MODULE_COLUMN,
+    DEMO_COLUMN,
+    ITALIC_COLUMN,
+    MAPPED,
+    TOOLTIP,
 ) = range(6)
 CHILDREN_COLUMN = 3
 
 class InputStream(object):
+
     """ Simple Wrapper for File-like objects. [c]StringIO doesn't provide
         a readline function for use with generate_tokens.
         Using a iterator-like interface doesn't succeed, because the readline
         function isn't used in such a context. (see <python-lib>/tokenize.py)
     """
+
     def __init__(self, data):
-        self.__data = [ '%s\n' % x for x in data.splitlines() ]
+        self.__data = ['%s\n' % x for x in data.splitlines()]
         self.__lcount = 0
+
     def readline(self):
         try:
             line = self.__data[self.__lcount]
@@ -43,9 +46,9 @@ class InputStream(object):
         return line
 
 
-
 class Demo(object):
     example_pattern = 'ex_.*.py$'
+
     def __init__(self, pattern=None, xml=True, debug=False, exclude="demo.py"):
 
         self.pattern = pattern or self.example_pattern
@@ -57,26 +60,25 @@ class Demo(object):
             } 
         """
 
-        self.l = Layout(lay, opts="s", title="Esempi" , geom=(600,700))
+        self.l = Layout(lay, opts="s", title="Esempi", geom=(600, 700))
 
-        self.l.notebook('N.0', ['src','tree', 'widget properties','pack properties','xml'])
+        self.l.notebook('N.0', ['src', 'tree', 'widget properties', 'pack properties', 'xml'])
         self.w = self.l.show(x='q')
         if not xml:
             self.w['N.0'].remove_page(-1)
 
-        tx_src  = self.w['TX=txt']
+        tx_src = self.w['TX=txt']
         tx_note = self.w['TX=note']
         tx_xml = self.w['TX=xml']
-        self.src  = tx_src.get_buffer()
-        self.xml =  tx_xml.get_buffer()
+        self.src = tx_src.get_buffer()
+        self.xml = tx_xml.get_buffer()
         self.configure_buffer(self.src)
         self.note = tx_note.get_buffer()
 
         self.tv_tree = self.w['TV=tree']
-        self.create_widget_tree(new=True, toplevel = self.w['Window'])
-        self.ts_el   = self.prepare_treeview_elem(self.w['TV=el'])
+        self.create_widget_tree(new=True, toplevel=self.w['Window'])
+        self.ts_el = self.prepare_treeview_elem(self.w['TV=el'])
         self.ts_pack = self.prepare_treeview_tree(self.w['TV=pack'])
-
 
         self.demos = self.create_demos(self.pattern, exclude)
         self.tv = self.w['TV=a']
@@ -85,7 +87,7 @@ class Demo(object):
         # self.l.menu('m=_File',
         #     ('inspect widgets' , 'activate', self.pop_inspect, ),
         #     ('gtk-quit' , 'activate', gtk.main_quit, ),
-        #     )   
+        #     )
 
     def prepare_actions(self):
 
@@ -99,9 +101,10 @@ class Demo(object):
         self.actiongroup = gtk.ActionGroup('Main')
         self.actiongroup.add_actions([
             ('TbMain', None, None),
-            ('Execute', 'gtk-execute', 'Debug', None, "Debug via a gtk logger", self.execute_clicked_cb),
+            ('Execute', 'gtk-execute', 'Debug', None,
+             "Debug via a gtk logger", self.execute_clicked_cb),
             ('Quit', 'gtk-quit', None, "<Control>q", None, gtk.main_quit),
-            ])
+        ])
         self.ui_manager = gtk.UIManager()
         self.ui_manager.add_ui_from_string(UI)
         self.ui_manager.insert_action_group(self.actiongroup, 10)
@@ -114,7 +117,7 @@ class Demo(object):
         header.show_all()
 
     def configure_treeview(self, treeview, demos, src, note):
-        
+
         model = gtk.TreeStore(
             gobject.TYPE_STRING,
             gobject.TYPE_STRING,
@@ -138,7 +141,7 @@ class Demo(object):
             iter = model.append(None)
             model.set(iter,
                       TITLE_COLUMN, section,
-            )
+                      )
             iters[section] = iter
 
         for demo in demos:
@@ -148,7 +151,7 @@ class Demo(object):
                       MODULE_COLUMN, demo.filename,
                       DEMO_COLUMN, demo,
                       TOOLTIP, "%s\n\n%s" % (demo.title, demo.doc),
-                    )
+                      )
 
         cell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Widget", cell, text=TITLE_COLUMN)
@@ -170,7 +173,7 @@ class Demo(object):
         self.snippet_names = []
         self.model.foreach(self.model_foreach_func)
         return self.snippet_names
-        
+
     def execute_clicked_cb(self, widget=None):
         """
         toggle visibility of the window that shows debug
@@ -186,7 +189,7 @@ class Demo(object):
 
     def selection_changed_cb(self, selection):
         model, iter = selection.get_selected()
-        if not iter:  # get_selected returns None when you click on the arrow 
+        if not iter:  # get_selected returns None when you click on the arrow
             return False
         if model.iter_has_child(iter):
             return True
@@ -208,7 +211,7 @@ class Demo(object):
 
         self.xml.set_text(GLOB['l'].xml())
         self.last_lo = GLOB['l']
-        self.last_w  = GLOB['w']
+        self.last_w = GLOB['w']
         self.prepare_treestore_for_elements(GLOB['l'].elements)
         self.create_widget_tree(toplevel=GLOB['w']['Window'])
         GLOB['w']['Window'].set_title(demo.filename)
@@ -220,12 +223,12 @@ class Demo(object):
         Used to open directly an example::
 
           demo.py 03
-          
+
         """
         for demo in self.demos:
             if demo.idx == idx:
                 return self.load_module(demo)
-            
+
     def prepare_treestore_for_elements(self, elements):
         tv = self.w['TV=el']
         ts = self.ts_el
@@ -235,7 +238,7 @@ class Demo(object):
                 iter = ts.append(None)
                 ts.set(iter, 0, el, 1, val.gtkClass)
                 # properties
-                for p,v in val.properties.iteritems():
+                for p, v in val.properties.iteritems():
                     child_iter = ts.append(iter)
                     ts.set(child_iter, 2, p, 3, v)
 
@@ -246,20 +249,19 @@ class Demo(object):
                 iter = ts.append(None)
                 ts.set(iter, 0, el, 1, val.container_flag, 2, val.gtkClass)
                 # PACK properties
-                for p,v in val.pack_properties.iteritems():
+                for p, v in val.pack_properties.iteritems():
                     child_iter = ts.append(iter)
                     ts.set(child_iter, 3, p, 4, v)
-
 
     def prepare_treeview_elem(self, tv):
         tv.set_rules_hint(True)
         selection = tv.get_selection()
         selection.connect('changed', self.selection_changed_prop_cb)
-        ts = gtk.TreeStore(str,str, str, str)
+        ts = gtk.TreeStore(str, str, str, str)
         tv.set_model(ts)
 
         ## TreeViewColumn & CellRenderer
-        heads = ['elem', 'class', 'property', 'value' ]
+        heads = ['elem', 'class', 'property', 'value']
         for i, v in enumerate(heads):
             tvc = gtk.TreeViewColumn(v, gtk.CellRendererText(), text=i)
             tvc.set_sort_column_id(i)
@@ -273,12 +275,11 @@ class Demo(object):
         tv.set_model(ts)
 
         ## TreeViewColumn & CellRenderer
-        heads = ['elem', 'container', 'class', 'property', 'value' ]
+        heads = ['elem', 'container', 'class', 'property', 'value']
         for i, v in enumerate(heads):
             tvc = gtk.TreeViewColumn(v, gtk.CellRendererText(), text=i)
             tvc.set_sort_column_id(i)
             tv.append_column(tvc)
-
 
         return ts
 
@@ -311,13 +312,13 @@ class Demo(object):
 
     def create_demos(self, pattern=None, exclude=None):
 
-        file_list = [x for x in os.listdir('.') if re.match(pattern, x) and not re.match(exclude, x)]
+        file_list = [x for x in os.listdir('.') if re.match(
+            pattern, x) and not re.match(exclude, x)]
         file_list.sort()
-        
-        demo_list = [Example(ex) for ex in file_list]
-        
-        return demo_list
 
+        demo_list = [Example(ex) for ex in file_list]
+
+        return demo_list
 
     def create_widget_tree(self, new=False, toplevel=None):
         from sqlkit.debug import gtk_dbg
@@ -336,7 +337,7 @@ class Demo(object):
         iter = buf.get_iter_at_offset(0)
         #print buf.get_tag_table()
         last_erow, last_ecol = 0, 0
-        was_newline = False # multiline statement detection
+        was_newline = False  # multiline statement detection
         for x in tokenize.generate_tokens(InputStream(data).readline):
             # x has 5-tuples
             tok_type, tok_str = x[0], x[1]
@@ -361,7 +362,7 @@ class Demo(object):
             last_ecol = ecol
 
             if tok_type == tokenize.COMMENT:
-                was_newline = True # newline is in tok_str included.
+                was_newline = True  # newline is in tok_str included.
                 buf.insert_with_tags_by_name(iter, tok_str, 'source', 'comment')
                 continue
             elif tok_type == tokenize.NAME:
@@ -386,26 +387,26 @@ class Demo(object):
         tag.set_property('pixels_above_lines', 0)
         tag.set_property('pixels_below_lines', 0)
         tag = buf.create_tag('keyword', foreground='#00007F',
-                                weight=pango.WEIGHT_BOLD)
+                             weight=pango.WEIGHT_BOLD)
         tag = buf.create_tag('string', foreground='#007F00')
         tag = buf.create_tag('comment', foreground='#7F007F',
-                                       style=pango.STYLE_ITALIC)
-
+                             style=pango.STYLE_ITALIC)
 
     def iconify(self):
         self.w['Window'].iconify()
-        
+
 class TreeShow(object):
+
     def __init__(self, data):
-        l = layout.Layout( "TVS=a", opts="Vs")
+        l = layout.Layout("TVS=a", opts="Vs")
         w = l.show()
         tv = w['TV=a']
 
         ts = gtk.ListStore(str, str, str, str, str)
-        tvc = gtk.TreeViewColumn('prop', gtk.CellRendererText(),text=0)
+        tvc = gtk.TreeViewColumn('prop', gtk.CellRendererText(), text=0)
         tvc.set_sort_column_id(0)
         tv.append_column(tvc)
-        
+
         cell = gtk.CellRendererText()
         #cell.set_property('style', pango.STYLE_BOLD)
         tvc = gtk.TreeViewColumn('lay val', cell, text=4)
@@ -423,7 +424,6 @@ class TreeShow(object):
         tvc = gtk.TreeViewColumn('nick', cell, text=1)
         tvc.set_sort_column_id(1)
         tv.append_column(tvc)
-
 
         tv.set_model(ts)
         for i in data:
@@ -445,26 +445,26 @@ class Example(object):
         self.idx = m.group('idx')
         self.name = m.group('name')
         self.section, self.title = self.description.split('/')
-        
+
     def readexample(self, file_name):
         """
         read the __doc__ of the example and separate it from the body
         """
 
-        idf = file(file_name,'r')
+        idf = file(file_name, 'r')
         txt = idf.read()
         idf.close()
         pat = re.compile(r'''
         ^"""(?:(?P<doc>.*?)""")\s*(?P<body>(.*))
-        ''', re.MULTILINE| re.DOTALL|re.VERBOSE)
+        ''', re.MULTILINE | re.DOTALL | re.VERBOSE)
         m = pat.search(txt)
         if m:
-            return  m.group('doc','body')
+            return m.group('doc', 'body')
         else:
             return (None, None)
 
     def __str__(self):
         return self.filename
-    
+
     def __repr__(self):
         return "<Example: %s>" % self.filename

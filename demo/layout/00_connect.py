@@ -9,7 +9,6 @@ simple_menu = """
 """
 
 
-
 l = Layout(simple_menu, opts="Vs")
 w = l.show()
 
@@ -20,9 +19,8 @@ def di_ciao(*args):
 def close_window(widget, window):
     print type(window)
     window.destroy()
-    
+
 l.connect(
     ('b=chiudi', 'clicked', close_window, w['Window']),
     ('b=registra', 'clicked', di_ciao, 'uno', 'due'),
-    )
-
+)

@@ -10,9 +10,9 @@ lay = """
 """
 
 l = Layout(lay)
-l.prop('Window','width_request',300)
-l.prop('O.1', 'toolbar_style','GTK_TOOLBAR_TEXT')
-l.prop('O.2', 'toolbar_style','GTK_TOOLBAR_ICONS')
-l.prop('O.3', 'toolbar_style','GTK_TOOLBAR_BOTH')
+l.prop('Window', 'width_request', 300)
+l.prop('O.1', 'toolbar_style', 'GTK_TOOLBAR_TEXT')
+l.prop('O.2', 'toolbar_style', 'GTK_TOOLBAR_ICONS')
+l.prop('O.3', 'toolbar_style', 'GTK_TOOLBAR_BOTH')
 #l.xml('/tmp/a.glade')
 w = l.show()

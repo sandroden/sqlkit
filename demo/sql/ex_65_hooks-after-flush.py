@@ -28,4 +28,3 @@ class Validation(object):
 t = SqlTable(model.Director, dbproxy=db,
              order_by='first_name', hooks=Validation(),)
 t.reload()
-

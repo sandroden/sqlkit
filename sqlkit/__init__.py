@@ -21,7 +21,7 @@ if not os.path.exists(path):
 gettext.bindtextdomain('sqlkit', path)
 gettext.textdomain('sqlkit')
 _ = gettext.gettext
-   
+
 from db.proxy import DbProxy
 import exc
 

@@ -17,7 +17,3 @@ l = Layout(lay, opts="T")
 w = l.show()
 
 #dbg.gtk_dbg.show_widgets(w['Window'])
-
-
-        
-    

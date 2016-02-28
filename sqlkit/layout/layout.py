@@ -5,13 +5,13 @@
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software 
+# along with this program; if not, write to the Free Software
 # FOUNDATION66, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """Layout Creation using a GUI description language
@@ -29,15 +29,18 @@ import tempfile
 import gtk
 import gobject
 
-from sqlkit import debug as dbg  
+from sqlkit import debug as dbg
 from sqlkit import _
 import widgets
 from sqlkitplugin import *  # A simple way to import all custom widgets, only used by Builder()
 
-class UnbalancedLayoutCurlyBaces(Exception): pass
-class ConnectBeforeShowNotImplemented(Exception): pass
+class UnbalancedLayoutCurlyBaces(Exception):
+    pass
+class ConnectBeforeShowNotImplemented(Exception):
+    pass
 
 class Layout(object):
+
     """Generate xml for a specific layout
 
     Methods:
@@ -45,7 +48,7 @@ class Layout(object):
     dim -- returns a tuple w/ the dimentions of the Table that contains the
            layout
 
-    
+
     A container is generated to contain the widgets. Default is GtkTable (T), but
     other can be choosen by arguments or by specification
     """
@@ -64,7 +67,7 @@ class Layout(object):
                  container_id='',
                  addto=None,
                  title=None,
-                 geom=(-1,-1),
+                 geom=(-1, -1),
                  position=None,
                  anchestor=None,
                  label_map=None,
@@ -78,7 +81,7 @@ class Layout(object):
         addto: the outermost container will be added to the widget 'addto'
         title: title of the window
         geom: a tuple indicating the desired width and height for the window
-        
+
         """
         #print 'layout init: %s level: %s' % (id(elements), level)
 
@@ -96,12 +99,12 @@ class Layout(object):
 
         self.addto = addto
         self.elements = elements
-        self.rows = 0           # maximum N. for iteration 
+        self.rows = 0           # maximum N. for iteration
         self.cols = 0           # idem
         self.level = level      # nested level
         self.cells_list = []
         self.cells = {}         # each element is an LWidget or LContainer
-        
+
         self.lay = lay
         self.parent_container = parent_container
         self.container_id = container_id
@@ -112,18 +115,18 @@ class Layout(object):
         elements_list = self._parse_layout(lay.strip('\n '))
         for el in elements_list:
             ### 'a capo'  both w/ newline *and* @
-            if el in ('\n','@'):
+            if el in ('\n', '@'):
                 row = row + 1
-                self._set_dim(row,col)
+                self._set_dim(row, col)
                 col = -1
             else:
                 ## add it to notebook tabs
                 if el.startswith('%'):
-                    self.notebook_tabs += [re.sub('[%]','',el)]
+                    self.notebook_tabs += [re.sub('[%]', '', el)]
                     continue
                 ### col span
                 if el in '-':
-                    self._colspan(row,col)
+                    self._colspan(row, col)
                     col = col + 1
                     continue
                 col = col + 1
@@ -131,7 +134,7 @@ class Layout(object):
                 if el in '^':
                     self._rowspan()
                     continue
-                
+
                 nopts, nested, container_id = self._is_nested(el)
                 if nested:
                     new = Layout(nested, self.level + 1,
@@ -141,20 +144,20 @@ class Layout(object):
                                  anchestor=self.anchestor,
                                  label_map=label_map,
                                  )
-                    self.cells[(row,col)] = new.container()
-                    new.container().position((row,col))
+                    self.cells[(row, col)] = new.container()
+                    new.container().position((row, col))
                 else:
-                    self.cells[(row,col)] = self._create_lwidget(
+                    self.cells[(row, col)] = self._create_lwidget(
                         el, (row, col), container=self.container_flag,
                         elements=elements)
                     #print "Layout(pos) %s: %s,%s" % (el, row, col)
                     #self.cells[(row,col)].position((row, col))
 
-                self.cells_list += [self.cells[(row,col)]]
+                self.cells_list += [self.cells[(row, col)]]
                 #print "Fatta %s,%s %s" % (row, col, self.cells[(row,col)])
 #                 for v in dir(self.cells[(row,col)]):
 #                     print "%s %s" % (el, v)
-                self._set_dim(row,col)   # not always usefull, never harmful
+                self._set_dim(row, col)   # not always usefull, never harmful
 
         #print "level: %d opts: %s type %s" % (self.level, opts, type(opts))
         if opts and 's' in opts:
@@ -164,12 +167,12 @@ class Layout(object):
         self.elements = elements
         #self._add_container_to_elements()
         if self.parent_container == "W" and not addto:
-            self._create_window(geom, title,position)
-                    
+            self._create_window(geom, title, position)
+
     def container(self):
         return self.lcontainer
 
-    def _create_container(self, row, col,elements):
+    def _create_container(self, row, col, elements):
         # create the containet looking the widget dictionary _W
         #return Table('',self.parent_container, (row,col),'')
 
@@ -183,10 +186,10 @@ class Layout(object):
         else:
             parent_container = self.parent_container
 
-        cont =  self._W[self.container_flag](key, (row, col),
-                                             parent_container,
-                                             children_list=self.cells_list,
-                                             elements=elements, layout=self.anchestor)
+        cont = self._W[self.container_flag](key, (row, col),
+                                            parent_container,
+                                            children_list=self.cells_list,
+                                            elements=elements, layout=self.anchestor)
 
         # in case | I add the Frame and I put now created 'cont' as child
         # Frame F will create 'A' (alignment) and move cont as its child
@@ -202,20 +205,20 @@ class Layout(object):
         if 'X' in self.opts or '>' in self.opts:
             key = "X." + self.container_id
             expander = self._W['X'](key, (row, col),
-                                 self.parent_container,
-                                 children_list=[cont],
-                                 elements=elements, layout=self.anchestor)
+                                    self.parent_container,
+                                    children_list=[cont],
+                                    elements=elements, layout=self.anchestor)
             ## if >> expander will be expanded
-            if re.search('>>',self.opts):
+            if re.search('>>', self.opts):
                 expander.properties['expanded'] = True
-                
+
             cont = expander
 
         ## notebook labels, if any
         if re.match("N.", key):
             if self.notebook_tabs:
                 m = re.search('(.*)_(TOP|LEFT|RIGHT|BOTTOM)$',
-                                   self.notebook_tabs[0])
+                              self.notebook_tabs[0])
                 if m:
                     pos_note = m.group(2)
                     self.notebook_tabs[0] = m.group(1)
@@ -225,26 +228,26 @@ class Layout(object):
 
         return cont
 
-    
     def _create_container_id(self):
         # let's use an element of dict 'elements' as counter, so it is unique
         # for all the nested calls to layout
         if self.container_id:
             container_id = "%s%s" % (self.container_flag,
-                                           self.container_id )
+                                     self.container_id)
         else:
-            idx = '%s_progr' % self.container_flag 
+            idx = '%s_progr' % self.container_flag
             #print "_create_cont_id: %s" % (self.container_flag)
-            self.elements.setdefault(idx,-1) 
+            self.elements.setdefault(idx, -1)
             self.elements[idx] += 1
-            container_id = "%s.%s" % (self.container_flag, self.elements[idx] )
+            container_id = "%s.%s" % (self.container_flag, self.elements[idx])
 
-        self.container_id = re.sub("^..",'',container_id)
+        self.container_id = re.sub("^..", '', container_id)
         return container_id
-    def _create_window(self, geom=None, title='Top Window',position=None):
-        W = widgets.Window('Window:%s.%s' % (geom[0], geom[1]), (0,0),'W',
+
+    def _create_window(self, geom=None, title='Top Window', position=None):
+        W = widgets.Window('Window:%s.%s' % (geom[0], geom[1]), (0, 0), 'W',
                            children_list=[self.lcontainer],
-                           elements=self.elements, layout=self.anchestor)       
+                           elements=self.elements, layout=self.anchestor)
         self.lcontainer = W
         if title:
             W.properties['title'] = title
@@ -254,20 +257,21 @@ class Layout(object):
                         'CENTER_ALWAYS',
                         'CENTER_ON_PARENT'):
             position = 'GTK_WIN_POS_'+position
-            W.properties['window_position']=position
+            W.properties['window_position'] = position
         #print "CREATE_WINDOW: %s" % self.lcontainer
+
     def _dbg(self, txt):
         if self.dbg == 1:
             print txt
-    
-    def _create_lwidget(self, el, pos, container,elements):
+
+    def _create_lwidget(self, el, pos, container, elements):
         ## i extract the type. Default type is 'le'
         #print "Ora creo " + el
-        key = re.split("^(?:(.*)=)?(.*)",el)[1] or 'le'
-        
+        key = re.split("^(?:(.*)=)?(.*)", el)[1] or 'le'
+
         return self._W[key](el, pos, container, elements=elements, layout=self.anchestor)
 
-    def _is_nested(self,el):
+    def _is_nested(self, el):
         ### is it a final token or a nested layout?
         p = re.compile(r"""
            {                           # start a new nested layout
@@ -285,20 +289,21 @@ class Layout(object):
         else:
             #print "NOT NESTED %s" % el
             return None, None, None
-    def _colspan(self,row,col):
+
+    def _colspan(self, row, col):
         ## let's go backword to  search for a defined cell
-        for c in range(col,-1,-1):
-            if (row,c) in self.cells:
-                self.cells[row,c].colspan()
+        for c in range(col, -1, -1):
+            if (row, c) in self.cells:
+                self.cells[row, c].colspan()
                 return
-        
-    def _rowspan(self,row,col):
+
+    def _rowspan(self, row, col):
         ## let's go backword to  search for a defined cell
-        for r in range(row,-1,-1):
-            if (r,col) in self.cells:
-                self.cells[r,col].rowspan()
+        for r in range(row, -1, -1):
+            if (r, col) in self.cells:
+                self.cells[r, col].rowspan()
                 return
-        
+
     def _parse_layout(self, lay):
         lvl = 0
         comment = 0
@@ -316,18 +321,18 @@ class Layout(object):
                 continue
             # entering a nested
             if c in '{':
-                lvl +=1
+                lvl += 1
             # lowering the nested level
             if c in '}':
-                lvl -=1
-            if  lvl >= 1:
+                lvl -= 1
+            if lvl >= 1:
                 nested += c
             if lvl == 0:
-                if c in (' ','\t','@','\n'):
+                if c in (' ', '\t', '@', '\n'):
                     if len(nested) > 0:
                         ret += [nested]
                         nested = ''
-                    if c in ('\n','@'):
+                    if c in ('\n', '@'):
                         ret += [c]
                 else:
                     nested += c
@@ -337,10 +342,10 @@ class Layout(object):
 
         if lvl != 0:
             raise UnbalancedLayoutCurlyBaces(lay)
-                    
+
         ## transform any default widget (those w/o modifier '[a-Z]+=') into
         ## L=name e=name. This happens if '-' is in the options
-        
+
         #if True:
         if '-' in self.opts:
             new_ret = []
@@ -357,27 +362,30 @@ class Layout(object):
                     """, re.VERBOSE)
                     m = pattern.search(el)
                     if m:
-                        new_ret += [ 'L=%s:%s' % (m.group('val') or '',
-                                                  m.group('w') or '')]
-                        new_ret += [ 'ae=%s:%s' % (m.group('val') or '',
+                        new_ret += ['L=%s:%s' % (m.group('val') or '',
+                                                 m.group('w') or '')]
+                        new_ret += ['ae=%s:%s' % (m.group('val') or '',
                                                   m.group('h') or '')]
-                        
+
                     else:
                         print "ERRORE: %s scartato" % el
             ret = new_ret
         return ret
+
     def _dbg_parse_layout(self):
-        return  self._parse_layout(self.lay)
+        return self._parse_layout(self.lay)
+
     def _dbg_show_objs(self):
-        for key,val in self.elements.iteritems():
+        for key, val in self.elements.iteritems():
             print "%-10.10s  ==> %s" % (key, val)
+
     def _add_status_bar(self, elements):
         self.rows += 1
         sb = self._create_lwidget(
-            'sb=StBar', (self.rows,0), self.container_flag, elements)
-        self.cells[self.rows,0] = sb
+            'sb=StBar', (self.rows, 0), self.container_flag, elements)
+        self.cells[self.rows, 0] = sb
         self.cells_list += [sb]
-        self.cells[self.rows,0].pack_properties['right_attach'] = self.cols+1
+        self.cells[self.rows, 0].pack_properties['right_attach'] = self.cols+1
         #print self.cells[self.rows,0].pack_properties
 
 #     def _parse_flags(self, cont_flag=None):
@@ -391,30 +399,30 @@ class Layout(object):
 #                 self.container_flag = s.group('cont')
 #             else:
 #                 raise UnknownContainer    ### FARE!!!!!
-            
+
     def _parse_opts(self, opts=None):
         # now is just which container to build, missing "-=|"
         #container_regexp = '[THVBbNP]'
         # X (gtkExpander) is treated as a modifier rather than a real container
         # X can be added to a normal container flag. If we don't hide it from
         # container_regexp, it would hide the other container
-        s = re.search('(?P<cont>%s)' % self.container_regexp.replace('X',''), opts)
+        s = re.search('(?P<cont>%s)' % self.container_regexp.replace('X', ''), opts)
         if s:
             self.container_flag = s.group('cont')
         else:
             self.container_flag = 'T'
 
         #print "_parse_opts: %s" % self.container_flag
-        self.opts = opts.replace(self.container_flag,'')
-            
-    def _set_dim(self,row,col):
+        self.opts = opts.replace(self.container_flag, '')
+
+    def _set_dim(self, row, col):
         self.rows, self.cols = max(self.rows, row), max(self.cols, col)
-        
+
     def xml(self, filename=None, tmpfile=None, logfile=None):
         """Produces the xml for gtk.Builder() to create the GUI, possibly writes it to file"""
 
-        start = '<?xml version="1.0" encoding="UTF-8" standalone="no"?> <!--*- mode: nxml -*-->'+\
-        '\n<interface>\n'
+        start = '<?xml version="1.0" encoding="UTF-8" standalone="no"?> <!--*- mode: nxml -*-->' +\
+            '\n<interface>\n'
 
         end = "</interface>\n"
 
@@ -425,33 +433,33 @@ class Layout(object):
         txt = self._clean_items(self.lcontainer.xml())
         if tmpfile:
             tmpfile.write(txt)
-        
+
         #  write it to file?
         if filename:
-            f = open(filename,'w')
+            f = open(filename, 'w')
             f.write("%s\n%s\n%s" % (start, txt, end))
             f.close()
         else:
             return "%s\n%s\n%s" % (start, txt, end)
- 
+
     def create(self, file=None, tmpfile=None):
         """pack the widgets using gtk function (no glade), start from lcontainer"""
 
         w = self.lcontainer.create(visible=False)
         w.show_all()
         return w
- 
+
     def _clean_items(self, txt):
-        pat = re.compile('^(\s+)([^\s<])',re.MULTILINE|re.DOTALL)
+        pat = re.compile('^(\s+)([^\s<])', re.MULTILINE | re.DOTALL)
         return pat.sub(r'\2', txt)
-    
-    def  dbg_xml(self):
+
+    def dbg_xml(self):
         return self.lcontainer.dbg_xml()
-    
+
     def dim(self):
         return "DIM %s,%s" % (self.rows+1, self.cols+1)
 
-    def show(self,action=None, x=None):
+    def show(self, action=None, x=None):
 
         if self.shown:
             self.widgets['Window'].show()
@@ -461,12 +469,12 @@ class Layout(object):
             xml = self.xml()
             try:
                 self.builder.add_from_string(xml)
-            except: # gtk 2.12 of Builder.ad_from_string() need the length
+            except:  # gtk 2.12 of Builder.ad_from_string() need the length
                 self.builder.add_from_string(xml, len(xml))
-                
+
             self.widgets = {}
             for key, val in self.elements.iteritems():
-                ## if int, that's just a counter 
+                ## if int, that's just a counter
                 if not isinstance(val, int):
                     self.widgets[key] = self.builder.get_object(key)
             if x:
@@ -479,15 +487,15 @@ class Layout(object):
 
             if action == 'gtk.main':
                 gtk.main()
-            ## parent 
+            ## parent
             if self.addto:
                 container_widget = self.widgets[self.lcontainer.el_def]
                 self.addto.add(container_widget)
-                
+
             self.shown = True
             return self.widgets
-        
-    def gshow(self,action=None, x=None):
+
+    def gshow(self, action=None, x=None):
         if self.shown:
             self.widgets['Window'].show()
         else:
@@ -495,7 +503,7 @@ class Layout(object):
 
             self.widgets = {}
             for key, val in self.elements.iteritems():
-                ## if int, that's just a counter 
+                ## if int, that's just a counter
                 if not isinstance(val, int):
                     self.widgets[key] = val.gtkWdg
 
@@ -510,20 +518,20 @@ class Layout(object):
 
             if action == 'gtk.main':
                 gtk.main()
-            ## parent 
+            ## parent
             if self.addto:
                 container_widget = self.widgets[self.lcontainer.el_def]
                 self.addto.add(container_widget)
-                
+
             self.shown = True
             return self.widgets
 
-    def fshow(self,action=None, x=None, filename=None):
+    def fshow(self, action=None, x=None, filename=None):
         if not filename:
-            tmpdir = tempfile.mkdtemp() 
-            filename = os.path.join(tmpdir,'layout.glade')
+            tmpdir = tempfile.mkdtemp()
+            filename = os.path.join(tmpdir, 'layout.glade')
             print filename
-            
+
         self.xml(file=filename)
 
         glade = gtk.glade.XML(filename)
@@ -534,21 +542,21 @@ class Layout(object):
                 self.widgets[key] = glade.get_widget(key)
         if x:
             if 'Window' in self.widgets:
-                
+
                 W = self.widgets['Window']
                 if x == 'q':
                     W.connect("delete_event", gtk.main_quit)
                 else:
                     W.connect("delete_event", x)
-        
+
         if action == 'gtk.main':
             gtk.main()
 
-        ## clean 
+        ## clean
         os.unlink(filename)
         os.rmdir(tmpdir)
         return self.widgets
-    
+
     def tip(self, el_def, text):
         if self.shown:
             if isinstance(self.widgets[el_def], gtk.ToolItem):
@@ -561,13 +569,13 @@ class Layout(object):
     def menu(self, el_def, *args):
         """the dictionary must be a list of tuples (key, signal, handler)
         A separator can be as simple as '-' both in key and handler
-        
+
         """
 
         items = {}
         for d in args:
             d = list(d)
-            el_def = el_def.replace('m=','M=')
+            el_def = el_def.replace('m=', 'M=')
             menu = self.widgets[el_def]
             #print "menu: ", el_def, menu, self.widgets
             key = d[0]
@@ -581,12 +589,12 @@ class Layout(object):
 #                 signal = d[2]
 #             except IndexError:
 #                 signal = 'activate'
-                
+
 #             try:
 #                 i = d[3]
 #             except IndexError:
 #                 i = None
-                
+
             if not key in items:
                 if key.startswith('gtk-'):
                     items[key] = gtk.ImageMenuItem(key)
@@ -596,7 +604,7 @@ class Layout(object):
                 items[key].connect(*d[1:])
             menu.append(items[key])
             menu.show_all()
-            
+
     def connect(self,  *args):
         """the dictionary must be a list of tuples
         (key, signal, handler, arg1, arg2...)"""
@@ -610,7 +618,7 @@ class Layout(object):
         else:
             for d in args:
                 self.connect_with_id(d)
-                
+
     def connect_with_id(self, args):
         el_def = args[0]
         id = self.widgets[el_def].connect(*args[1:])
@@ -618,7 +626,7 @@ class Layout(object):
             self.connect_dict[el_def] += [(id, args[1], args[2])]
         else:
             self.connect_dict[el_def] = [(id, args[1], args[2])]
-        
+
     def connect_set(self, *args):
         # syntactic check
         if not isinstance(args[0], tuple):
@@ -629,7 +637,7 @@ class Layout(object):
             self.disconnect(d[0], signal=d[1])
 
         self.connect(*args)
-        
+
     def disconnect(self, el_def, signal=None, id=None, handler=None):
         if id:
             self.widgets[el_def].disconnect(id)
@@ -642,7 +650,7 @@ class Layout(object):
                     self.widgets[el_def].disconnect(info[0])
                     del self.connect_dict[el_def][i]
                 i += 1
-            
+
     def get_connect(self, el_def):
         pass
 
@@ -650,8 +658,7 @@ class Layout(object):
         for key, val in self.widgets.iteritems():
             print "%-15.15s ==> %s" % (key, val)
 
-
-    def sb(self,txt, seconds=None):
+    def sb(self, txt, seconds=None):
         """
         Push info on Status Bar
         seconds: how many seconds it must stay displayed before being cancelled
@@ -673,11 +680,11 @@ class Layout(object):
             except AttributeError:
                 # deprecated in PyGTK 2.2.16
                 sb.remove(idx, msg_id)
-                    
+
             return False
 
         if seconds:
-            gobject.timeout_add(seconds * 1000, del_text, idx, msg_id) 
+            gobject.timeout_add(seconds * 1000, del_text, idx, msg_id)
 
     def notebook(self, el_key, notebook_labels=None, tab_pos='top'):
         """Adds notebook entry for notebooks,
@@ -687,16 +694,16 @@ class Layout(object):
 
         notebook = self.elements[el_key]
         labels_dict = {}
-        
-        keys = [label.replace(' ','').lower() for label in notebook_labels]
-        
+
+        keys = [label.replace(' ', '').lower() for label in notebook_labels]
+
         for index, label in enumerate(notebook_labels):
             key = keys[index]
             labels_dict[key] = widgets.NotebookLabel(key, (0, 0),
                                                      'N', self.elements, layout=self.anchestor)
             labels_dict[key].properties['label'] = _(label)
-        children = notebook.lw['children_list'] 
-        
+        children = notebook.lw['children_list']
+
         new_children = []
         index = 0
         #print children
@@ -704,21 +711,21 @@ class Layout(object):
             #print "notebook", el_key, index
             #print child.el_def
             key = keys[index]
-            new_children += [child , labels_dict[key]]
+            new_children += [child, labels_dict[key]]
             index = index + 1
 
         notebook.lw['children_list'] = new_children
 
         ## change notebook tab position
-        
+
         # make top the default
         allowed_positions = ["left", "right", "top", "bottom"]
         if tab_pos.lower() not in allowed_positions:
             tab_pos = "top"
-            
+
         tab_pos = "GTK_POS_%s" % tab_pos.upper()
         notebook.properties['tab_pos'] = tab_pos
-        
+
         return labels_dict
 
     def frame(self, el_key, notebook_labels=[], tab_pos='top'):
@@ -730,14 +737,14 @@ class Layout(object):
         ### questa funziona va ricongiunta con notebook con un nome unico
         notebook = self.elements[el_key]
         labels_dict = {}
-        
-        keys = [label.replace(' ','').lower() for label in notebook_labels]
-        
+
+        keys = [label.replace(' ', '').lower() for label in notebook_labels]
+
         # make top the default ##   PRIMA DIFFERENZA
         allowed_positions = ["left", "right"]
         if tab_pos.lower() not in allowed_positions:
             tab_pos = "top"
-            
+
         tab_pos = "GTK_JUSTIFY_%s" % tab_pos.upper()
         for index, label in enumerate(notebook_labels):
             key = keys[index]
@@ -749,50 +756,49 @@ class Layout(object):
                                                    label
             labels_dict[key].properties['justify'] = tab_pos
             labels_dict[key].properties['use_markup'] = True
-        children = notebook.lw['children_list'] 
-        
+        children = notebook.lw['children_list']
+
         new_children = []
         index = 0
         for child in children:
             key = keys[index]
-            new_children += [child , labels_dict[key]]
+            new_children += [child, labels_dict[key]]
             index = index + 1
 
         notebook.lw['children_list'] = new_children
 
         ## change notebook tab position
-        
-        
+
         return labels_dict
 
     def prop(self, *args):
         """ this is just a shorter way to set a property"""
 
-        if isinstance (args[0], tuple):
+        if isinstance(args[0], tuple):
             for prop in args:
                 self.prop(*prop)
             return
         else:
             key, name, value = args[0], args[1], args[2]
-            
+
         try:
             ## after self.show(),gtk widgets are there already
             self.widgets[key].set_property(name, value)
         except AttributeError, e:
             self.elements[key].properties[name] = value
-            
+
     def pack(self, *args):
         """ this is just a shorter way to set a pack property"""
 
-        if isinstance (args[0], tuple):
+        if isinstance(args[0], tuple):
             for prop in args:
                 self.pack(*prop)
             return
         else:
             key, name, value = args[0], args[1], args[2]
-            
+
         self.elements[key].pack_properties[name] = value
-        
+
         if 'widgets' in dir(self):
             raise NotImplementedError("pack must be used *before* layout.show()")
 
@@ -800,10 +806,10 @@ class Layout(object):
         """
         create a dialog modal that will be destroyed with parent
         """
-        
+
         toplevel = self.widgets.values()[0].get_toplevel()
         return dialog(toplevel, *args, **kw)
-    
+
     def message(self, type=None, text=None, show=True):
         """Pop a message dialog and return the dialog itself
 
@@ -811,26 +817,26 @@ class Layout(object):
         :param text: Write this text
         :param show: (boolean), It true (default) shaw_all()
         """
-        
+
         if type is None:
             type = 'info'
 
         types = {
-            'info' : gtk.MESSAGE_INFO,
-            'warn' : gtk.MESSAGE_WARNING,
-            'warning' :  gtk.MESSAGE_WARNING,
-            'question'  : gtk.MESSAGE_QUESTION,
-            'error' :     gtk.MESSAGE_ERROR,
-            }
-        
+            'info': gtk.MESSAGE_INFO,
+            'warn': gtk.MESSAGE_WARNING,
+            'warning':  gtk.MESSAGE_WARNING,
+            'question': gtk.MESSAGE_QUESTION,
+            'error':     gtk.MESSAGE_ERROR,
+        }
+
         window = self.widgets.values()[0].get_toplevel()
         opts = {
-            'parent' :  window,
-            'flags'  :  gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-            'type'   :  types[type],
-            'buttons' : gtk.BUTTONS_OK,
-            'message_format' : text,
-            }
+            'parent':  window,
+            'flags':  gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            'type':  types[type],
+            'buttons': gtk.BUTTONS_OK,
+            'message_format': text,
+        }
         dialog = gtk.MessageDialog(**opts)
         if show:
             dialog.show_all()
@@ -854,7 +860,7 @@ def map_labels(filename=None, buf=None, sep='\t', private=False):
 
     if not filename and not buf:
         return {}
-    
+
     info = {}
     if filename:
         f = open(filename)
@@ -881,7 +887,7 @@ def map_labels(filename=None, buf=None, sep='\t', private=False):
         return info
     else:
         widgets.info.update(info)
-        
+
 def get_label(name, layout=None):
     """
     return the label associated with 'name'
@@ -900,7 +906,7 @@ def get_label(name, layout=None):
 
     except TypeError, e:
         return name
-    
+
 def get_tip(name, layout=None):
     """
     return the help_text associated with 'name'
@@ -916,8 +922,8 @@ def get_tip(name, layout=None):
 
     except TypeError, e:
         return None
-    
-def dialog(toplevel = None, layout=None, title='', butts=None, type=None,
+
+def dialog(toplevel=None, layout=None, title='', butts=None, type=None,
            text=None, show=True, mode='', wdict=False):
     """
     A simple way to create a dialog and possibly to setup a layout
@@ -936,7 +942,7 @@ def dialog(toplevel = None, layout=None, title='', butts=None, type=None,
                   reurned values
     returns a (gtk.dialog, Layout object)
     """
-    
+
     if butts is None and type is None:
         type = 'ok'
 
@@ -947,7 +953,7 @@ def dialog(toplevel = None, layout=None, title='', butts=None, type=None,
     if type == 'yes-no-cancel':
         butts = (gtk.STOCK_YES, gtk.RESPONSE_YES,
                  gtk.STOCK_NO, gtk.RESPONSE_NO,
-                 gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)                     
+                 gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
 
     elif type == 'ok-cancel':
         butts = (gtk.STOCK_OK, gtk.RESPONSE_OK,
@@ -966,7 +972,7 @@ def dialog(toplevel = None, layout=None, title='', butts=None, type=None,
             mode = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
         else:
             mode = gtk.DIALOG_MODAL
-        
+
     dialog = gtk.Dialog(title, toplevel, mode, )
     bdict = {}
     if butts:
@@ -987,6 +993,3 @@ def dialog(toplevel = None, layout=None, title='', butts=None, type=None,
         return (dialog, lay, bdict)
     else:
         return (dialog, lay)
-        
-
-

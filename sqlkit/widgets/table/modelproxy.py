@@ -66,20 +66,22 @@ import gtk
 import gobject
 
 class ModelProxy(gobject.GObject):
+
     """
     """
 
     __gsignals__ = {
         'model-sorted': (gobject.SIGNAL_RUN_FIRST,
-                        gobject.TYPE_NONE,
-                        (gobject.TYPE_PYOBJECT,)),
+                         gobject.TYPE_NONE,
+                         (gobject.TYPE_PYOBJECT,)),
         'model-pre-sort': (gobject.SIGNAL_RUN_FIRST,
-                        gobject.TYPE_NONE,
-                        (gobject.TYPE_PYOBJECT,)),
+                           gobject.TYPE_NONE,
+                           (gobject.TYPE_PYOBJECT,)),
         'model-changed': (gobject.SIGNAL_RUN_FIRST,
-                        gobject.TYPE_NONE,
-                        (gobject.TYPE_PYOBJECT,)),
-        }
+                          gobject.TYPE_NONE,
+                          (gobject.TYPE_PYOBJECT,)),
+    }
+
     def __init__(self, master, tree_field_name=None, treeview=None, order_store=None):
         """
         :param master: the sqlwidget this belongs or another modelproxy to copy
@@ -94,12 +96,12 @@ class ModelProxy(gobject.GObject):
         self.__gobject_init__()
         self.master = master
         self.modelstore = gtk.ListStore(object)
-        self._tree_field_name = tree_field_name 
+        self._tree_field_name = tree_field_name
         self.order_store = None
         self._order_list = None
         self._filter_rows = False
         self._check_func = None
-        
+
         self.treeview = treeview
         if treeview:
             treeview.set_model(self.modelstore)
@@ -115,7 +117,7 @@ class ModelProxy(gobject.GObject):
                    order_store=self.order_store)
         m.modelstore = self.modelstore
         return m
-    
+
     def _get_tree_field_name(self):
 
         return self._tree_field_name
@@ -126,10 +128,10 @@ class ModelProxy(gobject.GObject):
             self.set_treemodel(value)
         else:
             self.set_listmodel()
-            
+
     tree_field_name = property(_get_tree_field_name, _set_tree_field_name)
     """The field on which you want to group rows"""
-    
+
     def update(self):
         """update master view according to self.tree_field_name and self.order_store
         """
@@ -140,7 +142,7 @@ class ModelProxy(gobject.GObject):
 
     def is_tree(self):
         return isinstance(self.modelstore, gtk.TreeStore)
-    
+
     def set_treemodel(self, tree_field_name, tree_order=None):
         """
         change the mode of the Table to a TreeTable, possibly converting the model itself
@@ -153,7 +155,7 @@ class ModelProxy(gobject.GObject):
         """
         if isinstance(self.modelstore, gtk.ListStore):
             self.modelstore = gtk.TreeStore(*[self.modelstore.get_column_type(i)
-                                             for i in range(self.modelstore.get_n_columns())])
+                                              for i in range(self.modelstore.get_n_columns())])
             self._order_id = self.modelstore.connect_after('row-deleted', self.persist_rows_order)
 
         self._tree_field_name = tree_field_name
@@ -161,12 +163,12 @@ class ModelProxy(gobject.GObject):
         self.model_setup()
 
     def model_setup(self):
-        
+
         self.real_model = self.modelstore
 #        self.treeview.set_reorderable(True)
         self.treeview.set_model(self.modelstore)
         self.edited_row_model_path = None
-        
+
     def set_listmodel(self, tree_order=None):
         """
         change the mode of the Table to a TreeTable, possibly converting the model itself
@@ -179,14 +181,14 @@ class ModelProxy(gobject.GObject):
         """
         if isinstance(self.modelstore, gtk.TreeStore):
             self.modelstore = gtk.ListStore(*[self.modelstore.get_column_type(i)
-                                             for i in range(self.modelstore.get_n_columns())])
+                                              for i in range(self.modelstore.get_n_columns())])
             self.real_model = self.modelstore
             #self._order_id = self.modelstore.connect('row-inserted', self.rows_reordered_cb)
-                                                           
+
         self._tree_field_name = None
         self.treeview.set_reorderable(False)
         self.model_setup()
-        
+
     def block_emit_reorder(func, *args, **kw):
         def new_func(self, *args, **kw):
             unblock = False
@@ -198,7 +200,7 @@ class ModelProxy(gobject.GObject):
             func(self, *args, **kw)
             if unblock:
                 self.modelstore.handler_unblock(self._order_id)
-                
+
         new_func.__doc__ = func.__doc__
         return new_func
 
@@ -209,9 +211,9 @@ class ModelProxy(gobject.GObject):
         """
         self.treeview.set_model(None)
         if clear:
-            
+
             self.modelstore.clear()
-            
+
         if self.tree_field_name:
             self.fill_treemodel()
         else:
@@ -220,13 +222,13 @@ class ModelProxy(gobject.GObject):
 
         self.treeview.set_model(self.modelstore)
         self.emit('model-changed', self.modelstore)
-        
+
     def fill_listmodel(self):
         for record in self.master.records:
             if self.check_visibility(record):
                 self.modelstore.append([record])
         return
-        
+
     def fill_treemodel(self):
         """
         fill the modelstore starting from an empty one and a self.records already complete.
@@ -323,7 +325,6 @@ class ModelProxy(gobject.GObject):
         else:
             v1 = self.master.gui_fields[field_name].clean_value(obj1)
             v2 = self.master.gui_fields[field_name].clean_value(obj2)
-            
 
         if v1 == v2:
             if not more:
@@ -331,7 +332,6 @@ class ModelProxy(gobject.GObject):
             else:
                 field_name, asc2, fkey2 = more[0]
                 return self._cmp(obj1, obj2, field_name, asc2, fkey2, more[1:])
-
 
         # v1 an v2 can be None so that a comparison with other values would raise
         # a TypeError
@@ -343,12 +343,12 @@ class ModelProxy(gobject.GObject):
             pass
 
         # Ascending case
-        if asc: ## I want None values *before* other values
-            if v1_first or v1 is None:  
+        if asc:  # I want None values *before* other values
+            if v1_first or v1 is None:
                 return -1
             return 1
-        else: # descending, e.g: -date_release
-            if v1_first or v1 is None: 
+        else:  # descending, e.g: -date_release
+            if v1_first or v1 is None:
                 return 1
             return -1
 
@@ -364,7 +364,7 @@ class ModelProxy(gobject.GObject):
         if order_list == None:
             self._order_list = None
             return
-        
+
         if isinstance(self.modelstore, gtk.TreeStore):
             return
         self._order_list = self._set_order_list(order_list)
@@ -374,13 +374,13 @@ class ModelProxy(gobject.GObject):
 
         if not self._order_list:
             return
-        
+
         self.emit('model-pre-sort', self.modelstore)
         rows = [tuple(r) + (i,) for i, r in enumerate(self.modelstore)]
         if rows:
             rows.sort(cmp=self.comp_func)
 
-            self.modelstore.reorder([r[-1] for r in rows])        
+            self.modelstore.reorder([r[-1] for r in rows])
             self.emit('model-sorted', self.modelstore)
 
     def _set_order_list(self, order_list):
@@ -395,14 +395,14 @@ class ModelProxy(gobject.GObject):
             else:
                 output += [(field_name, True, fkey)]
         return output
-                
+
     def get_order(self):
 
         try:
             return self._order_list[0][:2]
         except:
             return None
-        
+
 class Header(object):
 
     def __init__(self, master, field_name, value):
@@ -411,7 +411,7 @@ class Header(object):
         value = self.master.gui_fields[field_name].get_human_value(value)
         self.field_name = field_name
         setattr(self, field_name, value)
-        
+
     def __getattribute__(self, name):
 
         try:

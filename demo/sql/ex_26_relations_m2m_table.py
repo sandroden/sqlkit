@@ -11,8 +11,7 @@ lay = """
          director_id - - -
          {T.a m2m=genres:5   m2m=actors } - - -
          """
-t = SqlMask(model.Movie, dbproxy=db , layout=lay)
+t = SqlMask(model.Movie, dbproxy=db, layout=lay)
 
 Tbl = t.widgets['T.a']
-Tbl.get_parent().child_set_property(Tbl, 'y-options', gtk.EXPAND|gtk.FILL)
-
+Tbl.get_parent().child_set_property(Tbl, 'y-options', gtk.EXPAND | gtk.FILL)

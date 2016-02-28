@@ -7,13 +7,9 @@ lay = """
 """
 
 
-l = Layout(lay,opts="V")
+l = Layout(lay, opts="V")
 
 w = l.show()
 
 # for item in ('uno', 'due', 'tre'):
 #     l.widgets['C=mare2'].append_text(item)
-    
-
-
-

@@ -24,8 +24,3 @@ r.totals.add_total('year')
 f = r.mapper.class_()
 f.title = 'Alla luce del sole'
 r.add_record(f)
-
-
-
-
-

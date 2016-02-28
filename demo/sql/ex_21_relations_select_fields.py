@@ -17,4 +17,3 @@ lay = """
 t = SqlMask(model.Director, dbproxy=db, layout=lay)
 
 t.reload()
-

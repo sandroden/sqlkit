@@ -28,5 +28,3 @@ lay = """
 """
 
 t = SqlMask(model.Movie, dbproxy=db, layout=lay)
-
-

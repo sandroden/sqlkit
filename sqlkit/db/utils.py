@@ -100,32 +100,35 @@ from sqlalchemy import Table, orm, select
 from sqlalchemy.exc import OperationalError, ProgrammingError, InterfaceError
 
 from defaults import register_hook, get_hook, register_layout, get_layout, register_class, \
-     get_class, unregister_hook, unregister_layout
+    get_class, unregister_hook, unregister_layout
 
 ########   descriptor
 from sqlkit.misc.utils import Container, DictLike, ObjLike
 
-class MissingMetadata(Exception): pass
+class MissingMetadata(Exception):
+    pass
 
 class Descr(object):
+
     """
     Simple class that provide default __init__ and __str__ to be
     mixed when building classes with declarative layer
 
     __str__ will use 'format' description from database _sqlkit_fields
     """
+
     def __init__(self, **kw):
         for key, val in kw.iteritems():
             setattr(self, key, val)
         if not hasattr(self, '__tablename__'):
             self.__tablename__ = self.__table__.name
-    
+
     def __str__(self):
         from sqlkit.db.utils import tables
 
         if not hasattr(self, '__tablename__'):
             self.__tablename__ = self.__table__.name
-    
+
         try:
             if not self.__tablename__ in tables:
                 format = get_description(self.__table__, attr='format')
@@ -138,8 +141,9 @@ class Descr(object):
         return getattr(self, key) or ''
 
     __repr__ = __str__
-    
+
 class Tables(Container):
+
     def __getitem__(self, key):
         try:
             return getattr(self, key)
@@ -149,11 +153,12 @@ class Tables(Container):
                 return table
             except Exception, e:
                 raise MissingMetadata("No metadata defined in sqlkit.db.utils")
-            
+
 
 tables = Tables()
 
 class TableDescr(object):
+
     """
     Handler for table search/format fields. This is an important component of
     :ref:`completion` as it determines:
@@ -168,7 +173,7 @@ class TableDescr(object):
 
     In turn :func:`get_description` is called within completion classes and
     :meth:`sqlkit.fields.ForeignKeyField.lookup_value`
-    
+
     """
 
     format = None
@@ -188,11 +193,11 @@ class TableDescr(object):
     Format string passed to TableDescr take precedence over format string
     present in the database. 
     """
-    
+
     attrs = None
     """List of attributes required by the format string.  Always includes
     pkey."""
-    
+
     search = None
     """this is the field that will be searched for in a foreign key.
     When using completion in a ForeignKey the database is queried using this field as a filter.
@@ -205,6 +210,7 @@ class TableDescr(object):
     # FIXME: here description is an alias for search_field, in completion
     # description is an alias for format_field...
     pattern = '%\((\w+)\)'
+
     def __init__(self, table, format=None, pk=None, metadata=None, register=True):
         """
         Handler for table search/format fields
@@ -239,7 +245,7 @@ class TableDescr(object):
 
         self.table_name = table_name
         self.metadata = metadata
-        
+
         tables[table_name] = self
 
         self.description, dbformat = self.guess_description()
@@ -267,7 +273,7 @@ class TableDescr(object):
             return m
         else:
             return [format]
-        
+
     def set_format(self, format):
         m = re.findall(self.pattern, format)
         ## self.attrs is use to get the minimum possible info when completing
@@ -287,7 +293,7 @@ class TableDescr(object):
         for field in pkeys:
             if field.name not in self.attrs:
                 self.attrs.insert(0, field.name)
-                
+
     def get_table(self):
         """
         return the sqlalchemy.Table or try to get it from metadata
@@ -298,7 +304,7 @@ class TableDescr(object):
         except AttributeError:
             if not self.metadata:
                 raise MissingMetadata("Description  for '%s' cannot be guessed" % self.table_name)
-        
+
         ## first time we meet this table  -> inspect w/ autoload
         return Table(self.table_name, self.metadata, autoload=True)
 
@@ -317,10 +323,10 @@ class TableDescr(object):
                 break
 
         return field_name, format
-        
+
     def __str__(self):
         return "table: %s - description: %s\n    format: %s" % (self.table_name, self.description,
-                                                            self.format)
+                                                                self.format)
 
     def __repr__(self):
         return "table: %s - format: %s" % (self.table_name, self.format)
@@ -329,13 +335,13 @@ class TableDescr(object):
 def get_table_name(table):
     if isinstance(table, Table):
         table_name = table.name
-                
+
     elif isinstance(table, basestring):
         table_name = table
 
     elif hasattr(table, 'original'):  # A Table.alias()
         table_name = table.original.name
-        
+
     return table_name
 
 def get_description(table, metadata=None, attr='attrs'):
@@ -355,12 +361,12 @@ def get_description(table, metadata=None, attr='attrs'):
         if isinstance(table, Table):
             return getattr(TableDescr(table), attr)
         return getattr(TableDescr(table_name, metadata=metadata), attr)
-    
+
 def get_description_from_sqlkit(table, metadata=None):
     """
     get the description to use in completion and __str__ from database
     table _sqlkit_table
-    
+
     :param table: the sa table or table_name for which we search the description
     :returns: a tuple (search_field, format) that may be (None, None)
     """
@@ -380,7 +386,7 @@ def get_description_from_sqlkit(table, metadata=None):
         descr = res_proxy.fetchone()
         if not descr:
             descr = None, None
-    except (OperationalError, ProgrammingError), e:  #_sqlkit_table is not defined
+    except (OperationalError, ProgrammingError), e:  # _sqlkit_table is not defined
         descr = (None, None)
     return descr
 
@@ -396,7 +402,7 @@ def get_labels_and_tips_from_sqlkit(table, metadata=None, class_=None):
         table_name = table.name
     else:
         table_name = table
-        
+
     table_class, field_class = get_classes(bind=metadata.bind, class_=class_)
 
     if not metadata.bind.has_table(field_class.__tablename__):
@@ -433,7 +439,7 @@ def get_differences(obj):
       * it only yield *changed* values
       * it returns the simple value (not a list) if the property is not a RelationshipProperty
         with direction MANYTOMANY or ONETOMANY (i.e.a collection)
-    
+
     """
 
     session = orm.object_session(obj)
@@ -443,28 +449,28 @@ def get_differences(obj):
         old = None
 
         try:
-            new, unchanged, old =  orm.attributes.get_history(obj, prop.key)
+            new, unchanged, old = orm.attributes.get_history(obj, prop.key)
         except AttributeError, e:
             # sqla 0.5.0 -> 0.5.1
-            new, unchanged, old =  orm.attributes.get_history(
+            new, unchanged, old = orm.attributes.get_history(
                 orm.attributes.instance_state(obj), prop.key)
         if new or old:
             ## Not sure about this code. I don't want to have to cope with
             ## a list if there is no need for that (i.e. is not a collection)
             if isinstance(prop, orm.properties.RelationshipProperty) and (
-                prop.direction.name in ('MANYTOMANY', 'ONETOMANY')):
+                    prop.direction.name in ('MANYTOMANY', 'ONETOMANY')):
                 yield prop.key, old, new
             else:
                 try:
                     old = old[0]
                 except (TypeError, IndexError):
                     old = None
-                    
+
                 try:
                     new = new[0]
                 except (TypeError, IndexError):
                     new = None
-                    
+
                 yield prop.key, old, new
 
 def get_history(obj, field_name, session=None):
@@ -483,26 +489,26 @@ def get_history(obj, field_name, session=None):
 
             try:
                 try:
-                    new, unchanged, old =  orm.attributes.get_history(obj, prop.key)
+                    new, unchanged, old = orm.attributes.get_history(obj, prop.key)
                 except AttributeError, e:
                     # sqla 0.5.0 -> 0.5.1
-                    new, unchanged, old =  orm.attributes.get_history(
+                    new, unchanged, old = orm.attributes.get_history(
                         orm.attributes.instance_state(obj), prop.key)
                 if isinstance(prop, orm.properties.RelationshipProperty) and (
-                    prop.direction.name in ('MANYTOMANY', 'ONETOMANY')):
+                        prop.direction.name in ('MANYTOMANY', 'ONETOMANY')):
                     return new, unchanged, old
                 else:
                     return new and new[0] or '',  unchanged and unchanged[0] or '', old and old[0] or ''
 
             except Exception, e:
                 pass
-            
+
 def clean_for_markup(text):
     """
     quote string from undesired chars in pango markup
     """
     from gobject import markup_escape_text
-    
+
     if isinstance(text, (tuple, list)):
         text = [markup_escape_text(str(item)) for item in text]
     else:
@@ -555,6 +561,4 @@ if __name__ == '__main__':
     print get_description(movie, attr='format')
     print tables.movie
     print get_description('movie', metadata=db.metadata)
-    print get_description('movie', metadata=db.metadata, attr='format')    
-
-
+    print get_description('movie', metadata=db.metadata, attr='format')

@@ -16,7 +16,7 @@ i.e. all choices will be shown.
 
 """
 
-## Very simple, no layout definition -> a default layout is created 
+## Very simple, no layout definition -> a default layout is created
 t1 = SqlMask(model.Movie, dbproxy=db)
 t1.reload()
 
@@ -31,5 +31,5 @@ lay = """
     }
     """
 t = SqlMask(model.Movie, dbproxy=db, layout=lay)
-t.gui_fields.image.default_size = 250,250
+t.gui_fields.image.default_size = 250, 250
 t.reload()

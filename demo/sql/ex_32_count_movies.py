@@ -9,6 +9,7 @@ from sqlkit.widgets.table import columns
 from sqlkit.db.utils import DictLike
 
 class CountMovies(fields.IntegerField):
+
     """
     A field that counts the movies
     """
@@ -18,7 +19,6 @@ class CountMovies(fields.IntegerField):
         return len(value.movies)
 
 count_movies = CountMovies('n_movies')
-
 
 
 t = SqlTable(model.Director,    dbproxy=db)
@@ -34,4 +34,3 @@ t.views['main'].add_column(col, position=2)
 t.totals.add_total('n_movies')
 
 t.reload()
-

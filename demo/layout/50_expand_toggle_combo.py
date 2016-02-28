@@ -18,7 +18,6 @@ lay = """
 """
 
 
-l = Layout(lay,opts="V")
+l = Layout(lay, opts="V")
 
 w = l.show()
-

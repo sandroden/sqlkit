@@ -10,10 +10,9 @@ simple_menu = """
 """
 
 
-
 l = Layout(simple_menu, opts="Ts")
 
-w=l.show()
+w = l.show()
 
 l.tip('tb=gtk-refresh', 'toolbox nome...')
 l.show()

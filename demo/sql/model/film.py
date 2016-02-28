@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from  sqlkit.widgets import *
+from sqlkit.widgets import *
 import gtk
 import movies
 
@@ -13,10 +13,8 @@ lay = """
 """
 
 t = SqlMask(Class=movies.Director, dbproxy=movies.db,
-             single=True, layout=lay)
+            single=True, layout=lay)
 t.reload()
 
 
 gtk.main()
-
-

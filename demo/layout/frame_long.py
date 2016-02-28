@@ -21,8 +21,8 @@ simple_menu = """
 
 
 l = Layout(simple_menu, opts="Vs")  # s for status bar
-l.frame('F.gen',['Generalita',], "left")
-l.frame('F.2gen',['Altre banalita',], "left")
-l.frame('F.misc',['Amenita',], "left")
+l.frame('F.gen', ['Generalita', ], "left")
+l.frame('F.2gen', ['Altre banalita', ], "left")
+l.frame('F.misc', ['Amenita', ], "left")
 
 w = l.show()

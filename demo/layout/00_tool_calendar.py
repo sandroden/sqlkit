@@ -9,7 +9,7 @@ import os
 from sqlkit import layout
 from sqlkit.layout import misc
 
-icon_path = os.path.join( os.path.dirname(layout.__file__), 'cal15.png')
+icon_path = os.path.join(os.path.dirname(layout.__file__), 'cal15.png')
 misc.add_stock_icons()
 
 lay = """
@@ -17,6 +17,5 @@ lay = """
    l=esempio_calendario
 """
 
-l=Layout(lay)
+l = Layout(lay)
 w = l.show()
-

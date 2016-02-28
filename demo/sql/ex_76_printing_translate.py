@@ -16,7 +16,6 @@ class MyPrinter(PrintTool):
         context.translate['nation'] = 'director.nation'
         return context
 
-    
 
 t = SqlTable(model.Movie, dbproxy=db)
 t.printing = MyPrinter(t)
@@ -26,5 +25,3 @@ t.printing.add_menu_entry('Print to pdf', 'movies-translate.odt', mode='pdf',
 t.printing.add_menu_entry('Print to odt', 'movies-translate.odt', mode='odt',
                           tip="Generate an odt file with these movies")
 t.reload()
-
-

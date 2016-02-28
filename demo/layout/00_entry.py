@@ -8,7 +8,6 @@ layout = """
 """
 
 
-
 l = Layout(layout, opts="-")
 
 w = l.show()

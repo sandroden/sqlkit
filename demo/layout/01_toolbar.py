@@ -8,6 +8,6 @@ lay = """
 """
 
 l = Layout(lay)
-l.prop('Window','width_request',300)
+l.prop('Window', 'width_request', 300)
 #l.xml('/tmp/t.glade')
 w = l.show()

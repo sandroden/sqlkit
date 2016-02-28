@@ -16,9 +16,8 @@ SK_ICONS = (
     ('cal15.png', 'sk-calendar'),
     ('keys.png', 'sk-pkeys'),
     ('table-load.png', 'sk-table-load'),
-    )
+)
 
 add_stock_icons(*SK_ICONS)
 
 #path = os.path.split(os.path.dirname(__file__))[0]
-

@@ -17,4 +17,3 @@ t = SqlMask(model.Director, dbproxy=db, layout=lay)
 t.add_filter(movies__title__icontains='il')
 t.add_filter(first_name__icontains='a')
 t.reload()
-

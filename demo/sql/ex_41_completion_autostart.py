@@ -14,6 +14,3 @@ lay = """
 
 t = SqlMask(model.Movie, dbproxy=db, layout=lay)
 t.completions.director_id.autostart = 2
-
-
-

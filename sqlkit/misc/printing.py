@@ -70,10 +70,10 @@ API
 
 .. autoclass:: PrintTool
    :members: __init__, add_menu_entry, prepare_context, template_dir, server, port, output_dir,
-             remote_output_dir, pdf_viewer, odt_viewer, add_to_table, obj_proxy_class 
+             remote_output_dir, pdf_viewer, odt_viewer, add_to_table, obj_proxy_class
 
 .. autoclass:: ObjProxy
-   :members: 
+   :members:
 
 
 """
@@ -103,10 +103,13 @@ MENU_ENTRY = """
   </menubar>
 """
 
-class PrintAbortException(Exception): pass
-class DownloadException(Exception): pass
+class PrintAbortException(Exception):
+    pass
+class DownloadException(Exception):
+    pass
 
 class Context(object):
+
     """
     A context used to render a template. It contains both the data and the way to
     substitute variable with the data.
@@ -126,6 +129,7 @@ class Context(object):
     would allow to write ``$u.city``  instead of ``$client.user.addres.city``
     and ``$mq`` instead of ``$minimum_quantity_in_store``
     """
+
     def __init__(self, content, lazy=True):
         """
         :param content: a dict with keys the variable names
@@ -145,23 +149,23 @@ class Context(object):
                you need lists as contetxt values, you can just set lazy=False.
 
         """
-        self.content= content
+        self.content = content
         if lazy:
             self._implement_lazy_tables()
         self.translate = {}
 
     def __getitem__(self, key):
-        
+
         #import ipdb; ipdb.set_trace()
         return self.content[key]
         # print "Getitem", key, self.content[key]
         # try:
         #     return self.value2string(self.content[key], key)
         # except:
-    
+
     def __setitem__(self, key, value):
         self.content[key] = value
-    
+
     def __contains__(self, key):
         return key in self.content
 
@@ -174,12 +178,12 @@ class Context(object):
             if isinstance(value, (list, tuple)) and len(value):
                 if not isinstance(value[0], (list, tuple)):
                     self.content[key] = (value, )
-                    
+
     def sub(self, match=None, key=None):
         """
         Substitution used in normal find & replace on the whole document.
         The match must have a group named 'var_name'
-        
+
         :param match: the match resulting from re.match. if match is None the key
                       is taken from m.group('var_name')
         :param key:   just usefull for debugging purpose. 
@@ -187,11 +191,11 @@ class Context(object):
         if not key:
             assert match is not None
             key = match.group('var_name')
-            
+
         key = self.translate.get(key, key)
-            
+
         try:
-            value = self.content[key] 
+            value = self.content[key]
             value = unicode(self.value2string(value, key))
             return value
         except KeyError, e:
@@ -206,14 +210,14 @@ class Context(object):
         :param record_index:  the index of the record in the table's list
         :param table_name:    the openoffice name of the table
         :param list_num:      the odered number of the list in the table (starts from 1).
-                              
+
 
         """
         assert table_name in self.content, "%s not in context" % self.table_name
 
-        key  = match.group('var_name')
+        key = match.group('var_name')
         key = self.translate.get(key, key)
-        match =  match.group('match').replace('$', r'\$')
+        match = match.group('match').replace('$', r'\$')
         try:
             ## the object where we get the values are in a list
             obj = self.content[table_name][list_num][record_index]
@@ -224,7 +228,7 @@ class Context(object):
         except (KeyError, AttributeError), e:
             return self._deep_sub(obj, *key.split('.'))
 
-    def _deep_sub(self, obj, key, *tokens ):
+    def _deep_sub(self, obj, key, *tokens):
         """
         search a value in nested structure (eg.: user.name, rs.address.city)
         """
@@ -245,7 +249,7 @@ class Context(object):
             try:
                 value = getattr(value, tk)
             except AttributeError, e:
-                self.missing_keys[tk] =  "%s.%s (%s)" % (key, tk, value)
+                self.missing_keys[tk] = "%s.%s (%s)" % (key, tk, value)
                 value = "No attr %s in %s" % (tk, value)
 
         return unicode(self.value2string(value, key))
@@ -280,7 +284,7 @@ class Context(object):
 
         if isinstance(value, (int, Decimal, float)):
             return numbers.format_decimal(value, format="#,###.00")
-        
+
         return value
 
     def reset_missing(self):
@@ -301,6 +305,7 @@ class Context(object):
         return "%s" % self.content
 
 class PrintTool(gobject.GObject):
+
     """
     A print obj that is able to create a default context to handle to
     oootemplate.
@@ -327,10 +332,10 @@ class PrintTool(gobject.GObject):
 
     output_dir = None
     """the output dir when server is remote as viewed from client (may be an URL)"""
-    
+
     remote_output_dir = None
     "the output dir when server is remote as viewed from server (a local file for the server)"
-    
+
     pdf_viewer = get_viewer('pdf')
     """the preferred viewer for pdf files"""
 
@@ -340,10 +345,10 @@ class PrintTool(gobject.GObject):
     server_dir_separator = '/'
     """The server dir separator / (default) or \\: determines how the remote path is built for
     templates and output files. Only used if server is remote (not 127.0.0.1 nor localhost)"""
-    
+
     proxies = {}
     """the proxies passed to urllib.FancyURLopener (see urllib module documentation)"""
-    
+
     obj_proxy_class = None
     """The :class:`ObjProxy` to use to wrap objects. Can be changed any time. You can
     customize it so that __getattr__ can return fancy personalization of the attributes"""
@@ -357,12 +362,13 @@ class PrintTool(gobject.GObject):
     be opened remotedly (default True)"""
 
     __gsignals__ = {
-        'context-ready' : (gobject.SIGNAL_RUN_LAST,
-                           gobject.TYPE_BOOLEAN,
-                           # context, template_name, sqlwidget, 
-                           (gobject.TYPE_PYOBJECT , gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT ),
-                           ),
-        }
+        'context-ready': (
+            gobject.SIGNAL_RUN_LAST,
+            gobject.TYPE_BOOLEAN,
+            # context, template_name, sqlwidget,
+            (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT),
+        ),
+    }
 
     def __init__(self, master):
         """
@@ -374,12 +380,13 @@ class PrintTool(gobject.GObject):
         the sqlwidget, entries are automatically added. This way you can generate templates
         and use them w/o even the need for a single line of code (unless you need to
         customize the context, of course)
-        
+
         :param master: the table or mask instance of which this is a printing tool
         """
         gobject.GObject.__init__(self)
         self.master = master
-        self.template_dir = self.template_dir or os.path.abspath(os.path.join(os.curdir, 'templates'))
+        self.template_dir = self.template_dir or os.path.abspath(
+            os.path.join(os.curdir, 'templates'))
         # try:
         #     import uno
         #     self.disabled = False
@@ -390,16 +397,16 @@ class PrintTool(gobject.GObject):
         self.disabled = False
         self.obj_proxy_class = ObjProxy
         self.look_for_automatic_templates()
-        
+
     def hide(self):
         "Hide the print meny entries"
         self.master.actiongroup_print.set_visible(False)
-        
+
     def show(self):
         "Show the print menu entries"
         self.master.actiongroup_print.set_visible(True)
         self.master.actiongroup_print.set_sensitive(True)
-        
+
     def add_menu_entry(self, description, template_name, server=None, port=None, mode='pdf',
                        output_name=None, accel=None, tip=None, action_name=None):
         """
@@ -415,10 +422,11 @@ class PrintTool(gobject.GObject):
         :param accel: accelerator to be used with this
         :param tip: tip for the entry
         :param action_name: action name (defaults to templ\_ + template_name)
-        
+
         """
         assert template_name is not None, "Template name must be defined"
-        output_name = output_name or "%s.%s" % ((os.path.splitext(os.path.split(template_name)[1])[0]), mode)
+        output_name = output_name or "%s.%s" % (
+            (os.path.splitext(os.path.split(template_name)[1])[0]), mode)
 
         if not self.disabled:
             self.show()
@@ -430,7 +438,7 @@ class PrintTool(gobject.GObject):
         if not action:
             self.master.actiongroup_print.add_actions([
                 (action_name, None, description, accel, tip, self.use_template,),
-                ], (template_path, mode, server, port, output_name))
+            ], (template_path, mode, server, port, output_name))
 
             self.master.ui_manager.add_ui_from_string(MENU_ENTRY % action_name)
 
@@ -453,7 +461,6 @@ class PrintTool(gobject.GObject):
 
         return dirname, template_name, template_path
 
-        
     def use_template(self, menuItem=None, template_path=None, mode='pdf',
                      server=None, port=None, output_path=None, preview=False,
                      template_name=None):
@@ -461,7 +468,7 @@ class PrintTool(gobject.GObject):
         create a context from master and call template
 
         :param menuItem:   the menu entry that was clicked. Not needed.
-        :param tempate_path: the template_path to be used on the server. 
+        :param tempate_path: the template_path to be used on the server.
         :param mode:  currently ``pdf`` or ``odt``. Default: pdf.
         :param server: the name or ip of the openoffice server. Default: self.server
         :param port:  the port on which the server runs. Default: self.port
@@ -477,9 +484,9 @@ class PrintTool(gobject.GObject):
         from . import appypod
         if template_name:
             template_path = self.split_template_name(template_name)[2]
-        server = server or self.server 
-        port = port or self.port 
-        
+        server = server or self.server
+        port = port or self.port
+
         ## Context
         context = Context({})
         if self.master.is_mask():
@@ -512,7 +519,6 @@ class PrintTool(gobject.GObject):
         # if callable(output_path):
         #     output_path = output_path(self, template_path)
 
-        
         # if preview:
         #     f, local_output_path = tempfile.mkstemp(suffix='.pdf')
         #     if not os.name == 'mac':
@@ -536,7 +542,7 @@ class PrintTool(gobject.GObject):
 
         # templ.save_as(remote_output_path)
         # templ.close()
-        
+
         ## Show Result
         #self.show_result(remote_output_path, local_output_path, server)
         self.show_result(None, output_path, server)
@@ -545,8 +551,8 @@ class PrintTool(gobject.GObject):
         """
         return the name the remote server must use to save the file
         """
-        
-        if self.remote_output_dir and not server in  ('localhost', '127.0.0.1'):
+
+        if self.remote_output_dir and not server in ('localhost', '127.0.0.1'):
             return "%s%s%s" % (self.remote_output_dir, self.server_dir_separator, output_path)
         return output_path
 
@@ -556,7 +562,7 @@ class PrintTool(gobject.GObject):
         """
         # check that the file exists both if remote...
         if not server in ('localhost', '127.0.0.1') and \
-        self.output_dir and  re.search('http://', self.output_dir):
+           self.output_dir and re.search('http://', self.output_dir):
             remote_path = "%s/%s" % (self.output_dir, os.path.split(remote_output_path)[1])
             opener = Opener(self.proxies)
             try:
@@ -566,7 +572,7 @@ class PrintTool(gobject.GObject):
                 return
             if self.retrieve:
                 opener.retrieve(remote_path, local_output_path)
-        # or local 
+        # or local
         elif not os.path.exists(local_output_path):
             self.master.dialog(text="Missing file '%s'" % local_output_path, type="ok")
             return
@@ -585,8 +591,8 @@ class PrintTool(gobject.GObject):
         # default table name has not been changed and is not present in the .odt file
         # chances are that a localized .odt file names table in a localized way...
         if 'Table1' in context and not 'Table1' in template.tables:
-            msg += _("\nA possible error is that I don't see 'Table1' in your template\n" \
-                   + "but I see %s" % " ".join(template.tables))
+            msg += _("\nA possible error is that I don't see 'Table1' in your template\n"
+                     "but I see %s" % " ".join(template.tables))
         for key, where in missing_keys.iteritems():
             if where:
                 msg += "\n'%s' (%s)" % (key, where or '')
@@ -604,7 +610,7 @@ class PrintTool(gobject.GObject):
                * 'obj': the current object for mask and normally *None* for tables
                      (unless an object was edited, in which case it will point to that object)
                * 'Table1' : the list of record currently loaded in this sqlwidget
-        
+
         You can add any keys but remember to use the correct syntax for tables (a dict
         with lists as <values).
 
@@ -625,13 +631,13 @@ class PrintTool(gobject.GObject):
         :param reset: boolean. If True the list becomes the only list, otherwise it's added.
                       Defaults to True
         """
-        
+
         new_list = [self.obj_proxy_class(o, master or self.master) for o in obj_list]
         if reset:
             context[table_name] = [new_list]
         else:
             context[table_name] += [new_list]
-        
+
     def get_local_output_path(self, template_path, mode, output_name):
         """
         return the name of the output file on the local machine
@@ -647,22 +653,22 @@ class PrintTool(gobject.GObject):
 
         dialog = PrintDialog(title=_('Print to file'), default_filename=default_filename,
                              run=False)
-        
+
         #dialog.CURRENT_FOLDER = self.remote_output_dir
         dialog.run()
 
         filename = dialog.filename
-        if filename and  not filename.endswith('.%s' % mode):
+        if filename and not filename.endswith('.%s' % mode):
             filename = '%s.%s' % (filename, mode)
         return filename
-        
+
     def look_for_automatic_templates(self):
         """
         Look if some templates are available and add entries for them
         """
-        
+
         if not (os.path.exists(self.template_dir) or (
-            self.local_template_dir and os.path.exists(self.local_template_dir))):
+                self.local_template_dir and os.path.exists(self.local_template_dir))):
             return
 
         for f in os.listdir(self.local_template_dir or self.template_dir):
@@ -670,8 +676,8 @@ class PrintTool(gobject.GObject):
                 self.add_menu_entry(
                     "Print to pdf file", f, mode='pdf', action_name=self.master.nick)
                 self.add_menu_entry(
-                    "Print to odt file", f, mode='odt', action_name=self.master.nick +'pdf')
-                
+                    "Print to odt file", f, mode='odt', action_name=self.master.nick + 'pdf')
+
     def open_local_file(self, filename):
         """
         Open file filename with the default application
@@ -680,30 +686,32 @@ class PrintTool(gobject.GObject):
         """
         if os.name in ('posix', 'mac'):
             if filename.endswith('pdf'):
-                p =  subprocess.call((self.pdf_viewer, filename)) 
+                p = subprocess.call((self.pdf_viewer, filename))
             else:
-                p =  subprocess.call((self.odt_viewer, filename))
+                p = subprocess.call((self.odt_viewer, filename))
         else:
             # I made some test with call(('start', filename)) but in several
             # occasion I coudn't get the start command to find the
             # file. os.startfile() doesn't suffer the same problem.
             os.startfile(filename)
-                                
+
 class PrintDialog(dialogs.SaveDialog):
 
     FILTER_FILES = (
-        ( _('Pdf files'), '*.pdf'),
-        ( _('Odt files'), '*.odt'),
-        ( _('All files'), '*.*'),
-        )
+        (_('Pdf files'), '*.pdf'),
+        (_('Odt files'), '*.odt'),
+        (_('All files'), '*.*'),
+    )
+
     def current_folder(self):
         return getattr(self, 'CURRENT_FOLDER', None) or dialogs.SaveDialog.current_folder(self)
 
 
 class ObjProxy(object):
+
     """
     .. _obj_proxy:
-    
+
     A proxy that returns a "human value" for each attribute. The default behaviour
     is to use the fields defined for
     the object in the SqlWidget i.e.: field's ``get_human_value``.  You can
@@ -718,6 +726,7 @@ class ObjProxy(object):
     in this context value is already the value returned by
     :meth:`sqlkit.fields.Field.get_human_value`
     """
+
     def __init__(self, obj, master=None):
         if master:
             self.gui_fields = master.gui_fields
@@ -725,12 +734,12 @@ class ObjProxy(object):
             self.gui_fields = setup_field_validation(obj)
 
         self.obj = obj
-        
+
     def __getattr__(self, key):
 
         value = getattr(self.obj, key)
         if key in self.gui_fields:
-            value = self.gui_fields[key].get_human_value(value) 
+            value = self.gui_fields[key].get_human_value(value)
 
         if hasattr(self, "%s__%s" % (self.obj.__class__.__name__, key)):
             return getattr(self, "%s__%s" % (self.obj.__class__.__name__, key))(value)
@@ -739,9 +748,9 @@ class ObjProxy(object):
             return value
 
 class Opener(urllib.FancyURLopener):
-    
+
     def http_error_default(self, filename, sock, status, message, response):
-        msg = "Error while retrieving file %s.\nStatus code: %s (%s)" % (\
+        msg = "Error while retrieving file %s.\nStatus code: %s (%s)" % (
             filename, status, message)
         raise DownloadException(msg)
 
@@ -750,11 +759,11 @@ def setup_field_validation(obj):
     """
     Create ``sqlkit.fields.Field`` object: one for each handled field
     """
-    
+
     from sqlkit.fields import FieldChooser
     from sqlkit.db.minspect import InspectMapper
     from sqlalchemy import orm
-    
+
     mapper = orm.class_mapper(obj.__class__)
 
     gui_fields = {}
@@ -767,6 +776,3 @@ def setup_field_validation(obj):
         gui_fields[field_name] = field
 
     return gui_fields
-        
-
-

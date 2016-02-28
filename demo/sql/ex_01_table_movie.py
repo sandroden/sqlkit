@@ -28,4 +28,3 @@ db = proxy.DbProxy(bind="sqlite:///%s" % model.DB_FILE)
 
 t = SqlTable('movie',    dbproxy=db, order_by='title', )
 t.reload()
-
