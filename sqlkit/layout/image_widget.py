@@ -54,6 +54,7 @@ import os
 
 from gi.repository import GObject
 from gi.repository import Gtk
+from gi.repository import GdkPixbuf
 import weakref
 
 from sqlkit import _
@@ -70,7 +71,7 @@ IMAGE_MENU = '''
 </popup>
 '''
 
-IMAGE_FORMATS = ["." + x['name'] for x in GdkPixbuf.Pixbuf.get_formats()] + ['.jpg']
+IMAGE_FORMATS = ["." + x.get_name() for x in GdkPixbuf.Pixbuf.get_formats()] + ['.jpg']
 
 class ImageWidget(Gtk.VBox):
 
