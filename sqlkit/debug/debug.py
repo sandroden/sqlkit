@@ -84,6 +84,7 @@ import time
 import inspect
 from pdb import set_trace
 from gi.repository import GObject
+from gi.types import GObjectMeta
 
 CLASS_INCLUDE = '^.*$'
 CLASS_EXCLUDE = '^$'
@@ -440,7 +441,7 @@ def logmethod(methodname):
     return _method
 
 
-class LogTheMethods(GObject.GObjectMeta):
+class LogTheMethods(GObjectMeta):
 
     def __new__(cls, classname, bases, classdict):
         global DBG
