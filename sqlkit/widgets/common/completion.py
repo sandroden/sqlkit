@@ -31,6 +31,7 @@ import re
 from copy import copy
 
 from gi.repository import Gtk
+from gi.repository import GObject
 from gobject import markup_escape_text
 
 from sqlalchemy import text, select, Table
@@ -57,7 +58,7 @@ OP = {
     'mysql': 'ILIKE',
 }
 
-class SimpleCompletion(object):
+class SimpleCompletion(GObject.GObject):
 
     """
     An object that hold all the information on how to retrieve possible completions in simple cases
@@ -132,6 +133,7 @@ class SimpleCompletion(object):
 
         """
 
+        GObject.GObject.__init__(self)
         self.master = master
         self._ids = {}
         hid = self.master.connect('delete-event', self.destroy)
