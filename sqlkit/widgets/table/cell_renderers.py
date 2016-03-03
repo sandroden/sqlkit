@@ -132,7 +132,7 @@ class CellEditableCalendar(Gtk.TextView, Gtk.CellEditable):
 
 GObject.type_register(CellEditableCalendar)
 
-class CellRendererDate(Gtk.GenericCellRenderer):
+class CellRendererDate(Gtk.CellRenderer):
     date = None
 ##     editable = None
 
