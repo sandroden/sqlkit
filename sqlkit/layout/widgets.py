@@ -142,7 +142,7 @@ class LWidget(object):
 
         ### gtk-stock?
 #         if re.match('gtk-', self.val) and not self.gtkClass == 'GtkImage':
-        if Gtk.icon_factory_lookup_default(self.val) and not self.gtkClass == 'GtkImage':
+        if Gtk.IconFactory.lookup_default(self.val) and not self.gtkClass == 'GtkImage':
             if re.match('GtkToolButton', self.gtkClass):
                 self.properties['stock_id'] = re.sub('\..+', '', self.val)
                 self.properties['label'] = None
