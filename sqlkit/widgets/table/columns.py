@@ -53,7 +53,7 @@ COLUMN_MENU = '''
 
 
 LBL_HOOVER_STYLE = Gdk.color_parse('red')
-class GenericColumn(object):
+class GenericColumn(GObject.GObject):
     RENDERER = Gtk.CellRendererText
     RESIZE = True
     REORDER = True
@@ -75,6 +75,7 @@ class GenericColumn(object):
         :param title: the title used for the column
         :param field: the field (if missing is looked for in master.gui_fields[field_name]
         """
+        GObject.GObject.__init__(self)
         self.master = master
         if not field:
             field = self.master.gui_fields[field_name]
