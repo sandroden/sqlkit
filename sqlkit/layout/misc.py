@@ -2,6 +2,7 @@ import os
 import sys
 
 from gi.repository import Gtk
+from gi.repository import GdkPixbuf
 
 from sqlkit import _
 
