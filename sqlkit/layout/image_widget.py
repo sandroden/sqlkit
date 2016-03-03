@@ -373,11 +373,6 @@ class ImageWidget(Gtk.VBox):
         msg_id = self.status_bar.push(idx, txt)
 
 
-# finally register our new Type
-if GObject.pygtk_version < (2, 8):
-    GObject.type_register(ImageWidget)
-
-
 if __name__ == '__main__':
 
     w = Gtk.Window()
