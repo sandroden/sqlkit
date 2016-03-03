@@ -35,7 +35,7 @@ import sqlkit
 from sqlkit.misc import optionparse
 opts, args = optionparse.parse(__doc__)
 
-import gtk
+from gi.repository import Gtk
 
 if opts.gtk:
     from sqlkit import debug as dbg
@@ -109,8 +109,8 @@ class DemoSql(Demo):
         GLOB['t'].widgets['Window'].set_title(demo.filename)
         self.w['Window'].set_title("Example: %s" % (demo.filename))
 
-        while gtk.events_pending():
-            gtk.main_iteration()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
 
         return GLOB['t']
 
@@ -143,7 +143,7 @@ if args:
     d.load_module_by_idx(args[0])
 
     def quit(widget):
-        gtk.main_quit()
+        Gtk.main_quit()
 
     try:
         hid = d.t.connect('delete-event', quit)
@@ -176,7 +176,7 @@ if opts.gtk:
 if __name__ == '__main__':
     if opts.interactive:
         try:
-            gtk.set_interactive(True)
+            Gtk.set_interactive(True)
         except AttributeError:
             print "This version of gtk doesn't have 'set_interactive', sorry."
             sys.exit(1)
@@ -195,4 +195,4 @@ if __name__ == '__main__':
             print "Interactive demo needs ipython. Quitting."
     else:
         print "Try option -i to try sqlkit interactively"
-        gtk.main()
+        Gtk.main()

@@ -3,23 +3,23 @@ An entry with an arrow. Similar to comboBoxEdit but with possibility to
 connect to click on the arrow
 
 """
-import gobject
-import gtk
+from gi.repository import GObject
+from gi.repository import Gtk
 
 from sqlkit import _
 
-if gtk.gtk_version >= (2, 16):
+if Gtk.gtk_version >= (2, 16):
 
-    class FkEdit(gtk.Entry):
+    class FkEdit(Gtk.Entry):
         __gtype_name__ = 'FkEntry'
 
         __gsignals__ = {
-            'completion-requested': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                                     (gobject.TYPE_PYOBJECT,)),
+            'completion-requested': (GObject.SignalFlags.RUN_LAST, None,
+                                     (GObject.TYPE_PYOBJECT,)),
         }
 
         def __init__(self):
-            gtk.Entry.__init__(self)
+            GObject.GObject.__init__(self)
             self.props.secondary_icon_stock = 'gtk-find'
             self.props.secondary_icon_tooltip_text = _(
                 "Find allowed values (Control-Enter/Shift-Enter)")
@@ -31,23 +31,23 @@ if gtk.gtk_version >= (2, 16):
 
 else:
 
-    class FkEdit(gtk.HBox):
+    class FkEdit(Gtk.HBox):
         __gtype_name__ = 'FkEntry'
 
         __gsignals__ = {
-            'completion-requested': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                                     (gobject.TYPE_PYOBJECT,)),
+            'completion-requested': (GObject.SignalFlags.RUN_LAST, None,
+                                     (GObject.TYPE_PYOBJECT,)),
         }
 
         def __init__(self):
-            gtk.HBox.__init__(self)
-            self.entry = gtk.Entry()
+            GObject.GObject.__init__(self)
+            self.entry = Gtk.Entry()
 
             # the date button
-            self.button = gtk.Button()
+            self.button = Gtk.Button()
 
-            self._align_entry = gtk.Alignment(1, 0, 1, 0)
-            self._align_arrow = gtk.Alignment(0, 0, 0, 0)
+            self._align_entry = Gtk.Alignment.new(1, 0, 1, 0)
+            self._align_arrow = Gtk.Alignment.new(0, 0, 0, 0)
 
             self._align_entry.add(self.entry)
             self._align_arrow.add(self.button)
@@ -55,7 +55,7 @@ else:
             self.add(self._align_entry)
             self.add(self._align_arrow)
             # the down arrow
-            arrow = gtk.Arrow(gtk.ARROW_DOWN, gtk.SHADOW_OUT)
+            arrow = Gtk.Arrow(Gtk.ArrowType.DOWN, Gtk.ShadowType.OUT)
             self.button.add(arrow)
             arrow.show()
             # finally show the button

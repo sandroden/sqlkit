@@ -19,7 +19,7 @@ write() - caller()
 from now on, each time you use dbg.write()/dbg.show_caller() you'll see the
 text you want to log only if you enabled it with dbg.debug(True)
 
-If you want the log to happen in a gtk.TreeView window, you can specify:;
+If you want the log to happen in a Gtk.TreeView window, you can specify:;
 
      import dbg
      dbg.debug(True, gtk=True)
@@ -78,12 +78,12 @@ import re
 import new
 # I had to hide this import inside functions otherwise import of sqlkit broke.
 #from sqlkit.layout import misc
-import pango
+from gi.repository import Pango
 import inspect
 import time
 import inspect
 from pdb import set_trace
-import gobject
+from gi.repository import GObject
 
 CLASS_INCLUDE = '^.*$'
 CLASS_EXCLUDE = '^$'
@@ -440,7 +440,7 @@ def logmethod(methodname):
     return _method
 
 
-class LogTheMethods(gobject.GObjectMeta):
+class LogTheMethods(GObject.GObjectMeta):
 
     def __new__(cls, classname, bases, classdict):
         global DBG

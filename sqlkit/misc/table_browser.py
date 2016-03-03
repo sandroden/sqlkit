@@ -15,7 +15,7 @@
 
 import re
 
-import gtk
+from gi.repository import Gtk
 import sqlalchemy as sa
 
 import sqlkit
@@ -96,7 +96,7 @@ class TableBrowser(object):
             ('T.0',             'y-options', 'fill'),
             ('b=filter_tables', 'x-options', 'fill'),
         )
-        self.model = gtk.TreeStore(*[str] + [int] + [str] * 6 + [bool])
+        self.model = Gtk.TreeStore(*[str] + [int] + [str] * 6 + [bool])
         self.w = self.l.show()
         self.w['prg=count'].hide()
         self.tv = self.w['TV=tree']
@@ -130,14 +130,14 @@ class TableBrowser(object):
         self.ui_manager.get_action('/Main/Modify/Reload').set_active(bool(opts.load))
 
     def set_actions(self):
-        self.actiongroup = gtk.ActionGroup('Main')
+        self.actiongroup = Gtk.ActionGroup('Main')
         self.actiongroup.add_actions([
             ('Database', None, _('Database')),
             ('Modify', None, _('Modify')),
             ('Tools', None, _('Tool')),
             ('Help', None, _('Help')),
-            ('Quit', gtk.STOCK_QUIT, None, '<Ctrl>q', None, self.quit_cb),
-            ('About', gtk.STOCK_ABOUT, None, None, None, self.about_dialog_cb),
+            ('Quit', Gtk.STOCK_QUIT, None, '<Ctrl>q', None, self.quit_cb),
+            ('About', Gtk.STOCK_ABOUT, None, None, None, self.about_dialog_cb),
             ('Count', None, _('Count records'), None, _('Count records in all tables'),
              self.count_records),
         ])
@@ -167,7 +167,7 @@ class TableBrowser(object):
 
     def prepare_uimanager(self):
 
-        self.ui_manager = gtk.UIManager()
+        self.ui_manager = Gtk.UIManager()
         self.accel_group = self.ui_manager.get_accel_group()
         self.ui_manager.add_ui_from_string(GENERAL_UI)
         self.w['Window'].add_accel_group(self.accel_group)
@@ -196,8 +196,8 @@ class TableBrowser(object):
                 i += 1
                 progress.props.text = table_name
                 progress.props.fraction = (1.0/n_tables * i)
-                while gtk.events_pending():
-                    gtk.main_iteration()
+                while Gtk.events_pending():
+                    Gtk.main_iteration()
                 reflected_table = meta.tables.get(table_name, None)
 
                 if reflected_table is None:
@@ -216,12 +216,12 @@ class TableBrowser(object):
 
         # key accelerators
         self.accel_group.connect_group(ord('l'),
-                                       gtk.gdk.CONTROL_MASK,
-                                       gtk.ACCEL_LOCKED,
+                                       Gdk.ModifierType.CONTROL_MASK,
+                                       Gtk.AccelFlags.LOCKED,
                                        self.focus_filter)
         self.accel_group.connect_group(ord('f'),
-                                       gtk.gdk.CONTROL_MASK,
-                                       gtk.ACCEL_LOCKED,
+                                       Gdk.ModifierType.CONTROL_MASK,
+                                       Gtk.AccelFlags.LOCKED,
                                        self.focus_filter)
 
     def focus_filter(self, *args):
@@ -229,7 +229,7 @@ class TableBrowser(object):
 
     def quit_cb(self, widget, event=None):
         if self.x == 'quit':
-            gtk.main_quit()
+            Gtk.main_quit()
         else:
             self.widgets['Window'].destroy()
 
@@ -256,23 +256,23 @@ class TableBrowser(object):
             return False
         #table = self.model.get_value(self.model.get_iter(path), 0)
 
-        menu = self.w['M=popup'] = gtk.Menu()
+        menu = self.w['M=popup'] = Gtk.Menu()
 
-        item = gtk.MenuItem(label=_("Mask"))
+        item = Gtk.MenuItem(label=_("Mask"))
         item.connect('activate', self.activate_cb, ('mask', table))
         menu.append(item)
 
-        item = gtk.MenuItem(label=_("Table"))
+        item = Gtk.MenuItem(label=_("Table"))
         item.connect('activate', self.activate_cb, ('table', table))
         menu.append(item)
 
         if self.model.iter_children(iter) and \
                 self.tv.row_expanded(self.model.get_path(iter)):
-            item = gtk.MenuItem(label=_("Collapse row"))
+            item = Gtk.MenuItem(label=_("Collapse row"))
             item.connect('activate', self.get_table_info_in_model, table, iter)
             menu.append(item)
         else:
-            item = gtk.MenuItem(label=_("Table reflection"))
+            item = Gtk.MenuItem(label=_("Table reflection"))
             item.connect('activate', self.get_table_info_in_model, table, iter)
             menu.append(item)
 
@@ -410,7 +410,7 @@ def sqlkit_model(item=None, dbproxy=None, single=False):
         Base.metadata.bind = db.metadata.bind
         if not db.metadata.bind.has_table('_sqlkit_table'):
             response = dialog_create_continue()
-            if response == gtk.RESPONSE_CANCEL:
+            if response == Gtk.ResponseType.CANCEL:
                 sys.exit(0)
             else:
                 Base.metadata.create_all()
@@ -428,11 +428,11 @@ def sqlkit_model(item=None, dbproxy=None, single=False):
         raise
 
 def dialog_create_continue():
-    dialog = gtk.Dialog("Creating sqlkit tables", None,
-                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                        (gtk.STOCK_OK, gtk.RESPONSE_OK,
-                         gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL))
-    label = gtk.Label("No sqlkit tables are present: I'll proceed creating them")
+    dialog = Gtk.Dialog("Creating sqlkit tables", None,
+                        Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                        (Gtk.STOCK_OK, Gtk.ResponseType.OK,
+                         Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL))
+    label = Gtk.Label(label="No sqlkit tables are present: I'll proceed creating them")
     dialog.vbox.add(label)
     dialog.show_all()
     response = dialog.run()
@@ -448,8 +448,8 @@ def create_about_dialog():
         import webbrowser
         webbrowser.open(link)
 
-    about_dialog = gtk.AboutDialog()
-    gtk.about_dialog_set_url_hook(func, None)
+    about_dialog = Gtk.AboutDialog()
+    Gtk.about_dialog_set_url_hook(func, None)
     about_dialog.set_authors(["Sandro Dentella <sandro@e-den.it>"])
     about_dialog.set_license("GPL v.3")
     about_dialog.set_version(sqlkit.__version__)

@@ -1,7 +1,7 @@
 #!/usr/bin/python 
 
 import sys
-import gtk
+from gi.repository import Gtk
 from sqlkit import debug as  dbg
 dbg.debug(True, gtk=True)
 dbg.trace_class(ok='SqlTable|SqlWidget|SqlMask|Completion')
@@ -34,9 +34,9 @@ lay = """
 t = sqlkit.SqlMask(Movie, dbproxy=db , layout=lay)
 #t.add_constraint(genres__name__like='sto%')
 Tbl = t.widgets['T.a']
-Tbl.get_parent().child_set_property(Tbl, 'y-options', gtk.EXPAND|gtk.FILL)
+Tbl.get_parent().child_set_property(Tbl, 'y-options', Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL)
                  
 t.reload()
 t.mapper.local_table.metadata.bind.echo = True
 
-gtk.main()
+Gtk.main()

@@ -24,13 +24,13 @@ mapper. column.set_cell_data_func on each column will set the value from there.
 import sys
 import re
 import os
-import gtk
+from gi.repository import Gtk
 import weakref
 import shutil
 import datetime
 
-import gobject
-import gtk
+from gi.repository import GObject
+from gi.repository import Gtk
 import sqlalchemy
 
 import sqlkit
@@ -66,16 +66,16 @@ class SqlTable(sqlwidget.SqlWidget):
     """
 #### Signals
     __gsignals__ = {
-        'button-press-event': (gobject.SIGNAL_RUN_LAST,
-                               gobject.TYPE_BOOLEAN,
+        'button-press-event': (GObject.SignalFlags.RUN_LAST,
+                               GObject.TYPE_BOOLEAN,
                                # event, obj, field_name, treeview, view
-                               (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_STRING,
-                                gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT),
+                               (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT, GObject.TYPE_STRING,
+                                GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT),
                                ),
-        'context-changed': (gobject.SIGNAL_RUN_LAST,
-                            gobject.TYPE_BOOLEAN,
+        'context-changed': (GObject.SignalFlags.RUN_LAST,
+                            GObject.TYPE_BOOLEAN,
                             # current (or None)
-                            (gobject.TYPE_PYOBJECT,),
+                            (GObject.TYPE_PYOBJECT,),
                             ),
     }
 
@@ -123,7 +123,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
         sqlwidget.SqlWidget._get_layout(self, lay, naked)
         self.treeview = self.widgets["TV=tree"]
-        self.widgets['S=tree'].set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.widgets['S=tree'].set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         ## from now on, the real field_list is the one in the View
         self.views['main'] = self.create_view(
             name='main', field_list=self.field_list, treeview=self.treeview)
@@ -132,12 +132,12 @@ class SqlTable(sqlwidget.SqlWidget):
             self.lay_obj.prop('A.external', 'yscale', 1)
 
         if self.rows:
-            gobject.idle_add(self.set_rows)
+            GObject.idle_add(self.set_rows)
 
         self.icon_setup()
         self.treeview.hide()
         self.treeview.show()
-        gobject.idle_add(tv_utils.set_optimal_width, self.treeview)
+        GObject.idle_add(tv_utils.set_optimal_width, self.treeview)
         return (self.lay_obj, self.widgets)
 
     def icon_setup(self):
@@ -275,30 +275,30 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         sqlwidget.SqlWidget.prepare_actions(self)
 
-        self.actiongroup_table = gtk.ActionGroup('Table')
+        self.actiongroup_table = Gtk.ActionGroup('Table')
 
         self.actiongroup_insert.add_actions([
-            ('Duplicate', gtk.STOCK_SAVE_AS, _('Duplicate'), None,
+            ('Duplicate', Gtk.STOCK_SAVE_AS, _('Duplicate'), None,
              _('Create a new row as a duplicate of this one'), self.record_save_new_cb),
-            ('New', gtk.STOCK_NEW,   None, '', None, self.record_new_cb),
-            ('NewChild', gtk.STOCK_NEW,   _('New child row'), '',
+            ('New', Gtk.STOCK_NEW,   None, '', None, self.record_new_cb),
+            ('NewChild', Gtk.STOCK_NEW,   _('New child row'), '',
              _("Create e new row as child of this one"), self.record_new_child_cb),
         ])
         self.actiongroup_delete.add_actions([
-            ('Delete', gtk.STOCK_DELETE, None, '<Control>k', None, self.record_delete),
-            ('RecordDelete', gtk.STOCK_DELETE, None, None, None, self.record_delete3),
+            ('Delete', Gtk.STOCK_DELETE, None, '<Control>k', None, self.record_delete),
+            ('RecordDelete', Gtk.STOCK_DELETE, None, None, None, self.record_delete3),
         ])
 
         self.actiongroup_table.add_actions([
-            ('Zoom-fit', gtk.STOCK_ZOOM_FIT, None, '<Control>z', None, self.on_zoom_fit),
+            ('Zoom-fit', Gtk.STOCK_ZOOM_FIT, None, '<Control>z', None, self.on_zoom_fit),
             ('ShowColumns', None, _('Show field')),  # menuitem
             ('HideColumns', None, _('Hide field')),  # menuitem
             #            ('VisibleColumns', None, None),          # menu
             #            ('HiddenColumns', None, None),           # menu
             ('Records', None, 'Records'),
-            ('MaskView', gtk.STOCK_ZOOM_IN, _('View this record in a Mask'),
+            ('MaskView', Gtk.STOCK_ZOOM_IN, _('View this record in a Mask'),
              '<Control>m', None, self.record_in_mask),
-            ('MaskViewFKey', gtk.STOCK_LEAVE_FULLSCREEN,
+            ('MaskViewFKey', Gtk.STOCK_LEAVE_FULLSCREEN,
              _('View this ForeignKey in a Mask'), None, None, self.fkey_record_in_mask),
             ('UploadImage', None, _('Upload Image'), None, None, self.upload_image),
             ('UploadFile', None, _('Upload File'), None, None, self.upload_file),
@@ -452,10 +452,10 @@ class SqlTable(sqlwidget.SqlWidget):
             selected_path = None
 
         if not path == selected_path and self.gui_fields[field_name].type == bool:
-            if column.get_data('cell').get_property('mode') == gtk.CELL_RENDERER_MODE_ACTIVATABLE:
-                column.get_data('cell').set_property('mode', gtk.CELL_RENDERER_MODE_INERT)
-                gobject.idle_add(
-                    column.get_data('cell').set_property, 'mode', gtk.CELL_RENDERER_MODE_ACTIVATABLE)
+            if column.get_data('cell').get_property('mode') == Gtk.CellRendererMode.ACTIVATABLE:
+                column.get_data('cell').set_property('mode', Gtk.CellRendererMode.INERT)
+                GObject.idle_add(
+                    column.get_data('cell').set_property, 'mode', Gtk.CellRendererMode.ACTIVATABLE)
 
     def on_zoom_fit(self, widget, *args):
 
@@ -467,23 +467,23 @@ class SqlTable(sqlwidget.SqlWidget):
 
     def keypress_event_cb(self, wdg, event, view=None):
 
-        if isinstance(wdg, gtk.TreeView):
+        if isinstance(wdg, Gtk.TreeView):
             pre = 'tree'
         else:
             #self.length_control(wdg, data)
             pre = 'entry'
-        ksym = gtk.gdk.keyval_name(event.keyval)
+        ksym = Gdk.keyval_name(event.keyval)
         mods = ['key_' + pre]
         ## mod2 gets in the way when you press the NumLock: I don't want
         ## to depend on that, as I'm not usng it!!!
-        for prefix, mask in [('ctrl', gtk.gdk.CONTROL_MASK),
-                             ('shift', gtk.gdk.SHIFT_MASK),
-                             ('alt', gtk.gdk.MOD1_MASK),
-                             #('mod2', gtk.gdk.MOD2_MASK),
-                             ('mod3', gtk.gdk.MOD3_MASK),
-                             ('mod4', gtk.gdk.MOD4_MASK),
-                             ('mod5', gtk.gdk.MOD5_MASK), ]:
-            if event.state & mask:
+        for prefix, mask in [('ctrl', Gdk.ModifierType.CONTROL_MASK),
+                             ('shift', Gdk.ModifierType.SHIFT_MASK),
+                             ('alt', Gdk.ModifierType.MOD1_MASK),
+                             #('mod2', Gdk.ModifierType.MOD2_MASK),
+                             ('mod3', Gdk.ModifierType.MOD3_MASK),
+                             ('mod4', Gdk.ModifierType.MOD4_MASK),
+                             ('mod5', Gdk.ModifierType.MOD5_MASK), ]:
+            if event.get_state() & mask:
                 mods.append(prefix)
 
         ksym = '_'.join(mods + [ksym])
@@ -496,12 +496,12 @@ class SqlTable(sqlwidget.SqlWidget):
         columns = self.treeview.get_columns()
         colnum = columns.index(col)
         if colnum - 1 >= 0:
-            gobject.idle_add(self.treeview.set_cursor, path, columns[colnum - 1], True)
+            GObject.idle_add(self.treeview.set_cursor, path, columns[colnum - 1], True)
         else:
             path = (path[0] - 1,)
             if path[0] < 0:
                 path = (len(treeview.get_model()) - 1,)
-            gobject.idle_add(self.treeview.set_cursor, path, columns[-1], True)
+            GObject.idle_add(self.treeview.set_cursor, path, columns[-1], True)
         return True
 
     def key_tree_Tab(self, treeview, event):
@@ -515,11 +515,11 @@ class SqlTable(sqlwidget.SqlWidget):
             #cell = col.get_cell_renderers()[0]
             #cell.emit('edited', path, )
             #self.treeview.set_cursor( path, columns[colnum + 1], True)
-            #gobject.idle_add(self.treeview.set_cursor, path, columns[colnum + 1], True)
+            #GObject.idle_add(self.treeview.set_cursor, path, columns[colnum + 1], True)
 
             next_column = columns[colnum + 1]
             next_field_name = next_column.get_data('field_name')
-            gobject.idle_add(self.treeview.set_cursor, path,
+            GObject.idle_add(self.treeview.set_cursor, path,
                              next_column, self.get_direct_edit(next_field_name))
         else:
             tmodel = self.treeview.get_model()
@@ -530,7 +530,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
             next_column = columns[0]
             next_field_name = next_column.get_data('field_name')
-            gobject.idle_add(self.treeview.set_cursor, path, next_column,
+            GObject.idle_add(self.treeview.set_cursor, path, next_column,
                              self.get_direct_edit(next_field_name))
         return False
 
@@ -632,7 +632,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         Trigger the validation when moving around the cells
         """
-        ksym = gtk.gdk.keyval_name(event.keyval)
+        ksym = Gdk.keyval_name(event.keyval)
         if ksym in ('Tab',):
             #             ## FIXME: Down and Return should behave differently if the completion is visible
             #             if ksym in ('Down'): # and widget.get_completion().get_property('visible'):
@@ -661,7 +661,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         Trigger the validation when moving around the cells
         """
-        ksym = gtk.gdk.keyval_name(event.keyval)
+        ksym = Gdk.keyval_name(event.keyval)
         if ksym in ('Tab',):
             if self.cell_entry and not self.cell_entry.is_valid():
                 if not self.cell_validate():
@@ -836,10 +836,10 @@ class SqlTable(sqlwidget.SqlWidget):
         if ask:
             response = self.save_unsaved(skip_check=skip_check, proceed=False)
 
-            if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
+            if response in (Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
                 raise exc.CancelledAction
 
-            if response == gtk.RESPONSE_NO:
+            if response == Gtk.ResponseType.NO:
                 return True  # Only used in record_in_mask, better would be a exc.NegativeAnswer
 
         obj = self.get_current_obj()
@@ -1000,7 +1000,7 @@ class SqlTable(sqlwidget.SqlWidget):
             if model.iter_has_child(iter):
                 text += "\n" + _("All children will be deleted as well")
             response = self.dialog(type='ok-cancel', text=text)
-            if response != gtk.RESPONSE_OK:
+            if response != Gtk.ResponseType.OK:
                 return
 
         self.deleting_row = True
@@ -1432,7 +1432,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 type="ok-cancel",
                 text=_("A file with name '%s' already exists.\nOverwrite?") % save_path,
                 title=_('Upload name duplication'))
-            if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
+            if response in (Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
                 return
 
         self.gui_fields[field_name].widget.copy_file = filename  # delay the real copy
@@ -1468,7 +1468,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if not self.gui_fields[field_name].is_image(filename):
             open_file(filename)
             return
-        w = gtk.Window()
+        w = Gtk.Window()
         image = image_widget.ImageWidget()
         image.props.width = 700
         image.props.height = 700
@@ -1515,7 +1515,7 @@ class SqlTable(sqlwidget.SqlWidget):
         model, rows = selection.get_selected_rows()
         ## we use just the first selected
         #  >>> sel.get_selected_rows()
-        #  (<gtk.Modelproxy.Modelstore object at 0x8dd61bc (GtkModelproxy.Modelstore at 0x8da6090)>, [(1,)])
+        #  (<Gtk.Modelproxy.Modelstore object at 0x8dd61bc (GtkModelproxy.Modelstore at 0x8da6090)>, [(1,)])
 
         if rows:
             return rows[0]
@@ -1623,16 +1623,16 @@ class SqlTable(sqlwidget.SqlWidget):
         if not icons:
             self.widgets['A.icons'].hide()
         if not scroll:
-            self.widgets['S=tree'].set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            self.widgets['S=tree'].set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         else:
             if 'x' not in scroll:
-                xpolicy = gtk.POLICY_NEVER
+                xpolicy = Gtk.PolicyType.NEVER
             else:
-                xpolicy = gtk.POLICY_AUTOMATIC
+                xpolicy = Gtk.PolicyType.AUTOMATIC
             if 'y' not in scroll:
-                ypolicy = gtk.POLICY_NEVER
+                ypolicy = Gtk.PolicyType.NEVER
             else:
-                ypolicy = gtk.POLICY_AUTOMATIC
+                ypolicy = Gtk.PolicyType.AUTOMATIC
 
             self.widgets['S=tree'].set_policy(xpolicy, ypolicy)
 

@@ -25,8 +25,8 @@
 
 from datetime import date, datetime
 
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import GObject
 
 from sqlkit import debug as dbg, _
 from sqlkit.misc import utils
@@ -77,7 +77,7 @@ class TotalObj(object):
             return None
 
 
-class Totals(gobject.GObject):
+class Totals(GObject.GObject):
 
     """
     An object whose 'compute' method adds TotalObjets to show
@@ -88,9 +88,9 @@ class Totals(gobject.GObject):
     """
 
     __gsignals__ = {
-        'computed': (gobject.SIGNAL_RUN_FIRST,
-                     gobject.TYPE_NONE,
-                     (gobject.TYPE_PYOBJECT,),
+        'computed': (GObject.SignalFlags.RUN_FIRST,
+                     None,
+                     (GObject.TYPE_PYOBJECT,),
                      )
     }
 
@@ -303,7 +303,7 @@ class Totals(gobject.GObject):
             model, rows = selection.get_selected_rows()
             if rows:
                 path = rows[0]
-                #remember = gtk.TreeRowReference(self.table.modelproxy.modelstore, path)
+                #remember = Gtk.TreeRowReference(self.table.modelproxy.modelstore, path)
             func(self)
             if rows:
                 #selection.select_path(remember.get_path())

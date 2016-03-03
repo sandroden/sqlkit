@@ -1,7 +1,7 @@
 import os
 import sys
 
-import gtk
+from gi.repository import Gtk
 
 from sqlkit import _
 
@@ -15,7 +15,7 @@ SK_ICONS = (
 
 def add_stock_icons(*icon_list):
 
-    factory = gtk.IconFactory()
+    factory = Gtk.IconFactory()
 
     for icon_file, stock_id in icon_list:
 
@@ -26,18 +26,18 @@ def add_stock_icons(*icon_list):
             if not os.path.exists(filename):
                 filename = os.path.join(os.path.dirname(sys.executable), icon_file)
 
-        pixbuf = gtk.gdk.pixbuf_new_from_file(filename)
-        iconset = gtk.IconSet(pixbuf)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file(filename)
+        iconset = Gtk.IconSet(pixbuf)
         factory.add(stock_id, iconset)
         factory.add_default()
 
 add_stock_icons(*SK_ICONS)
 
-class StockMenuItem(gtk.ImageMenuItem):
+class StockMenuItem(Gtk.ImageMenuItem):
 
-    def __init__(self, label, stock, size=gtk.ICON_SIZE_MENU):
-        gtk.ImageMenuItem.__init__(self, label)
-        image = gtk.Image()
+    def __init__(self, label, stock, size=Gtk.IconSize.MENU):
+        GObject.GObject.__init__(self, label)
+        image = Gtk.Image()
         image.set_from_stock(stock, size)
         self.set_image(image)
         self.show_all()
@@ -70,7 +70,7 @@ class EasyTreeView(object):
                 self.columns += [col[1]]
 
         if not model:
-            self.model = gtk.TreeStore(*self.columns)
+            self.model = Gtk.TreeStore(*self.columns)
         else:
             self.model = model
 
@@ -78,12 +78,12 @@ class EasyTreeView(object):
         self.tv.set_model(self.model)
         self.tvc = {}
         for i, col in enumerate(self.column_names):
-            cell = gtk.CellRendererText
+            cell = Gtk.CellRendererText
             if self.columns[i] == bool:
-                cell = gtk.CellRendererToggle
-                self.tvc[col] = gtk.TreeViewColumn(_(col), cell(), active=i)
+                cell = Gtk.CellRendererToggle
+                self.tvc[col] = Gtk.TreeViewColumn(_(col), cell(), active=i)
             else:
-                self.tvc[col] = gtk.TreeViewColumn(_(col), cell(), text=i)
+                self.tvc[col] = Gtk.TreeViewColumn(_(col), cell(), text=i)
             if sort == True:
                 self.tvc[col].set_sort_column_id(i)
             self.tvc[col].set_resizable(resize)

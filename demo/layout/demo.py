@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-   -*- mode: python -*-
 
 
-import gtk
+from gi.repository import Gtk
 import sys
 import os
 
@@ -18,4 +18,4 @@ class LayoutDemo(Demo):
 
 d = LayoutDemo()
 
-gtk.main()
+Gtk.main()

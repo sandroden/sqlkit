@@ -4,19 +4,19 @@ columns
 
 """
 
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import GObject
 
-class GreedyTreeView(gtk.TreeView):
+class GreedyTreeView(Gtk.TreeView):
     __gtype_name__ = 'GreedyTreeView'
 
     def __init__(self, *args):
-        gtk.TreeView.__init__(self, *args)
+        GObject.GObject.__init__(self, *args)
 
     def do_size_request(self, requisition):
 
         treeview = self
-        gtk.TreeView.do_size_request(self, requisition)
+        Gtk.TreeView.do_size_request(self, requisition)
 #        print "width would be", requisition.width
 
         model = treeview.get_model()
@@ -62,11 +62,11 @@ class GreedyTreeView(gtk.TreeView):
                         for row_index in range(rows_number):
                             iter = model.get_iter(row_index)
                             renderer_func(column, renderer, model, iter, *renderer_func_data)
-                            if gobject.type_is_a(renderer, gtk.CellRendererText):
+                            if GObject.type_is_a(renderer, Gtk.CellRendererText):
                                 ellipsize = renderer.get_property('ellipsize')
                                 renderer.set_property('ellipsize', False)
                             width = renderer.get_size(treeview, None)[2]
-                            if gobject.type_is_a(renderer, gtk.CellRendererText):
+                            if GObject.type_is_a(renderer, Gtk.CellRendererText):
                                 # Put things back in order.
                                 renderer.set_property('ellipsize', ellipsize)
                             max_width = max(max_width, width)
@@ -104,6 +104,6 @@ class GreedyTreeView(gtk.TreeView):
             total_desired_width = treeview.size_request()[0]
 
         # If we happened to mismatch because of missing introspection, let's
-        # trust in gtk...
+        # trust in Gtk...
         requisition.width = max(total_desired_width, requisition.width)
 #        print "instead, it could be", total_desired_width, "... it is", requisition.width

@@ -23,13 +23,13 @@ def di_ciao(*args):
 
 
 l.menu('m=_File',
-       ('fine', 'activate', gtk.main_quit),
+       ('fine', 'activate', Gtk.main_quit),
        ('inizio', 'activate', di_ciao, ),
-       ('gtk-open', 'activate', gtk.main_quit, )
+       ('gtk-open', 'activate', Gtk.main_quit, )
        )
 
 #print l.elements.keys
 l.connect(
-    ('b=chiudi', 'clicked', gtk.main_quit),
+    ('b=chiudi', 'clicked', Gtk.main_quit),
     ('b=registra', 'clicked', di_ciao, 'uno', 'due'),
 )

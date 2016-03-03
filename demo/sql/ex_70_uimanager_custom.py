@@ -1,8 +1,8 @@
 """uimanager/handling popup menu
 
-You can add entries to the popup. This is just normal gtk.
+You can add entries to the popup. This is just normal Gtk.
 you just need to know that there exists an action_group names
-self.actiongroup_general and a gtk.UIManager called self.ui_manager.
+self.actiongroup_general and a Gtk.UIManager called self.ui_manager.
 
 
 """

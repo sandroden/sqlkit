@@ -8,30 +8,30 @@ out a bettere widget and possibly contribute it...
 import re
 from datetime import timedelta
 
-import gobject
-import gtk
+from gi.repository import GObject
+from gi.repository import Gtk
 
 from sqlkit import debug as dbg
 
 
-class IntervalEdit(gtk.Alignment):
+class IntervalEdit(Gtk.Alignment):
     __gtype_name__ = 'IntervalEdit'
 
     __gproperties__ = {
-        'interval': (gobject.TYPE_PYOBJECT,             # type
+        'interval': (GObject.TYPE_PYOBJECT,             # type
                      'Interval',                          # nick name
                      'The interval currently selected',   # description
-                     gobject.PARAM_READWRITE),            # flags
+                     GObject.PARAM_READWRITE),            # flags
 
     }
 
     def __init__(self):
-        gtk.Alignment.__init__(self)
-        self.hbox = gtk.HBox()
-        self.days = gtk.Entry()
-        self.hours = gtk.Entry()
-        self.minutes = gtk.Entry()
-        self.seconds = gtk.Entry()
+        GObject.GObject.__init__(self)
+        self.hbox = Gtk.HBox()
+        self.days = Gtk.Entry()
+        self.hours = Gtk.Entry()
+        self.minutes = Gtk.Entry()
+        self.seconds = Gtk.Entry()
         try:
             ## only from gtk 2.12
             self.days.set_tooltip_text('Days')
@@ -41,7 +41,7 @@ class IntervalEdit(gtk.Alignment):
         except:
             pass
 
-        self._align = gtk.Alignment(0, 0, 0, 0)
+        self._align = Gtk.Alignment.new(0, 0, 0, 0)
 
         self.add(self.hbox)
         for name in ('days', 'hours',):  # 'minutes', 'seconds'):

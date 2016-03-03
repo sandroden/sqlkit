@@ -6,7 +6,7 @@ signal of SqlTable
 
 
 """
-import gtk
+from gi.repository import Gtk
 
 def menu_item_cb(menu_item, movie):
     print "Movie %s has %s as director" % (movie, movie.director)
@@ -15,7 +15,7 @@ def custom_action_cb(table, event, obj, field_name, menu, treeview):
 
     if not menu:
         return
-    item = gtk.MenuItem("Show director %s" % obj.director)
+    item = Gtk.MenuItem("Show director %s" % obj.director)
     item.connect('activate', menu_item_cb, obj)
     table.add_temporary_item(item, menu, separator=True)
 

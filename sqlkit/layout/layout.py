@@ -26,8 +26,8 @@ import re
 import os
 import tempfile
 
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import GObject
 
 from sqlkit import debug as dbg
 from sqlkit import _
@@ -419,7 +419,7 @@ class Layout(object):
         self.rows, self.cols = max(self.rows, row), max(self.cols, col)
 
     def xml(self, filename=None, tmpfile=None, logfile=None):
-        """Produces the xml for gtk.Builder() to create the GUI, possibly writes it to file"""
+        """Produces the xml for Gtk.Builder() to create the GUI, possibly writes it to file"""
 
         start = '<?xml version="1.0" encoding="UTF-8" standalone="no"?> <!--*- mode: nxml -*-->' +\
             '\n<interface>\n'
@@ -464,7 +464,7 @@ class Layout(object):
         if self.shown:
             self.widgets['Window'].show()
         else:
-            self.builder = gtk.Builder()
+            self.builder = Gtk.Builder()
 
             xml = self.xml()
             try:
@@ -481,12 +481,12 @@ class Layout(object):
                 if 'Window' in self.widgets:
                     W = self.widgets['Window']
                     if x == 'q':
-                        W.connect("delete_event", gtk.main_quit)
+                        W.connect("delete_event", Gtk.main_quit)
                     else:
                         W.connect("delete_event", x)
 
-            if action == 'gtk.main':
-                gtk.main()
+            if action == 'Gtk.main':
+                Gtk.main()
             ## parent
             if self.addto:
                 container_widget = self.widgets[self.lcontainer.el_def]
@@ -512,12 +512,12 @@ class Layout(object):
 
                     W = self.widgets['Window']
                     if x == 'q':
-                        W.connect("delete_event", gtk.main_quit)
+                        W.connect("delete_event", Gtk.main_quit)
                     else:
                         W.connect("delete_event", x)
 
-            if action == 'gtk.main':
-                gtk.main()
+            if action == 'Gtk.main':
+                Gtk.main()
             ## parent
             if self.addto:
                 container_widget = self.widgets[self.lcontainer.el_def]
@@ -534,7 +534,7 @@ class Layout(object):
 
         self.xml(file=filename)
 
-        glade = gtk.glade.XML(filename)
+        glade = Gtk.glade.XML(filename)
         glade.signal_autoconnect(self)
         self.widgets = {}
         for key, val in self.elements.iteritems():
@@ -545,12 +545,12 @@ class Layout(object):
 
                 W = self.widgets['Window']
                 if x == 'q':
-                    W.connect("delete_event", gtk.main_quit)
+                    W.connect("delete_event", Gtk.main_quit)
                 else:
                     W.connect("delete_event", x)
 
-        if action == 'gtk.main':
-            gtk.main()
+        if action == 'Gtk.main':
+            Gtk.main()
 
         ## clean
         os.unlink(filename)
@@ -559,7 +559,7 @@ class Layout(object):
 
     def tip(self, el_def, text):
         if self.shown:
-            if isinstance(self.widgets[el_def], gtk.ToolItem):
+            if isinstance(self.widgets[el_def], Gtk.ToolItem):
                 self.widgets[el_def].set_tooltip_text(text)
             else:
                 self.widgets[el_def].set_tooltip_text(text)
@@ -580,7 +580,7 @@ class Layout(object):
             #print "menu: ", el_def, menu, self.widgets
             key = d[0]
             if key == '-':
-                items[key] = gtk.SeparatorMenuItem()
+                items[key] = Gtk.SeparatorMenuItem()
                 #print "Separator"
                 d.extend(['activate'])
                 d.extend([None])
@@ -597,9 +597,9 @@ class Layout(object):
 
             if not key in items:
                 if key.startswith('gtk-'):
-                    items[key] = gtk.ImageMenuItem(key)
+                    items[key] = Gtk.ImageMenuItem(key)
                 else:
-                    items[key] = gtk.MenuItem(key)
+                    items[key] = Gtk.MenuItem(key)
 
                 items[key].connect(*d[1:])
             menu.append(items[key])
@@ -666,14 +666,14 @@ class Layout(object):
         sb = self.widgets['sb=StBar']
         # we need to prevent any attempt to write on a statusbar after the toplevel
         # windows is destroyed. Under Windows you get crashes randomly.
-        if not isinstance(sb.get_toplevel(), gtk.Window):
+        if not isinstance(sb.get_toplevel(), Gtk.Window):
             return
         idx = sb.get_context_id(txt)
         msg_id = sb.push(idx, txt)
 
         ## delete the message
         def del_text(idx, msg_id):
-            if not isinstance(sb.get_toplevel(), gtk.Window):
+            if not isinstance(sb.get_toplevel(), Gtk.Window):
                 return
             try:
                 sb.remove_message(idx, msg_id)
@@ -684,7 +684,7 @@ class Layout(object):
             return False
 
         if seconds:
-            gobject.timeout_add(seconds * 1000, del_text, idx, msg_id)
+            GObject.timeout_add(seconds * 1000, del_text, idx, msg_id)
 
     def notebook(self, el_key, notebook_labels=None, tab_pos='top'):
         """Adds notebook entry for notebooks,
@@ -822,22 +822,22 @@ class Layout(object):
             type = 'info'
 
         types = {
-            'info': gtk.MESSAGE_INFO,
-            'warn': gtk.MESSAGE_WARNING,
-            'warning':  gtk.MESSAGE_WARNING,
-            'question': gtk.MESSAGE_QUESTION,
-            'error':     gtk.MESSAGE_ERROR,
+            'info': Gtk.MessageType.INFO,
+            'warn': Gtk.MessageType.WARNING,
+            'warning':  Gtk.MessageType.WARNING,
+            'question': Gtk.MessageType.QUESTION,
+            'error':     Gtk.MessageType.ERROR,
         }
 
         window = self.widgets.values()[0].get_toplevel()
         opts = {
             'parent':  window,
-            'flags':  gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            'flags':  Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
             'type':  types[type],
-            'buttons': gtk.BUTTONS_OK,
+            'buttons': Gtk.ButtonsType.OK,
             'message_format': text,
         }
-        dialog = gtk.MessageDialog(**opts)
+        dialog = Gtk.MessageDialog(**opts)
         if show:
             dialog.show_all()
         return dialog
@@ -935,45 +935,45 @@ def dialog(toplevel=None, layout=None, title='', butts=None, type=None,
     :param type: the type of dialog: ok, yes-no, yes-no-cancel, ok-cancel,
                  ok-apply-cancel
     :param text: a simple text to be displayed
-    :param mode: the mode (defaults to gtk.DIALOG_MODAL if no toplevel,
-          gtk.MODAL|gtk.DIALOG_DESTROY_WITH_PARENT, is toplevel is not None)
+    :param mode: the mode (defaults to Gtk.DialogFlags.MODAL if no toplevel,
+          Gtk.MODAL|Gtk.DialogFlags.DESTROY_WITH_PARENT, is toplevel is not None)
           use None to prevent settng the mode.
     :param wdict: if True a dict with the reposnse_id as key and the widet as value is added to the
                   reurned values
-    returns a (gtk.dialog, Layout object)
+    returns a (Gtk.dialog, Layout object)
     """
 
     if butts is None and type is None:
         type = 'ok'
 
     if type == 'yes-no':
-        butts = (gtk.STOCK_YES, gtk.RESPONSE_YES,
-                 gtk.STOCK_NO, gtk.RESPONSE_NO)
+        butts = (Gtk.STOCK_YES, Gtk.ResponseType.YES,
+                 Gtk.STOCK_NO, Gtk.ResponseType.NO)
 
     if type == 'yes-no-cancel':
-        butts = (gtk.STOCK_YES, gtk.RESPONSE_YES,
-                 gtk.STOCK_NO, gtk.RESPONSE_NO,
-                 gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+        butts = (Gtk.STOCK_YES, Gtk.ResponseType.YES,
+                 Gtk.STOCK_NO, Gtk.ResponseType.NO,
+                 Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
 
     elif type == 'ok-cancel':
-        butts = (gtk.STOCK_OK, gtk.RESPONSE_OK,
-                 gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+        butts = (Gtk.STOCK_OK, Gtk.ResponseType.OK,
+                 Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
 
     elif type == 'ok-apply-cancel':
-        butts = (gtk.STOCK_OK, gtk.RESPONSE_OK,
-                 gtk.STOCK_APPLY, gtk.RESPONSE_APPLY,
-                 gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+        butts = (Gtk.STOCK_OK, Gtk.ResponseType.OK,
+                 Gtk.STOCK_APPLY, Gtk.ResponseType.APPLY,
+                 Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
 
     elif type == 'ok':
-        butts = (gtk.STOCK_OK, gtk.RESPONSE_OK)
+        butts = (Gtk.STOCK_OK, Gtk.ResponseType.OK)
 
     if mode == '':
         if toplevel:
-            mode = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT
+            mode = Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT
         else:
-            mode = gtk.DIALOG_MODAL
+            mode = Gtk.DialogFlags.MODAL
 
-    dialog = gtk.Dialog(title, toplevel, mode, )
+    dialog = Gtk.Dialog(title, toplevel, mode, )
     bdict = {}
     if butts:
         for i in range(0, len(butts), 2):

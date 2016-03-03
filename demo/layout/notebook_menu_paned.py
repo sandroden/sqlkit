@@ -5,7 +5,7 @@ import sys
 sys.path.append('../..')
 
 from sqlkit.layout import Layout
-import gtk
+from gi.repository import Gtk
 
 simple_menu = """
  {B m=_File  m=Produzione m=Commesse } -
@@ -44,7 +44,7 @@ w = l.show()
 
 w['sb=StBar'].push(w['sb=StBar'].get_context_id('prova'), 'Prima Prova')
 
-# tips written after use gtk.Tooltip
+# tips written after use Gtk.Tooltip
 l.tip('b=chiudi', 'Chiudi tutto')
 
 def di_ciao(*args):
@@ -62,17 +62,17 @@ def nuovo_layout(*args):
 
 
 l.menu('m=_File',
-       ('_Fine',  'activate',  gtk.main_quit),  # Normal
+       ('_Fine',  'activate',  Gtk.main_quit),  # Normal
        ('inizio', 'activate',  di_ciao, ),
-       ('gtk-open', 'activate', gtk.main_quit),  # w/ stock image
+       ('gtk-open', 'activate', Gtk.main_quit),  # w/ stock image
        ('gtk-new',  'activate', nuovo_layout),  # w/ stock image
-       ('gtk-save', 'activate', gtk.main_quit),  # w/ stock image
+       ('gtk-save', 'activate', Gtk.main_quit),  # w/ stock image
        )
 
 l.sig(
-    ('b=chiudi', lambda wid: gtk.main_quit(), 'clicked'),
-    #    ('l=nome',lambda wid: gtk.main_quit(), 'enter'),  # enter non esiste!
+    ('b=chiudi', lambda wid: Gtk.main_quit(), 'clicked'),
+    #    ('l=nome',lambda wid: Gtk.main_quit(), 'enter'),  # enter non esiste!
 )
 
 
-gtk.main()
+Gtk.main()

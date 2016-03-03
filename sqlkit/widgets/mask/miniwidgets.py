@@ -102,7 +102,7 @@ Colors
 You can change default color for not nullable object globally::
 
   from sqlkit.widgets.mask import miniwidgets
-  miniwidgets.NOT_NULL_COLOR = gtk.gdk.color_parse('green')
+  miniwidgets.NOT_NULL_COLOR = Gdk.color_parse('green')
 
 You can change the foreground of unsensitive widgets setting NOT_EDITABLE_COLOR
 
@@ -130,26 +130,26 @@ import os
 from decimal import Decimal
 from datetime import timedelta, time
 
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import GObject
 
 from sqlkit import debug as dbg, _, exc
 from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion
 
-NOT_NULL_COLOR = gtk.gdk.color_parse('#f6ebba')
-NOT_EDITABLE_COLOR = gtk.gdk.color_parse('#333')
+NOT_NULL_COLOR = Gdk.color_parse('#f6ebba')
+NOT_EDITABLE_COLOR = Gdk.color_parse('#333')
 
 
-class Widget(gobject.GObject):
+class Widget(GObject.GObject):
 
     """
     A proxy between the :ref:`field <fields>` and a real gtk widget
     """
     __gsignals__ = {
-        'value-set': (gobject.SIGNAL_RUN_FIRST,
-                      gobject.TYPE_NONE,
+        'value-set': (GObject.SignalFlags.RUN_FIRST,
+                      None,
                       # args: widget, value, initial
-                      (gobject.TYPE_PYOBJECT, gobject.TYPE_BOOLEAN,),
+                      (GObject.TYPE_PYOBJECT, GObject.TYPE_BOOLEAN,),
                       )
     }
 
@@ -172,16 +172,16 @@ class Widget(gobject.GObject):
         self.gtkwidget.connect('destroy', self.destroy)
         self.set_editable(self.field.editable)
 
-        self.set_text(state=gtk.STATE_INSENSITIVE, color=NOT_EDITABLE_COLOR)
+        self.set_text(state=Gtk.StateType.INSENSITIVE, color=NOT_EDITABLE_COLOR)
 
     def set_not_null_style(self, value):
         if value:
             if self.field.editable:
-                self.set_bg(state=gtk.STATE_NORMAL, color=NOT_NULL_COLOR)
+                self.set_bg(state=Gtk.StateType.NORMAL, color=NOT_NULL_COLOR)
         else:
-            style = gtk.Entry().get_style()
-            color = style.base[gtk.STATE_NORMAL]
-            self.set_bg(state=gtk.STATE_NORMAL, color=color)
+            style = Gtk.Entry().get_style()
+            color = style.base[Gtk.StateType.NORMAL]
+            self.set_bg(state=Gtk.StateType.NORMAL, color=color)
 
     def set_bg(self, state, color):
         self.gtkwidget.modify_base(state, color)
@@ -278,12 +278,12 @@ class VarcharWidget(Widget):
             self.set_max_length(self.field.length)
 
     def on_key_press(self, widget, event):
-        ksym = gtk.gdk.keyval_name(event.keyval)
+        ksym = Gdk.keyval_name(event.keyval)
 
         if not ksym == 'Return':
             return
 
-        if event.state & (gtk.gdk.CONTROL_MASK | gtk.gdk.SHIFT_MASK):
+        if event.get_state() & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK):
             return
 
         self.master.run_hook('on_activate', self, field_name=self.field_name)
@@ -529,7 +529,7 @@ class TextWidget(Widget):
 
     def __init__(self, *args):
         Widget.__init__(self, *args)
-        self.gtkwidget.set_property('wrap-mode', gtk.WRAP_WORD)
+        self.gtkwidget.set_property('wrap-mode', Gtk.WrapMode.WORD)
 
     def set_value(self, value, initial=False):
         buff = self.gtkwidget.get_buffer()
@@ -636,10 +636,10 @@ class EnumWidget(Widget):
     def __init__(self, gtkwidget, field):
 
         Widget.__init__(self, gtkwidget, field)
-        self.model = gtk.ListStore(gobject.TYPE_PYOBJECT, gobject.TYPE_STRING)
+        self.model = Gtk.ListStore(GObject.TYPE_PYOBJECT, GObject.TYPE_STRING)
         gtkwidget.set_model(self.model)
         gtkwidget.props.width_request = -1
-        cell = gtk.CellRendererText()
+        cell = Gtk.CellRendererText()
         gtkwidget.pack_start(cell, True)
         gtkwidget.add_attribute(cell, 'text', 1)
         self.notify_id = gtkwidget.connect('notify::active', self.notify_active_cb)
@@ -707,7 +707,7 @@ class ImageWidget(Widget):
                 text=_("A file with name '%s' already exists. Overwrite?" % save_path),
                 title=_('Upload name conflict'))
 
-            if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
+            if response in (Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
                 return
         self.copy_file = self.field.clean_path(filename)
         self.new_filename = save_path
@@ -741,7 +741,7 @@ class ForeignKeyComboboxWidget(Widget):
         #       3: a dictionary of all fields in the returned row
         #          this can be used to set additional fields
 
-        self.model = gtk.ListStore(object, str, str, object)
+        self.model = Gtk.ListStore(object, str, str, object)
 
 #        self.gtkwidget.connect('changed', self.clean_real_value)
         self.gtkwidget.set_model(self.model)
@@ -751,7 +751,7 @@ class ForeignKeyComboboxWidget(Widget):
             'button-press-event', self.completion.pop_menu, self.field_name, 3)
         self.gtkwidget.connect(
             'key-press-event', self.completion.keypress_event_cb, self.field_name)
-        self.entry = self.gtkwidget.child
+        self.entry = self.gtkwidget.get_child()
         completion = self.completion.prepare_completion(self.field_name, mode='regexp',
                                                         match_col=2)
         completion.set_model(self.model)
@@ -842,15 +842,15 @@ class ForeignKeyWidget(Widget):
             self.completion.pop_menu(widget, event, self.field_name)
 
         elif event.button == 1:
-            if event.type == gtk.gdk._2BUTTON_PRESS:
+            if event.type == Gdk._2BUTTON_PRESS:
                 # cancel reques by first simple click
-                gobject.source_remove(self.idle_id)
+                GObject.source_remove(self.idle_id)
 
                 mode = 'enum'
             else:
                 mode = 'regexp'
 
-            self.idle_id = gobject.idle_add(
+            self.idle_id = GObject.idle_add(
                 self.completion.show_possible_completion, self.entry, mode)
 
         return True
@@ -956,8 +956,8 @@ class CollectionWidget(Widget):
         if parent:
             prop_names = [prop.name for prop in parent.list_child_properties()]
             if 'y-options' in prop_names:
-                parent.child_set_property(self.gtkwidget, 'y-options', gtk.EXPAND | gtk.FILL)
-            if isinstance(parent, gtk.VBox):
+                parent.child_set_property(self.gtkwidget, 'y-options', Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.FILL)
+            if isinstance(parent, Gtk.VBox):
                 parent.child_set_property(self.gtkwidget, 'expand', True)
 
         self.master.related.add_element(self.field_name, self.table)

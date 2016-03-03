@@ -23,9 +23,9 @@ import gc
 import shutil
 import warnings
 
-import gtk
-import pango
-import gobject
+from gi.repository import Gtk
+from gi.repository import Pango
+from gi.repository import GObject
 from babel import numbers
 import sqlalchemy
 from sqlalchemy import Table, orm
@@ -45,7 +45,7 @@ from sqlkit.misc import printing
 
 NUMBERS = (int, float, decimal.Decimal)
 
-class SqlWidget(gobject.GObject):
+class SqlWidget(GObject.GObject):
 
     """
     The main widget used to edit a table or sqlalchemy selectable, i.e. almost everything you can
@@ -55,38 +55,38 @@ class SqlWidget(gobject.GObject):
     """
     #### Signals
     __gsignals__ = {
-        'record-selected': (gobject.SIGNAL_RUN_LAST,
-                            gobject.TYPE_BOOLEAN,
+        'record-selected': (GObject.SignalFlags.RUN_LAST,
+                            GObject.TYPE_BOOLEAN,
                             (),
                             ),
-        'record-saved': (gobject.SIGNAL_RUN_LAST,
-                         gobject.TYPE_BOOLEAN,
+        'record-saved': (GObject.SignalFlags.RUN_LAST,
+                         GObject.TYPE_BOOLEAN,
                          (),
                          ),
-        'record-new':   (gobject.SIGNAL_RUN_LAST,
-                         gobject.TYPE_BOOLEAN,
+        'record-new':   (GObject.SignalFlags.RUN_LAST,
+                         GObject.TYPE_BOOLEAN,
                          (),
                          ),
-        'record-deleted':  (gobject.SIGNAL_RUN_LAST,
-                            gobject.TYPE_BOOLEAN,
-                            (gobject.TYPE_PYOBJECT,),
+        'record-deleted':  (GObject.SignalFlags.RUN_LAST,
+                            GObject.TYPE_BOOLEAN,
+                            (GObject.TYPE_PYOBJECT,),
                             ),
-        'records-displayed': (gobject.SIGNAL_RUN_LAST,
-                              gobject.TYPE_BOOLEAN,
+        'records-displayed': (GObject.SignalFlags.RUN_LAST,
+                              GObject.TYPE_BOOLEAN,
                               (),
                               ),
-        'after-flush':    (gobject.SIGNAL_RUN_LAST,
-                           gobject.TYPE_BOOLEAN,
+        'after-flush':    (GObject.SignalFlags.RUN_LAST,
+                           GObject.TYPE_BOOLEAN,
                            # object, session
-                           (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT),
+                           (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT),
                            ),
-        'after-commit':    (gobject.SIGNAL_RUN_LAST,
-                            gobject.TYPE_BOOLEAN,
+        'after-commit':    (GObject.SignalFlags.RUN_LAST,
+                            GObject.TYPE_BOOLEAN,
                             # object, session
-                            (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT),
+                            (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT),
                             ),
-        'delete-event': (gobject.SIGNAL_RUN_LAST,
-                         gobject.TYPE_BOOLEAN,
+        'delete-event': (GObject.SignalFlags.RUN_LAST,
+                         GObject.TYPE_BOOLEAN,
                          (),
                          ),
 
@@ -238,7 +238,7 @@ class SqlWidget(gobject.GObject):
            already defined in the mapper
 
         :param title:
-           the title for the gtk.Window. 
+           the title for the Gtk.Window. 
 
         :param show:
            a boolean to tell if the Window will be visible
@@ -257,7 +257,7 @@ class SqlWidget(gobject.GObject):
            if set must be a container to which the sqlwidget will be added
 
         :param about_dialog:
-           Pass a dialog to invoke when info is called. A gtk.AboutDialog info will be
+           Pass a dialog to invoke when info is called. A Gtk.AboutDialog info will be
            created by default if no about_dialog is passed
 
         :param label_map:
@@ -284,7 +284,7 @@ class SqlWidget(gobject.GObject):
         :param relationship_leader: the main sqlmask (sqltable) that "owns" the filter_panel
         """
 
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         self._ids = {}  # handler for connect to gobjects
         if what:
             if isinstance(what, (basestring, sqlalchemy.Table)):
@@ -575,12 +575,12 @@ class SqlWidget(gobject.GObject):
         if 'A.external' in self.widgets:
             external_align = self.widgets['A.external']
             table = external_align.get_parent()
-            table.child_set_property(external_align, 'y-options', gtk.EXPAND | gtk.FILL)
+            table.child_set_property(external_align, 'y-options', Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.FILL)
 
         if 'S=tree' in self.widgets:
             internal_align = self.widgets['S=tree']
             table = internal_align.get_parent()
-            table.child_set_property(internal_align, 'y-options', gtk.EXPAND | gtk.FILL)
+            table.child_set_property(internal_align, 'y-options', Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.FILL)
 
         if self.is_toplevel():
             self.lay_obj.connect(('Window', 'delete-event', self.delete_event_cb))
@@ -731,7 +731,7 @@ class SqlWidget(gobject.GObject):
         Write on the status bar if present in this  sqlwidget or in the ``relationship_leader``
 
         Adds a message in the stack of messages of the status bar, and removes it
-        after seconds seconds. If delay=True it uses gobject.idle_add to give
+        after seconds seconds. If delay=True it uses GObject.idle_add to give
         more chance to be visible (not hidden by other automatic messages)
 
 
@@ -746,7 +746,7 @@ class SqlWidget(gobject.GObject):
             else:
                 try:
                     if delay:
-                        gobject.idle_add(self.lay_obj.sb, text, seconds)
+                        GObject.idle_add(self.lay_obj.sb, text, seconds)
                     else:
                         self.lay_obj.sb(text, seconds=seconds)
                 except Exception, e:
@@ -762,7 +762,7 @@ class SqlWidget(gobject.GObject):
                 title = self.table
             except:
                 title = self.mapper_info.get_primary_table()
-        return gobject.markup_escape_text(title)
+        return GObject.markup_escape_text(title)
 
     def get_table_labels(self):
         """
@@ -789,24 +789,24 @@ class SqlWidget(gobject.GObject):
         if height <= 0:
             height = h
 
-        gobject.idle_add(Window.resize, width, height)
+        GObject.idle_add(Window.resize, width, height)
 
     def gquit(self, *args):
-        gtk.main_quit()
+        Gtk.main_quit()
 
 ###### Actions/UiManager
     def prepare_actions(self):
         """
         Prepare action needed by UIManager
         """
-        self.actiongroup_general = gtk.ActionGroup('General')
-        self.actiongroup_update = gtk.ActionGroup('Update')
-        self.actiongroup_insert = gtk.ActionGroup('Insert')
-        self.actiongroup_delete = gtk.ActionGroup('Delete')
-        self.actiongroup_select = gtk.ActionGroup('Select')
-        self.actiongroup_browse = gtk.ActionGroup('Browse')
-        self.actiongroup_print = gtk.ActionGroup('Print')
-        self.actiongroup_debug = gtk.ActionGroup('Debug')
+        self.actiongroup_general = Gtk.ActionGroup('General')
+        self.actiongroup_update = Gtk.ActionGroup('Update')
+        self.actiongroup_insert = Gtk.ActionGroup('Insert')
+        self.actiongroup_delete = Gtk.ActionGroup('Delete')
+        self.actiongroup_select = Gtk.ActionGroup('Select')
+        self.actiongroup_browse = Gtk.ActionGroup('Browse')
+        self.actiongroup_print = Gtk.ActionGroup('Print')
+        self.actiongroup_debug = Gtk.ActionGroup('Debug')
 
         tip = _('Show all the differences that should be saved to database')
         self.actiongroup_general.add_actions([
@@ -816,36 +816,36 @@ class SqlWidget(gobject.GObject):
             ('Tools', None, _('Tools')),
             ('Help', None, _('Help')),
 
-            ('Quit', gtk.STOCK_QUIT, None, '<Ctrl>q', None, self.delete_event_cb),
-            ('About', gtk.STOCK_ABOUT, None, None, None, self.about_dialog_cb),
+            ('Quit', Gtk.STOCK_QUIT, None, '<Ctrl>q', None, self.delete_event_cb),
+            ('About', Gtk.STOCK_ABOUT, None, None, None, self.about_dialog_cb),
             ('PendingDifferences', None, _('Pending Differences'),
              None, tip, self.pending_differences_cb),
         ])
 
         self.actiongroup_update.add_actions([
-            ('Save', gtk.STOCK_SAVE, None, '<Ctrl>s',
+            ('Save', Gtk.STOCK_SAVE, None, '<Ctrl>s',
              _('Save current record'), self.record_save_cb),
         ])
 
         self.actiongroup_browse.add_actions([
-            ('Filters', gtk.STOCK_FIND, _('Filter panel'),
+            ('Filters', Gtk.STOCK_FIND, _('Filter panel'),
              None, _('Add filter panel'), self.add_filter_cb),
-            ('Reload', gtk.STOCK_REFRESH, _("Reload"), '<Ctrl>r', _('Reload from the database'),
+            ('Reload', Gtk.STOCK_REFRESH, _("Reload"), '<Ctrl>r', _('Reload from the database'),
              self.reload_cb),
         ])
         self.actiongroup_select.add_actions([
-            ('Forward', gtk.STOCK_GO_FORWARD, None, '<Alt>f',
+            ('Forward', Gtk.STOCK_GO_FORWARD, None, '<Alt>f',
              _('Go to next record'), self.record_forward_cb),
-            ('Back',   gtk.STOCK_GO_BACK, None, '<Alt>b',
+            ('Back',   Gtk.STOCK_GO_BACK, None, '<Alt>b',
              _('Go to previous record'), self.record_back_cb),
         ])
 
         self.actiongroup_print.add_actions([
-            ('Print', gtk.STOCK_PRINT, None),
+            ('Print', Gtk.STOCK_PRINT, None),
         ])
 
         self.actiongroup_debug.add_actions([
-            ('Gtk-tree', gtk.STOCK_EXECUTE, _('Inspect widgets'),
+            ('Gtk-tree', Gtk.STOCK_EXECUTE, _('Inspect widgets'),
              '<Ctrl><Alt>i', None, self.show_widget_info),
         ])
 
@@ -856,7 +856,7 @@ class SqlWidget(gobject.GObject):
 
         import uidescription
 
-        self.ui_manager = gtk.UIManager()
+        self.ui_manager = Gtk.UIManager()
 
         if self.is_toplevel():
             self.accel_group = self.ui_manager.get_accel_group()
@@ -888,7 +888,7 @@ class SqlWidget(gobject.GObject):
     def uimanager_connect_proxy(self, uimgr, action, widget):
 
         tooltip = action.get_property('tooltip')
-        if isinstance(widget, gtk.MenuItem) and tooltip:
+        if isinstance(widget, Gtk.MenuItem) and tooltip:
             widget.set_tooltip_text(tooltip)
 
     def set_mode(self, mode=None, reset=False, delay=False):
@@ -1162,17 +1162,17 @@ class SqlWidget(gobject.GObject):
             dialog = UnsavedDataDialog(self)
             response = dialog.run()
 
-            if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
+            if response in (Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
                 pass
 
-            if response == gtk.RESPONSE_YES:
+            if response == Gtk.ResponseType.YES:
                 if proceed:
                     self.record_save(ask=False)
 
             ## you don't want to save. Let's prevent a delayed commit
             ## we don't need to care about deleted becouse when you delete
             ## the commit is immediate
-            if response == gtk.RESPONSE_NO:
+            if response == Gtk.ResponseType.NO:
                 self.discard_changes()
 
         return response
@@ -1222,25 +1222,25 @@ class SqlWidget(gobject.GObject):
         """
         prevents the possibility of inputting wrong chars
         """
-        key = gtk.gdk.keyval_name(event.keyval)
+        key = Gdk.keyval_name(event.keyval)
 
         if key in ('KP_Decimal',) and numbers.get_decimal_symbol() == ",":
-            event = gtk.gdk.Event(gtk.gdk.KEY_PRESS)
-            event.keyval = gtk.keysyms.comma
+            event = Gdk.Event(Gdk.KEY_PRESS)
+            event.keyval = Gdk.KEY_comma
             event.window = widget.window
 
             widget.emit('key-press-event', event)
             return True
 
         if key in ('KP_Enter',):
-            event = gtk.gdk.Event(gtk.gdk.KEY_PRESS)
-            event.keyval = gtk.keysyms.Return
+            event = Gdk.Event(Gdk.KEY_PRESS)
+            event.keyval = Gdk.KEY_Return
             event.window = widget.window
 
             widget.emit('key-press-event', event)
             return True
 
-        if (event.state | gtk.gdk.CONTROL_MASK):
+        if (event.get_state() | Gdk.ModifierType.CONTROL_MASK):
             return
 
         KEYPAD_KEYS = '(KP_[0-9]|KP_Add|KP_Decimal|KP_Subtract|comma'
@@ -1416,7 +1416,7 @@ class SqlWidget(gobject.GObject):
         if 'Window' in self.widgets:
             ## This sqlwidget owns a toplevel Window. Destroying that one triggers
             ## delete_event_cb, that emits 'delete'event'
-            event = gtk.gdk.Event(gtk.gdk.NOTHING)
+            event = Gdk.Event(Gdk.NOTHING)
             self.widgets['Window'].emit('delete-event', event)
         else:
             self.emit('delete-event')
@@ -1759,8 +1759,8 @@ class SqlWidget(gobject.GObject):
             import webbrowser
             webbrowser.open(link)
 
-        about_dialog = gtk.AboutDialog()
-        gtk.about_dialog_set_url_hook(func, None)
+        about_dialog = Gtk.AboutDialog()
+        Gtk.about_dialog_set_url_hook(func, None)
         about_dialog.set_authors(["Sandro Dentella <sandro@e-den.it>"])
         about_dialog.set_license("GPL v.3")
         about_dialog.set_version(sqlkit.__version__)
@@ -1834,7 +1834,7 @@ class SqlWidget(gobject.GObject):
 
         Adds an action to a menu and removes it with 'selection-done'
 
-        :param item: the gtk.MenuItem that must be added
+        :param item: the Gtk.MenuItem that must be added
         :param menu: the menu where the item needs to be added
         :param position: the position where to insert the item (default: 0)
         :param separator: boolean: add a separator (not implemented)
@@ -1849,7 +1849,7 @@ class SqlWidget(gobject.GObject):
         menu.insert(item, position)
         menu.connect('selection-done', remove_widget_cb, item)
         if separator:
-            self.add_temporary_item(gtk.SeparatorMenuItem(), menu, position=position+1)
+            self.add_temporary_item(Gtk.SeparatorMenuItem(), menu, position=position+1)
 
 ###### Checks
     def is_mask(self, obj=False):
@@ -2038,7 +2038,7 @@ class SqlWidget(gobject.GObject):
 
     def is_text(self, field_name):
         """
-        Return true if this field is Text or was forced gtk.Text
+        Return true if this field is Text or was forced Gtk.Text
         """
         import sqlalchemy.types as sqltypes
 
@@ -2120,16 +2120,16 @@ class SqlWidget(gobject.GObject):
             layout="TVS=info", type='ok', title="Info on %s" % field_name)
 
         tv = lay.widgets['TV=info']
-        model = gtk.ListStore(str, str)
+        model = Gtk.ListStore(str, str)
         tv.set_model(model)
         tv.set_property('width-request', 210)
         tv.set_property('height-request', 320)
 
-        cell1 = gtk.CellRendererText()
-        cell2 = gtk.CellRendererText()
+        cell1 = Gtk.CellRendererText()
+        cell2 = Gtk.CellRendererText()
 
-        tc1 = gtk.TreeViewColumn(_("Property"), cell1, text=0)
-        tc2 = gtk.TreeViewColumn(_("Value"), cell2, text=1)
+        tc1 = Gtk.TreeViewColumn(_("Property"), cell1, text=0)
+        tc2 = Gtk.TreeViewColumn(_("Value"), cell2, text=1)
 
         tv.append_column(tc1)
         tv.append_column(tc2)
@@ -2225,7 +2225,7 @@ class UnsavedDataDialog(object):
         expander = l.widgets['X.details']
         ## expanding the details will possibly trigget mask2obj that
         ## in turn will trogger validation. That's why I want to delay as much as possible
-        self.model = gtk.TreeStore(str, str, str, str)
+        self.model = Gtk.TreeStore(str, str, str, str)
         if expanded:
             self.fill_model()
         else:
@@ -2235,15 +2235,15 @@ class UnsavedDataDialog(object):
         tv.set_property('width-request', 600)
         tv.set_property('height-request', 150)
 
-        cell0 = gtk.CellRendererText()
-        cell1 = gtk.CellRendererText()
-        cell2 = gtk.CellRendererText()
-        cell3 = gtk.CellRendererText()
+        cell0 = Gtk.CellRendererText()
+        cell1 = Gtk.CellRendererText()
+        cell2 = Gtk.CellRendererText()
+        cell3 = Gtk.CellRendererText()
 
-        tc0 = gtk.TreeViewColumn(_("State"),     cell0, markup=0)
-        tc1 = gtk.TreeViewColumn(_("Field name"), cell1, markup=1)
-        tc2 = gtk.TreeViewColumn(_("Original value"), cell2, markup=2)
-        tc3 = gtk.TreeViewColumn(_("Present value"), cell2, markup=3)
+        tc0 = Gtk.TreeViewColumn(_("State"),     cell0, markup=0)
+        tc1 = Gtk.TreeViewColumn(_("Field name"), cell1, markup=1)
+        tc2 = Gtk.TreeViewColumn(_("Original value"), cell2, markup=2)
+        tc3 = Gtk.TreeViewColumn(_("Present value"), cell2, markup=3)
 
         tv.append_column(tc0)
         tv.append_column(tc1)
@@ -2351,16 +2351,16 @@ class ValidationErrorDialog(object):
         lay.widgets['l=general'].set_text(self.GENERAL_MSG)
 
         tv = lay.widgets['TV=details']
-        model = gtk.ListStore(str, str)
+        model = Gtk.ListStore(str, str)
         tv.set_model(model)
         tv.set_property('width-request', 420)
         tv.set_property('height-request', 150)
 
-        cell1 = gtk.CellRendererText()
-        cell2 = gtk.CellRendererText()
+        cell1 = Gtk.CellRendererText()
+        cell2 = Gtk.CellRendererText()
 
-        tc1 = gtk.TreeViewColumn(_("Field name"), cell1, markup=0)
-        tc2 = gtk.TreeViewColumn(_("Error"), cell2, markup=1)
+        tc1 = Gtk.TreeViewColumn(_("Field name"), cell1, markup=0)
+        tc2 = Gtk.TreeViewColumn(_("Error"), cell2, markup=1)
 
         tv.append_column(tc1)
         tv.append_column(tc2)
@@ -2402,7 +2402,7 @@ class ValidationWarningDialog(ValidationErrorDialog):
         self.dialog.destroy()
 
         self.error_dict = {}
-        if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
+        if response in (Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
             raise exc.DialogValidationError
         else:
             pass

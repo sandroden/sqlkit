@@ -28,7 +28,7 @@ to any updating/saving process should have it's own handler that is a Field.
 A Field is an entity that knows how to handle a piece of data, be it on the
 database (a field_name) or just in the GUI. It's a layer that allows gui
 widget to be simpler and easier to interchange. As an example, both varchars
-and integers are normally displayed by a gtk.Entry: the entry.get_text()
+and integers are normally displayed by a Gtk.Entry: the entry.get_text()
 will retrieve in both cases a string, it's the Field (IntegerField) that
 knows how to turn that string into an integer using the
 :meth:`Field.clean_value` method. In more complex cases ``clean_value`` can return
@@ -157,7 +157,7 @@ offers a common interface to possbly different gtk widgets. If a MiniWidget
 exists the Field will instantiate it and set values thought it. 
 
 A notable exception to this rule is represented by any m2m/o2m relation,
-that in the layout is only present as a gtk.Alignment widget to which a
+that in the layout is only present as a Gtk.Alignment widget to which a
 children is added by mask.Widget.
 
 :ref:`Miniwidgets <field-widgets>` for all main types are provided.
@@ -238,7 +238,7 @@ import weakref
 from datetime import datetime, time, date, timedelta
 from decimal import Decimal
 
-import gobject
+from gi.repository import GObject
 import babel
 import sqlalchemy
 from sqlalchemy.schema import ColumnDefault
@@ -256,24 +256,24 @@ BLANK_OK = False
 class ZoomException(Exception):
     pass
 
-class SignalEmitter(gobject.GObject):
+class SignalEmitter(GObject.GObject):
 
     """A minimalist gobject used to trace value setting in AttributeExtension
 
     """
     __gsignals__ = {
-        'value-set': (gobject.SIGNAL_RUN_FIRST,
-                      gobject.TYPE_NONE,
-                      (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT,
-                       gobject.TYPE_PYOBJECT, )),
-        # 'value-appended': (gobject.SIGNAL_RUN_FIRST,
-        #               gobject.TYPE_NONE,
-        #               (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT,
-        #                gobject.TYPE_PYOBJECT)),
-        # 'value-removed': (gobject.SIGNAL_RUN_FIRST,
-        #               gobject.TYPE_NONE,
-        #               (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT,
-        #                gobject.TYPE_PYOBJECT)),
+        'value-set': (GObject.SignalFlags.RUN_FIRST,
+                      None,
+                      (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT,
+                       GObject.TYPE_PYOBJECT, )),
+        # 'value-appended': (GObject.SignalFlags.RUN_FIRST,
+        #               None,
+        #               (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT,
+        #                GObject.TYPE_PYOBJECT)),
+        # 'value-removed': (GObject.SignalFlags.RUN_FIRST,
+        #               None,
+        #               (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT,
+        #                GObject.TYPE_PYOBJECT)),
     }
 
     def __init__(self):
@@ -337,7 +337,7 @@ class FieldChooser(object):
         field_name:  the name of the field in the db
         field_attrs:     the dict for this field as worked out by InspectMapper
         def_str:     the definition string in the layout that determined
-                     the gtk.Widget (eg.: c=married, e=first_name)
+                     the Gtk.Widget (eg.: c=married, e=first_name)
                      as extracted by layoutgen and set in laygen.fields_in_layout dictionary
         """
 
@@ -418,11 +418,11 @@ class FieldChooser(object):
 #                               (field_name, filter_attr['col_spec']))
 
 
-class Field(gobject.GObject):
+class Field(GObject.GObject):
     __gsignals__ = {
-        'value-set': (gobject.SIGNAL_RUN_FIRST,
-                      gobject.TYPE_NONE,
-                      (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT)),
+        'value-set': (GObject.SignalFlags.RUN_FIRST,
+                      None,
+                      (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
     }
     Widget = None
     default_def_string = 'ae'
@@ -449,7 +449,7 @@ class Field(gobject.GObject):
                      :table:    the table the field is defined in, if any
 
         :param def_str:     the definition string in the layout that determined
-                     the gtk.Widget (eg.: c=married, e=first_name)
+                     the Gtk.Widget (eg.: c=married, e=first_name)
         :param master:      the sqlkit widget: an instance of SqlMask or SqlTable
         """
 
@@ -462,7 +462,7 @@ class Field(gobject.GObject):
     def set_widget(self, gtkwidget=None, def_str=None, widget=None):
         """
         :param def_str:     the definition string in the layout that determined
-                     the gtk.Widget (eg.: c=married, e=first_name)
+                     the Gtk.Widget (eg.: c=married, e=first_name)
         :param widget:      the miniwidget to be used. Defaults to class-defined self.Widget
                             the widget can be a string of a Widget derived from
                             ``miniwidget.Widget``
@@ -1432,7 +1432,7 @@ class ImageField(VarcharField):
       image = Column(String(100), info={'render' : 'image', 'base_dir' : '/path/to/images'}
 
     Image field that can create a thumbnail and resize an image into jpeg/png
-    format using gtk.gdk.pixbuf* functions
+    format using Gdk.pixbuf* functions
     """
 
     Widget = 'ImageWidget'
@@ -1456,7 +1456,7 @@ class ImageField(VarcharField):
 
     def __init__(self, *args, **kw):
 
-        import gtk
+        from gi.repository import Gtk
 
         Field.__init__(self, *args, **kw)
 
@@ -1471,7 +1471,7 @@ class ImageField(VarcharField):
 
         self.thumbnail_size = self.column.info.get('thumbnail_size', self.thumbnail_size)
         self.default_size = self.column.info.get('default_size', self.default_size)
-        self.image_formats = ["." + x['name'] for x in gtk.gdk.pixbuf_get_formats()] + ['.jpg']
+        self.image_formats = ["." + x['name'] for x in GdkPixbuf.Pixbuf.get_formats()] + ['.jpg']
 
     def clean_path(self, path):
         """
@@ -1643,13 +1643,13 @@ class ImageField(VarcharField):
         :param width: the desider width
         :param height: the desider height
         """
-        import gtk
+        from gi.repository import Gtk
 
         pw, ph = pixbuf.get_width(), pixbuf.get_height()
         ratio = min(width/float(pw), height/float(ph))
         if ratio > 1:
             raise ZoomException("Ratio is > 1 (%s)" % ratio)
-        return pixbuf.scale_simple(int(pw*ratio), int(ph*ratio), gtk.gdk.INTERP_BILINEAR)
+        return pixbuf.scale_simple(int(pw*ratio), int(ph*ratio), GdkPixbuf.InterpType.BILINEAR)
 
     def scale_file(self, image_path, dst_path, width, height):
         """
@@ -1659,9 +1659,9 @@ class ImageField(VarcharField):
         :param width: the desired width
         :param height: the desired height
         """
-        import gtk
+        from gi.repository import Gtk
 
-        pixbuf = gtk.gdk.pixbuf_new_from_file(image_path)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file(image_path)
         pixbuf = self.scale_pixbuf(pixbuf, width, height)
         pixbuf.save(dst_path, 'jpeg')
 
@@ -1672,13 +1672,13 @@ class ImageField(VarcharField):
 
         :param filename: the filename to create a thumbnail for
         """
-        import gtk
+        from gi.repository import Gtk
 
         if not self.is_image(filename):
             return
         path = os.path.join(self.base_dir, filename)
         thumbnail_path = thumbnail_path or self.get_thumbnail_path_with_size(filename)
-        pixbuf = gtk.gdk.pixbuf_new_from_file(path)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
         pixbuf = self.scale_pixbuf(pixbuf, *self.thumbnail_size)
         pixbuf.save(thumbnail_path, 'jpeg')
 

@@ -5,7 +5,7 @@ import sys
 sys.path.append('../..')
 
 from layout import Layout
-import gtk
+from gi.repository import Gtk
 
 simple_menu = """
  {F.gen {  nome cognome

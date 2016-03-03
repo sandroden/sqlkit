@@ -1,13 +1,13 @@
 from datetime import datetime
 
-import gtk
-import gobject
-import pango
+from gi.repository import Gtk
+from gi.repository import GObject
+from gi.repository import Pango
 
 from sqlkit import debug as dbg
 from multiline_cell import MultilineCellRenderer
 
-class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
+class CellEditableCalendar(Gtk.TextView, Gtk.CellEditable):
 
     """An editable that allows to edit dates via a calendar popup
     Can also edit datetime but the popup will just change the date, not allow
@@ -15,12 +15,12 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
     """
 
     __gproperties__ = {
-        'editing-canceled': (gobject.TYPE_BOOLEAN,                        # type
+        'editing-canceled': (GObject.TYPE_BOOLEAN,                        # type
                              'editing canceled',                         # nick name
                              # description
                              'Indicates whether editing on the cell has been canceled.',
                              False,                                        # default value
-                             gobject.PARAM_READWRITE)                   # flags
+                             GObject.PARAM_READWRITE)                   # flags
     }
 
     datetime = None
@@ -29,13 +29,13 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
 
         self.datetime = datetime
         self.fmt_func = fmt_func
-        gtk.TextView.__init__(self)
+        GObject.GObject.__init__(self)
         #self.set_has_window(False)
-        self.cal = gtk.Calendar()
+        self.cal = Gtk.Calendar()
         #self.cal.show()
         self.cal.select_month(self.datetime.month - 1, self.datetime.year)
         self.cal.select_day(self.datetime.day)
-        self.w = gtk.Window(gtk.WINDOW_POPUP)
+        self.w = Gtk.Window(Gtk.WindowType.POPUP)
         self.set_editable(True)
         self.w.add(self.cal)
         #self.w.connect("delete_event", self.delete_event)
@@ -56,7 +56,7 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
         child.show_all()
 
         popup_width, popup_height = popup.size_request()
-        x, y = gtk.gdk.Window.get_origin(widget.window)
+        x, y = Gdk.Window.get_origin(widget.window)
 
         # path, col, x1, y1 = widget.get_path_at_pos(event.x, event.y)
         # ca = widget.get_cell_area(path, col)
@@ -67,15 +67,15 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
         # border case: the cell is too close to the border to allow the window
         # I don't want the mouse to be over the popup since an undesired click
         # would change the date...
-        if Y + popup_height > gtk.gdk.screen_height():
+        if Y + popup_height > Gdk.Screen.height():
             Y = y + ca.y + ca.height - popup_height
-        if X + popup_width > gtk.gdk.screen_width():
-            X = gtk.gdk.screen_width() - popup_width
+        if X + popup_width > Gdk.Screen.width():
+            X = Gdk.Screen.width() - popup_width
 
         popup.move(X, Y)
 
     def keypress_event(self, w, event):
-        accelname = gtk.accelerator_name(event.keyval, event.state)
+        accelname = Gtk.accelerator_name(event.keyval, event.get_state())
         if accelname == 'Delete':
             self.date = None
             self.emit('editing-done')
@@ -130,22 +130,22 @@ class CellEditableCalendar(gtk.TextView, gtk.CellEditable):
         return datetime(*tuple(calendar_tuple))
 
 
-gobject.type_register(CellEditableCalendar)
+GObject.type_register(CellEditableCalendar)
 
-class CellRendererDate(gtk.GenericCellRenderer):
+class CellRendererDate(Gtk.GenericCellRenderer):
     date = None
 ##     editable = None
 
     __gproperties__ = {
-        'date': (gobject.TYPE_PYOBJECT,
+        'date': (GObject.TYPE_PYOBJECT,
                  'date of cell',
                  'date object contained in cell',
-                 gobject.PARAM_READWRITE)
+                 GObject.PARAM_READWRITE)
     }
 
     __gsignals__ = {
-        'date-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,
-                         (gobject.TYPE_STRING, gobject.TYPE_PYOBJECT)
+        'date-changed': (GObject.SignalFlags.RUN_FIRST, None,
+                         (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)
                          )
     }
 
@@ -155,11 +155,11 @@ class CellRendererDate(gtk.GenericCellRenderer):
         self.master = master
         self.field_name = field_name
 
-        return gtk.CellRenderer.__gobject_init__(self, *args, **kwargs)
+        return Gtk.CellRenderer.__gobject_init__(self, *args, **kwargs)
 
     def do_pango_layout(self, widget):
         pc = widget.get_pango_context()
-        pl = pango.Layout(pc)
+        pl = Pango.Layout(pc)
         pl.set_text(self.date_formatter(self.date))
         return pl
 
@@ -229,7 +229,7 @@ class CellRendererDate(gtk.GenericCellRenderer):
         x_offset, y_offset, width, height = self.do_get_size(widget, cell_area)
         pl = self.do_pango_layout(widget)
         widget.get_style().paint_layout(window,
-                                        gtk.STATE_NORMAL,
+                                        Gtk.StateType.NORMAL,
                                         True,
                                         cell_area,
                                         widget,
@@ -241,8 +241,8 @@ class CellRendererDate(gtk.GenericCellRenderer):
     def do_set_property(self, gprop, value):
         setattr(self, gprop.name, value)
 
-if gobject.pygtk_version < (2, 8):
-    gobject.type_register(CellRendererDate)
+if GObject.pygtk_version < (2, 8):
+    GObject.type_register(CellRendererDate)
 
 
 class CellRendererDatetime(CellRendererDate):
@@ -250,15 +250,15 @@ class CellRendererDatetime(CellRendererDate):
 ##     editable = None
 
     __gproperties__ = {
-        'datetime': (gobject.TYPE_PYOBJECT,
+        'datetime': (GObject.TYPE_PYOBJECT,
                      'datetime of cell',
                      'datetime object contained in cell',
-                     gobject.PARAM_READWRITE)
+                     GObject.PARAM_READWRITE)
     }
 
     __gsignals__ = {
-        'datetime-changed': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,
-                             (gobject.TYPE_STRING, gobject.TYPE_PYOBJECT)
+        'datetime-changed': (GObject.SignalFlags.RUN_FIRST, None,
+                             (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)
                              )
     }
 
@@ -267,11 +267,11 @@ class CellRendererDatetime(CellRendererDate):
         self.master = master
         self.field_name = field_name
 
-        return gtk.CellRenderer.__gobject_init__(self, *args, **kwargs)
+        return Gtk.CellRenderer.__gobject_init__(self, *args, **kwargs)
 
     def do_pango_layout(self, widget):
         pc = widget.get_pango_context()
-        pl = pango.Layout(pc)
+        pl = Pango.Layout(pc)
         pl.set_text(self.date_formatter(self.datetime))
         return pl
 
@@ -304,11 +304,11 @@ class CellRendererDatetime(CellRendererDate):
 
 MAX_CHARS = 30
 
-class CellRendererVarchar(gtk.CellRendererText):
+class CellRendererVarchar(Gtk.CellRendererText):
     fixed_width = True
 
     def __init__(self, lenght):
-        gtk.CellRendererText.__init__(self)
+        GObject.GObject.__init__(self)
         self.lenght = lenght
         self.fixed_width = True
         dbg.write("new varchar, lenght", lenght)
@@ -317,7 +317,7 @@ class CellRendererVarchar(gtk.CellRendererText):
         # We start from the standard dimension...
         ellipsize = self.get_property('ellipsize')
         self.set_property('ellipsize', False)
-        size_tuple = gtk.CellRendererText.do_get_size(self, widget, cell_area)
+        size_tuple = Gtk.CellRendererText.do_get_size(self, widget, cell_area)
         self.set_property('ellipsize', ellipsize)
 
         if not self.fixed_width:
@@ -331,8 +331,8 @@ class CellRendererVarchar(gtk.CellRendererText):
         effective_lenght = min(self.lenght, MAX_CHARS) or MAX_CHARS
         pango_width = metrics.get_approximate_char_width() * effective_lenght
 
-        # Pango uses its own internal measure unit. "pango.PIXELS" converts it.
-        width = pango.PIXELS(pango_width)
+        # Pango uses its own internal measure unit. "Pango.PIXELS" converts it.
+        width = Pango.PIXELS(pango_width)
 
         # ... then modify the width. FIXME: consider xpad.
         xpad = self.get_property('xpad')
@@ -342,4 +342,4 @@ class CellRendererVarchar(gtk.CellRendererText):
         return tuple(size)
 
 
-gobject.type_register(CellRendererVarchar)
+GObject.type_register(CellRendererVarchar)

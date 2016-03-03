@@ -57,7 +57,7 @@ add:
     *very* short script and I found myself spending more time deciding a
     proper name and place, this already makes these decisions for you!
 
-    There is no need to start ``gtk.main()`` since this is no longer the main
+    There is no need to start ``Gtk.main()`` since this is no longer the main
     program, sqledit will run it before this moment
 """
 
@@ -74,7 +74,7 @@ class Opts(object):
 
 ## Default program.py
 TEMPLATE_PROGRAM = """\
-import gtk
+from gi.repository import Gtk
 
 from sqlkit.widgets import SqlMask
 from sqlkit.db import proxy
@@ -87,7 +87,7 @@ models.Base.metadata.bind = URL
 db = proxy.DbProxy(bind=opts.URL, metadata=models.Base.metadata)
 
 
-# no need to run gtk.main()!!!
+# no need to run Gtk.main()!!!
 """
 ## Default layout.py
 TEMPLATE_LAYOUT = """\

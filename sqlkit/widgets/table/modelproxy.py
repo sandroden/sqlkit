@@ -62,24 +62,24 @@ a modelproxy emits signals:
 import re
 from decimal import Decimal
 
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import GObject
 
-class ModelProxy(gobject.GObject):
+class ModelProxy(GObject.GObject):
 
     """
     """
 
     __gsignals__ = {
-        'model-sorted': (gobject.SIGNAL_RUN_FIRST,
-                         gobject.TYPE_NONE,
-                         (gobject.TYPE_PYOBJECT,)),
-        'model-pre-sort': (gobject.SIGNAL_RUN_FIRST,
-                           gobject.TYPE_NONE,
-                           (gobject.TYPE_PYOBJECT,)),
-        'model-changed': (gobject.SIGNAL_RUN_FIRST,
-                          gobject.TYPE_NONE,
-                          (gobject.TYPE_PYOBJECT,)),
+        'model-sorted': (GObject.SignalFlags.RUN_FIRST,
+                         None,
+                         (GObject.TYPE_PYOBJECT,)),
+        'model-pre-sort': (GObject.SignalFlags.RUN_FIRST,
+                           None,
+                           (GObject.TYPE_PYOBJECT,)),
+        'model-changed': (GObject.SignalFlags.RUN_FIRST,
+                          None,
+                          (GObject.TYPE_PYOBJECT,)),
     }
 
     def __init__(self, master, tree_field_name=None, treeview=None, order_store=None):
@@ -95,7 +95,7 @@ class ModelProxy(gobject.GObject):
         """
         self.__gobject_init__()
         self.master = master
-        self.modelstore = gtk.ListStore(object)
+        self.modelstore = Gtk.ListStore(object)
         self._tree_field_name = tree_field_name
         self.order_store = None
         self._order_list = None
@@ -141,7 +141,7 @@ class ModelProxy(gobject.GObject):
             self.set_listmodel()
 
     def is_tree(self):
-        return isinstance(self.modelstore, gtk.TreeStore)
+        return isinstance(self.modelstore, Gtk.TreeStore)
 
     def set_treemodel(self, tree_field_name, tree_order=None):
         """
@@ -153,8 +153,8 @@ class ModelProxy(gobject.GObject):
         :param tree_field_name: the field_name of the field that will be used to group records
         :param tree_order_field: the field_name where each change in order must be saved
         """
-        if isinstance(self.modelstore, gtk.ListStore):
-            self.modelstore = gtk.TreeStore(*[self.modelstore.get_column_type(i)
+        if isinstance(self.modelstore, Gtk.ListStore):
+            self.modelstore = Gtk.TreeStore(*[self.modelstore.get_column_type(i)
                                               for i in range(self.modelstore.get_n_columns())])
             self._order_id = self.modelstore.connect_after('row-deleted', self.persist_rows_order)
 
@@ -179,8 +179,8 @@ class ModelProxy(gobject.GObject):
         :param tree_field_name: the field_name of the field that will be used to group records
         :param tree_order_field: the field_name where each change in order must be saved
         """
-        if isinstance(self.modelstore, gtk.TreeStore):
-            self.modelstore = gtk.ListStore(*[self.modelstore.get_column_type(i)
+        if isinstance(self.modelstore, Gtk.TreeStore):
+            self.modelstore = Gtk.ListStore(*[self.modelstore.get_column_type(i)
                                               for i in range(self.modelstore.get_n_columns())])
             self.real_model = self.modelstore
             #self._order_id = self.modelstore.connect('row-inserted', self.rows_reordered_cb)
@@ -287,7 +287,7 @@ class ModelProxy(gobject.GObject):
         up to you to refine it for your needs.
         """
         if self.order_store:
-            gobject.idle_add(self.modelstore.foreach, self.reordered_foreach_func)
+            GObject.idle_add(self.modelstore.foreach, self.reordered_foreach_func)
             #self.modelstore.foreach(self.reordered_foreach_func)
 
     def comp_func(self, obj1, obj2):
@@ -365,7 +365,7 @@ class ModelProxy(gobject.GObject):
             self._order_list = None
             return
 
-        if isinstance(self.modelstore, gtk.TreeStore):
+        if isinstance(self.modelstore, Gtk.TreeStore):
             return
         self._order_list = self._set_order_list(order_list)
         self._sort_model()

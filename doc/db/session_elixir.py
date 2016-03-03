@@ -20,7 +20,7 @@ import sqlkit
 from sqlkit.db import proxy
 from sqlkit import completion
 #from sqlkit.completion import set_description_field
-#import gtk
+#from gi.repository import Gtk
 
 elixir.metadata.bind = "sqlite:///movies.sqlite"
 #metadata = elixir.metadata
@@ -141,4 +141,4 @@ completion.set_description_fields('director', 'last_name', add='first_name',
 #q = session.query(Movie)
 #r2 = q.filter_by(director_id=1).all()
 
-#gtk.main()
+#Gtk.main()

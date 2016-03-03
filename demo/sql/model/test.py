@@ -10,7 +10,7 @@ but = 'set_fkey_descr|(lookup|get)_value|[el]ne_cb|match_func' + \
 dbg.trace_function(exclude=but)
 
 from sqlkit.widgets import *
-import gtk
+from gi.repository import Gtk
 import movies
 
 
@@ -28,4 +28,4 @@ t = SqlTable(table=table, dbproxy=movies.db,
 #t.reload()
 
 
-gtk.main()
+Gtk.main()

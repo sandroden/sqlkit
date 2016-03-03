@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import time
 #import sqlkit 
 #from sqlkit.db import proxy
-#import gtk
+#from gi.repository import Gtk
 #db = proxy.DbProxy(engine="sqlite:///movies.sqlite")
 
 

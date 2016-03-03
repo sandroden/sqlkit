@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from sqlkit.widgets import *
-import gtk
+from gi.repository import Gtk
 import movies
 
 
@@ -17,4 +17,4 @@ t = SqlMask(Class=movies.Director, dbproxy=movies.db,
 t.reload()
 
 
-gtk.main()
+Gtk.main()

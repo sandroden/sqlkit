@@ -30,7 +30,7 @@ Public API
 import re
 from copy import copy
 
-import gtk
+from gi.repository import Gtk
 from gobject import markup_escape_text
 
 from sqlalchemy import text, select, Table
@@ -112,7 +112,7 @@ class SimpleCompletion(object):
         A completion must be 'requested' (is only issued on demand), unless
         autocompletion is set to n (chars inputted after which it starts). Normal
         bindings are F1 Shift_Enter, Control_Enter or right-click and will 
-        fill the gtk.EntryCompletion associated to the entry with values
+        fill the Gtk.EntryCompletion associated to the entry with values
         accordingly.
 
         Bindings are set in SqlText inside text_editing_started_cb
@@ -221,13 +221,13 @@ class SimpleCompletion(object):
         Prepare an EntryCompletion suitable for... sqlcompletion
         """
 
-        completion = gtk.EntryCompletion()
+        completion = Gtk.EntryCompletion()
         completion.set_property('popup-set-width', False)
         completion.set_property('minimum-key-length', 0)
 #        completion.set_property('popup-single-match', False)   ???
         completion.connect('match-selected', self.match_selected_cb, self.field_name)
-        renderer = gtk.CellRendererText()
-        completion.pack_start(renderer)
+        renderer = Gtk.CellRendererText()
+        completion.pack_start(renderer, True, True, 0)
 
         completion.add_attribute(renderer, 'markup', self.MARKUP_COL)
 
@@ -242,7 +242,7 @@ class SimpleCompletion(object):
         return completion
 
     def prepare_model(self):
-        return gtk.ListStore(str, object, bool)
+        return Gtk.ListStore(str, object, bool)
 
     def add_completion(self, entry):
         """ add a completionEntry to an Entry
@@ -635,12 +635,12 @@ class SimpleCompletion(object):
         except:
             pass
 
-        self.master.widgets['M=popup'] = gtk.Menu()
+        self.master.widgets['M=popup'] = Gtk.Menu()
         menu = self.master.widgets['M=popup']
         ## info on field
 
         item = StockMenuItem(label="info on %s" % field_name.replace('_', '__'), stock='gtk-info')
-        gtk.MenuItem(label="info on %s" % field_name.replace('_', '__'))
+        Gtk.MenuItem(label="info on %s" % field_name.replace('_', '__'))
         item.connect('activate', self.master.show_field_info, field_name)
         label = _("Show all info on this field, db type & Co.")
         item.set_tooltip_text(label)
@@ -648,7 +648,7 @@ class SimpleCompletion(object):
 
         ## possible values regexp
         # TIP: menu enty in menu on right click on down arro in fkey completion widget
-        item = gtk.MenuItem(label=_("Show possible values: regexp  - Ctrl-Enter"))
+        item = Gtk.MenuItem(label=_("Show possible values: regexp  - Ctrl-Enter"))
         if not isinstance(self.widget, CellWidget):
             item.connect('activate', self.show_possible_completion, 'regexp')
         # TIP: yellow tip to menu entry in down arrow in completion widget
@@ -657,7 +657,7 @@ class SimpleCompletion(object):
         menu.append(item)
 
         ## possible values starting
-        item = gtk.MenuItem(label=_("Show possible values, starting - Shift-Enter"))
+        item = Gtk.MenuItem(label=_("Show possible values, starting - Shift-Enter"))
         if not isinstance(self.widget, CellWidget):
             item.connect('activate', self.show_possible_completion, 'start')
         label = _("Show all values in the database starting with your string")
@@ -691,25 +691,25 @@ class SimpleCompletion(object):
         Set in miniwidgets or in text_editing_started_cb
         A callback connected with connect_after should set when to after
         """
-        if isinstance(wdg, gtk.TreeView):
+        if isinstance(wdg, Gtk.TreeView):
             pre = 'tree'
         else:
             #self.length_control(wdg, data)
             pre = 'entry'
 
-        ksym = gtk.gdk.keyval_name(event.keyval)
+        ksym = Gdk.keyval_name(event.keyval)
 
         mods = ['key_' + pre]
         ## mod2 gets in the way when you press the NumLock: I don't want
         ## to depend on that, as I'm not usng it!!!
-        for prefix, mask in [('ctrl', gtk.gdk.CONTROL_MASK),
-                             ('shift', gtk.gdk.SHIFT_MASK),
-                             ('alt', gtk.gdk.MOD1_MASK),
-                             #('mod2', gtk.gdk.MOD2_MASK),
-                             ('mod3', gtk.gdk.MOD3_MASK),
-                             ('mod4', gtk.gdk.MOD4_MASK),
-                             ('mod5', gtk.gdk.MOD5_MASK), ]:
-            if event.state & mask:
+        for prefix, mask in [('ctrl', Gdk.ModifierType.CONTROL_MASK),
+                             ('shift', Gdk.ModifierType.SHIFT_MASK),
+                             ('alt', Gdk.ModifierType.MOD1_MASK),
+                             #('mod2', Gdk.ModifierType.MOD2_MASK),
+                             ('mod3', Gdk.ModifierType.MOD3_MASK),
+                             ('mod4', Gdk.ModifierType.MOD4_MASK),
+                             ('mod5', Gdk.ModifierType.MOD5_MASK), ]:
+            if event.get_state() & mask:
                 mods.append(prefix)
 
         ksym = '_'.join(mods + [ksym])
@@ -939,7 +939,7 @@ class FkeyCompletion(SimpleCompletion):
 
     def prepare_model(self):
         ## last col is for markup
-        return gtk.ListStore(object, str, str, object, bool, str)
+        return Gtk.ListStore(object, str, str, object, bool, str)
 
     def compose_select_statement(self, query, oper, value):
 
@@ -1081,7 +1081,7 @@ class EnumCompletion(SimpleCompletion):
 
     def prepare_model(self):
         ## last col is for markup
-        return gtk.ListStore(object, str, )
+        return Gtk.ListStore(object, str, )
 
     def match_selected_cb(self, wdg, model, iter, field_name):
         """

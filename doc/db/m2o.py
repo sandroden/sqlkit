@@ -1,7 +1,7 @@
 #!/usr/bin/python 
 
 import sys
-import gtk
+from gi.repository import Gtk
 
 sys.path.insert(0, '../..')
 import dbg
@@ -54,4 +54,4 @@ tm = sqlkit.SqlMask(Director.mapper, metadata=__metadata__, session=elixir.sessi
 t = tm.vfields['movies'].widget.table
 
 
-gtk.main()
+Gtk.main()

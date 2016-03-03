@@ -17,8 +17,8 @@ import re
 import datetime
 import decimal
 
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import GObject
 
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.orm.exc import ObjectDeletedError
@@ -27,8 +27,8 @@ import sqlkit
 from sqlkit import debug as dbg, exc, _, layout, fields
 from sqlkit.widgets.common import completion, sqlwidget
 
-FK_COLOR = gtk.gdk.color_parse('navyblue')
-LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
+FK_COLOR = Gdk.color_parse('navyblue')
+LBL_HOOVER_STYLE = Gdk.color_parse('red')
 
 class SqlMask(sqlwidget.SqlWidget):
 
@@ -46,10 +46,10 @@ class SqlMask(sqlwidget.SqlWidget):
     current = None
     current_mode = None
     __gsignals__ = {
-        'pre-display': (gobject.SIGNAL_RUN_LAST,
-                        gobject.TYPE_BOOLEAN,
+        'pre-display': (GObject.SignalFlags.RUN_LAST,
+                        GObject.TYPE_BOOLEAN,
                         #
-                        (gobject.TYPE_PYOBJECT,),
+                        (GObject.TYPE_PYOBJECT,),
                         ),
     }
 
@@ -61,7 +61,7 @@ class SqlMask(sqlwidget.SqlWidget):
 
         sqlwidget.SqlWidget.__init__(self, *args, **kw)
         ## idle so that possible defaults get a chanche to be effective
-        gobject.idle_add(self.record_new_idle)
+        GObject.idle_add(self.record_new_idle)
         self.run_hook('on_init')
 
 ###### Filters/constraints
@@ -88,7 +88,7 @@ class SqlMask(sqlwidget.SqlWidget):
             if not self.actiongroup_browse.get_sensitive():
                 return
 
-            if event.direction == gtk.gdk.SCROLL_UP:
+            if event.direction == Gdk.ScrollDirection.UP:
                 return self.record_display(incr=-1)
             else:
                 return self.record_display(incr=1)
@@ -101,11 +101,11 @@ class SqlMask(sqlwidget.SqlWidget):
         """
 
         def ene_cb(eb, ev):
-            eb.get_child().set_state(gtk.STATE_PRELIGHT)
+            eb.get_child().set_state(Gtk.StateType.PRELIGHT)
             return True
 
         def lne_cb(eb, ev):
-            eb.get_child().set_state(gtk.STATE_NORMAL)
+            eb.get_child().set_state(Gtk.StateType.NORMAL)
             return True
 
         for field_name in self.mapper_info.fields.keys():
@@ -115,12 +115,12 @@ class SqlMask(sqlwidget.SqlWidget):
 
                 ev_wdg.connect('enter-notify-event', ene_cb)
                 ev_wdg.connect('leave-notify-event', lne_cb)
-                lbl.modify_fg(gtk.STATE_PRELIGHT, LBL_HOOVER_STYLE)
+                lbl.modify_fg(Gtk.StateType.PRELIGHT, LBL_HOOVER_STYLE)
 
                 ## label FK_COLOR to tell it's a foreign key
                 if self.mapper_info.fields[field_name]['fkey']:
                     #dbg.write("FK", field_name)
-                    self.labels[field_name].modify_fg(gtk.STATE_NORMAL, FK_COLOR)
+                    self.labels[field_name].modify_fg(Gtk.StateType.NORMAL, FK_COLOR)
                 else:
                     #dbg.write("NO", field_name)
                     pass
@@ -256,17 +256,17 @@ class SqlMask(sqlwidget.SqlWidget):
         sqlwidget.SqlWidget.prepare_actions(self)
 
         self.actiongroup_insert.add_actions([
-            ('New', gtk.STOCK_NEW,   None, '', _('Add new record'), self.record_new_cb),
-            ('Save-as', gtk.STOCK_SAVE_AS, None, None, None, self.record_save_new_cb),
+            ('New', Gtk.STOCK_NEW,   None, '', _('Add new record'), self.record_new_cb),
+            ('Save-as', Gtk.STOCK_SAVE_AS, None, None, None, self.record_save_new_cb),
         ])
         self.actiongroup_select.add_actions([
-            ('Undo', gtk.STOCK_UNDO, None, None, _('Discard changes'), self.record_undo_cb),
+            ('Undo', Gtk.STOCK_UNDO, None, None, _('Discard changes'), self.record_undo_cb),
             # TIP Modify menu entry in the mask to reread a single record from database
-            ('RefreshRecord', gtk.STOCK_REFRESH, _('Refresh this record'), None,
+            ('RefreshRecord', Gtk.STOCK_REFRESH, _('Refresh this record'), None,
              _('Reread this record from db'), self.record_refresh_cb),
         ])
         self.actiongroup_delete.add_actions([
-            ('Delete', gtk.STOCK_DELETE, None, '', _('Delete this record'), self.record_delete),
+            ('Delete', Gtk.STOCK_DELETE, None, '', _('Delete this record'), self.record_delete),
         ])
 
     def prepare_uimanager(self):
@@ -462,7 +462,7 @@ class SqlMask(sqlwidget.SqlWidget):
         new_obj:   the record is new. It forces mask2obj to skip check and save all fields
         """
         focus_widget = self.get_toplevel().get_focus()
-        if focus_widget and isinstance(focus_widget, gtk.Entry):
+        if focus_widget and isinstance(focus_widget, Gtk.Entry):
             focus_widget.activate()
         self.get_toplevel().set_focus(None)
 
@@ -479,10 +479,10 @@ class SqlMask(sqlwidget.SqlWidget):
         if ask:
             response = self.save_unsaved(skip_check=True, proceed=False)
 
-            if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
+            if response in (Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
                 raise exc.CancelledAction
 
-            if response == gtk.RESPONSE_NO:
+            if response == Gtk.ResponseType.NO:
                 return
 
         obj = self.record_mask2obj(self.current, force=new_obj)
@@ -534,13 +534,13 @@ class SqlMask(sqlwidget.SqlWidget):
                   "Read the docs for more informations"
             response = self.dialog(type='ok-cancel', text=_(msg) % o2m_list,
                                    icon='gtk-dialog-warning')
-            if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
+            if response in (Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
                 return
         elif ask:
             msg = _("Do you want to copy all data to a new record?")
             response = self.dialog(type='ok-cancel', text=_(msg) % o2m_list,
                                    icon='gtk-dialog-question')
-            if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
+            if response in (Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
                 return
 
         records_m2m = {}
@@ -587,7 +587,7 @@ class SqlMask(sqlwidget.SqlWidget):
         if interactive:
             text = _("Delete this record?\n(%s)") % self.current
             response = self.dialog(type='ok-cancel', text=text)
-            if response != gtk.RESPONSE_OK:
+            if response != Gtk.ResponseType.OK:
                 return
         obj = self.records[self.current_idx]
         if obj in self.session.new:
@@ -631,7 +631,7 @@ class SqlMask(sqlwidget.SqlWidget):
             skip_new = self.current
 
         response = self.save_unsaved(skip_check=changed, skip_new=skip_new)
-        if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
+        if response in (Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
             return
 
         self.current_idx = 0
@@ -682,7 +682,7 @@ class SqlMask(sqlwidget.SqlWidget):
                 self.sb(_('Already first record') + msg_info)
             return None
 
-        gobject.timeout_add(delay_message * 1000, self.sb, msg_info)
+        GObject.timeout_add(delay_message * 1000, self.sb, msg_info)
 
         self.emit('pre-display', obj)
 

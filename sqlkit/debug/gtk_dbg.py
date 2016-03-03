@@ -1,6 +1,6 @@
-import gtk
-import gobject
-import pango
+from gi.repository import Gtk
+from gi.repository import GObject
+from gi.repository import Pango
 from sqlkit.layout import layout
 import debug as dbg
 import re
@@ -59,7 +59,7 @@ class wshow(object):
 
     def get_class_str(self, obj):
         c = str(obj.__class__)
-        m = re.search('gtk.([A-Z][A-Za-z]+)', c)
+        m = re.search('Gtk.([A-Z][A-Za-z]+)', c)
         if m:
             return m.group(1)
         else:
@@ -81,7 +81,7 @@ class wshow(object):
         pix_name = "/usr/share/gazpacho/resources/base/%s.png" % (name.lower())
         if not os.path.exists(pix_name):
             return
-        pixbuf = gtk.gdk.pixbuf_new_from_file(pix_name)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file(pix_name)
         return pixbuf
 
     def scan(self, widget):
@@ -95,7 +95,7 @@ class wshow(object):
         try:
             ## I want first higher widget in layout
             children = widget.get_children()
-            if isinstance(widget, gtk.Table):
+            if isinstance(widget, Gtk.Table):
                 children = reversed(widget.get_children())
         except:
             pass
@@ -141,7 +141,7 @@ class show_widgets(object):
 
         self.notebook = self.w['N.external']
         table = self.notebook.get_parent()
-        table.child_set_property(self.notebook, 'y-options', gtk.FILL | gtk.EXPAND)
+        table.child_set_property(self.notebook, 'y-options', Gtk.AttachOptions.FILL | Gtk.AttachOptions.EXPAND)
 
         self.page_number = 1
 
@@ -149,46 +149,46 @@ class show_widgets(object):
                         lambda l: self.w['Window'].destroy()))
 
         # key accelerators
-        self.accel_group = gtk.AccelGroup()
+        self.accel_group = Gtk.AccelGroup()
         self.accel_group.connect_group(ord('q'),
-                                       gtk.gdk.CONTROL_MASK,
-                                       gtk.ACCEL_LOCKED,
+                                       Gdk.ModifierType.CONTROL_MASK,
+                                       Gtk.AccelFlags.LOCKED,
                                        self.delete)
         self.w['Window'].add_accel_group(self.accel_group)
 
         # menu
         #self.l.menu('m=file', ('Toplevels', lambda f: self.delete()))
-        menu_item = gtk.MenuItem("Main Toplevels")
-        menu_item2 = gtk.MenuItem("Minor Windows")
+        menu_item = Gtk.MenuItem("Main Toplevels")
+        menu_item2 = Gtk.MenuItem("Minor Windows")
         # dbg.dshow(self.w)
         self.w['M=file'].append(menu_item)
         self.w['M=file'].append(menu_item2)
 
-        sub_menu = gtk.Menu()
-        sub_menu2 = gtk.Menu()
+        sub_menu = Gtk.Menu()
+        sub_menu2 = Gtk.Menu()
         menu_item.set_submenu(sub_menu)
         menu_item2.set_submenu(sub_menu2)
 
         subsub = {}
-        for window in gtk.window_list_toplevels():
+        for window in Gtk.window_list_toplevels():
             lbl = window.title
             if not lbl:
-                class_ = window.child.__class__.__name__
+                class_ = window.get_child().__class__.__name__
                 if not class_ in subsub:
                     ## creo il menu 'Label', 'Frame'...
-                    menu = gtk.Menu()
+                    menu = Gtk.Menu()
                     subsub[class_] = menu
                     ## creo l' item di ingresso nel menu "Minor Windows"
-                    Item = gtk.MenuItem(class_)
+                    Item = Gtk.MenuItem(class_)
                     sub_menu2.append(Item)
                     Item.set_submenu(menu)
 
-                lbl = "%s" % (window.child.name)
+                lbl = "%s" % (window.get_child().name)
 
-                m = gtk.MenuItem(lbl)
+                m = Gtk.MenuItem(lbl)
                 menu.append(m)
             else:
-                m = gtk.MenuItem(lbl)
+                m = Gtk.MenuItem(lbl)
                 sub_menu.append(m)
             m.connect('activate', self.add_tab_and_tree, window)
 
@@ -196,20 +196,20 @@ class show_widgets(object):
         return self.l, self.w
 
     def create_model(self, tv):
-        model = gtk.TreeStore(str, str, gtk.gdk.Pixbuf, gobject.TYPE_OBJECT, bool)
+        model = Gtk.TreeStore(str, str, GdkPixbuf.Pixbuf, GObject.TYPE_OBJECT, bool)
         tv.set_enable_search(True)
         tv.set_search_column(0)
         tv.set_model(model)
 
-#        tvc0 = gtk.TreeViewColumn('Show')
-        tvc1 = gtk.TreeViewColumn('Name')
-        tvc2 = gtk.TreeViewColumn('Class')
-        cell_bool = gtk.CellRendererToggle()
+#        tvc0 = Gtk.TreeViewColumn('Show')
+        tvc1 = Gtk.TreeViewColumn('Name')
+        tvc2 = Gtk.TreeViewColumn('Class')
+        cell_bool = Gtk.CellRendererToggle()
         cell_bool.set_property('activatable', True)
         cell_bool.connect('toggled', self.toggle_visibility, model)
-        cell_text1 = gtk.CellRendererText()
-        cell_text2 = gtk.CellRendererText()
-        cell_pix1 = gtk.CellRendererPixbuf()
+        cell_text1 = Gtk.CellRendererText()
+        cell_text2 = Gtk.CellRendererText()
+        cell_pix1 = Gtk.CellRendererPixbuf()
 
         tvc1.pack_start(cell_pix1, False)
         tvc1.pack_start(cell_text1, False)
@@ -248,15 +248,15 @@ class show_widgets(object):
 
     def add_new_book(self, widget, lbl):
         self.page_number += 1
-        tv = gtk.TreeView()
-        scrolled = gtk.ScrolledWindow()
+        tv = Gtk.TreeView()
+        scrolled = Gtk.ScrolledWindow()
         scrolled.add(tv)
 
         eventBox = self.create_custom_tab(lbl, scrolled)
         self.notebook.append_page(scrolled, eventBox)
 
         # Set the new page
-        pages = gtk.Notebook.get_n_pages(self.notebook)
+        pages = Gtk.Notebook.get_n_pages(self.notebook)
         self.notebook.set_current_page(pages - 1)
         self.notebook.show_all()
         return tv
@@ -264,16 +264,16 @@ class show_widgets(object):
     def create_custom_tab(self, text, child):
         #create a custom tab for notebook containing a
         #label and a button with STOCK_ICON
-        eventBox = gtk.EventBox()
-        tabBox = gtk.HBox(False, 2)
-        tabLabel = gtk.Label(text)
+        eventBox = Gtk.EventBox()
+        tabBox = Gtk.HBox(False, 2)
+        tabLabel = Gtk.Label(label=text)
 
-        tabButton = gtk.Button()
+        tabButton = Gtk.Button()
         tabButton.connect('clicked', self.remove_book, child)
 
         #Add a picture on a button
         self.add_icon_to_button(tabButton)
-        iconBox = gtk.HBox(False, 0)
+        iconBox = Gtk.HBox(False, 0)
 
         eventBox.show()
         tabButton.show()
@@ -289,14 +289,14 @@ class show_widgets(object):
         return eventBox
 
     def add_icon_to_button(self, button):
-        iconBox = gtk.HBox(False, 0)
-        image = gtk.Image()
-        image.set_from_stock(gtk.STOCK_CLOSE, gtk.ICON_SIZE_MENU)
-        gtk.Button.set_relief(button, gtk.RELIEF_NONE)
-        #gtk.Button.set_focus_on_click(button,False)
-        settings = gtk.Widget.get_settings(button)
-        (w, h) = gtk.icon_size_lookup_for_settings(settings, gtk.ICON_SIZE_MENU)
-        gtk.Widget.set_size_request(button, w + 4, h + 4)
+        iconBox = Gtk.HBox(False, 0)
+        image = Gtk.Image()
+        image.set_from_stock(Gtk.STOCK_CLOSE, Gtk.IconSize.MENU)
+        Gtk.Button.set_relief(button, Gtk.ReliefStyle.NONE)
+        #Gtk.Button.set_focus_on_click(button,False)
+        settings = Gtk.Widget.get_settings(button)
+        (w, h) = Gtk.icon_size_lookup_for_settings(settings, Gtk.IconSize.MENU)
+        Gtk.Widget.set_size_request(button, w + 4, h + 4)
         image.show()
         iconBox.pack_start(image, True, False, 0)
         button.add(iconBox)
@@ -331,21 +331,21 @@ class show_widgets(object):
         except:
             pass
 
-        self.w['M=popup'] = gtk.Menu()
+        self.w['M=popup'] = Gtk.Menu()
         menu = self.w['M=popup']
 
         ## info on properties
-        item = gtk.MenuItem(label="properties")
+        item = Gtk.MenuItem(label="properties")
         item.connect('activate', self.show_widget_properties, widget)
         menu.append(item)
 
         ## info on pack
-        item = gtk.MenuItem(label="packing")
+        item = Gtk.MenuItem(label="packing")
         item.connect('activate', self.show_widget_packing, widget)
         menu.append(item)
 
         ## info on properties
-        item = gtk.MenuItem(label="signal")
+        item = Gtk.MenuItem(label="signal")
         item.connect('activate', self.show_widget_signal, widget)
         menu.append(item)
 
@@ -353,7 +353,7 @@ class show_widgets(object):
         menu.popup(None, None, None, ev.button, ev.time)
 
     def show_widget_properties(self, menu, widget):
-        props = gobject.list_properties(widget)
+        props = GObject.list_properties(widget)
         cols = ['name', 'value', 'owner_type', 'value_type', 'nick']
         a = TreeInfoLayout(cols)
         cell = a.tvc[1].get_cell_renderers()[0]
@@ -443,7 +443,7 @@ class show_widgets(object):
     def show_widget_packing(self, menu, widget):
         parent = widget.get_parent()
         # This was the first version:
-#       if not gobject.type_is_a(parent, gtk.Container):
+#       if not GObject.type_is_a(parent, Gtk.Container):
         # I now think it's OK to assume that every "parent" widget is Container:
         if not parent:
             dialog, l = self.l.message(type='warning',
@@ -540,12 +540,12 @@ class show_widgets(object):
         different gtypes by adding "elif" tests.
         """
         if gtype == 'GtkAttachOptions':
-            dialog = gtk.Dialog(title=prop_name, flags=gtk.DIALOG_MODAL, buttons=('gtk-close', 4))
+            dialog = Gtk.Dialog(title=prop_name, flags=Gtk.DialogFlags.MODAL, buttons=('gtk-close', 4))
             dialog.set_size_request(200, -1)
             checkbuttons = [
-                gtk.CheckButton('Expand'), gtk.CheckButton('Shrink'), gtk.CheckButton('Fill')]
+                Gtk.CheckButton('Expand'), Gtk.CheckButton('Shrink'), Gtk.CheckButton('Fill')]
             for index in range(3):
-                dialog.vbox.pack_start(checkbuttons[index])
+                dialog.vbox.pack_start(checkbuttons[index], True, True, 0)
                 single_value = bool(int(current_value) & 2**index)
                 checkbuttons[index].set_active(single_value)
                 checkbuttons[index].show()
@@ -587,14 +587,14 @@ class TreeInfoLayout(object):
 
         scr_treeview = self.w['S=a']
         table = scr_treeview.get_parent()
-        table.child_set_property(scr_treeview, 'y-options', gtk.FILL | gtk.EXPAND)
+        table.child_set_property(scr_treeview, 'y-options', Gtk.AttachOptions.FILL | Gtk.AttachOptions.EXPAND)
 
         self.tv = self.w['TV=a']
         self.l.connect(('tb=gtk-quit', 'clicked',
                         lambda l: self.w['Window'].destroy()))
 
         if not model:
-            self.model = gtk.TreeStore(*[str for i in cols])
+            self.model = Gtk.TreeStore(*[str for i in cols])
         else:
             self.model = model
         self.tv.set_enable_search(True)
@@ -602,7 +602,7 @@ class TreeInfoLayout(object):
 
         self.tvc = {}
         for i, col in enumerate(cols):
-            self.tvc[i] = gtk.TreeViewColumn(col, gtk.CellRendererText(), text=i)
+            self.tvc[i] = Gtk.TreeViewColumn(col, Gtk.CellRendererText(), text=i)
             self.tvc[i].set_sort_column_id(i)
             self.tv.append_column(self.tvc[i])
 
@@ -687,7 +687,7 @@ class ShowClassInfo(object):
             "cell",
             "staticmethod"
         ]
-        self.model = gtk.TreeStore(str, str, str, object, str)
+        self.model = Gtk.TreeStore(str, str, str, object, str)
         self.treeLayout = TreeInfoLayout(cols, model=self.model)
         self.tv = self.treeLayout.tv
         #self.tv.set_property('fixed-height-mode', True)
@@ -704,7 +704,7 @@ class ShowClassInfo(object):
 
         type_col = self.tv.get_column(2)
         cell = type_col.get_cell_renderers()[0]
-        cell.set_property('style', pango.STYLE_ITALIC)
+        cell.set_property('style', Pango.Style.ITALIC)
         type_col.set_attributes(cell, markup=2)
 
         value_col = self.tv.get_column(1)
@@ -947,13 +947,13 @@ class ShowClassInfo(object):
         tag.set_property('pixels_above_lines', 0)
         tag.set_property('pixels_below_lines', 0)
         tag = buf.create_tag('keyword', foreground='mediumorchid',
-                             weight=pango.WEIGHT_BOLD)
+                             weight=Pango.Weight.BOLD)
         tag = buf.create_tag('string', foreground='royalblue4')
         tag = buf.create_tag('function', foreground='blue')
         tag = buf.create_tag('docstring', foreground='indianred')
         tag = buf.create_tag('class', foreground='#007F00')
         tag = buf.create_tag('comment', foreground='red',
-                             style=pango.STYLE_ITALIC)
+                             style=Pango.Style.ITALIC)
 
 
 class InputStream(object):
@@ -1020,7 +1020,7 @@ class ShowLogs(object):
             self.easytv.w['Window'], min_width=500, min_height=500)
         scr_window = self.easytv.w['S=a']
         table = scr_window.get_parent()
-        table.child_set_property(scr_window, 'y-options', gtk.EXPAND | gtk.FILL)
+        table.child_set_property(scr_window, 'y-options', Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.FILL)
         self.model.connect('row-inserted', self.get_there)
         self.conf()
         self.easytv.tv.connect('button-press-event', self.button_press_cb)
@@ -1184,13 +1184,13 @@ class ShowLogs(object):
         tag.set_property('pixels_above_lines', 0)
         tag.set_property('pixels_below_lines', 0)
         tag = buf.create_tag('keyword', foreground='mediumorchid',
-                             weight=pango.WEIGHT_BOLD)
+                             weight=Pango.Weight.BOLD)
         tag = buf.create_tag('string', foreground='royalblue4')
         tag = buf.create_tag('function', foreground='blue')
         tag = buf.create_tag('docstring', foreground='indianred')
         tag = buf.create_tag('class', foreground='#007F00')
         tag = buf.create_tag('comment', foreground='red',
-                             style=pango.STYLE_ITALIC)
+                             style=Pango.Style.ITALIC)
 
     def model_clear(self, butt):
         self.model.clear()
@@ -1344,7 +1344,7 @@ def get_widget_signals(item, result=None):
     """
 
     from inspect import isclass
-    import gobject
+    from gi.repository import GObject
 
     result_list = result or []
 
@@ -1355,14 +1355,14 @@ def get_widget_signals(item, result=None):
         for base in item.__class__.__bases__[1:]:
             get_widget_signals(base, result_list)
 
-    signals = list(gobject.signal_list_names(item))
+    signals = list(GObject.signal_list_names(item))
     signals.sort()
 
     for signal in signals:
         result_list += (class_name, signal)
 
     try:
-        item = gobject.type_parent(item)
+        item = GObject.type_parent(item)
         get_widget_signals(item, result=result_list)
     except RuntimeError:
         pass
@@ -1375,19 +1375,19 @@ def get_widget_signals(item, result=None, indent=0):
     """
 
     from inspect import isclass
-    import gobject
+    from gi.repository import GObject
 
     DONT_GO = (
         object,
         type,
-        gobject.GType,
-        gobject.GInterface,
-        gobject.GObjectMeta,
+        GObject.GType,
+        GObject.GInterface,
+        GObject.GObjectMeta,
     )
     result_list = result or []
 
-#    if item in DONT_GO or type(item) is gobject.GType:
-    if type(item) is gobject.GType:  # signals_list_names segfaults on gobject.GInterface
+#    if item in DONT_GO or type(item) is GObject.GType:
+    if type(item) is GObject.GType:  # signals_list_names segfaults on GObject.GInterface
         return result
 
     offset = " " * indent
@@ -1397,7 +1397,7 @@ def get_widget_signals(item, result=None, indent=0):
     else:
         class_name = item.__class__.__name__
 
-    signals = list(gobject.signal_list_names(item))
+    signals = list(GObject.signal_list_names(item))
     signals.sort()
 
     for signal in signals:
@@ -1409,7 +1409,7 @@ def get_widget_signals(item, result=None, indent=0):
                 base, result=result_list, indent=indent+4)
 
     try:
-        item = gobject.type_parent(item)
+        item = GObject.type_parent(item)
         return get_widget_signals(item, result=result_list, indent=indent + 4)
     except RuntimeError:
         return result_list

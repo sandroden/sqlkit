@@ -47,9 +47,9 @@ import datetime
 import user
 import locale
 
-import pygtk
-pygtk.require("2.0")
-import gtk
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
 
 if not 'LANG' in os.environ:
     my_locale, my_code = locale.getdefaultlocale()
@@ -117,17 +117,17 @@ class ConnectionDialog(object):
 
         BUTTS = (
             (_('Run Demo'), RESPONSE_DEMO),
-            (gtk.STOCK_OK, gtk.RESPONSE_OK),
-            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL),
+            (Gtk.STOCK_OK, Gtk.ResponseType.OK),
+            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL),
         )
 
         for icon, response in BUTTS:
             self.wdict[response] = self.dialog.add_button(icon, response)
 
-        self.wdict[gtk.RESPONSE_OK].props.sensitive = False
+        self.wdict[Gtk.ResponseType.OK].props.sensitive = False
         self.wdict[RESPONSE_DEMO].props.sensitive = False
 
-        self.dialog.set_default_response(gtk.RESPONSE_OK)
+        self.dialog.set_default_response(Gtk.ResponseType.OK)
 
         self.l.widgets['l=general'].set_markup(self.GENERAL_MSG)
         self.l.widgets['l=general'].props.selectable = True
@@ -170,7 +170,7 @@ class ConnectionDialog(object):
         try:
             URL = url.make_url(url_text)
         except Exception, e:
-            self.wdict[gtk.RESPONSE_OK].props.sensitive = False
+            self.wdict[Gtk.ResponseType.OK].props.sensitive = False
             return
         self.set_error_msg("")
         if URL.drivername and URL.database and (URL.host or (
@@ -181,7 +181,7 @@ class ConnectionDialog(object):
             if auto:
                 self.activate_cb(entry)
         else:
-            self.wdict[gtk.RESPONSE_OK].props.sensitive = False
+            self.wdict[Gtk.ResponseType.OK].props.sensitive = False
             opts.url = None
 
     def activate_cb(self, entry):
@@ -190,10 +190,10 @@ class ConnectionDialog(object):
         try:
             open_db(exc=True)
             self.set_error_msg(_("Connected to %s") % url_text, 'sea green')
-            self.wdict[gtk.RESPONSE_OK].props.sensitive = True
+            self.wdict[Gtk.ResponseType.OK].props.sensitive = True
         except Exception, e:
             self.set_error_msg(str(e), 'red')
-            self.wdict[gtk.RESPONSE_OK].props.sensitive = False
+            self.wdict[Gtk.ResponseType.OK].props.sensitive = False
 
         return
 
@@ -204,7 +204,7 @@ class ConnectionDialog(object):
     def run(self):
         global opts
         response = self.dialog.run()
-        if response in (gtk.RESPONSE_CANCEL, gtk.RESPONSE_DELETE_EVENT):
+        if response in (Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
             sys.exit()
         elif response == RESPONSE_DEMO:
             start_demo()
@@ -403,7 +403,7 @@ def main():
 
     if opts.ipython:
         try:
-            gtk.set_interactive(True)
+            Gtk.set_interactive(True)
         except AttributeError:
             print "This version of gtk does'n not have 'set_interactive', sorry."
             sys.exit(1)
@@ -416,7 +416,7 @@ def main():
             print "Interactive demo needs ipython. Quitting."
     else:
         try:
-            gtk.main()
+            Gtk.main()
         except KeyboardInterrupt:
             pass
 

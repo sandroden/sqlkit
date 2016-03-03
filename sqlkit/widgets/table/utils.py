@@ -1,8 +1,8 @@
 import sys
 
-import gobject
-import gtk
-import pango
+from gi.repository import GObject
+from gi.repository import Gtk
+from gi.repository import Pango
 
 from sqlkit import debug as dbg
 from cell_renderers import CellRendererVarchar
@@ -74,8 +74,8 @@ def set_height_request(treeview, rows=None):
     column = treeview.get_column(0)
     cell_height = column.cell_get_size()[4]
     if not cell_height:
-        while gtk.events_pending():
-            gtk.main_iteration()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
         cell_height = column.cell_get_size()[4]
 
     spacing = treeview.style_get_property('vertical-separator')
@@ -94,7 +94,7 @@ def set_height_request(treeview, rows=None):
     treeview.set_property('height-request', needed_height)
 
     toplevel = treeview.get_toplevel()
-    if not isinstance(toplevel, gtk.Window):
+    if not isinstance(toplevel, Gtk.Window):
         return
     visible_rect = treeview.get_visible_rect()
     missing_height = needed_height - visible_rect.height
@@ -107,7 +107,7 @@ def get_string_exact_width(context, string):
     (render and) Return width of a string in given context.
     """
     description = context.get_font_description()
-    layout = pango.Layout(context)
+    layout = Pango.Layout(context)
     layout.set_text(string)
     width = layout.get_pixel_extents()[1][2]
     return width
@@ -127,9 +127,9 @@ def get_string_width(context, string=None, chars_num=80):
         language = None
         description = context.get_font_description()
         metrics = context.get_metrics(description)
-        # Pango uses its own internal measure unit. "pango.PIXELS" converts it.
+        # Pango uses its own internal measure unit. "Pango.PIXELS" converts it.
         pango_width = metrics.get_approximate_char_width()*chars_num
-        width = pango.PIXELS(pango_width)
+        width = Pango.PIXELS(pango_width)
         return width
 
 def get_screen_width(effective=True):
@@ -137,8 +137,8 @@ def get_screen_width(effective=True):
     Ugly hack. Couldn't find anything better. And in fact it's not strange,
     since GNOME HIGs apparently don't like this.
     """
-    root = gtk.gdk.get_default_root_window()
-    prop = gtk.gdk.atom_intern('_NET_WORKAREA')
+    root = Gdk.get_default_root_window()
+    prop = Gdk.atom_intern('_NET_WORKAREA')
     fields = root.property_get(prop)
     if sys.platform.startswith('win') or not fields:
         # Notice Windows will fallback here and assume there are no lateral panels.
@@ -176,16 +176,16 @@ def set_optimal_width(treeview, max_pixels=None):
     while widget:
         # The ScrolledWindows stop propagation of queue_redraws, unless they
         # have the scrollbars disabled, so here we disable them...
-        if gobject.type_is_a(widget, gtk.ScrolledWindow):
+        if GObject.type_is_a(widget, Gtk.ScrolledWindow):
             scrolledwindows.append(widget)
             scrolledwindows_policies.append(widget.get_policy())
-            widget.set_policy(gtk.POLICY_NEVER, gtk.POLICY_NEVER)
+            widget.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
             scrolledwindows_hscrollbars.append(widget.get_hscrollbar())
         widget = widget.get_parent()
 
     toplevel = treeview.get_toplevel()
 
-    if not isinstance(toplevel, gtk.Window):
+    if not isinstance(toplevel, Gtk.Window):
         return
 
     # ... then we can take the size...
@@ -196,7 +196,7 @@ def set_optimal_width(treeview, max_pixels=None):
     bars_width = 0
     for index in range(len(scrolledwindows)):
         # (not needed if the policy hides it)
-        if scrolledwindows_policies[index][0] == gtk.POLICY_ALWAYS:
+        if scrolledwindows_policies[index][0] == Gtk.PolicyType.ALWAYS:
             bars_width += scrolledwindows_hscrollbars[index].size_request()[0]
         scrolledwindows[index].set_policy(*scrolledwindows_policies[index])
 #    print "width:", new_width
@@ -268,7 +268,7 @@ def set_all_nonfilling(wid, level):
             except:
                 pass
             try:
-                import gtk
+                from gi.repository import Gtk
                 parent.child_set_property(wid, 'y-options', None)
             except:
                 pass
@@ -292,11 +292,11 @@ def set_this_filling(wid):
     """
     while wid:
         newwid = wid.get_parent()
-        if gobject.type_is_a(wid, gtk.Alignment):
+        if GObject.type_is_a(wid, Gtk.Alignment):
             wid.set_property('yscale', 1)
             dbg.write("setting yscale:", wid)
-        if gobject.type_is_a(newwid, gtk.Table):
-            newwid.child_set_property(wid, 'y-options', gtk.FILL | gtk.EXPAND)
+        if GObject.type_is_a(newwid, Gtk.Table):
+            newwid.child_set_property(wid, 'y-options', Gtk.AttachOptions.FILL | Gtk.AttachOptions.EXPAND)
             dbg.write("setting y-options:", wid)
         wid = newwid
 

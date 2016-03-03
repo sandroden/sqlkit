@@ -1,8 +1,8 @@
-"""Bricks/gtk.Layout
+"""Bricks/Gtk.Layout
 
 
 """
-import gtk
+from gi.repository import Gtk
 
 lay = """
    LS=a
@@ -11,7 +11,7 @@ lay = """
 l = Layout(lay, opts="T")
 
 w = l.show()
-e = gtk.Entry()
+e = Gtk.Entry()
 
 def drag_begin_cb(*args):
     print 'BEGIN'

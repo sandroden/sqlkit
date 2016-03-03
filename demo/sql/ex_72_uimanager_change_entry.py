@@ -17,10 +17,10 @@ def test(item):
     print "Here I am!"
 
 t = SqlTable('movie',    dbproxy=db, order_by='title', )
-t.actiongroup_mag = gtk.ActionGroup('Demo')
+t.actiongroup_mag = Gtk.ActionGroup('Demo')
 t.actiongroup_mag.add_actions([
-    ('MaskView', gtk.STOCK_LEAVE_FULLSCREEN,  "I'm not the other one!", '<Control>m', None, test),
-    ('Export', gtk.STOCK_LEAVE_FULLSCREEN,  "I'm not the original Export!", None, None, test),
+    ('MaskView', Gtk.STOCK_LEAVE_FULLSCREEN,  "I'm not the other one!", '<Control>m', None, test),
+    ('Export', Gtk.STOCK_LEAVE_FULLSCREEN,  "I'm not the original Export!", None, None, test),
 ])
 # a change in the main UIManager
 t.ui_manager.insert_action_group(t.actiongroup_mag, 0)

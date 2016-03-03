@@ -42,11 +42,11 @@ import time
 import locale
 import datetime
 
-import pygtk
-pygtk.require('2.0')
-import gobject
-import gtk
-from gtk import gdk
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import GObject
+from gi.repository import Gtk
+from gi.repository import Gdk
 from babel import dates
 
 from sqlkit import _
@@ -63,7 +63,7 @@ class WrongDateFormat(Exception):
 # If @the_date is 0 then current time is used.
 #
  # Returns: a new #GnomeDateEdit widget.
-class DateEdit(gtk.HBox):
+class DateEdit(Gtk.HBox):
 
     """
     basic gtk widget to edit data
@@ -71,30 +71,30 @@ class DateEdit(gtk.HBox):
     __gtype_name__ = 'DateEdit'
 
     __gproperties__ = {
-        'date': (gobject.TYPE_PYOBJECT,                       # type
+        'date': (GObject.TYPE_PYOBJECT,                       # type
                  'Date',                                    # nick name
                  'The date currently selected',             # description
-                 gobject.PARAM_READWRITE),                  # flags
+                 GObject.PARAM_READWRITE),                  # flags
 
-        'initial-date': (gobject.TYPE_PYOBJECT,
+        'initial-date': (GObject.TYPE_PYOBJECT,
                          'Initial Date',
                          'The initial date',
-                         gobject.PARAM_READABLE),
+                         GObject.PARAM_READABLE),
 
-        'width-chars': (gobject.TYPE_PYOBJECT,
+        'width-chars': (GObject.TYPE_PYOBJECT,
                         'Width of the entry in chars',
                         'The width of the entry',
-                        gobject.PARAM_READWRITE),
+                        GObject.PARAM_READWRITE),
 
     }
 
     __gsignals__ = {
-        'date-changed': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+        'date-changed': (GObject.SignalFlags.RUN_LAST, None,
                          ()),
     }
 
     def __init__(self):
-        gtk.HBox.__init__(self)
+        GObject.GObject.__init__(self)
 
         # preset values
         self._initial_date = self._current_date = None
@@ -143,16 +143,16 @@ class DateEdit(gtk.HBox):
     def build_layout(self):
 
         self.set_spacing(6)
-        date_box = gtk.HBox()
+        date_box = Gtk.HBox()
         self.add(date_box)
         date_box.show()
 
         # the date entry
-        self._date_entry = gtk.Entry()
+        self._date_entry = Gtk.Entry()
         self._entry = self._date_entry
         self._date_entry.set_max_length(15)
         self._date_entry.set_width_chars(10)
-        self._align_entry = gtk.Alignment(0, 0)
+        self._align_entry = Gtk.Alignment.new(0, 0)
         #self.pack_start(self._date_entry, True, True, 0)
         date_box.add(self._align_entry)
         date_box.child_set_property(self._align_entry, 'expand', False)
@@ -161,45 +161,45 @@ class DateEdit(gtk.HBox):
         self._date_entry.show()
 
         ## default style
-        self._default_base = self._date_entry.get_style().base[gtk.STATE_NORMAL]
+        self._default_base = self._date_entry.get_style().base[Gtk.StateType.NORMAL]
 
         # the date button
-        self._date_button = gtk.Button()
-        #pixmap = gtk.gdk.pixbuf_new_from_file('cal32.png')
-        image = gtk.Image()
-        image.set_from_stock('sk-calendar', gtk.ICON_SIZE_MENU)
+        self._date_button = Gtk.Button()
+        #pixmap = GdkPixbuf.Pixbuf.new_from_file('cal32.png')
+        image = Gtk.Image()
+        image.set_from_stock('sk-calendar', Gtk.IconSize.MENU)
         self._date_button.set_image(image)
-        self._align_arrow = gtk.Alignment(0, 0, 0, 0)
+        self._align_arrow = Gtk.Alignment.new(0, 0, 0, 0)
         self._align_arrow.show()
         self._align_arrow.add(self._date_button)
 
         #self.pack_start(self._date_button, False, False, 0)
         date_box.add(self._align_arrow)
 #         # the down arrow
-#         arrow = gtk.Arrow(gtk.ARROW_DOWN, gtk.SHADOW_OUT)
+#         arrow = Gtk.Arrow(Gtk.ArrowType.DOWN, Gtk.ShadowType.OUT)
 #         self._date_button.add(arrow)
 #         arrow.show()
         # finally show the button
         self._date_button.show()
 
         # the calendar popup
-        self._cal_popup = gtk.Window(gtk.WINDOW_POPUP)
+        self._cal_popup = Gtk.Window(Gtk.WindowType.POPUP)
         self._cal_popup.set_title('popup for calendar')
-        self._cal_popup.set_events(self._cal_popup.get_events() | gdk.KEY_PRESS_MASK)
+        self._cal_popup.set_events(self._cal_popup.get_events() | Gdk.EventMask.KEY_PRESS_MASK)
         self._cal_popup.set_resizable(False)  # Todo: Needed?
         self._cal_popup.set_tooltip_text(_(
             'Press Esc to close or double click a date to select it'))
 
-        frame = gtk.Frame()
-        frame.set_shadow_type(gtk.SHADOW_OUT)
+        frame = Gtk.Frame()
+        frame.set_shadow_type(Gtk.ShadowType.OUT)
         self._cal_popup.add(frame)
         frame.show()
 
         # the calendar
-        self._calendar = gtk.Calendar()
-        self._calendar.display_options(gtk.CALENDAR_SHOW_DAY_NAMES
+        self._calendar = Gtk.Calendar()
+        self._calendar.display_options(Gtk.CALENDAR_SHOW_DAY_NAMES
                                        # some space around the widgets, and two boxes
-                                       | gtk.CALENDAR_SHOW_HEADING)
+                                       | Gtk.CALENDAR_SHOW_HEADING)
         frame.add(self._calendar)
 
         self._calendar.show()
@@ -210,31 +210,31 @@ class DateEdit(gtk.HBox):
         """
         colormap = entry.get_colormap()
         base_color = colormap.alloc_color(color)
-        entry.modify_base(gtk.STATE_NORMAL, base_color)
+        entry.modify_base(Gtk.StateType.NORMAL, base_color)
 
-        gobject.timeout_add(1000 * seconds, entry.modify_base,
-                            gtk.STATE_NORMAL, self._default_base)
+        GObject.timeout_add(1000 * seconds, entry.modify_base,
+                            Gtk.StateType.NORMAL, self._default_base)
 
     def modify_base(self, state, color):
         self._date_entry.modify_base(state, color)
         self._default_base = color
 
     def popup_grab_on_window(self, window, activate_time):
-        grab = gdk.pointer_grab(window, True, gdk.BUTTON_PRESS_MASK
-                                | gdk.BUTTON_RELEASE_MASK
-                                | gdk.POINTER_MOTION_MASK,
+        grab = Gdk.pointer_grab(window, True, Gdk.EventMask.BUTTON_PRESS_MASK
+                                | Gdk.EventMask.BUTTON_RELEASE_MASK
+                                | Gdk.EventMask.POINTER_MOTION_MASK,
                                 None, None, activate_time)
         if grab == 0:
-            if gdk.keyboard_grab(window, True, activate_time) == 0:
+            if Gdk.keyboard_grab(window, True, activate_time) == 0:
                 return True
             else:
-                gdk.pointer_ungrab(activate_time)
+                Gdk.pointer_ungrab(activate_time)
                 return False
         return False
 
     def position_popup(self):
         req = self._cal_popup.size_request()
-        (x, y) = gdk.Window.get_origin(self._date_button.window)
+        (x, y) = Gdk.Window.get_origin(self._date_button.window)
 
         x += self._date_button.allocation.x
         y += self._date_button.allocation.y
@@ -260,10 +260,10 @@ class DateEdit(gtk.HBox):
     def date_entry_changed_cb(self, entry):
         # check entry for valid date
         if self._id_timeout_add:
-            gobject.source_remove(self._id_timeout_add)
+            GObject.source_remove(self._id_timeout_add)
 
         # let's delay the check so we can complete our input
-        self._id_timeout_add = gobject.timeout_add(700, self.verify_date, entry)
+        self._id_timeout_add = GObject.timeout_add(700, self.verify_date, entry)
 
     def verify_date(self, entry):
         """Verify the text anc heck if it parses as date, complain if not
@@ -286,12 +286,12 @@ class DateEdit(gtk.HBox):
         except Exception, e:
             print e
             return False
-        entry.modify_base(gtk.STATE_NORMAL, self._default_base)
+        entry.modify_base(Gtk.StateType.NORMAL, self._default_base)
         return False
 
     def date_button_clicked_cb(self, widget):
         # Temporarily grab pointer and keyboard on a window we know exists
-        if not self.popup_grab_on_window(widget.window, gtk.get_current_event_time()):
+        if not self.popup_grab_on_window(widget.window, Gtk.get_current_event_time()):
             return
 
         # set calendar date
@@ -305,7 +305,7 @@ class DateEdit(gtk.HBox):
         self._calendar.grab_focus()
 
         # Now transfer our grabs to the popup window, this should always succed
-        self.popup_grab_on_window(self._cal_popup.window, gtk.get_current_event_time())
+        self.popup_grab_on_window(self._cal_popup.window, Gtk.get_current_event_time())
 
     def day_selected_cb(self, widget):
         year, month, day = self._calendar.get_date()
@@ -320,7 +320,7 @@ class DateEdit(gtk.HBox):
         """
         Implement Esc to get rid of calendar
         """
-        if event.keyval == gtk.keysyms.Escape:
+        if event.keyval == Gdk.KEY_Escape:
             self.hide_popup()
             return True
 
@@ -337,7 +337,7 @@ class DateEdit(gtk.HBox):
         self.invalid_date = True
         colormap = self._date_entry.get_colormap()
         base_color = colormap.alloc_color('orangered')
-        self._date_entry.modify_base(gtk.STATE_NORMAL, base_color)
+        self._date_entry.modify_base(Gtk.StateType.NORMAL, base_color)
         #self.flash_bg(self._date_entry, 'orangered', 2)
 
     def get_date(self):
@@ -415,50 +415,50 @@ class DateTimeEdit(DateEdit):
     __gtype_name__ = 'DateTimeEdit'
 
     __gproperties__ = {
-        'datetime': (gobject.TYPE_PYOBJECT,                       # type
+        'datetime': (GObject.TYPE_PYOBJECT,                       # type
                      'Date',                                    # nick name
                      'The date currently selected',             # description
-                     gobject.PARAM_READWRITE),                  # flags
+                     GObject.PARAM_READWRITE),                  # flags
 
-        'initial_datetime': (gobject.TYPE_PYOBJECT,
+        'initial_datetime': (GObject.TYPE_PYOBJECT,
                              'Initial Date',
                              'The initial date',
-                             gobject.PARAM_READABLE),
+                             GObject.PARAM_READABLE),
 
-        'lower-hour': (gobject.TYPE_INT,
+        'lower-hour': (GObject.TYPE_INT,
                        'Lower Hour',
                        'Lower hour in the time popup selector',
                        0,
                        24,
                        7,
-                       gobject.PARAM_READWRITE),
+                       GObject.PARAM_READWRITE),
 
-        'upper-hour': (gobject.TYPE_INT,
+        'upper-hour': (GObject.TYPE_INT,
                        'Upper Hour',
                        'Upper hour in the time popup selector',
                        0,
                        24,
                        19,
-                       gobject.PARAM_READWRITE),
+                       GObject.PARAM_READWRITE),
 
-        'show-time': (gobject.TYPE_BOOLEAN,
+        'show-time': (GObject.TYPE_BOOLEAN,
                       'Show Time',
                       'Show the time widget',
                       True,
-                      gobject.PARAM_READWRITE),
+                      GObject.PARAM_READWRITE),
 
         # TODO: use-24 is not working, only 24 hours is working
-        'use-24h-format': (gobject.TYPE_BOOLEAN,
+        'use-24h-format': (GObject.TYPE_BOOLEAN,
                            'Use 24h Format',
                            'Display time in 24h format',
                            True,
-                           gobject.PARAM_READWRITE)
+                           GObject.PARAM_READWRITE)
     }
 
     __gsignals__ = {
-        'datetime-changed': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+        'datetime-changed': (GObject.SignalFlags.RUN_LAST, None,
                              ()),
-        'time-changed': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+        'time-changed': (GObject.SignalFlags.RUN_LAST, None,
                          ()),
     }
 
@@ -473,21 +473,21 @@ class DateTimeEdit(DateEdit):
 
         DateEdit.__init__(self)
         self._time_combobox.connect('changed', self.time_combobox_changed_cb)
-        self._time_combobox.child.connect('focus-out-event', self.time_entry_focus_out_event_cb)
+        self._time_combobox.get_child().connect('focus-out-event', self.time_entry_focus_out_event_cb)
         self.connect('realize', self.fill_time_combobox)
 
     def build_layout(self):
 
         DateEdit.build_layout(self)
 
-        time_box = gtk.HBox()
+        time_box = Gtk.HBox()
         self.add(time_box)
         time_box.show()
 
         # the time entry combobox
-        self._time_combobox = gtk.ComboBoxEntry()
-        self._time_combobox.child.set_max_length(12)
-        self._time_combobox.child.set_width_chars(8)
+        self._time_combobox = Gtk.ComboBoxEntry()
+        self._time_combobox.get_child().set_max_length(12)
+        self._time_combobox.get_child().set_width_chars(8)
         time_box.add(self._time_combobox)
         self._time_combobox.set_no_show_all(True)
         self._time_combobox.show()
@@ -501,7 +501,7 @@ class DateTimeEdit(DateEdit):
             return
 
         # create the new model
-        store = gtk.TreeStore(str)
+        store = Gtk.TreeStore(str)
         for i in range(self._lower_hour, self._upper_hour + 1):
             the_time = datetime.time(i, 0)
             if self._use_24h_format:
@@ -533,7 +533,7 @@ class DateTimeEdit(DateEdit):
     def time_entry_focus_out_event_cb(self, widget, data=None):
 
         # check entry for valid time, reset if not
-        time_text = self._time_combobox.child.get_text()
+        time_text = self._time_combobox.get_child().get_text()
         try:
             if self._use_24h_format:
                 new_time = time.strptime(time_text, '%H:%M')
@@ -554,7 +554,7 @@ class DateTimeEdit(DateEdit):
 
     def wrong_time_format(self, error, date_string):
         self.invalid_time = True
-        self.flash_bg(self._time_combobox.child, 'orangered', 2)
+        self.flash_bg(self._time_combobox.get_child(), 'orangered', 2)
 
     def set_use_24h_format(self, use_24h_format):
         dt = self.get_time()
@@ -588,7 +588,7 @@ class DateTimeEdit(DateEdit):
         return only the time
         """
 
-        time_string = self._time_combobox.child.get_text()
+        time_string = self._time_combobox.get_child().get_text()
 
         if not time_string:
             self._current_time = None
@@ -637,13 +637,13 @@ class DateTimeEdit(DateEdit):
 
         time_changed = not new_time == self._current_time
         if new_time == None:
-            self._time_combobox.child.set_text('')
+            self._time_combobox.get_child().set_text('')
         else:
             # set the time and date string
             if self._use_24h_format == True:
-                self._time_combobox.child.set_text(new_time.strftime('%H:%M'))
+                self._time_combobox.get_child().set_text(new_time.strftime('%H:%M'))
             else:
-                self._time_combobox.child.set_text(new_time.strftime('%I:%M %p'))
+                self._time_combobox.get_child().set_text(new_time.strftime('%I:%M %p'))
 
         # emit signal on time change
         if time_changed == True:
@@ -687,7 +687,7 @@ class DateTimeEdit(DateEdit):
             raise AttributeError, 'unknown property %s' % property.name
 
 
-class EntryCal(gtk.Entry):
+class EntryCal(Gtk.Entry):
 
     """
     basic gtk widget to edit data that uses primary/secondary icon stock
@@ -695,31 +695,31 @@ class EntryCal(gtk.Entry):
     __gtype_name__ = 'DateEdit2'
 
     __gproperties__ = {
-        'date': (gobject.TYPE_PYOBJECT,                       # type
+        'date': (GObject.TYPE_PYOBJECT,                       # type
                  'Date',                                    # nick name
                  'The date currently selected',             # description
-                 gobject.PARAM_READWRITE),                  # flags
+                 GObject.PARAM_READWRITE),                  # flags
 
-        'initial-date': (gobject.TYPE_PYOBJECT,
+        'initial-date': (GObject.TYPE_PYOBJECT,
                          'Initial Date',
                          'The initial date',
-                         gobject.PARAM_READABLE),
+                         GObject.PARAM_READABLE),
 
-        'width-chars': (gobject.TYPE_PYOBJECT,
+        'width-chars': (GObject.TYPE_PYOBJECT,
                         'Width of the entry in chars',
                         'The width of the entry',
-                        gobject.PARAM_READWRITE),
+                        GObject.PARAM_READWRITE),
 
     }
 
     __gsignals__ = {
-        'date-changed': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+        'date-changed': (GObject.SignalFlags.RUN_LAST, None,
                          ()),
     }
 
     def __init__(self):
 
-        gtk.Entry.__init__(self)
+        GObject.GObject.__init__(self)
         self.props.primary_icon_stock = 'gtk-quit'
         self.props.secondary_icon_stock = 'sk-calendar'
         self.props.secondary_icon_tooltip_text = "Calendar"
@@ -727,10 +727,10 @@ class EntryCal(gtk.Entry):
 if __name__ == '__main__':
 
     import misc  # adds the sk-calendar stock-icon
-    w = gtk.Window()
+    w = Gtk.Window()
     d = EntryCal()
 #    d = DateTimeEdit()
     w.add(d)
     w.show_all()
 
-    gtk.set_interactive(True)
+    Gtk.set_interactive(True)

@@ -79,12 +79,12 @@ API
 """
 import os
 import re
-import gtk
+from gi.repository import Gtk
 import urllib
 import tempfile
 import subprocess
 
-import gobject
+from gi.repository import GObject
 from babel import numbers
 
 from sqlkit import _
@@ -304,7 +304,7 @@ class Context(object):
     def __str__(self):
         return "%s" % self.content
 
-class PrintTool(gobject.GObject):
+class PrintTool(GObject.GObject):
 
     """
     A print obj that is able to create a default context to handle to
@@ -363,10 +363,10 @@ class PrintTool(gobject.GObject):
 
     __gsignals__ = {
         'context-ready': (
-            gobject.SIGNAL_RUN_LAST,
-            gobject.TYPE_BOOLEAN,
+            GObject.SignalFlags.RUN_LAST,
+            GObject.TYPE_BOOLEAN,
             # context, template_name, sqlwidget,
-            (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT),
+            (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT),
         ),
     }
 
@@ -383,7 +383,7 @@ class PrintTool(gobject.GObject):
 
         :param master: the table or mask instance of which this is a printing tool
         """
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         self.master = master
         self.template_dir = self.template_dir or os.path.abspath(
             os.path.join(os.curdir, 'templates'))

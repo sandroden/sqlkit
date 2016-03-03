@@ -39,8 +39,8 @@ for line in f:
 
 if sys.argv[1] == 'install':
    try:
-      import pygtk
-      pygtk.require('2.0')
+      import gi
+      gi.require_version('Gtk', '3.0')
    except ImportError:
       print "You need to install also pygtk and I was not able to work out"
       print "  a correct dependency in setup.py"

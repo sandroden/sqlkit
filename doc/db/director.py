@@ -13,7 +13,7 @@ dbg.trace_function(exclude=but)
 import sqlkit
 from sqlkit.widgets import SqlTable, SqlMask
 from sqlkit.db import proxy, defaults, utils
-import gtk
+from gi.repository import Gtk
 
 
 db = proxy.DbProxy(engine="sqlite:///../../demo/sql/model/movies.sqlite")
@@ -55,7 +55,7 @@ t.completions.last_name.filter(nation='$nation')
 
 #t.completions.director_id.autostart=1
 try:
-    gtk.main()
+    Gtk.main()
 except KeyboardInterrupt:
     pass
 

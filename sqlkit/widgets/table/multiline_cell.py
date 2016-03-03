@@ -1,18 +1,18 @@
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import GObject
 
 
-class CellTextView(gtk.TextView, gtk.CellEditable):
+class CellTextView(Gtk.TextView, Gtk.CellEditable):
 
     __gtype_name__ = "CellTextView"
 
     __gproperties__ = {
-        'editing-canceled': (gobject.TYPE_BOOLEAN,                        # type
+        'editing-canceled': (GObject.TYPE_BOOLEAN,                        # type
                              'editing canceled',                         # nick name
                              # description
                              'Indicates whether editing on the cell has been canceled.',
                              False,                                        # default value
-                             gobject.PARAM_READWRITE)                   # flags
+                             GObject.PARAM_READWRITE)                   # flags
     }
 
     def do_editing_done(self, *args):
@@ -34,12 +34,12 @@ class CellTextView(gtk.TextView, gtk.CellEditable):
             self.get_buffer().set_text(text)
 
 
-class MultilineCellRenderer(gtk.CellRendererText):
+class MultilineCellRenderer(Gtk.CellRendererText):
 
     __gtype_name__ = "MultilineCellRenderer"
 
     def __init__(self, sqlwidget):
-        gtk.CellRendererText.__init__(self)
+        GObject.GObject.__init__(self)
         self._in_editor_menu = False
         self.treeview = sqlwidget.treeview
         self.sqlwidget = sqlwidget
@@ -51,17 +51,17 @@ class MultilineCellRenderer(gtk.CellRendererText):
 
     def _on_editor_key_press_event(self, editor, event):
 
-        if event.state & (gtk.gdk.SHIFT_MASK | gtk.gdk.CONTROL_MASK):
+        if event.get_state() & (Gdk.ModifierType.SHIFT_MASK | Gdk.ModifierType.CONTROL_MASK):
             return
 
-        if event.keyval in (gtk.keysyms.Return, gtk.keysyms.KP_Enter, gtk.keysyms.Tab):
+        if event.keyval in (Gdk.KEY_Return, Gdk.KEY_KP_Enter, Gdk.KEY_Tab):
             self.emit("edited", editor.get_data("path"), editor.get_text())
             editor.remove_widget()
 
-            if event.keyval in (gtk.keysyms.Tab,):
+            if event.keyval in (Gdk.KEY_Tab,):
                 self.treeview.emit('key-press-event', event)
 
-        elif event.keyval == gtk.keysyms.Escape:
+        elif event.keyval == Gdk.KEY_Escape:
             editor.remove_widget()
             self.emit("editing-canceled")
 

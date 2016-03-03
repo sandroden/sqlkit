@@ -16,7 +16,7 @@
 import os
 import re
 
-import gtk
+from gi.repository import Gtk
 
 from sqlkit import _
 
@@ -25,8 +25,8 @@ class SaveDialog(object):
     FILTER_FILES = (
         (_('All files'), '*.*'),
     )
-    ACTION = gtk.FILE_CHOOSER_ACTION_SAVE
-    ACTION_BUTTON = gtk.STOCK_SAVE
+    ACTION = Gtk.FileChooserAction.SAVE
+    ACTION_BUTTON = Gtk.STOCK_SAVE
 
     def __init__(self,  title="Save dialog", default_filename='export.csv', run=True):
         """
@@ -35,13 +35,13 @@ class SaveDialog(object):
         :param default_filename: the default
         """
 
-        self.dialog = gtk.FileChooserDialog(title,
+        self.dialog = Gtk.FileChooserDialog(title,
                                             None,
                                             self.ACTION,
-                                            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                                             self.ACTION_BUTTON, gtk.RESPONSE_OK))
-        self.dialog.set_default_response(gtk.RESPONSE_OK)
-        if self.ACTION in (gtk.FILE_CHOOSER_ACTION_SAVE, gtk.FILE_CHOOSER_ACTION_SAVE):
+                                            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                                             self.ACTION_BUTTON, Gtk.ResponseType.OK))
+        self.dialog.set_default_response(Gtk.ResponseType.OK)
+        if self.ACTION in (Gtk.FileChooserAction.SAVE, Gtk.FileChooserAction.SAVE):
             self.dialog.set_current_name(default_filename)
         self.filename = None
 
@@ -53,7 +53,7 @@ class SaveDialog(object):
     def run(self):
         self.dialog.set_current_folder(self.current_folder())
         ret = self.dialog.run()
-        if ret == gtk.RESPONSE_OK:
+        if ret == Gtk.ResponseType.OK:
             self.write()
         self.dialog.destroy()
 
@@ -63,7 +63,7 @@ class SaveDialog(object):
     def add_filters(self):
 
         for name, pattern in self.FILTER_FILES:
-            file_filter = gtk.FileFilter()
+            file_filter = Gtk.FileFilter()
             file_filter.set_name(name)
             file_filter.add_pattern(pattern)
             self.dialog.add_filter(file_filter)
@@ -87,21 +87,21 @@ class SaveDialog(object):
 
 class OpenDialog(SaveDialog):
 
-    ACTION = gtk.FILE_CHOOSER_ACTION_OPEN
-    ACTION_BUTTON = gtk.STOCK_OPEN
+    ACTION = Gtk.FileChooserAction.OPEN
+    ACTION_BUTTON = Gtk.STOCK_OPEN
     FILTER_FILES = (
         (_('All files'), '*.*'),
     )
 
     def add_filters(self):
         SaveDialog.add_filters(self)
-        image_filter = gtk.FileFilter()
+        image_filter = Gtk.FileFilter()
         image_filter.set_name(_('Images'))
         image_filter.add_pixbuf_formats()
         self.dialog.add_filter(image_filter)
         self.dialog.set_filter(image_filter)
 
-        file_filter = gtk.FileFilter()
+        file_filter = Gtk.FileFilter()
         file_filter.set_name(_('Documents'))
         for ext in ('odt', 'ods', 'odp', 'ott', 'ots', 'doc', 'dot',
                     'xls', 'xlsx', 'ppt', 'pps'):
@@ -110,17 +110,17 @@ class OpenDialog(SaveDialog):
 
     def customize(self):
 
-        preview = gtk.Image()
+        preview = Gtk.Image()
         preview.show()
         self.dialog.set_preview_widget(preview)
         self.dialog.connect("update-preview", self.update_preview_cb, preview)
 
-        tbl = gtk.Table()
-        self.entry = gtk.Entry()
+        tbl = Gtk.Table()
+        self.entry = Gtk.Entry()
         # TIP: possible new name for an uploaded file
-        label = gtk.Label(_('Preferred new filename:') + "  ")
+        label = Gtk.Label(label=_('Preferred new filename:') + "  ")
         label.set_tooltip_text(_('If not empty, the file will be uploaded with this new name'))
-        tbl.attach(label, 0, 1, 0, 1, xoptions=gtk.FILL)
+        tbl.attach(label, 0, 1, 0, 1, xoptions=Gtk.AttachOptions.FILL)
         tbl.attach(self.entry, 1, 2, 0, 1)
         tbl.show_all()
         self.dialog.set_extra_widget(tbl)
@@ -138,7 +138,7 @@ class OpenDialog(SaveDialog):
 
         ##  image previewer
         try:
-            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(filename, 128, 128)
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(filename, 128, 128)
             preview.set_from_pixbuf(pixbuf)
             have_preview = True
         except Exception, e:
@@ -157,7 +157,7 @@ class OpenDialog(SaveDialog):
         f = open(fname, 'w')
         f.write(thumb)
         f.close()
-        pixbuf = gtk.gdk.pixbuf_new_from_file(fname)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file(fname)
         preview.set_from_pixbuf(pixbuf)
         file_chooser.set_preview_widget_active(True)
 

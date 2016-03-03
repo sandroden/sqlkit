@@ -26,9 +26,9 @@ in editing_started_cb and  edited_cb to set state variables on SqlWidget
 """
 
 
-import gtk
-import gobject
-import pango
+from gi.repository import Gtk
+from gi.repository import GObject
+from gi.repository import Pango
 from decimal import Decimal
 
 import cell_renderers
@@ -51,9 +51,9 @@ COLUMN_MENU = '''
 '''
 
 
-LBL_HOOVER_STYLE = gtk.gdk.color_parse('red')
+LBL_HOOVER_STYLE = Gdk.color_parse('red')
 class GenericColumn(object):
-    RENDERER = gtk.CellRendererText
+    RENDERER = Gtk.CellRendererText
     RESIZE = True
     REORDER = True
     CLICK = True
@@ -90,7 +90,7 @@ class GenericColumn(object):
         setup column 
         """
 
-        column = gtk.TreeViewColumn(title.replace('_', ' '))
+        column = Gtk.TreeViewColumn(title.replace('_', ' '))
         column.set_data('field_name', self.field_name)  # used when reordering columns
         column.set_resizable(self.RESIZE)
         column.set_expand(self.EXPAND)
@@ -224,7 +224,7 @@ class GenericColumn(object):
         """
         popup the menu on the header of the column
         """
-        event = gtk.gdk.Event(gtk.gdk.BUTTON_PRESS)
+        event = Gdk.Event(Gdk.EventType.BUTTON_PRESS)
         event.button = 1
         treeview = column.get_tree_view()
         view = treeview.get_data('view')
@@ -262,7 +262,7 @@ class GenericColumn(object):
         # Label
         label_text, help_text = self.master.label_map.get(self.field_name, (None, None))
         label_text = self.master.get_label(label_text or self.title)
-        label = gtk.Label()
+        label = Gtk.Label()
         label.set_markup(label_text)
 
         ## bold italic
@@ -278,7 +278,7 @@ class GenericColumn(object):
         label.show()
 
     def realize_cb(self, widget):
-        watch = gtk.gdk.Cursor(gtk.gdk.HAND2)
+        watch = Gdk.Cursor.new(Gdk.HAND2)
         widget.window.set_cursor(watch)
 
     def is_expandable(self):
@@ -316,7 +316,7 @@ class GenericColumn(object):
         return "<%s: %s >" % (self.__class__.__name__, self.field_name)
 
 class BooleanColumn(GenericColumn):
-    RENDERER = gtk.CellRendererToggle
+    RENDERER = Gtk.CellRendererToggle
     RESIZE = False
     EXPAND = False
 
@@ -429,10 +429,10 @@ class VarcharColumn(GenericColumn):
             cell = cell_renderers.CellRendererVarchar(width)
             cell.fixed_width = True
         else:
-            cell = gtk.CellRendererText()
+            cell = Gtk.CellRendererText()
 
         GenericColumn.setup_cell_renderers(self, cell_renderer=cell)
-        cell.set_property('ellipsize', pango.ELLIPSIZE_END)
+        cell.set_property('ellipsize', Pango.EllipsizeMode.END)
         cell.set_data('width', width)
 
         self.set_alignment(cell)
@@ -509,7 +509,7 @@ class MultilineColumn(VarcharColumn):
         cell = cell_renderers.MultilineCellRenderer(self.master)
 
         GenericColumn.setup_cell_renderers(self, cell_renderer=cell)
-        cell.set_property('ellipsize', pango.ELLIPSIZE_END)
+        cell.set_property('ellipsize', Pango.EllipsizeMode.END)
         cell.set_data('width', width)
 
         return cell
@@ -644,7 +644,7 @@ class DateTimeColumn(DateColumn):
 
 class EnumColumn(VarcharColumn):
 
-    RENDERER = gtk.CellRendererText
+    RENDERER = Gtk.CellRendererText
     RESIZE = True
     REORDER = True
     CLICK = True
@@ -692,7 +692,7 @@ class EnumColumn(VarcharColumn):
 
 class ImageColumn(GenericColumn):
 
-    RENDERER = gtk.CellRendererPixbuf
+    RENDERER = Gtk.CellRendererPixbuf
     RESIZE = True
     REORDER = False
     CLICK = True
@@ -780,7 +780,7 @@ class ImageColumn(GenericColumn):
                         value, complete_path=True) or None
                     if thumbnail_path:
                         if cell.get_data('thumbnail_path') != thumbnail_path:
-                            pixbuf = gtk.gdk.pixbuf_new_from_file(
+                            pixbuf = GdkPixbuf.Pixbuf.new_from_file(
                                 thumbnail_path) if thumbnail_path else None
 
                             cell.set_property('pixbuf', pixbuf)
@@ -788,7 +788,7 @@ class ImageColumn(GenericColumn):
                             cell.set_data('thumbnail_path', thumbnail_path)
                     else:
                         cell.set_property('pixbuf', None)
-                        cell.set_property('stock-id', gtk.STOCK_MISSING_IMAGE)
+                        cell.set_property('stock-id', Gtk.STOCK_MISSING_IMAGE)
                         cell.set_data('thumbnail_path', thumbnail_path)
 
                 else:
@@ -838,7 +838,7 @@ class CellEntry(object):
         self.valid = True
         self.text = editable.get_text()
 
-        if isinstance(editable, gtk.Entry):
+        if isinstance(editable, Gtk.Entry):
             # Multiline does not have 'canged' and does not need invalidating
             self.entry.connect('changed', self.on_editable_change)
         else:
@@ -876,7 +876,7 @@ class ColumnMenuProxy(object):
         except:
             pass
 
-        menu = self.master.widgets['M=popup'] = gtk.Menu()
+        menu = self.master.widgets['M=popup'] = Gtk.Menu()
         field = self.master.gui_fields[field_name]
         ## add to filter
         field_name_localized = self.master.get_label(field_name, gtk_label=True)
@@ -889,7 +889,7 @@ class ColumnMenuProxy(object):
             menu.append(item)
 
         ## sort
-        item = gtk.ImageMenuItem('gtk-sort-ascending')
+        item = Gtk.ImageMenuItem('gtk-sort-ascending')
         item.connect('activate', self.reload_sort_cb, field_name, 'ASC')
         if field.persistent:
             item.set_tooltip_text(_("Sort on this column reloading from the database, " +
@@ -899,7 +899,7 @@ class ColumnMenuProxy(object):
 
         menu.append(item)
 
-        item = gtk.ImageMenuItem('gtk-sort-descending')
+        item = Gtk.ImageMenuItem('gtk-sort-descending')
         item.connect('activate', self.reload_sort_cb, field_name, 'DESC')
         menu.append(item)
 
@@ -912,23 +912,23 @@ class ColumnMenuProxy(object):
         ## totals
         if field.type in (int, float, Decimal) and not isinstance(field, fields.ForeignKeyField):
             # TIP: column menu opt
-            item = gtk.MenuItem(label=_("Create total"))
+            item = Gtk.MenuItem(label=_("Create total"))
             item.connect('activate', self.add_total_cb, field_name)
             menu.append(item)
 
-        menu.append(gtk.SeparatorMenuItem())
+        menu.append(Gtk.SeparatorMenuItem())
         ## subtotals
         if isinstance(field, fields.DateField):
             self.menu_add_date_total_break(menu, field_name)
         else:
             # TIP: column menu total
-            item = gtk.MenuItem(label=_("Subtotal on %s") % (field_name_localized))
+            item = Gtk.MenuItem(label=_("Subtotal on %s") % (field_name_localized))
             item.connect('activate', self.add_subtotal_cb, field_name)
             menu.append(item)
 
         ## info
         # TIP: column menu opt
-        item = gtk.ImageMenuItem('gtk-info')
+        item = Gtk.ImageMenuItem('gtk-info')
         item.connect('activate', self.master.show_field_info, field_name)
         menu.append(item)
 
@@ -944,20 +944,20 @@ class ColumnMenuProxy(object):
             return
         menu = self.master.widgets['M=modify']
         # TIP: modify menu entry
-        item_show = gtk.MenuItem(label=_("Show field"))
-        item_hide = gtk.MenuItem(label=_("Hide field"))
+        item_show = Gtk.MenuItem(label=_("Show field"))
+        item_hide = Gtk.MenuItem(label=_("Hide field"))
         menu.append(item_show)
         menu.append(item_hide)
 
-        self.menu_show = gtk.Menu()
-        self.menu_hide = gtk.Menu()
+        self.menu_show = Gtk.Menu()
+        self.menu_hide = Gtk.Menu()
 
         item_show.set_submenu(self.menu_show)
         item_hide.set_submenu(self.menu_hide)
 
         for field_name in self.master.field_list:
             field_name_localized = self.master.get_label(field_name, gtk_label=True)
-            m = gtk.MenuItem(field_name_localized)
+            m = Gtk.MenuItem(field_name_localized)
             m.connect('activate', self.hide_fields_cb, field_name)
             self.menu_hide.append(m)
 
@@ -976,7 +976,7 @@ class ColumnMenuProxy(object):
                    ('quarter', _('quarter')), ('year', _('year'))]
 
         for period, trad in periods:
-            item = gtk.MenuItem(label=_("Subtotals by %s") % trad)
+            item = Gtk.MenuItem(label=_("Subtotals by %s") % trad)
             item.connect('activate', add_break_date_cb, field_name, period)
             menu.append(item)
 
@@ -1104,7 +1104,7 @@ class View(object):
         self.treeview.set_rules_hint(True)
         # set selection mode
         treeselection = self.treeview.get_selection()
-        treeselection.set_mode(gtk.SELECTION_SINGLE)
+        treeselection.set_mode(Gtk.SelectionMode.SINGLE)
         # callback for selection changes
         if name == 'main':
             treeselection.connect('changed', self.master.selection_changed_cb)
@@ -1117,18 +1117,18 @@ class View(object):
     def keypress_event_cb(self, wdg, event, view=None):
 
         pre = 'tree'
-        ksym = gtk.gdk.keyval_name(event.keyval)
+        ksym = Gdk.keyval_name(event.keyval)
         mods = ['key_' + pre]
         ## mod2 gets in the way when you press the NumLock: I don't want
         ## to depend on that, as I'm not usng it!!!
-        for prefix, mask in [('ctrl', gtk.gdk.CONTROL_MASK),
-                             ('shift', gtk.gdk.SHIFT_MASK),
-                             ('alt', gtk.gdk.MOD1_MASK),
-                             #('mod2', gtk.gdk.MOD2_MASK),
-                             ('mod3', gtk.gdk.MOD3_MASK),
-                             ('mod4', gtk.gdk.MOD4_MASK),
-                             ('mod5', gtk.gdk.MOD5_MASK), ]:
-            if event.state & mask:
+        for prefix, mask in [('ctrl', Gdk.ModifierType.CONTROL_MASK),
+                             ('shift', Gdk.ModifierType.SHIFT_MASK),
+                             ('alt', Gdk.ModifierType.MOD1_MASK),
+                             #('mod2', Gdk.ModifierType.MOD2_MASK),
+                             ('mod3', Gdk.ModifierType.MOD3_MASK),
+                             ('mod4', Gdk.ModifierType.MOD4_MASK),
+                             ('mod5', Gdk.ModifierType.MOD5_MASK), ]:
+            if event.get_state() & mask:
                 mods.append(prefix)
 
         ksym = '_'.join(mods + [ksym])
@@ -1311,19 +1311,19 @@ class View(object):
 
         from sqlkit.widgets.common import uidescription
 
-        self.ui_manager = gtk.UIManager()
+        self.ui_manager = Gtk.UIManager()
         self.ui_manager.connect('connect-proxy', self.master.uimanager_connect_proxy)
         self.accel_group = self.ui_manager.get_accel_group()
         if self.master.is_toplevel():
             self.master.widgets['Window'].add_accel_group(self.accel_group)
 
-        self.actiongroup_view = gtk.ActionGroup('View')
+        self.actiongroup_view = Gtk.ActionGroup('View')
         self.actiongroup_view.add_actions([
             ('ExportView', None, _('Export'), None, _('Export these data into csv format'),
              self.master.export),
         ], self.name)
         self.actiongroup_view.add_actions([
-            ('Zoom-fit', gtk.STOCK_ZOOM_FIT, None, '<Control>z',
+            ('Zoom-fit', Gtk.STOCK_ZOOM_FIT, None, '<Control>z',
              _('Adapt width of columns to data'), self.on_zoom_fit),
             ('ShowColumns', None, _('Show field')),  # menuitem
             ('HideColumns', None, _('Hide field')),  # menuitem
@@ -1535,7 +1535,7 @@ class View(object):
         model, rows = selection.get_selected_rows()
         ## we use just the first selected
         #  >>> sel.get_selected_rows()
-        #  (<gtk.Modelproxy.Modelstore object at 0x8dd61bc (GtkModelproxy.Modelstore at 0x8da6090)>, [(1,)])
+        #  (<Gtk.Modelproxy.Modelstore object at 0x8dd61bc (GtkModelproxy.Modelstore at 0x8da6090)>, [(1,)])
 
         if rows:
             return rows[0]

@@ -74,11 +74,11 @@ At this point you can sort the output on each column and even get totals in it.
   
 """
 import re
-import gtk
+from gi.repository import Gtk
 import warnings
 from datetime import *
 
-import gobject
+from gi.repository import GObject
 import sqlalchemy
 from sqlalchemy.sql import select, Join, or_
 from babel import dates
@@ -249,7 +249,7 @@ class FilterPanel(object):
             ('tb=gtk-close', 'clicked', self.hide),
             ('tb=gtk-refresh', 'clicked', self.reload_cb)
         )
-        self.w['label-cursor'] = gtk.gdk.Cursor(gtk.gdk.HAND1)
+        self.w['label-cursor'] = Gdk.Cursor.new(Gdk.HAND1)
         if 'TV=out' in self.w:
             self._add_treeview()
         if 'N.0' in self.w:
@@ -275,18 +275,18 @@ class FilterPanel(object):
         self.selection.connect('changed', self.on_selection_changed)
 
     def prepare_actions(self):
-        self.actiongroup = gtk.ActionGroup('Filter')
+        self.actiongroup = Gtk.ActionGroup('Filter')
 
         self.actiongroup.add_actions([
             ('FilterMenu', None, _('Filter actions')),
-            ('Reload', gtk.STOCK_REFRESH, _('Reload from db'), '<Control>r', None, self.reload_cb),
-            ('Close', gtk.STOCK_CLOSE, _('Close the panel'), '<Control>q', None, self.hide),
+            ('Reload', Gtk.STOCK_REFRESH, _('Reload from db'), '<Control>r', None, self.reload_cb),
+            ('Close', Gtk.STOCK_CLOSE, _('Close the panel'), '<Control>q', None, self.hide),
         ], )
         self.actiongroup.add_actions([
             ('GoFilter', None, _('Go to filter panel'), '<Control>l', None, self.set_page), ], 'filter')
         self.actiongroup.add_actions([
             ('GoOutput', None, _('Go to output panel'), '<Control>o', None, self.set_page), ], 'output')
-        self.ui_manager = gtk.UIManager()
+        self.ui_manager = Gtk.UIManager()
         self.accel_group = self.ui_manager.get_accel_group()
         self.l.widgets['Window'].add_accel_group(self.accel_group)
         self.ui_manager.insert_action_group(self.actiongroup, 10)
@@ -302,7 +302,7 @@ class FilterPanel(object):
     def related_tools_menu_entries(self):
         "Add menu entry for related tools"
 
-        self.actiongroup_related = gtk.ActionGroup('Related')
+        self.actiongroup_related = Gtk.ActionGroup('Related')
         self.ui_manager.insert_action_group(self.actiongroup_related, 8)
 
         for related in self.master.related.keys():
@@ -478,7 +478,7 @@ class FilterPanel(object):
     def on_switch_page(self, notebook, junk, page_n):
 
         if page_n == 0 and self._last_focused_entry:
-            gobject.idle_add(self._last_focused_entry.grab_focus)
+            GObject.idle_add(self._last_focused_entry.grab_focus)
 
     def short_filter(self, field_name, relationship_path=None):
         """Apply a filter getting the value from the table/mask
@@ -653,8 +653,8 @@ class FilterPanel(object):
 
     def on_selection_changed(self, *args):
         # when clicking on the teeview we get 2 args: treeView, event
-        # when changing selection we only have 1 arg: gtk.treeSelection
-        # when clicking 'Refresh' we get e gtk.TreeSelection but no
+        # when changing selection we only have 1 arg: Gtk.treeSelection
+        # when clicking 'Refresh' we get e Gtk.TreeSelection but no
         #      iter get selected
         ## first guess: we selected w/ pointer
         if self.dont_record_display:
@@ -1194,12 +1194,12 @@ class FilterWidget(object):
         self.label_text = tool.master.get_label(tool.field_name)
 
         ## labels
-        self.field_name_event_box = gtk.EventBox()
-        self.field_label = gtk.Label(self.label_text)
+        self.field_name_event_box = Gtk.EventBox()
+        self.field_label = Gtk.Label(label=self.label_text)
         # TIP: appears in the menu in the filter panel to add a second entry of the same field
         label_str = _("Add a new filter on this field '%s'") % self.label_text.replace('_', '__')
         self.field_name_event_box.set_tooltip_text(label_str)
-        self.check_button = gtk.CheckButton()
+        self.check_button = Gtk.CheckButton()
 
         self.check_button.set_active(True)
         #self.tool.panel.l.tooltips.set_tip(self.check_button, _("Use this filter"))
@@ -1215,7 +1215,7 @@ class FilterWidget(object):
         ## get_active_text per riprenderlo...
         ## entry
 
-        self.field_widget = gtk.Entry()
+        self.field_widget = Gtk.Entry()
         self.field_widget.connect('focus-in-event', self.tool.panel.entry_focus_cb)
         self.field_widget.connect('activate', self.tool.panel.reload_cb)
         if isinstance(self.tool, FilterDateTool):
@@ -1247,15 +1247,15 @@ class FilterWidget(object):
 
         operators = self.tool.get_suitable_operators()
         warnings.simplefilter('ignore', DeprecationWarning)
-        operator = gtk.OptionMenu()
+        operator = Gtk.OptionMenu()
         operator.set_tooltip_text(_('Click here to select an operator'))
         warnings.resetwarnings()
 
-        menu = gtk.Menu()
+        menu = Gtk.Menu()
         operator.set_menu(menu)
 
         for op in operators:
-            entry = gtk.MenuItem(op)
+            entry = Gtk.MenuItem(op)
             menu.append(entry)
             entry.set_data('value', op)
             entry.set_tooltip_text(OP_MSGID[op])

@@ -17,8 +17,8 @@
 import re
 import os
 
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import GObject
 
 from sqlkit import _
 from sqlkit import debug as dbg
@@ -142,7 +142,7 @@ class LWidget(object):
 
         ### gtk-stock?
 #         if re.match('gtk-', self.val) and not self.gtkClass == 'GtkImage':
-        if gtk.icon_factory_lookup_default(self.val) and not self.gtkClass == 'GtkImage':
+        if Gtk.icon_factory_lookup_default(self.val) and not self.gtkClass == 'GtkImage':
             if re.match('GtkToolButton', self.gtkClass):
                 self.properties['stock_id'] = re.sub('\..+', '', self.val)
                 self.properties['label'] = None
@@ -232,7 +232,7 @@ class LWidget(object):
         """ Create the wdget """
         #dbg.write(self.gtkClass)
         #print dbg.dshow(self.properties)
-        self.gtkWdg = gobject.new(gobject.type_from_name(self.gtkClass))
+        self.gtkWdg = GObject.new(GObject.type_from_name(self.gtkClass))
         # **self.properties
         for p, val in self.properties.iteritems():
             try:
@@ -250,7 +250,7 @@ class LWidget(object):
             return ""
 
         allowed_pack_properties = ()
-        for i in gtk.container_class_list_child_properties(ContGtkClass):
+        for i in Gtk.container_class_list_child_properties(ContGtkClass):
             allowed_pack_properties += (i.name,)
 
         xml = ["<packing>"]
@@ -366,7 +366,7 @@ class LContainer(LWidget):
             self.properties['visible'] = visible
 
         #dbg.write(self.gtkClass)
-        self.gtkWdg = gobject.new(gobject.type_from_name(self.gtkClass),
+        self.gtkWdg = GObject.new(GObject.type_from_name(self.gtkClass),
                                   **self.properties)
 
         #dbg.write(gtkWdg)
@@ -404,8 +404,8 @@ class LContainer(LWidget):
     def clean_pack_properties(self, pack_props, gtkWdg):
         return pack_props
 #         dbg.write(gtkWdg, gtkWdg.name)
-#         dbg.write(gtk.container_class_list_child_properties(gtkWdg))
-#         props = [p.name for p in gtk.container_class_list_child_properties(gtkWdg)]
+#         dbg.write(Gtk.container_class_list_child_properties(gtkWdg))
+#         props = [p.name for p in Gtk.container_class_list_child_properties(gtkWdg)]
 #         dbg.write(props)
 #         ko = []
 #         for p in pack_props:
@@ -623,7 +623,7 @@ class ToolButton(LWidget):
 
     def _class_specific(self):
         #if re.match("gtk-",self.val):
-        if gtk.icon_factory_lookup_default(self.val):
+        if Gtk.icon_factory_lookup_default(self.val):
             del self.properties['label']
             #self.properties['stock_id'] = self.val
 
@@ -752,7 +752,7 @@ class Image(LWidget):
         ## self.var is probably the name of a image file
         ## let's check, look for it and set it with a full path
         #if self.var.startswith('gtk-'):
-        if gtk.icon_factory_lookup_default(self.var):
+        if Gtk.icon_factory_lookup_default(self.var):
             self.properties['icon_name'] = self.var
             self.properties['icon_size'] = self.w
             self.w = None

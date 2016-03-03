@@ -13,7 +13,7 @@ lay = """
       } -
 """
 
-import gtk
+from gi.repository import Gtk
 
 l = Layout(lay, opts="-")
 

@@ -6,9 +6,9 @@ import re
 import tokenize
 import keyword
 
-import gtk
-import gobject
-import pango
+from gi.repository import Gtk
+from gi.repository import GObject
+from gi.repository import Pango
 
 
 from sqlkit.layout import Layout, layout
@@ -86,7 +86,7 @@ class Demo(object):
         self.prepare_actions()
         # self.l.menu('m=_File',
         #     ('inspect widgets' , 'activate', self.pop_inspect, ),
-        #     ('gtk-quit' , 'activate', gtk.main_quit, ),
+        #     ('gtk-quit' , 'activate', Gtk.main_quit, ),
         #     )
 
     def prepare_actions(self):
@@ -98,14 +98,14 @@ class Demo(object):
           </toolbar>
         """
 
-        self.actiongroup = gtk.ActionGroup('Main')
+        self.actiongroup = Gtk.ActionGroup('Main')
         self.actiongroup.add_actions([
             ('TbMain', None, None),
             ('Execute', 'gtk-execute', 'Debug', None,
              "Debug via a gtk logger", self.execute_clicked_cb),
-            ('Quit', 'gtk-quit', None, "<Control>q", None, gtk.main_quit),
+            ('Quit', 'gtk-quit', None, "<Control>q", None, Gtk.main_quit),
         ])
-        self.ui_manager = gtk.UIManager()
+        self.ui_manager = Gtk.UIManager()
         self.ui_manager.add_ui_from_string(UI)
         self.ui_manager.insert_action_group(self.actiongroup, 10)
 
@@ -118,18 +118,18 @@ class Demo(object):
 
     def configure_treeview(self, treeview, demos, src, note):
 
-        model = gtk.TreeStore(
-            gobject.TYPE_STRING,
-            gobject.TYPE_STRING,
-            gobject.TYPE_PYOBJECT,
-            gobject.TYPE_BOOLEAN,
-            gobject.TYPE_BOOLEAN,
-            gobject.TYPE_STRING,
+        model = Gtk.TreeStore(
+            GObject.TYPE_STRING,
+            GObject.TYPE_STRING,
+            GObject.TYPE_PYOBJECT,
+            GObject.TYPE_BOOLEAN,
+            GObject.TYPE_BOOLEAN,
+            GObject.TYPE_STRING,
         )
 
         treeview.set_model(model)
         selection = treeview.get_selection()
-        selection.set_mode(gtk.SELECTION_BROWSE)
+        selection.set_mode(Gtk.SelectionMode.BROWSE)
         treeview.set_size_request(200, -1)
 
         sections = []
@@ -153,8 +153,8 @@ class Demo(object):
                       TOOLTIP, "%s\n\n%s" % (demo.title, demo.doc),
                       )
 
-        cell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Widget", cell, text=TITLE_COLUMN)
+        cell = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("Widget", cell, text=TITLE_COLUMN)
         treeview.append_column(column)
         selection.connect('changed', self.selection_changed_cb)
         treeview.set_tooltip_column(TOOLTIP)
@@ -257,13 +257,13 @@ class Demo(object):
         tv.set_rules_hint(True)
         selection = tv.get_selection()
         selection.connect('changed', self.selection_changed_prop_cb)
-        ts = gtk.TreeStore(str, str, str, str)
+        ts = Gtk.TreeStore(str, str, str, str)
         tv.set_model(ts)
 
         ## TreeViewColumn & CellRenderer
         heads = ['elem', 'class', 'property', 'value']
         for i, v in enumerate(heads):
-            tvc = gtk.TreeViewColumn(v, gtk.CellRendererText(), text=i)
+            tvc = Gtk.TreeViewColumn(v, Gtk.CellRendererText(), text=i)
             tvc.set_sort_column_id(i)
             tv.append_column(tvc)
 
@@ -271,13 +271,13 @@ class Demo(object):
 
     def prepare_treeview_tree(self, tv):
         tv.set_rules_hint(True)
-        ts = gtk.TreeStore(str, str, str, str, str)
+        ts = Gtk.TreeStore(str, str, str, str, str)
         tv.set_model(ts)
 
         ## TreeViewColumn & CellRenderer
         heads = ['elem', 'container', 'class', 'property', 'value']
         for i, v in enumerate(heads):
-            tvc = gtk.TreeViewColumn(v, gtk.CellRendererText(), text=i)
+            tvc = Gtk.TreeViewColumn(v, Gtk.CellRendererText(), text=i)
             tvc.set_sort_column_id(i)
             tv.append_column(tvc)
 
@@ -293,7 +293,7 @@ class Demo(object):
         class_name = model.get_value(iter, 1)
         data = []
 
-        for prop in gobject.list_properties(class_name):
+        for prop in GObject.list_properties(class_name):
             el = self.last_lo.elements[el_key]
             try:
                 val_lay = el.properties[prop.name]
@@ -387,10 +387,10 @@ class Demo(object):
         tag.set_property('pixels_above_lines', 0)
         tag.set_property('pixels_below_lines', 0)
         tag = buf.create_tag('keyword', foreground='#00007F',
-                             weight=pango.WEIGHT_BOLD)
+                             weight=Pango.Weight.BOLD)
         tag = buf.create_tag('string', foreground='#007F00')
         tag = buf.create_tag('comment', foreground='#7F007F',
-                             style=pango.STYLE_ITALIC)
+                             style=Pango.Style.ITALIC)
 
     def iconify(self):
         self.w['Window'].iconify()
@@ -402,26 +402,26 @@ class TreeShow(object):
         w = l.show()
         tv = w['TV=a']
 
-        ts = gtk.ListStore(str, str, str, str, str)
-        tvc = gtk.TreeViewColumn('prop', gtk.CellRendererText(), text=0)
+        ts = Gtk.ListStore(str, str, str, str, str)
+        tvc = Gtk.TreeViewColumn('prop', Gtk.CellRendererText(), text=0)
         tvc.set_sort_column_id(0)
         tv.append_column(tvc)
 
-        cell = gtk.CellRendererText()
-        #cell.set_property('style', pango.STYLE_BOLD)
-        tvc = gtk.TreeViewColumn('lay val', cell, text=4)
+        cell = Gtk.CellRendererText()
+        #cell.set_property('style', Pango.Style.BOLD)
+        tvc = Gtk.TreeViewColumn('lay val', cell, text=4)
         tvc.set_sort_column_id(4)
         tv.append_column(tvc)
 
-        cell = gtk.CellRendererText()
-        cell.set_property('style', pango.STYLE_ITALIC)
-        tvc = gtk.TreeViewColumn('gtk val', cell, text=3)
+        cell = Gtk.CellRendererText()
+        cell.set_property('style', Pango.Style.ITALIC)
+        tvc = Gtk.TreeViewColumn('gtk val', cell, text=3)
         tvc.set_sort_column_id(3)
         tv.append_column(tvc)
 
-        cell = gtk.CellRendererText()
-        cell.set_property('style', pango.STYLE_ITALIC)
-        tvc = gtk.TreeViewColumn('nick', cell, text=1)
+        cell = Gtk.CellRendererText()
+        cell.set_property('style', Pango.Style.ITALIC)
+        tvc = Gtk.TreeViewColumn('nick', cell, text=1)
         tvc.set_sort_column_id(1)
         tv.append_column(tvc)
 
