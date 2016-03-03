@@ -26,6 +26,7 @@ in editing_started_cb and  edited_cb to set state variables on SqlWidget
 """
 
 
+from gi.repository import Gdk
 from gi.repository import Gtk
 from gi.repository import GObject
 from gi.repository import Pango
