@@ -372,6 +372,8 @@ class ImageWidget(Gtk.VBox):
         idx = self.status_bar.get_context_id(txt)
         msg_id = self.status_bar.push(idx, txt)
 
+GObject.type_register(ImageWidget)
+
 
 if __name__ == '__main__':
 

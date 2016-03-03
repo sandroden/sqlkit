@@ -241,8 +241,7 @@ class CellRendererDate(Gtk.CellRenderer):
     def do_set_property(self, gprop, value):
         setattr(self, gprop.name, value)
 
-if GObject.pygtk_version < (2, 8):
-    GObject.type_register(CellRendererDate)
+GObject.type_register(CellRendererDate)
 
 
 class CellRendererDatetime(CellRendererDate):
