@@ -114,7 +114,7 @@ class Totals(GObject.GObject):
         :param treeview: in case 'table' does not have a treeview, you can specify it.
                        Used when total is made for filter_panel.
         """
-        self.__gobject_init__()
+        GObject.GObject.__init__(self)
         self.table = table
         self.totals = {}
         self._break_field_name = None

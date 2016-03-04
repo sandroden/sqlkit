@@ -277,7 +277,7 @@ class SignalEmitter(GObject.GObject):
     }
 
     def __init__(self):
-        self.__gobject_init__()
+        GObject.GObject.__init__(self)
 
     def set_cb(self,  obj, value, oldvalue, initiator):
         "Callback triggered by SQLA events (>= 0.7)"
@@ -453,7 +453,7 @@ class Field(GObject.GObject):
         :param master:      the sqlkit widget: an instance of SqlMask or SqlTable
         """
 
-        self.__gobject_init__()
+        GObject.GObject.__init__(self)
         self._ids = {}
         self.field_name = field_name
         self._add_info(field_attrs or {})

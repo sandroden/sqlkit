@@ -161,7 +161,7 @@ class Widget(GObject.GObject):
         :param gtkwidget: the gtk widget used to display the data
         :param field: the :ref:`field <fields>` from ``sqlkit.fields``
         """
-        self.__gobject_init__()
+        GObject.GObject.__init__(self)
         self.gtkwidget = gtkwidget
         self.field = field
         self.master = field.master

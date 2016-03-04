@@ -93,7 +93,7 @@ class ModelProxy(GObject.GObject):
 
         :param order_store: the field_name where the path should be stored 
         """
-        self.__gobject_init__()
+        GObject.GObject.__init__(self)
         self.master = master
         self.modelstore = Gtk.ListStore(object)
         self._tree_field_name = tree_field_name

@@ -150,12 +150,13 @@ class CellRendererDate(Gtk.CellRenderer):
     }
 
     def __init__(self, master=None, field_name=None, *args, **kwargs):
+        GObject.GObject.__init__(self)
         #dbg.write()
         self.date = None
         self.master = master
         self.field_name = field_name
 
-        return Gtk.CellRenderer.__gobject_init__(self, *args, **kwargs)
+        #return Gtk.CellRenderer.__gobject_init__(self, *args, **kwargs)
 
     def do_pango_layout(self, widget):
         pc = widget.get_pango_context()
