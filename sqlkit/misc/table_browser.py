@@ -215,11 +215,11 @@ class TableBrowser(object):
         """Add accelerators: now Ctrl-l"""
 
         # key accelerators
-        self.accel_group.connect_group(ord('l'),
+        self.accel_group.connect(ord('l'),
                                        Gdk.ModifierType.CONTROL_MASK,
                                        Gtk.AccelFlags.LOCKED,
                                        self.focus_filter)
-        self.accel_group.connect_group(ord('f'),
+        self.accel_group.connect(ord('f'),
                                        Gdk.ModifierType.CONTROL_MASK,
                                        Gtk.AccelFlags.LOCKED,
                                        self.focus_filter)

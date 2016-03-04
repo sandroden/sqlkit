@@ -150,7 +150,7 @@ class show_widgets(object):
 
         # key accelerators
         self.accel_group = Gtk.AccelGroup()
-        self.accel_group.connect_group(ord('q'),
+        self.accel_group.connect(ord('q'),
                                        Gdk.ModifierType.CONTROL_MASK,
                                        Gtk.AccelFlags.LOCKED,
                                        self.delete)
