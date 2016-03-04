@@ -507,7 +507,7 @@ def clean_for_markup(text):
     """
     quote string from undesired chars in pango markup
     """
-    from gobject import markup_escape_text
+    from gi.repository.GLib import markup_escape_text
 
     if isinstance(text, (tuple, list)):
         text = [markup_escape_text(str(item)) for item in text]

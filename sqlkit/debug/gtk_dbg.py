@@ -9,7 +9,7 @@ import inspect
 import tokenize
 import keyword
 import time
-from gobject import markup_escape_text
+from gi.repository.GLib import markup_escape_text
 
 class wshow(object):
 

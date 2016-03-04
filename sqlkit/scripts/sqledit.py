@@ -230,7 +230,7 @@ class ConnectionDialog(object):
             self.wdict[RESPONSE_DEMO].set_tooltip_text(demo_missing)
 
     def set_error_msg(self, text, color='black'):
-        from gobject import markup_escape_text
+        from gi.repository.GLib import markup_escape_text
 
         markup = '<span foreground="%s">%s</span>' % (color, markup_escape_text(text))
         self.l.widgets['l=errors'].set_markup(markup)

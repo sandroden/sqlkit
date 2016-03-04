@@ -32,7 +32,7 @@ from copy import copy
 
 from gi.repository import Gtk
 from gi.repository import GObject
-from gobject import markup_escape_text
+from gi.repository.GLib import markup_escape_text
 
 from sqlalchemy import text, select, Table
 from sqlalchemy.sql import and_, or_, not_
