@@ -250,7 +250,7 @@ class LWidget(object):
             return ""
 
         allowed_pack_properties = ()
-        for i in Gtk.container_class_list_child_properties(ContGtkClass):
+        for i in Gtk.ContainerClass.list_child_properties(ContGtkClass):
             allowed_pack_properties += (i.name,)
 
         xml = ["<packing>"]
@@ -404,8 +404,8 @@ class LContainer(LWidget):
     def clean_pack_properties(self, pack_props, gtkWdg):
         return pack_props
 #         dbg.write(gtkWdg, gtkWdg.name)
-#         dbg.write(Gtk.container_class_list_child_properties(gtkWdg))
-#         props = [p.name for p in Gtk.container_class_list_child_properties(gtkWdg)]
+#         dbg.write(Gtk.ContainerClass.list_child_properties(gtkWdg))
+#         props = [p.name for p in Gtk.ContainerClass.list_child_properties(gtkWdg)]
 #         dbg.write(props)
 #         ko = []
 #         for p in pack_props:
