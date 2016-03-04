@@ -12,30 +12,30 @@ def unset_real_size(window, event):
     useless) when a resize actually takes place.
     """
 
-    window.set_data('real width', None)
-    window.set_data('real height', None)
+    window.real_width = None
+    window.real_height = None
 
-    handler = window.get_data('configure handler')
+    handler = window.configure_handler
     if handler:
         # The callback is now useless; remove it.
         window.disconnect(handler)
-        window.set_data('configure handler', None)
+        window.configure_handler = None
 
 def ensure_configure_handler(window):
     """Ensure that unset_real_size is called.
     """
-    if not window.get_data('configure handler'):
+    if not hasattr(window, 'configure_handler'):
         new_handler = window.connect('configure-event', unset_real_size)
-        window.set_data('configure handler', new_handler)
+        window.configure_handler = new_handler
 
 def get_width(window):
-    width = window.get_data('real width')
+    width = window.real_width if hasattr(window, 'real_width') else None
     if not width:
         width = window.get_size()[0]
     return width
 
 def get_height(window):
-    height = window.get_data('real height')
+    height = window.real_height if hasattr(window, 'real_height') else None
     if not height:
         height = window.get_size()[1]
     return height
@@ -43,7 +43,7 @@ def get_height(window):
 def set_width(window, width):
     ensure_configure_handler(window)
 
-    window.set_data('real width', width)
+    window.real_width = width
 
     height = get_height(window)
     window.resize(width, height)
@@ -51,7 +51,7 @@ def set_width(window, width):
 def set_height(window, height):
     ensure_configure_handler(window)
 
-    window.set_data('real height', height)
+    window.real_height = height
 
     width = get_width(window)
     window.resize(width, height)
