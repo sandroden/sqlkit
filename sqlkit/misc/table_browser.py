@@ -450,7 +450,7 @@ def create_about_dialog():
         webbrowser.open(link)
 
     about_dialog = Gtk.AboutDialog()
-    Gtk.about_dialog_set_url_hook(func, None)
+    #Gtk.about_dialog_set_url_hook(func, None)
     about_dialog.set_authors(["Sandro Dentella <sandro@e-den.it>"])
     about_dialog.set_license("GPL v.3")
     about_dialog.set_version(sqlkit.__version__)
