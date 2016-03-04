@@ -107,7 +107,7 @@ class TableBrowser(object):
 #                 _('Nullable'), _('Indexes')]
         self.stv = layout.misc.EasyTreeView(cols, model=self.model, tv=self.tv)
         count_column = self.stv.tvc['N.rows']
-        count_cell = count_column.get_cell_renderers()[0]
+        count_cell = count_column.get_cells()[0]
         count_cell.set_property('xalign', 1.0)
         count_column.add_attribute(count_cell, 'visible', self.COUNT_VISIBILITY_COLUMN)
 

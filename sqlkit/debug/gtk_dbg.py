@@ -356,7 +356,7 @@ class show_widgets(object):
         props = GObject.list_properties(widget)
         cols = ['name', 'value', 'owner_type', 'value_type', 'nick']
         a = TreeInfoLayout(cols)
-        cell = a.tvc[1].get_cell_renderers()[0]
+        cell = a.tvc[1].get_cells()[0]
         cell.set_property('editable', True)
         #tv.set_property('resizable', True)
         cell.connect('edited', self.edited_cb, (widget, a.model, 1))
@@ -455,7 +455,7 @@ class show_widgets(object):
         props = parent.list_child_properties()
         cols = ['name', 'value', 'owner_type', 'value_type', 'nick']
         a = TreeInfoLayout(cols)
-        cell = a.tvc[1].get_cell_renderers()[0]
+        cell = a.tvc[1].get_cells()[0]
         cell.set_property('editable', True)
         cell.connect('edited', self.edited_cb_packing, (parent, widget, a.model, 1))
 
@@ -699,11 +699,11 @@ class ShowClassInfo(object):
         self.tv.expand_all()
 
         key_col = self.tv.get_column(0)
-        cell = key_col.get_cell_renderers()[0]
+        cell = key_col.get_cells()[0]
         key_col.set_attributes(cell, markup=0)
 
         type_col = self.tv.get_column(2)
-        cell = type_col.get_cell_renderers()[0]
+        cell = type_col.get_cells()[0]
         cell.set_property('style', Pango.Style.ITALIC)
         type_col.set_attributes(cell, markup=2)
 
@@ -1001,7 +1001,7 @@ class ShowLogs(object):
         self.time = time.time()
         self.last_time = time.time()
         self.model = self.easytv.model
-        cell = self.easytv.tvc['meth'].get_cell_renderers()[0]
+        cell = self.easytv.tvc['meth'].get_cells()[0]
         self.easytv.tvc['meth'].set_attributes(cell, markup=0)
         try:
             self.easytv.tvc['tooltips'].props.visible = False

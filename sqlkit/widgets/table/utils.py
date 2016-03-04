@@ -232,7 +232,7 @@ def zoom_to_fit(treeview, resize=True):
     """
     columns = treeview.get_columns()
     for column in columns:
-        renderers = column.get_cell_renderers()
+        renderers = column.get_cells()
         for renderer in renderers:
             if hasattr(renderer, 'fixed_width') and renderer.fixed_width:
                 # Let's fall back to the usual size method...

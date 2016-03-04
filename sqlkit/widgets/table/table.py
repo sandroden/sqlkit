@@ -512,7 +512,7 @@ class SqlTable(sqlwidget.SqlWidget):
         columns = [c for c in self.treeview.get_columns() if c.get_visible()]
         colnum = columns.index(col)
         if colnum + 1 < len(columns):
-            #cell = col.get_cell_renderers()[0]
+            #cell = col.get_cells()[0]
             #cell.emit('edited', path, )
             #self.treeview.set_cursor( path, columns[colnum + 1], True)
             #GObject.idle_add(self.treeview.set_cursor, path, columns[colnum + 1], True)

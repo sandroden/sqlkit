@@ -34,7 +34,7 @@ class GreedyTreeView(Gtk.TreeView):
 
         for column_index in range(len(titles)):
             column = columns[column_index]
-            cell_renderers = column.get_cell_renderers()
+            cell_renderers = column.get_cells()
             renderers_widths = []
             # We have 3 possibilities:
             # 1) the renderer has a fixed width (the member "fixed_width" is set in

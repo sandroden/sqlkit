@@ -243,7 +243,7 @@ class GenericColumn(GObject.GObject):
         :param editable: boolean
         """
         self.editable = editable
-        for cell in self.column.get_cell_renderers():
+        for cell in self.column.get_cells():
             cell.set_property('editable', editable)
 
     def cell_set_property(self, cell):
@@ -329,7 +329,7 @@ class BooleanColumn(GenericColumn):
         :param editable: boolean
         """
         self.editable = editable
-        for cell in self.column.get_cell_renderers():
+        for cell in self.column.get_cells():
             cell.set_property('activatable', editable)
 
     def setup_cell_renderers(self, cell_renderer=None):

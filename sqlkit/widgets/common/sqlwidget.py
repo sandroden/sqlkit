@@ -2158,7 +2158,7 @@ class SqlWidget(GObject.GObject):
                           1, getattr(self.gui_fields[field_name], key, ''))
 
         try:
-            cell = self.tvcolumns[field_name].get_cell_renderers()[0]
+            cell = self.tvcolumns[field_name].get_cells()[0]
             model.set(model.append(), 0,  'width', 1, cell.get_data('width'))
         except:
             pass
