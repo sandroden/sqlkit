@@ -350,7 +350,7 @@ class show_widgets(object):
         menu.append(item)
 
         menu.show_all()
-        menu.popup(None, None, None, ev.button, ev.time)
+        menu.popup(None, None, None, None, ev.button, ev.time)
 
     def show_widget_properties(self, menu, widget):
         props = GObject.list_properties(widget)

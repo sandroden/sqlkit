@@ -313,7 +313,7 @@ class ImageWidget(Gtk.VBox):
     def popup_menu(self, event):
 
         menu = self.ui_manager.get_widget('/ImagePopup')
-        menu.popup(None, None, None, event.button, event.time)
+        menu.popup(None, None, None, None, event.button, event.time)
 
     def upload_image(self, action):
 

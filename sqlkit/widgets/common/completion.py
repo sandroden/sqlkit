@@ -684,7 +684,7 @@ class SimpleCompletion(GObject.GObject):
             menu.append(item)
 
         menu.show_all()
-        menu.popup(None, None, None, ev.button, ev.time)
+        menu.popup(None, None, None, None, ev.button, ev.time)
 
         return True
 

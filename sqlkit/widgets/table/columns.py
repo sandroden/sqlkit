@@ -935,8 +935,8 @@ class ColumnMenuProxy(object):
         menu.append(item)
 
         menu.show_all()
-        menu.popup(None, None, None, ev.button, ev.time)
-        #menu.popup(None, None, None, 1, 1)
+        menu.popup(None, None, None, None, ev.button, ev.time)
+        #menu.popup(None, None, None, None, 1, 1)
 
     def fill_menu_hide_fields(self):
         """
@@ -1407,7 +1407,7 @@ class View(object):
         if event.button == 3:
             self._field_name = field_name
             menu = self.ui_manager.get_widget('/TreePopup')
-            menu.popup(None, None, None, event.button, event.time)
+            menu.popup(None, None, None, None, event.button, event.time)
 
         return menu
 

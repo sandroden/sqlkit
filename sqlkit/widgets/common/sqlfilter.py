@@ -1336,4 +1336,4 @@ class FilterWidget(object):
 #     def pop_menu(self, wdg, ev, num_button):
 #         print "POP_MENU", self, self.menu
 #         if ev.button == num_button:
-#             self.menu.popup(None, None, None, ev.button, ev.time )
+#             self.menu.popup(None, None, None, None, ev.button, ev.time )
