@@ -72,11 +72,11 @@ def set_height_request(treeview, rows=None):
             rows = 30
 
     column = treeview.get_column(0)
-    cell_height = column.cell_get_size()[4]
+    cell_height = column.cell_get_size()[3]
     if not cell_height:
         while Gtk.events_pending():
             Gtk.main_iteration()
-        cell_height = column.cell_get_size()[4]
+        cell_height = column.cell_get_size()[3]
 
     spacing = treeview.style_get_property('vertical-separator')
 
