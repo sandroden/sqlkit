@@ -130,6 +130,7 @@ import os
 from decimal import Decimal
 from datetime import timedelta, time
 
+from gi.repository import Gdk
 from gi.repository import Gtk
 from gi.repository import GObject
 
