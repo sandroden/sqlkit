@@ -82,7 +82,7 @@ class ImageWidget(Gtk.VBox):
     __gtype_name__ = 'ImageWidget'
 
     __gproperties__ = {
-        'image_path': (GObject.TYPE_PYOBJECT,                      # type
+        'image-path': (GObject.TYPE_PYOBJECT,                      # type
                        'Image',                                   # nick name
                        'The Image currently rendered',            # description
                        GObject.PARAM_READWRITE),                  # flags
@@ -105,8 +105,8 @@ class ImageWidget(Gtk.VBox):
                    1, 10000, 250,
                    GObject.PARAM_READWRITE),                  # flags
 
-        'scale_factor': (GObject.TYPE_FLOAT,                           # type
-                         'scale_factor',                                   # nick name
+        'scale-factor': (GObject.TYPE_FLOAT,                           # type
+                         'scale-factor',                                   # nick name
                          'The scale factor for the pixbuf ',             # description
                          0, 1000, 1,
                          GObject.PARAM_READABLE),                  # flags
@@ -116,8 +116,8 @@ class ImageWidget(Gtk.VBox):
                       False,
                       GObject.PARAM_READWRITE),                  # flags
 
-        'strip_dir': (GObject.TYPE_STRING,                           # type
-                      'strip_dir',                                   # nick name
+        'strip-dir': (GObject.TYPE_STRING,                           # type
+                      'strip-dir',                                   # nick name
                       'A dir name to strip from image name when writing in status bar ',
                       '',
                       GObject.PARAM_READWRITE),                  # flags
@@ -232,12 +232,12 @@ class ImageWidget(Gtk.VBox):
             self._image.set_size_request(self.props.width, value)
         elif property.name == 'scale':
             self.scale = value
-        elif property.name == 'image_path':
+        elif property.name == 'image-path':
             self.set_image(value)
             self.image_path = value
         elif property.name == 'show-name':
             self.status_bar.pros.visibile = value
-        elif property.name == 'strip_dir':
+        elif property.name == 'strip-dir':
             self.status_bar.strip_dir = value
         else:
             raise AttributeError, 'unknown property %s' % property.name
@@ -245,18 +245,18 @@ class ImageWidget(Gtk.VBox):
     def do_get_property(self, property):
 
         if property.name == 'width':
-            return self.width or 250
+            return self.width if hasattr(self, "width") else 250
         elif property.name == 'height':
-            return self.height or 250
+            return self.height if hasattr(self, "height") else 250
         elif property.name == 'scale':
             return self.scale
-        elif property.name == 'image_path':
+        elif property.name == 'image-path':
             return self.image_path
-        elif property.name == 'scale_factor':
+        elif property.name == 'scale-factor':
             return self.scale_factor
         elif property.name == 'show-name':
             return self.status_bar.props.visible
-        elif property.name == 'strip_dir':
+        elif property.name == 'strip-dir':
             return self.status_bar.strip_dir or ''
         else:
             raise AttributeError, 'unknown property %s' % property.name
