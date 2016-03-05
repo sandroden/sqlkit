@@ -74,6 +74,7 @@ At this point you can sort the output on each column and even get totals in it.
   
 """
 import re
+from gi.repository import Gdk
 from gi.repository import Gtk
 import warnings
 from datetime import *
