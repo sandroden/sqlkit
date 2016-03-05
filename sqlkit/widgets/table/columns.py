@@ -280,7 +280,7 @@ class GenericColumn(GObject.GObject):
         label.show()
 
     def realize_cb(self, widget):
-        watch = Gdk.Cursor.new(Gdk.HAND2)
+        watch = Gdk.Cursor.new(Gdk.CursorType.HAND2)
         widget.window.set_cursor(watch)
 
     def is_expandable(self):

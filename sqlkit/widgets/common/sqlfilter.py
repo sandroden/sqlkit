@@ -250,7 +250,7 @@ class FilterPanel(object):
             ('tb=gtk-close', 'clicked', self.hide),
             ('tb=gtk-refresh', 'clicked', self.reload_cb)
         )
-        self.w['label-cursor'] = Gdk.Cursor.new(Gdk.HAND1)
+        self.w['label-cursor'] = Gdk.Cursor.new(Gdk.CursorType.HAND1)
         if 'TV=out' in self.w:
             self._add_treeview()
         if 'N.0' in self.w:
