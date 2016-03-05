@@ -229,7 +229,7 @@ class SimpleCompletion(GObject.GObject):
 #        completion.set_property('popup-single-match', False)   ???
         completion.connect('match-selected', self.match_selected_cb, self.field_name)
         renderer = Gtk.CellRendererText()
-        completion.pack_start(renderer, True, True, 0)
+        completion.pack_start(renderer, True)
 
         completion.add_attribute(renderer, 'markup', self.MARKUP_COL)
 
