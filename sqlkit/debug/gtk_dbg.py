@@ -50,7 +50,7 @@ class wshow(object):
             text = ''
 
         self.model.set(new,
-                       0, "%s %s" % ((widget.name or '').strip(), text),
+                       0, "%s %s" % ((widget.get_name() or '').strip(), text),
                        1, self.get_class_str(widget),
                        2, self.get_class_img(widget),
                        3, widget,
