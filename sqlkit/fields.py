@@ -1473,7 +1473,7 @@ class ImageField(VarcharField):
 
         self.thumbnail_size = self.column.info.get('thumbnail_size', self.thumbnail_size)
         self.default_size = self.column.info.get('default_size', self.default_size)
-        self.image_formats = ["." + x['name'] for x in GdkPixbuf.Pixbuf.get_formats()] + ['.jpg']
+        self.image_formats = ["." + x.get_name() for x in GdkPixbuf.Pixbuf.get_formats()] + ['.jpg']
 
     def clean_path(self, path):
         """
