@@ -235,7 +235,7 @@ class DateEdit(Gtk.HBox):
 
     def position_popup(self):
         req = self._cal_popup.size_request()
-        (x, y) = Gdk.Window.get_origin(self._date_button.window)
+        (x, y) = Gdk.Window.get_origin(self._date_button.get_window())
 
         x += self._date_button.allocation.x
         y += self._date_button.allocation.y
@@ -292,7 +292,7 @@ class DateEdit(Gtk.HBox):
 
     def date_button_clicked_cb(self, widget):
         # Temporarily grab pointer and keyboard on a window we know exists
-        if not self.popup_grab_on_window(widget.window, Gtk.get_current_event_time()):
+        if not self.popup_grab_on_window(widget.get_window(), Gtk.get_current_event_time()):
             return
 
         # set calendar date

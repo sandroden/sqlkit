@@ -467,10 +467,10 @@ class Layout(object):
             self.builder = Gtk.Builder()
 
             xml = self.xml()
-            try:
-                self.builder.add_from_string(xml)
-            except:  # gtk 2.12 of Builder.ad_from_string() need the length
-                self.builder.add_from_string(xml, len(xml))
+            #try:
+            self.builder.add_from_string(xml)
+            #except:  # gtk 2.12 of Builder.ad_from_string() need the length
+            #    self.builder.add_from_string(xml, len(xml))
 
             self.widgets = {}
             for key, val in self.elements.iteritems():
