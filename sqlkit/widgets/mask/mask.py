@@ -112,7 +112,7 @@ class SqlMask(sqlwidget.SqlWidget):
         for field_name in self.mapper_info.fields.keys():
             if field_name in self.labels:
                 lbl = self.labels[field_name]
-                ev_wdg = self.labels[field_name].parent
+                ev_wdg = self.labels[field_name].get_parent()
 
                 ev_wdg.connect('enter-notify-event', ene_cb)
                 ev_wdg.connect('leave-notify-event', lne_cb)
@@ -162,7 +162,7 @@ class SqlMask(sqlwidget.SqlWidget):
 
         ## add click that pops filter_panel
         for field_name, label in self.labels.iteritems():
-            event_box = label.parent
+            event_box = label.get_parent()
             event_box.connect('button-press-event', self.button_press_event_cb, field_name)
 
     def _set_arrows_sensitivness(self, display_idx=None):
