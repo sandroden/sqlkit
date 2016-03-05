@@ -237,10 +237,11 @@ class DateEdit(Gtk.HBox):
         req = self._cal_popup.size_request()
         (ignore, x, y) = Gdk.Window.get_origin(self._date_button.get_window())
 
-        x += self._date_button.allocation.x
-        y += self._date_button.allocation.y
-        bwidth = self._date_button.allocation.width
-        bheight = self._date_button.allocation.height
+        allocation = self._date_button.get_allocation()
+        x += allocation.x
+        y += allocation.y
+        bwidth = allocation.width
+        bheight = allocation.height
 
         x += bwidth - req.width
         y += bheight
