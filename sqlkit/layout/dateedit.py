@@ -307,7 +307,7 @@ class DateEdit(Gtk.HBox):
         self._calendar.grab_focus()
 
         # Now transfer our grabs to the popup window, this should always succed
-        self.popup_grab_on_window(self._cal_popup.window, Gtk.get_current_event_time())
+        self.popup_grab_on_window(self._cal_popup.get_window(), Gtk.get_current_event_time())
 
     def day_selected_cb(self, widget):
         year, month, day = self._calendar.get_date()
