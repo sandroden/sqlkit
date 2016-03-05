@@ -250,7 +250,8 @@ class LWidget(object):
             return ""
 
         allowed_pack_properties = ()
-        for i in Gtk.ContainerClass.list_child_properties(ContGtkClass):
+        klass = getattr(Gtk, ContGtkClass[3:])
+        for i in klass.list_child_properties():
             allowed_pack_properties += (i.name,)
 
         xml = ["<packing>"]
