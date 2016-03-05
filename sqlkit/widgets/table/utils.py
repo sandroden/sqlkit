@@ -190,14 +190,14 @@ def set_optimal_width(treeview, max_pixels=None):
 
     # ... then we can take the size...
 
-    new_width = toplevel.size_request()[0]
+    new_width = toplevel.size_request().width
 
     # ... add the size of bars...
     bars_width = 0
     for index in range(len(scrolledwindows)):
         # (not needed if the policy hides it)
         if scrolledwindows_policies[index][0] == Gtk.PolicyType.ALWAYS:
-            bars_width += scrolledwindows_hscrollbars[index].size_request()[0]
+            bars_width += scrolledwindows_hscrollbars[index].size_request().width
         scrolledwindows[index].set_policy(*scrolledwindows_policies[index])
 #    print "width:", new_width
 

@@ -241,7 +241,7 @@ class DateEdit(Gtk.HBox):
         bwidth = self._date_button.allocation.width
         bheight = self._date_button.allocation.height
 
-        x += bwidth - req[0]
+        x += bwidth - req.width
         y += bheight
 
         if x < 0:

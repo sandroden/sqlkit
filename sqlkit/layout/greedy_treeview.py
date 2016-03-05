@@ -101,7 +101,7 @@ class GreedyTreeView(Gtk.TreeView):
         if width_known:
             total_desired_width = sum(widths)
         else:
-            total_desired_width = treeview.size_request()[0]
+            total_desired_width = treeview.size_request().width
 
         # If we happened to mismatch because of missing introspection, let's
         # trust in Gtk...

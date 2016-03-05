@@ -55,7 +55,8 @@ class CellEditableCalendar(Gtk.TextView, Gtk.CellEditable):
         child = popup.get_children()[0]
         child.show_all()
 
-        popup_width, popup_height = popup.size_request()
+        req = popup.size_request()
+        popup_width, popup_height = req.width, req.height
         x, y = Gdk.Window.get_origin(widget.window)
 
         # path, col, x1, y1 = widget.get_path_at_pos(event.x, event.y)
