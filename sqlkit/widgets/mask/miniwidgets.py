@@ -541,7 +541,7 @@ class TextWidget(Widget):
         buff = self.gtkwidget.get_buffer()
         ts = buff.get_iter_at_offset(0)
         te = buff.get_iter_at_offset(-1)
-        text = unicode(buff.get_text(ts, te))
+        text = unicode(buff.get_text(ts, te, True))
         return text
 
 class BooleanWidget(Widget):
