@@ -138,6 +138,10 @@ def get_screen_width(effective=True):
     Ugly hack. Couldn't find anything better. And in fact it's not strange,
     since GNOME HIGs apparently don't like this.
     """
+    
+    # TODO: (gbtami)
+    # This is a temporary fix to
+    # AttributeError: 'gtk.gdk.X11Window' object has no attribute 'property_get'
     return Gdk.Screen.width()
     
     root = Gdk.get_default_root_window()
