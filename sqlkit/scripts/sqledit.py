@@ -51,6 +51,13 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
+PY2 = sys.version_info[0] == 2
+if PY2:
+    # This hack fixes some UnicodDecode Errors caused pygi not making
+    # magic hidden automatic unicode conversion pygtk did
+    reload(sys)
+    sys.setdefaultencoding("utf-8")
+    
 if not 'LANG' in os.environ:
     my_locale, my_code = locale.getdefaultlocale()
     LANG = "%s.%s" % (my_locale, my_code)
