@@ -432,8 +432,8 @@ class TreeShow(object):
         tv.set_model(ts)
         for i in data:
             iter = ts.append(None)
-            ts.set(iter, 0, i[0], 1, i[1],  2, i[2],
-                   3, i[3],  4, i[4])
+            ts.set(iter, 0, i[0], 1, i[1],  2, str(i[2]),
+                   3, str(i[3]),  4, str(i[4]))
 
 
 class Example(object):
