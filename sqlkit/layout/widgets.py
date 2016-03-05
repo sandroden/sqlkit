@@ -623,7 +623,7 @@ class ToolButton(LWidget):
 
     def _class_specific(self):
         #if re.match("gtk-",self.val):
-        if Gtk.icon_factory_lookup_default(self.val):
+        if Gtk.IconFactory.lookup_default(self.val):
             del self.properties['label']
             #self.properties['stock_id'] = self.val
 
@@ -752,7 +752,7 @@ class Image(LWidget):
         ## self.var is probably the name of a image file
         ## let's check, look for it and set it with a full path
         #if self.var.startswith('gtk-'):
-        if Gtk.icon_factory_lookup_default(self.var):
+        if Gtk.IconFactory.lookup_default(self.var):
             self.properties['icon_name'] = self.var
             self.properties['icon_size'] = self.w
             self.w = None
