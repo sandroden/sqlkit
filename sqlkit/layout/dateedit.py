@@ -235,7 +235,7 @@ class DateEdit(Gtk.HBox):
 
     def position_popup(self):
         req = self._cal_popup.size_request()
-        (x, y) = Gdk.Window.get_origin(self._date_button.get_window())
+        (ignore, x, y) = Gdk.Window.get_origin(self._date_button.get_window())
 
         x += self._date_button.allocation.x
         y += self._date_button.allocation.y
