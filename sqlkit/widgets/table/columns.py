@@ -744,6 +744,7 @@ class ImageColumn(GenericColumn):
         """
 
         cell = cell_renderer or self.RENDERER()
+        cell.thumbnail_path = None
         self.column.pack_start(cell, True)
         self.cell_set_property(cell)
 
