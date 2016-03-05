@@ -152,7 +152,7 @@ class DateEdit(Gtk.HBox):
         self._entry = self._date_entry
         self._date_entry.set_max_length(15)
         self._date_entry.set_width_chars(10)
-        self._align_entry = Gtk.Alignment.new(0, 0)
+        self._align_entry = Gtk.Alignment.new(0, 0, 0, 0)
         #self.pack_start(self._date_entry, True, True, 0)
         date_box.add(self._align_entry)
         date_box.child_set_property(self._align_entry, 'expand', False)
