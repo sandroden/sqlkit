@@ -198,9 +198,9 @@ class DateEdit(Gtk.HBox):
 
         # the calendar
         self._calendar = Gtk.Calendar()
-        self._calendar.set_display_options(Gtk.CalendarDisplayOption.SHOW_DAY_NAMES
+        self._calendar.set_display_options(Gtk.CalendarDisplayOptions.SHOW_DAY_NAMES
                                        # some space around the widgets, and two boxes
-                                       | Gtk.CalendarDisplayOption.SHOW_HEADING)
+                                       | Gtk.CalendarDisplayOptions.SHOW_HEADING)
         frame.add(self._calendar)
 
         self._calendar.show()
