@@ -1665,7 +1665,7 @@ class ImageField(VarcharField):
 
         pixbuf = GdkPixbuf.Pixbuf.new_from_file(image_path)
         pixbuf = self.scale_pixbuf(pixbuf, width, height)
-        pixbuf.save(dst_path, 'jpeg')
+        pixbuf.savev(dst_path, 'jpeg', "", "")
 
     def create_thumbnail(self, filename, thumbnail_path=None):
         """
@@ -1682,7 +1682,7 @@ class ImageField(VarcharField):
         thumbnail_path = thumbnail_path or self.get_thumbnail_path_with_size(filename)
         pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
         pixbuf = self.scale_pixbuf(pixbuf, *self.thumbnail_size)
-        pixbuf.save(thumbnail_path, 'jpeg')
+        pixbuf.savev(thumbnail_path, 'jpeg', "", "")
 
     def get_thumbnail(self, path=None, complete_path=False):
         """
