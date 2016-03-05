@@ -1524,7 +1524,7 @@ class View(object):
         else:
             col = self.get_first_editable_col()
         self.treeview.scroll_to_cell(path, col)
-        self.treeview.set_cursor(path=path, focus_column=col,  start_editing=True)
+        self.treeview.set_cursor(path, col, True)
 
     def get_selected_path(self):
         """Return the path of the selected row or None
