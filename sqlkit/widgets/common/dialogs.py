@@ -17,6 +17,7 @@ import os
 import re
 
 from gi.repository import Gtk
+from gi.repository import GdkPixbuf
 
 from sqlkit import _
 

@@ -89,7 +89,7 @@ class DemoSql(Demo):
             'sqlkit': sqlkit,
             'SqlMask': SqlMask,
             'SqlTable': SqlTable,
-            'gtk': gtk,
+            #'gtk': gtk,
             'db': model.db,
             'model': model,
 

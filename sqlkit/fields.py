@@ -239,6 +239,8 @@ from datetime import datetime, time, date, timedelta
 from decimal import Decimal
 
 from gi.repository import GObject
+from gi.repository import GdkPixbuf
+
 import babel
 import sqlalchemy
 from sqlalchemy.schema import ColumnDefault
