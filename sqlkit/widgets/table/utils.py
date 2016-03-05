@@ -138,6 +138,8 @@ def get_screen_width(effective=True):
     Ugly hack. Couldn't find anything better. And in fact it's not strange,
     since GNOME HIGs apparently don't like this.
     """
+    return Gdk.Screen.width()
+    
     root = Gdk.get_default_root_window()
     prop = Gdk.atom_intern('_NET_WORKAREA', False)
     fields = root.property_get(prop)
@@ -208,8 +210,8 @@ def set_optimal_width(treeview, max_pixels=None):
 
     available = get_screen_width()
 
-    if toplevel.window:
-        allocation = toplevel.window.get_frame_extents()
+    if toplevel.get_window():
+        allocation = toplevel.get_window().get_frame_extents()
         border = allocation.width - get_width(toplevel)
 #        print "border", border
     else:
