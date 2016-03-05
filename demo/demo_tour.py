@@ -206,7 +206,11 @@ class Demo(object):
         self.note.set_text(demo.doc)
 
         ### exec the example
-        GLOB = {'Layout': Layout, 'layout': layout, 'gtk': gtk}
+        GLOB = {
+            'Layout': Layout,
+            'layout': layout,
+            #'gtk': gtk
+            }
         execfile(demo.filename, GLOB)
 
         self.xml.set_text(GLOB['l'].xml())
