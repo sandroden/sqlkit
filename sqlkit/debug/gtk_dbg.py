@@ -1,6 +1,7 @@
 from gi.repository import Gtk
 from gi.repository import GObject
 from gi.repository import Pango
+from gi.repository import GdkPixbuf
 from sqlkit.layout import layout
 import debug as dbg
 import re
