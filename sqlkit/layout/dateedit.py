@@ -161,7 +161,8 @@ class DateEdit(Gtk.HBox):
         self._date_entry.show()
 
         ## default style
-        self._default_base = self._date_entry.get_style().base[Gtk.StateType.NORMAL]
+        base = self._date_entry.get_style().base
+        self._default_base = base[Gtk.StateType.NORMAL] if base else None
 
         # the date button
         self._date_button = Gtk.Button()
