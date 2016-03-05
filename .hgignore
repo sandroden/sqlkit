@@ -1,4 +1,5 @@
 syntax:glob
+*.pyc
 Makefile
 debian/python-sqlkit
 build
