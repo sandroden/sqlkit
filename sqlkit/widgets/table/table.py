@@ -417,7 +417,7 @@ class SqlTable(sqlwidget.SqlWidget):
             obj = self.modelproxy.modelstore.get_value(iter, 0)
             if isinstance(obj, self.totals.total_class):
                 obj = None
-            field_name = column.get_data('field_name')
+            field_name = column.field_name
             self._enforce_first_click_just_selects(path, column, field_name)
         except TypeError, e:
             obj = None
@@ -452,10 +452,10 @@ class SqlTable(sqlwidget.SqlWidget):
             selected_path = None
 
         if not path == selected_path and self.gui_fields[field_name].type == bool:
-            if column.get_data('cell').get_property('mode') == Gtk.CellRendererMode.ACTIVATABLE:
-                column.get_data('cell').set_property('mode', Gtk.CellRendererMode.INERT)
+            if column.cell.get_property('mode') == Gtk.CellRendererMode.ACTIVATABLE:
+                column.cell.set_property('mode', Gtk.CellRendererMode.INERT)
                 GObject.idle_add(
-                    column.get_data('cell').set_property, 'mode', Gtk.CellRendererMode.ACTIVATABLE)
+                    column.cell.set_property, 'mode', Gtk.CellRendererMode.ACTIVATABLE)
 
     def on_zoom_fit(self, widget, *args):
 
@@ -518,7 +518,7 @@ class SqlTable(sqlwidget.SqlWidget):
             #GObject.idle_add(self.treeview.set_cursor, path, columns[colnum + 1], True)
 
             next_column = columns[colnum + 1]
-            next_field_name = next_column.get_data('field_name')
+            next_field_name = next_column.field_name
             GObject.idle_add(self.treeview.set_cursor, path,
                              next_column, self.get_direct_edit(next_field_name))
         else:
@@ -529,7 +529,7 @@ class SqlTable(sqlwidget.SqlWidget):
             path = tmodel.get_path(titer)
 
             next_column = columns[0]
-            next_field_name = next_column.get_data('field_name')
+            next_field_name = next_column.field_name
             GObject.idle_add(self.treeview.set_cursor, path, next_column,
                              self.get_direct_edit(next_field_name))
         return False
@@ -1648,7 +1648,7 @@ class SqlTable(sqlwidget.SqlWidget):
             ## NOTE: when this function return a True value, iteration terminates!!!
             obj = model.get_value(iter, 0)
             view = self.views[view_name]
-            field_list = [c.get_data('field_name') for c in view.treeview.get_columns()
+            field_list = [c.field_name for c in view.treeview.get_columns()
                           if c.get_property('visible')]
 
             ## getattr(obj, f, obj): obj is used when the column does not have a 1-1 mapping

@@ -55,7 +55,7 @@ class MultilineCellRenderer(Gtk.CellRendererText):
             return
 
         if event.keyval in (Gdk.KEY_Return, Gdk.KEY_KP_Enter, Gdk.KEY_Tab):
-            self.emit("edited", editor.get_data("path"), editor.get_text())
+            self.emit("edited", editor.path, editor.get_text())
             editor.remove_widget()
 
             if event.keyval in (Gdk.KEY_Tab,):

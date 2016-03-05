@@ -245,19 +245,19 @@ class ImageWidget(Gtk.VBox):
     def do_get_property(self, property):
 
         if property.name == 'width':
-            return self.get_data('width') or 250
+            return self.width or 250
         elif property.name == 'height':
-            return self.get_data('height') or 250
+            return self.height or 250
         elif property.name == 'scale':
-            return self.get_data('scale')
+            return self.scale
         elif property.name == 'image_path':
-            return self.get_data('image_path')
+            return self.image_path
         elif property.name == 'scale_factor':
-            return self.get_data('scale_factor')
+            return self.scale_factor
         elif property.name == 'show-name':
             return self.status_bar.props.visible
         elif property.name == 'strip_dir':
-            return self.status_bar.get_data('strip_dir') or ''
+            return self.status_bar.strip_dir or ''
         else:
             raise AttributeError, 'unknown property %s' % property.name
 

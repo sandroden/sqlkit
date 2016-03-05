@@ -1302,7 +1302,7 @@ class FilterWidget(object):
         """
         return operator set in widget
         """
-        return self.operator.get_menu().get_active().get_data('value')
+        return self.operator.get_menu().get_active().value
 
     def get_value(self):
         """

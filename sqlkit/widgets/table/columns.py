@@ -229,7 +229,7 @@ class GenericColumn(GObject.GObject):
         event = Gdk.Event(Gdk.EventType.BUTTON_PRESS)
         event.button = 1
         treeview = column.get_tree_view()
-        view = treeview.get_data('view')
+        view = treeview.view
         view.menu.popup_col_menu(event, treeview, self.field_name)
 
         return True
@@ -530,7 +530,7 @@ class MultilineColumn(VarcharColumn):
 
         if self.master.cell_entry:
             self.master.cell_validate()
-            cell.emit("edited", cell.editor.get_data("path"), cell.editor.get_text())
+            cell.emit("edited", cell.editor.path, cell.editor.get_text())
             cell.editor.remove_widget()
 
     def editable_connects(self, editable):
@@ -726,7 +726,7 @@ class ImageColumn(GenericColumn):
         model = treeview.get_model()
         obj = model.get_value(model.get_iter(path), 0)
         file_path = getattr(obj, self.field_name)
-        if file_path and (column.get_data('field_name') == self.field_name):
+        if file_path and (column.field_name == self.field_name):
             tooltip.set_text(file_path)
             return True
 
@@ -781,7 +781,7 @@ class ImageColumn(GenericColumn):
                     thumbnail_path = value and self.field.get_thumbnail(
                         value, complete_path=True) or None
                     if thumbnail_path:
-                        if cell.get_data('thumbnail_path') != thumbnail_path:
+                        if cell.thumbnail_path != thumbnail_path:
                             pixbuf = GdkPixbuf.Pixbuf.new_from_file(
                                 thumbnail_path) if thumbnail_path else None
 
@@ -1200,7 +1200,7 @@ class View(object):
         try:
             path, column, x_in_cell, y_in_cell = self.treeview.get_path_at_pos(x, y)
             #iter = self.master.modelproxy.modelstore.get_iter(path)
-            field_name = column.get_data('field_name')
+            field_name = column.field_name
             return field_name
         except TypeError, e:
             return
@@ -1495,7 +1495,7 @@ class View(object):
 
         columns = self.treeview.get_columns()
         second_choice = []
-        for field_name in [c.get_data('field_name') for c in self.treeview.get_columns()]:
+        for field_name in [c.field_name for c in self.treeview.get_columns()]:
             if self.tvcolumns[field_name].get_visible() and self.master.is_editable(field_name):
                 try:
                     has_usable_default = self.master.gui_fields[field_name].get_default()

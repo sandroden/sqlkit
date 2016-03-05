@@ -2159,7 +2159,7 @@ class SqlWidget(GObject.GObject):
 
         try:
             cell = self.tvcolumns[field_name].get_cells()[0]
-            model.set(model.append(), 0,  'width', 1, cell.get_data('width'))
+            model.set(model.append(), 0,  'width', 1, cell.width)
         except:
             pass
 
