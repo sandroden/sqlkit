@@ -139,7 +139,7 @@ def get_screen_width(effective=True):
     since GNOME HIGs apparently don't like this.
     """
     root = Gdk.get_default_root_window()
-    prop = Gdk.atom_intern('_NET_WORKAREA')
+    prop = Gdk.atom_intern('_NET_WORKAREA', False)
     fields = root.property_get(prop)
     if sys.platform.startswith('win') or not fields:
         # Notice Windows will fallback here and assume there are no lateral panels.
