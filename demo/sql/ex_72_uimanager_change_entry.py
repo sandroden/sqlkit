@@ -12,6 +12,8 @@ and you can right click on the table and you will notice that "I'm not the other
 
 """
 
+from gi.repository import Gtk
+
 
 def test(item):
     print "Here I am!"
