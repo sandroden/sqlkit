@@ -1258,7 +1258,7 @@ class FilterWidget(object):
         for op in operators:
             entry = Gtk.MenuItem(op)
             menu.append(entry)
-            entry.set_data('value', op)
+            entry.value = op
             entry.set_tooltip_text(OP_MSGID[op])
         operator.set_history(0)
 

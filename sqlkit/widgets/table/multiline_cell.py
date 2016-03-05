@@ -78,11 +78,11 @@ class MultilineCellRenderer(Gtk.CellRendererText):
         editor.set_text(self.props.text)
         editor.set_size_request(cell_area.width * 2, cell_area.height * 2)
         editor.set_border_width(min(self.props.xpad, self.props.ypad))
-        editor.set_data("path", path)
+        editor.path = path
         editor.connect("focus-out-event", self._on_editor_focus_out_event)
         editor.connect("key-press-event", self._on_editor_key_press_event)
         editor.connect("populate-popup", self._on_editor_populate_popup)
         editor.show()
-        self.set_data('editor', editor)
+        #self.set_data('editor', editor)
         self.editor = editor
         return editor

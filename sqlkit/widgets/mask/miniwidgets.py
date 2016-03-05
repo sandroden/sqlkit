@@ -332,7 +332,7 @@ class ReadOnlyWidget(Widget):
 
     def set_value(self, value, shown=True, initial=False):
 
-        self.gtkwidget.set_data('value', value)
+        self.gtkwidget.value = value
         string_value = self.field.get_human_value(value)
 #         if self.completion:
 #             string_value = self.completion.lookup_value(value)

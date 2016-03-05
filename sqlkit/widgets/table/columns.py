@@ -93,7 +93,7 @@ class GenericColumn(GObject.GObject):
         """
 
         column = Gtk.TreeViewColumn(title.replace('_', ' '))
-        column.set_data('field_name', self.field_name)  # used when reordering columns
+        column.field_name = self.field_name  # used when reordering columns
         column.set_resizable(self.RESIZE)
         column.set_expand(self.EXPAND)
         column.set_reorderable(self.REORDER)
@@ -341,7 +341,7 @@ class BooleanColumn(GenericColumn):
         self.cell_set_property(cell)
 
         self.column.pack_start(cell, True)
-        self.column.set_data('cell', cell)
+        self.column.cell = cell
 
         ## connect
         cell.connect('editing-canceled', self.editing_canceled_cb)  # ???
@@ -435,7 +435,7 @@ class VarcharColumn(GenericColumn):
 
         GenericColumn.setup_cell_renderers(self, cell_renderer=cell)
         cell.set_property('ellipsize', Pango.EllipsizeMode.END)
-        cell.set_data('width', width)
+        cell.width = width
 
         self.set_alignment(cell)
         return cell
@@ -512,7 +512,7 @@ class MultilineColumn(VarcharColumn):
 
         GenericColumn.setup_cell_renderers(self, cell_renderer=cell)
         cell.set_property('ellipsize', Pango.EllipsizeMode.END)
-        cell.set_data('width', width)
+        cell.width = width
 
         return cell
 
@@ -774,7 +774,7 @@ class ImageColumn(GenericColumn):
                 if not self.field.exists(value):
                     cell.set_property('pixbuf', None)
                     cell.set_property('stock-id', 'gtk-missing-image')
-                    cell.set_data('thumbnail_path', None)
+                    cell.thumbnail_path = None
                     return
 
                 if self.field.is_image(value):
@@ -787,31 +787,31 @@ class ImageColumn(GenericColumn):
 
                             cell.set_property('pixbuf', pixbuf)
                             cell.set_property('stock-id', None)
-                            cell.set_data('thumbnail_path', thumbnail_path)
+                            cell.thumbnail_path = thumbnail_path
                     else:
                         cell.set_property('pixbuf', None)
                         cell.set_property('stock-id', Gtk.STOCK_MISSING_IMAGE)
-                        cell.set_data('thumbnail_path', thumbnail_path)
+                        cell.thumbnail_path = thumbnail_path
 
                 else:
                     cell.set_property('pixbuf', None)
                     cell.set_property('stock-id', 'gtk-file')
-                    cell.set_data('thumbnail_path', None)
+                    cell.thumbnail_path = None
             else:
                 cell.set_property(prop_name, None)
-                cell.set_data('thumbnail_path', None)
+                cellthumbnail_path = None
                 cell.set_property('stock-id', None)
 
         ## TOTALS
         elif hasattr(self.master, 'totals') and isinstance(obj, self.master.totals.total_class):
             cell.set_property(prop_name, None)
-            cell.set_data('thumbnail_path', None)
+            cell.thumbnail_path = None
             cell.set_property('stock-id', None)
 
         ## HEADERS
         else:
             cell.set_property(prop_name, None)
-            cell.set_data('thumbnail_path', None)
+            cell.thumbnail_path = None
             cell.set_property('stock-id', None)
 
 class CellEntry(object):
@@ -1081,7 +1081,7 @@ class View(object):
         self.name = name
         self.treeview = treeview
         self.read_only = ro
-        treeview.set_data('view', self)
+        treeview.view = self
 
         self.field_list = str2list(field_list)
         self.tvcolumns = {}

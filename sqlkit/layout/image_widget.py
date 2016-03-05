@@ -82,7 +82,7 @@ class ImageWidget(Gtk.VBox):
     __gtype_name__ = 'ImageWidget'
 
     __gproperties__ = {
-        'image-path': (GObject.TYPE_PYOBJECT,                      # type
+        'image_path': (GObject.TYPE_PYOBJECT,                      # type
                        'Image',                                   # nick name
                        'The Image currently rendered',            # description
                        GObject.PARAM_READWRITE),                  # flags
@@ -105,8 +105,8 @@ class ImageWidget(Gtk.VBox):
                    1, 10000, 250,
                    GObject.PARAM_READWRITE),                  # flags
 
-        'scale-factor': (GObject.TYPE_FLOAT,                           # type
-                         'scale-factor',                                   # nick name
+        'scale_factor': (GObject.TYPE_FLOAT,                           # type
+                         'scale_factor',                                   # nick name
                          'The scale factor for the pixbuf ',             # description
                          0, 1000, 1,
                          GObject.PARAM_READABLE),                  # flags
@@ -116,8 +116,8 @@ class ImageWidget(Gtk.VBox):
                       False,
                       GObject.PARAM_READWRITE),                  # flags
 
-        'strip-dir': (GObject.TYPE_STRING,                           # type
-                      'strip-dir',                                   # nick name
+        'strip_dir': (GObject.TYPE_STRING,                           # type
+                      'strip_dir',                                   # nick name
                       'A dir name to strip from image name when writing in status bar ',
                       '',
                       GObject.PARAM_READWRITE),                  # flags
@@ -165,14 +165,14 @@ class ImageWidget(Gtk.VBox):
             ext = os.path.splitext(image_path)[1]
             if not ext.lower() in IMAGE_FORMATS:
                 self._image.set_property('stock', Gtk.STOCK_FILE)
-                self.set_data('scale-factor', 1)
-                self.set_data('image-path', image_path)
+                self.scale_factor = 1
+                self.image_path = image_path
                 self.emit('image-displayed', image_path, None, None)
                 return
             else:
                 if not os.path.exists(image_path):
                     self._image.set_property('stock', Gtk.STOCK_MISSING_IMAGE)
-                    self.set_data('image-path', image_path)
+                    self.image_path = image_path
                     return
                 pixbuf_full = GdkPixbuf.Pixbuf.new_from_file(image_path)
 
@@ -180,9 +180,9 @@ class ImageWidget(Gtk.VBox):
                     pixbuf, scale = self.scale_pixbuf(pixbuf_full, w=self.props.width,
                                                       h=self.props.height)
                 else:
-                    self.set_data('scale-factor', 1)
+                    self.scale_factor = 1
 
-        self.set_data('image-path', image_path)
+        self.image_path = image_path
         self._image.set_from_pixbuf(pixbuf)
         self.emit('image-displayed', image_path, pixbuf_full, pixbuf)
 
@@ -198,9 +198,9 @@ class ImageWidget(Gtk.VBox):
         w, h = w or self.get_property('width'), h or self.get_property('height')
         ratio = min(w/float(pw), h/float(ph))
         if ratio >= 1 and self.props.scale == 'AUTOREDUCTION':
-            self.set_data('scale-factor', 1)
+            self.scale_factor = 1
             return pixbuf, 1
-        self.set_data('scale-factor', ratio)
+        self.scale_factor = ratio
         return pixbuf.scale_simple(int(pw*ratio), int(ph*ratio), GdkPixbuf.InterpType.BILINEAR), ratio
 
     def set_pixbuf(self, pixbuf):
@@ -225,20 +225,20 @@ class ImageWidget(Gtk.VBox):
     def do_set_property(self, property, value):
 
         if property.name == 'width':
-            self.set_data('width', value)
+            self.width = value
             self._image.set_size_request(value, self.props.height)
         elif property.name == 'height':
-            self.set_data('height', value)
+            self.height = value
             self._image.set_size_request(self.props.width, value)
         elif property.name == 'scale':
-            self.set_data('scale', value)
-        elif property.name == 'image-path':
+            self.scale = value
+        elif property.name == 'image_path':
             self.set_image(value)
-            self.set_data('image-path', value)
+            self.image_path = value
         elif property.name == 'show-name':
             self.status_bar.pros.visibile = value
-        elif property.name == 'strip-dir':
-            self.status_bar.set_data('strip-dir', value)
+        elif property.name == 'strip_dir':
+            self.status_bar.strip_dir = value
         else:
             raise AttributeError, 'unknown property %s' % property.name
 
@@ -250,14 +250,14 @@ class ImageWidget(Gtk.VBox):
             return self.get_data('height') or 250
         elif property.name == 'scale':
             return self.get_data('scale')
-        elif property.name == 'image-path':
-            return self.get_data('image-path')
-        elif property.name == 'scale-factor':
-            return self.get_data('scale-factor')
+        elif property.name == 'image_path':
+            return self.get_data('image_path')
+        elif property.name == 'scale_factor':
+            return self.get_data('scale_factor')
         elif property.name == 'show-name':
             return self.status_bar.props.visible
-        elif property.name == 'strip-dir':
-            return self.status_bar.get_data('strip-dir') or ''
+        elif property.name == 'strip_dir':
+            return self.status_bar.get_data('strip_dir') or ''
         else:
             raise AttributeError, 'unknown property %s' % property.name
 
