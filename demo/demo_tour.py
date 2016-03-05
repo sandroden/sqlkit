@@ -240,7 +240,7 @@ class Demo(object):
                 # properties
                 for p, v in val.properties.iteritems():
                     child_iter = ts.append(iter)
-                    ts.set(child_iter, 2, p, 3, v)
+                    ts.set(child_iter, 2, p, 3, str(v))
 
         ts = self.ts_pack
         ts.clear()
@@ -251,7 +251,7 @@ class Demo(object):
                 # PACK properties
                 for p, v in val.pack_properties.iteritems():
                     child_iter = ts.append(iter)
-                    ts.set(child_iter, 3, p, 4, v)
+                    ts.set(child_iter, 3, p, 4, str(v))
 
     def prepare_treeview_elem(self, tv):
         tv.set_rules_hint(True)
