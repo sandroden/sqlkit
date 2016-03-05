@@ -30,6 +30,7 @@ Public API
 import re
 from copy import copy
 
+from gi.repository import Gdk
 from gi.repository import Gtk
 from gi.repository import GObject
 from gi.repository.GLib import markup_escape_text
