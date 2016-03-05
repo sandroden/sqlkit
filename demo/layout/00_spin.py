@@ -20,7 +20,7 @@ l = Layout(simple_menu, opts="Ts")
 
 w = l.show()
 adj = w['s=limit'].get_adjustment()
-adj.set_all(23, 10, 100, 10, 10, 0)
+adj.configure(23, 10, 100, 10, 10, 0)
 
 l.connect(
     ('tb=gtk-refresh', 'clicked', show)

@@ -244,7 +244,7 @@ class FilterPanel(object):
         self.w = self.l.show(x=self.hide)
 #        self.w['s=limit'].set_value(self.master.limit)
         adj = self.w['s=limit'].get_adjustment()
-        adj.set_all(self.master.limit, 0, 10000, 10, 100, 0)
+        adj.configure(self.master.limit, 0, 10000, 10, 100, 0)
         self.l.connect(
             ('tb=gtk-close', 'clicked', self.hide),
             ('tb=gtk-refresh', 'clicked', self.reload_cb)
