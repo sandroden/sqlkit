@@ -1248,19 +1248,22 @@ class FilterWidget(object):
 
         operators = self.tool.get_suitable_operators()
         warnings.simplefilter('ignore', DeprecationWarning)
-        operator = Gtk.OptionMenu()
+        operator = Gtk.ComboBox()
         operator.set_tooltip_text(_('Click here to select an operator'))
         warnings.resetwarnings()
 
-        menu = Gtk.Menu()
-        operator.set_menu(menu)
-
+        store = Gtk.ListStore(str)
         for op in operators:
-            entry = Gtk.MenuItem(op)
-            menu.append(entry)
-            entry.value = op
-            entry.set_tooltip_text(OP_MSGID[op])
-        operator.set_history(0)
+            # set_tooltip_text(OP_MSGID[op])
+            # TODO: (gbtami)
+            # ComboBox has no tooltip per items support
+            store.append((op,))
+        operator.set_model(store)
+        renderer = Gtk.CellRendererText()
+        operator.pack_start(renderer, True)
+        operator.add_attribute(renderer, "text", 0)
+        operator.set_id_column(0)
+        operator.set_active(0)
 
         return operator
 
@@ -1291,7 +1294,7 @@ class FilterWidget(object):
 
         try:
             index = operator_list.index(op.upper())
-            self.operator.set_history(index)
+            self.operator.set_active(index)
         except ValueError, e:
             print "operator '%s' not available in this context" % op.upper()
             print "used: %s -- list: %s" % (op, operator_list)
@@ -1302,7 +1305,7 @@ class FilterWidget(object):
         """
         return operator set in widget
         """
-        return self.operator.get_menu().get_active().value
+        return self.operator.get_active_id()
 
     def get_value(self):
         """
