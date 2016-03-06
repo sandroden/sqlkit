@@ -337,9 +337,10 @@ class DateEdit(Gtk.HBox):
 ####### date & gobject
     def wrong_date_format(self, error, date_string):
         self.invalid_date = True
-        colormap = self._date_entry.get_colormap()
-        base_color = colormap.alloc_color('orangered')
-        self._date_entry.override_background_color(Gtk.StateType.NORMAL, base_color)
+        ctx = self._date_entry.get_style_context()
+        provider = Gtk.CssProvider()
+        provider.load_from_data('.entry { background: orangered; }')
+        ctx.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         #self.flash_bg(self._date_entry, 'orangered', 2)
 
     def get_date(self):
