@@ -161,8 +161,8 @@ class DateEdit(Gtk.HBox):
         self._date_entry.show()
 
         ## default style
-        base = self._date_entry.get_style().base
-        self._default_base = base[Gtk.StateType.NORMAL] if base else None
+        ctx = self._date_entry.get_style_context()
+        self._default_base = ctx.get_background_color(Gtk.StateType.NORMAL)
 
         # the date button
         self._date_button = Gtk.Button()
@@ -211,13 +211,13 @@ class DateEdit(Gtk.HBox):
         """
         colormap = entry.get_colormap()
         base_color = colormap.alloc_color(color)
-        entry.modify_base(Gtk.StateType.NORMAL, base_color)
+        entry.override_background_color(Gtk.StateType.NORMAL, base_color)
 
-        GObject.timeout_add(1000 * seconds, entry.modify_base,
+        GObject.timeout_add(1000 * seconds, entry.override_background_color,
                             Gtk.StateType.NORMAL, self._default_base)
 
     def modify_base(self, state, color):
-        self._date_entry.modify_base(state, color)
+        self._date_entry.override_background_color(state, color)
         self._default_base = color
 
     def popup_grab_on_window(self, window, activate_time):
@@ -288,7 +288,7 @@ class DateEdit(Gtk.HBox):
         except Exception, e:
             print e
             return False
-        entry.modify_base(Gtk.StateType.NORMAL, self._default_base)
+        entry.override_background_color(Gtk.StateType.NORMAL, self._default_base)
         return False
 
     def date_button_clicked_cb(self, widget):
@@ -339,7 +339,7 @@ class DateEdit(Gtk.HBox):
         self.invalid_date = True
         colormap = self._date_entry.get_colormap()
         base_color = colormap.alloc_color('orangered')
-        self._date_entry.modify_base(Gtk.StateType.NORMAL, base_color)
+        self._date_entry.override_background_color(Gtk.StateType.NORMAL, base_color)
         #self.flash_bg(self._date_entry, 'orangered', 2)
 
     def get_date(self):

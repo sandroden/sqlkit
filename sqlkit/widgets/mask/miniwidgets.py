@@ -180,8 +180,8 @@ class Widget(GObject.GObject):
             if self.field.editable:
                 self.set_bg(state=Gtk.StateType.NORMAL, color=NOT_NULL_COLOR)
         else:
-            style = Gtk.Entry().get_style()
-            color = style.base[Gtk.StateType.NORMAL]
+            ctx = Gtk.Entry().get_style_context()
+            color = ctx.get_background_color(Gtk.StateType.NORMAL)
             self.set_bg(state=Gtk.StateType.NORMAL, color=color)
 
     def set_bg(self, state, color):
