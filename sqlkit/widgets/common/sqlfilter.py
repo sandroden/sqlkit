@@ -648,7 +648,7 @@ class FilterPanel(object):
     def tv_resize(self):
         tv = self.w['TV=out']
         tv.realize()
-        X, Y, width, height, bit = tv.window.get_geometry()
+        X, Y, width, height, bit = tv.get_window().get_geometry()
         if height < 100:
             tv.set_property('height-request', 300)
 

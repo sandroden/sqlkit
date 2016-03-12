@@ -283,7 +283,7 @@ class GenericColumn(GObject.GObject):
 
     def realize_cb(self, widget):
         watch = Gdk.Cursor.new(Gdk.CursorType.HAND2)
-        widget.window.set_cursor(watch)
+        widget.get_window().set_cursor(watch)
 
     def is_expandable(self):
         """
@@ -1199,7 +1199,7 @@ class View(object):
 
     def get_field_name_from_pointer(self, treeview=None):
 
-        x, y, modifier_state = self.treeview.window.get_pointer()
+        x, y, modifier_state = self.treeview.get_window().get_pointer()
         try:
             path, column, x_in_cell, y_in_cell = self.treeview.get_path_at_pos(x, y)
             #iter = self.master.modelproxy.modelstore.get_iter(path)
