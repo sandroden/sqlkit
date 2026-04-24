@@ -1194,12 +1194,13 @@ class SqlWidget(GObject.GObject):
 
         self.last_new_obj = None  # FIXME: unsure...
 
-    def unsaved_changes_exist(self, skip_new=False, skip_check=False):
+    def unsaved_changes_exist(self, skip_new=None, skip_check=False):
         """
         check if session needs committing by looking dirty, deleted and new
         skip_new: skip_new may be an object that we are not interested in saving
                   new object that where not changed but have default values fall here
         """
+        skip_new = skip_new or set()
         # skip_check is passed to Mask.unsaved_changes_exists
         if self.session.dirty:
             for dirty in self.session.dirty:
@@ -1209,8 +1210,16 @@ class SqlWidget(GObject.GObject):
             return True
 
         if self.session.new:
+            # Adding as default an m2o item it's a triky beast as it's in the session.new
+            # event thought you don't want to persist it
+            for item in self.defaults.tdict.values():
+                try:
+                    skip_new.add(item)
+                except TypeError:
+                    skip_new.update(item)
+
             for obj in self.session.new:
-                if obj is skip_new:
+                if obj in skip_new:
                     self.sb(_("Discarding new obj"), seconds=3)
                     continue
                 if self.session.is_modified(obj, passive=True):
