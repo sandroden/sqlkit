@@ -98,9 +98,31 @@ import re
 
 from sqlalchemy import Table, orm, select
 from sqlalchemy.exc import OperationalError, ProgrammingError, InterfaceError
+from pkg_resources import parse_version
+import sqlalchemy
 
 from defaults import register_hook, get_hook, register_layout, get_layout, register_class, \
     get_class, unregister_hook, unregister_layout
+
+
+def _autoload_table(table_name, metadata, engine=None):
+    """
+    Helper function to handle autoload compatibility across SQLAlchemy versions.
+
+    :param table_name: Name of the table to autoload
+    :param metadata: SQLAlchemy metadata object
+    :param engine: SQLAlchemy engine (optional, will use metadata.bind if not provided)
+    :return: SQLAlchemy Table object
+    """
+    if engine is None:
+        engine = metadata.bind
+
+    if parse_version(sqlalchemy.__version__) >= parse_version('1.4.0'):
+        # SQLAlchemy 1.4+ uses autoload_with parameter
+        return Table(table_name, metadata, autoload_with=engine)
+    else:
+        # SQLAlchemy < 1.4 uses autoload=True
+        return Table(table_name, metadata, autoload=True)
 
 ########   descriptor
 from sqlkit.misc.utils import Container, DictLike, ObjLike
@@ -306,7 +328,7 @@ class TableDescr(object):
                 raise MissingMetadata("Description  for '%s' cannot be guessed" % self.table_name)
 
         ## first time we meet this table  -> inspect w/ autoload
-        return Table(self.table_name, self.metadata, autoload=True)
+        return _autoload_table(self.table_name, self.metadata)
 
     def guess_description(self):
         """look if a description (format) field is defined, if not use introspection
