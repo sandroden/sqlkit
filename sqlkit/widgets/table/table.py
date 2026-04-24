@@ -1325,7 +1325,8 @@ class SqlTable(sqlwidget.SqlWidget):
             self._mask().widgets['Window'].present()
             return
         mask = SqlMask(self.mapper, session=self.session, layout=self.layout,
-                       metadata=self.metadata, dbproxy=self.dbproxy, hooks=self.hooks, addto=None, naked=False)
+                       metadata=self.metadata, dbproxy=self.dbproxy,
+                       hooks=self.hooks, addto=None, naked=False, noup=self.noup)
         mask.set_mode(self.mode, reset=True)
         mask.mode = '-bd'
         obj = getattr(self, '_clicked_obj', self.get_selected_obj())
@@ -1669,10 +1670,23 @@ class SqlTable(sqlwidget.SqlWidget):
             field_list = [c.field_name for c in view.treeview.get_columns()
                           if c.get_property('visible')]
 
+            ### Original Note: I can't make this work, so a different solution follows
+
             ## getattr(obj, f, obj): obj is used when the column does not have a 1-1 mapping
             ## to an attribute as happens for FunctionColumn that show a function out of the
             ## record
-            ret += [[self.gui_fields[f].get_human_value(getattr(obj, f, obj)) for f in field_list]]
+            #ret += [[self.gui_fields[f].get_human_value(getattr(obj, f, obj)) for f in field_list]]
+
+
+            ## This works also when exporting from a table (ex_32)
+            row = []
+            for f in field_list:
+                try:
+                    value = getattr(obj, f)
+                except:
+                    value = self.gui_fields[f].clean_value(obj)
+                row += [self.gui_fields[f].get_human_value(value)]
+            ret += [row]
 
         def get_all_rows():
             ret = []
