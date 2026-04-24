@@ -677,7 +677,7 @@ class Field(GObject.GObject):
         """
         return True if field has changed after last set
         """
-        if not self.editable:
+        if not self.editable or not self.persistent:
             return False
         try:
             return not self.get_value() == self.initial_value
