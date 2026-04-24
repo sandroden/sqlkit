@@ -281,6 +281,30 @@ class SqlMask(sqlwidget.SqlWidget):
 
         self.ui_manager.add_ui_from_string(uidescription.MASK_UI)
 
+    def set_mode(self, mode=None, reset=False, delay=False):
+        """Set (or refresh) the mode  for all views. Editability of each
+           column is re-tested/re-set
+
+        :arg mode: see sqlwidget's description
+        :arg reset: see sqlwidget's description
+        :arg delay: see sqlwidget's description
+        """
+
+        sqlwidget.SqlWidget.set_mode(self, mode, reset=reset, delay=delay)
+
+        if delay:
+            return
+        for field_name, field in self.gui_fields.iteritems():
+            if field_name not in self.noup and not field_name == '__obj__':
+                if field.editable is False:
+                    # not persistent fields should be set not editable by hand
+                    pass
+                else:
+                    field.editable = True and 'u' in self.mode
+            else:
+                field.editable = False
+
+    mode = property(sqlwidget.SqlWidget.get_mode, set_mode)
 
 ###### Saving
     def set_value(self, field_name, field_value, fkvalue=None, initial=False, shown=False):
