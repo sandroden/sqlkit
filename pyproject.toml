@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sqlkit"
+version = "0.9.6.1"
+description = "GUI to edit databases. Many backends supported (Postgres, Sqlite, MySQL, ...). Based on Python, GTK3, SQLAlchemy."
+readme = "README"
+requires-python = ">=3.10"
+license = { text = "AGPL-3.0-or-later" }
+authors = [{ name = "Alessandro Dentella", email = "sandro@e-den.it" }]
+urls = { Homepage = "http://sqlkit.argolinux.org/" }
+classifiers = [
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Database :: Front-Ends",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "sqlalchemy>=1.4,<2",
+    "babel",
+    "python-dateutil",
+    "pygobject",
+    "appy",
+]
+
+[project.gui-scripts]
+sqledit = "sqlkit.scripts.sqledit:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sqlkit*"]
+
+[tool.setuptools.package-data]
+sqlkit = ["**/*.glade", "**/*.png", "**/*.xpm", "**/*.svg", "**/*.ui"]

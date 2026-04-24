@@ -1,5 +1,9 @@
 syntax:glob
 *.pyc
+__pycache__/
+.venv/
+.ruff_cache/
+.mypy_cache/
 Makefile
 debian/python-sqlkit
 build
