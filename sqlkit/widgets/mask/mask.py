@@ -470,7 +470,7 @@ class SqlMask(sqlwidget.SqlWidget):
         changed = self.record_has_changed()
         if changed or new_obj or (
             self.current in self.session.new and self.session.is_modified(self.current)
-        ) or (self.unsaved_changes_exist(skip_new=self.current)):
+        ) or (self.unsaved_changes_exist(skip_new=set([self.current]))):
             pass
 
         else:
@@ -629,7 +629,7 @@ class SqlMask(sqlwidget.SqlWidget):
         if changed:
             skip_new = False
         else:
-            skip_new = self.current
+            skip_new = set([self.current])
 
         response = self.save_unsaved(skip_check=changed, skip_new=skip_new)
         if response in (Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
