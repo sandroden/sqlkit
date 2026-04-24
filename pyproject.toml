@@ -30,9 +30,11 @@ dependencies = [
     "sqlalchemy>=1.4,<2",
     "babel",
     "python-dateutil",
-    "pygobject",
     "appy",
 ]
+# PyGObject is consumed from the system (apt: python3-gi, gir1.2-gtk-3.0)
+# via `uv venv --system-site-packages`. Building it from PyPI requires
+# libgirepository-2.0-dev which Ubuntu 24.04 ships but doesn't install by default.
 
 [project.gui-scripts]
 sqledit = "sqlkit.scripts.sqledit:main"
