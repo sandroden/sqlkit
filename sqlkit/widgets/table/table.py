@@ -323,14 +323,31 @@ class SqlTable(sqlwidget.SqlWidget):
         self.ui_manager.get_action('/Main/Go/Forward').set_visible(False)
         self.ui_manager.get_action('/Main/Go/Back').set_visible(False)
 
-    def set_mode(self, mode=None, reset=False, delay=False):
+    def set_mode(self, mode=None, reset=False, delay=False, view=None):
+        """Set (or refresh) the mode  for all views. Editability of each
+           column is re-tested/re-set
+
+        :arg mode: see sqlwidget's description
+        :arg reset: see sqlwidget's description
+        :arg delay: see sqlwidget's description
+        :arg view: determine which view should be reset
+        """
 
         sqlwidget.SqlWidget.set_mode(self, mode, reset=reset, delay=delay)
 
-        if not delay and hasattr(self, 'columns'):
-            for field_name, col in self.columns.iteritems():
+        if delay:
+            return
+        if view:
+            views = [self.views.get(view, None)]
+        else:
+            views = self.views
+        for view in views:
+            for field_name, col in view.columns.iteritems():
                 if field_name not in self.noup:
-                    col.set_editable(True and 'u' in self.mode)
+                    if col.editable is False:
+                        col.set_editable(False)
+                    else:
+                        col.set_editable(True and 'u' in self.mode)
                 else:
                     col.set_editable(False)
     mode = property(sqlwidget.SqlWidget.get_mode, set_mode)
