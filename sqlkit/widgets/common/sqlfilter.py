@@ -91,7 +91,7 @@ from sqlkit.db.django_syntax import django2components
 from sqlkit.misc import datetools, utils
 from sqlkit.layout import layout, misc
 from sqlkit.widgets.table import columns, modelproxy
-import completion
+from . import completion
 
 FILTER_MENU = '''
 <menubar name="FilterMain">
@@ -306,7 +306,7 @@ class FilterPanel(object):
         self.actiongroup_related = Gtk.ActionGroup('Related')
         self.ui_manager.insert_action_group(self.actiongroup_related, 8)
 
-        for related in self.master.related.keys():
+        for related in list(self.master.related.keys()):
             self.actiongroup_related.add_actions([
                 ('Related_%s' % related, None, _('Add filter on related:') + related, None,
                  _("Add filter for related attribute: %s") % related,
@@ -368,7 +368,7 @@ class FilterPanel(object):
             in the :ref:`chapter on constraints <constraints>`
 
         """
-        for key, val in kwargs.iteritems():
+        for key, val in list(kwargs.items()):
             path, op, op_str, value, col, join_args = django2components(
                 self.master.mapper, {key: val})
             master = self.get_related_master(self.master, path)
@@ -460,7 +460,7 @@ class FilterPanel(object):
 
     def destroy(self, window=None):
 
-        for obj, hid in self._ids.values():
+        for obj, hid in list(self._ids.values()):
             obj.disconnect(hid)
         del self._ids
 
@@ -469,7 +469,7 @@ class FilterPanel(object):
         for attr in ('easytv', 'search_filter_widgets', 'l', 'model', 'selection', 'w'):
             try:
                 delattr(self, attr)
-            except AttributeError, e:
+            except AttributeError as e:
                 pass
 
     def entry_focus_cb(self, entry, event=None):
@@ -533,7 +533,7 @@ class FilterPanel(object):
         if self.default_reload:
             try:
                 length = self.master.reload(limit=self.get_limit(), display=display)
-            except (exc.DialogValidationError, exc.ValidationError), e:
+            except (exc.DialogValidationError, exc.ValidationError) as e:
                 return
 
         if 'TV=out' in self.w:
@@ -669,7 +669,7 @@ class FilterPanel(object):
                 wdg, ev = args
                 path = wdg.get_path_at_pos(int(ev.x), int(ev.y))[0]
                 iter = model.get_iter(path)
-            except (ValueError, TypeError), e:
+            except (ValueError, TypeError) as e:
                 ## ValueError: deselecting when clicking 'reload'
                 ## TypeError: no data in the treeview
                 return
@@ -707,7 +707,7 @@ class FilterPanel(object):
 
     def sql_dbg(self, bool_conds):
         for c in bool_conds:
-            print "DBG: ", c.left, c.operator, c.right
+            print(("DBG: ", c.left, c.operator, c.right))
 
 
 class FilterTool(object):
@@ -895,7 +895,7 @@ class FilterTool(object):
         else:
             try:
                 value = self.get_value()
-            except exc.ValidationError, e:
+            except exc.ValidationError as e:
                 msg = _("value '%s' cannot be used for field '%s'") % (
                     self.get_row_value(), self.field_name)
                 self.master.sb(msg)
@@ -1295,9 +1295,9 @@ class FilterWidget(object):
         try:
             index = operator_list.index(op.upper())
             self.operator.set_active(index)
-        except ValueError, e:
-            print "operator '%s' not available in this context" % op.upper()
-            print "used: %s -- list: %s" % (op, operator_list)
+        except ValueError as e:
+            print(("operator '%s' not available in this context" % op.upper()))
+            print(("used: %s -- list: %s" % (op, operator_list)))
             raise
             pass
 

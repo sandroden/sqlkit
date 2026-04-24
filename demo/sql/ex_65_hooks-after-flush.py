@@ -15,14 +15,14 @@ class Validation(object):
     def on_after_flush(self, table, obj, session):
 
         for o in session.new:
-            print "New object: %s" % o
+            print(("New object: %s" % o))
         for o in session.dirty:
-            print "Updated objects: %s" % o
+            print(("Updated objects: %s" % o))
             for field_name, old, new in get_differences(o):
-                print "%s: %s ==> %s" % (field_name, old, new)
+                print(("%s: %s ==> %s" % (field_name, old, new)))
 
         for o in session.deleted:
-            print "Deleted objects: %s" % o
+            print(("Deleted objects: %s" % o))
 
 
 t = SqlTable(model.Director, dbproxy=db,

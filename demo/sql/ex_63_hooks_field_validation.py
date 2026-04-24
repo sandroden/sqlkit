@@ -14,7 +14,7 @@ class Hooks(object):
             raise ValidationError("Hei: how can you know the future!")
 
     def on_save_as(self, mask, old, new):
-        print "Old title: %s, \nnew title: %s" % (old.title, new.title)
+        print(("Old title: %s, \nnew title: %s" % (old.title, new.title)))
 
 
 lay = """

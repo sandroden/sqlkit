@@ -328,7 +328,7 @@ def connect(server='127.0.0.1', port=8100, headless=False):
         # via its API mechanism.
         oo_context = resolver.resolve(cmd)
 
-    except NoConnectionException, e:
+    except NoConnectionException as e:
         # Launching openoffice
         if server not in ('127.0.0.1', 'localhost'):
             warnings.warn("couldn't connect to server: %s:%s" % (server, port),
@@ -444,7 +444,7 @@ class Template():
         prop_h = PropertyValue('Hidden', 0, True, 0)
         try:
             document = desktop.loadComponentFromURL(url, "_blank", 0, (prop_ro, prop_h, ))
-        except IllegalArgumentException, e:
+        except IllegalArgumentException as e:
             msg = "Original error: '%s'\nTemplate may have a wrong name: %s" % (str(e), filename)
             raise WrongTemplateName(msg)
 
@@ -457,9 +457,9 @@ class Template():
         #url = uno.systemPathToFileUrl(filename)
         #
         if not re.search('://', filename):
-            url = u'file://%s' % filename
+            url = 'file://%s' % filename
         else:
-            url = unicode(filename)
+            url = str(filename)
         return url
 
     def get_tables(self):
@@ -492,7 +492,7 @@ class Template():
         context.reset_missing()
         self.context = context
 
-        for table_name, table in self.tables.iteritems():
+        for table_name, table in list(self.tables.items()):
             table.render(context)
 
         self.find_and_replace(context)
@@ -583,7 +583,7 @@ class Template():
             document.storeToURL(url, (prop,))
         else:
             filename = filename+'.odt'
-            print 'Unsupported Extension "%s", saving as "%s"' % (extension, filename)
+            print(('Unsupported Extension "%s", saving as "%s"' % (extension, filename)))
             url = self.filename_to_url(filename)
             document.storeAsURL(url, ())
 
@@ -699,7 +699,7 @@ class Table():
 
         ## I wasn't able to find a way to get the maximum number of columns
         ## table.Rows.Count returns the number of columns of the first row.
-        for c in xrange(30):
+        for c in range(30):
             try:
                 row = self.table.getCellRangeByPosition(0, r, c, r)
             except OutOfBoundsException:
@@ -810,7 +810,7 @@ class TableWithStyles(Table):
         controller = self.template.document.getCurrentController()
         view_cursor = controller.getViewCursor()
 
-        for c in xrange(300):
+        for c in range(300):
             try:
                 src_cell = self.table.getCellByPosition(c, index + count)
             except OutOfBoundsException:
@@ -875,7 +875,7 @@ def test_srv_connection(host, port, timeout=3):
         sock.connect((host, int(port)))
         sock.close()
         return True
-    except socket.error, err:
+    except socket.error as err:
         return False
 
 # The following function have been copied and adopted from
@@ -920,7 +920,7 @@ def makeGraphicObject(document, width, height, hOrient):
     #img = oDoc.createInstance( "com.sun.star.drawing.GraphicObjectShape" )
 
     # a TextGraphicObject is an object that is resizable interactively
-    img = document.createInstance(u'com.sun.star.text.TextGraphicObject')
+    img = document.createInstance('com.sun.star.text.TextGraphicObject')
     img.AnchorType = 'AT_PARAGRAPH'
     img.HoriOrient = 0
     size = Size()

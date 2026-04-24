@@ -6,7 +6,7 @@ from gi.repository import Gtk
 from gi.repository import Pango
 
 from sqlkit import debug as dbg
-from cell_renderers import CellRendererVarchar
+from .cell_renderers import CellRendererVarchar
 
 def unset_real_size(window, event):
     """Fields 'real width' and 'real height' become obsolete (or at least
@@ -319,7 +319,7 @@ def print_debug(wid):
         dbg.write("number", number, ":", newwid)
         try:
             dbg.write(newwid.get_property('xscale'), newwid.get_property('yscale'), "alignment")
-            print "changing"
+            print("changing")
         except:
             pass
         try:

@@ -10,7 +10,7 @@ or if you dont have the 'uno' module from openoffice.
 """
 
 def debug_context(printtool, context, template_name, sqlwidget):
-    print "CONTEXT:", context
+    print(("CONTEXT:", context))
 
 t = SqlTable(model.Movie, dbproxy=db)
 t.printing.add_menu_entry('Print to pdf', 'movies.odt', mode='pdf',

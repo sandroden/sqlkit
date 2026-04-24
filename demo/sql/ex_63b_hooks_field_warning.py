@@ -15,7 +15,7 @@ class Hooks(object):
 
     def on_after_flush(self, mask, obj, session):
         if mask.current.year > 2020:
-            print "Funny guy who know the future (%s)!" % mask.current.year
+            print(("Funny guy who know the future (%s)!" % mask.current.year))
 
 lay = """
    title

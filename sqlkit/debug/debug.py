@@ -108,7 +108,7 @@ DBG = False
 
 def test():
     global DBG
-    print "DBG:", DBG
+    print(("DBG:", DBG))
 
 def debug(x=None, gtk=False):
     global DBGLogger
@@ -151,9 +151,9 @@ def write(*text, **kwargs):
         return
     if not text:
         ### FIXME: should go to DBGLogger...?
-        print "%s (line %s) locals(): \n%s" % (caller(), caller(mode='lineno'),
+        print(("%s (line %s) locals(): \n%s" % (caller(), caller(mode='lineno'),
                                                dshow(caller(mode='loc', level=2), ret=True,
-                                                     filter=filter, sfilter=sfilter, mute=True))
+                                                     filter=filter, sfilter=sfilter, mute=True))))
 
         return
 
@@ -165,14 +165,14 @@ def write(*text, **kwargs):
         try:
             instance = caller(mode='instance')
             Class_str = instance.nick
-        except Exception, e:
+        except Exception as e:
             Class_str = ''
 
         DBGLogger.write(txt=txt, line=caller(mode='lineno'), meth=meth,
                         mode='write', Class=Class_str, caller=called_by)
     else:
         #print "dbg.write: QUI 2, DBGLogger:", DBGLogger, "direct:", kwargs['direct']
-        print "%s (line %s): %s" % (caller(), caller(mode='lineno'), txt)
+        print(("%s (line %s): %s" % (caller(), caller(mode='lineno'), txt)))
 
 # def single_write(txt, called_by='', meth='', direct=False, **args):
 #     """similar to write but accept just one text arg and some more args"""
@@ -235,9 +235,9 @@ def show_caller(filter=None, sfilter=None, loc=True):
         else:
             Locals = ''
 
-        print "%s called from: %s (line %s) \n%s" % (
+        print(("%s called from: %s (line %s) \n%s" % (
             caller(),
-            caller(level=3), caller(level=3, mode='lineno'), Locals)
+            caller(level=3), caller(level=3, mode='lineno'), Locals)))
 
 
 def dshow(diz, filter=None, sfilter=None, mute=False, ret=False, name=None):
@@ -253,7 +253,7 @@ def dshow(diz, filter=None, sfilter=None, mute=False, ret=False, name=None):
     if not mute:
         txt += [caller()]
     filtered = {}
-    for k, v in diz.iteritems():
+    for k, v in list(diz.items()):
         if filter:
             if not re.search(filter, k):
                 continue
@@ -267,10 +267,10 @@ def dshow(diz, filter=None, sfilter=None, mute=False, ret=False, name=None):
     else:
         try:
             iter = DBGLogger.write(meth=caller(), txt=name, mode='dict')
-            for k, v in filtered.iteritems():
+            for k, v in list(filtered.items()):
                 DBGLogger.write(meth=k, txt=v, mode='value', parent=iter)
         except:
-            print "\n".join(txt)
+            print(("\n".join(txt)))
 
 
 def ddir(obj, filter=None, sfilter=None, mute=False, ret=False):
@@ -297,16 +297,16 @@ def ddir(obj, filter=None, sfilter=None, mute=False, ret=False):
     if ret:
         return "\n".join(txt)
     else:
-        print "\n".join(txt)
+        print(("\n".join(txt)))
 
 
 def warning(text):
-    print text
+    print(text)
 
 def sql_debug(sql, params):
     msg = re.sub(':(?P<a>\S+)', '\'%(\g<a>)s\'', sql)
     #sd.debug("%s %s" % (DBG, params))
-    print msg % params
+    print((msg % params))
     #write(msg % params)
 
 
@@ -398,7 +398,7 @@ def logmethod(methodname):
         args = []
         for item in argl:
             args.append('%s' % str(item))
-        for key, item in argd.items():
+        for key, item in list(argd.items()):
             args.append('%s=%s' % (key, str(item)))
         argstr = ','.join(args)
 
@@ -424,7 +424,7 @@ def logmethod(methodname):
             returnval = f(*argl, **argd)
 
             indent -= 1
-        except Exception, e:
+        except Exception as e:
             DBGLogger.add(Class=class_str, meth=str(e.__class__), indent=indent,
                           caller=methodname, line=caller(mode='lineno'),
                           args=[e], class_obj=caller(mode='Class'))
@@ -453,7 +453,7 @@ class LogTheMethods(GObjectMeta):
 
         meths = {}
 
-        meths.update(dict(classdict.items()))
+        meths.update(dict(list(classdict.items())))
 
         for base in bases:
             for attr in dir(base):
@@ -461,7 +461,7 @@ class LogTheMethods(GObjectMeta):
                 if attr not in meths:
                     meths[attr] = getattr(base, attr)
 
-        for attr, item in meths.items():
+        for attr, item in list(meths.items()):
             if not DBG:
                 continue
             if attr.startswith('_H_') or attr.startswith('__'):
@@ -479,7 +479,7 @@ class LogTheMethods(GObjectMeta):
         return ret
 
 def get_gtk_logger(show=True):
-    import gtk_dbg
+    from . import gtk_dbg
 
     return gtk_dbg.ShowLogs(show=show)
 

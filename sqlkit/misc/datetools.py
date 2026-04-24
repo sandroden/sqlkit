@@ -205,7 +205,7 @@ def string2date(string):
                 elif last_period in 'dw':
                     end_month = False
 
-    except Exception, e:
+    except Exception as e:
         raise WrongRelativeDateFormat(str(e))
 
     # Apply shifting

@@ -19,7 +19,7 @@ w = l.show()
 l.tip('b=chiudi', 'Chiudi tutto')
 def di_ciao(*args):
     for i, val in enumerate(args):
-        print i, val
+        print((i, val))
 
 
 l.menu('m=_File',

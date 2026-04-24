@@ -3,7 +3,7 @@ from gi.repository import GObject
 from gi.repository import Pango
 from gi.repository import GdkPixbuf
 from sqlkit.layout import layout
-import debug as dbg
+from . import debug as dbg
 import re
 import os
 import inspect
@@ -33,8 +33,8 @@ class wshow(object):
 
     def printa(self, widget, iter=None, parent=None):
         if self.mode == 'print':
-            print "%s%s %s %s" % (" "*self.lvl*3,
-                                  widget.name, widget.__class__, widget)
+            print(("%s%s %s %s" % (" "*self.lvl*3,
+                                  widget.name, widget.__class__, widget)))
             return
         elif self.model:
             return self.add_to_model(widget, iter=iter, parent=parent)
@@ -760,7 +760,7 @@ class ShowClassInfo(object):
             return
 
         if class_name in ('dict'):
-            for key, val in obj.iteritems():
+            for key, val in list(obj.items()):
                 it = self.model.append(position)
                 self.add_row(it, val, str(key), val.__class__.__name__, type(val))
 
@@ -788,7 +788,7 @@ class ShowClassInfo(object):
             for j in dir(obj):
                 self.show_obj(obj, j, iter)
 
-        for k in ['builtin', 'methods'] + iter.keys():
+        for k in ['builtin', 'methods'] + list(iter.keys()):
             try:
                 if not self.model.iter_has_child(iter[k]):
                     self.model.remove(iter[k])
@@ -1058,7 +1058,7 @@ class ShowLogs(object):
             self.info_method(obj, Hmeth)
             return
         else:
-            print "No %s in %s" % (Hmeth, obj)
+            print(("No %s in %s" % (Hmeth, obj)))
 
         if meth in dir(obj):
             self.info_method(obj, meth)
@@ -1078,7 +1078,7 @@ class ShowLogs(object):
                     inspect.getsourcelinesattr(attr)[1]
                     return
                 except:
-                    print "NOT FOUND in __bases__", i
+                    print(("NOT FOUND in __bases__", i))
                     return
                     pass
         obj = attr
@@ -1223,7 +1223,7 @@ class ShowLogs(object):
 #                 continue
             item = getattr(obj, attr)
             if callable(item):
-                anInstance = item.im_self
+                anInstance = item.__self__
                 anInstance.__dict__['_H_%s' % attr] = item
                 anInstance.__dict__[attr] = new.instancemethod(
                     logmethod(attr), anInstance, anInstance.__class__)

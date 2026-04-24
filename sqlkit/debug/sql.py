@@ -19,7 +19,7 @@ def get_create_statement(meta, dialect='postgres'):
     # http://www.sqlalchemy.org/trac/wiki/FAQ#HowcanIgettheCREATETABLEDROPTABLEoutputasastring
 
     from sqlalchemy import create_engine, Table
-    from StringIO import StringIO
+    from io import StringIO
 
     def executor(s):
         buf.write(str(s.compile(dialect=engine.dialect)))
@@ -56,7 +56,7 @@ def debug_inline_params(stmt, bind=None):
     compiler = bind.dialect.statement_compiler(bind.dialect, stmt)
     compiler.bindtemplate = "%%(%(name)s)s"
     compiler.compile()
-    return compiler.string % dict((k, repr(v)) for k, v in compiler.params.items())
+    return compiler.string % dict((k, repr(v)) for k, v in list(compiler.params.items()))
 
 def get_table_definition(table, sql=None, meta=None, dialect=None):
     """

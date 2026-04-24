@@ -18,7 +18,7 @@ l = Layout(lay)
 w = l.show()
 
 ### NOTE: these settings must follow l.show()!!!
-date = datetime.datetime(2006, 01, 31)
+date = datetime.datetime(2006, 0o1, 31)
 l.prop('d=date1', 'date', date)
 
 o = w['d=date1']

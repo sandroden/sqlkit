@@ -46,7 +46,7 @@ if sys.argv[1:]:
     files = sys.argv[1:]
 
 for filename in files:
-    print filename
+    print(filename)
     os.environ['LANG'] = 'en_US.utf8'
     doctest.testfile(filename, optionflags=doctest.ELLIPSIS)
 

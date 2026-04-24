@@ -26,7 +26,7 @@ class Container(object):
         self._attrs = []
         self._n = 0
         if cdict:
-            for key, value in cdict.iteritems():
+            for key, value in list(cdict.items()):
                 self.add_element(key, value)
 
     def add_element(self, key, value):
@@ -54,7 +54,7 @@ class Container(object):
         return self.add_element(key, value)
 
     def __iter__(self):
-        return iter(self.values())
+        return iter(list(self.values()))
 
     def __repr__(self):
         return "%s" % self._attrs
@@ -98,7 +98,7 @@ class ObjLike(object):
     def __getattr__(self, key):
         try:
             return self.dict[key]
-        except KeyError, e:
+        except KeyError as e:
             return object.__getattr__(self, key)
 
 def check_sqlalchemy_version(req):
@@ -110,7 +110,7 @@ def check_sqlalchemy_version(req):
     def fatal_exit():
         import sys
         msg = "Sqlkit requires at least version %s, found %s"
-        print msg % (req, SA_VER)
+        print((msg % (req, SA_VER)))
         sys.exit(1)
 
     def warning():
@@ -128,7 +128,7 @@ def check_sqlalchemy_version(req):
             return fatal_exit()
         else:
             warning()
-    except ImportError, e:
+    except ImportError as e:
         ## don't quit just becouse they don't have pkg_resources
         return True
 
@@ -138,7 +138,7 @@ def str2list(list_or_string):
     input parsing common func
     """
 
-    if isinstance(list_or_string, basestring):
+    if isinstance(list_or_string, str):
         return re.split('[ ,]*', list_or_string.strip())
     return list_or_string or []
 
@@ -191,19 +191,19 @@ if __name__ == '__main__':
 
     c = Container()
     c.add_element('uno', 1)
-    print c.keys()
-    print 'uno' in c
+    print((list(c.keys())))
+    print(('uno' in c))
     c['due'] = 2
     c['tre'] = 3
     c['quattro'] = 4
-    print c.due
+    print((c.due))
     for x in c:
         if x > 2:
             break
-        print x
+        print(x)
 
     for x in c:
-        print x
+        print(x)
 
-    print str2list('uno,due, tre')
-    print str2list(['uno', 'due', 'tre'])
+    print((str2list('uno,due, tre')))
+    print((str2list(['uno', 'due', 'tre'])))

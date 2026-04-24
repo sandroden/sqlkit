@@ -248,7 +248,7 @@ class Widget(GObject.GObject):
         """
         try:
             self.completion = SimpleCompletion(self.master, self, self.field_name)
-        except exc.ColumnWithoutTable, e:
+        except exc.ColumnWithoutTable as e:
             return
         self.completion.add_completion(self.gtkwidget)
         self.master.completions[self.field_name] = self.completion
@@ -307,7 +307,7 @@ class VarcharWidget(Widget):
         self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
-        value = unicode(self.gtkwidget.get_text())
+        value = str(self.gtkwidget.get_text())
         ## don't change from None to ''
         return value
 
@@ -428,7 +428,7 @@ class DateWidget(Widget):
     def get_value(self, shown=False):
 
         value = self.gtkwidget.get_property('date')
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             raise exc.ValidationError(_("Wrong date format: %s") % value)
         else:
             return value
@@ -541,7 +541,7 @@ class TextWidget(Widget):
         buff = self.gtkwidget.get_buffer()
         ts = buff.get_iter_at_offset(0)
         te = buff.get_iter_at_offset(-1)
-        text = unicode(buff.get_text(ts, te, True))
+        text = str(buff.get_text(ts, te, True))
         return text
 
 class BooleanWidget(Widget):
@@ -654,10 +654,11 @@ class EnumWidget(Widget):
     def fill_model(self):
         if self.field.nullable:
             self.model.append((None, ''))
-        for key, value in self.field.values.iteritems():
+        for key, value in list(self.field.values.items()):
             self.model.append([key, value])
 
-    def _find_value(self, model, path, iter, (value, i)):
+    def _find_value(self, model, path, iter, xxx_todo_changeme):
+        (value, i) = xxx_todo_changeme
         if model.get_value(iter, 0) == value:
             return True
         i[0] += 1
@@ -894,7 +895,7 @@ class ForeignKeyWidget(Widget):
 
     def get_value(self, shown=False):
         if shown:
-            return unicode(self.entry.get_text())
+            return str(self.entry.get_text())
         if self.real_value:
             return self.value
         else:
@@ -985,7 +986,7 @@ class CollectionWidget(Widget):
         from copy import copy
         label_map = copy(self.master.label_map)
 
-        for key, value in label_map.items():
+        for key, value in list(label_map.items()):
             if key.startswith('%s.' % self.field_name):
                 key = key.replace('%s.' % self.field_name, '')
                 label_map[key] = value

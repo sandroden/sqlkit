@@ -31,7 +31,7 @@ from sqlkit.widgets.common import completion, sqlwidget
 FK_COLOR = Gdk.color_parse('navyblue')
 LBL_HOOVER_STYLE = Gdk.color_parse('red')
 
-class SqlMask(sqlwidget.SqlWidget):
+class SqlMask(sqlwidget.SqlWidget, metaclass=None if not dbg.debug else dbg.LogTheMethods):
 
     """
     SqlMask is the widget that displays one record at a time and buttons to
@@ -39,8 +39,6 @@ class SqlMask(sqlwidget.SqlWidget):
     :class:`sqlkit.widgets.common.sqlwidget.SqlWidget`
 
     """
-
-    __metaclass__ = None if not dbg.debug else dbg.LogTheMethods
     labels = None  # correspondance Label <-> EventBox
     row_count = 0    # number of records in the mapper
     current_idx = 0
@@ -109,7 +107,7 @@ class SqlMask(sqlwidget.SqlWidget):
             eb.get_child().set_state(Gtk.StateType.NORMAL)
             return True
 
-        for field_name in self.mapper_info.fields.keys():
+        for field_name in list(self.mapper_info.fields.keys()):
             if field_name in self.labels:
                 lbl = self.labels[field_name]
                 ev_wdg = self.labels[field_name].get_parent()
@@ -131,7 +129,7 @@ class SqlMask(sqlwidget.SqlWidget):
         Add tips to labels starting from label_map
         """
 
-        for field_name, values in self.label_map.iteritems():
+        for field_name, values in list(self.label_map.items()):
             label, help_text = values
 
             key = "l=%s" % field_name
@@ -151,7 +149,7 @@ class SqlMask(sqlwidget.SqlWidget):
 
         ## all EventBox
         self.labels = {}
-        for field_name in self.mapper_info.fields.keys():
+        for field_name in list(self.mapper_info.fields.keys()):
             lbl_name_wdg = "l=%s" % field_name
             if lbl_name_wdg in self.widgets:
                 self.labels[field_name] = self.widgets[lbl_name_wdg]
@@ -161,7 +159,7 @@ class SqlMask(sqlwidget.SqlWidget):
                 pass
 
         ## add click that pops filter_panel
-        for field_name, label in self.labels.iteritems():
+        for field_name, label in list(self.labels.items()):
             event_box = label.get_parent()
             event_box.connect('button-press-event', self.button_press_event_cb, field_name)
 
@@ -197,7 +195,7 @@ class SqlMask(sqlwidget.SqlWidget):
         field_chooser = fields.FieldChooser(self.mapper_info, self.widgets,
                                             gui_field_mapping=getattr(self, 'gui_field_mapping', None))
 
-        for field_name, widget_key in self.laygen.fields_in_layout.iteritems():
+        for field_name, widget_key in list(self.laygen.fields_in_layout.items()):
             widget = self.widgets[widget_key]
             db_spec = self.mapper_info.fields.get(field_name, None)
 
@@ -294,7 +292,7 @@ class SqlMask(sqlwidget.SqlWidget):
 
         if delay:
             return
-        for field_name, field in self.gui_fields.iteritems():
+        for field_name, field in list(self.gui_fields.items()):
             if field_name not in self.noup and not field_name == '__obj__':
                 if field.editable is False:
                     # not persistent fields should be set not editable by hand
@@ -341,7 +339,7 @@ class SqlMask(sqlwidget.SqlWidget):
         """
 
         if field_name not in self.gui_fields:
-            dbg.write("%s Non in gui_fields %s" % (field_name, self.gui_fields.keys()))
+            dbg.write("%s Non in gui_fields %s" % (field_name, list(self.gui_fields.keys())))
             raise exc.FieldNotInLayout("field_name: %s" % (field_name))
 
         field = self.gui_fields[field_name]
@@ -394,7 +392,7 @@ class SqlMask(sqlwidget.SqlWidget):
         ## important to use loops in a natural way when you add a record and
         ## want to loop on already written rows that are only present in the
         ## related table
-        for key in self.related.keys():
+        for key in list(self.related.keys()):
             r = self.related[key]
             r.records = getattr(self.current, key)
 
@@ -462,9 +460,9 @@ class SqlMask(sqlwidget.SqlWidget):
                         field.set_value(
                             self.get_value(field_name), initial=False, obj=obj, update_widget=False)
 
-                except exc.ValidationError, e:
+                except exc.ValidationError as e:
                     self.add_validation_error(e, field_name=field_name)
-                except exc.MissingWidget, e:
+                except exc.MissingWidget as e:
                     pass
 
         return obj
@@ -477,7 +475,7 @@ class SqlMask(sqlwidget.SqlWidget):
 
         try:
             self.record_save(None)
-        except (exc.DialogValidationError, exc.CancelledAction), e:
+        except (exc.DialogValidationError, exc.CancelledAction) as e:
             pass
 
     def record_save(self, ask=True, new_obj=False, *args):
@@ -516,7 +514,7 @@ class SqlMask(sqlwidget.SqlWidget):
 
         try:
             self.commit()
-        except exc.HandledRollback, e:
+        except exc.HandledRollback as e:
             return
 
         self.last_new_obj = None
@@ -551,7 +549,7 @@ class SqlMask(sqlwidget.SqlWidget):
             self.dialog(text=_("Primary key (%s) didn't change. Refusing to save as new" % key))
             return
 
-        o2m_list = [name for name, table in self.related.iteritems()
+        o2m_list = [name for name, table in list(self.related.items())
                     if not table.relationship_mode == 'm2m']
         save_as_is_managed = self.hooks and getattr(self.hooks, 'on_save_as', None)
         if o2m_list and not save_as_is_managed:
@@ -569,14 +567,14 @@ class SqlMask(sqlwidget.SqlWidget):
                 return
 
         records_m2m = {}
-        for table_name, table in self.related.iteritems():
+        for table_name, table in list(self.related.items()):
             if table.relationship_mode == 'm2m':
                 records_m2m[table_name] = table.records
 
         old_obj = self.current
         self.record_new(clear=False)
 
-        for table_name, table in self.related.iteritems():
+        for table_name, table in list(self.related.items()):
             if table_name in records_m2m:
                 table.set_records(records_m2m[table_name])
             else:
@@ -584,7 +582,7 @@ class SqlMask(sqlwidget.SqlWidget):
 
         obj = obj or self.current
         self.record_mask2obj(obj, force=True)
-        for table_name, table in self.related.iteritems():
+        for table_name, table in list(self.related.items()):
             setattr(obj, table_name, table.records)
 
         self.run_hook('on_save_as', old_obj, obj)
@@ -598,7 +596,7 @@ class SqlMask(sqlwidget.SqlWidget):
         if commit:
             try:
                 self.record_save(ask=False)
-            except exc.ValidationError, e:
+            except exc.ValidationError as e:
                 pass
 
         self.emit('record-selected', )
@@ -624,7 +622,7 @@ class SqlMask(sqlwidget.SqlWidget):
         try:
             self.commit(_('Deleted'))
             self.emit('record-deleted', obj)
-        except exc.HandledRollback, e:
+        except exc.HandledRollback as e:
             return
         self.record_display_next()
 
@@ -699,7 +697,7 @@ class SqlMask(sqlwidget.SqlWidget):
             self.current_idx = display_idx
             self.current = obj
             msg_info = "%s/%s" % (display_idx + 1, len(self.records))
-        except (IndexError, AssertionError), e:
+        except (IndexError, AssertionError) as e:
             msg_info = "%s/%s" % (self.current_idx + 1, len(self.records))
             if incr >= 0:
                 self.sb(_('Already last record') + msg_info)

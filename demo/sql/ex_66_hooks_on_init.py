@@ -30,7 +30,7 @@ class Hooks(object):
             button.connect('clicked', self.button_clicked_cb)
 
     def button_clicked_cb(self, widget):
-        print "Ciao, mondo"
+        print("Ciao, mondo")
 
 
 LAYOUT = """

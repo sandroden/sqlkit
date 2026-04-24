@@ -240,7 +240,7 @@ class ImageWidget(Gtk.VBox):
         elif property.name == 'strip-dir':
             self.status_bar.strip_dir = value
         else:
-            raise AttributeError, 'unknown property %s' % property.name
+            raise AttributeError('unknown property %s' % property.name)
 
     def do_get_property(self, property):
 
@@ -259,7 +259,7 @@ class ImageWidget(Gtk.VBox):
         elif property.name == 'strip-dir':
             return self.status_bar.strip_dir or ''
         else:
-            raise AttributeError, 'unknown property %s' % property.name
+            raise AttributeError('unknown property %s' % property.name)
 
     def button_press_event_cb(self, eventbox, event, image):
 
@@ -323,8 +323,8 @@ class ImageWidget(Gtk.VBox):
         filename = dialog.filename
         if not filename:
             return
-        self.set_image(unicode(filename))
-        self.emit('image-selected', filename, unicode(dialog.new_filename or u''))
+        self.set_image(str(filename))
+        self.emit('image-selected', filename, str(dialog.new_filename or ''))
 
     def save_image(self, action):
 
@@ -385,6 +385,6 @@ if __name__ == '__main__':
     i.set_image('/tmp/la-ragazza-sul-ponte2.jpg')
 
     def dbg(widget, filename):
-        print filename
+        print(filename)
     i.connect('image-selected', dbg)
     Gtk.main()

@@ -63,7 +63,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Table, Column, String, Integer, ForeignKey
 from sqlalchemy.orm import relation
 
-import utils
+from . import utils
 
 Base = declarative_base()
 

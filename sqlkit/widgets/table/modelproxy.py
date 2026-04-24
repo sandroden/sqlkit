@@ -64,6 +64,7 @@ from decimal import Decimal
 
 from gi.repository import Gtk
 from gi.repository import GObject
+from functools import reduce
 
 class ModelProxy(GObject.GObject):
 

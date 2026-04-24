@@ -15,7 +15,7 @@ class Validation(object):
 
         changed = False
         for field_name, old, new in get_differences(mask.current):
-            print field_name, old, new
+            print((field_name, old, new))
             changed = True
 
         if changed:

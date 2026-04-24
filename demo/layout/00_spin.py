@@ -13,7 +13,7 @@ simple_menu = """
 def show(*args):
     global w
     w['s=limit'].update()
-    print w['s=limit'].get_value()
+    print((w['s=limit'].get_value()))
 
 
 l = Layout(simple_menu, opts="Ts")

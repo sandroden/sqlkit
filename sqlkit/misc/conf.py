@@ -63,7 +63,7 @@ add:
 
 
 import os
-from ConfigParser import ConfigParser, NoSectionError
+from configparser import ConfigParser, NoSectionError
 
 import sqlalchemy
 
@@ -225,23 +225,23 @@ def create_templates(opts):
     if layout:
         filename = os.path.join(dir_nick, 'layout.py')
         if os.path.exists(filename):
-            print "File %s already exists, skipping creation" % filename
+            print(("File %s already exists, skipping creation" % filename))
         open(filename, 'w').write(TEMPLATE_LAYOUT)
 
     if models:
         filename = os.path.join(dir_nick, 'models.py')
         if os.path.exists(filename):
-            print "File %s already exists, skipping creation" % filename
+            print(("File %s already exists, skipping creation" % filename))
         open(filename, 'w').write(TEMPLATE_MODELS)
 
     if hooks:
         filename = os.path.join(dir_nick, 'hooks.py')
         if os.path.exists(filename):
-            print "File %s already exists, skipping creation" % filename
+            print(("File %s already exists, skipping creation" % filename))
         open(filename, 'w').write(TEMPLATE_HOOKS)
 
     if program:
         filename = os.path.join(dir_nick, 'program.py')
         if os.path.exists(filename):
-            print "File %s already exists, skipping creation" % filename
+            print(("File %s already exists, skipping creation" % filename))
         open(filename, 'w').write(TEMPLATE_PROGRAM)

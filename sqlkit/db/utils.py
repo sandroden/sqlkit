@@ -101,7 +101,7 @@ from sqlalchemy.exc import OperationalError, ProgrammingError, InterfaceError
 from pkg_resources import parse_version
 import sqlalchemy
 
-from defaults import register_hook, get_hook, register_layout, get_layout, register_class, \
+from .defaults import register_hook, get_hook, register_layout, get_layout, register_class, \
     get_class, unregister_hook, unregister_layout
 
 
@@ -140,7 +140,7 @@ class Descr(object):
     """
 
     def __init__(self, **kw):
-        for key, val in kw.iteritems():
+        for key, val in list(kw.items()):
             setattr(self, key, val)
         if not hasattr(self, '__tablename__'):
             self.__tablename__ = self.__table__.name
@@ -173,7 +173,7 @@ class Tables(Container):
             try:
                 table = TableDescr(key, metadata=db.metadata)
                 return table
-            except Exception, e:
+            except Exception as e:
                 raise MissingMetadata("No metadata defined in sqlkit.db.utils")
 
 
@@ -258,7 +258,7 @@ class TableDescr(object):
             self.table = table
             table_name = table.name
 
-        elif isinstance(table, basestring):
+        elif isinstance(table, str):
             table_name = table
 
         elif hasattr(table, 'original'):  # A Table.alias()
@@ -340,7 +340,7 @@ class TableDescr(object):
         if description:
             return description, format
 
-        for field_name in table.c.keys():
+        for field_name in list(table.c.keys()):
             if re.search("string|text|char", table.c[field_name].type.__class__.__name__, re.I):
                 break
 
@@ -358,7 +358,7 @@ def get_table_name(table):
     if isinstance(table, Table):
         table_name = table.name
 
-    elif isinstance(table, basestring):
+    elif isinstance(table, str):
         table_name = table
 
     elif hasattr(table, 'original'):  # A Table.alias()
@@ -379,7 +379,7 @@ def get_description(table, metadata=None, attr='attrs'):
 
     try:
         return getattr(tables[table_name], attr)
-    except MissingMetadata, e:
+    except MissingMetadata as e:
         if isinstance(table, Table):
             return getattr(TableDescr(table), attr)
         return getattr(TableDescr(table_name, metadata=metadata), attr)
@@ -408,7 +408,7 @@ def get_description_from_sqlkit(table, metadata=None):
         descr = res_proxy.fetchone()
         if not descr:
             descr = None, None
-    except (OperationalError, ProgrammingError), e:  # _sqlkit_table is not defined
+    except (OperationalError, ProgrammingError) as e:  # _sqlkit_table is not defined
         descr = (None, None)
     return descr
 
@@ -438,7 +438,7 @@ def get_labels_and_tips_from_sqlkit(table, metadata=None, class_=None):
         res_proxy = metadata.bind.execute(sql)
         for record in res_proxy.fetchall():
             descr[record.name] = (record.description, record.help_text)
-    except (OperationalError, ProgrammingError), e:
+    except (OperationalError, ProgrammingError) as e:
         #_sqlkit_field is not defined
         pass
     return descr
@@ -472,7 +472,7 @@ def get_differences(obj):
 
         try:
             new, unchanged, old = orm.attributes.get_history(obj, prop.key)
-        except AttributeError, e:
+        except AttributeError as e:
             # sqla 0.5.0 -> 0.5.1
             new, unchanged, old = orm.attributes.get_history(
                 orm.attributes.instance_state(obj), prop.key)
@@ -512,7 +512,7 @@ def get_history(obj, field_name, session=None):
             try:
                 try:
                     new, unchanged, old = orm.attributes.get_history(obj, prop.key)
-                except AttributeError, e:
+                except AttributeError as e:
                     # sqla 0.5.0 -> 0.5.1
                     new, unchanged, old = orm.attributes.get_history(
                         orm.attributes.instance_state(obj), prop.key)
@@ -522,7 +522,7 @@ def get_history(obj, field_name, session=None):
                 else:
                     return new and new[0] or '',  unchanged and unchanged[0] or '', old and old[0] or ''
 
-            except Exception, e:
+            except Exception as e:
                 pass
 
 def clean_for_markup(text):
@@ -553,7 +553,7 @@ def get_fields(table, metadata=None, name=True):
     if class_:
         mapper = orm.class_mapper(class_)
         if name:
-            return mapper.c.keys()
+            return list(mapper.c.keys())
         else:
             return [c for c in mapper.c]
     else:
@@ -562,11 +562,11 @@ def get_fields(table, metadata=None, name=True):
                 raise MissingMetadata("A metadata must be provided as autoload is needed")
             try:
                 table = Table(table, metadata, autoload=True)
-            except Exception, e:
+            except Exception as e:
                 e.message = "Missing table: %s" % table
                 raise e
         if name:
-            return table.c.keys()
+            return list(table.c.keys())
         else:
             return [c for c in table.c]
 
@@ -580,7 +580,7 @@ if __name__ == '__main__':
     #t = TableDescr('movie', '%(dirctor_id)s - (%(nation)s)', metadata=db.metadata)
 
     tables['movie'].attrs
-    print get_description(movie, attr='format')
-    print tables.movie
-    print get_description('movie', metadata=db.metadata)
-    print get_description('movie', metadata=db.metadata, attr='format')
+    print((get_description(movie, attr='format')))
+    print((tables.movie))
+    print((get_description('movie', metadata=db.metadata)))
+    print((get_description('movie', metadata=db.metadata, attr='format')))

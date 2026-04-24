@@ -168,7 +168,7 @@ def convert(name_pattern, result_type='pdf', tree=None):
         if not PY_PATH:
             try:
                 Converter(file_name, result_type, OOO_PORT).run()
-            except ConverterError, ce:
+            except ConverterError as ce:
                 raise PodError(CONVERT_ERROR % str(ce))
         else:
             if not os.path.isfile(PY_PATH):

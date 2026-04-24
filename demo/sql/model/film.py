@@ -2,7 +2,7 @@
 
 from sqlkit.widgets import *
 from gi.repository import Gtk
-import movies
+from . import movies
 
 
 lay = """

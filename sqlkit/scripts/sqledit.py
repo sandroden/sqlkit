@@ -48,6 +48,7 @@ import user
 import locale
 
 import gi
+import importlib
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
@@ -55,7 +56,7 @@ PY2 = sys.version_info[0] == 2
 if PY2:
     # This hack fixes some UnicodDecode Errors caused pygi not making
     # magic hidden automatic unicode conversion pygtk did
-    reload(sys)
+    importlib.reload(sys)
     sys.setdefaultencoding("utf-8")
     
 if not 'LANG' in os.environ:
@@ -176,7 +177,7 @@ class ConnectionDialog(object):
         url_text = entry.get_text()
         try:
             URL = url.make_url(url_text)
-        except Exception, e:
+        except Exception as e:
             self.wdict[Gtk.ResponseType.OK].props.sensitive = False
             return
         self.set_error_msg("")
@@ -198,7 +199,7 @@ class ConnectionDialog(object):
             open_db(exc=True)
             self.set_error_msg(_("Connected to %s") % url_text, 'sea green')
             self.wdict[Gtk.ResponseType.OK].props.sensitive = True
-        except Exception, e:
+        except Exception as e:
             self.set_error_msg(str(e), 'red')
             self.wdict[Gtk.ResponseType.OK].props.sensitive = False
 
@@ -258,7 +259,7 @@ def find_demo():
         demo_dir = os.path.dirname(sql.__file__)
         found_demo = demo_dir
 
-    except ImportError, e:
+    except ImportError as e:
         pass
     return found_demo
 
@@ -272,7 +273,7 @@ def start_demo():
     if os.path.exists(demo_program):
         os.chdir(demo_dir)
         sys.path.insert(0, os.getcwd())
-        execfile('demo.py', {})
+        exec(compile(open('demo.py', "rb").read(), 'demo.py', 'exec'), {})
 
 def open_db(exc=False):
     global db, models
@@ -283,19 +284,19 @@ def open_db(exc=False):
         sys.path.append(opts.nick_dir)
         if opts.run and not opts.browser:
             os.getcwd()
-            execfile(opts.run, {'opts': opts})
+            exec(compile(open(opts.run, "rb").read(), opts.run, 'exec'), {'opts': opts})
             sys.exit()
         else:
             if opts.models:
                 VARS = {}
-                execfile('models.py', VARS)
+                exec(compile(open('models.py', "rb").read(), 'models.py', 'exec'), VARS)
                 try:
                     if opts.create_tables:
                         if not VARS.get(Base).metadata.bind:
                             models.Base.metadata.bind = opts.url
                         models.Base.metadata.create_all()
-                except Exception, e:
-                    print e
+                except Exception as e:
+                    print(e)
                     pass
                 try:
                     db = VARS.get('db')
@@ -303,21 +304,21 @@ def open_db(exc=False):
                     pass
 
             if opts.hooks:
-                execfile('hooks.py', {})
+                exec(compile(open('hooks.py', "rb").read(), 'hooks.py', 'exec'), {})
 
             if opts.layout:
-                execfile('layout.py', {})
+                exec(compile(open('layout.py', "rb").read(), 'layout.py', 'exec'), {})
     try:
         db = DbProxy(bind=opts.url)
         db.metadata.bind.connect()
         return True
-    except Exception, e:
+    except Exception as e:
         raise e
         if exc:
             raise e
         else:
             if e.message == 'No module named MySQLdb':
-                print "You need to install mysql driver (python-mysqldb under debian)"
+                print("You need to install mysql driver (python-mysqldb under debian)")
             sys.exit(1)
         return False
 
@@ -348,7 +349,7 @@ def program():
         try:
             opts = conf.read_conf(opts.nick, opts)
         except conf.NoSectionError:
-            print "No nick named '%s'" % opts.nick
+            print(("No nick named '%s'" % opts.nick))
             sys.exit(1)
 
     if not args and not opts:
@@ -379,11 +380,11 @@ def program():
                 title = session.bind.url.database
                 tb = table_browser.TableBrowser(db, title=title, opts=opts, x='quit')
 
-        except OperationalError, e:
+        except OperationalError as e:
             if opts.debug:
                 raise e
             else:
-                print e.orig
+                print((e.orig))
                 sys.exit(1)
 
 
@@ -394,7 +395,7 @@ def main():
     opts, args = optionparse.parse(__doc__)
 
     if opts.version:
-        print sqlkit.__version__
+        print((sqlkit.__version__))
         sys.exit(0)
 
     if opts.gtk_debug:
@@ -412,15 +413,15 @@ def main():
         try:
             Gtk.set_interactive(True)
         except AttributeError:
-            print "This version of gtk does'n not have 'set_interactive', sorry."
+            print("This version of gtk does'n not have 'set_interactive', sorry.")
             sys.exit(1)
         try:
             import IPython
             from IPython.Shell import IPShellEmbed
             ipshell = IPShellEmbed([])
             ipshell()
-        except ImportError, e:
-            print "Interactive demo needs ipython. Quitting."
+        except ImportError as e:
+            print("Interactive demo needs ipython. Quitting.")
     else:
         try:
             Gtk.main()

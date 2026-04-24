@@ -34,8 +34,8 @@ from gi.repository import GdkPixbuf
 
 from decimal import Decimal
 
-import cell_renderers
-import utils as tv_utils
+from . import cell_renderers
+from . import utils as tv_utils
 from sqlkit import debug as dbg, _, exc, fields
 from sqlkit.layout import widgets
 from sqlkit.misc.utils import str2list
@@ -55,7 +55,7 @@ COLUMN_MENU = '''
 
 
 LBL_HOOVER_STYLE = Gdk.color_parse('red')
-class GenericColumn(GObject.GObject):
+class GenericColumn(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogTheMethods):
     RENDERER = Gtk.CellRendererText
     RESIZE = True
     REORDER = True
@@ -65,7 +65,6 @@ class GenericColumn(GObject.GObject):
     MAX_DEFAULT_WIDTH = 30
     PROPERTY = 'text'
     editable = False
-    __metaclass__ = None if not dbg.debug else dbg.LogTheMethods
 
     def __init__(self, master, field_name, title, field=None):
         """
@@ -415,13 +414,12 @@ class BooleanColumn(GenericColumn):
             cell.set_property('visible', False)
             cell.set_property('activatable', False)
 
-class VarcharColumn(GenericColumn):
+class VarcharColumn(GenericColumn, metaclass=dbg.LogTheMethods):
 
     """
     A renderer that expands only large fields and that centers text if it's little
     Cell renderer is choosen according to VarChar or Text
     """
-    __metaclass__ = dbg.LogTheMethods
 
     def setup_cell_renderers(self, cell_renderer=None):
 
@@ -861,7 +859,7 @@ class CellEntry(object):
         return valid
 
     def get_text(self):
-        return unicode(self.entry.get_text())
+        return str(self.entry.get_text())
 
     def __repr__(self):
         return "<CellEntry: (%s) %s>" % (self.valid, self.get_text())
@@ -1205,7 +1203,7 @@ class View(object):
             #iter = self.master.modelproxy.modelstore.get_iter(path)
             field_name = column.field_name
             return field_name
-        except TypeError, e:
+        except TypeError as e:
             return
 
     def selection_changed_cb(self, treeview, view):
@@ -1294,12 +1292,12 @@ class View(object):
         """
 
         fix_it = True
-        for key, col in self.tvcolumns.iteritems():
+        for key, col in list(self.tvcolumns.items()):
             if col.get_property('expand'):
                 fix_it = False
 
         if fix_it:
-            for key, col in self.tvcolumns.iteritems():
+            for key, col in list(self.tvcolumns.items()):
                 col.set_property('expand', True)
 
     def hide_column(self, field_name):
@@ -1502,7 +1500,7 @@ class View(object):
             if self.tvcolumns[field_name].get_visible() and self.master.is_editable(field_name):
                 try:
                     has_usable_default = self.master.gui_fields[field_name].get_default()
-                except exc.NotHandledDefault, e:
+                except exc.NotHandledDefault as e:
                     # it's not necessary to fill this value as a default exists even if we're
                     # not able to handle it
                     has_usable_default = True
@@ -1560,7 +1558,8 @@ class View(object):
         :param sync: syncronize all views but run just one selection_cb
         :type sync: boolean
         """
-        def search_obj(model, path, iter, (obj, path_list)):
+        def search_obj(model, path, iter, xxx_todo_changeme):
+            (obj, path_list) = xxx_todo_changeme
             if model.get_value(iter, 0) == obj:
                 path_list += [path]
                 return True

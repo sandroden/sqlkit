@@ -6,6 +6,7 @@ import sys
 import os
 
 import gi
+import importlib
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
@@ -13,7 +14,7 @@ PY2 = sys.version_info[0] == 2
 if PY2:
     # This hack fixes some UnicodDecode Errors caused pygi not making
     # magic hidden automatic unicode conversion pygtk did
-    reload(sys)
+    importlib.reload(sys)
     sys.setdefaultencoding("utf-8")
 
 pdir = os.path.dirname(os.getcwd())

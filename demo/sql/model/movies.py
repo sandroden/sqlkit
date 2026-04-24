@@ -45,10 +45,10 @@ class Director(Base):
     movies = relation('Movie', backref='director', cascade='all, delete-orphan',)
 
     def __str__(self):
-        return u'%s (%s)' % (self.last_name, self.nation)
+        return '%s (%s)' % (self.last_name, self.nation)
 
     def __repr__(self):
-        return u'<Director: %s (%s)>' % (self.last_name, self.nation)
+        return '<Director: %s (%s)>' % (self.last_name, self.nation)
 
 class Movie(Base):
     __tablename__ = 'movie'
@@ -69,10 +69,10 @@ class Movie(Base):
     genres = relation('Genre', backref='movies', secondary=movie_genre)
 
     def __str__(self):
-        return u'%s' % self.title
+        return '%s' % self.title
 
     def __repr__(self):
-        return u'<Movie: %s>' % self.title
+        return '<Movie: %s>' % self.title
 
 
 class Genre(Base):
@@ -80,7 +80,7 @@ class Genre(Base):
     name = Column(Unicode(55), primary_key=True)
 
     def __repr__(self):
-        return u'<Genre "%s">' % self.name
+        return '<Genre "%s">' % self.name
 
 class Actor(Base):
     __tablename__ = 'actor'
@@ -92,7 +92,7 @@ class Actor(Base):
     nation = relation('Nation', backref='actors')
 
     def __repr__(self):
-        return u'<Actor %s %s>' % (self.first_name, self.last_name)
+        return '<Actor %s %s>' % (self.first_name, self.last_name)
 
 class Nation(Base):
     __tablename__ = 'nation'

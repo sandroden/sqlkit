@@ -99,7 +99,7 @@ class LayoutGenerator (object):
         int: 'ae',
         float: 'ae',
         str: 'ae',
-        unicode: 'ae',
+        str: 'ae',
         decimal.Decimal: 'ae',
     }
 

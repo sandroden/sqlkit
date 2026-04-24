@@ -20,7 +20,7 @@ class Hooks(object):
                 raise ValidationError("I don't want you to change the genre!!!")
 
     def on_completion__genres__name(self, mask, field_name, obj):
-        print "No, please, don't change the genres..."
+        print("No, please, don't change the genres...")
 
 
 lay = """

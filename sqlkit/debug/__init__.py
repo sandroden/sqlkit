@@ -1,4 +1,4 @@
-import debug
+from . import debug
 __doc__ = debug.__doc__
-from debug import *
+from .debug import *
 #import gtk_dbg

@@ -302,7 +302,7 @@ class TableBrowser(object):
                 self.t.reload()
         except sqlkit.exc.MissingDescriptorField:
             pass
-        except sqlkit.exc.MissingPrimaryKey, e:
+        except sqlkit.exc.MissingPrimaryKey as e:
             dialog, l = self.l.dialog(type='ok', layout="l=msg", text=e)
             dialog.show_all()
             response = dialog.run()
@@ -424,8 +424,8 @@ def sqlkit_model(item=None, dbproxy=None, single=False):
         tbl.widgets['l=format'].set_tooltip_text(format_tip)
         search_tip = _('The field that will be searched for when completion is used')
         tbl.widgets['l=search_field'].set_tooltip_text(search_tip)
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
         raise
 
 def dialog_create_continue():

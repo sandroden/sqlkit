@@ -21,7 +21,7 @@ class Director(Base):
     __table__ = Table('director', Base.metadata, autoload=True)
 
     def __repr__(self):
-        return u'<Director: %s (%s)>' % (self.last_name, self.nation)
+        return '<Director: %s (%s)>' % (self.last_name, self.nation)
 
 class Movie(Base):
     __table__ = Table('movie', Base.metadata, autoload=True)
@@ -30,20 +30,20 @@ class Movie(Base):
     actors = relation('Actor', backref='movies', secondary=movie_casting)
 
     def __repr__(self):
-        return u'<Movie: %s>' % self.title
+        return '<Movie: %s>' % self.title
 
 class Genre(Base):
     __table__ = Table('genre', Base.metadata, autoload=True)
 #    name     = Column(Unicode(15), primary_key=True)
 
     def __repr__(self):
-        return u'<Genre "%s">' % self.name
+        return '<Genre "%s">' % self.name
 
 class Actor(Base):
     __table__ = Table('actor', Base.metadata, autoload=True)
 
     def __repr__(self):
-        return u'<Actor "%s">' % self.last_name
+        return '<Actor "%s">' % self.last_name
 
 class Nation(Base):
     __table__ = Table('nation', Base.metadata, autoload=True)

@@ -5,7 +5,7 @@ from gi.repository import GObject
 from gi.repository import Pango
 
 from sqlkit import debug as dbg
-from multiline_cell import MultilineCellRenderer
+from .multiline_cell import MultilineCellRenderer
 
 class CellEditableCalendar(Gtk.TextView, Gtk.CellEditable):
 
@@ -114,7 +114,7 @@ class CellEditableCalendar(Gtk.TextView, Gtk.CellEditable):
         try:
             ## in case self.datetime is a date, we preserve the time
             self.datetime = datetime.combine(date, self.datetime.time())
-        except Exception, e:
+        except Exception as e:
             ## self.datetime may just be a date...
             self.datetime = date
 

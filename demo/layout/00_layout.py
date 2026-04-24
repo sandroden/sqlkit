@@ -14,7 +14,7 @@ w = l.show()
 e = Gtk.Entry()
 
 def drag_begin_cb(*args):
-    print 'BEGIN'
+    print('BEGIN')
 
 def drag_end_cb(*args):
     dbg.write('END')

@@ -19,7 +19,7 @@ usage: %prog [opts] ex_number
    -x, --existent-db: don't delete the demo db if it exists
 """
 
-from __future__ import with_statement
+
 import sys
 import os
 import sqlite3
@@ -27,6 +27,7 @@ import weakref
 from contextlib import closing
 
 import gi
+import importlib
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
@@ -34,7 +35,7 @@ PY2 = sys.version_info[0] == 2
 if PY2:
     # This hack fixes some UnicodDecode Errors caused pygi not making
     # magic hidden automatic unicode conversion pygtk did
-    reload(sys)
+    importlib.reload(sys)
     sys.setdefaultencoding("utf-8")
 
 pdir = os.path.dirname(os.getcwd())
@@ -103,7 +104,7 @@ class DemoSql(Demo):
             'model': model,
 
         }
-        execfile(demo.filename, GLOB)
+        exec(compile(open(demo.filename, "rb").read(), demo.filename, 'exec'), GLOB)
         self.last_lo = GLOB['t'].lay_obj
         self.last_w = GLOB['t'].widgets
         self._t = weakref.ref(GLOB['t'])
@@ -135,7 +136,7 @@ if not opts.existent_db and os.path.exists(model.DB_FILE):
     try:
         os.remove(model.DB_FILE)
     except OSError:
-        print "No way to remove file", model.DB_FILE
+        print(("No way to remove file", model.DB_FILE))
         # No write permission - no problem, a temporary db will be created
         pass
 if not os.path.exists(model.DB_FILE):
@@ -144,8 +145,8 @@ if not os.path.exists(model.DB_FILE):
 d = DemoSql(xml=False, debug=True)
 d.tv.collapse_all()
 if not os.access('images', os.W_OK):
-    print "WARNING: \n  Missing write permission on 'images' directory"
-    print "  Image upload is not possible\n"
+    print("WARNING: \n  Missing write permission on 'images' directory")
+    print("  Image upload is not possible\n")
 
 if args:
     d.iconify()
@@ -158,23 +159,23 @@ if args:
         hid = d.t.connect('delete-event', quit)
         d.t._ids['delete_event'] = (d.t, hid)
     except MissingExampleError:
-        print "No such example ", args[0]
+        print(("No such example ", args[0]))
         sys.exit(1)
-    except AttributeError, e:
+    except AttributeError as e:
         pass
 
 if opts.test:
     start = opts.offset and int(opts.offset) or 0
     stop = opts.number and start + int(opts.number) or None
-    print start, ':', stop
+    print((start, ':', stop))
     for demo in d.demos[start:stop]:
-        print "------------------ %s %s --------------" % (d.demos.index(demo), demo)
+        print(("------------------ %s %s --------------" % (d.demos.index(demo), demo)))
         try:
             t = d.load_module(demo)
             if opts.reload:
                 t.reload()
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
             if opts.exit:
                 sys.exit(1)
 
@@ -187,21 +188,21 @@ if __name__ == '__main__':
         try:
             Gtk.set_interactive(True)
         except AttributeError:
-            print "This version of gtk doesn't have 'set_interactive', sorry."
+            print("This version of gtk doesn't have 'set_interactive', sorry.")
             sys.exit(1)
         try:
-            print "The last opened table is hold in variable 'd.t' (i.e.: demo.table)"
+            print("The last opened table is hold in variable 'd.t' (i.e.: demo.table)")
             import IPython
             shell = IPython.Shell.IPShell(argv=[])
             shell.mainloop()
             # from IPython.Shell import IPShellEmbed
             # ipshell = IPShellEmbed([])
             # ipshell()
-        except AttributeError, e:
+        except AttributeError as e:
             from IPython import embed
             embed()
-        except ImportError, e:
-            print "Interactive demo needs ipython. Quitting."
+        except ImportError as e:
+            print("Interactive demo needs ipython. Quitting.")
     else:
-        print "Try option -i to try sqlkit interactively"
+        print("Try option -i to try sqlkit interactively")
         Gtk.main()

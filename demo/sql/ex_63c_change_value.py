@@ -33,7 +33,7 @@ lay = """
 class Hooks(object):
 
     def on_change_value__text(self, sqlwidget, field_name, value, fkvalue, field):
-        print "Changed: ", sqlwidget, field_name, value, fkvalue
+        print(("Changed: ", sqlwidget, field_name, value, fkvalue))
 
     on_change_value__varchar10 = \
         on_change_value__date = \

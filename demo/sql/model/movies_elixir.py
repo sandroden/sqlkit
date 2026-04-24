@@ -19,7 +19,7 @@ class Director(elixir.Entity):
     elixir.using_options(metadata=__metadata__)
 
     def __repr__(self):
-        return u'<Director: %s (%s)>' % (self.last_name, self.nation)
+        return '<Director: %s (%s)>' % (self.last_name, self.nation)
 
 class Movie(elixir.Entity):
     title = elixir.Field(elixir.String(60))
@@ -32,7 +32,7 @@ class Movie(elixir.Entity):
     elixir.using_options(tablename='movie')
 
     def __repr__(self):
-        return u'<Movie: %s>' % self.title
+        return '<Movie: %s>' % self.title
 
 class Genre(elixir.Entity):
     name = elixir.Field(elixir.Unicode(15), primary_key=True)
@@ -40,7 +40,7 @@ class Genre(elixir.Entity):
     elixir.using_options(tablename='genre')
 
     def __repr__(self):
-        return u'<Genre "%s">' % self.name
+        return '<Genre "%s">' % self.name
 
 class Actor(elixir.Entity):
     name = elixir.Field(elixir.String(60))

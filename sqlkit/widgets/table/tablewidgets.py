@@ -53,7 +53,7 @@ class CellWidget(object):
         elif self.master.is_enum(self.field_name):
             Completion = completion.EnumCompletion
 
-        elif force or self.master.get_field_type(self.field_name) in (str, unicode):
+        elif force or self.master.get_field_type(self.field_name) in (str, str):
             Completion = completion.SimpleCompletion
         else:
             self.completion = None
@@ -62,7 +62,7 @@ class CellWidget(object):
         try:
             self.completion = Completion(self.master, self, self.field_name)
             self.master.completions[self.field_name] = self.completion
-        except exc.ColumnWithoutTable, e:
+        except exc.ColumnWithoutTable as e:
             ## function columns do not have .table so that won't complete
             pass
 

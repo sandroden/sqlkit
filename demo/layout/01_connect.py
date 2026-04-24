@@ -14,10 +14,10 @@ w = l.show()
 
 def di_ciao(*args):
     for i, val in enumerate(args):
-        print i, val
+        print((i, val))
 
 def close_window(widget, window):
-    print type(window)
+    print((type(window)))
     window.destroy()
 
 l.connect(

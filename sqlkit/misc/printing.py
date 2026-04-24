@@ -126,7 +126,7 @@ API
 import os
 import re
 from gi.repository import Gtk
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import datetime
 import tempfile
 import subprocess
@@ -224,7 +224,7 @@ class Context(object):
         implement a lazy context where lists are directly values of
         contents[Table_name] rather then conten[Table_name] = ((...),)
         """
-        for key, value in self.content.iteritems():
+        for key, value in list(self.content.items()):
             if isinstance(value, (list, tuple)) and len(value):
                 if not isinstance(value[0], (list, tuple)):
                     self.content[key] = (value, )
@@ -246,9 +246,9 @@ class Context(object):
 
         try:
             value = self.content[key]
-            value = unicode(self.value2string(value, key))
+            value = str(self.value2string(value, key))
             return value
-        except KeyError, e:
+        except KeyError as e:
             return self._deep_sub(None, *key.split('.'))
 
     def sub_cell(self, match, record_index, table_name, list_num):
@@ -271,11 +271,11 @@ class Context(object):
         try:
             ## the object where we get the values are in a list
             obj = self.content[table_name][list_num][record_index]
-            value = unicode(self.value2string(getattr(obj, key), key))
+            value = str(self.value2string(getattr(obj, key), key))
 
-            return unicode(match.sub(value))
+            return str(match.sub(value))
 
-        except (KeyError, AttributeError), e:
+        except (KeyError, AttributeError) as e:
             return self._deep_sub(obj, *key.split('.'))
 
     def _deep_sub(self, obj, key, *tokens):
@@ -291,18 +291,18 @@ class Context(object):
                 value = getattr(obj, key)
             else:
                 value = self.content[key]
-        except (KeyError, AttributeError), e:
+        except (KeyError, AttributeError) as e:
             self.missing_keys[key] = None
             return "Missing Key " + key
 
         for tk in tokens:
             try:
                 value = getattr(value, tk)
-            except AttributeError, e:
+            except AttributeError as e:
                 self.missing_keys[tk] = "%s.%s (%s)" % (key, tk, value)
                 value = "No attr %s in %s" % (tk, value)
 
-        return unicode(self.value2string(value, key))
+        return str(self.value2string(value, key))
 
     def _get_records_len(self, table_name, list_num):
         """
@@ -311,7 +311,7 @@ class Context(object):
         try:
             return len(self.content[table_name][list_num])
         except KeyError:
-            print "No TableName %s in context" % table_name
+            print(("No TableName %s in context" % table_name))
             return 0
 
     def value2string(self, value, key):
@@ -537,7 +537,7 @@ class PrintTool(GObject.GObject):
         else:
             self.add_to_table(context, 'Table1', self.master.records)
 
-        for rel in self.master.related.keys():
+        for rel in list(self.master.related.keys()):
             self.add_to_table(context, rel, self.master.related[rel].records,
                               master=self.master.related[rel])
 
@@ -550,7 +550,7 @@ class PrintTool(GObject.GObject):
         if callable(output_path):
             output_path = output_path(self, template_path, mode=mode)
 
-        templ = self.get_template(unicode(template_path), context, server=server, port=port)
+        templ = self.get_template(str(template_path), context, server=server, port=port)
 
         if preview:
             f, local_output_path = tempfile.mkstemp(suffix='.pdf')
@@ -630,7 +630,7 @@ class PrintTool(GObject.GObject):
         if 'Table1' in context and not 'Table1' in template.tables:
             msg += _("\nA possible error is that I don't see 'Table1' in your template\n"
                      "but I see %s" % " ".join(template.tables))
-        for key, where in missing_keys.iteritems():
+        for key, where in list(missing_keys.items()):
             if where:
                 msg += "\n'%s' (%s)" % (key, where or '')
             else:
@@ -756,7 +756,7 @@ class PrintToolOoo(PrintTool):
         from . import oootemplate as oo
 
         ## Template & output
-        templ = oo.Template(unicode(template_path), server=server, port=port,
+        templ = oo.Template(str(template_path), server=server, port=port,
                             preserve_styles=self.preserve_styles)
         missing_keys = templ.render(self.prepare_context(context))
         if missing_keys:
@@ -816,7 +816,7 @@ class ObjProxy(object):
             # at present LoaderProperties don't have a gui_field
             return value
 
-class Opener(urllib.FancyURLopener):
+class Opener(urllib.request.FancyURLopener):
 
     def http_error_default(self, filename, sock, status, message, response):
         msg = "Error while retrieving file %s.\nStatus code: %s (%s)" % (
@@ -839,7 +839,7 @@ def setup_field_validation(obj):
     info = InspectMapper(mapper)
     field_chooser = FieldChooser(info)
 
-    for field_name in mapper.c.keys():
+    for field_name in list(mapper.c.keys()):
         Field = field_chooser.get_field(field_name, info.fields[field_name])
         field = Field(field_name, info.fields[field_name])
         gui_fields[field_name] = field

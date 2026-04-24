@@ -9,7 +9,7 @@ signal of SqlTable
 from gi.repository import Gtk
 
 def menu_item_cb(menu_item, movie):
-    print "Movie %s has %s as director" % (movie, movie.director)
+    print(("Movie %s has %s as director" % (movie, movie.director)))
 
 def custom_action_cb(table, event, obj, field_name, menu, treeview):
 

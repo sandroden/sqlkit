@@ -14,7 +14,7 @@ CUSTOM = '''
 '''
 
 def custom_action_cb(widget):
-    print "ok!"
+    print("ok!")
 
 t = SqlTable(model.Movie, dbproxy=db)
 view = t.views['main']

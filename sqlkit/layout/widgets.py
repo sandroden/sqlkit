@@ -83,10 +83,11 @@ class LWidget(object):
         #                                     self,elements.keys()) )
         elements[self.lw['el_key']] = self
 
-    def position(self, (row, col)):
+    def position(self, xxx_todo_changeme):
         ## ask the class of the container which are the pack_properties
         ## apart from Table. Table has position changing, the others pack
         ## widgets as they arrive. I tried with classmethod for Table w/ no luck
+        (row, col) = xxx_todo_changeme
         if self.container_flag in ('T'):
             self.pack_properties.update({
                 'left_attach': col,
@@ -234,7 +235,7 @@ class LWidget(object):
         #print dbg.dshow(self.properties)
         self.gtkWdg = GObject.new(GObject.type_from_name(self.gtkClass))
         # **self.properties
-        for p, val in self.properties.iteritems():
+        for p, val in list(self.properties.items()):
             try:
                 self.gtkWdg.set_property(p, val)
             except:
@@ -255,7 +256,7 @@ class LWidget(object):
             allowed_pack_properties += (i.name,)
 
         xml = ["<packing>"]
-        for key, value in pack_properties.iteritems():
+        for key, value in list(pack_properties.items()):
             ## tabs label are child of notebook but of a type that
             ## is not returned by container_class... function above
             if (key == 'type' and ContGtkClass == 'GtkNotebook') \
@@ -293,7 +294,7 @@ class LWidget(object):
 
         # now write everything else
         extra_text = ""
-        for item, value in self.properties.iteritems():
+        for item, value in list(self.properties.items()):
             if item not in self.ordered_properties:
                 if item in self.transpose:
                     item = self.transpose[item]
@@ -387,7 +388,7 @@ class LContainer(LWidget):
             if self.gtkClass not in ('GtkTable'):
                 #dbg.write('%s.add(%s, %s)' %(gtkWdg, child, pack_props ))
                 gtkWdg.add(child)
-                for p, val in pack_props.iteritems():
+                for p, val in list(pack_props.items()):
                     #dbg.write("%s.set_property(%s, %s)" % (gtkWdg, p, val))
                     setattr(gtkWdg, p, val)
             if self.gtkClass == 'GtkTable':
@@ -1252,8 +1253,8 @@ def register(Class, mod, custom=None, force=False):
     'mod' is the string used in layout
     """
     global _W
-    exec "global " + Class.__name__
-    exec "%s = Class" % (Class.__name__)
+    exec("global " + Class.__name__)
+    exec("%s = Class" % (Class.__name__))
     if mod in _W and not force:
         msg = "Alias %s is already present. Use force=True to force it" % mod
         raise IdentifiedAlreadyPresent(msg)

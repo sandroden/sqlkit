@@ -207,7 +207,7 @@ class Totals(GObject.GObject):
 
     def initialize(self):
         self.prev = None
-        for field_name in self.totals.keys():
+        for field_name in list(self.totals.keys()):
             self.totals[field_name] = 0
             self.subtotals[field_name] = 0
 
@@ -235,7 +235,7 @@ class Totals(GObject.GObject):
           t.totals = BoolTotal(t)
 
         """
-        for field_name in self.totals.keys():
+        for field_name in list(self.totals.keys()):
             if field_name in self.table.mapper_info:
                 value = getattr(obj, field_name, 0)
             else:
@@ -317,7 +317,7 @@ class Totals(GObject.GObject):
         """
         Go, add subtotals and total
         """
-        if not self.totals.keys():
+        if not list(self.totals.keys()):
             return
         self.initialize()
         if not self.table.records:

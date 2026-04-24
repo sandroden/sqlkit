@@ -40,7 +40,7 @@ lay = """
 t = SqlMask(model.AllTypes, dbproxy=db, layout=lay)
 
 def close(widget, window):
-    print "The End for me..."
+    print("The End for me...")
     window.destroy()
 
 t.widgets['b=Who_Am_I'].connect('clicked', close, t.widgets['Window'])

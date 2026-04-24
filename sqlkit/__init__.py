@@ -22,8 +22,8 @@ gettext.bindtextdomain('sqlkit', path)
 gettext.textdomain('sqlkit')
 _ = gettext.gettext
 
-from db.proxy import DbProxy
-import exc
+from .db.proxy import DbProxy
+from . import exc
 
 
 utils.check_sqlalchemy_version('0.6.1')

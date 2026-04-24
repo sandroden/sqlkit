@@ -46,7 +46,7 @@ from sqlkit.misc import printing
 
 NUMBERS = (int, float, decimal.Decimal)
 
-class SqlWidget(GObject.GObject):
+class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogTheMethods):
 
     """
     The main widget used to edit a table or sqlalchemy selectable, i.e. almost everything you can
@@ -94,8 +94,6 @@ class SqlWidget(GObject.GObject):
     }
     gui_fields = None
     values = None    # real value for foreign key
-    # (when lookup is displeyed instead)
-    __metaclass__ = None if not dbg.debug else dbg.LogTheMethods
     records = None
     last_new_obj = None
 
@@ -289,7 +287,7 @@ class SqlWidget(GObject.GObject):
         GObject.GObject.__init__(self)
         self._ids = {}  # handler for connect to gobjects
         if what:
-            if isinstance(what, (basestring, sqlalchemy.Table)):
+            if isinstance(what, (str, sqlalchemy.Table)):
                 table = what
             elif isinstance(what, Mapper):
                 mapper = what
@@ -358,7 +356,7 @@ class SqlWidget(GObject.GObject):
         self.about_dialog = about_dialog or self.create_about_dialog()
         try:
             self.show(show)
-        except exc.DBAPIError, e:
+        except exc.DBAPIError as e:
             msg = _("Sorry, problems connecting to remote db. Original error was: \n\n%s" % e)
             raise exc.ConnectionError(msg)
 
@@ -689,7 +687,7 @@ class SqlWidget(GObject.GObject):
         info = minspect.InspectMapper(self.mapper, noup=self.noup)
         ## fix column_width that may have been passed
         if self.col_width:
-            for field_name, value in self.col_width.items():
+            for field_name, value in list(self.col_width.items()):
                 if field_name in info:
                     info.fields[field_name]['length'] = value
         return info
@@ -751,10 +749,10 @@ class SqlWidget(GObject.GObject):
                         GObject.idle_add(self.lay_obj.sb, text, seconds)
                     else:
                         self.lay_obj.sb(text, seconds=seconds)
-                except Exception, e:
+                except Exception as e:
                     #print e, vars(e)
                     pass
-        except AttributeError, e:
+        except AttributeError as e:
             ## The widget has been deleted and no self.relationship_leader already emptyed
             pass
 
@@ -856,7 +854,7 @@ class SqlWidget(GObject.GObject):
         Prepare UIManager, actions, and accelerators
         """
 
-        import uidescription
+        from . import uidescription
 
         self.ui_manager = Gtk.UIManager()
 
@@ -941,7 +939,7 @@ class SqlWidget(GObject.GObject):
             self._mode = set([x for x in known_modes])
 
         if reset:
-            if not mode or (isinstance(mode, basestring) and re.match('[-+]', mode)):
+            if not mode or (isinstance(mode, str) and re.match('[-+]', mode)):
                 model_mode = self._mode
             else:
                 model_mode = mode
@@ -992,7 +990,7 @@ class SqlWidget(GObject.GObject):
         self.get_toplevel().set_focus(None)
         try:
             self.record_save()
-        except (exc.DialogValidationError, exc.CancelledAction), e:
+        except (exc.DialogValidationError, exc.CancelledAction) as e:
             pass
 
     def record_new_cb(self, widget, event=None):
@@ -1034,7 +1032,7 @@ class SqlWidget(GObject.GObject):
             self.run_hook('on_record_saved')
             self.sb(message, seconds=3)
 
-        except (sqlalchemy.exc.DBAPIError, sqlalchemy.exc.FlushError), e:
+        except (sqlalchemy.exc.DBAPIError, sqlalchemy.exc.FlushError) as e:
             if not self.commit_error_handler(e):
                 self.session.rollback()
                 raise exc.HandledRollback(str(e))
@@ -1111,7 +1109,7 @@ class SqlWidget(GObject.GObject):
         """
 
         if field_name not in self.gui_fields:
-            dbg.write("%s Non in gui_fields %s" % (field_name, self.gui_fields.keys()))
+            dbg.write("%s Non in gui_fields %s" % (field_name, list(self.gui_fields.keys())))
             raise sqlkit.exc.FieldNotInLayout("field_name: %s" % (field_name))
 
         field = self.gui_fields[field_name]
@@ -1144,7 +1142,7 @@ class SqlWidget(GObject.GObject):
                 if field.has_changed():
                     return True
 
-            except exc.ValidationError, e:
+            except exc.ValidationError as e:
                 return True
 
         return False
@@ -1213,7 +1211,7 @@ class SqlWidget(GObject.GObject):
         if self.session.new:
             # Adding as default an m2o item it's a triky beast as it's in the session.new
             # event thought you don't want to persist it
-            for item in self.defaults.tdict.values():
+            for item in list(self.defaults.tdict.values()):
                 try:
                     skip_new.add(item)
                 except TypeError:
@@ -1291,7 +1289,7 @@ class SqlWidget(GObject.GObject):
 
         try:
             self.run_hook('on_validation')
-        except exc.ValidationError, e:
+        except exc.ValidationError as e:
             self.add_validation_error(e)
 
         if related:
@@ -1318,7 +1316,7 @@ class SqlWidget(GObject.GObject):
             ## TIP: the general validation for the record
             field_name = _('record validation')  # a key to be used in self.validation_errors
 
-        if isinstance(error, basestring):
+        if isinstance(error, str):
             error_message = error
         else:
             error_message = str(error)
@@ -1360,7 +1358,7 @@ class SqlWidget(GObject.GObject):
                     value = self.gui_fields[field_name].get_value()
                     self.gui_fields[field_name].validate(value, clean=True)
 
-            except exc.ValidationError, e:
+            except exc.ValidationError as e:
                 self.add_validation_error(e, field_name=field_name)
 
 
@@ -1403,7 +1401,7 @@ class SqlWidget(GObject.GObject):
         self.grab_focus(widget)
         try:
             self.reload()
-        except exc.DialogValidationError, e:
+        except exc.DialogValidationError as e:
             return True
 
     def record_forward_cb(self):
@@ -1438,11 +1436,11 @@ class SqlWidget(GObject.GObject):
         """
         try:
             self.record_save()
-        except (exc.DialogValidationError, exc.CancelledAction), e:
+        except (exc.DialogValidationError, exc.CancelledAction) as e:
             return True
 
         self._clean_session_extensions()
-        for obj, hid in self._ids.values():
+        for obj, hid in list(self._ids.values()):
             obj.disconnect(hid)
         del self._ids
 
@@ -1530,7 +1528,7 @@ class SqlWidget(GObject.GObject):
         for at in attrs:
             try:
                 delattr(self, at)
-            except (NameError, AttributeError), e:
+            except (NameError, AttributeError) as e:
                 pass
 #        ## .sb() may have added a collback with
 #        self.relationship_leader = None
@@ -1582,7 +1580,7 @@ class SqlWidget(GObject.GObject):
         ## filters
         try:
             query = self.filter_panel.add_filter_conditions(query)
-        except exc.ParseFilterError, e:
+        except exc.ParseFilterError as e:
             self.records = []
             return
 
@@ -1600,7 +1598,7 @@ class SqlWidget(GObject.GObject):
             self.clear(check=False)
         try:
             self.records = query.all()
-        except sqlalchemy.exc.ProgrammingError, e:
+        except sqlalchemy.exc.ProgrammingError as e:
             # TIP: reloading data from the database
             msg = _("A programming error was received from the backend:\n%s") % e
             if re.search('permission denied', msg, re.I):
@@ -1608,7 +1606,7 @@ class SqlWidget(GObject.GObject):
             self.message(type='error', text=msg)
             self.sb(e.orig)
             return
-        except sqlalchemy.exc.InterfaceError, e:
+        except sqlalchemy.exc.InterfaceError as e:
             ## the connection may be closed and a retry could restore it
             if re.search('closed', str(e), re.I):
                 self.records = query.all()
@@ -1686,7 +1684,7 @@ class SqlWidget(GObject.GObject):
         from sqlkit.db.django_syntax import django2components
 
         self._order_by_join_args = None
-        if isinstance(order_by, basestring):
+        if isinstance(order_by, str):
             order = []
             for tocken in order_by.split(','):
                 order_list = tocken.split()
@@ -1828,7 +1826,7 @@ class SqlWidget(GObject.GObject):
         if not format_dict:
             return
 
-        for field_name, format in format_dict.items():
+        for field_name, format in list(format_dict.items()):
             if field_name in self.gui_fields:
                 if isinstance(format, tuple):
                     format, locale = format
@@ -1910,7 +1908,7 @@ class SqlWidget(GObject.GObject):
         """
         try:
             return self.mapper_info.is_string(field_name)
-        except AttributeError, e:
+        except AttributeError as e:
             return isinstance(self.gui_fields[field_name], fields.VarcharField)
 
     def is_date(self, field_name):
@@ -1956,7 +1954,7 @@ class SqlWidget(GObject.GObject):
         try:
             return self.mapper_info.is_integer(field_name)
         except AttributeError:
-            return self.gui_fields[field_name].type in (int, long)
+            return self.gui_fields[field_name].type in (int, int)
 
     def is_float(self, field_name):
         """
@@ -2075,10 +2073,10 @@ class SqlWidget(GObject.GObject):
         """
         try:
             return self.widgets['Window']
-        except KeyError, e:
+        except KeyError as e:
             try:
                 return self.widgets['T.0'].get_toplevel()
-            except KeyError, e:
+            except KeyError as e:
                 return self.relationship_leader.get_toplevel()
 
     def fkey_is_valid(self):
@@ -2120,7 +2118,7 @@ class SqlWidget(GObject.GObject):
             obj = what
 
         for attr in self.field_list:
-            print attr, getattr(obj, attr)
+            print((attr, getattr(obj, attr)))
 
     def show_field_info(self, wdg, field_name):
         """
@@ -2190,7 +2188,7 @@ class SqlWidget(GObject.GObject):
         j = 0
         for obj in self.session:
             if k is not None:
-                print "%.2d %s %s" % (j, obj, hex(id(obj)))
+                print(("%.2d %s %s" % (j, obj, hex(id(obj)))))
             l += [(hex(id(obj)), obj)]
             j += 1
 
@@ -2206,7 +2204,7 @@ class SqlWidget(GObject.GObject):
         if self.record_has_changed():
             for field in self.gui_fields:
                 if field.has_changed():
-                    print "OLD: %s   NEW: %s" % (field.initial_value, field.get_value())
+                    print(("OLD: %s   NEW: %s" % (field.initial_value, field.get_value())))
 
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.tables)
@@ -2214,7 +2212,7 @@ class SqlWidget(GObject.GObject):
     def __str__(self):
         try:
             return '<%s: %s>' % (self.__class__.__name__, self.tables)
-        except AttributeError, e:
+        except AttributeError as e:
             return '<%s>' % (self.__class__.__name__)
 
 
@@ -2277,7 +2275,7 @@ class UnsavedDataDialog(object):
         if self.master.is_mask():
             try:
                 self.master.record_mask2obj(self.master.get_current_obj())
-            except Exception, e:
+            except Exception as e:
                 exc.ValidationError(e)
 
         if self.master.session.dirty or (
@@ -2392,7 +2390,7 @@ class ValidationErrorDialog(object):
         Fill the model of the treeview that presents the validation errors
         """
 
-        for key in self.error_dict.keys():
+        for key in list(self.error_dict.keys()):
             for i, err in enumerate(self.error_dict[key]):
                 iter = model.append(None)
                 if i == 0:

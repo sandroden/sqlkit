@@ -73,7 +73,7 @@ class InspectMapper(Container):
                 sqlalchemy.databases.postgres.PGInterval: datetime.timedelta,
                 sqlalchemy.dialects.postgresql.base.INTERVAL:  datetime.timedelta,
             })
-        except Exception, e:
+        except Exception as e:
             pass
 
         self.field_list = []
@@ -120,7 +120,7 @@ class InspectMapper(Container):
         try:
             col_spec = mapper.c[field_name].type.compile(
                 dialect=mapper.local.table.metadata.bind.engine.dialect)
-        except (NotImplementedError, AttributeError), e:
+        except (NotImplementedError, AttributeError) as e:
             col_spec = None
         d = Container({
             'name':  str(field_name),
@@ -223,7 +223,7 @@ class InspectMapper(Container):
         """
         ret = []
         for m in self._tables(mode='mapper'):
-            ret += m.c.keys()
+            ret += list(m.c.keys())
         return ret
 
     def all_keys(self):
@@ -257,13 +257,13 @@ class InspectMapper(Container):
         #dbg.write(self.table_mappers)
         if mode == 'name':
             first_table = self.mapper.local_table.name
-            ret = [t for t in self.table_mappers.keys() if t != first_table]
+            ret = [t for t in list(self.table_mappers.keys()) if t != first_table]
             return [first_table] + ret
             #dbg.write(self.table_mappers.keys())
             #return self.table_mappers.keys()
         else:
             first_mapper = self.mapper
-            ret = [t[1] for t in self.table_mappers.values()
+            ret = [t[1] for t in list(self.table_mappers.values())
                    if t[1] != first_mapper]
             #dbg.write([t[1] for t in self.table_mappers.values()])
             return [first_mapper] + ret
@@ -311,7 +311,7 @@ class InspectMapper(Container):
         else:
             return primarytable
 
-    def next(self):
+    def __next__(self):
         """returns the next item in the data set,
         or tells Python to stop"""
         if self.n is None:
@@ -506,10 +506,10 @@ class InspectMapper(Container):
         return self.fields[field_name]['nullable']
 
     def __str__(self):
-        return "InspectMapper for keys: %s" % self.keys()
+        return "InspectMapper for keys: %s" % list(self.keys())
 
     def __repr__(self):
-        return "<InspectMapper for keys: %s>" % self.keys()
+        return "<InspectMapper for keys: %s>" % list(self.keys())
 
 def get_foreign_info(ForeignKey, names=True):
     """
@@ -556,7 +556,7 @@ def get_props_for_delete_orphan(mapper, field_name):
         if sqlalchemy.__version__ >= '0.6' or column.info.get('attach_instance'):
 
             prop_names = column.info.get('attach_instance')
-            if isinstance(prop_names, basestring):
+            if isinstance(prop_names, str):
                 prop_names = (prop_names,)
 
             if not prop_names:
@@ -577,6 +577,6 @@ def get_props_for_delete_orphan(mapper, field_name):
                                 try:
                                     if pr.backref.prop.cascade.delete_orphan:
                                         props += [pr]
-                                except AttributeError, e:
+                                except AttributeError as e:
                                     pass
             return tuple(props)

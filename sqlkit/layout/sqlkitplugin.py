@@ -4,13 +4,13 @@
 import sys
 import os
 
-from image_widget import ImageWidget
-from dateedit import DateEdit, DateTimeEdit
-from greedy_treeview import GreedyTreeView
-from fk_entry import FkEdit
-from interval_entry import IntervalEdit
+from .image_widget import ImageWidget
+from .dateedit import DateEdit, DateTimeEdit
+from .greedy_treeview import GreedyTreeView
+from .fk_entry import FkEdit
+from .interval_entry import IntervalEdit
 
-from misc import add_stock_icons
+from .misc import add_stock_icons
 
 SK_ICONS = (
     ('cal15.png', 'sk-calendar'),

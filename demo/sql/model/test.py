@@ -11,7 +11,7 @@ dbg.trace_function(exclude=but)
 
 from sqlkit.widgets import *
 from gi.repository import Gtk
-import movies
+from . import movies
 
 
 field_list = "integer, float numeric"

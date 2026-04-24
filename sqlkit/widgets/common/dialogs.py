@@ -142,7 +142,7 @@ class OpenDialog(SaveDialog):
             pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(filename, 128, 128)
             preview.set_from_pixbuf(pixbuf)
             have_preview = True
-        except Exception, e:
+        except Exception as e:
             have_preview = False
         file_chooser.set_preview_widget_active(have_preview)
         return

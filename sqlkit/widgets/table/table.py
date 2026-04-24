@@ -38,11 +38,11 @@ import sqlkit
 from sqlkit import debug as dbg, _, exc, fields
 from sqlkit.layout import widgets, get_label
 from sqlkit.misc.utils import Container, str2list, open_file
-import utils as tv_utils
-import cell_renderers
-import totals
+from . import utils as tv_utils
+from . import cell_renderers
+from . import totals
 from sqlkit.widgets.common import sqlwidget, dialogs
-from modelproxy import ModelProxy
+from .modelproxy import ModelProxy
 from sqlkit.widgets.table.columns import View
 from sqlkit.widgets.table.tablewidgets import CellWidget
 
@@ -342,7 +342,7 @@ class SqlTable(sqlwidget.SqlWidget):
         else:
             views = self.views
         for view in views:
-            for field_name, col in view.columns.iteritems():
+            for field_name, col in list(view.columns.items()):
                 if field_name not in self.noup:
                     if col.editable is False:
                         col.set_editable(False)
@@ -394,7 +394,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 else:
                     self.record_save(discard_unchanged=True)
                 self.edited_row_model_path = None
-            except exc.ValidationError, e:
+            except exc.ValidationError as e:
                 path = self.edited_row_model_path
                 self.edited_row_model_path = None
                 self.treeview.get_selection().select_path(path)
@@ -437,7 +437,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 obj = None
             field_name = column.field_name
             self._enforce_first_click_just_selects(path, column, field_name)
-        except TypeError, e:
+        except TypeError as e:
             obj = None
             field_name = None
             path = None
@@ -559,7 +559,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return
         try:
             self.record_new(treeview)
-        except exc.ValidationError, e:
+        except exc.ValidationError as e:
             return True
 
         return False
@@ -573,7 +573,7 @@ class SqlTable(sqlwidget.SqlWidget):
             return
         try:
             self.record_new(treeview, child=True)
-        except exc.ValidationError, e:
+        except exc.ValidationError as e:
             return True
 
         return False
@@ -629,7 +629,7 @@ class SqlTable(sqlwidget.SqlWidget):
             if row + 1 == self.len_model():
                 try:
                     self.record_new(treeview)
-                except exc.CommitError, e:
+                except exc.CommitError as e:
                     return False
                 except exc.ValidationError:
                     return True
@@ -901,7 +901,7 @@ class SqlTable(sqlwidget.SqlWidget):
             try:
                 self.commit()
                 self.totals.compute()
-            except exc.HandledRollback, e:
+            except exc.HandledRollback as e:
                 iter = self.modelproxy.modelstore.get_iter(self.edited_row_model_path)
                 self.edited_row_model_path = None
                 self.modelproxy.modelstore.remove(iter)
@@ -1044,7 +1044,7 @@ class SqlTable(sqlwidget.SqlWidget):
                 #self.session.flush([obj])
                 try:
                     self.commit()
-                except exc.HandledRollback, e:
+                except exc.HandledRollback as e:
                     deleted = False
 
             else:
@@ -1153,13 +1153,13 @@ class SqlTable(sqlwidget.SqlWidget):
                 # The next statement sets a value even if it could not pass completion!!!
                 self.set_current(filter_by={field_name: new_text})
                 return
-            except (exc.NoResultFound, exc.MultipleResultsFound), e:
+            except (exc.NoResultFound, exc.MultipleResultsFound) as e:
                 ## if there's no match, try completion
                 dbg.write("No match: try completion")
                 show = self.gui_fields[field_name].widget.completion.show_possible_completion
                 show(self.cell_entry.entry, 'start')
                 return True
-            except (sqlalchemy.exc.DBAPIError), e:
+            except (sqlalchemy.exc.DBAPIError) as e:
                 self.sb(e)
                 return True
         else:
@@ -1190,7 +1190,7 @@ class SqlTable(sqlwidget.SqlWidget):
                         self.cell_entry.text = new_text
                         self.cell_entry.valid = True
                     return True
-                except exc.ValidationError, e:
+                except exc.ValidationError as e:
                     self.cell_entry.valid = False
                     self.sb(str(e), seconds=8)
                     return False
@@ -1461,7 +1461,7 @@ class SqlTable(sqlwidget.SqlWidget):
         return save_path
 
     def upload_file(self, action):
-        print action
+        print(action)
 
     def delete_file(self, action, field_name=None):
         field_name = field_name or self._field_name
@@ -1498,7 +1498,7 @@ class SqlTable(sqlwidget.SqlWidget):
             if obj:
                 try:
                     img_path = table.gui_fields[field_name].get_value(complete_path=True)
-                except exc.NoCurrentObjError, e:
+                except exc.NoCurrentObjError as e:
                     if table.records:
                         table.select_path((0,))
                         img_path = table.gui_fields[field_name].get_value(complete_path=True)

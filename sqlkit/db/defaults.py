@@ -70,7 +70,7 @@ class Defaults(object):
         """
         set a single default
         """
-        for field_name, value in kw.iteritems():
+        for field_name, value in list(kw.items()):
             tbl_dict = {field_name: value}
             self.set_defaults(tbl_dict)
 
@@ -123,7 +123,7 @@ class Defaults(object):
             else:
                 return value
 
-        except KeyError, e:
+        except KeyError as e:
             return get_default(self.table_name, field_name)
 
 
@@ -140,7 +140,7 @@ def get_default(table_name, field_name):
 
     try:
         value = tables[table_name][field_name]
-    except KeyError, e:
+    except KeyError as e:
         return
 
     if callable(value):
@@ -217,7 +217,7 @@ def get_hook(table, instance=False, nick='default'):
     table_hooks = hooks.get(table_name, None)
     try:
         hook = table_hooks[nick]
-    except (KeyError, TypeError), e:
+    except (KeyError, TypeError) as e:
         return None
 
     if instance:
@@ -262,7 +262,7 @@ def get_layout(table, nick='default'):
     table_layout_dict = layout_dict.get(table_name, None)
     try:
         return table_layout_dict[nick]
-    except (KeyError, TypeError), e:
+    except (KeyError, TypeError) as e:
         return None
 
 def register_class(class_, table=None, nick='default'):
@@ -302,5 +302,5 @@ def get_class(table, nick='default'):
     table_class_dict = class_dict.get(table_name, None)
     try:
         return table_class_dict[nick]
-    except (KeyError, TypeError), e:
+    except (KeyError, TypeError) as e:
         return None

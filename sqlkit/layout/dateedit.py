@@ -279,14 +279,14 @@ class DateEdit(Gtk.HBox):
                 the_date = self.date_parse(date_string)
             else:
                 the_date = dates.parse_date(date_string)
-        except Exception, e:
+        except Exception as e:
             self.wrong_date_format(e, date_string)
             return False
 
         try:
             self.set_date(the_date, from_focus_out=True)
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
             return False
         entry.override_background_color(Gtk.StateType.NORMAL, self._default_base)
         return False
@@ -401,7 +401,7 @@ class DateEdit(Gtk.HBox):
         elif property.name == 'width-chars':
             return self._date_entry.props.width_chars
         else:
-            raise AttributeError, 'unknown property %s' % property.name
+            raise AttributeError('unknown property %s' % property.name)
 
     # set_properties
     def do_set_property(self, property, value):
@@ -410,7 +410,7 @@ class DateEdit(Gtk.HBox):
         elif property.name == 'width-chars':
             self._date_entry.props.width_chars = value
         else:
-            raise AttributeError, 'unknown property %s' % property.name
+            raise AttributeError('unknown property %s' % property.name)
 
 
 class DateTimeEdit(DateEdit):
@@ -548,7 +548,7 @@ class DateTimeEdit(DateEdit):
 
             the_datetime = datetime.datetime.combine(self.get_date(), the_time)
 
-        except Exception, e:
+        except Exception as e:
             self.wrong_time_format(e, time_text)
         self.set_time(the_time)
 
@@ -601,7 +601,7 @@ class DateTimeEdit(DateEdit):
             try:
                 value = datetime.time(*[int(i) for i in re.split('[.:]', time_string)])
                 return value
-            except Exception, e:
+            except Exception as e:
                 self.wrong_time_format(e, time_string)
                 return time_string
 
@@ -610,11 +610,11 @@ class DateTimeEdit(DateEdit):
         # http://www.mail-archive.com/pygtk@daa.com.au/msg17444.html
 
         new_date = self.get_date()
-        if isinstance(new_date, basestring):
+        if isinstance(new_date, str):
             return new_date
 
         new_time = self.get_time()
-        if isinstance(new_date, basestring):
+        if isinstance(new_date, str):
             return new_time
 
         if not new_date:
@@ -672,7 +672,7 @@ class DateTimeEdit(DateEdit):
         elif property.name == 'use-24h-format':
             return self._use_24h_format
         else:
-            raise AttributeError, 'unknown property %s' % property.name
+            raise AttributeError('unknown property %s' % property.name)
 
     # set_properties
     def do_set_property(self, property, value):
@@ -687,7 +687,7 @@ class DateTimeEdit(DateEdit):
         elif property.name == 'use-24h-format':
             self.set_use_24h_format(value)
         else:
-            raise AttributeError, 'unknown property %s' % property.name
+            raise AttributeError('unknown property %s' % property.name)
 
 
 class EntryCal(Gtk.Entry):
@@ -729,7 +729,7 @@ class EntryCal(Gtk.Entry):
 
 if __name__ == '__main__':
 
-    import misc  # adds the sk-calendar stock-icon
+    from . import misc  # adds the sk-calendar stock-icon
     w = Gtk.Window()
     d = EntryCal()
 #    d = DateTimeEdit()

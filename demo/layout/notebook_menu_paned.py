@@ -48,14 +48,14 @@ w['sb=StBar'].push(w['sb=StBar'].get_context_id('prova'), 'Prima Prova')
 l.tip('b=chiudi', 'Chiudi tutto')
 
 def di_ciao(*args):
-    print 'ciao'
+    print('ciao')
 
 def nuovo_layout(*args):
     lay = """
          {B  m=Nobilitazione m=Subbiatura m=Commesse } {O b=tools}
          {h TVS=uno TXS=due} -
     """
-    print "Ora un nuovo layout"
+    print("Ora un nuovo layout")
     new = Layout(lay, opts='s')
     new.show()
     new.sb('Seconda Prova')

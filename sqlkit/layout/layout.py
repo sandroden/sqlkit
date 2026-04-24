@@ -31,8 +31,8 @@ from gi.repository import GObject
 
 from sqlkit import debug as dbg
 from sqlkit import _
-import widgets
-from sqlkitplugin import *  # A simple way to import all custom widgets, only used by Builder()
+from . import widgets
+from .sqlkitplugin import *  # A simple way to import all custom widgets, only used by Builder()
 
 class UnbalancedLayoutCurlyBaces(Exception):
     pass
@@ -262,7 +262,7 @@ class Layout(object):
 
     def _dbg(self, txt):
         if self.dbg == 1:
-            print txt
+            print(txt)
 
     def _create_lwidget(self, el, pos, container, elements):
         ## i extract the type. Default type is 'le'
@@ -368,7 +368,7 @@ class Layout(object):
                                                   m.group('h') or '')]
 
                     else:
-                        print "ERRORE: %s scartato" % el
+                        print(("ERRORE: %s scartato" % el))
             ret = new_ret
         return ret
 
@@ -376,8 +376,8 @@ class Layout(object):
         return self._parse_layout(self.lay)
 
     def _dbg_show_objs(self):
-        for key, val in self.elements.iteritems():
-            print "%-10.10s  ==> %s" % (key, val)
+        for key, val in list(self.elements.items()):
+            print(("%-10.10s  ==> %s" % (key, val)))
 
     def _add_status_bar(self, elements):
         self.rows += 1
@@ -473,7 +473,7 @@ class Layout(object):
             #    self.builder.add_from_string(xml, len(xml))
 
             self.widgets = {}
-            for key, val in self.elements.iteritems():
+            for key, val in list(self.elements.items()):
                 ## if int, that's just a counter
                 if not isinstance(val, int):
                     self.widgets[key] = self.builder.get_object(key)
@@ -502,7 +502,7 @@ class Layout(object):
             self.create()
 
             self.widgets = {}
-            for key, val in self.elements.iteritems():
+            for key, val in list(self.elements.items()):
                 ## if int, that's just a counter
                 if not isinstance(val, int):
                     self.widgets[key] = val.gtkWdg
@@ -530,14 +530,14 @@ class Layout(object):
         if not filename:
             tmpdir = tempfile.mkdtemp()
             filename = os.path.join(tmpdir, 'layout.glade')
-            print filename
+            print(filename)
 
         self.xml(file=filename)
 
         glade = Gtk.glade.XML(filename)
         glade.signal_autoconnect(self)
         self.widgets = {}
-        for key, val in self.elements.iteritems():
+        for key, val in list(self.elements.items()):
             if not isinstance(val, int):
                 self.widgets[key] = glade.get_widget(key)
         if x:
@@ -655,8 +655,8 @@ class Layout(object):
         pass
 
     def _dbg_widgets(self):
-        for key, val in self.widgets.iteritems():
-            print "%-15.15s ==> %s" % (key, val)
+        for key, val in list(self.widgets.items()):
+            print(("%-15.15s ==> %s" % (key, val)))
 
     def sb(self, txt, seconds=None):
         """
@@ -784,7 +784,7 @@ class Layout(object):
         try:
             ## after self.show(),gtk widgets are there already
             self.widgets[key].set_property(name, value)
-        except AttributeError, e:
+        except AttributeError as e:
             self.elements[key].properties[name] = value
 
     def pack(self, *args):
@@ -807,7 +807,7 @@ class Layout(object):
         create a dialog modal that will be destroyed with parent
         """
 
-        toplevel = self.widgets.values()[0].get_toplevel()
+        toplevel = list(self.widgets.values())[0].get_toplevel()
         return dialog(toplevel, *args, **kw)
 
     def message(self, type=None, text=None, show=True):
@@ -829,7 +829,7 @@ class Layout(object):
             'error':     Gtk.MessageType.ERROR,
         }
 
-        window = self.widgets.values()[0].get_toplevel()
+        window = list(self.widgets.values())[0].get_toplevel()
         opts = {
             'parent':  window,
             'flags':  Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
@@ -853,8 +853,8 @@ def map_labels(filename=None, buf=None, sep='\t', private=False):
     # if it's a dict, just check that the value is a tuple
     # if not consider it a label and set tip to None
     if isinstance(buf, dict):
-        for key, value in buf.iteritems():
-            if isinstance(value, basestring):
+        for key, value in list(buf.items()):
+            if isinstance(value, str):
                 buf[key] = (value, None)
         return buf
 
@@ -904,7 +904,7 @@ def get_label(name, layout=None):
 
         return label or name
 
-    except TypeError, e:
+    except TypeError as e:
         return name
 
 def get_tip(name, layout=None):
@@ -920,7 +920,7 @@ def get_tip(name, layout=None):
 
         return tip
 
-    except TypeError, e:
+    except TypeError as e:
         return None
 
 def dialog(toplevel=None, layout=None, title='', butts=None, type=None,

@@ -15,7 +15,7 @@ from sqlkit.db import register_hook
 class MovieHooks(object):
 
     def on_after_commit(self, widget, obj, session):
-        print "on_after_commit hook from %s" % widget, obj
+        print(("on_after_commit hook from %s" % widget, obj))
 
 
 register_hook('movie', MovieHooks)

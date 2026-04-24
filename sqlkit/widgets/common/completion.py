@@ -59,13 +59,12 @@ OP = {
     'mysql': 'ILIKE',
 }
 
-class SimpleCompletion(GObject.GObject):
+class SimpleCompletion(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogTheMethods):
 
     """
     An object that hold all the information on how to retrieve possible completions in simple cases
 
     """
-    __metaclass__ = None if not dbg.debug else dbg.LogTheMethods
     autostart = False
     autostart_last_length = 0
 
@@ -168,14 +167,14 @@ class SimpleCompletion(GObject.GObject):
 
     def destroy(self, sqlwidget):
 
-        for obj, hid in self._ids.values():
+        for obj, hid in list(self._ids.values()):
             obj.disconnect(hid)
         del self._ids
 
         for attr in ('master', 'query', 'mapper', 'filtered_query', 'widget',):
             try:
                 delattr(self, attr)
-            except AttributeError, e:
+            except AttributeError as e:
                 pass
 
     def set_group_by(self, field_name):
@@ -329,7 +328,7 @@ class SimpleCompletion(GObject.GObject):
             self.make_completion_to_pop(self.get_entry())
         else:  # doctest purpose
             for row in self.model:
-                print self.model.get_value(row.iter, 1)
+                print((self.model.get_value(row.iter, 1)))
 
     def debug_completion_sql(self, mode='start', value='', apply_filter=True):
         """
@@ -393,15 +392,15 @@ class SimpleCompletion(GObject.GObject):
                         match = True
                     elif re.search(key, text, re.IGNORECASE):  # regexp mode
                         match = True
-                except re.error, e:
+                except re.error as e:
                     match = False
 
                 if match and self._group_by:
                     ## switch ON the display of group by label in completion
                     try:
                         miter_dict[obj[self._group_by]][1] = True
-                    except IndexError, e:
-                        print "Probable missing value for %s" % text
+                    except IndexError as e:
+                        print(("Probable missing value for %s" % text))
                     except KeyError:
                         ## FIXME but I have not uderstood why I need it.
                         # I get here when -after accepting a completion- I go back and delete some
@@ -410,7 +409,7 @@ class SimpleCompletion(GObject.GObject):
 
                 self.match_dict[path] = match
 
-        for path, val in miter_dict.values():
+        for path, val in list(miter_dict.values()):
             self.match_dict[path] = val
 
     def append_to_model(self, obj):
@@ -542,7 +541,7 @@ class SimpleCompletion(GObject.GObject):
             val = self.master.get_value(self.field_name, shown=True) or ''
 
         self.autostart_last_length = len(str(val))
-        if isinstance(val, basestring):
+        if isinstance(val, str):
             return self.add_for_LIKE_and_REGEXP(val.strip('\\'))
 
     def get_match_operator(self):
@@ -807,7 +806,7 @@ class SimpleCompletion(GObject.GObject):
                     self.master.cell_entry.valid = False
                     return False
 
-            except (exc.NoResultFound, exc.MultipleResultsFound), e:
+            except (exc.NoResultFound, exc.MultipleResultsFound) as e:
                 self.master.sb(_("No exact match, trying regexp completion"), seconds=4)
                 self.show_possible_completion(entry, mode='regexp', sb=False)
                 return False
@@ -867,8 +866,8 @@ class SimpleCompletion(GObject.GObject):
         keys = []
 
         # firstly parse the args for 'dynamic' args ($)
-        for key, val in kwargs.iteritems():
-            if isinstance(val, basestring) and val.startswith('$'):
+        for key, val in list(kwargs.items()):
+            if isinstance(val, str) and val.startswith('$'):
                 keys += [key]
                 kw_dyn_list += [(key, re.sub('^\$', '', val))]
 
@@ -997,7 +996,7 @@ class FkeyCompletion(SimpleCompletion):
         fsearch = getattr(obj, self.search_field)
 
         Obj = DictLike(obj)
-        description = unicode((self.format % Obj)).strip()
+        description = str((self.format % Obj)).strip()
         m_iter = self.get_iter(obj)
         ## FIXME: what if the pkey is composed?
         self.model.set(m_iter,
@@ -1144,7 +1143,7 @@ class EnumCompletion(SimpleCompletion):
         self.completion.set_model(None)
         field = self.master.gui_fields[self.field_name]
 
-        for idx, text in field.values.iteritems():
+        for idx, text in list(field.values.items()):
             self.append_to_model(idx, text)
         self.completion.set_model(self.model)
 
@@ -1157,7 +1156,7 @@ class EnumCompletion(SimpleCompletion):
             self.make_completion_to_pop(self.get_entry())
         else:  # doctest purpose
             for row in self.model:
-                print self.model.get_value(row.iter, 1)
+                print((self.model.get_value(row.iter, 1)))
 
     def append_to_model(self, idx, text):
         """
@@ -1264,8 +1263,8 @@ class M2mCompletion(FkeyCompletion):
 
         try:
             self.master.set_current(pk=value)
-        except Exception, e:
-            print 'match selected debug', e
+        except Exception as e:
+            print(('match selected debug', e))
             pass
 
         self.displaying_completion = False
@@ -1293,7 +1292,7 @@ def debug_liststore(listore):
     j = 0
     for l in listore:
         iter = listore.get_iter_from_string(str(j))
-        print listore.get(iter, 0), listore.get(iter, 1), listore.get(iter, 3)
+        print((listore.get(iter, 0), listore.get(iter, 1), listore.get(iter, 3)))
         j += 1
 
 def edit_foreign_key_table(wdg, master, field_name, mode):
@@ -1308,7 +1307,7 @@ def edit_foreign_key_table(wdg, master, field_name, mode):
         try:
             fkvalue = master.get_value(field_name, shown=False)
             m.set_records(pk=fkvalue)
-        except exc.ValidationError, e:
+        except exc.ValidationError as e:
             pass
     else:
         SqlTable(ftable, dbproxy=master.dbproxy)

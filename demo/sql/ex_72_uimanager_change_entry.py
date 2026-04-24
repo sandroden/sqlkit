@@ -16,7 +16,7 @@ from gi.repository import Gtk
 
 
 def test(item):
-    print "Here I am!"
+    print("Here I am!")
 
 t = SqlTable('movie',    dbproxy=db, order_by='title', )
 t.actiongroup_mag = Gtk.ActionGroup('Demo')

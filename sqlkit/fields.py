@@ -352,7 +352,7 @@ class FieldChooser(object):
         if col is not None:
             try:
                 return col.info['field']
-            except (AttributeError, KeyError), e:
+            except (AttributeError, KeyError) as e:
                 # AttributeError: column (as Label) that don't have .info
                 # KeyError when info does not have 'field' key
                 pass
@@ -484,7 +484,7 @@ class Field(GObject.GObject):
         ## widget can be a string in which case it it searched for in
         ## sqlkit.widgets.mask.miniwidgets
         ## this avoids importing miniwidgets at import time and delays it to this function
-        if isinstance(widget, basestring):
+        if isinstance(widget, str):
             Widget = getattr(miniwidgets, widget)
 
         if def_str and def_str.startswith('ro='):
@@ -505,14 +505,14 @@ class Field(GObject.GObject):
 
     def destroy(self, widget):
 
-        for obj, hid in self._ids.values():
+        for obj, hid in list(self._ids.values()):
             obj.disconnect(hid)
         self._ids.clear()
 
         try:
             del self.widget
             del self.master
-        except AttributeError, e:
+        except AttributeError as e:
             pass
 
     def set_master(self, master):
@@ -627,7 +627,7 @@ class Field(GObject.GObject):
             if obj() is self.master.current and value != oldvalue:
                 self.emit('value-set', value, True)
                 self.initial_value = value
-        except AttributeError, e:
+        except AttributeError as e:
             pass
 
     def set_value(self, value, initial=True, shown=False, obj=None, update_widget=True):
@@ -685,7 +685,7 @@ class Field(GObject.GObject):
             # a validation error is a clear sign the values have been changed, but we propabli don't
             # want to cope with them now
             return True
-        except exc.NoCurrentObjError, e:
+        except exc.NoCurrentObjError as e:
             # if no current Obj, no editing was done
             return False
 
@@ -717,7 +717,7 @@ class Field(GObject.GObject):
     def set_default(self, obj=None):
         try:
             self.set_value(self.get_default(), obj=obj)
-        except NotHandledDefault, e:
+        except NotHandledDefault as e:
             pass
 
     def clean_value(self, value, obj=None):
@@ -758,7 +758,7 @@ class Field(GObject.GObject):
             try:
                 value = self.clean_value(value)
 
-            except Exception, e:
+            except Exception as e:
                 msg = "Field %s could not validate value '%s': error was: %s"
                 raise exc.ValidationError(_(msg % (field_name, e)))
 
@@ -811,7 +811,7 @@ class Field(GObject.GObject):
 
         def new_func(self, value):
             ## standard cleanup: values can
-            if isinstance(value, (basestring, types.NoneType, self.type)):
+            if isinstance(value, (str, type(None), self.type)):
                 return super(self.__class__, self).clean_value(value)
             ## custom one
             return fn(self, value)
@@ -892,13 +892,13 @@ class IntegerField(Field):
             return None
         else:
             try:
-                if isinstance(value, basestring):
+                if isinstance(value, str):
                     value = numbers.parse_number(value, locale=self.locale)
-                elif isinstance(value, (int, long)):
+                elif isinstance(value, int):
                     value = int(value)
                 else:
                     value = int(value)
-            except Exception, e:
+            except Exception as e:
                 raise exc.ValidationError(str(e))
             return value
 
@@ -930,7 +930,7 @@ class IntegerField(Field):
 
         def new_func(self, value):
             ## standard cleanup: values can
-            if isinstance(value, (basestring, types.NoneType, self.type, long)):
+            if isinstance(value, (str, type(None), self.type, int)):
                 return super(self.__class__, self).clean_value(value)
             ## custom one
             return fn(self, value)
@@ -959,13 +959,13 @@ class FloatField(IntegerField):
             return None
         else:
             try:
-                if isinstance(value, basestring):
+                if isinstance(value, str):
                     value = numbers.parse_decimal(value, locale=self.locale)
                 elif isinstance(value, float):
                     pass
                 else:
                     value = float(value)
-            except Exception, e:
+            except Exception as e:
                 raise exc.ValidationError(e)
             return value
 
@@ -1012,7 +1012,7 @@ class DecimalField(IntegerField):
             return None
         else:
             try:
-                if isinstance(value, basestring):
+                if isinstance(value, str):
                     ## why there's no parse_Decimal in babel?
                     fl = self.format_f % numbers.parse_decimal(value, locale=self.locale)
                     value = Decimal(fl)
@@ -1026,7 +1026,7 @@ class DecimalField(IntegerField):
                     value = self.clean_value(fl_str)
                 else:
                     raise exc.ValidationError(_("value is not Decimal nor string: %s" % value))
-            except Exception, e:
+            except Exception as e:
                 raise exc.ValidationError(e)
             return value
 
@@ -1058,7 +1058,7 @@ class DecimalField(IntegerField):
 
         def new_func(self, value):
             ## standard cleanup: values can
-            if isinstance(value, (basestring, types.NoneType, self.type, int)):
+            if isinstance(value, (str, type(None), self.type, int)):
                 return super(self.__class__, self).clean_value(value)
             ## custom one
             return fn(self, value)
@@ -1098,13 +1098,13 @@ class DateField(Field):
             return None
 
         try:
-            if isinstance(value, basestring):
+            if isinstance(value, str):
                 value = dates.parse_date(value, locale=self.locale)
             elif isinstance(value, date):
                 pass
             else:
                 raise exc.ValidationError(_("value is not date nor string: %s" % value))
-        except Exception, e:
+        except Exception as e:
             raise exc.ValidationError(e)
         return value
 
@@ -1130,13 +1130,13 @@ class TimeField(DateField):
         if value in (None, ''):
             return None
 
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             try:
                 value = dates.parse_time(value)
-            except IndexError, e:
+            except IndexError as e:
                 try:
                     value = dates.parse_time("%s:00" % value)
-                except Exception, e:
+                except Exception as e:
                     raise exc.ValidationError(e)
         return value
 
@@ -1165,7 +1165,7 @@ class TimeTZField(TimeField):
         if value in (None, ''):
             return None
 
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             value = dates.parse_time(value)
         return value
 
@@ -1228,11 +1228,11 @@ class DateTimeField(DateField):
         if value in (None, ''):
             return None
 
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             tmp_date = re.split('\s+', value.strip())
             try:
                 date_value = dates.parse_date(tmp_date[0], locale=self.locale)
-            except Exception, e:
+            except Exception as e:
                 raise exc.ValidationError(_('Wrong date format: %s' % tmp_date[0]))
 
             try:
@@ -1242,7 +1242,7 @@ class DateTimeField(DateField):
                     time_list = []
                 time_value = time(*time_list)
 
-            except Exception, e:
+            except Exception as e:
                 raise exc.ValidationError(_('Wrong time format'))
 
             value = datetime.combine(date_value, time_value)
@@ -1558,7 +1558,7 @@ class ImageField(VarcharField):
                         save_path = os.path.splitext(save_path)[0] + '.jpeg'
                         try:
                             self.scale_file(self.widget.copy_file, save_path, *self.default_size)
-                        except ZoomException, e:
+                        except ZoomException as e:
                             # Don't resave if not needed.
                             shutil.copyfile(self.widget.copy_file, save_path)
                     else:
@@ -1774,7 +1774,7 @@ class ForeignKeyField(Field):
             return field_value
         try:
             return self.lookup_values[self.field_name][field_value]
-        except Exception, e:
+        except Exception as e:
             descr_fields = get_description(self.table_lookup)
             format = get_description(self.table_lookup, attr='format')
             fields = [self.table_lookup.columns[f_name] for f_name in descr_fields]
@@ -1782,7 +1782,7 @@ class ForeignKeyField(Field):
             sql = select(fields, self.column_lookup == field_value)
             try:
                 all = self.table.metadata.bind.execute(sql).fetchall()
-            except (sqlalchemy.exc.DBAPIError), e:
+            except (sqlalchemy.exc.DBAPIError) as e:
                 if hasattr(self, 'master'):
                     self.master.sb(e)
                 return None
@@ -1845,7 +1845,7 @@ class ForeignKeyField(Field):
 
         try:
             value = self.clean_value(value, input_is_fkey=clean)
-        except Exception, e:
+        except Exception as e:
             msg = "Field %s could not validate value '%s': error was: %s"
             raise exc.ValidationError(_(msg % (self.field_name, value, e)))
 
@@ -2051,8 +2051,8 @@ def std_cleanup(fn):
 
     def new_func(self, value, obj=None):
         ## standard cleanup: values can
-        if isinstance(value, (basestring, types.NoneType, self.type)) or \
-                self.type == int and isinstance(value, long):
+        if isinstance(value, (str, type(None), self.type)) or \
+                self.type == int and isinstance(value, int):
             return super(self.__class__, self).clean_value(value)
         ## custom one
         return fn(self, value)

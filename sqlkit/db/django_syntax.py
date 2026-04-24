@@ -171,7 +171,7 @@ class DjangoParser(object):
         elif op_str == 'notin':
             sql = not_(col.in_(value))
         elif self.is_date(col):
-            if isinstance(value, basestring):
+            if isinstance(value, str):
                 start, stop = string2dates(value)
             else:
                 start, stop = value, None
@@ -242,7 +242,7 @@ def django2components(mapper_or_table, kw=None):
         mapper = mapper_or_table
         table = mapper.local_table
 
-    name = kw.keys()[0]
+    name = list(kw.keys())[0]
     value = kw[name]
     tokens = name.split('__')
     joins = []
@@ -253,10 +253,10 @@ def django2components(mapper_or_table, kw=None):
         attr = tokens[0]
         try:
             col = getattr(table.columns, attr)
-        except AttributeError, e:
+        except AttributeError as e:
             try:
                 col = getattr(mapper.c, attr)
-            except AttributeError, e2:
+            except AttributeError as e2:
                 col = getattr(mapper.class_, attr)
 
         value = kw[attr]
@@ -279,7 +279,7 @@ def django2components(mapper_or_table, kw=None):
                 ## correctly, and possibly filter can avoid a subselect
                 try:
                     col0 = getattr(mapper.columns, joins[0], None)
-                except AttributeError, e:
+                except AttributeError as e:
                     # i think this is never really tested. It was here when I used to pick the
                     # element from the table but when using mapper/table expressing joins
                     # the name of the column changes while  mappers have the name we expect
@@ -292,7 +292,7 @@ def django2components(mapper_or_table, kw=None):
             join_args = None
             try:
                 col = getattr(table.columns, attr)
-            except AttributeError, e:
+            except AttributeError as e:
                 try:
                     col = getattr(mapper.c, attr)
                 except AttributeError:
@@ -339,7 +339,7 @@ def django2query(query, mapper_or_class, OR=False, aliased=False, OUTER=False, *
 
     parser = DjangoParser(mapper, query, OR=OR, aliased=aliased, outer=OUTER)
 
-    for key, val in kw.iteritems():
+    for key, val in list(kw.items()):
         parser.parse({key: val})
 
     return parser.compose()
@@ -359,7 +359,7 @@ def django2sqlalchemy(mapper=None, table=None, OR=False, **kw):
     else:
         parser = DjangoParser(mapper, query=None, OR=OR)
 
-    for key, val in kw.iteritems():
+    for key, val in list(kw.items()):
         parser.parse({key: val})
     return parser.sql(), parser.joins
 

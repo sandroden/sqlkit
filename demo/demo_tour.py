@@ -21,7 +21,7 @@ from sqlkit import debug as dbg
     ITALIC_COLUMN,
     MAPPED,
     TOOLTIP,
-) = range(6)
+) = list(range(6))
 CHILDREN_COLUMN = 3
 
 class InputStream(object):
@@ -211,7 +211,7 @@ class Demo(object):
             'layout': layout,
             #'gtk': gtk
             }
-        execfile(demo.filename, GLOB)
+        exec(compile(open(demo.filename, "rb").read(), demo.filename, 'exec'), GLOB)
 
         self.xml.set_text(GLOB['l'].xml())
         self.last_lo = GLOB['l']
@@ -237,23 +237,23 @@ class Demo(object):
         tv = self.w['TV=el']
         ts = self.ts_el
         ts.clear()
-        for el, val in elements.iteritems():
+        for el, val in list(elements.items()):
             if not isinstance(val, int):
                 iter = ts.append(None)
                 ts.set(iter, 0, el, 1, val.gtkClass)
                 # properties
-                for p, v in val.properties.iteritems():
+                for p, v in list(val.properties.items()):
                     child_iter = ts.append(iter)
                     ts.set(child_iter, 2, p, 3, str(v))
 
         ts = self.ts_pack
         ts.clear()
-        for el, val in elements.iteritems():
+        for el, val in list(elements.items()):
             if not isinstance(val, int):
                 iter = ts.append(None)
                 ts.set(iter, 0, el, 1, val.container_flag, 2, val.gtkClass)
                 # PACK properties
-                for p, v in val.pack_properties.iteritems():
+                for p, v in list(val.pack_properties.items()):
                     child_iter = ts.append(iter)
                     ts.set(child_iter, 3, p, 4, str(v))
 
