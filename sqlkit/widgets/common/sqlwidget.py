@@ -143,6 +143,7 @@ class SqlWidget(GObject.GObject):
                  label_map=None,
                  hooks=None,
                  mode='biud',
+                 printing_style=None,
                  ):
         """
         :param what: this is the table/mapper/class to be displayed. You are
@@ -369,7 +370,7 @@ class SqlWidget(GObject.GObject):
         self.query = self.session.query(self.mapper)
         self.defaults = defaults.Defaults(self.tables, metadata=self.metadata, local=True)
         self.order_by = order_by
-        self.printing = printing.PrintTool(self)
+        self.printing = printing.get_print_tool(self, printing_style)
 
     def _get_session(self, session):
         """
