@@ -227,11 +227,9 @@ class GenericColumn(GObject.GObject, metaclass=None if not dbg.debug else dbg.Lo
         """
         popup the menu on the header of the column
         """
-        event = Gdk.Event(Gdk.EventType.BUTTON_PRESS)
-        event.button = 1
         treeview = column.get_tree_view()
         view = treeview.view
-        view.menu.popup_col_menu(event, treeview, self.field_name)
+        view.menu.popup_col_menu(None, treeview, self.field_name)
 
         return True
 
@@ -936,8 +934,7 @@ class ColumnMenuProxy(object):
         menu.append(item)
 
         menu.show_all()
-        menu.popup(None, None, None, None, ev.button, ev.time)
-        #menu.popup(None, None, None, None, 1, 1)
+        menu.popup_at_pointer(None)
 
     def fill_menu_hide_fields(self):
         """
