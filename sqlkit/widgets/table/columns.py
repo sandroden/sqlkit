@@ -1310,7 +1310,7 @@ class View(object):
         if self.master.is_toplevel():
             self.master.widgets['Window'].add_accel_group(self.accel_group)
 
-        self.actiongroup_view = Gtk.ActionGroup('View')
+        self.actiongroup_view = Gtk.ActionGroup(name='View')
         self.actiongroup_view.add_actions([
             ('ExportView', None, _('Export'), None, _('Export these data into csv format'),
              self.master.export),

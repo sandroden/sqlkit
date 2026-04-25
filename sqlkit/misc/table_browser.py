@@ -131,7 +131,7 @@ class TableBrowser(object):
         self.ui_manager.get_action('/Main/Modify/Reload').set_active(bool(opts.load))
 
     def set_actions(self):
-        self.actiongroup = Gtk.ActionGroup('Main')
+        self.actiongroup = Gtk.ActionGroup(name='Main')
         self.actiongroup.add_actions([
             ('Database', None, _('Database')),
             ('Modify', None, _('Modify')),

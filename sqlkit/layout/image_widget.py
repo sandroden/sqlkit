@@ -270,7 +270,7 @@ class ImageWidget(Gtk.VBox):
 
         self.ui_manager = Gtk.UIManager()
 
-        self.actiongroup = Gtk.ActionGroup('Image')
+        self.actiongroup = Gtk.ActionGroup(name='Image')
         self.actiongroup.add_actions([
             ('UploadImage', None, _('Upload image'), None,
              _('Upload or modify an image'), self.upload_image),

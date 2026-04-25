@@ -276,7 +276,7 @@ class FilterPanel(object):
         self.selection.connect('changed', self.on_selection_changed)
 
     def prepare_actions(self):
-        self.actiongroup = Gtk.ActionGroup('Filter')
+        self.actiongroup = Gtk.ActionGroup(name='Filter')
 
         self.actiongroup.add_actions([
             ('FilterMenu', None, _('Filter actions')),
@@ -303,7 +303,7 @@ class FilterPanel(object):
     def related_tools_menu_entries(self):
         "Add menu entry for related tools"
 
-        self.actiongroup_related = Gtk.ActionGroup('Related')
+        self.actiongroup_related = Gtk.ActionGroup(name='Related')
         self.ui_manager.insert_action_group(self.actiongroup_related, 8)
 
         for related in list(self.master.related.keys()):

@@ -276,7 +276,7 @@ class SqlTable(sqlwidget.SqlWidget):
         """
         sqlwidget.SqlWidget.prepare_actions(self)
 
-        self.actiongroup_table = Gtk.ActionGroup('Table')
+        self.actiongroup_table = Gtk.ActionGroup(name='Table')
 
         self.actiongroup_insert.add_actions([
             ('Duplicate', Gtk.STOCK_SAVE_AS, _('Duplicate'), None,

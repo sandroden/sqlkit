@@ -782,14 +782,14 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
         """
         Prepare action needed by UIManager
         """
-        self.actiongroup_general = Gtk.ActionGroup('General')
-        self.actiongroup_update = Gtk.ActionGroup('Update')
-        self.actiongroup_insert = Gtk.ActionGroup('Insert')
-        self.actiongroup_delete = Gtk.ActionGroup('Delete')
-        self.actiongroup_select = Gtk.ActionGroup('Select')
-        self.actiongroup_browse = Gtk.ActionGroup('Browse')
-        self.actiongroup_print = Gtk.ActionGroup('Print')
-        self.actiongroup_debug = Gtk.ActionGroup('Debug')
+        self.actiongroup_general = Gtk.ActionGroup(name='General')
+        self.actiongroup_update = Gtk.ActionGroup(name='Update')
+        self.actiongroup_insert = Gtk.ActionGroup(name='Insert')
+        self.actiongroup_delete = Gtk.ActionGroup(name='Delete')
+        self.actiongroup_select = Gtk.ActionGroup(name='Select')
+        self.actiongroup_browse = Gtk.ActionGroup(name='Browse')
+        self.actiongroup_print = Gtk.ActionGroup(name='Print')
+        self.actiongroup_debug = Gtk.ActionGroup(name='Debug')
 
         tip = _('Show all the differences that should be saved to database')
         self.actiongroup_general.add_actions([
