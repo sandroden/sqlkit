@@ -65,7 +65,7 @@ class Demo(object):
             } 
         """
 
-        self.l = Layout(lay, opts="s", title="Esempi", geom=(600, 700))
+        self.l = Layout(lay, opts="s", title="Esempi", geom=(1100, 750))
 
         self.l.notebook('N.0', ['src', 'tree', 'widget properties', 'pack properties', 'xml'])
         self.w = self.l.show(x='q')
