@@ -14,9 +14,10 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+from collections import Counter
 
 from sqlalchemy import Table, MetaData, sql, event
-from sqlalchemy.orm import sessionmaker, mapper, column_property
+from sqlalchemy.orm import sessionmaker, mapper
 
 from sqlkit import _
 from sqlkit.db import minspect, utils
@@ -148,16 +149,30 @@ class DbProxy(object):
 
         # SA 1.4+ refuses to implicitly combine same-named columns in a
         # joined-mapper (e.g. movie.id + director.id both mapped to 'id').
-        # Re-create the previous SA<1.4 behaviour by passing an explicit
-        # column_property() for every name that appears in more than one
-        # of the joined tables.
-        by_name = {}
-        for col in j.columns:
-            by_name.setdefault(col.name, []).append(col)
-        properties = {
-            name: column_property(*cols)
-            for name, cols in by_name.items() if len(cols) > 1
-        }
+        # Wrapping them in a single column_property would let the mapper
+        # build, but the resulting attribute is read-only — edits would not
+        # propagate back to either table. Instead, give every underlying
+        # column its own writable mapped attribute: first occurrence keeps
+        # the natural name, later collisions are renamed to
+        # '<tablename>_<colname>' (with a numeric suffix if the renamed
+        # form itself collides with an existing column, e.g. director.id
+        # would naively rename to 'director_id' which is already taken by
+        # the movie.director_id FK).
+        all_cols = list(j.columns)
+        counts = Counter(c.name for c in all_cols)
+        used = set()
+        properties = {}
+        for col in all_cols:
+            if col.name not in used:
+                used.add(col.name)
+                continue
+            cand = '%s_%s' % (col.table.name, col.name)
+            i = 1
+            while cand in used or counts.get(cand, 0) > 0:
+                i += 1
+                cand = '%s_%s_%d' % (col.table.name, col.name, i)
+            used.add(cand)
+            properties[cand] = col
         m = mapper(JoinAuto, j, properties=properties)
         return m
 
