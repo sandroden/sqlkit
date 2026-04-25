@@ -269,7 +269,6 @@ def get_default_class(table):
     if isinstance(table, str):
         table = self.get_table(name)
 
-    name = name.encode('utf-8')
     X = type(name, (object,), {'__repr__': __repr__, '__str__': __str__})
 
     return X

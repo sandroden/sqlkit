@@ -44,6 +44,9 @@ class Container(object):
         for attr in self._attrs:
             yield attr, self[attr]
 
+    # Py3 dict-like alias; many call sites moved to .items() after 2to3.
+    items = iteritems
+
     def __contains__(self, key):
         return key in self._attrs
 
