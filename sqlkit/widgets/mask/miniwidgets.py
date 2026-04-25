@@ -440,8 +440,23 @@ class TimeWidget(Widget):
     A timezone unaware widget to set time. Very poor widget indeed.
     """
 
+    def __init__(self, *args):
+        Widget.__init__(self, *args)
+        self._id_changed = self.gtkwidget.connect('changed', self.on_changed)
+
+    def on_changed(self, widget):
+        try:
+            value = self.get_value()
+        except (exc.ValidationError, ValueError, IndexError):
+            # parsing parziale durante la digitazione: silenzia
+            return
+        self.master.run_hook('on_change_value', value, value, self.field,
+                             field_name=self.field_name)
+
     def set_value(self, value, initial=False):
+        self.gtkwidget.handler_block(self._id_changed)
         self.gtkwidget.set_text(self.field.format_value(value))
+        self.gtkwidget.handler_unblock(self._id_changed)
         self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
@@ -532,17 +547,24 @@ class TextWidget(Widget):
     def __init__(self, *args):
         Widget.__init__(self, *args)
         self.gtkwidget.set_property('wrap-mode', Gtk.WrapMode.WORD)
+        self._buffer = self.gtkwidget.get_buffer()
+        self._id_changed = self._buffer.connect('changed', self.on_changed)
+
+    def on_changed(self, buff):
+        value = self.get_value()
+        self.master.run_hook('on_change_value', value, value, self.field,
+                             field_name=self.field_name)
 
     def set_value(self, value, initial=False):
-        buff = self.gtkwidget.get_buffer()
-        buff.set_text(value or '')
+        self._buffer.handler_block(self._id_changed)
+        self._buffer.set_text(value or '')
+        self._buffer.handler_unblock(self._id_changed)
         self.emit('value-set', value, initial)
 
     def get_value(self, shown=False):
-        buff = self.gtkwidget.get_buffer()
-        ts = buff.get_iter_at_offset(0)
-        te = buff.get_iter_at_offset(-1)
-        text = str(buff.get_text(ts, te, True))
+        ts = self._buffer.get_iter_at_offset(0)
+        te = self._buffer.get_iter_at_offset(-1)
+        text = str(self._buffer.get_text(ts, te, True))
         return text
 
 class BooleanWidget(Widget):
