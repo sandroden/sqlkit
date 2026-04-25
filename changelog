@@ -1,3 +1,17 @@
+sqlkit - 0.9.8 - GTK3 / Python 3 port - In progress
+
+	Backward incompatibilities
+	--------------------------
+
+	* layout: ``Z`` (HandleBox) is now backed by ``GtkFrame`` instead of
+	          ``GtkHandleBox``. ``GtkHandleBox`` is deprecated since GTK 3.4
+	          and is removed in GTK 4; on modern themes it stops rendering
+	          its child window, so the demo (``demo/layout/00_handle.py``)
+	          showed an empty window. The drag-detach feature is gone.
+	          Existing layouts that used ``Z=`` for grouping/decoration keep
+	          working — only the gripper handle and the ability to tear off
+	          the box at runtime are no longer there.
+
 sqlkit - 0.9.6.1 - Mar, 10 2014
 
 	* fix porting to work for  sqlalchemy < 0.7.8

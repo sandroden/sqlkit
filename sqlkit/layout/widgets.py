@@ -895,7 +895,15 @@ class DrawingArea(LWidget):
     gtkClass = 'GtkDrawingArea'
 
 class HandleBox(LContainer):
-    gtkClass = 'GtkHandleBox'
+    # GtkHandleBox is deprecated since GTK 3.4 and effectively does not
+    # render its child window with modern themes (Adwaita/Wayland). It is
+    # gone in GTK 4. Fall back to a shadow-less GtkFrame: 'Z' keeps working
+    # as a single-child decorative container, but the drag-detach handle
+    # is no longer available. See changelog 0.9.8.
+    gtkClass = 'GtkFrame'
+    class_properties = {
+        'shadow_type': 'GTK_SHADOW_NONE',
+    }
 
 class Expander(VPaned):
     gtkClass = 'GtkExpander'
