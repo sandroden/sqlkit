@@ -36,11 +36,22 @@ add_stock_icons(*SK_ICONS)
 
 class StockMenuItem(Gtk.ImageMenuItem):
 
-    def __init__(self, label, stock, size=Gtk.IconSize.MENU):
-        super().__init__(label=label)
-        image = Gtk.Image()
-        image.set_from_stock(stock, size)
-        self.set_image(image)
+    def __init__(self, label=None, stock=None, size=Gtk.IconSize.MENU):
+        # Pre-GTK3 Gtk.ImageMenuItem('gtk-foo') would auto-resolve the
+        # stock id to a localized label via GTK's own gettext domain
+        # ('Crescente', 'Decrescente', 'Informazioni' for it_IT). Stock-id
+        # construction is gone, but the catalog is still queryable through
+        # Gtk.stock_lookup; pull the translated label from there when the
+        # caller does not supply one explicitly. Mnemonic '_' is preserved.
+        if label is None and stock is not None:
+            stock_item = Gtk.stock_lookup(stock)
+            if stock_item is not None:
+                label = stock_item.label
+        super().__init__(label=label or stock, use_underline=True)
+        if stock is not None:
+            image = Gtk.Image()
+            image.set_from_stock(stock, size)
+            self.set_image(image)
         self.show_all()
 
 class EasyTreeView(object):

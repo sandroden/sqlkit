@@ -890,8 +890,9 @@ class ColumnMenuProxy(object):
             item.connect('activate', self.master.filter_panel.add, ev, field_name, self.master)
             menu.append(item)
 
-        ## sort
-        item = Gtk.ImageMenuItem('gtk-sort-ascending')
+        ## sort — let StockMenuItem pull the localized label from
+        ## Gtk.stock_lookup ('Crescente'/'Decrescente' under it_IT).
+        item = StockMenuItem(stock='gtk-sort-ascending')
         item.connect('activate', self.reload_sort_cb, field_name, 'ASC')
         if field.persistent:
             item.set_tooltip_text(_("Sort on this column reloading from the database, " +
@@ -901,7 +902,7 @@ class ColumnMenuProxy(object):
 
         menu.append(item)
 
-        item = Gtk.ImageMenuItem('gtk-sort-descending')
+        item = StockMenuItem(stock='gtk-sort-descending')
         item.connect('activate', self.reload_sort_cb, field_name, 'DESC')
         menu.append(item)
 
@@ -929,8 +930,7 @@ class ColumnMenuProxy(object):
             menu.append(item)
 
         ## info
-        # TIP: column menu opt
-        item = Gtk.ImageMenuItem('gtk-info')
+        item = StockMenuItem(stock='gtk-info')
         item.connect('activate', self.master.show_field_info, field_name)
         menu.append(item)
 
