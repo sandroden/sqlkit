@@ -491,10 +491,21 @@ class Layout(object):
             ## parent
             if self.addto:
                 container_widget = self.widgets[self.lcontainer.el_def]
-                self.addto.add(container_widget)
+                self._pack_into_addto(container_widget)
 
             self.shown = True
             return self.widgets
+
+    def _pack_into_addto(self, container_widget):
+        """Insert container_widget into self.addto. On GTK3 Box.add() packs
+        with expand=False/fill=True, which collapses the layout vertically
+        when used as a Gtk.Dialog content area (dialog.vbox). Use
+        pack_start(True, True, 0) for Box-like parents so the layout claims
+        all the room available."""
+        self.addto.add(container_widget)
+        if isinstance(self.addto, Gtk.Box):
+            self.addto.child_set_property(container_widget, 'expand', True)
+            self.addto.child_set_property(container_widget, 'fill', True)
 
     def gshow(self, action=None, x=None):
         if self.shown:
@@ -522,7 +533,7 @@ class Layout(object):
             ## parent
             if self.addto:
                 container_widget = self.widgets[self.lcontainer.el_def]
-                self.addto.add(container_widget)
+                self._pack_into_addto(container_widget)
 
             self.shown = True
             return self.widgets
@@ -992,6 +1003,13 @@ def dialog(toplevel=None, layout=None, title='', butts=None, type=None,
     if text:
         lay.prop(('l=msg', 'label', text))
     lay.show()
+    # On GTK3 the natural size of a layout built with the typical
+    # 'GtkTable + GtkVPaned' wrapping collapses to 1px, so the dialog auto-
+    # sizes around the buttons only and the body becomes invisible. Give it
+    # a sane default that fits the standard '?-icon + question + details
+    # expander' pattern; users can resize.
+    if layout and layout.strip() != 'l=msg':
+        dialog.set_default_size(400, 250)
     if show:
         dialog.show_all()
 
