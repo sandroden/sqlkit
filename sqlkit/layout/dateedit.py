@@ -503,8 +503,10 @@ class DateTimeEdit(DateEdit):
         self.add(time_box)
         time_box.show()
 
-        # the time entry combobox
-        self._time_combobox = Gtk.ComboBoxEntry()
+        # the time entry combobox: GTK3 dropped Gtk.ComboBoxEntry, the
+        # equivalent is a Gtk.ComboBox built with the has-entry property
+        # (Gtk.ComboBox.new_with_entry()).
+        self._time_combobox = Gtk.ComboBox.new_with_entry()
         self._time_combobox.get_child().set_max_length(12)
         self._time_combobox.get_child().set_width_chars(8)
         time_box.add(self._time_combobox)
@@ -540,8 +542,10 @@ class DateTimeEdit(DateEdit):
 
         # finally replace current model with this new one
         self._time_combobox.set_model(store)
-        if self._time_combobox.get_text_column() == -1:
-            self._time_combobox.set_text_column(0)
+        # On a GTK3 has-entry combobox the API is [get|set]_entry_text_column;
+        # the GTK2 GtkComboBoxEntry [get|set]_text_column was renamed.
+        if self._time_combobox.get_entry_text_column() == -1:
+            self._time_combobox.set_entry_text_column(0)
 
     def time_combobox_changed_cb(self, widget, data=None):
         # if the changed was due to a time selection in the menu,
