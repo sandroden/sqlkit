@@ -30,6 +30,7 @@ import shutil
 import datetime
 
 from gi.repository import GObject
+from gi.repository import GLib
 from gi.repository import Gdk
 from gi.repository import Gtk
 import sqlalchemy
@@ -133,12 +134,12 @@ class SqlTable(sqlwidget.SqlWidget):
             self.lay_obj.prop('A.external', 'yscale', 1)
 
         if self.rows:
-            GObject.idle_add(self.set_rows)
+            GLib.idle_add(self.set_rows)
 
         self.icon_setup()
         self.treeview.hide()
         self.treeview.show()
-        GObject.idle_add(tv_utils.set_optimal_width, self.treeview)
+        GLib.idle_add(tv_utils.set_optimal_width, self.treeview)
         return (self.lay_obj, self.widgets)
 
     def icon_setup(self):
@@ -472,7 +473,7 @@ class SqlTable(sqlwidget.SqlWidget):
         if not path == selected_path and self.gui_fields[field_name].type == bool:
             if column.cell.get_property('mode') == Gtk.CellRendererMode.ACTIVATABLE:
                 column.cell.set_property('mode', Gtk.CellRendererMode.INERT)
-                GObject.idle_add(
+                GLib.idle_add(
                     column.cell.set_property, 'mode', Gtk.CellRendererMode.ACTIVATABLE)
 
     def on_zoom_fit(self, widget, *args):
@@ -514,12 +515,12 @@ class SqlTable(sqlwidget.SqlWidget):
         columns = self.treeview.get_columns()
         colnum = columns.index(col)
         if colnum - 1 >= 0:
-            GObject.idle_add(self.treeview.set_cursor, path, columns[colnum - 1], True)
+            GLib.idle_add(self.treeview.set_cursor, path, columns[colnum - 1], True)
         else:
             path = (path[0] - 1,)
             if path[0] < 0:
                 path = (len(treeview.get_model()) - 1,)
-            GObject.idle_add(self.treeview.set_cursor, path, columns[-1], True)
+            GLib.idle_add(self.treeview.set_cursor, path, columns[-1], True)
         return True
 
     def key_tree_Tab(self, treeview, event):
@@ -533,11 +534,11 @@ class SqlTable(sqlwidget.SqlWidget):
             #cell = col.get_cells()[0]
             #cell.emit('edited', path, )
             #self.treeview.set_cursor( path, columns[colnum + 1], True)
-            #GObject.idle_add(self.treeview.set_cursor, path, columns[colnum + 1], True)
+            #GLib.idle_add(self.treeview.set_cursor, path, columns[colnum + 1], True)
 
             next_column = columns[colnum + 1]
             next_field_name = next_column.field_name
-            GObject.idle_add(self.treeview.set_cursor, path,
+            GLib.idle_add(self.treeview.set_cursor, path,
                              next_column, self.get_direct_edit(next_field_name))
         else:
             tmodel = self.treeview.get_model()
@@ -548,7 +549,7 @@ class SqlTable(sqlwidget.SqlWidget):
 
             next_column = columns[0]
             next_field_name = next_column.field_name
-            GObject.idle_add(self.treeview.set_cursor, path, next_column,
+            GLib.idle_add(self.treeview.set_cursor, path, next_column,
                              self.get_direct_edit(next_field_name))
         return False
 

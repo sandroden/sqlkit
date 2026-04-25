@@ -80,6 +80,7 @@ import warnings
 from datetime import *
 
 from gi.repository import GObject
+from gi.repository import GLib
 import sqlalchemy
 from sqlalchemy.sql import select, Join, or_
 from babel import dates
@@ -479,7 +480,7 @@ class FilterPanel(object):
     def on_switch_page(self, notebook, junk, page_n):
 
         if page_n == 0 and self._last_focused_entry:
-            GObject.idle_add(self._last_focused_entry.grab_focus)
+            GLib.idle_add(self._last_focused_entry.grab_focus)
 
     def short_filter(self, field_name, relationship_path=None):
         """Apply a filter getting the value from the table/mask

@@ -28,6 +28,7 @@ import tempfile
 
 from gi.repository import Gtk
 from gi.repository import GObject
+from gi.repository import GLib
 
 from sqlkit import debug as dbg
 from sqlkit import _
@@ -684,7 +685,7 @@ class Layout(object):
             return False
 
         if seconds:
-            GObject.timeout_add(seconds * 1000, del_text, idx, msg_id)
+            GLib.timeout_add(seconds * 1000, del_text, idx, msg_id)
 
     def notebook(self, el_key, notebook_labels=None, tab_pos='top'):
         """Adds notebook entry for notebooks,

@@ -45,6 +45,7 @@ import datetime
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import GObject
+from gi.repository import GLib
 from gi.repository import Gtk
 from gi.repository import Gdk
 from babel import dates
@@ -213,7 +214,7 @@ class DateEdit(Gtk.HBox):
         base_color = colormap.alloc_color(color)
         entry.override_background_color(Gtk.StateType.NORMAL, base_color)
 
-        GObject.timeout_add(1000 * seconds, entry.override_background_color,
+        GLib.timeout_add(1000 * seconds, entry.override_background_color,
                             Gtk.StateType.NORMAL, self._default_base)
 
     def modify_base(self, state, color):
@@ -270,10 +271,10 @@ class DateEdit(Gtk.HBox):
     def date_entry_changed_cb(self, entry):
         # check entry for valid date
         if self._id_timeout_add:
-            GObject.source_remove(self._id_timeout_add)
+            GLib.source_remove(self._id_timeout_add)
 
         # let's delay the check so we can complete our input
-        self._id_timeout_add = GObject.timeout_add(700, self.verify_date, entry)
+        self._id_timeout_add = GLib.timeout_add(700, self.verify_date, entry)
 
     def verify_date(self, entry):
         """Verify the text anc heck if it parses as date, complain if not

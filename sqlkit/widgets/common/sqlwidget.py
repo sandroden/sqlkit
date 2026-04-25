@@ -27,6 +27,7 @@ from gi.repository import Gdk
 from gi.repository import Gtk
 from gi.repository import Pango
 from gi.repository import GObject
+from gi.repository import GLib
 from babel import numbers
 import sqlalchemy
 from sqlalchemy import Table, orm
@@ -714,7 +715,7 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
         Write on the status bar if present in this  sqlwidget or in the ``relationship_leader``
 
         Adds a message in the stack of messages of the status bar, and removes it
-        after seconds seconds. If delay=True it uses GObject.idle_add to give
+        after seconds seconds. If delay=True it uses GLib.idle_add to give
         more chance to be visible (not hidden by other automatic messages)
 
 
@@ -729,7 +730,7 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
             else:
                 try:
                     if delay:
-                        GObject.idle_add(self.lay_obj.sb, text, seconds)
+                        GLib.idle_add(self.lay_obj.sb, text, seconds)
                     else:
                         self.lay_obj.sb(text, seconds=seconds)
                 except Exception as e:
@@ -745,7 +746,7 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
                 title = self.table
             except:
                 title = self.mapper_info.get_primary_table()
-        return GObject.markup_escape_text(title)
+        return GLib.markup_escape_text(title)
 
     def get_table_labels(self):
         """
@@ -772,7 +773,7 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
         if height <= 0:
             height = h
 
-        GObject.idle_add(Window.resize, width, height)
+        GLib.idle_add(Window.resize, width, height)
 
     def gquit(self, *args):
         Gtk.main_quit()

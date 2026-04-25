@@ -20,6 +20,7 @@ import decimal
 from gi.repository import Gdk
 from gi.repository import Gtk
 from gi.repository import GObject
+from gi.repository import GLib
 
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.orm.exc import ObjectDeletedError
@@ -60,7 +61,7 @@ class SqlMask(sqlwidget.SqlWidget, metaclass=None if not dbg.debug else dbg.LogT
 
         sqlwidget.SqlWidget.__init__(self, *args, **kw)
         ## idle so that possible defaults get a chanche to be effective
-        GObject.idle_add(self.record_new_idle)
+        GLib.idle_add(self.record_new_idle)
         self.run_hook('on_init')
 
 ###### Filters/constraints
@@ -705,7 +706,7 @@ class SqlMask(sqlwidget.SqlWidget, metaclass=None if not dbg.debug else dbg.LogT
                 self.sb(_('Already first record') + msg_info)
             return None
 
-        GObject.timeout_add(delay_message * 1000, self.sb, msg_info)
+        GLib.timeout_add(delay_message * 1000, self.sb, msg_info)
 
         self.emit('pre-display', obj)
 

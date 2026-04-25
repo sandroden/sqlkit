@@ -64,6 +64,7 @@ from decimal import Decimal
 
 from gi.repository import Gtk
 from gi.repository import GObject
+from gi.repository import GLib
 from functools import reduce
 
 class ModelProxy(GObject.GObject):
@@ -288,7 +289,7 @@ class ModelProxy(GObject.GObject):
         up to you to refine it for your needs.
         """
         if self.order_store:
-            GObject.idle_add(self.modelstore.foreach, self.reordered_foreach_func)
+            GLib.idle_add(self.modelstore.foreach, self.reordered_foreach_func)
             #self.modelstore.foreach(self.reordered_foreach_func)
 
     def comp_func(self, obj1, obj2):

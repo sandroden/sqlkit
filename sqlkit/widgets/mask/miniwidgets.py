@@ -133,6 +133,7 @@ from datetime import timedelta, time
 from gi.repository import Gdk
 from gi.repository import Gtk
 from gi.repository import GObject
+from gi.repository import GLib
 
 from sqlkit import debug as dbg, _, exc
 from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion
@@ -846,13 +847,13 @@ class ForeignKeyWidget(Widget):
         elif event.button == 1:
             if event.type == Gdk._2BUTTON_PRESS:
                 # cancel reques by first simple click
-                GObject.source_remove(self.idle_id)
+                GLib.source_remove(self.idle_id)
 
                 mode = 'enum'
             else:
                 mode = 'regexp'
 
-            self.idle_id = GObject.idle_add(
+            self.idle_id = GLib.idle_add(
                 self.completion.show_possible_completion, self.entry, mode)
 
         return True
