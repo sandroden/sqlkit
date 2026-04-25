@@ -1187,7 +1187,7 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
         # skip_check is passed to Mask.unsaved_changes_exists
         if self.session.dirty:
             for dirty in self.session.dirty:
-                if self.session.is_modified(dirty, passive=True):
+                if self.session.is_modified(dirty):
                     return True
         if self.session.deleted:
             return True
@@ -1205,7 +1205,7 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
                 if obj in skip_new:
                     self.sb(_("Discarding new obj"), seconds=3)
                     continue
-                if self.session.is_modified(obj, passive=True):
+                if self.session.is_modified(obj):
                     return True
 
         return False
