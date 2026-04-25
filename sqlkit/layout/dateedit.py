@@ -221,16 +221,17 @@ class DateEdit(Gtk.HBox):
         self._default_base = color
 
     def popup_grab_on_window(self, window, activate_time):
-        grab = Gdk.pointer_grab(window, True, Gdk.EventMask.BUTTON_PRESS_MASK
-                                | Gdk.EventMask.BUTTON_RELEASE_MASK
-                                | Gdk.EventMask.POINTER_MOTION_MASK,
-                                None, None, activate_time)
-        if grab == 0:
-            if Gdk.keyboard_grab(window, True, activate_time) == 0:
-                return True
-            else:
-                Gdk.pointer_ungrab(activate_time)
-                return False
+        # Pointer-only grab via Gdk.Seat: gives us the "click-outside-closes-popup"
+        # behaviour without a keyboard grab. A keyboard grab would translate, on
+        # Wayland, into a 'shortcut inhibit' request and pop up a confirmation
+        # dialog at every calendar open. ESC is handled by attaching a
+        # key-press handler on the toplevel parent in date_button_clicked_cb.
+        seat = Gdk.Display.get_default().get_default_seat()
+        status = seat.grab(window, Gdk.SeatCapabilities.ALL_POINTING,
+                           True, None, None, None, None)
+        if status == Gdk.GrabStatus.SUCCESS:
+            self._seat_grab = seat
+            return True
         return False
 
     def position_popup(self):
@@ -254,6 +255,13 @@ class DateEdit(Gtk.HBox):
         self._cal_popup.move(x, y)
 
     def hide_popup(self):
+        if getattr(self, '_seat_grab', None) is not None:
+            self._seat_grab.ungrab()
+            self._seat_grab = None
+        if getattr(self, '_toplevel_key_handler', None) is not None:
+            toplevel, hid = self._toplevel_key_handler
+            toplevel.disconnect(hid)
+            self._toplevel_key_handler = None
         self._cal_popup.hide()
         self._cal_popup.grab_remove()
 
@@ -292,7 +300,7 @@ class DateEdit(Gtk.HBox):
         return False
 
     def date_button_clicked_cb(self, widget):
-        # Temporarily grab pointer and keyboard on a window we know exists
+        # Temporarily grab the pointer on a window we know exists
         if not self.popup_grab_on_window(widget.get_window(), Gtk.get_current_event_time()):
             return
 
@@ -306,8 +314,15 @@ class DateEdit(Gtk.HBox):
         self._cal_popup.show()
         self._calendar.grab_focus()
 
-        # Now transfer our grabs to the popup window, this should always succed
+        # Now transfer our grab to the popup window, this should always succeed
         self.popup_grab_on_window(self._cal_popup.get_window(), Gtk.get_current_event_time())
+
+        # Without a keyboard grab the POPUP window does not receive key events,
+        # so route ESC through the parent toplevel for the lifetime of the popup.
+        toplevel = self.get_toplevel()
+        if toplevel is not None and toplevel.is_toplevel():
+            hid = toplevel.connect('key-press-event', self.key_press_popup_cb)
+            self._toplevel_key_handler = (toplevel, hid)
 
     def day_selected_cb(self, widget):
         year, month, day = self._calendar.get_date()
