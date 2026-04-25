@@ -185,7 +185,7 @@ class DateEdit(Gtk.HBox):
         self._date_button.show()
 
         # the calendar popup
-        self._cal_popup = Gtk.Window(Gtk.WindowType.POPUP)
+        self._cal_popup = Gtk.Window(type=Gtk.WindowType.POPUP)
         self._cal_popup.set_title('popup for calendar')
         self._cal_popup.set_events(self._cal_popup.get_events() | Gdk.EventMask.KEY_PRESS_MASK)
         self._cal_popup.set_resizable(False)  # Todo: Needed?

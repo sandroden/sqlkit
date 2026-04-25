@@ -323,7 +323,7 @@ class TableBrowser(object):
         global TABLE_MATCH
         self.model.clear()
         TABLE_MATCH = self.w['e=filter'].get_text() or ".*"
-        tables = self.dbproxy.metadata.bind.table_names()
+        tables = sa.inspect(self.dbproxy.metadata.bind).get_table_names()
         tables.sort()
         for table in tables:
             if self.skip_table(table):

@@ -19,7 +19,7 @@ def test(item):
     print("Here I am!")
 
 t = SqlTable('movie',    dbproxy=db, order_by='title', )
-t.actiongroup_mag = Gtk.ActionGroup('Demo')
+t.actiongroup_mag = Gtk.ActionGroup(name='Demo')
 t.actiongroup_mag.add_actions([
     ('MaskView', Gtk.STOCK_LEAVE_FULLSCREEN,  "I'm not the other one!", '<Control>m', None, test),
     ('Export', Gtk.STOCK_LEAVE_FULLSCREEN,  "I'm not the original Export!", None, None, test),

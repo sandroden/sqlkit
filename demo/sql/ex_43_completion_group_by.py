@@ -10,8 +10,8 @@ lay = """
     director_id
 """
 
-from gi.repository import GObject
+from gi.repository import GLib
 
 t = SqlMask(model.Movie, dbproxy=db, layout=lay)
 t.completions.director_id.group_by = 'nation'
-GObject.idle_add(t.completions.director_id.show_possible_completion, None, 'start')
+GLib.idle_add(t.completions.director_id.show_possible_completion, None, 'start')

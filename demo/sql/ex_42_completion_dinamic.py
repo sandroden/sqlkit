@@ -11,11 +11,11 @@ lay = """
    nation
 """
 
-from gi.repository import GObject
+from gi.repository import GLib
 t = SqlMask(model.Director, dbproxy=db, layout=lay)
 
 t.completions.last_name.filter(nation='$nation')
 
-GObject.idle_add(t.set_value, 'nation', 'IT')
+GLib.idle_add(t.set_value, 'nation', 'IT')
 
 t2 = SqlMask(model.Director, dbproxy=db, layout=lay)

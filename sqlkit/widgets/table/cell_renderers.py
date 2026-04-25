@@ -35,7 +35,7 @@ class CellEditableCalendar(Gtk.TextView, Gtk.CellEditable):
         #self.cal.show()
         self.cal.select_month(self.datetime.month - 1, self.datetime.year)
         self.cal.select_day(self.datetime.day)
-        self.w = Gtk.Window(Gtk.WindowType.POPUP)
+        self.w = Gtk.Window(type=Gtk.WindowType.POPUP)
         self.set_editable(True)
         self.w.add(self.cal)
         #self.w.connect("delete_event", self.delete_event)
