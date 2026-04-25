@@ -2231,6 +2231,12 @@ class UnsavedDataDialog(object):
         tv.set_model(self.model)
         tv.set_property('width-request', 600)
         tv.set_property('height-request', 150)
+        # The TreeView is wrapped by a ScrolledWindow ('S=details'); on GTK3
+        # ScrolledWindow asks scrollable children for their natural size and
+        # ignores height-request, so set min-content-* to size the viewport.
+        sw = l.widgets['S=details']
+        sw.set_property('min-content-width', 600)
+        sw.set_property('min-content-height', 150)
 
         cell0 = Gtk.CellRendererText()
         cell1 = Gtk.CellRendererText()

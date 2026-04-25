@@ -96,8 +96,14 @@ class LWidget(object):
                 'bottom_attach': row+1,
             })
         else:
-            self.pack_properties.update(
-                _W[self.container_flag].class_pack_properties)
+            # Use setdefault rather than update so that values already set
+            # (typically expand/fill from a prior make_v_expandable() call
+            # in _class_specific) are not clobbered when the Layout parser
+            # re-invokes position() to assign the final (row, col) — see
+            # layout.py: `new.container().position((row, col))`.
+            parent_pack = _W[self.container_flag].class_pack_properties
+            for _key, _val in parent_pack.items():
+                self.pack_properties.setdefault(_key, _val)
 
     def _debug_pos(self):
         p = self.pack_properties
@@ -331,8 +337,15 @@ class LWidget(object):
             return
         self.v_expand = True
         # FIXME: (how?!) this expands horizontally if parent is a HBox
-        self.pack_properties.update({'expand': True})
+        # In a Box, both 'expand' and 'fill' are needed: 'expand' grants
+        # the child extra space, 'fill' makes it actually use it.
+        self.pack_properties.update({'expand': True, 'fill': True})
         self.pack_properties.update({'y-options': 'expand | fill'})
+        # GtkWidget.vexpand controls allocation in single-child containers
+        # (Bin/Expander) and is the GTK3 way to request vertical fill —
+        # without it, e.g. a Table inside a GtkExpander stays at its
+        # natural size even when the expander has plenty of room.
+        self.properties['vexpand'] = True
 
     def __str__(self):
         return "<%s: %s >" % (self.__class__.__name__, self.el_def)
@@ -912,9 +925,22 @@ class Expander(VPaned):
         'border_width': 3,
     }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # The wrapped child (typically an auto-Table containing a
+        # ScrolledWindow / TreeView) must also claim vertical space so the
+        # contents of the expander reach all the way down. The propagation
+        # in LWidget._widget_xml only walks one level up at xml-gen time,
+        # so cascade make_v_expandable here at construction time.
+        for child in self.lw.get('children_list') or ():
+            child.make_v_expandable()
+
     def _class_specific(self):
         label = self.el_def.replace('X.', '').replace('_', ' ')
         self.properties['label'] = label
+        # An expander shows/hides a content area; once expanded, the content
+        # should claim the remaining vertical space in its parent.
+        self.make_v_expandable()
 
 class ViewPort(LContainer):
     gtkClass = 'GtkViewport'
