@@ -771,8 +771,7 @@ class ImageColumn(GenericColumn):
             cell.set_property('visible', True)
             if value:
                 if not self.field.exists(value):
-                    cell.set_property('pixbuf', None)
-                    cell.set_property('stock-id', 'gtk-missing-image')
+                    cell.set_property('icon-name', 'image-missing')
                     cell.thumbnail_path = None
                     return
 
@@ -781,25 +780,19 @@ class ImageColumn(GenericColumn):
                         value, complete_path=True) or None
                     if thumbnail_path:
                         if cell.thumbnail_path != thumbnail_path:
-                            pixbuf = GdkPixbuf.Pixbuf.new_from_file(
-                                thumbnail_path) if thumbnail_path else None
-
+                            pixbuf = GdkPixbuf.Pixbuf.new_from_file(thumbnail_path)
                             cell.set_property('pixbuf', pixbuf)
-                            cell.set_property('stock-id', None)
                             cell.thumbnail_path = thumbnail_path
                     else:
-                        cell.set_property('pixbuf', None)
-                        cell.set_property('stock-id', Gtk.STOCK_MISSING_IMAGE)
+                        cell.set_property('icon-name', 'image-missing')
                         cell.thumbnail_path = thumbnail_path
 
                 else:
-                    cell.set_property('pixbuf', None)
-                    cell.set_property('stock-id', 'gtk-file')
+                    cell.set_property('icon-name', 'text-x-generic')
                     cell.thumbnail_path = None
             else:
-                cell.set_property(prop_name, None)
-                cellthumbnail_path = None
-                cell.set_property('stock-id', None)
+                cell.set_property('pixbuf', None)
+                cell.thumbnail_path = None
 
         ## TOTALS
         elif hasattr(self.master, 'totals') and isinstance(obj, self.master.totals.total_class):
