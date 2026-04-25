@@ -2218,16 +2218,11 @@ class UnsavedDataDialog(object):
         self.dialog, l = master.lay_obj.dialog(title=_("Unsaved data"),
                                                type=type_, text=general_msg,  layout=layout % (expanded and '>' or ''))
 
-        tv = l.widgets['TV=details']
+        self.tv = tv = l.widgets['TV=details']
         expander = l.widgets['X.details']
         ## expanding the details will possibly trigget mask2obj that
         ## in turn will trogger validation. That's why I want to delay as much as possible
         self.model = Gtk.TreeStore(str, str, str, str)
-        if expanded:
-            self.fill_model()
-        else:
-            expander.connect("notify::expanded", self.fill_model)
-
         tv.set_model(self.model)
         tv.set_property('width-request', 600)
         tv.set_property('height-request', 150)
@@ -2237,6 +2232,10 @@ class UnsavedDataDialog(object):
         sw = l.widgets['S=details']
         sw.set_property('min-content-width', 600)
         sw.set_property('min-content-height', 150)
+        if expanded:
+            self.fill_model()
+        else:
+            expander.connect("notify::expanded", self.fill_model)
 
         cell0 = Gtk.CellRendererText()
         cell1 = Gtk.CellRendererText()
@@ -2323,6 +2322,11 @@ class UnsavedDataDialog(object):
                 self.model.set(iter,
                                0, "<i>%s</i>" % utils.clean_for_markup(item.__class__.__name__),
                                3, "%s" % utils.clean_for_markup(item))
+
+        # Auto-expand the Modified/Deleted/New group rows so the user
+        # immediately sees the changed fields without having to click each
+        # group open manually.
+        self.tv.expand_all()
 
     def clearer(self, value):
         """
