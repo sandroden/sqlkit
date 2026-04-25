@@ -16,7 +16,7 @@
 import re
 
 from sqlalchemy import Table, MetaData, sql, event
-from sqlalchemy.orm import sessionmaker, mapper
+from sqlalchemy.orm import sessionmaker, mapper, column_property
 
 from sqlkit import _
 from sqlkit.db import minspect, utils
@@ -146,7 +146,19 @@ class DbProxy(object):
                 t1 = j
             j = self.join2tables(t1, t, mode=mode)
 
-        m = mapper(JoinAuto, j)
+        # SA 1.4+ refuses to implicitly combine same-named columns in a
+        # joined-mapper (e.g. movie.id + director.id both mapped to 'id').
+        # Re-create the previous SA<1.4 behaviour by passing an explicit
+        # column_property() for every name that appears in more than one
+        # of the joined tables.
+        by_name = {}
+        for col in j.columns:
+            by_name.setdefault(col.name, []).append(col)
+        properties = {
+            name: column_property(*cols)
+            for name, cols in by_name.items() if len(cols) > 1
+        }
+        m = mapper(JoinAuto, j, properties=properties)
         return m
 
     def join2tables(self, t1, t2, mode='outerjoin'):
