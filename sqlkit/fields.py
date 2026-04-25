@@ -1625,19 +1625,18 @@ class ImageField(VarcharField):
         pixbuf = self.scale_pixbuf(pixbuf, width, height)
         pixbuf.savev(dst_path, 'jpeg', "", "")
 
-    def create_thumbnail(self, filename, thumbnail_path=None):
+    def create_thumbnail(self, path, thumbnail_path=None):
         """
         Create a thumbnail that will be used when rendering images in tables. Uses
         attribute :attr:`thumbnail_size`
 
-        :param filename: the filename to create a thumbnail for
+        :param path: the complete path of the image to create a thumbnail for
         """
         from gi.repository import Gtk
 
-        if not self.is_image(filename):
+        if not self.is_image(path):
             return
-        path = os.path.join(self.base_dir, filename)
-        thumbnail_path = thumbnail_path or self.get_thumbnail_path_with_size(filename)
+        thumbnail_path = thumbnail_path or self.get_thumbnail_path_with_size(path)
         pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
         pixbuf = self.scale_pixbuf(pixbuf, *self.thumbnail_size)
         pixbuf.savev(thumbnail_path, 'jpeg', "", "")
@@ -1669,23 +1668,22 @@ class ImageField(VarcharField):
         else:
             return self.clean_value(thumbnail_path, thumbnail=True)
 
-    def get_thumbnail_path_with_size(self, filename):
+    def get_thumbnail_path_with_size(self, path):
         """
         Return the thumbnail name for filename using default size. Place the
         thumbnail in a subdir of image dir '.thumbnail' used by
         :meth:`get_thumbnail` and :meth:`create_thumbnail`. The name
         contains the :attr:`thumbail_size` used to generate it.
 
-        :param filename: the complete filename of the image
+        :param path: the complete path of the image
         """
 
-        path = os.path.join(self.base_dir, filename)
         dir, name = os.path.split(path)
         name, ext = os.path.splitext(name)
 
         thumbnail_dir = os.path.join(dir, ".thumbnail")
         if not os.path.exists(thumbnail_dir):
-            os.mkdir(thumbnail_dir)
+            os.makedirs(thumbnail_dir, exist_ok=True)
 
         thumbnail_path = os.path.join(thumbnail_dir, "%s-%sx%s%s" % (name, self.thumbnail_size[0],
                                                                      self.thumbnail_size[1], ext))
