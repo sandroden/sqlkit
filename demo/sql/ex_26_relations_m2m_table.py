@@ -6,6 +6,8 @@ between genres and actor is no longer aligned with the end of the
 title antry.
 """
 
+from gi.repository import Gtk
+
 lay = """
          title       year
          director_id - - -

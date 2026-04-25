@@ -358,7 +358,9 @@ class SimpleCompletion(GObject.GObject, metaclass=None if not dbg.debug else dbg
             self.model_set_match_col(key, )
             self._needs_recalculating = False
 
-        return self.match_dict.get(self.model.get_path(iter), False)
+        # Gtk.TreePath is not hashable in GTK3; stringify it consistently
+        # at all match_dict read/write sites.
+        return self.match_dict.get(self.model.get_path(iter).to_string(), False)
 
     def model_set_match_col(self, key):
         """
@@ -373,7 +375,7 @@ class SimpleCompletion(GObject.GObject, metaclass=None if not dbg.debug else dbg
             obj = self.model.get_value(row.iter, self.OBJ_COL)
             descr = self.model.get_value(row.iter, self.DESCRIPTION_COL)
 
-            path = self.model.get_path(row.iter)
+            path = self.model.get_path(row.iter).to_string()
             if value is None:
                 ## it's a group_by field
                 #self.model.set_value(row.iter, self.MATCH_COL, False)

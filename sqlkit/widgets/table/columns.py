@@ -191,7 +191,15 @@ class GenericColumn(GObject.GObject, metaclass=None if not dbg.debug else dbg.Lo
 
         ## HEADERS
         else:
-            cell.set_property(prop_name, value)
+            # `obj` is a modelproxy.Header (group/tree header). For text
+            # cell renderers the property must be a str: Header.__str__
+            # returns the stored human value. None becomes empty string.
+            if value is None:
+                cell.set_property(prop_name, '')
+            elif prop_name in ('text', 'markup') and not isinstance(value, str):
+                cell.set_property(prop_name, str(value))
+            else:
+                cell.set_property(prop_name, value)
             cell.set_property('editable', False)
 
     def editing_canceled_cb(self, widget):
