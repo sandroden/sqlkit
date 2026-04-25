@@ -111,7 +111,7 @@ class DbProxy(object):
         if isinstance(tables, (Table, Join)):
             tables = [tables]
         elif not isinstance(tables, list):
-            tables = re.sub("(\|\|?)", r" \1 ", tables)
+            tables = re.sub(r"(\|\|?)", r" \1 ", tables)
             tables = re.split('[ ,]+', tables)
             tables = [self.get_table(tbl) for tbl in tables]
 
