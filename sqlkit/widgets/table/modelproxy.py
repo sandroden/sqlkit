@@ -65,7 +65,7 @@ from decimal import Decimal
 from gi.repository import Gtk
 from gi.repository import GObject
 from gi.repository import GLib
-from functools import reduce
+from functools import reduce, cmp_to_key
 
 class ModelProxy(GObject.GObject):
 
@@ -380,7 +380,7 @@ class ModelProxy(GObject.GObject):
         self.emit('model-pre-sort', self.modelstore)
         rows = [tuple(r) + (i,) for i, r in enumerate(self.modelstore)]
         if rows:
-            rows.sort(cmp=self.comp_func)
+            rows.sort(key=cmp_to_key(self.comp_func))
 
             self.modelstore.reorder([r[-1] for r in rows])
             self.emit('model-sorted', self.modelstore)
