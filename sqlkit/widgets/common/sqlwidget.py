@@ -2251,11 +2251,17 @@ class UnsavedDataDialog(object):
         self.dialog.destroy()
         return response
 
-    def fill_model(self, *args):
+    def fill_model(self, widget=None, *args):
         """
         Dialog to allow analysis of changed data
         """
         from sqlkit.db import utils
+        # Connected to notify::expanded so it fires on BOTH expand AND
+        # collapse — skip the collapse case. Always wipe the model first
+        # to avoid stacking rows on every re-expand.
+        if widget is not None and hasattr(widget, 'get_expanded') and not widget.get_expanded():
+            return
+        self.model.clear()
         if self.master.is_mask():
             try:
                 self.master.record_mask2obj(self.master.get_current_obj())
@@ -2281,7 +2287,7 @@ class UnsavedDataDialog(object):
                         old_value = utils.clean_for_markup(old)
                         new_value = utils.clean_for_markup(new)
 
-                    iter = self.model.append(None)
+                    iter = self.model.append(dirty_iter)
                     self.model.set(iter,
                                    0, "<i>%s</i>" % (utils.clean_for_markup(repr(item)[:25]) or
                                                      utils.clean_for_markup(item)[:25]),
@@ -2291,10 +2297,10 @@ class UnsavedDataDialog(object):
                                    )
 
         if self.master.session.deleted:
-            deleted_iter = model.append(None)
-            self.model.set(dirty_iter, 0, '<b>%s</b>' % _('Deleted'))
+            deleted_iter = self.model.append(None)
+            self.model.set(deleted_iter, 0, '<b>%s</b>' % _('Deleted'))
             for item in self.master.session.deleted:
-                iter = self.model.append(None)
+                iter = self.model.append(deleted_iter)
                 self.model.set(iter,
                                0, "<i>%s</i>" % utils.clean_for_markup(item.__class__.__name__),
                                2, "%s" % utils.clean_for_markup(item))
@@ -2303,7 +2309,7 @@ class UnsavedDataDialog(object):
             new_iter = self.model.append(None)
             self.model.set(new_iter, 0, '<b>%s</b>' % _('New'))
             for item in self.master.session.new:
-                iter = self.model.append(None)
+                iter = self.model.append(new_iter)
                 self.model.set(iter,
                                0, "<i>%s</i>" % utils.clean_for_markup(item.__class__.__name__),
                                3, "%s" % utils.clean_for_markup(item))
