@@ -718,10 +718,13 @@ class AlignmentComboBox(LContainer):
     w = property(_get_w, _set_w)
 
 class ComboBoxEntry(Entry):
-    #gtkClass = 'GtkComboBoxEntry'
+    # In GTK3 ComboBoxEntry has been merged into GtkComboBox via the
+    # construct-only 'has-entry' property (equivalent to new_with_entry()).
     gtkClass = 'GtkComboBox'
-    # TODO: (gbtami) there is no ComboBoxEntry in gtk3
-    # Gtk.ComboBox.new_with_entry() is the new way to go
+    class_properties = {
+        'visible': True,
+        'has-entry': True,
+    }
 
 class SpinButton(LContainer):
     gtkClass = 'GtkSpinButton'
