@@ -429,10 +429,16 @@ def sqlkit_model(item=None, dbproxy=None, single=False):
         raise
 
 def dialog_create_continue():
-    dialog = Gtk.Dialog("Creating sqlkit tables", None,
-                        Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                        (Gtk.STOCK_OK, Gtk.ResponseType.OK,
-                         Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL))
+    dialog = Gtk.Dialog(
+        title="Creating sqlkit tables",
+        transient_for=None,
+        modal=True,
+        destroy_with_parent=True,
+    )
+    dialog.add_buttons(
+        Gtk.STOCK_OK, Gtk.ResponseType.OK,
+        Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+    )
     label = Gtk.Label(label="No sqlkit tables are present: I'll proceed creating them")
     dialog.vbox.add(label)
     dialog.show_all()

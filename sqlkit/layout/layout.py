@@ -974,7 +974,12 @@ def dialog(toplevel=None, layout=None, title='', butts=None, type=None,
         else:
             mode = Gtk.DialogFlags.MODAL
 
-    dialog = Gtk.Dialog(title, toplevel, mode, )
+    dialog = Gtk.Dialog(
+        title=title,
+        transient_for=toplevel,
+        modal=bool(mode & Gtk.DialogFlags.MODAL),
+        destroy_with_parent=bool(mode & Gtk.DialogFlags.DESTROY_WITH_PARENT),
+    )
     bdict = {}
     if butts:
         for i in range(0, len(butts), 2):

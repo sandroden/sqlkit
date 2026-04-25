@@ -541,7 +541,8 @@ class show_widgets(object):
         different gtypes by adding "elif" tests.
         """
         if gtype == 'GtkAttachOptions':
-            dialog = Gtk.Dialog(title=prop_name, flags=Gtk.DialogFlags.MODAL, buttons=('gtk-close', 4))
+            dialog = Gtk.Dialog(title=prop_name, modal=True)
+            dialog.add_buttons('gtk-close', 4)
             dialog.set_size_request(200, -1)
             checkbuttons = [
                 Gtk.CheckButton('Expand'), Gtk.CheckButton('Shrink'), Gtk.CheckButton('Fill')]
