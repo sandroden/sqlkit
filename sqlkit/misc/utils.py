@@ -134,7 +134,10 @@ def str2list(list_or_string):
     """
 
     if isinstance(list_or_string, str):
-        return re.split('[ ,]*', list_or_string.strip())
+        stripped = list_or_string.strip()
+        if not stripped:
+            return []
+        return re.split('[ ,]+', stripped)
     return list_or_string or []
 
 
