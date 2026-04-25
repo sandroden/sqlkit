@@ -68,15 +68,21 @@ def parse(docstring, arglist=None):
                                   formatter=IndentedHelpFormatterWithNL())
         for line in optlines[1:]:
             opt, help = line.split(':')[:2]
-            short, int = opt.split(',')[:2]
-            if '=' in opt:
+            short, long_meta = opt.split(',')[:2]
+            short = short.strip()
+            if '=' in long_meta:
                 action = 'store'
-                long = int.split('=')[0]
+                long, metavar = long_meta.split('=', 1)
+                long = long.strip()
+                metavar = metavar.strip() or None
             else:
                 action = 'store_true'
+                long = long_meta.strip()
+                metavar = None
 
-            p.add_option(str(short.strip()), str(int.strip()),
-                         action=action, help=re.sub('\s+', ' ', help.strip()))
+            names = [n for n in (short, long) if n]
+            p.add_option(*names, action=action, metavar=metavar,
+                         help=re.sub(r'\s+', ' ', help.strip()))
     except (IndexError, ValueError):
         raise ParsingError("Cannot parse the option string correctly")
     return p.parse_args(arglist)
