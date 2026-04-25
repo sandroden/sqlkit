@@ -1162,6 +1162,11 @@ class IntervalField(Field):
     Widget = 'IntervalWidget'
     type = timedelta
 
+    def format_value(self, value, format=None):
+        if value in (None, ''):
+            return ''
+        return str(value)
+
 class DateTimeField(DateField):
 
     """
