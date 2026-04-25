@@ -37,7 +37,7 @@ add_stock_icons(*SK_ICONS)
 class StockMenuItem(Gtk.ImageMenuItem):
 
     def __init__(self, label, stock, size=Gtk.IconSize.MENU):
-        GObject.GObject.__init__(self, label)
+        super().__init__(label=label)
         image = Gtk.Image()
         image.set_from_stock(stock, size)
         self.set_image(image)
