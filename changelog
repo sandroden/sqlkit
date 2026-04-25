@@ -3,6 +3,15 @@ sqlkit - 0.9.8 - GTK3 / Python 3 port - In progress
 	Backward incompatibilities
 	--------------------------
 
+	* layout: ``Gtk.Layout`` (``Lay=`` / ``LS=``) inside a ``GtkScrolledWindow``
+	          no longer honours ``width-request`` / ``height-request``: in
+	          GTK3 the ScrolledWindow asks scrollable children for their
+	          natural size and ``Gtk.Layout`` reports 0x0, so the demo
+	          window came out empty. Use ``Gtk.Layout.set_size(w, h)`` to
+	          declare the scrollable canvas, and the ScrolledWindow
+	          properties ``min-content-width`` / ``min-content-height`` for
+	          the viewport size. Updated ``demo/layout/00_layout.py``.
+
 	* layout: ``Z`` (HandleBox) is now backed by ``GtkFrame`` instead of
 	          ``GtkHandleBox``. ``GtkHandleBox`` is deprecated since GTK 3.4
 	          and is removed in GTK 4; on modern themes it stops rendering
