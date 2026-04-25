@@ -75,7 +75,6 @@ who changed the value of that variable, in the form::
 
 import sys
 import re
-import new
 # I had to hide this import inside functions otherwise import of sqlkit broke.
 #from sqlkit.layout import misc
 from gi.repository import Pango
