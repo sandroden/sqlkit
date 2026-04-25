@@ -67,11 +67,15 @@ class CellEditableCalendar(Gtk.TextView, Gtk.CellEditable):
 
         # border case: the cell is too close to the border to allow the window
         # I don't want the mouse to be over the popup since an undesired click
-        # would change the date...
-        if Y + popup_height > Gdk.Screen.height():
+        # would change the date... Use the Monitor API (Gdk.Screen.* deprecated
+        # since GTK 3.22).
+        _display = Gdk.Display.get_default()
+        _monitor = _display.get_primary_monitor() or _display.get_monitor(0)
+        _geom = _monitor.get_geometry()
+        if Y + popup_height > _geom.height:
             Y = y + ca.y + ca.height - popup_height
-        if X + popup_width > Gdk.Screen.width():
-            X = Gdk.Screen.width() - popup_width
+        if X + popup_width > _geom.width:
+            X = _geom.width - popup_width
 
         popup.move(X, Y)
 

@@ -139,10 +139,10 @@ def get_screen_width(effective=True):
     since GNOME HIGs apparently don't like this.
     """
     
-    # TODO: (gbtami)
-    # This is a temporary fix to
-    # AttributeError: 'gtk.gdk.X11Window' object has no attribute 'property_get'
-    return Gdk.Screen.width()
+    # Gdk.Screen.width() is deprecated since GTK 3.22. Use the Monitor API.
+    display = Gdk.Display.get_default()
+    monitor = display.get_primary_monitor() or display.get_monitor(0)
+    return monitor.get_geometry().width
     
     root = Gdk.get_default_root_window()
     prop = Gdk.atom_intern('_NET_WORKAREA', False)
