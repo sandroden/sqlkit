@@ -214,7 +214,9 @@ class Demo(object):
         GLOB = {
             'Layout': Layout,
             'layout': layout,
-            #'gtk': gtk
+            'Gtk': Gtk,
+            'GObject': GObject,
+            'Pango': Pango,
             }
         exec(compile(open(demo.filename, "rb").read(), demo.filename, 'exec'), GLOB)
 
