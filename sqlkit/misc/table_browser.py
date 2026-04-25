@@ -409,7 +409,7 @@ def sqlkit_model(item=None, dbproxy=None, single=False):
         from sqlkit.db.sqlkit_model import get_classes, Base
         SqlkitTable, SqlkitFields = get_classes(db.metadata.bind)
         Base.metadata.bind = db.metadata.bind
-        if not db.metadata.bind.has_table('_sqlkit_table'):
+        if not sa.inspect(db.metadata.bind).has_table('_sqlkit_table'):
             response = dialog_create_continue()
             if response == Gtk.ResponseType.CANCEL:
                 sys.exit(0)

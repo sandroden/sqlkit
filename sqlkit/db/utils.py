@@ -96,7 +96,7 @@ Table Description
 
 import re
 
-from sqlalchemy import Table, orm, select
+from sqlalchemy import Table, orm, select, inspect
 from sqlalchemy.exc import OperationalError, ProgrammingError, InterfaceError
 from pkg_resources import parse_version
 import sqlalchemy
@@ -398,7 +398,7 @@ def get_description_from_sqlkit(table, metadata=None):
     from sqlkit.db.sqlkit_model import get_classes
     table_class, field_class = get_classes(metadata.bind)
 
-    if not metadata.bind.has_table(table_class.__tablename__):
+    if not inspect(metadata.bind).has_table(table_class.__tablename__):
         return None, None
 
     try:
@@ -427,7 +427,7 @@ def get_labels_and_tips_from_sqlkit(table, metadata=None, class_=None):
 
     table_class, field_class = get_classes(bind=metadata.bind, class_=class_)
 
-    if not metadata.bind.has_table(field_class.__tablename__):
+    if not inspect(metadata.bind).has_table(field_class.__tablename__):
         return {}
 
     descr = {}
