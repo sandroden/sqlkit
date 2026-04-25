@@ -66,12 +66,11 @@ class InspectMapper(Container):
 
         try:
             # FIXME: these import should be avoided!...
-            import sqlalchemy.dialects.postgresql
-            import sqlalchemy.databases
+            import sqlalchemy.dialects.postgresql as pg_dialect
             SA_TYPE_MAP.update({
-                sqlalchemy.databases.postgres.PGInet: str,
-                sqlalchemy.databases.postgres.PGInterval: datetime.timedelta,
-                sqlalchemy.dialects.postgresql.base.INTERVAL:  datetime.timedelta,
+                pg_dialect.INET: str,
+                pg_dialect.INTERVAL: datetime.timedelta,
+                pg_dialect.base.INTERVAL:  datetime.timedelta,
             })
         except Exception as e:
             pass
