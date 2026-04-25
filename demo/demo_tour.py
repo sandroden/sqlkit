@@ -460,9 +460,8 @@ class Example(object):
         read the __doc__ of the example and separate it from the body
         """
 
-        idf = file(file_name, 'r')
-        txt = idf.read()
-        idf.close()
+        with open(file_name, 'r') as idf:
+            txt = idf.read()
         pat = re.compile(r'''
         ^"""(?:(?P<doc>.*?)""")\s*(?P<body>(.*))
         ''', re.MULTILINE | re.DOTALL | re.VERBOSE)
