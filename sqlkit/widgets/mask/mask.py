@@ -455,7 +455,14 @@ class SqlMask(sqlwidget.SqlWidget, metaclass=None if not dbg.debug else dbg.LogT
                 try:
                     value = field.get_value()
                     if field.editable:
-                        field.validate(value, clean=True)
+                        try:
+                            field.validate(value, clean=True)
+                        except exc.ValidationWarning as e:
+                            # Warnings non bloccano la persistenza: l'utente
+                            # potrà confermare nel ValidationWarningDialog.
+                            # Il valore deve comunque essere scritto sull'obj
+                            # altrimenti il commit non vedrebbe la modifica.
+                            self.add_validation_error(e, field_name=field_name)
 
                     if field.persistent:   # persisted fields, mask2obj has already cleaned  them
                         field.set_value(
