@@ -2209,7 +2209,11 @@ class UnsavedDataDialog(object):
     def __init__(self, master, type_="yes-no-cancel", msg=None, expanded=False):
         self.master = master
         general_msg = msg or _("Save unsaved data?")
-        layout = "{v { i=gtk-dialog-question:6 l=msg}  {>%s.details TVS=details} }"
+        # GtkVPaned ('v') in GTK3 splits the available height into two halves
+        # by default and leaves a giant gap above the expander; switch to a
+        # VBox ('V') that packs by natural size, matching the compact GTK2
+        # look.
+        layout = "{V { i=gtk-dialog-question:6 l=msg}  {>%s.details TVS=details} }"
 
         self.dialog, l = master.lay_obj.dialog(title=_("Unsaved data"),
                                                type=type_, text=general_msg,  layout=layout % (expanded and '>' or ''))

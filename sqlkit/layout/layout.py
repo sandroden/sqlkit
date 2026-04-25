@@ -1003,13 +1003,6 @@ def dialog(toplevel=None, layout=None, title='', butts=None, type=None,
     if text:
         lay.prop(('l=msg', 'label', text))
     lay.show()
-    # On GTK3 the natural size of a layout built with the typical
-    # 'GtkTable + GtkVPaned' wrapping collapses to 1px, so the dialog auto-
-    # sizes around the buttons only and the body becomes invisible. Give it
-    # a sane default that fits the standard '?-icon + question + details
-    # expander' pattern; users can resize.
-    if layout and layout.strip() != 'l=msg':
-        dialog.set_default_size(400, 250)
     if show:
         dialog.show_all()
 
