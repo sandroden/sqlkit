@@ -29,9 +29,6 @@ def get_create_statement(meta, dialect='postgres'):
 
     buf = StringIO()
 
-    if sqlalchemy.__version__ <= '0.6':
-        executor = lambda s, p="": buf.write(s+p)
-
     engine = create_engine("%s://" % dialect, strategy='mock',
                            executor=executor)
 
@@ -74,7 +71,7 @@ def get_table_definition(table, sql=None, meta=None, dialect=None):
     # from sqlalchemy.schema import CreateTable
     # print CreateTable(mytable)
 
-    if sqlalchemy.__version__ >= '0.6' and isinstance(table, Table):
+    if isinstance(table, Table):
         from sqlalchemy.schema import CreateTable
         return CreateTable(table)
 

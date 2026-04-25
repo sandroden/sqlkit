@@ -552,30 +552,11 @@ def get_props_for_delete_orphan(mapper, field_name):
 
     if hasattr(column, 'info'):
 
-        if sqlalchemy.__version__ >= '0.6' or column.info.get('attach_instance'):
+        prop_names = column.info.get('attach_instance')
+        if isinstance(prop_names, str):
+            prop_names = (prop_names,)
 
-            prop_names = column.info.get('attach_instance')
-            if isinstance(prop_names, str):
-                prop_names = (prop_names,)
-
-            if not prop_names:
-                return ()
-            return [mapper.get_property(prop_name) for prop_name in prop_names
-                    if mapper.has_property(prop_name)]
-
-        else:
-            props = []
-            for pr in mapper.iterate_properties:
-                if isinstance(pr, properties.RelationshipProperty):
-                    if pr.direction.name in ('MANYTOONE',):
-                        for col in pr.local_remote_pairs[0]:
-                            # I can't use col in p.local_remote_pairs
-                            # as it uses 'col == p.local_remote_pairs' that evaluates
-                            # to a BinaryExpression
-                            if column is col:
-                                try:
-                                    if pr.backref.prop.cascade.delete_orphan:
-                                        props += [pr]
-                                except AttributeError as e:
-                                    pass
-            return tuple(props)
+        if not prop_names:
+            return ()
+        return [mapper.get_property(prop_name) for prop_name in prop_names
+                if mapper.has_property(prop_name)]

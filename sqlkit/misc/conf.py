@@ -161,9 +161,6 @@ def read_conf(nick, opts=None):
         c.read(dbconf)
         loop_on_opts(c, opts, nick)
         read_conf_in_dir(nick, opts)
-        if sqlalchemy.__version__ < '0.6':
-            if hasattr(opts, 'url5'):
-                opts.url = opts.url5
 
         # option 'mask' in the nicks should not prevail over command line opts!
         # in this case it would prevail due to different key name

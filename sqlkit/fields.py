@@ -244,8 +244,6 @@ from gi.repository import GdkPixbuf
 import babel
 import sqlalchemy
 from sqlalchemy.schema import ColumnDefault
-from sqlalchemy.orm.interfaces import AttributeExtension
-from pkg_resources import parse_version
 
 from sqlkit import exc, _
 from sqlkit.misc import localtimezone
@@ -285,29 +283,6 @@ class SignalEmitter(GObject.GObject):
         "Callback triggered by SQLA events (>= 0.7)"
 
         self.emit('value-set', value, oldvalue, weakref.ref(obj))
-
-class AttrExt(AttributeExtension):
-
-    """An AttributeExtension used to trace value setting. Fields of a mask connect to
-    the signal 'value-set' and propagate it. Table's fields don't need to connect as
-    they're always tracing object modification via the cell_data_func callback.
-
-    Only used or SQLA version < 0.7
-
-    """
-
-    def set(self, state, value, oldvalue, initiator):
-        #print 'value-set', state.obj().__class__.__name__, initiator.key, value
-        self._sk_emitter.emit('value-set', value, oldvalue, state.obj, )
-        return value
-
-    def append(self, state, value, initiator):
-        #self._sk_emitter.emit('value-appended', state.obj(), value)
-        return value
-
-    def remove(self, state, value, initiator):
-        #self._sk_emitter.emit('value-removed', state.obj(), value)
-        return value
 
 class FieldChooser(object):
 
@@ -536,34 +511,17 @@ class Field(GObject.GObject):
 
         if self.persistent:
             emitter = SignalEmitter()
-            if parse_version(sqlalchemy.__version__) < parse_version('0.7'):
+            from sqlalchemy import event
+            # SQLA 0.7 drops support for AttributeExtensions in favor of
+            # signals but does not yet implement event.remove as of
+            # 0.7.2, so an indirection level is still needed
 
-                FieldAttrExt = type(str("attrext_%s" % self.field_name), (AttrExt,),
-                                    {'_sk_emitter': emitter})
-                extensions = getattr(self.master.mapper.class_, self.field_name).impl.extensions
-                found = False
-                if extensions is not None:
-                    for ext in extensions:
-                        if isinstance(ext, AttrExt):
-                            found = True
-                            emitter = ext._sk_emitter
-                            break
-                if not found:
-                    ext = FieldAttrExt()
-                    extensions.append(ext)
-                #self._emitter = emitter
+            instrumented_attr = getattr(self.master.mapper.class_, self.field_name)
+            if not hasattr(instrumented_attr, '_sk_emitter'):
+                instrumented_attr._sk_emitter = emitter
+                event.listen(instrumented_attr, 'set', emitter.set_cb)
             else:
-                from sqlalchemy import event
-                # SQLA 0.7 drops support for AttributeExtensions in favor of
-                # signals but does not yet implement event.remove as of
-                # 0.7.2, so an indirection level is still needed
-
-                instrumented_attr = getattr(self.master.mapper.class_, self.field_name)
-                if not hasattr(instrumented_attr, '_sk_emitter'):
-                    instrumented_attr._sk_emitter = emitter
-                    event.listen(instrumented_attr, 'set', emitter.set_cb)
-                else:
-                    emitter = getattr(instrumented_attr, '_sk_emitter')
+                emitter = getattr(instrumented_attr, '_sk_emitter')
 
             hid = emitter.connect('value-set', self.value_set_cb)
             self._ids['emitter_value_set'] = (emitter, hid)
