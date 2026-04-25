@@ -1618,7 +1618,10 @@ class SqlTable(sqlwidget.SqlWidget):
                 coll.remove(expired_obj)
         if expired_obj in self.session:
             self.session.expunge(expired_obj)
-        self.records.remove(expired_obj)
+        # In m2m self.records E' la stessa lista di leader.current.<rel>:
+        # se l'abbiamo gia' purgato sopra non e' piu' qui.
+        if expired_obj in self.records:
+            self.records.remove(expired_obj)
 
         ## assigning modelproxy.modelstore value will trigger 'editing-canceled'
         self.cell_entry.substitute = True
