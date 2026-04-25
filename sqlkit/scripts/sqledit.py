@@ -44,7 +44,6 @@ import sys
 import os
 import re
 import datetime
-import user
 import locale
 
 import gi

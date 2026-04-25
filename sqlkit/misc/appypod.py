@@ -61,8 +61,17 @@ import logging
 from tempfile import NamedTemporaryFile
 
 import appy.pod
-from appy.pod.converter import Converter, ConverterError
-from appy.shared.utils import executeCommand
+from appy.pod.converter import Converter
+try:
+    from appy.pod.converter import ConverterError
+except ImportError:
+    # appy >= 1.0 dropped ConverterError; PodError is the generic replacement.
+    from appy.pod import PodError as ConverterError
+try:
+    from appy.shared.utils import executeCommand
+except ImportError:
+    # appy >= 1.0 moved this to appy.utils
+    from appy.utils import executeCommand
 from appy.pod.renderer import Renderer
 
 logger = logging.getLogger('sqlkit')

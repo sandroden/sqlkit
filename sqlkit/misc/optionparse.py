@@ -35,7 +35,7 @@ import re
 import sys
 
 USAGE = re.compile(r'\s*(?P<descr>.*)\s*\s*usage: (?P<usage>.*?)(\n[ \t]*\n|$)',
-                   re.DOTALL | re.UNICODE | re.LOCALE)
+                   re.DOTALL | re.UNICODE)
 
 def nonzero(self):  # will become the nonzero method of optparse.Values
     "True if options were given"

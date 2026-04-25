@@ -3,6 +3,8 @@ A collection of words I want translated
 This is just a fake module. Too lazy to learn babel extractors...
 """
 
+from sqlkit import _
+
 # TIP: filter page of the filter panel
 _('filter')
 # TIP: output page of the filter panel
