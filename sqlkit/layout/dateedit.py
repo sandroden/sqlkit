@@ -279,6 +279,10 @@ class DateEdit(Gtk.HBox):
     def verify_date(self, entry):
         """Verify the text anc heck if it parses as date, complain if not
         """
+        # GLib stara' rimuovendo il source da solo (return False qui sotto):
+        # azzero l'id ora, altrimenti al prossimo keystroke
+        # date_entry_changed_cb chiamerebbe source_remove su un id morto.
+        self._id_timeout_add = None
         date_string = self._date_entry.get_text()
         if not date_string:
             self.set_date(None)
