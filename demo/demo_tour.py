@@ -218,7 +218,8 @@ class Demo(object):
             'GObject': GObject,
             'Pango': Pango,
             }
-        exec(compile(open(demo.filename, "rb").read(), demo.filename, 'exec'), GLOB)
+        with open(demo.filename, "rb") as _f:
+            exec(compile(_f.read(), demo.filename, 'exec'), GLOB)
 
         self.xml.set_text(GLOB['l'].xml())
         self.last_lo = GLOB['l']

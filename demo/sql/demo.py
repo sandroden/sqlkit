@@ -104,7 +104,8 @@ class DemoSql(Demo):
             'model': model,
 
         }
-        exec(compile(open(demo.filename, "rb").read(), demo.filename, 'exec'), GLOB)
+        with open(demo.filename, "rb") as _f:
+            exec(compile(_f.read(), demo.filename, 'exec'), GLOB)
         self.last_lo = GLOB['t'].lay_obj
         self.last_w = GLOB['t'].widgets
         self._t = weakref.ref(GLOB['t'])
