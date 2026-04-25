@@ -61,7 +61,7 @@ import re
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Table, Column, String, Integer, ForeignKey
-from sqlalchemy.orm import relation
+from sqlalchemy.orm import relationship
 
 from . import utils
 
@@ -100,7 +100,7 @@ def get_classes(bind=None, class_=None):
             regexp = Column(String(100))
             autostart = Column(Integer)
             default = Column(String(200))
-            table = relation('SqlkitTable', backref='attributes',
+            table = relationship('SqlkitTable', backref='attributes',
                              primaryjoin=table_name == SqlkitTable.name)
 
         return SqlkitTable, SqlkitFields
