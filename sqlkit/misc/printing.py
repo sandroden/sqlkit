@@ -75,6 +75,7 @@ allows you to write ``direct_id`` but really returns what you would really want:
 representation of the id exactly as returned by ``field.lookup_value(id)``.
 
 .. _appy-vs-ooo:
+
 AppyPod vs. OooTemplate
 -----------------------
 
