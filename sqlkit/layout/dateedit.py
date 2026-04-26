@@ -115,9 +115,6 @@ class DateEdit(Gtk.Box):
         self._calendar.connect('day-selected', self.day_selected_cb)
         self._calendar.connect('day-selected-double-click', self.day_selected_double_click_cb)
 
-        self._cal_popup.connect('delete_event', self.delete_popup_cb)
-        self._cal_popup.connect('key_press_event', self.key_press_popup_cb)
-
         self.date_format = 'short'
         self.date_parse = None
         self._id_timeout_add = None
@@ -189,11 +186,12 @@ class DateEdit(Gtk.Box):
         # finally show the button
         self._date_button.show()
 
-        # the calendar popup
-        self._cal_popup = Gtk.Window(type=Gtk.WindowType.POPUP)
-        self._cal_popup.set_title('popup for calendar')
-        self._cal_popup.set_events(self._cal_popup.get_events() | Gdk.EventMask.KEY_PRESS_MASK)
-        self._cal_popup.set_resizable(False)  # Todo: Needed?
+        # the calendar popover (positioned automatically below the button by GTK;
+        # on Wayland a Gtk.Window(POPUP) + move() is a no-op, Gtk.Popover is the
+        # canonical replacement and natively handles ESC and click-outside).
+        self._cal_popup = Gtk.Popover()
+        self._cal_popup.set_relative_to(self._date_button)
+        self._cal_popup.set_position(Gtk.PositionType.BOTTOM)
         self._cal_popup.set_tooltip_text(_(
             'Press Esc to close or double click a date to select it'))
 
@@ -225,52 +223,6 @@ class DateEdit(Gtk.Box):
     def modify_base(self, state, color):
         self._date_entry.override_background_color(state, color)
         self._default_base = color
-
-    def popup_grab_on_window(self, window, activate_time):
-        # Pointer-only grab via Gdk.Seat: gives us the "click-outside-closes-popup"
-        # behaviour without a keyboard grab. A keyboard grab would translate, on
-        # Wayland, into a 'shortcut inhibit' request and pop up a confirmation
-        # dialog at every calendar open. ESC is handled by attaching a
-        # key-press handler on the toplevel parent in date_button_clicked_cb.
-        seat = Gdk.Display.get_default().get_default_seat()
-        status = seat.grab(window, Gdk.SeatCapabilities.ALL_POINTING,
-                           True, None, None, None, None)
-        if status == Gdk.GrabStatus.SUCCESS:
-            self._seat_grab = seat
-            return True
-        return False
-
-    def position_popup(self):
-        req = self._cal_popup.size_request()
-        (ignore, x, y) = Gdk.Window.get_origin(self._date_button.get_window())
-
-        allocation = self._date_button.get_allocation()
-        x += allocation.x
-        y += allocation.y
-        bwidth = allocation.width
-        bheight = allocation.height
-
-        x += bwidth - req.width
-        y += bheight
-
-        if x < 0:
-            x = 0
-        if y < 0:
-            y = 0
-
-        self._cal_popup.move(x, y)
-
-    def hide_popup(self):
-        if getattr(self, '_seat_grab', None) is not None:
-            self._seat_grab.ungrab()
-            self._seat_grab = None
-        if getattr(self, '_toplevel_key_handler', None) is not None:
-            toplevel, hid = self._toplevel_key_handler
-            toplevel.disconnect(hid)
-            self._toplevel_key_handler = None
-        self._cal_popup.hide()
-        self._cal_popup.grab_remove()
-
 
 #####  callback
     def date_entry_changed_cb(self, entry):
@@ -310,29 +262,15 @@ class DateEdit(Gtk.Box):
         return False
 
     def date_button_clicked_cb(self, widget):
-        # Temporarily grab the pointer on a window we know exists
-        if not self.popup_grab_on_window(widget.get_window(), Gtk.get_current_event_time()):
-            return
-
         # set calendar date
         if self.get_date():
             self._calendar.select_month(self._current_date.month - 1, self._current_date.year)
             self._calendar.select_day(self._current_date.day)
 
-        # position and show popup window
-        self.position_popup()
-        self._cal_popup.show()
+        # Gtk.Popover positions itself relative to the button (set in __init__);
+        # ESC and click-outside are handled natively.
+        self._cal_popup.popup()
         self._calendar.grab_focus()
-
-        # Now transfer our grab to the popup window, this should always succeed
-        self.popup_grab_on_window(self._cal_popup.get_window(), Gtk.get_current_event_time())
-
-        # Without a keyboard grab the POPUP window does not receive key events,
-        # so route ESC through the parent toplevel for the lifetime of the popup.
-        toplevel = self.get_toplevel()
-        if toplevel is not None and toplevel.is_toplevel():
-            hid = toplevel.connect('key-press-event', self.key_press_popup_cb)
-            self._toplevel_key_handler = (toplevel, hid)
 
     def day_selected_cb(self, widget):
         year, month, day = self._calendar.get_date()
@@ -341,23 +279,7 @@ class DateEdit(Gtk.Box):
         self.set_date(the_date)
 
     def day_selected_double_click_cb(self, widget, data=None):
-        self.hide_popup()
-
-    def key_press_popup_cb(self, widget, event):
-        """
-        Implement Esc to get rid of calendar
-        """
-        if event.keyval == Gdk.KEY_Escape:
-            self.hide_popup()
-            return True
-
-        return False
-
-    def delete_popup_cb(self, widget, data=None):
-        # Todo: is this ever called??
-        self.hide_popup()
-        lll
-        return TRUE
+        self._cal_popup.popdown()
 
 ####### date & gobject
     def wrong_date_format(self, error, date_string):
