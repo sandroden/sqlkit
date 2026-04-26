@@ -119,7 +119,7 @@ class AppyPodTemplate():
         """
         result = None
         output = None
-        with NamedTemporaryFile('rwb', suffix='.%s' % file_type, delete=False) as f:
+        with NamedTemporaryFile('w+b', suffix='.%s' % file_type, delete=False) as f:
             output = f.name
             renderer = Renderer(
                 self.template, self.context, output,
@@ -141,7 +141,7 @@ class AppyPodTemplate():
         :return: the open handler of the generated file
         """
         file_type = os.path.splitext(output_path)[1].lstrip('.')
-        f = open(output_path, 'w')
+        f = open(output_path, 'wb')
         f.write(self.render(file_type=file_type))
         f.flush()
         return f
