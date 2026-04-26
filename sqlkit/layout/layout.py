@@ -451,7 +451,7 @@ class Layout(object):
         return w
 
     def _clean_items(self, txt):
-        pat = re.compile('^(\s+)([^\s<])', re.MULTILINE | re.DOTALL)
+        pat = re.compile(r'^(\s+)([^\s<])', re.MULTILINE | re.DOTALL)
         return pat.sub(r'\2', txt)
 
     def dbg_xml(self):

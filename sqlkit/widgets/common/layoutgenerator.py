@@ -283,7 +283,7 @@ class LayoutGenerator (object):
                 return ":8"
             elif self.master.is_number(field_name):
                 return ":10"
-            m = re.search('VARCHAR.(\d+).', col_spec)
+            m = re.search(r'VARCHAR.(\d+).', col_spec)
             if m:
                 length = int(m.group(1))
         if length:
@@ -308,7 +308,7 @@ class LayoutGenerator (object):
         field_name must be of the form table.field_name
         """
 
-        p = re.compile("""
+        p = re.compile(r"""
            ([-_A-Za-z0-9]+)   # table name
            \.                 # separator
            (\S+)             # field_name
@@ -360,7 +360,7 @@ class LayoutGenerator (object):
         set it in self.loaders['movies'] = {'rows': 5, 'field_list': 'first_name,last_name'}
         """
 
-        pat = re.compile("""
+        pat = re.compile(r"""
           (?P<mod>[a-zA-Z0-9]+)=        # the modifier, but not the = sign
           (?P<field_name>[a-zA-Z0-9_\.]+)         # the possible loader:
                                               # genre  genre.movies

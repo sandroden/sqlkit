@@ -1192,7 +1192,7 @@ class DateTimeField(DateField):
             return None
 
         if isinstance(value, str):
-            tmp_date = re.split('\s+', value.strip())
+            tmp_date = re.split(r'\s+', value.strip())
             try:
                 date_value = dates.parse_date(tmp_date[0], locale=self.locale)
             except Exception as e:

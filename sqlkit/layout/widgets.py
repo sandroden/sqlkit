@@ -151,10 +151,10 @@ class LWidget(object):
 #         if re.match('gtk-', self.val) and not self.gtkClass == 'GtkImage':
         if Gtk.IconFactory.lookup_default(self.val) and not self.gtkClass == 'GtkImage':
             if re.match('GtkToolButton', self.gtkClass):
-                self.properties['stock_id'] = re.sub('\..+', '', self.val)
+                self.properties['stock_id'] = re.sub(r'\..+', '', self.val)
                 self.properties['label'] = None
             elif re.match('GtkButton', self.gtkClass):
-                self.properties['label'] = _(re.sub('\..+', '', self.val))
+                self.properties['label'] = _(re.sub(r'\..+', '', self.val))
                 #dbg.write(self.properties['label'])
                 self.properties['use-stock'] = True
             else:
@@ -627,7 +627,7 @@ class Button(LWidget):
     def _class_specific(self):
         self.properties.update({
             'xalign': '0',
-            'label': _(re.sub('\..+', '', self.val))
+            'label': _(re.sub(r'\..+', '', self.val))
         })
 
         self.pack_properties.update({'y_options': ""})
@@ -673,7 +673,7 @@ class LinkButton(LWidget):
     def _class_specific(self):
         self.properties.update({
             'xalign': '0',
-            'label': _(re.sub('\..+', '', self.val))
+            'label': _(re.sub(r'\..+', '', self.val))
         })
 
         self.pack_properties.update({'y_options': ""})

@@ -231,7 +231,7 @@ class TableDescr(object):
     """
     # FIXME: here description is an alias for search_field, in completion
     # description is an alias for format_field...
-    pattern = '%\((\w+)\)'
+    pattern = r'%\((\w+)\)'
 
     def __init__(self, table, format=None, pk=None, metadata=None, register=True):
         """

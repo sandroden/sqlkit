@@ -345,10 +345,10 @@ class Template():
     document, parses the document to find tables
     """
 
-    DEFAULT_VARIABLE_PATTERN = '(?P<match>\$(?P<var_name>[^ ,\n-\)\t]+))'
-    DEFAULT_VARIABLE_PATTERN_OO = '$[^ ,\n\-)\t]+'
+    DEFAULT_VARIABLE_PATTERN = r'(?P<match>\$(?P<var_name>[^ ,\n-\)\t]+))'
+    DEFAULT_VARIABLE_PATTERN_OO = r'$[^ ,\n\-)\t]+'
     # a re.match pattern i.e. starts from beginning of string
-    DEFAULT_MULTI_LINE_MARKER = '(?P<match>\+\+)'
+    DEFAULT_MULTI_LINE_MARKER = r'(?P<match>\+\+)'
 
     VARIABLE_PATTERN = None
     """the pattern for python variable detection. it's a regular expression read
@@ -411,7 +411,7 @@ class Template():
         """the pattern used to tel when a multiline line starts. Defaults to ++"""
 
     def set_pattern(self, pattern, oo_pattern):
-        """
+        r"""
         Set the pattern to detect what is a variable to be substituted
 
         :param pattern: the pattern with syntax suitable for module ``re`` module.

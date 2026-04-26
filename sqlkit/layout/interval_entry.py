@@ -83,9 +83,9 @@ class IntervalEdit(Gtk.Alignment):
             hours = self.hours.get_text() or '0:0:0'
 
             sep = "[:.]"
-            H = "(?P<hours>\d+)"
-            M = "(?:[:.](?P<minutes>\d+))?"
-            S = "(?:[:.](?P<seconds>\d+))?"
+            H = r"(?P<hours>\d+)"
+            M = r"(?:[:.](?P<minutes>\d+))?"
+            S = r"(?:[:.](?P<seconds>\d+))?"
 
             try:
                 m = re.match(H+M+S, hours)

@@ -134,7 +134,7 @@ class OpenDialog(SaveDialog):
         ext = os.path.splitext(filename)[1]
 
         ## openoffice previewer
-        if filename and re.match('\.(odt|odp|ods|odg|ots|ott)', ext):
+        if filename and re.match(r'\.(odt|odp|ods|odg|ots|ott)', ext):
             return self.openoffice_preview(filename, file_chooser, preview)
 
         ##  image previewer

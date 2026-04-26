@@ -871,7 +871,7 @@ class SimpleCompletion(GObject.GObject, metaclass=None if not dbg.debug else dbg
         for key, val in list(kwargs.items()):
             if isinstance(val, str) and val.startswith('$'):
                 keys += [key]
-                kw_dyn_list += [(key, re.sub('^\$', '', val))]
+                kw_dyn_list += [(key, re.sub(r'^\$', '', val))]
 
         for key in keys:
             kwargs.pop(key)

@@ -84,7 +84,7 @@ def get_table_definition(table, sql=None, meta=None, dialect=None):
         sql = get_create_statement(meta, dialect)
 
     # ?= does not consume the matched string
-    PAT = "(?P<table_def>CREATE TABLE (?P<name>\w+).*?(?=CREATE TABLE|$))"
+    PAT = r"(?P<table_def>CREATE TABLE (?P<name>\w+).*?(?=CREATE TABLE|$))"
     tables = {}
 
     def sub(m):

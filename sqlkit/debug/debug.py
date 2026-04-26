@@ -303,7 +303,7 @@ def warning(text):
     print(text)
 
 def sql_debug(sql, params):
-    msg = re.sub(':(?P<a>\S+)', '\'%(\g<a>)s\'', sql)
+    msg = re.sub(r':(?P<a>\S+)', r"'%(\g<a>)s'", sql)
     #sd.debug("%s %s" % (DBG, params))
     print((msg % params))
     #write(msg % params)
@@ -343,7 +343,7 @@ class TraceIt(object):
     def __get__(self, obj, objtype):
 
         if self.read:
-            Caller = re.sub('.*\.([^\.]+$)', r'\1', caller(level=2))
+            Caller = re.sub(r'.*\.([^\.]+$)', r'\1', caller(level=2))
             write("%s read %s" % (self.name, self.val),
                   called_by=Caller, meth='%s - r/%s' % (self.name, Caller))
 
@@ -351,7 +351,7 @@ class TraceIt(object):
 
     def __set__(self, obj, val):
         if self.write:
-            Caller = re.sub('.*\.([^\.]+$)', r'\1', caller(level=2))
+            Caller = re.sub(r'.*\.([^\.]+$)', r'\1', caller(level=2))
             write("%s: %s -> %s" % (self.name, self.val, val),
                   called_by=Caller, meth='%s - w/%s' % (self.name, Caller))
         self.val = val

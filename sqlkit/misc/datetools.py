@@ -146,7 +146,7 @@ def string2dates(string):
 #         return string, None
 
     if '@' in string:
-        m = re.match('@(\d?)(([ymdw]).*)', string)
+        m = re.match(r'@(\d?)(([ymdw]).*)', string)
         n, base, period = m.groups()
         string = "%s > %s" % (base.lower(), base.upper())
         if n:

@@ -143,7 +143,7 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
                  mode='biud',
                  printing_style=None,
                  ):
-        """
+        r"""
         :param what: this is the table/mapper/class to be displayed. You are
            encouraged to use it as first argument. The keyword 'what' is
            just here for backward compatibility as the first versiona had

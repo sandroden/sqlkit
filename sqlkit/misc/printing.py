@@ -454,7 +454,7 @@ class PrintTool(GObject.GObject):
 
     def add_menu_entry(self, description, template_name, server=None, port=None, mode='pdf',
                        output_name=None, accel=None, tip=None, action_name=None):
-        """
+        r"""
         Add menu entry with 'description' using 'template'
         Both are fake printers in the sense that are 'printer to file'
 

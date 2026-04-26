@@ -1311,7 +1311,7 @@ class ShowLogs(object):
             'value': 'seagreen',
             'write': 'blue',
         }
-        meth = re.sub('(.*)\.(.*)', r'\2', str(meth))
+        meth = re.sub(r'(.*)\.(.*)', r'\2', str(meth))
         meth_str = "<span foreground='%s'>%s</span>" % (
             color[mode], markup_escape_text(meth))
 

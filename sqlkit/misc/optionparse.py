@@ -61,7 +61,7 @@ def parse(docstring, arglist=None):
     if not match:
         raise ParsingError("Cannot find the option string")
 #    optlines = match.group('usage').splitlines()
-    optlines = re.split('\n\s*(?=[-,])', match.group('usage'))
+    optlines = re.split(r'\n\s*(?=[-,])', match.group('usage'))
     try:
         descr = match.group('descr')
         p = optparse.OptionParser(optlines[0], description=descr,
