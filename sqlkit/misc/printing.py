@@ -751,6 +751,18 @@ class PrintTool(GObject.GObject):
 
 class PrintToolAppy(PrintTool):
 
+    def __init__(self, master):
+        super().__init__(master)
+        try:
+            from . import appypod  # noqa: F401
+        except ImportError:
+            self.master.sb(
+                _('Disabling appy printing: install with `pip install sqlkit[printing]`'),
+                seconds=20,
+            )
+            self.disabled = True
+            self.hide()
+
     def get_template(self, template_path, context, port=None, server=None):
         from . import appypod
         return appypod.AppyPodTemplate(template_path, context.content, port=port)
