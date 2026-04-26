@@ -58,3 +58,6 @@ output_dir = "sqlkit/locale/"
 [tool.babel.compile_catalog]
 domain = "sqlkit"
 directory = "sqlkit/locale/"
+
+[dependency-groups]
+dev = ["sphinx", "pytest"]
