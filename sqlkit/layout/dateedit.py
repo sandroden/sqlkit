@@ -153,12 +153,14 @@ class DateEdit(Gtk.Box):
         self._entry = self._date_entry
         self._date_entry.set_max_length(15)
         self._date_entry.set_width_chars(10)
-        self._align_entry = Gtk.Alignment.new(0, 0, 0, 0)
-        #self.pack_start(self._date_entry, True, True, 0)
-        date_box.add(self._align_entry)
-        date_box.child_set_property(self._align_entry, 'expand', False)
-        self._align_entry.add(self._date_entry)
-        self._align_entry.show()
+        # ex Gtk.Alignment.new(0, 0, 0, 0): no expand on either axis,
+        # alignment to top-left. Applied directly to the entry.
+        self._date_entry.set_halign(Gtk.Align.START)
+        self._date_entry.set_valign(Gtk.Align.START)
+        self._date_entry.set_hexpand(False)
+        self._date_entry.set_vexpand(False)
+        date_box.add(self._date_entry)
+        date_box.child_set_property(self._date_entry, 'expand', False)
         self._date_entry.show()
 
         ## default style
@@ -171,12 +173,15 @@ class DateEdit(Gtk.Box):
         image = Gtk.Image()
         image.set_from_stock('sk-calendar', Gtk.IconSize.MENU)
         self._date_button.set_image(image)
-        self._align_arrow = Gtk.Alignment.new(0, 0, 0, 0)
-        self._align_arrow.show()
-        self._align_arrow.add(self._date_button)
+        # ex Gtk.Alignment.new(0, 0, 0, 0): no expand on either axis,
+        # alignment to top-left. Applied directly to the button.
+        self._date_button.set_halign(Gtk.Align.START)
+        self._date_button.set_valign(Gtk.Align.START)
+        self._date_button.set_hexpand(False)
+        self._date_button.set_vexpand(False)
 
         #self.pack_start(self._date_button, False, False, 0)
-        date_box.add(self._align_arrow)
+        date_box.add(self._date_button)
 #         # the down arrow
 #         arrow = Gtk.Arrow(Gtk.ArrowType.DOWN, Gtk.ShadowType.OUT)
 #         self._date_button.add(arrow)
