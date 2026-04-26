@@ -22,16 +22,20 @@ Esecuzione di script / moduli nel venv:
     uv run python -c "import sqlkit"
     uv run python demo/sql/...
 
-Regression suite del porting (deve restare verde, atteso 41 passed):
+Regression suite del porting (deve restare verde):
 
     uv run python test/regress_porting_traps/run_all.py
+
+Atteso: 41 passed con `appy` installato; 39 passed + 2 skipped senza
+(`appy` è optional, vedi sotto).
 
 Note operative
 --------------
 
 * Mercurial, non git: usare solo `hg` per VCS.
-* Topic attivo per i lavori di setup/build: `uv-finalization`.
 * `pyproject.toml` è la fonte di verità per metadata, dipendenze e
   configurazione Babel (`[tool.babel.*]`).
 * Dipendenze di sviluppo dichiarate in `[dependency-groups] dev`
   (PEP 735): installate da `uv sync` (gruppo `dev` di default).
+* `appy` (printing engine) è optional: `uv sync --extra printing`
+  oppure `pip install sqlkit[printing]` per abilitarlo.
