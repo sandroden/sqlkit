@@ -492,7 +492,7 @@ class DateTimeEdit(LWidget):
     ## this widget is provided by dateedit module
     class_properties = {
         'time': None,
-        'lower-hour': 10,
+        'lower-hour': 0,
         'upper-hour': 23,
         'show-time': None,
         'use-24h-format': True
