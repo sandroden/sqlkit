@@ -101,11 +101,11 @@ class SqlMask(sqlwidget.SqlWidget, metaclass=None if not dbg.debug else dbg.LogT
         """
 
         def ene_cb(eb, ev):
-            eb.get_child().set_state(Gtk.StateType.PRELIGHT)
+            eb.get_child().set_state_flags(Gtk.StateFlags.PRELIGHT, False)
             return True
 
         def lne_cb(eb, ev):
-            eb.get_child().set_state(Gtk.StateType.NORMAL)
+            eb.get_child().unset_state_flags(Gtk.StateFlags.PRELIGHT)
             return True
 
         for field_name in list(self.mapper_info.fields.keys()):
