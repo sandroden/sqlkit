@@ -2,20 +2,42 @@
  Printing
 ==========
 
-Sqlkit adds printing capability throught :ref:`oootemplate` module that in turn
-uses templates created with Openoffice.org_ and very simple syntax.
+Sqlkit can produce printable files (``.odt`` or ``.pdf``) from
+OpenDocument templates. Two engines are bundled and the choice is made via
+the module-level constant :attr:`sqlkit.misc.printing.PRINTING_STYLE`:
 
-In this module 'print' is used in a loose way. In all situations 'print' means
-producing a printable file, it can be an ``.odt`` file or a ``.pdf`` one.
+* **AppyPod** — default since the Py3 port. Wraps the third-party
+  ``appy.pod`` library; templates are regular ``.odt``/``.ods`` files
+  whose templating logic lives in document annotations
+  (``do row for ... in ...``) and conditional-text fields. Producing an
+  ``.odt`` output does not require a running OpenOffice/LibreOffice;
+  rendering to ``.pdf`` is delegated to a separate Python interpreter
+  with the ``uno`` module installed (see ``PY_PATH`` in
+  :mod:`sqlkit.misc.appypod`, default ``/usr/bin/python3``).
 
-.. note:: 
+* **Oootemplate** — legacy in-house engine kept for backward compatibility
+  with installations that still depend on it. Powerful ``$obj.attr`` /
+  ``++`` syntax but requires the ``uno`` module in the same Python that
+  runs sqlkit, which is no longer available out-of-the-box on recent
+  Ubuntu releases for Python 3.
 
-  In a network environment you'll probably use a **remote** server that means
-  the file will not be generated locally. Openoffice 3.1 comes with python2.6
-  interpreter and uno module even under Windows. So that there's no problem
-  using that interpreter or using a different interpreter but pointing to
-  it's modules. If you need to have uno modules under windows you can follow
-  instructions in this tutorial_ or on stackoverflow_
+In this module 'print' is used in a loose way: it always means producing
+a printable file, never sending it to a physical printer.
+
+.. note::
+
+  Templates are looked up under ``self.template_dir`` (default:
+  ``./templates``). The recommended layout splits them by engine in two
+  sub-folders, ``templates/appy/`` and ``templates/oootemplate/``; this
+  is just a convention — the engine is still picked by ``PRINTING_STYLE``
+  (or by the per-widget ``printing_style`` argument), not by the path.
+
+.. note::
+
+  Generating ``.pdf`` requires a Python interpreter with the ``uno``
+  module on ``PY_PATH``. On recent Ubuntu/Debian, ``uno`` is shipped
+  with ``python3-uno`` and is normally available at
+  ``/usr/bin/python3``. Generating ``.odt`` works without ``uno``.
 
 
 .. automodule:: sqlkit.misc.printing
@@ -43,9 +65,5 @@ Signals
 
 
 
-.. _oootemplate: http://oootemplate.argolinux.org
 .. _Openoffice.org: http://www.openoffice.org
-.. _stackoverflow:
-       http://stackoverflow.com/questions/4270962/using-pyuno-with-my-existing-pythonn-installation
-.. _tutorial:
-       http://user.services.openoffice.org/en/forum/viewtopic.php?f=45&t=36370&p=166783
+.. _appy framework: http://appyframework.org/pod.html
