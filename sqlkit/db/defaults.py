@@ -269,10 +269,10 @@ def register_class(class_, table=None, nick='default'):
     """
     Register a layout for table with a nick (default nick is 'default')
     Each time a sqlwidget is instantiated for the table
-    a layout is searched for here 
+    a layout is searched for here
 
     :param table: the table to register the layout for. May be a sqlakchemy.Table or
-         a string. class_.__table__ is used as default
+         a string. ``class_.__table__`` is used as default
     :param layout: the layout to be registered
     :param nick: the nick
     """
