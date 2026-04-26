@@ -157,7 +157,9 @@ offers a common interface to possbly different gtk widgets. If a MiniWidget
 exists the Field will instantiate it and set values thought it. 
 
 A notable exception to this rule is represented by any m2m/o2m relation,
-that in the layout is only present as a Gtk.Alignment widget to which a
+that in the layout is only present as a placeholder container (a
+``Gtk.Bin``/``Gtk.Box`` with halign/valign + hexpand/vexpand directly set
+on the child, which replaced the deprecated ``Gtk.Alignment``) to which a
 children is added by mask.Widget.
 
 :ref:`Miniwidgets <field-widgets>` for all main types are provided.
