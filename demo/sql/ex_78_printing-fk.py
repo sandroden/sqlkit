@@ -16,6 +16,6 @@ lay = """
   director_id
 """
 
-t = SqlMask(model.Movie, layout=lay, dbproxy=db)
-t.printing.add_menu_entry('Print to pdf', 'movie-fk.odt', mode='pdf', accel='<Alt>p')
+t = SqlMask(model.Movie, layout=lay, dbproxy=db, printing_style='ooo')
+t.printing.add_menu_entry('Print to pdf', 'oootemplate/movie-fk.odt', mode='pdf', accel='<Alt>p')
 t.reload()

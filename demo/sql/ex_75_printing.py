@@ -12,8 +12,8 @@ or if you don't have the 'uno' module from openoffice.
 def debug_context(printtool, context, template_name, sqlwidget):
     print(("CONTEXT:", context))
 
-t = SqlTable(model.Movie, dbproxy=db)
-t.printing.add_menu_entry('Print to pdf', 'movies.odt', mode='pdf',
+t = SqlTable(model.Movie, dbproxy=db, printing_style='ooo')
+t.printing.add_menu_entry('Print to pdf', 'oootemplate/movies.odt', mode='pdf',
                           accel="<alt>p",
                           tip="Generate a pdf file with these movies")
 t.printing.connect('context-ready', debug_context)

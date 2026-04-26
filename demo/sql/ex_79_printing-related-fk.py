@@ -9,7 +9,8 @@ lay = """
 """
 
 
-t = SqlMask(model.Genre, layout=lay, dbproxy=db, format={'movies.year': '#'})
+t = SqlMask(model.Genre, layout=lay, dbproxy=db, format={'movies.year': '#'},
+            printing_style='ooo')
 
-t.printing.add_menu_entry('Print to pdf', 'genres-fk.odt', mode='pdf', accel='<Alt>p')
+t.printing.add_menu_entry('Print to pdf', 'oootemplate/genres-fk.odt', mode='pdf', accel='<Alt>p')
 t.reload()

@@ -20,7 +20,7 @@ lay = """
 """
 
 t = SqlMask(model.Director, layout=lay, dbproxy=db)
-t.printing.add_menu_entry('Print to pdf', 'director-movies.odt', mode='pdf')
-t.printing.add_menu_entry('Print to odt', 'director-movies.odt', mode='odt')
+t.printing.add_menu_entry('Print to pdf', 'appy/director-movies.odt', mode='pdf')
+t.printing.add_menu_entry('Print to odt', 'appy/director-movies.odt', mode='odt')
 t.printing.connect('context-ready', prepare_context)
 t.reload()
