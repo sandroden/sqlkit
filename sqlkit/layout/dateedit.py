@@ -475,7 +475,6 @@ class DateTimeEdit(DateEdit):
                       True,
                       GObject.PARAM_READWRITE),
 
-        # TODO: use-24 is not working, only 24 hours is working
         'use-24h-format': (GObject.TYPE_BOOLEAN,
                            'Use 24h Format',
                            'Display time in 24h format',
@@ -533,21 +532,12 @@ class DateTimeEdit(DateEdit):
         # create the new model
         store = Gtk.TreeStore(str)
         for i in range(self._lower_hour, self._upper_hour + 1):
-            the_time = datetime.time(i, 0)
-            if self._use_24h_format:
-                label = the_time.strftime('%H:%M')
-            else:
-                label = the_time.strftime('%I:%M %p')
+            label = self._format_time_label(i, 0)
             iter = store.append(None, [label])
 
             # create sub menu
             for j in range(15, 60, 15):
-                the_time = datetime.time(i, j)
-                if self._use_24h_format:
-                    label = the_time.strftime('%H:%M')
-                else:
-                    label = the_time.strftime('%I:%M %p')
-                store.append(iter, [label])
+                store.append(iter, [self._format_time_label(i, j)])
 
         # finally replace current model with this new one
         self._time_combobox.set_model(store)
@@ -555,6 +545,35 @@ class DateTimeEdit(DateEdit):
         # the GTK2 GtkComboBoxEntry [get|set]_text_column was renamed.
         if self._time_combobox.get_entry_text_column() == -1:
             self._time_combobox.set_entry_text_column(0)
+
+    def _format_time_label(self, hour, minute):
+        # AM/PM rendered explicitly: strftime('%p') follows the C locale and
+        # is empty in many EU locales (e.g. it_IT), which would collapse 12h
+        # labels to ambiguous "01:00", "02:00", ...
+        if self._use_24h_format:
+            return '%02d:%02d' % (hour, minute)
+        suffix = 'AM' if hour < 12 else 'PM'
+        display_h = ((hour - 1) % 12) + 1
+        return '%02d:%02d %s' % (display_h, minute, suffix)
+
+    def _parse_time_text(self, time_text):
+        # Accept 'HH:MM', 'HH:MM AM/PM' (any case, optional space).
+        m = re.match(r'^\s*(\d{1,2})[:.](\d{2})\s*([AaPp][Mm])?\s*$', time_text)
+        if not m:
+            raise ValueError('invalid time: %r' % time_text)
+        hour, minute = int(m.group(1)), int(m.group(2))
+        suffix = m.group(3)
+        if suffix:
+            suffix = suffix.upper()
+            if not 1 <= hour <= 12:
+                raise ValueError('invalid 12h hour: %d' % hour)
+            if suffix == 'AM':
+                hour = 0 if hour == 12 else hour
+            else:
+                hour = 12 if hour == 12 else hour + 12
+        if not (0 <= hour <= 23 and 0 <= minute <= 59):
+            raise ValueError('out of range: %02d:%02d' % (hour, minute))
+        return datetime.time(hour, minute)
 
     def time_combobox_changed_cb(self, widget, data=None):
         # if the changed was due to a time selection in the menu,
@@ -567,18 +586,10 @@ class DateTimeEdit(DateEdit):
         # check entry for valid time, reset if not
         time_text = self._time_combobox.get_child().get_text()
         try:
-            if self._use_24h_format:
-                new_time = time.strptime(time_text, '%H:%M')
-            else:
-                new_time = time.strptime(time_text, '%I:%M %p')
-
-            the_time = datetime.time(new_time.tm_hour, new_time.tm_min)
-            the_date = self.get_date()
-
-            the_datetime = datetime.datetime.combine(self.get_date(), the_time)
-
+            the_time = self._parse_time_text(time_text)
         except Exception as e:
             self.wrong_time_format(e, time_text)
+            return
         self.set_time(the_time)
 
     ############################################
@@ -628,8 +639,7 @@ class DateTimeEdit(DateEdit):
 
         else:
             try:
-                value = datetime.time(*[int(i) for i in re.split('[.:]', time_string)])
-                return value
+                return self._parse_time_text(time_string)
             except Exception as e:
                 self.wrong_time_format(e, time_string)
                 return time_string
