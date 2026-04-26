@@ -2,7 +2,7 @@
 
 A more complex layout, that uses notebook.
 
-At first you may be hit by the funny description language, but you'll soon
+The description language may look unusual at first, but you'll soon
 realize that in *many* circumstances it's enough for a database application
 and lets you test several different layouts in minutes.
 

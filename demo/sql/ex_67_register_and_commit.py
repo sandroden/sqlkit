@@ -7,6 +7,7 @@ At this point you see that the hook is called 2 times. That's because the
 session extension is called 2 times inside t.commit(), since the default session for
 sqlkit is autocommit=True and in t.commit() a t.session.begin() triggers
 the first commit, followed by a second one explicitly required.
+(Behaviour observed at the time of writing — verify if it changed under SA 1.4.)
 
 """
 from sqlkit.db.utils import get_differences

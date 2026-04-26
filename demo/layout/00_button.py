@@ -1,5 +1,5 @@
 """Bricks/button
-xxx
+
 Just a button
 """
 
