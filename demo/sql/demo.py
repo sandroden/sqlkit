@@ -206,4 +206,7 @@ if __name__ == '__main__':
             print("Interactive demo needs ipython. Quitting.")
     else:
         print("Try option -i to try sqlkit interactively")
-        Gtk.main()
+        try:
+            Gtk.main()
+        except KeyboardInterrupt:
+            Gtk.main_quit()
