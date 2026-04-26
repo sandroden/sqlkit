@@ -20,12 +20,16 @@ Each sqlwidget has a ``printing`` attribute that manages printer entries that is
 of ``PrintTool``: this can be in one of two different ``styles`` (read more
 :ref:`below <appy-vs-ooo>`):
 
-* Oootemplates (prvided by sqlkit library)
-* AppyPod
+* AppyPod (default since the Py3 port — uses ``appy.pod``)
+* Oootemplate (legacy, provided by sqlkit library)
 
 A standard way should be as easy as just setting a directory where templates
 should be found and adding menu entries via ``add_menu_entry``. The default
-template dir is a subdir of the current directory named ``templates``.
+template dir is a subdir of the current directory named ``templates``. The
+recommended layout splits templates by engine in two sub-folders:
+``templates/appy/`` for AppyPod templates and ``templates/oootemplate/`` for
+legacy ones; this is just a convention, the engine is still picked by
+``PRINTING_STYLE`` (see below) and not by the path.
 
 Templates present in this directory -if named as the nick of the sqlwidget-
 will be automatically added, but you will normally want to customize the context
@@ -40,26 +44,28 @@ it tries hard to follow foreign keys and substitute values retrieved by :ref:`de
 Tables: iteration on records
 ----------------------------
 
-Oootemplate offers a powerfull way to iterate over lines via the ``++`` syntax.
-It requires you to define a table's name matching an entry in the context. For
-SqlTables the default name for such table is Table1 and all records in the
-table end up there.
+Both engines can iterate over records in a table; the syntax differs.
 
-For SqlMask the default behaviour is to add an entry in the context for
-each related attribute (eg: *movies* for the *director*'s mask). Each such entry
-holds all the related records as per sqlelchemy class definition. In the director/movie
-example the default context would be::
+* **AppyPod**: in OpenOffice/LibreOffice add an annotation on the row you
+  want to repeat with the statement ``do row for f in obj.movies``. The
+  cells of that row contain Python expressions (via *conditional text* with
+  the expression as the condition value) referring to the loop variable, e.g.
+  ``f.title``, ``f.year``.
+
+* **Oootemplate**: define a table whose name matches an entry in the context
+  and place the marker ``++`` in the cell where iteration starts. For
+  SqlTables the default name is ``Table1``; for SqlMask each related
+  attribute becomes an entry (e.g. ``movies`` for the *director*'s mask).
+
+In the director/movie example the default context for both engines is::
 
    context = {
       'obj' : <Director: my displayed director>,
       'movies' : [(<Movie: movie1>, <Movie: movie2>)]
    }
 
-It's up to you to prepare the openoffice file to be used as template with a
-table named ``movies``: you do that interactively editing oowriter's table attributes.
-If you prefere to have to have a different table's name or you need to customize
-the content of the record, you simply connet to 'context-ready' signal and prepare the
-context directly.
+If you need a different table name or want to customize the record contents,
+connect to the ``context-ready`` signal and prepare the context directly.
 
 ObjProxy
 --------
@@ -72,41 +78,33 @@ representation of the id exactly as returned by ``field.lookup_value(id)``.
 AppyPod vs. OooTemplate
 -----------------------
 
-Initially I developed ``oootemplate`` when there where no easy
-solutions for printing using OpenOffice files as templates. I like the
-sintax that is very powerful. It has many disadvantages thought: it
-requires ``uno`` module that is not always easy to obtain. In this
-moment ubuntu 14.04/16.04 doesn't provide any more the module for
-python2.7. Jessie provides it at the moment.
+Historically sqlkit shipped its own engine, ``oootemplate``: a powerful
+syntax (``$obj.attr`` substitutions and ``++`` row iteration) but with
+significant downsides — slow rendering and a hard dependency on the Python
+``uno`` module to talk to a running OpenOffice/LibreOffice. ``uno`` is no
+longer available out-of-the-box on recent Ubuntu releases for Python 3, so
+the legacy engine cannot be selected on most Py3 installations without
+extra work.
 
-I later found another package that uses the same idea of an open
-document template (be it ``.odt`` or ``.ods``): ``appy.pod``. It has
-other advantages:
+The alternative is ``appy.pod`` (part of the `appy framework`_), which uses
+OpenDocument files (``.odt``, ``.ods``) where the templating logic lives in
+spreadsheet/document annotations. Advantages:
 
+* it does not require ``uno`` to produce the open document — only to
+  render the ``pdf``;
+* it copes with images;
+* it can hand the PDF rendering over to a separate Python 3 instance
+  (the one that owns ``uno``). Sqlkit defaults to ``/usr/bin/python3``;
+  override via ``PY_PATH`` in ``sqlkit.misc.appypod``.
 
-
-* it does not require ``uno`` module to produce the open
-  document but just to render the ``pdf``
-
-* it copes with images
-
-* it has a way to pass over the rendering of an open document to
-  a python3 instance (that's supposed to have ``uno`` module).
-  Sqlkit defaults to handling over to /usr/bin/python3 so that
-  it normally works in a linux environment. You can overwrite it
-  according to your need settings ``PY_PATH`` in
-  ``sqlkit.misc.appypod``.
-
-
-
-Sqlkit allows to use one or the other, simply set module's variable
-:attr:`sqlkit.misc.printing.PRINTING_STYLE` to ``appy`` and you'll be able
-to use::
+**Default**: ``PRINTING_STYLE = 'appy'``. To select the legacy engine
+explicitly::
 
   from sqlkit.misc import printing
-  printing.set_printing_style('appy')
+  printing.set_printing_style('ooo')
 
-``appy.pod`` is part of `appy framework`_
+or pass ``printing_style='ooo'`` when instantiating the SqlWidget.
+
 More examples in the demo dir.
 
 
