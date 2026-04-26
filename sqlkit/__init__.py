@@ -9,7 +9,7 @@ gi.require_version('Pango', '1.0')
 
 from sqlkit.misc import utils
 
-__version__ = '0.9.6.1'
+__version__ = '1.0.0'
 
 
 cwd = os.path.abspath(os.path.dirname(__file__))
