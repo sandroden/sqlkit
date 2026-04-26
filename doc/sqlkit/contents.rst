@@ -11,7 +11,6 @@ SQLKit
    :maxdepth: 2
 
    widgets
-   printing
    browsing
    editing
    advanced/contents

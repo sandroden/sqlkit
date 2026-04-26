@@ -21,3 +21,25 @@ examples see ``demo/sql/ex_75_printing.py`` … ``ex_79_printing-related-fk.py``
 and the templates under ``demo/sql/templates/{appy,oootemplate}/``.
 
 .. automodule:: sqlkit.misc.printing
+
+
+.. _psignals:
+
+Signals
+=======
+
+:context-ready:
+
+   the context has been prepared. You can connect to this signal to add
+   element to the context.
+
+   .. function:: context_ready_cb(printtool, context, template_name, sqlwidget):
+
+      :param printer: the printing.PrintTool object that emitted the signal
+      :param context: the context
+      :param template_name: the template name that is rendered
+      :param sqlwidget: the sqlwidget
+
+
+.. _Openoffice.org: http://www.openoffice.org
+.. _appy framework: http://appyframework.org/pod.html
