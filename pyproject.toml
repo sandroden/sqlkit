@@ -45,3 +45,15 @@ include = ["sqlkit*"]
 
 [tool.setuptools.package-data]
 sqlkit = ["**/*.glade", "**/*.png", "**/*.xpm", "**/*.svg", "**/*.ui"]
+
+[tool.babel.extract_messages]
+output_file = "sqlkit/locale/sqlkit.pot"
+
+[tool.babel.update_catalog]
+input_file = "sqlkit/locale/sqlkit.pot"
+domain = "sqlkit"
+output_dir = "sqlkit/locale/"
+
+[tool.babel.compile_catalog]
+domain = "sqlkit"
+directory = "sqlkit/locale/"
