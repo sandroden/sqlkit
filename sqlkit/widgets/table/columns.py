@@ -1406,7 +1406,14 @@ class View(object):
         if event.button == 3:
             self._field_name = field_name
             menu = self.ui_manager.get_widget('/TreePopup')
-            menu.popup(None, None, None, None, event.button, event.time)
+            # Senza attach_widget GDK considera il menu una temp window
+            # senza parent e logga
+            #   Gdk-Message: Window ... is a temporary window without
+            #                parent, application will not be able to
+            #                position it on screen
+            if menu.get_attach_widget() is None:
+                menu.attach_to_widget(treeview, None)
+            menu.popup_at_pointer(event)
 
         return menu
 
