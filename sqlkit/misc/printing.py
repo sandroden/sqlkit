@@ -150,7 +150,7 @@ MENU_ENTRY = """
      </menu>
   </menubar>
 """
-PRINTING_STYLE = 'ooo'
+PRINTING_STYLE = 'appy'
 
 
 class PrintAbortException(Exception):
