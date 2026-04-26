@@ -27,7 +27,7 @@ class IntervalEdit(Gtk.Alignment):
 
     def __init__(self):
         GObject.GObject.__init__(self)
-        self.hbox = Gtk.HBox()
+        self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.days = Gtk.Entry()
         self.hours = Gtk.Entry()
         self.minutes = Gtk.Entry()

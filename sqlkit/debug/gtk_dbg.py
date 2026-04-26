@@ -266,7 +266,7 @@ class show_widgets(object):
         #create a custom tab for notebook containing a
         #label and a button with STOCK_ICON
         eventBox = Gtk.EventBox()
-        tabBox = Gtk.HBox(False, 2)
+        tabBox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
         tabLabel = Gtk.Label(label=text)
 
         tabButton = Gtk.Button()
@@ -274,7 +274,7 @@ class show_widgets(object):
 
         #Add a picture on a button
         self.add_icon_to_button(tabButton)
-        iconBox = Gtk.HBox(False, 0)
+        iconBox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
 
         eventBox.show()
         tabButton.show()
@@ -290,7 +290,7 @@ class show_widgets(object):
         return eventBox
 
     def add_icon_to_button(self, button):
-        iconBox = Gtk.HBox(False, 0)
+        iconBox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         image = Gtk.Image()
         image.set_from_stock(Gtk.STOCK_CLOSE, Gtk.IconSize.MENU)
         Gtk.Button.set_relief(button, Gtk.ReliefStyle.NONE)

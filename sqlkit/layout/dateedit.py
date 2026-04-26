@@ -64,7 +64,7 @@ class WrongDateFormat(Exception):
 # If @the_date is 0 then current time is used.
 #
  # Returns: a new #GnomeDateEdit widget.
-class DateEdit(Gtk.HBox):
+class DateEdit(Gtk.Box):
 
     """
     basic gtk widget to edit data
@@ -95,7 +95,7 @@ class DateEdit(Gtk.HBox):
     }
 
     def __init__(self):
-        GObject.GObject.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.HORIZONTAL)
 
         # preset values
         self._initial_date = self._current_date = None
@@ -144,7 +144,7 @@ class DateEdit(Gtk.HBox):
     def build_layout(self):
 
         self.set_spacing(6)
-        date_box = Gtk.HBox()
+        date_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.add(date_box)
         date_box.show()
 
@@ -503,7 +503,7 @@ class DateTimeEdit(DateEdit):
 
         DateEdit.build_layout(self)
 
-        time_box = Gtk.HBox()
+        time_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.add(time_box)
         time_box.show()
 

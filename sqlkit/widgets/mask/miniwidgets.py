@@ -982,7 +982,7 @@ class CollectionWidget(Widget):
             prop_names = [prop.name for prop in parent.list_child_properties()]
             if 'y-options' in prop_names:
                 parent.child_set_property(self.gtkwidget, 'y-options', Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.FILL)
-            if isinstance(parent, Gtk.VBox):
+            if isinstance(parent, Gtk.Box) and parent.get_orientation() == Gtk.Orientation.VERTICAL:
                 parent.child_set_property(self.gtkwidget, 'expand', True)
 
         self.master.related.add_element(self.field_name, self.table)

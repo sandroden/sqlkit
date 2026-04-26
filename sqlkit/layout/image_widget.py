@@ -73,7 +73,7 @@ IMAGE_MENU = '''
 
 IMAGE_FORMATS = ["." + x.get_name() for x in GdkPixbuf.Pixbuf.get_formats()] + ['.jpg']
 
-class ImageWidget(Gtk.VBox):
+class ImageWidget(Gtk.Box):
 
     """
     Image Widget suitable for basic image viewing. Inherits from VBox
@@ -137,7 +137,7 @@ class ImageWidget(Gtk.VBox):
     }
 
     def __init__(self):
-        GObject.GObject.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
         event = Gtk.EventBox()
         self.status_bar = Gtk.Statusbar()
         self._image = Gtk.Image()
