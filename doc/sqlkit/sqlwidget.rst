@@ -436,8 +436,8 @@ The following hooks are defined:
        found
     2. filling self.validation_errors: a dict holding all errors. The key is
        the field_name or "record_validation", the value a list of error messages
-    
-    .. function:: on_validation(sqlwidget, field_name, field_value, field)
+
+    .. function:: on_field_validation__field_name(sqlwidget, field_name, field_value, field)
 
 :on_activate__field_name: when *Return* is pressed in Mask or Table. Good to
     complete fields via calculation on other fields (e.g.: total, vat...).
@@ -463,12 +463,12 @@ The following hooks are defined:
    
 .. _on_pre_layout:
 
-:on_pre_layout: run before the layout is setup. It's main purpose is to 
+:on_pre_layout: run before the layout is setup. It's main purpose is to
     allow to add fields in :attr:`gui_field_mapping` (that is only useful for
     SqlMask). Note that you can force a field for a table's attribute if you
     want setting info's *field* key pointing to that field's class.
 
-    .. function:: on_init(sqlwidget)
+    .. function:: on_pre_layout(sqlwidget)
 
        :param sqlwidget: the sqlwidget (SqlMask or SqlTable) that run the hook
    
