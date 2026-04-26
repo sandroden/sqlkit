@@ -46,6 +46,12 @@ defaults.register_layout('movie', LAYOUT)
 t = SqlTable(model.Movie, dbproxy=db, order_by='title')
 t.reload()
 
-# clean up to prevent conflicts with following examplesx
-defaults.unregister_hook('movie', )
-defaults.unregister_layout('movie',)
+# clean up to prevent conflicts with following examples,
+# ma SOLO quando l'esempio viene chiuso: la SqlMask aperta da
+# right-click su una riga (record_in_mask) ha bisogno del LAYOUT
+# registrato per trovare 'b=ciao' nei suoi widgets.
+def _cleanup(*args):
+    defaults.unregister_hook('movie')
+    defaults.unregister_layout('movie')
+
+t.connect('delete-event', _cleanup)
