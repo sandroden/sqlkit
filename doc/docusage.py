@@ -9,8 +9,6 @@ import types
 import tempfile
 
 # Import required docutils modules
-from sphinx.util.compat import Directive
-
 from docutils import io, nodes, statemachine, utils
 from docutils.parsers.rst import directives
 from docutils.parsers.rst.directives.misc import Include
@@ -84,13 +82,13 @@ class IncludePyProgramDirective(Include):
   def get_docstring_file(self, path):
     p = Program(path)
     tfd, target_path = tempfile.mkstemp(prefix='sd-')
-    f = open(target_path, 'wb')
+    f = open(target_path, 'w')
     text = p.docstring
-    
+
     if 'verbatim' in self.options:
       f.write('::\n')
       pat = re.compile('^', re.MULTILINE)
-      text = re.sub(pat, "  ", text )      
+      text = re.sub(pat, "  ", text )
 
     f.write("%s\n" % text)
     return target_path
