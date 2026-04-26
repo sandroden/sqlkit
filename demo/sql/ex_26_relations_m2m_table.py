@@ -16,4 +16,5 @@ lay = """
 t = SqlMask(model.Movie, dbproxy=db, layout=lay)
 
 Tbl = t.widgets['T.a']
-Tbl.get_parent().child_set_property(Tbl, 'y-options', Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.FILL)
+Tbl.set_vexpand(True)
+Tbl.set_valign(Gtk.Align.FILL)
