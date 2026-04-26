@@ -1234,7 +1234,11 @@ class FilterWidget(object):
             self.widgets += [self.field_widget]
 
         for wdg in self.widgets:
-            Tbl.attach(wdg, c, c+1, r, r+1, xpadding=4)
+            # Gtk.Grid.attach signature is (child, left, top, width, height);
+            # padding is set on the child (Gtk.Table 'xpadding' is gone).
+            wdg.set_margin_start(4)
+            wdg.set_margin_end(4)
+            Tbl.attach(wdg, c, r, 1, 1)
             c += 1
         self.tool.panel.row += 1
         Tbl.show_all()
