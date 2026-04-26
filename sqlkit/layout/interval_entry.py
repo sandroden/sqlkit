@@ -14,7 +14,7 @@ from gi.repository import Gtk
 from sqlkit import debug as dbg
 
 
-class IntervalEdit(Gtk.Alignment):
+class IntervalEdit(Gtk.Bin):
     __gtype_name__ = 'IntervalEdit'
 
     __gproperties__ = {
@@ -27,7 +27,13 @@ class IntervalEdit(Gtk.Alignment):
 
     def __init__(self):
         GObject.GObject.__init__(self)
+        # ex Gtk.Alignment(0, 0, 0, 0): no expand on either axis,
+        # alignment to top-left. Applied to the hbox child below.
         self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.hbox.set_halign(Gtk.Align.START)
+        self.hbox.set_valign(Gtk.Align.START)
+        self.hbox.set_hexpand(False)
+        self.hbox.set_vexpand(False)
         self.days = Gtk.Entry()
         self.hours = Gtk.Entry()
         self.minutes = Gtk.Entry()
@@ -40,8 +46,6 @@ class IntervalEdit(Gtk.Alignment):
             self.seconds.set_tooltip_text('Seconds')
         except:
             pass
-
-        self._align = Gtk.Alignment.new(0, 0, 0, 0)
 
         self.add(self.hbox)
         for name in ('days', 'hours',):  # 'minutes', 'seconds'):
