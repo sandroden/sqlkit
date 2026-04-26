@@ -481,9 +481,13 @@ class PrintTool(GObject.GObject):
         path = '/Main/File/Print-ph/Print/%s' % action_name
         action = self.master.ui_manager.get_action(path)
         if not action:
+            # PyGObject's Gtk.ActionGroup.add_actions does NOT unpack the user_data
+            # tuple into the callback as PyGTK2 used to; bind args via a closure.
+            def _activate(action, _td=(template_path, mode, server, port, output_name)):
+                return self.use_template(action, *_td)
             self.master.actiongroup_print.add_actions([
-                (action_name, None, description, accel, tip, self.use_template,),
-            ], (template_path, mode, server, port, output_name))
+                (action_name, None, description, accel, tip, _activate,),
+            ])
 
             self.master.ui_manager.add_ui_from_string(MENU_ENTRY % action_name)
 
