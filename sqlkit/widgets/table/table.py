@@ -1603,23 +1603,31 @@ class SqlTable(sqlwidget.SqlWidget):
         obj = self.get_record_no_flush(pk=pk, filter_by=filter_by)
 
         expired_obj = self.modelproxy.modelstore[path][0]
-        # Per m2m: togli prima expired_obj dalla collection del leader,
-        # altrimenti dopo l'expunge la collection del leader continua a
-        # referenziarlo e al flush SA emette
-        #   SAWarning: Object of type ... not in session,
-        #              delete operation along ... won't proceed
-        if (self.relationship_mode == 'm2m'
+        expired_is_new = expired_obj in self.session.new
+
+        if expired_is_new:
+            # placeholder transitorio (riga m2m appena aperta in editing,
+            # mai persistita): hard pulizia come da comportamento storico.
+            self.session.expunge(expired_obj)
+        elif (self.relationship_mode == 'm2m'
                 and self.relationship_leader is not None
                 and self.relationship_leader.current is not None
                 and self.relationship_path):
+            # Sostituzione di un membro m2m persistito: NON expungere,
+            # altrimenti SA non riesce piu' a emettere il DELETE sulla
+            # tabella ponte ("delete operation ... won't proceed") e
+            # nel DB resta sia il vecchio sia il nuovo.
+            # Rimuovere dalla collection del leader basta: SA traccia.
             leader_obj = self.relationship_leader.current
             coll = getattr(leader_obj, self.relationship_path[-1], None)
             if coll is not None and expired_obj in coll:
                 coll.remove(expired_obj)
-        if expired_obj in self.session:
+        elif expired_obj in self.session:
+            # caso non-m2m: comportamento storico
             self.session.expunge(expired_obj)
+
         # In m2m self.records E' la stessa lista di leader.current.<rel>:
-        # se l'abbiamo gia' purgato sopra non e' piu' qui.
+        # se l'abbiamo gia' tolto sopra (via coll.remove) non e' piu' qui.
         if expired_obj in self.records:
             self.records.remove(expired_obj)
 
