@@ -261,6 +261,22 @@ class LWidget(object):
         for i in klass.list_child_properties():
             allowed_pack_properties += (i.name,)
 
+        # Translate the legacy GtkTable {left,right,top,bottom}_attach idiom
+        # into Gtk.Grid's (left-attach, top-attach, width, height): without
+        # this, _packing_xml would silently drop the right/bottom keys (Grid
+        # rejects them), span declarations would be lost in the Builder XML
+        # path, and span-4 widgets like a Notebook would collapse to width=1.
+        if ContGtkClass == 'GtkGrid' and 'left_attach' in pack_properties:
+            pack_properties = dict(pack_properties)
+            left = pack_properties.pop('left_attach', 0)
+            top = pack_properties.pop('top_attach', 0)
+            right = pack_properties.pop('right_attach', left + 1)
+            bottom = pack_properties.pop('bottom_attach', top + 1)
+            pack_properties['left_attach'] = left
+            pack_properties['top_attach'] = top
+            pack_properties['width'] = right - left
+            pack_properties['height'] = bottom - top
+
         xml = ["<packing>"]
         for key, value in list(pack_properties.items()):
             ## tabs label are child of notebook but of a type that
@@ -345,7 +361,12 @@ class LWidget(object):
         # (Bin/Expander) and is the GTK3 way to request vertical fill —
         # without it, e.g. a Table inside a GtkExpander stays at its
         # natural size even when the expander has plenty of room.
+        # hexpand is the Gtk.Grid replacement for the GTK_EXPAND default of
+        # the legacy Gtk.Table.attach: viewing widgets (TreeView, TextView,
+        # Notebook, ScrolledWindow…) want to fill the available width too,
+        # otherwise they collapse to their natural size in a Grid cell.
         self.properties['vexpand'] = True
+        self.properties.setdefault('hexpand', True)
 
     def __str__(self):
         return "<%s: %s >" % (self.__class__.__name__, self.el_def)
@@ -398,21 +419,27 @@ class LContainer(LWidget):
             child = obj.create()
             pack_props = self.clean_pack_properties(obj.pack_properties, gtkWdg)
 
-            if self.gtkClass not in ('GtkTable'):
+            if self.gtkClass != 'GtkGrid':
                 #dbg.write('%s.add(%s, %s)' %(gtkWdg, child, pack_props ))
                 gtkWdg.add(child)
                 for p, val in list(pack_props.items()):
                     #dbg.write("%s.set_property(%s, %s)" % (gtkWdg, p, val))
                     setattr(gtkWdg, p, val)
-            if self.gtkClass == 'GtkTable':
+            else:
+                # Gtk.Grid.attach signature is (child, left, top, width, height),
+                # not the GtkTable (left, right, top, bottom). Keep the legacy
+                # *_attach pack-property names from position() and translate
+                # right/bottom into width/height here. hexpand/vexpand are
+                # left to whatever the widget itself opted into via its own
+                # properties (e.g. make_v_expandable sets vexpand=True), so
+                # the create() path matches the Builder/show() path that
+                # filters pack-props through Grid.list_child_properties.
                 P = pack_props
-                #dbg.write("pack_props", P, obj.pack_properties)
-                gtkWdg.attach(child,
-                              P['left_attach'],
-                              P['right_attach'],
-                              P['top_attach'],
-                              P['bottom_attach'],
-                              )
+                left = P['left_attach']
+                top = P['top_attach']
+                width = P['right_attach'] - left
+                height = P['bottom_attach'] - top
+                gtkWdg.attach(child, left, top, width, height)
 
         return
 
@@ -810,7 +837,10 @@ class Window(LContainer):
         return ''
 
 class Table(LContainer):
-    gtkClass = 'GtkTable'
+    # Layout flag 'T' historically mapped to Gtk.Table; that widget was
+    # deprecated in GTK 3.4 in favour of Gtk.Grid. We keep the class name
+    # and the 'T' flag so existing layouts and demos remain unchanged.
+    gtkClass = 'GtkGrid'
     class_pack_properties = {
         'homogeneous': False,
         #        'expand'       : True,
