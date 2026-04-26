@@ -308,9 +308,11 @@ def set_this_filling(wid):
             dbg.write("setting vexpand/valign FILL:", wid)
         except Exception:
             pass
-        if GObject.type_is_a(newwid, Gtk.Table):
-            newwid.child_set_property(wid, 'y-options', Gtk.AttachOptions.FILL | Gtk.AttachOptions.EXPAND)
-            dbg.write("setting y-options:", wid)
+        # Gtk.Grid has no 'y-options' child property (Gtk.Table legacy);
+        # vertical expand/fill is now handled by set_vexpand/set_valign on the
+        # child widget itself (done above), which Grid honours natively.
+        if GObject.type_is_a(newwid, Gtk.Grid):
+            dbg.write("Grid parent: child vexpand/valign already set on:", wid)
         wid = newwid
 
 def print_debug(wid):

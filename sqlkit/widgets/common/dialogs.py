@@ -116,13 +116,14 @@ class OpenDialog(SaveDialog):
         self.dialog.set_preview_widget(preview)
         self.dialog.connect("update-preview", self.update_preview_cb, preview)
 
-        tbl = Gtk.Table()
+        tbl = Gtk.Grid()
         self.entry = Gtk.Entry()
         # TIP: possible new name for an uploaded file
         label = Gtk.Label(label=_('Preferred new filename:') + "  ")
         label.set_tooltip_text(_('If not empty, the file will be uploaded with this new name'))
-        tbl.attach(label, 0, 1, 0, 1, xoptions=Gtk.AttachOptions.FILL)
-        tbl.attach(self.entry, 1, 2, 0, 1)
+        # Gtk.Grid.attach(child, left, top, width, height): label at (0,0), entry at (1,0)
+        tbl.attach(label, 0, 0, 1, 1)
+        tbl.attach(self.entry, 1, 0, 1, 1)
         tbl.show_all()
         self.dialog.set_extra_widget(tbl)
 

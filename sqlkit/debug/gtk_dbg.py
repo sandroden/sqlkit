@@ -96,7 +96,7 @@ class wshow(object):
         try:
             ## I want first higher widget in layout
             children = widget.get_children()
-            if isinstance(widget, Gtk.Table):
+            if isinstance(widget, Gtk.Grid):
                 children = reversed(widget.get_children())
         except:
             pass
