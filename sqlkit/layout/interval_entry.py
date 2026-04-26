@@ -59,10 +59,13 @@ class IntervalEdit(Gtk.Bin):
         self.connect('realize', self.set_packing)
 
     def set_packing(self, other):
+        # Originally cleared the GtkTable 'y-options' so the row would not
+        # vertically expand. Under Gtk.Grid the equivalent lives on the child:
+        # vexpand=False + valign=START.
         parent = self.get_parent()
-        props = [prop.name for prop in parent.list_child_properties()]
-        if 'y-options' in props:
-            parent.child_set_property(self, 'y-options', 0)
+        if isinstance(parent, Gtk.Grid):
+            self.set_vexpand(False)
+            self.set_valign(Gtk.Align.START)
 
     def split_interval(self, interval):
         if interval is None:

@@ -141,8 +141,8 @@ class show_widgets(object):
         self.w['Window'].set_size_request(300, 500)
 
         self.notebook = self.w['N.external']
-        table = self.notebook.get_parent()
-        table.child_set_property(self.notebook, 'y-options', Gtk.AttachOptions.FILL | Gtk.AttachOptions.EXPAND)
+        self.notebook.set_vexpand(True)
+        self.notebook.set_valign(Gtk.Align.FILL)
 
         self.page_number = 1
 
@@ -588,8 +588,8 @@ class TreeInfoLayout(object):
             self.w['Window'].resize(500, 500)
 
         scr_treeview = self.w['S=a']
-        table = scr_treeview.get_parent()
-        table.child_set_property(scr_treeview, 'y-options', Gtk.AttachOptions.FILL | Gtk.AttachOptions.EXPAND)
+        scr_treeview.set_vexpand(True)
+        scr_treeview.set_valign(Gtk.Align.FILL)
 
         self.tv = self.w['TV=a']
         self.l.connect(('tb=gtk-quit', 'clicked',
@@ -1021,8 +1021,8 @@ class ShowLogs(object):
         self.easytv.w['Window'].set_geometry_hints(
             self.easytv.w['Window'], min_width=500, min_height=500)
         scr_window = self.easytv.w['S=a']
-        table = scr_window.get_parent()
-        table.child_set_property(scr_window, 'y-options', Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.FILL)
+        scr_window.set_vexpand(True)
+        scr_window.set_valign(Gtk.Align.FILL)
         self.model.connect('row-inserted', self.get_there)
         self.conf()
         self.easytv.tv.connect('button-press-event', self.button_press_cb)

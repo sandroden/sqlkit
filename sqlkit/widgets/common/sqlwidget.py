@@ -558,13 +558,13 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
 
         if 'A.external' in self.widgets:
             external_align = self.widgets['A.external']
-            table = external_align.get_parent()
-            table.child_set_property(external_align, 'y-options', Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.FILL)
+            external_align.set_vexpand(True)
+            external_align.set_valign(Gtk.Align.FILL)
 
         if 'S=tree' in self.widgets:
             internal_align = self.widgets['S=tree']
-            table = internal_align.get_parent()
-            table.child_set_property(internal_align, 'y-options', Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.FILL)
+            internal_align.set_vexpand(True)
+            internal_align.set_valign(Gtk.Align.FILL)
 
         if self.is_toplevel():
             self.lay_obj.connect(('Window', 'delete-event', self.delete_event_cb))

@@ -274,11 +274,12 @@ def set_all_nonfilling(wid, level):
                 parent.child_set_property(wid, 'fill', False)
             except:
                 pass
-            try:
-                from gi.repository import Gtk
-                parent.child_set_property(wid, 'y-options', None)
-            except:
-                pass
+            from gi.repository import Gtk
+            if isinstance(parent, Gtk.Grid):
+                # Grid replacement of GtkTable y-options=NONE: do not expand
+                # vertically. set_valign(START) keeps the natural height.
+                wid.set_vexpand(False)
+                wid.set_valign(Gtk.Align.START)
         next_level.append(wid.get_parent())
     except:
         pass

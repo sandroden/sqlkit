@@ -976,12 +976,14 @@ class CollectionWidget(Widget):
             label_map=self.prepare_label_map()
         )
 
-        # We generally want a table to expand if possible
+        # We generally want a table to expand if possible. Under Gtk.Grid the
+        # vertical-fill knob lives on the child via set_vexpand/set_valign;
+        # the legacy 'y-options' child-property of Gtk.Table no longer exists.
         parent = self.gtkwidget.get_parent()
         if parent:
-            prop_names = [prop.name for prop in parent.list_child_properties()]
-            if 'y-options' in prop_names:
-                parent.child_set_property(self.gtkwidget, 'y-options', Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.FILL)
+            if isinstance(parent, Gtk.Grid):
+                self.gtkwidget.set_vexpand(True)
+                self.gtkwidget.set_valign(Gtk.Align.FILL)
             if isinstance(parent, Gtk.Box) and parent.get_orientation() == Gtk.Orientation.VERTICAL:
                 parent.child_set_property(self.gtkwidget, 'expand', True)
 
