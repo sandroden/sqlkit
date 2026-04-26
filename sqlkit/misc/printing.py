@@ -492,8 +492,17 @@ class PrintTool(GObject.GObject):
     def split_template_name(self, template_name):
         """
         return a tuple (dir, template_name, template_path)
-        if templatename does not contain a path, self.template_dir is used if that leads
-        to an existent filename, otherwise it'd be set no None
+
+        Resolution rules:
+
+        * absolute path → used as-is
+        * bare filename (no dirname) → resolved against ``self.template_dir``
+        * relative path with a dirname (e.g. ``appy/foo.odt``) → resolved as a
+          sub-folder of ``self.template_dir`` (i.e. ``template_dir/appy/foo.odt``).
+          This supports the recommended ``templates/{appy,oootemplate}/``
+          layout.
+
+        ``dirname`` is set to ``None`` when the resolved path does not exist.
 
         :param template_name: a template name possibly with a complete path
         """
@@ -502,6 +511,11 @@ class PrintTool(GObject.GObject):
         dirname, template_name = os.path.split(template_name)
         if not dirname:
             dirname = self.template_dir
+            template_path = os.path.join(dirname, template_name)
+            if not os.path.exists(template_path):
+                dirname = None
+        elif not os.path.isabs(dirname):
+            dirname = os.path.join(self.template_dir, dirname)
             template_path = os.path.join(dirname, template_name)
             if not os.path.exists(template_path):
                 dirname = None
