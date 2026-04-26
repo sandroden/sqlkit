@@ -7,6 +7,7 @@ counts and exits with non-zero on any failure.
 import os
 import sys
 import traceback
+import unittest
 
 
 def run_tests(ns, name=None):
@@ -17,11 +18,15 @@ def run_tests(ns, name=None):
     )
     passed = 0
     failed = 0
+    skipped = 0
     failures = []
     print("=== %s: %d tests ===" % (name, len(tests)))
     for tname, fn in tests:
         try:
             fn()
+        except unittest.SkipTest as e:
+            skipped += 1
+            print("  SKIP  %s: %s" % (tname, e))
         except Exception as e:
             failed += 1
             failures.append((tname, e, traceback.format_exc()))
@@ -34,8 +39,8 @@ def run_tests(ns, name=None):
         for tname, _, tb in failures:
             print("\n[%s]" % tname)
             print(tb)
-    print("\n=== summary: %d passed, %d failed ===" % (passed, failed))
-    return passed, failed
+    print("\n=== summary: %d passed, %d failed, %d skipped ===" % (passed, failed, skipped))
+    return passed, failed, skipped
 
 
 def project_root():

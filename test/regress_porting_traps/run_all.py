@@ -29,16 +29,17 @@ def main():
         os.path.join(HERE, fn) for fn in os.listdir(HERE)
         if fn.startswith("test_") and fn.endswith(".py")
     )
-    total_p = total_f = 0
+    total_p = total_f = total_s = 0
     for path in files:
         name, mod = load_module(path)
-        p, f = run_tests(vars(mod), name)
+        p, f, s = run_tests(vars(mod), name)
         total_p += p
         total_f += f
+        total_s += s
         print()
     print("=" * 60)
-    print("OVERALL: %d passed, %d failed across %d files" % (
-        total_p, total_f, len(files)))
+    print("OVERALL: %d passed, %d failed, %d skipped across %d files" % (
+        total_p, total_f, total_s, len(files)))
     return 0 if total_f == 0 else 1
 
 

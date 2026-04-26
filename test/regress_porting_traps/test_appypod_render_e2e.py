@@ -25,10 +25,18 @@ concern outside the scope of the porting trap suite.
 """
 import os
 import re
+import unittest
 import zipfile
 
 from _harness import ensure_path, run_tests
 ensure_path()
+
+
+def _require_appy():
+    try:
+        import appy.pod  # noqa: F401
+    except ImportError:
+        raise unittest.SkipTest("appy not installed (optional extra: sqlkit[printing])")
 
 
 def _build_director_with_movies():
@@ -79,6 +87,7 @@ def _template_path():
 
 
 def test_appy_template_renders_odt():
+    _require_appy()
     from sqlkit.misc.appypod import AppyPodTemplate
 
     director = _build_director_with_movies()
@@ -96,6 +105,7 @@ def test_appy_template_renders_odt():
 def test_appy_template_includes_iteration_values():
     """The 'do row for f in obj.movies' loop must inject Movie attributes
     into the rendered content.xml."""
+    _require_appy()
     from sqlkit.misc.appypod import AppyPodTemplate
     import io
 
