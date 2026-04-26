@@ -36,11 +36,7 @@ extensions = ['sphinx.ext.autodoc', 'docusage']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['templates']
-templates_map = {
-    'misc/tour' : 'tour.mako' ,
-    'misc/sqledit' : 'tour.mako' ,
-    }
-template_bridge = "builder.builders.MakoBridge"
+templates_map = {}
 
 # The suffix of source filenames.
 source_suffix = '.rst'
