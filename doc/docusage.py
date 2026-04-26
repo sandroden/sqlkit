@@ -63,13 +63,13 @@ class IncludePyProgramDirective(Include):
     try:
       self.state.document.settings.record_dependencies.add(path)
       include_file = open(path, 'r+b')
-    except IOError, error:
+    except IOError as error:
       raise self.severe('Problems with "%s" directive path:\n%s: %s.'
                         % (self.name, error.__class__.__name__, error))
 
     try:
       include_text = include_file.read()
-    except UnicodeError, error:
+    except UnicodeError as error:
       raise self.severe(
         'Problem with "%s" directive:\n%s: %s'
         % (self.name, error.__class__.__name__, error))
