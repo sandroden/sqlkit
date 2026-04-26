@@ -1,6 +1,6 @@
 """base/options: geom
 
-read-only set all columns as not updateable
+read-only sets all columns as not updateable
 """
 
 t = SqlMask('movie',

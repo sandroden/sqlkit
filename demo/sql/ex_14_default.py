@@ -1,9 +1,9 @@
 """base/defaults
 
-Deaults are set on the database table not on the SqlMask/SqlTable
+Defaults are set on the database table, not on the SqlMask/SqlTable
 
-When setting the default for a foreig key, you can use method fk that
-sets directly via the name. In that case you need to say which field you want
+When setting the default for a foreign key, you can use the fk method that
+sets it directly via the name. In that case you need to say which field you want
 to use for SELECT
 """
 from sqlkit.db import defaults
@@ -20,5 +20,5 @@ def_movie.fk('director_id', 'last_name', 'Fellini')
 t = SqlTable('movie',  dbproxy=db,)
 
 
-## unregister to prevet conflicts in following examples
+## unregister to prevent conflicts in following examples
 #del defaults.tables['movie']

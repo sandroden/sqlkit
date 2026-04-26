@@ -1,9 +1,9 @@
-"""completion/dinamic filter 
+"""completion/dynamic filter
 
-A filter on completions may also be based on value of onother field in the
-moment the competion is invoked.
+A filter on completions may also be based on the value of another field at
+the moment the completion is invoked.
 
-Here the contrainst is on nation. The completion of director is constrained by a possible value entered in nation.
+Here the constraint is on nation. The completion of director is constrained by a possible value entered in nation.
 """
 
 lay = """

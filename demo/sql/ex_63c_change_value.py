@@ -1,9 +1,9 @@
 """hooks/on_change_value
 
-On change value works differently according to the type of the widget.
-varchar/integer field will invoke it for each typed char
-enum/foreign key fields invoke it when the item is choosen
-table's widget invoke it when editing is terminated
+on_change_value works differently according to the type of the widget.
+varchar/integer fields will invoke it for each typed char
+enum/foreign key fields invoke it when the item is chosen
+table widgets invoke it when editing is terminated
 
 """
 lay = """

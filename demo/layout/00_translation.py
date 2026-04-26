@@ -5,7 +5,7 @@ for the whole application.
 
 The first column sets the key, the second the label, the third the tip.
 If you use a key w/o a specifier (e= part), it will be applied to all widgets
-with that name. If both are present, the more specific apply.
+with that name. If both are present, the more specific one applies.
 
 """
 

@@ -1,9 +1,9 @@
 """relation/m2m - different packing
 
-Now the SqlTable for genres and actors are placed in a Table
+Now the SqlTables for genres and actors are placed in a Table
 that needs to be made to expand. You may notice that the separator
-between genres and actor is no longer aligned with the end of the
-title antry.
+between genres and actors is no longer aligned with the end of the
+title entry.
 """
 
 from gi.repository import Gtk

@@ -1,9 +1,9 @@
 """signals/after-flush
 
-after-flush is triggered from withing SessionExtension as after_flush method.
-It's emitted when flushing has occurred but state of the session still retains
+after-flush is triggered from within SessionExtension as the after_flush method.
+It's emitted when flushing has occurred but the state of the session still retains
 all info on objects: session.dirty, session.new, session.deleted are available
-and each object has info on it's history
+and each object has info on its history
 
 Try changing some values and read the output
 """

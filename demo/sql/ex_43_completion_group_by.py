@@ -1,7 +1,7 @@
 """completion/group by
 
-the values shown in a completion may be grouped 
-try completion on 
+the values shown in a completion may be grouped
+try completion on
 """
 
 lay = """

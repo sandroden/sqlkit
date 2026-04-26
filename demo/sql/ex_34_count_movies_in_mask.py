@@ -16,7 +16,7 @@ class CountMovies(fields.IntegerField):
     """
     @fields.std_cleanup
     def clean_value(self, value):
-        ## missing a field_name attribute on obj the objct itselt is passed
+        ## missing a field_name attribute on obj, the object itself is passed
         return len(value.movies)
 
 

@@ -1,6 +1,6 @@
 """Bricks/button
 xxx
-Just a button 
+Just a button
 """
 
 

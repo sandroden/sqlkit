@@ -1,10 +1,10 @@
 """relation/o2m: filtering
 
-Adding filters again: now filters span relationships. A '__'  underscore
-separates the property from the operator and the property of one table
-to a related table one's.
+Adding filters again: now filters span relationships. A '__' underscore
+separates the property from the operator, and the property of one table
+from that of a related table.
 
-Iregexp is rendered with like in sqlite, with ~* in postgres
+Iregexp is rendered with 'like' in sqlite, with ~* in postgres
 
 """
 

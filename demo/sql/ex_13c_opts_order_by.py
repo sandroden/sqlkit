@@ -1,6 +1,6 @@
 """base/opts: order_by - foreign_key
 
-Order by can use django_syntax too
+order_by can use django_syntax too
 
 """
 

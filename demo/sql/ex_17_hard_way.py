@@ -1,9 +1,9 @@
 """base/join - explicit
 
-you can pass a mapper that already has the join as you prefere
+you can pass a mapper that already has the join as you prefer
 
-It you explicitely define mapping for attribute 'id', it
-will prevent SA from complaining about 2 columns with same name
+If you explicitly define a mapping for attribute 'id', it
+will prevent SA from complaining about 2 columns with the same name
 
 """
 

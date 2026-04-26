@@ -1,4 +1,4 @@
-"""mapper & fields/filter: customize default 
+"""mapper & fields/filter: customize default
 
 A field can be added to a mask as well
 
@@ -18,7 +18,7 @@ class Director(fields.VarcharField):
 
     @fields.std_cleanup
     def clean_value(self, value):
-        ## missing a field_name attribute on obj the objct itselt is passed
+        ## missing a field_name attribute on obj, the object itself is passed
         return "Customized: %s" % value.last_name
 
 

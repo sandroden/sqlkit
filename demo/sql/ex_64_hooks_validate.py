@@ -1,12 +1,12 @@
 """hooks/on_validation - related
 
-you can also change a related validation be sure you understand when you
-have to check a sqlkit or a related one.  If you want to prevent a change
+You can also change a related validation. Be sure you understand when you
+have to check a sqlkit or a related one. If you want to prevent a change
 in a related table where you cannot edit (as is the genres table), you must
 set the check on the validation of attribute 'genres' of the main Mask.
 
-On the contrary the completion on genres takes place in the related table,
-so that you need to add __genres__ to the name of the method
+On the contrary, the completion on genres takes place in the related table,
+so you need to add __genres__ to the name of the method
 
 """
 from sqlkit.exc import ValidationError

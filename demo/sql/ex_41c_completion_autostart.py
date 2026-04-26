@@ -1,8 +1,8 @@
 """completion/enum m2m
 
-Completion may be configured to act as enum, normally only if
-remote table has only a few elements. In that case the list of possibilities
-is shown complete regarless of what is written in the field.
+Completion may be configured to act as an enum, normally only if
+the remote table has only a few elements. In that case the list of possibilities
+is shown completely regardless of what is written in the field.
 
 """
 

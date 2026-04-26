@@ -1,6 +1,6 @@
 """completion/filter
 
-you can enforce a constraint on the values returned by completion
+You can enforce a constraint on the values returned by completion
 
 """
 

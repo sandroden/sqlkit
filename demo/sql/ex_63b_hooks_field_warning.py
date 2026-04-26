@@ -1,9 +1,9 @@
 """hooks/warning - on_field_validation
 
-A warning will not make validation to abort, but will just warn the user
-and give an opportunity to proceed or go back editing.
+A warning will not make validation abort, but will just warn the user
+and give an opportunity to proceed or go back to editing.
 
-In this case you may want to implement firther actions in after_flush
+In this case you may want to implement further actions in after_flush
 """
 from sqlkit.exc import ValidationWarning
 
@@ -15,7 +15,7 @@ class Hooks(object):
 
     def on_after_flush(self, mask, obj, session):
         if mask.current.year > 2020:
-            print(("Funny guy who know the future (%s)!" % mask.current.year))
+            print(("Funny guy who knows the future (%s)!" % mask.current.year))
 
 lay = """
    title

@@ -1,11 +1,11 @@
 """base/options: format (numbers)
 
-Numbers will be represented according to active locale (according to
+Numbers will be represented according to the active locale (according to
 environment variables LC_NUMERIC, LC_ALL, LANG).
 
-It's possible to force a different representation setting 'format' and possibly
-'locale' on the vfields. That can be done with set_format method or via
-'format' argument.
+It's possible to force a different representation by setting 'format' and possibly
+'locale' on the vfields. That can be done with the set_format method or via
+the 'format' argument.
 """
 
 t = SqlTable('movie',

@@ -1,7 +1,7 @@
 """base/options: dev
 
-developer mode show id as well. hide/field_list prevail on this mode.
-default is False.
+developer mode shows id as well. hide/field_list prevail on this mode.
+Default is False.
 """
 
 t = SqlTable('movie',

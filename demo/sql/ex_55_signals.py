@@ -1,6 +1,6 @@
 """signals/record-selected
 
-'record-selected' is define both fr SqlTable and SqlMask
+'record-selected' is defined both for SqlTable and SqlMask
 
 """
 

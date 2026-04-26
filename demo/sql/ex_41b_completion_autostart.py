@@ -1,7 +1,7 @@
 """completion/autostart m2m
 
-Completion may start automaticaly after n digits entered
-Try writing 2 letter (eg.: 'fa')
+Completion may start automatically after n digits are entered
+Try writing 2 letters (eg.: 'fa')
 
 """
 

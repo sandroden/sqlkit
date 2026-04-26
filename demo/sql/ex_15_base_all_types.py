@@ -1,6 +1,6 @@
 """base/all types
 
-simple mask showing all supported types. Some are clearly poorely rendered.
+simple mask showing all supported types. Some are clearly poorly rendered.
 
 
 """

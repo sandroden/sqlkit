@@ -1,8 +1,8 @@
 """Bricks/check-radio
 
 radiobuttons are grouped by the group parameter. A radiobutton whose name has
-a /group1 part is aggregated to group1. only one radiobutton at a time can be
-switched on. 
+a /group1 part is aggregated to group1. Only one radiobutton at a time can be
+switched on.
 """
 
 

@@ -1,6 +1,6 @@
 """Bricks/frames
 
-An example of frame
+An example of a frame
 
 """
 

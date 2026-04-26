@@ -1,14 +1,14 @@
 """uimanager/substituting an action (entry)
 
-you can substitute an entry uding stantard GTK. I add the example here just becouse may
-not be obvious if you're not experienced GTK developer...
+You can substitute an entry using standard GTK. I add the example here just because it may
+not be obvious if you're not an experienced GTK developer...
 
-Th idea is that you add a group of actions (ActionGroup) to the manager of the
+The idea is that you add a group of actions (ActionGroup) to the manager of the
 User Interface (UIManager). If that is inserted *before* the others (position 0) it will
 be picked up instead of the other.
 
 You can click on 'File' and see that Export has been changed into "I'm not the original Export"
-and you can right click on the table and you will notice that "I'm not the other one" has appeard.
+and you can right-click on the table and you will notice that "I'm not the other one" has appeared.
 
 """
 

@@ -1,6 +1,6 @@
 """mapper & fields/filter: grouping
 
-The output view of a filter panel can be grouped 
+The output view of a filter panel can be grouped
 
 
 """

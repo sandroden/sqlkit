@@ -1,6 +1,6 @@
 """hooks/on_validation - related
 
-Hore we change the related hook just to see that both hooks get called.
+Here we change the related hook just to see that both hooks get called.
 
 """
 from sqlkit.exc import ValidationError

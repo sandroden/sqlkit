@@ -5,7 +5,7 @@ installed (it comes with openoffice) and can use an openoffice server.
 
 NOTE:
 This sample will *fail* if you cannot start an openoffice server
-or if you dont have the 'uno' module from openoffice.
+or if you don't have the 'uno' module from openoffice.
 
 """
 

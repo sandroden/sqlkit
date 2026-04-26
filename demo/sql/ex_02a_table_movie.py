@@ -3,7 +3,7 @@
 Tree Table
 ----------
 
-In this example a table is displayed with gerarchical grouping
+In this example a table is displayed with hierarchical grouping
 
 """
 

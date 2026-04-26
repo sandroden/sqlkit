@@ -1,6 +1,6 @@
 """base/filters
 
-This in one of the key oint of sqlkit.
+This is one of the key points of sqlkit.
 
 A filter can be added with django_like syntax
 """

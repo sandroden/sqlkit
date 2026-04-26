@@ -1,6 +1,6 @@
 """layout/layout of a related treeview
 
-Layout can be also set for related table
+Layout can also be set for a related table
 
 Try right-clicking on a film and open the movie with layout set by layout_movie
 

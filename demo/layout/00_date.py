@@ -1,10 +1,10 @@
 """Bricks/date
 
-uses dateedit a composed custom widget.
+uses dateedit, a composed custom widget.
 
-NOTE!!!! 
+NOTE!!!!
    Setting of properties is only
-   garantied  after widget creation
+   guaranteed after widget creation
 """
 
 lay = """

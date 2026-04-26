@@ -1,6 +1,6 @@
-"""mapper & fields/adding count 
+"""mapper & fields/adding count
 
-This is an alternative way to add a movie count field that adds a column
+This is an alternative way to add a movie count field that adds a column.
 When going this way you cannot filter on the "Movie Count" column
 """
 
@@ -15,7 +15,7 @@ class CountMovies(fields.IntegerField):
     """
     @fields.std_cleanup
     def clean_value(self, value):
-        ## missing a field_name attribute on obj the objct itselt is passed
+        ## missing a field_name attribute on obj, the object itself is passed
         return len(value.movies)
 
 count_movies = CountMovies('n_movies')

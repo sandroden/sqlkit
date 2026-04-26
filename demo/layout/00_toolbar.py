@@ -1,6 +1,6 @@
 """Bricks/toolbar
 
-toolbar example. I had to force a width to let the icons to be visible. Otherwise just an arrow would appear.
+toolbar example. I had to force a width to let the icons be visible. Otherwise just an arrow would appear.
 """
 
 lay = """

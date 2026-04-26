@@ -1,6 +1,6 @@
 """mapper & fields/filter: adding column
 
-The output is represented ina tab of the Filter Panel and
+The output is represented in a tab of the Filter Panel and
 can be customized
 
 """
@@ -16,7 +16,7 @@ class CountMovies(fields.IntegerField):
     """
     @fields.std_cleanup
     def clean_value(self, value):
-        ## missing a field_name attribute on obj the objct itselt is passed
+        ## missing a field_name attribute on obj, the object itself is passed
         return len(value.movies)
 
 count_movies = CountMovies('n_movies', {'length': 4})

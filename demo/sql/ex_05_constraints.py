@@ -9,7 +9,7 @@ Commented out is the SQLAlchemy syntax for the same filter
 """
 
 
-## Example 1: movies older tha 2000
+## Example 1: movies older than 2000
 t = SqlTable(model.Movie, dbproxy=db)
 t.add_constraint(year__lt=1996)
 #t.query = t.query.filter(t.mapper.c['year'].op('<')(1996))

@@ -1,7 +1,7 @@
 """printing/preparing Context
 
-You can customize the context you pass to the PrintTool eather subclassing
-and overriding prepare_context or connecting to signal 'context-ready'
+You can customize the context you pass to the PrintTool either by subclassing
+and overriding prepare_context or by connecting to the 'context-ready' signal
 """
 
 from sqlkit.misc.printing import PrintTool
@@ -10,7 +10,7 @@ class MyPrinter(PrintTool):
 
     def prepare_context(self, context):
         """
-        substitue director's films as table objects
+        substitute director's films as table objects
         """
         context.translate['d'] = 'director'
         context.translate['nation'] = 'director.nation'

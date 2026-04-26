@@ -7,7 +7,7 @@ You can also loop on related rows
 
 def prepare_context(printtool, context, template_name, sqlwidget):
     """
-    substitue director's films as table objects
+    substitute director's films as table objects
     """
     context['Table1'] = (sqlwidget.related.movies.records,)
 

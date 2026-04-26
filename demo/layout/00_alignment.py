@@ -1,4 +1,4 @@
-"""Bricks/alignement
+"""Bricks/alignment
 
 
 """

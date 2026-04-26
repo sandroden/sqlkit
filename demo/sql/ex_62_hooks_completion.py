@@ -1,7 +1,7 @@
 """hooks/on_completion
 
 on_completion is triggered any time you choose from a completion.
-Argument obj can be accessed both as dict or as obj.
+The argument obj can be accessed both as a dict or as an obj.
 """
 
 class Hook(object):

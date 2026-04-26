@@ -1,15 +1,15 @@
 """base/filters: relative dates
 
 A filter may be expressed as a relative interval from now.
-read complete documentation on here:
+Read the complete documentation here:
   http://docs.argolinux.org/sqlkit/sqlkit/filters.html
 
 But for now you can play with symbolic math: y for year, m for month,
 d for day, w for week.
 
-the '>' sign sets a period.
+The '>' sign sets a period.
 
-This allows to express dates in a very natural way. particularly when you need
+This allows you to express dates in a very natural way, particularly when you need
 to save queries
 
 """

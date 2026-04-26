@@ -1,6 +1,6 @@
 """completion/filter on fkey
 
-filters on foreign key start (and are constraint) in the referenced table
+filters on a foreign key start (and are a constraint) on the referenced table
 
 """
 

@@ -1,6 +1,6 @@
 """completion/m2m fkey - relation
 
-In this case we added  filter on a relation of the base record that is actor
+In this case we added a filter on a relation of the base record that is actor
 """
 
 lay = """

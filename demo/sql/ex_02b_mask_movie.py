@@ -1,8 +1,8 @@
 """base/different layout
 
-a different layout with ReadOnly widgets and and exmple of == syntax that
-prevents generation of label creation: in this case label is created
-separatedly to force a different layout.
+a different layout with ReadOnly widgets and an example of == syntax that
+prevents generation of the label: in this case the label is created
+separately to force a different layout.
 """
 
 lay = """

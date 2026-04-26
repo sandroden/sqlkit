@@ -1,11 +1,11 @@
 """hooks/on_after_flush
 
-This hook is completely similar to 'after-flush' signal, but is meant to be
+This hook is completely similar to the 'after-flush' signal, but is meant to be
 defined in a separate class so that it's easier to propagate validation hooks
-to a spawned child (RecordInMask) 
+to a spawned child (RecordInMask)
 
-Open a mask right clicking on a record, change something and save. You'll see
-that on_after_flush is called eather.
+Open a mask by right-clicking on a record, change something and save. You'll see
+that on_after_flush is called as well.
 
 """
 from sqlkit.db.utils import get_differences

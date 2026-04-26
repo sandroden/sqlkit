@@ -1,9 +1,9 @@
 """hooks/on_validation
 
-on_validation is triggered any time you save. Here you can implement a read
-only table...
+on_validation is triggered any time you save. Here you can implement a read-only
+table...
 
-try changing something and then saving.
+Try changing something and then saving.
 
 """
 from sqlkit.exc import ValidationError
@@ -22,6 +22,6 @@ class Validation(object):
             raise ValidationError("I don't want you to change anything!!!")
 
 t = SqlMask(model.Movie, dbproxy=db, hooks=Validation())
-t.gui_fields.description.blank = True  # don't try to change '' in None
+t.gui_fields.description.blank = True  # don't try to change '' to None
 
 t.reload()
