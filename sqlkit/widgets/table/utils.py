@@ -299,9 +299,15 @@ def set_this_filling(wid):
     """
     while wid:
         newwid = wid.get_parent()
-        if GObject.type_is_a(wid, Gtk.Alignment):
-            wid.set_property('yscale', 1)
-            dbg.write("setting yscale:", wid)
+        # ex: if isinstance(wid, Gtk.Alignment): wid.set_property('yscale', 1)
+        # Gtk.Alignment is gone in GTK3; the equivalent is to ensure the
+        # widget itself can vertically expand and fills its allocation.
+        try:
+            wid.set_vexpand(True)
+            wid.set_valign(Gtk.Align.FILL)
+            dbg.write("setting vexpand/valign FILL:", wid)
+        except Exception:
+            pass
         if GObject.type_is_a(newwid, Gtk.Table):
             newwid.child_set_property(wid, 'y-options', Gtk.AttachOptions.FILL | Gtk.AttachOptions.EXPAND)
             dbg.write("setting y-options:", wid)
