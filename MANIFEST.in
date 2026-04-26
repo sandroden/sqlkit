@@ -11,7 +11,6 @@ include AUTHORS
 include Announce
 include changelog
 include COPYING
-include distribute-setup.py
 include INSTALL
 include README.localization
 include sqledit.completion
