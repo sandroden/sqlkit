@@ -1053,6 +1053,47 @@ class ColumnMenuProxy(object):
             self.master.reload_cb(None)
 
 
+def apply_zebra(treeview):
+    """
+    Imposta zebra striping su un Gtk.TreeView.
+
+    In GTK3 le righe di un Gtk.TreeView non sono nodi CSS distinti, quindi
+    selettori come ``treeview row:nth-child(even)`` non funzionano e
+    ``set_rules_hint(True)`` e' deprecato (ignorato dai temi moderni).
+    L'unica via affidabile e' impostare ``cell-background-rgba`` sui cell
+    renderer in base alla parita' del path tramite cell_data_func.
+
+    Wrappa le cell_data_func gia' impostate (memorizzate da sqlkit in
+    ``column.cells_data_func``) cosi' da preservarne la semantica.
+    """
+    even = Gdk.RGBA(0, 0, 0, 0.04)  # 4% nero: blendate sul base color del tema
+    odd = Gdk.RGBA(0, 0, 0, 0)      # trasparente: lascia il base color
+
+    for col in treeview.get_columns():
+        prev = list(getattr(col, 'cells_data_func', []))
+        for cell in col.get_cells():
+            old_fn = old_data = None
+            for c, fn, dat in prev:
+                if c is cell:
+                    old_fn, old_data = fn, dat
+                    break
+
+            def make_wrapper(_old_fn, _old_data):
+                def wrapper(column, cell_, model, it, _data):
+                    if _old_fn is not None:
+                        _old_fn(column, cell_, model, it, _old_data)
+                    if it is None:
+                        return
+                    path = model.get_path(it)
+                    if path is None:
+                        return
+                    is_even = path.get_indices()[-1] % 2 == 0
+                    cell_.set_property('cell-background-rgba', even if is_even else odd)
+                return wrapper
+
+            col.set_cell_data_func(cell, make_wrapper(old_fn, old_data), None)
+
+
 class View(object):
 
     """
@@ -1103,6 +1144,7 @@ class View(object):
         self.treeview.show_all()
 
         self.treeview.set_rules_hint(True)
+        apply_zebra(self.treeview)
         # set selection mode
         treeselection = self.treeview.get_selection()
         treeselection.set_mode(Gtk.SelectionMode.SINGLE)
