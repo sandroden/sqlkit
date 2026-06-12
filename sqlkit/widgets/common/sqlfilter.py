@@ -1320,14 +1320,21 @@ class FilterWidget(object):
             else:
                 op = 'IS FALSE'
 
+        if op.upper() == 'ICONTAINS' and 'ICONTAINS' not in operator_list:
+            ## postgres/mysql don't offer ICONTAINS: use the regexp
+            ## equivalent, as DjangoParser.parse does for the query
+            if self.tool.bind_name.startswith('postgres'):
+                op = '~*'
+            elif self.tool.bind_name.startswith('mysql'):
+                op = 'REGEXP'
+
         try:
             index = operator_list.index(op.upper())
             self.operator.set_active(index)
-        except ValueError as e:
+        except ValueError:
+            ## leave the combo on the default operator (index 0)
             print(("operator '%s' not available in this context" % op.upper()))
             print(("used: %s -- list: %s" % (op, operator_list)))
-            raise
-            pass
 
     def get_operator(self):
         """
