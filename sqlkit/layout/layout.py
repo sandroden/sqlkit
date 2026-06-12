@@ -133,7 +133,7 @@ class Layout(object):
                 col = col + 1
                 ### row span
                 if el in '^':
-                    self._rowspan()
+                    self._rowspan(row, col)
                     continue
 
                 nopts, nested, container_id = self._is_nested(el)
@@ -437,9 +437,8 @@ class Layout(object):
 
         #  write it to file?
         if filename:
-            f = open(filename, 'w')
-            f.write("%s\n%s\n%s" % (start, txt, end))
-            f.close()
+            with open(filename, 'w') as f:
+                f.write("%s\n%s\n%s" % (start, txt, end))
         else:
             return "%s\n%s\n%s" % (start, txt, end)
 
@@ -539,35 +538,15 @@ class Layout(object):
             return self.widgets
 
     def fshow(self, action=None, x=None, filename=None):
-        if not filename:
-            tmpdir = tempfile.mkdtemp()
-            filename = os.path.join(tmpdir, 'layout.glade')
-            print(filename)
-
-        self.xml(file=filename)
-
-        glade = Gtk.glade.XML(filename)
-        glade.signal_autoconnect(self)
-        self.widgets = {}
-        for key, val in list(self.elements.items()):
-            if not isinstance(val, int):
-                self.widgets[key] = glade.get_widget(key)
-        if x:
-            if 'Window' in self.widgets:
-
-                W = self.widgets['Window']
-                if x == 'q':
-                    W.connect("delete_event", Gtk.main_quit)
-                else:
-                    W.connect("delete_event", x)
-
-        if action == 'Gtk.main':
-            Gtk.main()
-
-        ## clean
-        os.unlink(filename)
-        os.rmdir(tmpdir)
-        return self.widgets
+        # Historically this rendered the layout through ``Gtk.glade.XML`` (the
+        # libglade bridge). That API was part of GTK2 and was removed in GTK3,
+        # so this method is irrecoverably broken on the current stack. It has no
+        # callers within sqlkit or the demos. Use ``create()`` (gtk packing) or
+        # ``xml()`` + ``Gtk.Builder`` instead.
+        raise NotImplementedError(
+            "Layout.fshow() relied on the removed GTK2 Gtk.glade API; "
+            "use Layout.create() or Layout.xml() with Gtk.Builder instead."
+        )
 
     def tip(self, el_def, text):
         if self.shown:
@@ -740,10 +719,12 @@ class Layout(object):
 
         return labels_dict
 
-    def frame(self, el_key, notebook_labels=[], tab_pos='top'):
+    def frame(self, el_key, notebook_labels=None, tab_pos='top'):
         """Adds frame labels
 
         allows to correct position of tabs, returns a dictionary w/ label entries"""
+        if notebook_labels is None:
+            notebook_labels = []
 
         ### PIGRIZIA!!! non ho neanche cambiato i nomi delle variabili!
         ### questa funziona va ricongiunta con notebook con un nome unico
@@ -875,9 +856,8 @@ def map_labels(filename=None, buf=None, sep='\t', private=False):
 
     info = {}
     if filename:
-        f = open(filename)
-        buf = f.read()
-        f.close()
+        with open(filename) as f:
+            buf = f.read()
 
     for line in buf.strip('\n').split("\n"):
         # tab separated list of name, label, tooltip
@@ -926,7 +906,7 @@ def get_tip(name, layout=None):
     """
     try:
         if layout:
-            label, tip = self.layout.label_map.get(name, None) or widgets.info.get(name, None)
+            label, tip = layout.label_map.get(name, None) or widgets.info.get(name, None)
         else:
             label, tip = widgets.info.get(name, None)
 

@@ -223,22 +223,26 @@ def create_templates(opts):
         filename = os.path.join(dir_nick, 'layout.py')
         if os.path.exists(filename):
             print(("File %s already exists, skipping creation" % filename))
-        open(filename, 'w').write(TEMPLATE_LAYOUT)
+        with open(filename, 'w') as f:
+            f.write(TEMPLATE_LAYOUT)
 
     if models:
         filename = os.path.join(dir_nick, 'models.py')
         if os.path.exists(filename):
             print(("File %s already exists, skipping creation" % filename))
-        open(filename, 'w').write(TEMPLATE_MODELS)
+        with open(filename, 'w') as f:
+            f.write(TEMPLATE_MODELS)
 
     if hooks:
         filename = os.path.join(dir_nick, 'hooks.py')
         if os.path.exists(filename):
             print(("File %s already exists, skipping creation" % filename))
-        open(filename, 'w').write(TEMPLATE_HOOKS)
+        with open(filename, 'w') as f:
+            f.write(TEMPLATE_HOOKS)
 
     if program:
         filename = os.path.join(dir_nick, 'program.py')
         if os.path.exists(filename):
             print(("File %s already exists, skipping creation" % filename))
-        open(filename, 'w').write(TEMPLATE_PROGRAM)
+        with open(filename, 'w') as f:
+            f.write(TEMPLATE_PROGRAM)

@@ -575,7 +575,7 @@ class DateTimeEdit(DateEdit):
             return new_date
 
         new_time = self.get_time()
-        if isinstance(new_date, str):
+        if isinstance(new_time, str):
             return new_time
 
         if not new_date:

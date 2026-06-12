@@ -383,7 +383,7 @@ def trace_function(exclude=None, include='.*'):
         FUNCTION_EXCLUDE = re.compile(exclude)
 
     if not include == '.*':
-        FUNCTION_INCLUDE = re.compile(exclude)
+        FUNCTION_INCLUDE = re.compile(include)
 
 def logmethod(methodname):
     def _method(self, *argl, **argd):

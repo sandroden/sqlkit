@@ -51,13 +51,6 @@ import importlib
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
-PY2 = sys.version_info[0] == 2
-if PY2:
-    # This hack fixes some UnicodDecode Errors caused pygi not making
-    # magic hidden automatic unicode conversion pygtk did
-    importlib.reload(sys)
-    sys.setdefaultencoding("utf-8")
-    
 if not 'LANG' in os.environ:
     my_locale, my_code = locale.getdefaultlocale()
     LANG = "%s.%s" % (my_locale, my_code)
@@ -272,7 +265,8 @@ def start_demo():
     if os.path.exists(demo_program):
         os.chdir(demo_dir)
         sys.path.insert(0, os.getcwd())
-        exec(compile(open('demo.py', "rb").read(), 'demo.py', 'exec'), {})
+        with open('demo.py', "rb") as f:
+            exec(compile(f.read(), 'demo.py', 'exec'), {})
 
 def open_db(exc=False):
     global db, models
@@ -283,12 +277,14 @@ def open_db(exc=False):
         sys.path.append(opts.nick_dir)
         if opts.run and not opts.browser:
             os.getcwd()
-            exec(compile(open(opts.run, "rb").read(), opts.run, 'exec'), {'opts': opts})
+            with open(opts.run, "rb") as f:
+                exec(compile(f.read(), opts.run, 'exec'), {'opts': opts})
             sys.exit()
         else:
             if opts.models:
                 VARS = {}
-                exec(compile(open('models.py', "rb").read(), 'models.py', 'exec'), VARS)
+                with open('models.py', "rb") as f:
+                    exec(compile(f.read(), 'models.py', 'exec'), VARS)
                 try:
                     if opts.create_tables:
                         if not VARS.get(Base).metadata.bind:
@@ -303,10 +299,12 @@ def open_db(exc=False):
                     pass
 
             if opts.hooks:
-                exec(compile(open('hooks.py', "rb").read(), 'hooks.py', 'exec'), {})
+                with open('hooks.py', "rb") as f:
+                    exec(compile(f.read(), 'hooks.py', 'exec'), {})
 
             if opts.layout:
-                exec(compile(open('layout.py', "rb").read(), 'layout.py', 'exec'), {})
+                with open('layout.py', "rb") as f:
+                    exec(compile(f.read(), 'layout.py', 'exec'), {})
     try:
         db = DbProxy(bind=opts.url)
         db.metadata.bind.connect()

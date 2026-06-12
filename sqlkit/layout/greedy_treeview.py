@@ -22,7 +22,7 @@ class GreedyTreeView(Gtk.TreeView):
         model = treeview.get_model()
         try:
             rows_number = len(model)
-        except:
+        except TypeError:
             return
 
         columns = treeview.get_columns()

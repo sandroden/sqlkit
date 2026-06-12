@@ -392,7 +392,9 @@ class LContainer(LWidget):
                 child = self._offset_txt(obj.xml(self.gtkClass), 4)
                 txt += "\n<child>\n%s\n</child> <!-- closes %s in %s -->\n" % (
                     child, obj.lw['el_key'], obj.lw['container'])
-        except:
+        except Exception:
+            # children_list may be None/empty or an element may not expose
+            # xml(); silently skip as before but never swallow KeyboardInterrupt.
             pass
         return txt
 
@@ -461,7 +463,9 @@ class LContainer(LWidget):
 class AlignmentEntry(LContainer):
     gtkClass = 'GtkAlignment'
 
-    def __init__(self,  el_def, pos, container, children_list=None, elements={}, layout=None):
+    def __init__(self,  el_def, pos, container, children_list=None, elements=None, layout=None):
+        if elements is None:
+            elements = {}
         el_def = el_def.replace('ae=', 'A=')
         super(LContainer, self).__init__(el_def, pos, container, elements=elements, layout=layout)
         ## prepare the names...
@@ -723,7 +727,9 @@ class ComboBox(Entry):
 class AlignmentComboBox(LContainer):
     gtkClass = 'GtkAlignment'
 
-    def __init__(self,  el_def, pos, container, children_list=None, elements={}, layout=None):
+    def __init__(self,  el_def, pos, container, children_list=None, elements=None, layout=None):
+        if elements is None:
+            elements = {}
         el_def = el_def.replace('aC=', 'A=')
         super(LContainer, self).__init__(el_def, pos, container, elements=elements, layout=layout)
         ## prepare the names...
@@ -908,7 +914,9 @@ class Notebook(LContainer):
                 child = self._offset_txt(obj.xml(self.gtkClass), 4)
                 txt += "\n<child %s>\n%s\n</child> <!-- closes %s in %s -->\n" % (
                     child_type, child, obj.lw['el_key'], obj.lw['container'])
-        except:
+        except Exception:
+            # children_list may be None/empty or an element may not expose
+            # xml(); silently skip as before but never swallow KeyboardInterrupt.
             pass
         return txt
 
@@ -995,7 +1003,9 @@ class FrameWithLabel(LContainer):
         'shadow_type': 'GTK_SHADOW_ETCHED_IN',
     }
 
-    def __init__(self,  el_def, pos, container, children_list=[], elements={}, layout=None):
+    def __init__(self,  el_def, pos, container, children_list=None, elements=None, layout=None):
+        if elements is None:
+            elements = {}
         super(LContainer, self).__init__(el_def, pos, container, elements, layout=layout)
         ## prepare the names...
         al_str = "A=%s" % (self.val.replace('F', ''))
@@ -1036,7 +1046,9 @@ class EventBox(LContainer):
 class EventLabel(LContainer):
     gtkClass = 'GtkEventBox'
 
-    def __init__(self,  el_def, pos, container, children_list=[], elements={}, layout=None):
+    def __init__(self,  el_def, pos, container, children_list=None, elements=None, layout=None):
+        if elements is None:
+            elements = {}
         #dbg.write("EventLabel ", el_def)
         el_def = el_def.replace('L=', 'E=')
         super(LContainer, self).__init__(el_def, pos, container, elements=elements, layout=layout)
@@ -1058,7 +1070,7 @@ class ComboLE(LContainer):
     # it'a HBox/VBox with a label and an entry
     gtkClass = 'GtkVBox'
 
-    def __init__(self,  el_def, pos, container, children_list=[], elements=None, layout=None):
+    def __init__(self,  el_def, pos, container, children_list=None, elements=None, layout=None):
         super(ComboLE, self).__init__(el_def, pos, container, elements=elements, layout=layout)
         ## prepare the names...
         lbl_str = "E=%s:%s%s" % (self.val, self.w or '', self.align or '')
@@ -1082,7 +1094,9 @@ class ComboLE(LContainer):
 class ScrolledTreeView(LContainer):
     gtkClass = 'GtkScrolledWindow'
 
-    def __init__(self,  el_def, pos, container, children_list=[], elements={}, layout=None):
+    def __init__(self,  el_def, pos, container, children_list=None, elements=None, layout=None):
+        if elements is None:
+            elements = {}
         el_def = el_def.replace('TVS=', 'S=')
         super(LContainer, self).__init__(el_def, pos, container, elements, layout=layout)
         ## prepare the names...
@@ -1102,7 +1116,9 @@ class ScrolledTreeView(LContainer):
 class ScrolledLayout(ScrolledWindow):
     gtkClass = 'GtkScrolledWindow'
 
-    def __init__(self,  el_def, pos, container, children_list=[], elements={}, layout=None):
+    def __init__(self,  el_def, pos, container, children_list=None, elements=None, layout=None):
+        if elements is None:
+            elements = {}
         el_def = el_def.replace('LS=', 'S=')
         super(LContainer, self).__init__(
             el_def, pos, container=container, elements=elements, layout=layout)
@@ -1123,7 +1139,9 @@ class ScrolledLayout(ScrolledWindow):
 class ScrolledTextView(ScrolledWindow):
     gtkClass = 'GtkScrolledWindow'
 
-    def __init__(self,  el_def, pos, container, children_list=[], elements={}, layout=None):
+    def __init__(self,  el_def, pos, container, children_list=None, elements=None, layout=None):
+        if elements is None:
+            elements = {}
         el_def = el_def.replace('TXS=', 'S=')
         #super(LContainer, self).__init__(el_def, pos, container, elements)
         ScrolledWindow.__init__(
@@ -1138,7 +1156,9 @@ class ScrolledTextView(ScrolledWindow):
 class ScrolledDrawingArea(ScrolledWindow):
     gtkClass = 'GtkScrolledWindow'
 
-    def __init__(self,  el_def, pos, container, children_list=[], elements={}, layout=None):
+    def __init__(self,  el_def, pos, container, children_list=None, elements=None, layout=None):
+        if elements is None:
+            elements = {}
         el_def = el_def.replace('daS=', 'S=')
         #super(LContainer, self).__init__(el_def, pos, container, elements)
         ScrolledWindow.__init__(
@@ -1178,7 +1198,9 @@ class MenuItem(LContainer):
     gtkClass = 'GtkMenuItem'
     parent = 'm'
 
-    def __init__(self,  el_def, pos, container, children_list=[], elements={}, layout=None):
+    def __init__(self,  el_def, pos, container, children_list=None, elements=None, layout=None):
+        if elements is None:
+            elements = {}
         super(MenuItem, self).__init__(el_def, pos, container, [], elements, layout=layout)
         #print "MENU: " + el_def
         ## prepare the names...
@@ -1206,7 +1228,9 @@ class MenuItem(LContainer):
                 child = self._offset_txt(obj.xml(self.gtkClass), 4)
                 txt += "\n<child %s>\n%s\n</child> <!-- closes %s in %s -->\n" % (
                     child_type, child, obj.lw['el_key'], obj.lw['container'])
-        except:
+        except Exception:
+            # children_list may be None/empty or an element may not expose
+            # xml(); silently skip as before but never swallow KeyboardInterrupt.
             pass
         return txt
 
@@ -1320,8 +1344,9 @@ def register(Class, mod, custom=None, force=False):
     'mod' is the string used in layout
     """
     global _W
-    exec("global " + Class.__name__)
-    exec("%s = Class" % (Class.__name__))
+    # In Py3 ``exec("global ...")`` does not touch the module globals, so we
+    # bind the class name directly into this module's namespace.
+    globals()[Class.__name__] = Class
     if mod in _W and not force:
         msg = "Alias %s is already present. Use force=True to force it" % mod
         raise IdentifiedAlreadyPresent(msg)

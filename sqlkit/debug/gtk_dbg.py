@@ -501,7 +501,7 @@ class show_widgets(object):
 
         def enforce_int(x):
             if int(x) in range(8):
-                return int(xx)
+                return int(x)
             else:
                 return ''
 

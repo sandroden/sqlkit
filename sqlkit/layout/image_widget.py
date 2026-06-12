@@ -236,7 +236,7 @@ class ImageWidget(Gtk.Box):
             self.set_image(value)
             self.image_path = value
         elif property.name == 'show-name':
-            self.status_bar.pros.visibile = value
+            self.status_bar.props.visible = value
         elif property.name == 'strip-dir':
             self.status_bar.strip_dir = value
         else:

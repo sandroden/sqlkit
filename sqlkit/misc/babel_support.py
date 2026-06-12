@@ -3,6 +3,8 @@ Babel support. If babel is not present print an explanation.
 If default locale is 'C', set locale to 'en'
 
 """
+import importlib
+
 try:
     import babel
 except ImportError as e:
@@ -21,4 +23,3 @@ if babel.default_locale('LC_TIME') in ('c', 'C', '', None):
     importlib.reload(babel)
 
 from babel import numbers, dates
-import importlib

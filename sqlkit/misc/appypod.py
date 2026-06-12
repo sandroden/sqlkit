@@ -62,11 +62,12 @@ from tempfile import NamedTemporaryFile
 
 import appy.pod
 from appy.pod.converter import Converter
+from appy.pod import PodError
 try:
     from appy.pod.converter import ConverterError
 except ImportError:
     # appy >= 1.0 dropped ConverterError; PodError is the generic replacement.
-    from appy.pod import PodError as ConverterError
+    ConverterError = PodError
 try:
     from appy.shared.utils import executeCommand
 except ImportError:
@@ -80,6 +81,11 @@ logger = logging.getLogger('sqlkit')
 PY_PATH = '/usr/bin/python3'
 # PY_PATH = getattr(settings, 'JMB_OOO_UNO_PYTHON_PATH', None)
 # OOO_PORT = getattr(settings, 'JMB_OOO_SERVER_PORT', 8100)
+OOO_PORT = 8100
+
+# Error messages used by convert() (originally module-level constants in appy)
+CONVERT_ERROR = 'An error occurred while converting the file: %s'
+PY_PATH_NOT_FILE = 'PY_PATH "%s" does not point to an existing file'
 
 class AppyPodTemplate():
 
@@ -128,7 +134,8 @@ class AppyPodTemplate():
                 pythonWithUnoPath=PY_PATH,
             )
             renderer.run()
-        result = open(output, 'rb').read()
+        with open(output, 'rb') as fh:
+            result = fh.read()
         if output and os.path.exists(output):
             os.unlink(output)
         return result
@@ -141,13 +148,19 @@ class AppyPodTemplate():
         :return: the open handler of the generated file
         """
         file_type = os.path.splitext(output_path)[1].lstrip('.')
-        f = open(output_path, 'wb')
-        f.write(self.render(file_type=file_type))
-        f.flush()
-        return f
+        with open(output_path, 'wb') as f:
+            f.write(self.render(file_type=file_type))
+        # The write handle above is closed by the context manager; return a
+        # fresh read handle so the caller still gets an open file object
+        # (kept on the instance so close() can release it).
+        self._handle = open(output_path, 'rb')
+        return self._handle
 
     def close(self):
-        return
+        handle = getattr(self, '_handle', None)
+        if handle is not None and not handle.closed:
+            handle.close()
+        self._handle = None
 
 def convert(name_pattern, result_type='pdf', tree=None):
     """Call LibreOffice in server mode to convert or update the result.
