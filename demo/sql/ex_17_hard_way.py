@@ -7,15 +7,16 @@ will prevent SA from complaining about 2 columns with the same name
 
 """
 
-from sqlalchemy.orm import join, mapper
+from sqlalchemy.orm import registry
 
 class Join(object):
     pass
 
-m = mapper(Join, model.Movie.__table__.join(model.Director.__table__),
-           properties={
-    'movie_id': model.Movie.__table__.c.id
-})
+m = registry().map_imperatively(
+    Join, model.Movie.__table__.join(model.Director.__table__),
+    properties={
+        'movie_id': model.Movie.__table__.c.id
+    })
 
 
 t = SqlTable(m, dbproxy=db)
