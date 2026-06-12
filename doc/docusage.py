@@ -14,9 +14,6 @@ from docutils.parsers.rst import directives
 from docutils.parsers.rst.directives.misc import Include
 # from docutils.parsers.rst.directives.tables import ListTable
 
-import sphinx
-
-
 #---------------------------------------------------------#
 class IncludePyProgramDirective(Include):
   '''
@@ -60,13 +57,11 @@ class IncludePyProgramDirective(Include):
 
     try:
       self.state.document.settings.record_dependencies.add(path)
-      include_file = open(path, 'r+b')
+      with open(path, 'r', encoding='utf-8') as include_file:
+        include_file.read()
     except IOError as error:
       raise self.severe('Problems with "%s" directive path:\n%s: %s.'
                         % (self.name, error.__class__.__name__, error))
-
-    try:
-      include_text = include_file.read()
     except UnicodeError as error:
       raise self.severe(
         'Problem with "%s" directive:\n%s: %s'
@@ -82,15 +77,16 @@ class IncludePyProgramDirective(Include):
   def get_docstring_file(self, path):
     p = Program(path)
     tfd, target_path = tempfile.mkstemp(prefix='sd-')
-    f = open(target_path, 'w')
+    os.close(tfd)
     text = p.docstring
 
-    if 'verbatim' in self.options:
-      f.write('::\n')
-      pat = re.compile('^', re.MULTILINE)
-      text = re.sub(pat, "  ", text )
+    with open(target_path, 'w', encoding='utf-8') as f:
+      if 'verbatim' in self.options:
+        f.write('::\n')
+        pat = re.compile('^', re.MULTILINE)
+        text = re.sub(pat, "  ", text)
 
-    f.write("%s\n" % text)
+      f.write("%s\n" % text)
     return target_path
 
 
@@ -98,12 +94,11 @@ def setup(app):
   '''
   Extension setup, called by Sphinx
   '''
-  app.add_config_value('templates_map', {}, 'html')
-  # Sphinx 5 support
-  if '5' in sphinx.__version__.split('.'):
-    app.add_directive('docusage', IncludePyProgramDirective, 0, (0,0,0))
-  else:
-    app.add_directive('docusage', IncludePyProgramDirective)
+  app.add_directive('docusage', IncludePyProgramDirective)
+  return {
+      'parallel_read_safe': True,
+      'parallel_write_safe': True,
+  }
 
 class Program(object):
 
@@ -115,6 +110,7 @@ class Program(object):
         )
     def __init__(self, filename):
 
-        self.text = open(filename).read()
+        with open(filename, encoding='utf-8') as fh:
+            self.text = fh.read()
         self.docstring = self.DOCSTRING.search(self.text).group('docstring')
     
