@@ -158,7 +158,7 @@ class DjangoParser(object):
             elif eng_name.startswith('mysql'):
                 sql = col.op('REGEXP')(value)
             else:
-                sql = col.ilike("%%%s%%" % value.strip('%'))
+                sql = col.ilike("%%%s%%" % str(value).strip('%'))
 
         elif op_str == 'null':
             sql = col == value  # True | False

@@ -61,8 +61,8 @@ class DbProxy(object):
                                             autoflush=autoflush,
                                             autocommit=autocommit,
                                             )
-                self.Session()  # test if expire_on_commit is accepted
-            except:
+                self.Session().close()  # test if expire_on_commit is accepted
+            except Exception:
                 self.Session = sessionmaker(bind=self.metadata.bind,
                                             autoflush=autoflush,
                                             autocommit=autocommit,
@@ -137,7 +137,7 @@ class DbProxy(object):
 
         for t in tables[1:]:
             if t == '|':
-                mode == 'join'
+                mode = 'join'
                 continue
             elif t == '||':
                 mode = 'outerjoin'
@@ -194,7 +194,7 @@ class DbProxy(object):
             T2_ret = False
             T2 = t2
 
-        if mode == 'outer':
+        if mode in ('outer', 'outerjoin'):
             return T1.outerjoin(T2)
         else:
             return T1.join(T2)
@@ -293,9 +293,8 @@ def get_default_class(table):
     def __repr__(self):
         return "< %s: %s >" % (table.name.title(), str(self))
 
-    if isinstance(table, str):
-        table = self.get_table(name)
-
+    # NB: `table` is always a sqlalchemy.Table here (table.name is used
+    # above), so no string-resolution branch is needed.
     X = type(name, (object,), {'__repr__': __repr__, '__str__': __str__})
 
     return X

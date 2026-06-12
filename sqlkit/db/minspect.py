@@ -127,7 +127,7 @@ class InspectMapper(Container):
         })
         try:
             d['length'] = col.type.length
-        except:
+        except (AttributeError, NotImplementedError):
             d['length'] = None
 
         if isinstance(col, (expression._Label, expression.Function)):
@@ -200,7 +200,7 @@ class InspectMapper(Container):
 
         try:
             d['length'] = mapper.c[field_name].type.length
-        except:
+        except (AttributeError, NotImplementedError):
             d['length'] = None
 
         table_name = getattr(mapper.local_table, 'name', None)
@@ -313,7 +313,7 @@ class InspectMapper(Container):
         try:
             self.n += 1
             r = getattr(self, self.field_list[self.n])
-        except:
+        except (IndexError, AttributeError):
             raise StopIteration
 
         if not r:

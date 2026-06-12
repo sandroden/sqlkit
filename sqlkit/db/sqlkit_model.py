@@ -76,7 +76,7 @@ def get_classes(bind=None, class_=None):
 
     try:
         return SqlkitTable, SqlkitFields
-    except:
+    except NameError:
         if re.match('firebird', bind.name):
             SQLKIT_TABLE = 'sqlkit_table'
             SQLKIT_FIELD = 'sqlkit_field'

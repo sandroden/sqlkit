@@ -620,7 +620,7 @@ class Field(GObject.GObject):
         Return the current value. Look for it in the widget and returns a cleaned value
         """
         if not hasattr(self, 'widget'):
-            return exc.MissingWidget("%s has no defined 'widget' " % self)
+            raise exc.MissingWidget("%s has no defined 'widget' " % self)
         value = self.widget.get_value(shown=shown)
         return self.clean_value(value)
 
@@ -664,7 +664,7 @@ class Field(GObject.GObject):
             except KeyError:
                 pass
             if isinstance(value, ColumnDefault):
-                if not callable(value.arg) and type(value.arg) == self.type:
+                if not callable(value.arg) and isinstance(value.arg, self.type):
                     return value.arg
                 else:
                     ## FIXME: I'm not able to handle this now.
@@ -720,7 +720,7 @@ class Field(GObject.GObject):
 
             except Exception as e:
                 msg = "Field %s could not validate value '%s': error was: %s"
-                raise exc.ValidationError(_(msg % (field_name, e)))
+                raise exc.ValidationError(_(msg) % (self.field_name, value, e))
 
         if value is None and not self.nullable and not self.default:
             raise exc.NotNullableFieldError(self.field_name, master=self.master)
@@ -1377,7 +1377,7 @@ class EnumField(Field):
     def get_value(self, shown=False):
 
         if not hasattr(self, 'widget'):
-            return exc.MissingWidget("%s has no defined 'widget' " % self)
+            raise exc.MissingWidget("%s has no defined 'widget' " % self)
         return self.widget.get_value(shown=shown)
 
 
@@ -1460,7 +1460,7 @@ class ImageField(VarcharField):
 
         """
         if not hasattr(self, 'widget'):
-            return exc.MissingWidget("%s has no defined 'widget' " % self)
+            raise exc.MissingWidget("%s has no defined 'widget' " % self)
         value = self.widget.get_value(shown=shown)
         if value and complete_path:
             value = value if os.path.isabs(value) else os.path.join(self.base_dir, value)
@@ -1742,7 +1742,7 @@ class ForeignKeyField(Field):
             format = get_description(self.table_lookup, attr='format')
             fields = [self.table_lookup.columns[f_name] for f_name in descr_fields]
 
-            sql = select(fields, self.column_lookup == field_value)
+            sql = select(*fields).where(self.column_lookup == field_value)
             try:
                 all = self.table.metadata.bind.execute(sql).fetchall()
             except (sqlalchemy.exc.DBAPIError) as e:
@@ -1822,7 +1822,7 @@ class ForeignKeyField(Field):
     def get_value(self, shown=False):
 
         if not hasattr(self, 'widget'):
-            return exc.MissingWidget("%s has no defined 'widget' " % self)
+            raise exc.MissingWidget("%s has no defined 'widget' " % self)
         value = self.widget.get_value(shown)
         ## a shown value is not to be transformed
         if not shown and value == '' and self.initial_value is None:
@@ -1888,7 +1888,7 @@ class ForeignKeyField(Field):
             except KeyError:
                 pass
             if isinstance(value, ColumnDefault):
-                if not callable(value.arg) and type(value.arg) == self.type:
+                if not callable(value.arg) and isinstance(value.arg, self.type):
                     return value.arg
                 else:
                     ## FIXME: I'm not able to handle this now.

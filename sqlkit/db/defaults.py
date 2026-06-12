@@ -94,13 +94,12 @@ class Defaults(object):
             col = table.columns.get(field_name)
             fkey = col.foreign_keys
             fk_table, fk_col = get_foreign_info(fkey, names=False)
-            s = select([fk_col], getattr(fk_table.c, attr) == value)
-            conn = self.metadata.bind.connect()
-            result = conn.execute(s)
-            row = result.fetchone()
+            s = select(fk_col).where(getattr(fk_table.c, attr) == value)
+            with self.metadata.bind.connect() as conn:
+                row = conn.execute(s).fetchone()
             if row:
                 #tables[self.table_name][field_name] = row[fk_col.name]
-                self.tdict[field_name] = row[fk_col.name]
+                self.tdict[field_name] = row[0]
             else:
                 #tables[self.table_name][field_name] = None
                 self.tdict[field_name] = None
@@ -190,7 +189,10 @@ def unregister_hook(table, nick='default'):
     """
 
     table_name = get_table_name(table)
-    del hooks[table_name]
+    hook_dict = hooks.get(table_name, {})
+    hook_dict.pop(nick, None)
+    if not hook_dict:
+        hooks.pop(table_name, None)
 
 def unregister_layout(table, nick='default'):
     """
@@ -201,7 +203,10 @@ def unregister_layout(table, nick='default'):
     """
 
     table_name = get_table_name(table)
-    del layout_dict[table_name]
+    table_layout_dict = layout_dict.get(table_name, {})
+    table_layout_dict.pop(nick, None)
+    if not table_layout_dict:
+        layout_dict.pop(table_name, None)
 
 def get_hook(table, instance=False, nick='default'):
     """

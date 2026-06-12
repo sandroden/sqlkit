@@ -74,6 +74,9 @@ class InvalidValue(ValidationError):
         self.message = message or _("Field '%s' cannot have value %s") % (
             self.field_name, value)
 
+    def __str__(self):
+        return self.message
+
 class CommitError(ValidationError):
     pass
 class HandledRollback(CommitError):

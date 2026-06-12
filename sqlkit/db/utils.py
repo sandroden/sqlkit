@@ -156,7 +156,7 @@ class Descr(object):
                 format = get_description(self.__table__, attr='format')
 
             return tables[self.__tablename__].format % DictLike(self)
-        except:
+        except Exception:
             return "<%s - %s>" % (self.__class__.__name__, hex(id(self)))
 
     def __getitem__(self, key):
@@ -340,6 +340,7 @@ class TableDescr(object):
         if description:
             return description, format
 
+        field_name = None
         for field_name in list(table.c.keys()):
             if re.search("string|text|char", table.c[field_name].type.__class__.__name__, re.I):
                 break
@@ -403,9 +404,9 @@ def get_description_from_sqlkit(table, metadata=None):
 
     try:
         tbl = table_class.__table__
-        sql = select([tbl.c.search_field, tbl.c.format], tbl.c.name == table.name)
-        res_proxy = metadata.bind.execute(sql)
-        descr = res_proxy.fetchone()
+        sql = select(tbl.c.search_field, tbl.c.format).where(tbl.c.name == table.name)
+        with metadata.bind.connect() as conn:
+            descr = conn.execute(sql).fetchone()
         if not descr:
             descr = None, None
     except (OperationalError, ProgrammingError) as e:  # _sqlkit_table is not defined
@@ -433,11 +434,11 @@ def get_labels_and_tips_from_sqlkit(table, metadata=None, class_=None):
     descr = {}
     try:
         tbl = field_class.__table__
-        sql = select([tbl.c.table_name, tbl.c.name, tbl.c.description, tbl.c.help_text],
-                     tbl.c.table_name == table_name)
-        res_proxy = metadata.bind.execute(sql)
-        for record in res_proxy.fetchall():
-            descr[record.name] = (record.description, record.help_text)
+        sql = select(tbl.c.table_name, tbl.c.name, tbl.c.description, tbl.c.help_text).where(
+            tbl.c.table_name == table_name)
+        with metadata.bind.connect() as conn:
+            for record in conn.execute(sql).fetchall():
+                descr[record.name] = (record.description, record.help_text)
     except (OperationalError, ProgrammingError) as e:
         #_sqlkit_field is not defined
         pass
@@ -563,8 +564,7 @@ def get_fields(table, metadata=None, name=True):
             try:
                 table = Table(table, metadata, autoload=True)
             except Exception as e:
-                e.message = "Missing table: %s" % table
-                raise e
+                raise MissingMetadata("Missing table: %s" % table) from e
         if name:
             return list(table.c.keys())
         else:
