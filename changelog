@@ -1,4 +1,36 @@
-sqlkit - 0.9.8 - GTK3 / Python 3 port - In progress
+sqlkit - 1.1.0 - SQLAlchemy 2.x support - Jun 2026
+
+	* SQLAlchemy: dual support for 1.4 and 2.x (pin widened to
+	  ``sqlalchemy>=1.4,<3``). Removed APIs replaced with forms that
+	  work on both: ``autoload_with`` reflection, explicit connection
+	  execution, ``registry.map_imperatively`` instead of classical
+	  ``orm.mapper()`` (compat helpers in ``sqlkit.db.sacompat``).
+	  ``metadata.bind`` is kept as an informal engine-carrier
+	  attribute; URL strings passed to ``DbProxy`` are coerced to
+	  engines explicitly.
+
+	* widgets: colour highlighting (yellow NOT NULL background, navy
+	  fkey labels, DateEdit flash) reimplemented with Gtk.CssProvider:
+	  the GTK2-era modify_base/modify_text calls were silently ignored
+	  by GTK3 CSS themes.
+
+	* fix: SqlWidget.commit() error handler referenced the
+	  non-existent ``sqlalchemy.exc.FlushError``, masking the real
+	  error on the first integrity violation.
+
+	* many bug fixes from a full code review of the Python 3 / GTK3
+	  port (join modes in DbProxy, InspectMapper with relationships,
+	  csv export, calendar popup, completion, see git history).
+
+	* tests: new pytest suite (177 tests, sqlite in-memory by default,
+	  any backend via ``SQLKIT_TEST_DB_URL``, GTK tests behind the
+	  ``gtk`` marker under xvfb); validated on PostgreSQL 16 with both
+	  SQLAlchemy versions.
+
+	* docs rebuilt with pydata-sphinx-theme; packaging modernised
+	  (PEP 639, compiled locales in the wheel).
+
+sqlkit - 1.0.0 - GTK3 / Python 3 port - Jun 2026
 
 	Backward incompatibilities
 	--------------------------

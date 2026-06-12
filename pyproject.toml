@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sqlkit"
-version = "1.0.0"
+version = "1.1.0"
 description = "GUI to edit databases. Many backends supported (Postgres, Sqlite, MySQL, ...). Based on Python, GTK3, SQLAlchemy."
 readme = { file = "README", content-type = "text/x-rst" }
 requires-python = ">=3.10"
