@@ -199,8 +199,14 @@ class InspectMapper(Container):
         }
 
         try:
+            # field_name here is a *relationship* key, so it is normally NOT a
+            # column of the mapper: mapper.c[field_name] raises KeyError.  The
+            # py2 original used a bare ``except:`` and relied on this to set
+            # length=None; the porting (commit narrowing bare excepts) dropped
+            # KeyError, which made InspectMapper crash on any mapper carrying a
+            # relationship.  Catch KeyError again to restore that behaviour.
             d['length'] = mapper.c[field_name].type.length
-        except (AttributeError, NotImplementedError):
+        except (AttributeError, NotImplementedError, KeyError):
             d['length'] = None
 
         table_name = getattr(mapper.local_table, 'name', None)
@@ -236,8 +242,14 @@ class InspectMapper(Container):
         return False
 
     def __getitem__(self, item):
-        #print "item", item, type(item)
-        return getattr(self, str(item))
+        # Field dicts are stored in the ``self.fields`` Container (via
+        # add_element), not as attributes on the InspectMapper instance.  The
+        # original design stored them directly on ``self`` (setattr(self,...))
+        # so ``getattr(self, item)`` used to work; when storage moved to
+        # ``self.fields`` this lookup was never updated, leaving __getitem__
+        # (and table_fields/prop_fields built on it) broken.  Look them up
+        # where they actually live.
+        return self.fields[str(item)]
 
     def __len__(self):
         return len(self.field_list)

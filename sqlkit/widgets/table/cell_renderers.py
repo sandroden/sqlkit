@@ -58,7 +58,11 @@ class CellEditableCalendar(Gtk.TextView, Gtk.CellEditable):
 
         req = popup.size_request()
         popup_width, popup_height = req.width, req.height
-        x, y = Gdk.Window.get_origin(widget.get_window())
+        # GTK3's Gdk.Window.get_origin() returns (ok, x, y) — a 3-tuple — while
+        # the GTK2/PyGTK API returned just (x, y).  pygi-convert.sh renamed the
+        # call but left the 2-value unpacking, which raised ValueError when the
+        # calendar popup opened.  Unpack the leading success flag explicitly.
+        _ok, x, y = Gdk.Window.get_origin(widget.get_window())
 
         # path, col, x1, y1 = widget.get_path_at_pos(event.x, event.y)
         # ca = widget.get_cell_area(path, col)

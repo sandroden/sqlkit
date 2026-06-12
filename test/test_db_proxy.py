@@ -72,19 +72,22 @@ def test_get_mapper_string_inner_join(dbproxy):
     assert m.local_table.isouter is False
 
 
-@pytest.mark.parametrize("spec", ["films | registi", "films || registi"])
-def test_known_bug_get_mapper_string_pipe_separator(dbproxy, spec):
-    """Document a bug: '|' / '||' don't work in the *string* form of get_mapper.
+def test_get_mapper_string_single_pipe_inner(dbproxy):
+    """'|' in the string form selects an inner join (as documented)."""
+    m = dbproxy.get_mapper(None, "films | registi")
+    assert m.local_table.isouter is False
 
-    get_mapper inserts spaces around the pipes then splits the string and
-    feeds EVERY token to get_table(); the '|' / '||' tokens are looked up as
-    table names and raise NoSuchTableError.  The outer/inner-join selection
-    only works through the *list* form (see join_tables tests above).
+
+def test_get_mapper_string_double_pipe_outer(dbproxy):
+    """'||' in the string form selects an outer join (as documented).
+
+    get_mapper used to feed the '|' / '||' tokens to get_table(), which looked
+    them up as table names and raised NoSuchTableError.  The pipe tokens are
+    now preserved as join-mode separators for join_tables, so the documented
+    outer-join string form works exactly like the list form.
     """
-    from sqlalchemy.exc import NoSuchTableError
-
-    with pytest.raises(NoSuchTableError):
-        dbproxy.get_mapper(None, spec)
+    m = dbproxy.get_mapper(None, "films || registi")
+    assert m.local_table.isouter is True
 
 
 def test_get_mapper_passthrough(dbproxy, metadata):

@@ -255,3 +255,46 @@ def test_finding11_pop_menu_uses_master_widgets():
     src = _read(os.path.join("widgets", "common", "completion.py"))
     assert "self.master.widgets['M=popup'].destroy()" in src
     assert "self.w['M=popup'].destroy()" not in src
+
+
+# ---------------------------------------------------------------------------
+# Finding 1 (runtime): CellEditableCalendar.position_popup unpacked
+# Gdk.Window.get_origin() into two names, but GTK3 returns a 3-tuple
+# (ok, x, y).  Opening the calendar popup therefore raised
+# ``ValueError: too many values to unpack``.  Drive the real method against a
+# realized widget and assert it positions the popup without raising.
+#
+# This live GTK test lives here (not in test/bugfixes/) on purpose: importing
+# and instantiating the widget stack early perturbs the import order that the
+# legacy GTK smoke suite depends on; test/bugfixes_widgets is already the home
+# of GTK widget tests and is collected after that ordering is established.
+# ---------------------------------------------------------------------------
+def test_finding1_position_popup_unpacks_three_tuple_origin():
+    gi = pytest.importorskip("gi")
+    gi.require_version("Gtk", "3.0")
+    gi.require_version("Gdk", "3.0")
+    from gi.repository import Gdk, Gtk
+
+    from sqlkit.widgets.table.cell_renderers import CellEditableCalendar
+
+    host = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
+    host.set_default_size(200, 200)
+    host.show_now()
+    while Gtk.events_pending():
+        Gtk.main_iteration()
+
+    assert host.get_window() is not None
+    # GTK3 really does return three values here.
+    assert len(Gdk.Window.get_origin(host.get_window())) == 3
+
+    popup = Gtk.Window(type=Gtk.WindowType.POPUP)
+    popup.add(Gtk.Calendar())
+
+    class _Area:
+        x, y, width, height = 5, 7, 30, 18
+
+    # unbound call: skips the heavy __init__, exercises only position_popup.
+    CellEditableCalendar.position_popup(object(), host, popup, _Area())
+
+    host.destroy()
+    popup.destroy()

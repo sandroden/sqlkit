@@ -114,7 +114,13 @@ class DbProxy(object):
         elif not isinstance(tables, list):
             tables = re.sub(r"(\|\|?)", r" \1 ", tables)
             tables = re.split('[ ,]+', tables)
-            tables = [self.get_table(tbl) for tbl in tables]
+            # Keep the '|' / '||' tokens as join-mode separators (join_tables
+            # interprets them); only the real names are resolved to Tables.
+            # Feeding the pipes to get_table() looked them up as table names
+            # and raised NoSuchTableError, so the documented outer-join string
+            # form ("films || registi") never worked.
+            tables = [tbl if tbl in ('|', '||') else self.get_table(tbl)
+                      for tbl in tables if tbl]
 
         if len(tables) == 1:
             return table2mapper(tables[0])

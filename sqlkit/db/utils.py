@@ -170,11 +170,9 @@ class Tables(Container):
         try:
             return getattr(self, key)
         except AttributeError:
-            try:
-                table = TableDescr(key, metadata=db.metadata)
-                return table
-            except Exception as e:
-                raise MissingMetadata("No metadata defined in sqlkit.db.utils")
+            # no module-level metadata exists to autoload a TableDescr from:
+            # a description must be registered explicitly (TableDescr(...))
+            raise MissingMetadata("No metadata defined in sqlkit.db.utils")
 
 
 tables = Tables()
@@ -249,10 +247,13 @@ class TableDescr(object):
 
 
         """
+        # 'global tables' here would apply to the whole function, so the
+        # register=False branch used to rebind the module registry to a
+        # plain dict, wiping every registered description
         if register:
-            global tables
+            registry = tables
         else:
-            tables = {}
+            registry = {}
 
         if isinstance(table, Table):
             self.table = table
@@ -268,7 +269,7 @@ class TableDescr(object):
         self.table_name = table_name
         self.metadata = metadata
 
-        tables[table_name] = self
+        registry[table_name] = self
 
         self.description, dbformat = self.guess_description()
 

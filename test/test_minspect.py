@@ -77,36 +77,27 @@ def test_contains_and_len(info):
 
 
 def test_field_dicts_via_fields_container(info):
-    # The correct way to reach a field dict is info.fields[name].
-    # NOTE: info[name] / info.table_fields() are BROKEN for this mapper, see
-    # test_known_bug_getitem_and_table_fields below.
+    # Both info.fields[name] and info[name] reach the field dict.
     assert info.fields["integer"]["table_name"] == "all_types"
 
 
-def test_known_bug_getitem_and_table_fields(info):
-    """Document a latent bug in InspectMapper.
+def test_getitem_and_table_fields(info):
+    """``__getitem__`` and ``table_fields`` return field metadata.
 
-    InspectMapper.__getitem__ (minspect.py:240) does ``getattr(self, item)``,
-    but per-field dicts are stored in ``self.fields`` (a Container), not as
-    attributes on the InspectMapper instance.  Therefore ``info[name]`` and
-    everything relying on it (``table_fields``, ``prop_fields``) raise
-    AttributeError.  Use ``info.fields[name]`` instead.
+    Field dicts are stored in ``self.fields`` (a Container).  The original
+    design stored them directly on the InspectMapper instance, so
+    ``__getitem__`` did ``getattr(self, item)``; when storage moved to
+    ``self.fields`` the lookup was never updated and ``info[name]`` (plus
+    ``table_fields`` / ``prop_fields`` built on it) broke.  __getitem__ now
+    looks the dict up in ``self.fields``, restoring the original semantics.
     """
-    with pytest.raises(AttributeError):
-        info["integer"]
-    with pytest.raises(AttributeError):
-        info.table_fields("all_types")
+    assert info["integer"]["table_name"] == "all_types"
+    assert info["integer"] is info.fields["integer"]
+    assert set(info.table_fields("all_types")) == set(info.field_list)
 
 
 def test_foreign_key_column_detected(models):
-    """FK detection at the *column* level.
-
-    A mapper carrying *relationship* properties (e.g. Film.regista) cannot be
-    introspected: InspectMapper._add_loader_field crashes at minspect.py:202
-    with ``mapper.c[<relation_key>]`` (KeyError).  See
-    test_minspect_relationship_property_crashes.  So we build an explicitly
-    relationship-free mapper to verify FK metadata of the column.
-    """
+    """FK detection at the *column* level."""
     from sqlalchemy import Column, ForeignKey, Integer, String
     from sqlalchemy.orm import declarative_base
 
@@ -130,13 +121,23 @@ def test_foreign_key_column_detected(models):
     assert not info.fields["year"]["fkey"]
 
 
-def test_minspect_relationship_property_crashes(models):
-    """Regression-lock: a mapper with relationship props is not handled.
+def test_minspect_handles_relationship_property(models):
+    """A mapper with relationship props is introspected without crashing.
 
-    This currently raises KeyError at minspect.py:202.  If sqlkit later fixes
-    _add_loader_field this test will fail and should be updated.
+    ``_add_loader_field`` looks up ``mapper.c[<relation_key>]`` to read the
+    column length; a relationship key is not a column, so that lookup raises
+    KeyError.  The py2 original caught it with a bare ``except:`` (length=None);
+    the porting narrowed the except and dropped KeyError, making InspectMapper
+    crash on any relationship.  KeyError is caught again, so this now works and
+    the relationship is registered as a *loader* field.
     """
     from sqlkit.db.minspect import InspectMapper
 
-    with pytest.raises(KeyError):
-        InspectMapper(models.Film.__mapper__)
+    info = InspectMapper(models.Film.__mapper__)
+    assert "regista" in info.field_list
+    assert info.is_loader("regista")
+    # the loader carries no column length and is editable metadata
+    assert info.fields["regista"]["length"] is None
+    # plain columns still introspect correctly alongside the relationship
+    assert info.fields["title"]["table_name"] == "films"
+    assert info.is_fkey("regista_id")
