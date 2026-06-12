@@ -1708,7 +1708,7 @@ class SqlTable(sqlwidget.SqlWidget):
             for f in field_list:
                 try:
                     value = getattr(obj, f)
-                except:
+                except AttributeError:
                     value = self.gui_fields[f].clean_value(obj)
                 row += [self.gui_fields[f].get_human_value(value)]
             ret += [row]
@@ -1815,7 +1815,7 @@ class ExportDialog(dialogs.SaveDialog):
         import csv
 
         filename = self.dialog.get_filename()
-        f = open(filename, "wb")
+        f = open(filename, "w", newline="")
         writer = csv.writer(f, dialect=self.DIALECT,
                             delimiter=self.DELIMITER,
                             quoting=self.QUOTE or csv.QUOTE_MINIMAL)

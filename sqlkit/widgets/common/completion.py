@@ -43,7 +43,7 @@ import sqlkit
 from sqlkit import debug as dbg, _, exc
 from sqlkit.db.proxy import table2mapper
 from sqlkit.db.utils import tables, get_description, DictLike
-from sqlkit.db.django_syntax import django2query
+from sqlkit.db.django_syntax import django2query, django2sqlalchemy
 from sqlkit.db import utils
 from sqlkit.debug.sql import debug_inline_params
 
@@ -193,7 +193,7 @@ class SimpleCompletion(GObject.GObject, metaclass=None if not dbg.debug else dbg
             else:
                 self.query = self.query.add_column(group_column)   # SqlAlchemy 0.5
             if self.filtered_query:
-                self.filtered_query = self.filtered_query.add_columns(grup_column)
+                self.filtered_query = self.filtered_query.add_columns(group_column)
 
         self._group_by = field_name
         self._order_by = [self.table.columns[f] for f in [field_name, self.description]]
@@ -521,7 +521,7 @@ class SimpleCompletion(GObject.GObject, metaclass=None if not dbg.debug else dbg
         as parameter
         """
         if not callable(values):
-            sorted(values)
+            values = sorted(values)
 
         self.possible_values = values
 
@@ -551,9 +551,9 @@ class SimpleCompletion(GObject.GObject, metaclass=None if not dbg.debug else dbg
         ## FIXME: pretty stupid at the moment...
         if self.mode == 'start':
             oper = self.MATCH_OPERATOR
-        if self.mode == 'regexp':
+        elif self.mode == 'regexp':
             oper = self.MATCH_OPERATOR
-        if self.mode == 'exact':
+        elif self.mode == 'exact':
             oper = '='
         else:
             oper = self.MATCH_OPERATOR
@@ -635,8 +635,8 @@ class SimpleCompletion(GObject.GObject, metaclass=None if not dbg.debug else dbg
             return False
 
         try:
-            self.w['M=popup'].destroy()
-        except:
+            self.master.widgets['M=popup'].destroy()
+        except (KeyError, AttributeError):
             pass
 
         self.master.widgets['M=popup'] = Gtk.Menu()
@@ -1150,9 +1150,14 @@ class EnumCompletion(SimpleCompletion):
         self.completion.set_model(self.model)
 
         if one and mode == 'exact':  # used by self.check_existance
-            ## just one result will be returned even if no check is done that more that one exists
-            # I'm not sure that obj is *always* defined!... I believe so!
-            return DictLike(obj)
+            ## just one result will be returned even if no check is done that more that one exists.
+            ## Mirror the SimpleCompletion contract returning a DictLike: here the loop
+            ## yields (idx, text) pairs (not db rows), so wrap the last matched pair.
+            ## If the loop body never ran (no values) idx/text are undefined: return None.
+            try:
+                return DictLike(utils.ObjLike({'value': idx, 'text': text}))
+            except (UnboundLocalError, NameError):
+                return
 
         if pop:
             self.make_completion_to_pop(self.get_entry())

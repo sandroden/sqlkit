@@ -117,9 +117,9 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
                  class_=None,
                  join=None,
                  ro=False,
-                 noup=[],
+                 noup=None,
                  sql=None,
-                 constraint={},
+                 constraint=None,
                  dbproxy=None,
                  order_by=None,
                  limit=200,
@@ -733,7 +733,8 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
                         GLib.idle_add(self.lay_obj.sb, text, seconds)
                     else:
                         self.lay_obj.sb(text, seconds=seconds)
-                except Exception as e:
+                except AttributeError as e:
+                    ## lay_obj may be missing/deleted: status bar is best-effort
                     #print e, vars(e)
                     pass
         except AttributeError as e:
@@ -2038,7 +2039,7 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
         try:
             if self.laygen.fields_in_layout[field_name].startswith('TX'):
                 return True
-        except:
+        except (KeyError, AttributeError):
             pass
         try:
             return self.mapper_info.is_text(field_name)

@@ -156,15 +156,15 @@ class OpenDialog(SaveDialog):
         oozip = zipfile.ZipFile(filename, 'r')
         thumb = oozip.read('Thumbnails/thumbnail.png')
         fh, fname = tempfile.mkstemp(suffix='.png', prefix='thumb-')
-        f = open(fname, 'w')
-        f.write(thumb)
-        f.close()
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file(fname)
-        preview.set_from_pixbuf(pixbuf)
-        file_chooser.set_preview_widget_active(True)
-
+        ## thumb is bytes: wrap the fd returned by mkstemp in binary mode so we
+        ## neither open a second file descriptor nor try to write bytes to a
+        ## text-mode stream (which raised TypeError under Py3).
+        with os.fdopen(fh, 'wb') as f:
+            f.write(thumb)
         try:
-            os.close(fh)
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file(fname)
+            preview.set_from_pixbuf(pixbuf)
+            file_chooser.set_preview_widget_active(True)
         finally:
             os.remove(fname)
 

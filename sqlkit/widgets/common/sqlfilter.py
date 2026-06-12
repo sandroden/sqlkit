@@ -1008,7 +1008,7 @@ class FilterFKeyTool(FilterTool):
     def get_suitable_operators(self):
 
         if self.bind_name.startswith('postgres'):
-            return ['~*', '~', '!~*', '~*'] + self.STD_OPERATORS + ['ID']
+            return ['~*', '~', '!~*', '!~'] + self.STD_OPERATORS + ['ID']
 
         elif self.bind_name.startswith('mysql'):
             return ['REGEXP'] + self.STD_OPERATORS + ['ID']

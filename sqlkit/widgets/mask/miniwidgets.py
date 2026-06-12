@@ -487,7 +487,7 @@ class IntervalWidget(Widget):
         ## if all values are 0 and initial value is None, return None
 
         value = self.gtkwidget.get_property('interval')
-        if value == timedelta(0) and self.field.initial_value == None:
+        if value == timedelta(0) and self.field.initial_value is None:
             return None
         return value
 
@@ -611,7 +611,7 @@ class BooleanNullWidget(BooleanWidget):
 
     def set_value(self, value, initial=False):
 
-        if value == None:
+        if value is None:
             self.gtkwidget.set_inconsistent(True)
         else:
             ## This is needed to work around the fact that set_active(...) triggers
@@ -799,7 +799,7 @@ class ForeignKeyComboboxWidget(Widget):
         that is the value we want to show
         """
         display_value = self.field.lookup_value(value)
-        if value == None:
+        if value is None:
             if self.field.type == str:
                 value = ''
 

@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from gi.repository import Gdk
 from gi.repository import Gtk
 from gi.repository import GObject
 from gi.repository import Pango
@@ -57,7 +58,7 @@ class CellEditableCalendar(Gtk.TextView, Gtk.CellEditable):
 
         req = popup.size_request()
         popup_width, popup_height = req.width, req.height
-        x, y = Gdk.Window.get_origin(widget.window)
+        x, y = Gdk.Window.get_origin(widget.get_window())
 
         # path, col, x1, y1 = widget.get_path_at_pos(event.x, event.y)
         # ca = widget.get_cell_area(path, col)
