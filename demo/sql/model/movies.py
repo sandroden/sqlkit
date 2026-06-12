@@ -3,10 +3,10 @@ import tempfile
 import atexit
 import shutil
 
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy import Table, Column, ForeignKey
 from sqlalchemy.types import *
-from sqlalchemy.orm import relation, backref
+from sqlalchemy.orm import relationship, backref
 
 from sqlkit.db.utils import Descr
 from sqlkit.db import proxy
@@ -42,7 +42,7 @@ class Director(Base):
     first_name = Column(String(60), nullable=False)
     nation = Column(String(6))
 
-    movies = relation('Movie', backref='director', cascade='all, delete-orphan',)
+    movies = relationship('Movie', backref='director', cascade='all, delete-orphan',)
 
     def __str__(self):
         return '%s (%s)' % (self.last_name, self.nation)
@@ -65,8 +65,8 @@ class Movie(Base):
     score = Column(Integer, info={'render': 'enum',
                                   'values': SCORE_VALUES})
 
-    actors = relation('Actor', backref='movies', secondary=movie_casting)
-    genres = relation('Genre', backref='movies', secondary=movie_genre)
+    actors = relationship('Actor', backref='movies', secondary=movie_casting)
+    genres = relationship('Genre', backref='movies', secondary=movie_genre)
 
     def __str__(self):
         return '%s' % self.title
@@ -89,7 +89,7 @@ class Actor(Base):
     last_name = Column(String(60))
     nation_cod = Column(String(4), ForeignKey('nation.cod'))
 
-    nation = relation('Nation', backref='actors')
+    nation = relationship('Nation', backref='actors')
 
     def __repr__(self):
         return '<Actor %s %s>' % (self.first_name, self.last_name)
