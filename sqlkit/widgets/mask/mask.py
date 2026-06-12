@@ -27,10 +27,11 @@ from sqlalchemy.orm.exc import ObjectDeletedError
 
 import sqlkit
 from sqlkit import debug as dbg, exc, _, layout, fields
-from sqlkit.widgets.common import completion, sqlwidget
+from sqlkit.widgets.common import completion, sqlwidget, css_utils
 
-FK_COLOR = Gdk.color_parse('navyblue')
-LBL_HOOVER_STYLE = Gdk.color_parse('red')
+# Kept as plain strings: they map directly onto CSS colours.
+FK_COLOR = 'navy'
+LBL_HOOVER_STYLE = 'red'
 
 class SqlMask(sqlwidget.SqlWidget, metaclass=None if not dbg.debug else dbg.LogTheMethods):
 
@@ -115,15 +116,17 @@ class SqlMask(sqlwidget.SqlWidget, metaclass=None if not dbg.debug else dbg.LogT
 
                 ev_wdg.connect('enter-notify-event', ene_cb)
                 ev_wdg.connect('leave-notify-event', lne_cb)
-                lbl.modify_fg(Gtk.StateType.PRELIGHT, LBL_HOOVER_STYLE)
 
-                ## label FK_COLOR to tell it's a foreign key
-                if self.mapper_info.fields[field_name]['fkey']:
-                    #dbg.write("FK", field_name)
-                    self.labels[field_name].modify_fg(Gtk.StateType.NORMAL, FK_COLOR)
-                else:
-                    #dbg.write("NO", field_name)
-                    pass
+                ## foreign-key labels are coloured to signal the relation;
+                ## every label turns red on hover (:hover pseudo-class, fed by
+                ## the PRELIGHT state flag toggled above).
+                is_fkey = self.mapper_info.fields[field_name]['fkey']
+                css = 'label:hover { color: %s; }' % css_utils.color_to_css(
+                    LBL_HOOVER_STYLE)
+                if is_fkey:
+                    css = 'label { color: %s; } %s' % (
+                        css_utils.color_to_css(FK_COLOR), css)
+                css_utils.apply_css(lbl, 'lblcolor', css)
 
     def _add_tips(self):
         """

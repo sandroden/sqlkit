@@ -54,7 +54,6 @@ COLUMN_MENU = '''
 '''
 
 
-LBL_HOOVER_STYLE = Gdk.color_parse('red')
 class GenericColumn(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogTheMethods):
     RENDERER = Gtk.CellRendererText
     RESIZE = True

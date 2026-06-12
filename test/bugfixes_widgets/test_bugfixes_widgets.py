@@ -298,3 +298,114 @@ def test_finding1_position_popup_unpacks_three_tuple_origin():
 
     host.destroy()
     popup.destroy()
+
+
+# ---------------------------------------------------------------------------
+# Color highlighting migrated from Gtk2 modify_base/modify_text/modify_fg to
+# Gtk3 CssProvider.  With modern themes the old calls were silently ignored, so
+# the not-null background (yellow) and the not-editable text colour were lost.
+#
+# We assert on the *style context*: the computed background colour of a NOT
+# NULL entry must be the NOT_NULL_COLOR (#f6ebba), regardless of theme, because
+# the CssProvider is installed at STYLE_PROVIDER_PRIORITY_APPLICATION.  This is
+# theme- and rendering-backend independent (no pixel sampling needed).
+# ---------------------------------------------------------------------------
+@pytest.mark.gtk
+def test_not_null_highlight_active_via_css():
+    gi = pytest.importorskip("gi")
+    gi.require_version("Gtk", "3.0")
+    gi.require_version("Gdk", "3.0")
+    from gi.repository import Gtk
+
+    from sqlalchemy import Column, Integer, String, ForeignKey, create_engine
+    from sqlalchemy.orm import declarative_base
+
+    from sqlkit.db import proxy
+    from sqlkit.widgets import SqlMask
+    from sqlkit.widgets.mask import miniwidgets
+
+    Base = declarative_base()
+
+    class NNParent(Base):
+        __tablename__ = "nn_parent"
+        id = Column(Integer, primary_key=True)
+        name = Column(String(40))
+
+    class NNChild(Base):
+        __tablename__ = "nn_child"
+        id = Column(Integer, primary_key=True)
+        # NOT NULL plain field -> must get the yellow not-null background
+        title = Column(String(60), nullable=False)
+        descr = Column(String(60))  # nullable -> must NOT be highlighted
+        parent_id = Column(Integer, ForeignKey("nn_parent.id"), nullable=False)
+
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    db = proxy.DbProxy(engine=engine, metadata=Base.metadata)
+
+    sm = SqlMask(NNChild, dbproxy=db, show=False)
+
+    # The NOT NULL entry carries our application-priority CssProvider...
+    title_entry = sm.gui_fields["title"].widget.gtkwidget
+    assert getattr(title_entry, "_sk_css_provider_bg", None) is not None, (
+        "NOT NULL entry must carry a CSS provider for its background"
+    )
+
+    # ...and its *computed* background equals NOT_NULL_COLOR (#f6ebba).
+    from sqlkit.widgets.common import css_utils
+    expected = css_utils.color_to_css(miniwidgets.NOT_NULL_COLOR)  # '#f6ebba'
+    er, eg, eb = (int(expected[1:3], 16), int(expected[3:5], 16),
+                  int(expected[5:7], 16))
+    rgba = title_entry.get_style_context().get_background_color(
+        Gtk.StateFlags.NORMAL)
+    # RGBA channels are 0..1 floats; scale to 0..255 and allow a tiny rounding
+    # tolerance.
+    gr, gg, gb = round(rgba.red * 255), round(rgba.green * 255), round(rgba.blue * 255)
+    assert all(abs(got - exp) <= 2 for got, exp in
+               ((gr, er), (gg, eg), (gb, eb))), (
+        "NOT NULL entry background %s != expected %s" % ((gr, gg, gb), (er, eg, eb))
+    )
+
+    # A nullable field must NOT carry the not-null background provider.
+    descr_entry = sm.gui_fields["descr"].widget.gtkwidget
+    assert getattr(descr_entry, "_sk_css_provider_bg", None) is None, (
+        "nullable entry must not be highlighted as not-null"
+    )
+
+
+@pytest.mark.gtk
+def test_set_bg_accepts_arbitrary_color_string_and_resets():
+    """set_bg keeps its public signature and still accepts arbitrary colours."""
+    gi = pytest.importorskip("gi")
+    gi.require_version("Gtk", "3.0")
+    from gi.repository import Gtk
+
+    from sqlalchemy import Column, Integer, String, create_engine
+    from sqlalchemy.orm import declarative_base
+
+    from sqlkit.db import proxy
+    from sqlkit.widgets import SqlMask
+
+    Base = declarative_base()
+
+    class Plain(Base):
+        __tablename__ = "plain_bg"
+        id = Column(Integer, primary_key=True)
+        name = Column(String(40))  # nullable: starts un-highlighted
+
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    db = proxy.DbProxy(engine=engine, metadata=Base.metadata)
+
+    sm = SqlMask(Plain, dbproxy=db, show=False)
+    w = sm.gui_fields["name"].widget
+
+    # arbitrary colour string (the documented public behaviour)
+    w.set_bg(state=Gtk.StateType.NORMAL, color="#00ff00")
+    ctx = w.gtkwidget.get_style_context()
+    rgba = ctx.get_background_color(Gtk.StateFlags.NORMAL)
+    assert round(rgba.green * 255) >= 250 and round(rgba.red * 255) <= 5
+
+    # reset clears the provider
+    w.set_bg(state=Gtk.StateType.NORMAL, color=None)
+    assert getattr(w.gtkwidget, "_sk_css_provider_bg", None) is None

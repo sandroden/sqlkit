@@ -102,7 +102,9 @@ Colors
 You can change default color for not nullable object globally::
 
   from sqlkit.widgets.mask import miniwidgets
-  miniwidgets.NOT_NULL_COLOR = Gdk.color_parse('green')
+  miniwidgets.NOT_NULL_COLOR = 'green'   # any CSS/X11 name or '#rrggbb'
+
+(a :class:`Gdk.Color` is still accepted for backward compatibility).
 
 You can change the foreground of unsensitive widgets setting NOT_EDITABLE_COLOR
 
@@ -137,9 +139,13 @@ from gi.repository import GLib
 
 from sqlkit import debug as dbg, _, exc
 from sqlkit.widgets.common.completion import SimpleCompletion, FkeyCompletion
+from sqlkit.widgets.common import css_utils
 
-NOT_NULL_COLOR = Gdk.color_parse('#f6ebba')
-NOT_EDITABLE_COLOR = Gdk.color_parse('#333')
+# Colours kept as plain strings so they map directly onto CSS (and remain
+# overridable as documented).  Gdk.Color values are still accepted for
+# backward compatibility (see css_utils.color_to_css).
+NOT_NULL_COLOR = '#f6ebba'
+NOT_EDITABLE_COLOR = '#333'
 
 
 class Widget(GObject.GObject):
@@ -181,15 +187,34 @@ class Widget(GObject.GObject):
             if self.field.editable:
                 self.set_bg(state=Gtk.StateType.NORMAL, color=NOT_NULL_COLOR)
         else:
-            ctx = Gtk.Entry().get_style_context()
-            color = ctx.get_background_color(Gtk.StateType.NORMAL)
-            self.set_bg(state=Gtk.StateType.NORMAL, color=color)
+            # reset: drop the not-null background, let the theme paint again
+            self.set_bg(state=Gtk.StateType.NORMAL, color=None)
 
     def set_bg(self, state, color):
-        self.gtkwidget.modify_base(state, color)
+        """Set the widget background (CSS).  ``color=None`` clears it.
+
+        ``state`` is accepted for backward compatibility; with Gtk3 CSS the
+        not-null background is applied to the normal state of the widget.
+        ``color`` may be a string (CSS/X11 name or ``#rrggbb``) or a
+        :class:`Gdk.Color`.
+        """
+        # Composite widgets (DateEdit) expose an inner entry through
+        # ``_date_entry``; colour that so the not-null background is visible.
+        target = getattr(self.gtkwidget, '_date_entry', self.gtkwidget)
+        css_utils.set_background(target, color)
 
     def set_text(self, state, color):
-        self.gtkwidget.modify_text(state, color)
+        """Set the widget text/foreground colour (CSS).
+
+        ``color=None`` clears it.  When ``state`` is ``INSENSITIVE`` the colour
+        is applied to the disabled state only (preserving the previous
+        semantics of greying out non-editable widgets); otherwise it applies to
+        the normal text colour.  ``color`` may be a string or a
+        :class:`Gdk.Color`.
+        """
+        target = getattr(self.gtkwidget, '_date_entry', self.gtkwidget)
+        css_utils.set_text_color(target, color,
+                                 disabled_only=(state == Gtk.StateType.INSENSITIVE))
 
     def set_value_cb(self, field, value, initial=False):
 

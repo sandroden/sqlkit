@@ -51,6 +51,9 @@ from gi.repository import Gdk
 from babel import dates
 
 from sqlkit import _
+# NB: css_utils is imported lazily inside the methods that need it to avoid a
+# package import cycle (sqlkit.widgets.__init__ pulls SqlMask/SqlTable, which
+# import sqlkit.layout while it is still initialising this very module).
 
 class WrongDateFormat(Exception):
     pass
@@ -213,15 +216,23 @@ class DateEdit(Gtk.Box):
         """
         flash background color for seconds to warn for wrong date format
         """
-        colormap = entry.get_colormap()
-        base_color = colormap.alloc_color(color)
-        entry.override_background_color(Gtk.StateType.NORMAL, base_color)
+        from sqlkit.widgets.common import css_utils
+        css_utils.set_background(entry, color)
 
-        GLib.timeout_add(1000 * seconds, entry.override_background_color,
-                            Gtk.StateType.NORMAL, self._default_base)
+        def _restore():
+            css_utils.set_background(entry, self._default_base)
+            return False
+
+        GLib.timeout_add(1000 * seconds, _restore)
 
     def modify_base(self, state, color):
-        self._date_entry.override_background_color(state, color)
+        """Set the date entry background (CSS).  ``color=None`` clears it.
+
+        ``state`` is accepted for backward compatibility.  ``color`` may be a
+        string or a :class:`Gdk.Color`.
+        """
+        from sqlkit.widgets.common import css_utils
+        css_utils.set_background(self._date_entry, color)
         self._default_base = color
 
 #####  callback
@@ -258,7 +269,8 @@ class DateEdit(Gtk.Box):
         except Exception as e:
             print(e)
             return False
-        entry.override_background_color(Gtk.StateType.NORMAL, self._default_base)
+        from sqlkit.widgets.common import css_utils
+        css_utils.set_background(entry, self._default_base)
         return False
 
     def date_button_clicked_cb(self, widget):
