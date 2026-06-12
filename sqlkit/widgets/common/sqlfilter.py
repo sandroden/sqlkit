@@ -613,15 +613,17 @@ class FilterPanel(object):
                 tables = re.split('[ ,]+', tables)
                 for tbl in tables:
                     T[tbl] = sqlalchemy.Table(
-                        tbl, self.master.metadata, autoload=True)
+                        tbl, self.master.metadata,
+                        autoload_with=self.master.metadata.bind)
 
                 for tbl in tables[1:]:
                     join = T[tables[0]].join(T[tbl])
 
         if join:
+            from sqlkit.db.sacompat import map_imperatively
             class Join(object):
                 pass
-            mapper = sqlalchemy.mapper(Join, join)
+            mapper = map_imperatively(Join, join)
 
         self.mapper = mapper
         self.map_fields = minspect.InspectMapper(mapper)

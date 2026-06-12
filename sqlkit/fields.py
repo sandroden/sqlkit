@@ -258,6 +258,13 @@ BLANK_OK = False
 class ZoomException(Exception):
     pass
 
+#: Per-(class, field) cache of SignalEmitter instances. Replaces the old
+#: trick of stashing the emitter as an attribute on the InstrumentedAttribute,
+#: which SA 2.0 forbids (__slots__). Weak-keyed on the mapped class so it is
+#: garbage-collected together with throw-away reflected classes.
+_emitter_cache = weakref.WeakKeyDictionary()
+
+
 class SignalEmitter(GObject.GObject):
 
     """A minimalist gobject used to trace value setting in AttributeExtension
@@ -519,11 +526,18 @@ class Field(GObject.GObject):
             # 0.7.2, so an indirection level is still needed
 
             instrumented_attr = getattr(self.master.mapper.class_, self.field_name)
-            if not hasattr(instrumented_attr, '_sk_emitter'):
-                instrumented_attr._sk_emitter = emitter
+            # SA 2.0 instruments attributes with ``__slots__`` so we can no
+            # longer stash the emitter directly on the InstrumentedAttribute
+            # (it raises AttributeError). Keep a side cache keyed on the
+            # attribute itself; this preserves the original "register the
+            # 'set' listener only once per attribute" behaviour on both
+            # SA 1.4 and 2.x.
+            cache = _emitter_cache.setdefault(self.master.mapper.class_, {})
+            if self.field_name not in cache:
+                cache[self.field_name] = emitter
                 event.listen(instrumented_attr, 'set', emitter.set_cb)
             else:
-                emitter = getattr(instrumented_attr, '_sk_emitter')
+                emitter = cache[self.field_name]
 
             hid = emitter.connect('value-set', self.value_set_cb)
             self._ids['emitter_value_set'] = (emitter, hid)

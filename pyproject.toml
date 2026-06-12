@@ -28,7 +28,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "sqlalchemy>=1.4,<2",
+    "sqlalchemy>=1.4,<3",
     "babel",
     "python-dateutil",
 ]

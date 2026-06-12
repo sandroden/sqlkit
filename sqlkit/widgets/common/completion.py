@@ -37,7 +37,8 @@ from gi.repository.GLib import markup_escape_text
 
 from sqlalchemy import text, select, Table
 from sqlalchemy.sql import and_, or_, not_
-from sqlalchemy.orm import class_mapper, mapper
+from sqlalchemy.orm import class_mapper
+from sqlkit.db.sacompat import map_imperatively as mapper
 
 import sqlkit
 from sqlkit import debug as dbg, _, exc

@@ -32,6 +32,7 @@ from babel import numbers
 import sqlalchemy
 from sqlalchemy import Table, orm
 from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper, attributes
+from sqlkit.db.sacompat import session_autocommit
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.orm.mapper import Mapper
 
@@ -1009,7 +1010,7 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
             return
         try:
             ## when session.autocommit = False, a transaction is automatically started
-            if self.session.autocommit:
+            if session_autocommit(self.session):
                 self.session.begin()
 
             self.session.commit()

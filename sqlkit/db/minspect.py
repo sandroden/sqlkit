@@ -10,6 +10,7 @@ import sqlalchemy.types as sqltypes
 from sqlkit import debug as dbg, exc
 from sqlkit.misc.utils import Container
 from sqlalchemy.sql import expression
+from sqlkit.db.sacompat import Label
 
 
 SA_TYPE_MAP = {
@@ -130,7 +131,7 @@ class InspectMapper(Container):
         except (AttributeError, NotImplementedError):
             d['length'] = None
 
-        if isinstance(col, (expression._Label, expression.Function)):
+        if isinstance(col, (Label, expression.Function)):
             d['table'] = None
             d['table_name'] = None
             d['default'] = None

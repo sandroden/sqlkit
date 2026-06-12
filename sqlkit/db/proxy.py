@@ -17,10 +17,11 @@ import re
 from collections import Counter
 
 from sqlalchemy import Table, MetaData, sql, event
-from sqlalchemy.orm import sessionmaker, mapper
+from sqlalchemy.orm import sessionmaker
 
 from sqlkit import _
 from sqlkit.db import minspect, utils
+from sqlkit.db.sacompat import map_imperatively as mapper, SA_MAJOR
 from sqlkit.exc import MissingPrimaryKey
 
 class DbProxy(object):
@@ -51,26 +52,37 @@ class DbProxy(object):
             self.metadata = metadata
         else:
             self.metadata = MetaData()
+        # `metadata.bind` is kept purely as an informal instance attribute
+        # used to carry the engine around sqlkit. It is *not* the removed
+        # SA feature (implicit execution / implicit autoload): we never
+        # call metadata.bind.execute(...) nor Table(..., autoload=True).
+        # Assigning/reading a plain attribute keeps working on SA 2.x.
+        # SA 1.4's MetaData had ``bind=None`` by default; SA 2.0 dropped the
+        # attribute altogether, so we always set it explicitly (None when no
+        # engine/bind is supplied) to keep the rest of the code unchanged.
         if engine or bind:
-            # `metadata.bind` is kept purely as an informal instance attribute
-            # used to carry the engine around sqlkit. It is *not* the removed
-            # SA feature (implicit execution / implicit autoload): we never
-            # call metadata.bind.execute(...) nor Table(..., autoload=True).
-            # Assigning/reading a plain attribute keeps working on SA 2.x.
             self.metadata.bind = engine or bind
+        elif not hasattr(self.metadata, 'bind'):
+            self.metadata.bind = None
 
         if not Session:
+            # SA 2.0 removed the legacy ``autocommit`` session mode entirely
+            # (it raises ArgumentError even for autocommit=True). On 2.x the
+            # only available mode corresponds to the old autocommit=False, so
+            # we simply drop the kwarg there. On 1.4 we keep passing it to
+            # preserve the historical behaviour.
+            extra = {} if SA_MAJOR >= 2 else {'autocommit': autocommit}
             try:
                 self.Session = sessionmaker(bind=self.metadata.bind,
                                             expire_on_commit=expire_on_commit,
                                             autoflush=autoflush,
-                                            autocommit=autocommit,
+                                            **extra,
                                             )
                 self.Session().close()  # test if expire_on_commit is accepted
             except Exception:
                 self.Session = sessionmaker(bind=self.metadata.bind,
                                             autoflush=autoflush,
-                                            autocommit=autocommit,
+                                            **extra,
                                             )
         else:
             self.Session = Session
