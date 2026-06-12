@@ -200,10 +200,18 @@ class DjangoParser(object):
     def compose(self):
         for path in self.joins:
             if path:
+                ## SA 2.x: Query.join() no longer accepts strings nor the
+                ## ``aliased`` kwarg, resolve names to relationship attributes
+                entity = self.mapper.class_
+                attrs = []
+                for name in path:
+                    attr = getattr(entity, name)
+                    attrs.append(attr)
+                    entity = attr.property.mapper.class_
                 if self.outer:
-                    self.query = self.query.outerjoin(aliased=self.aliased, *path).reset_joinpoint()
+                    self.query = self.query.outerjoin(*attrs).reset_joinpoint()
                 else:
-                    self.query = self.query.join(aliased=self.aliased, *path).reset_joinpoint()
+                    self.query = self.query.join(*attrs).reset_joinpoint()
 
         return self.query.filter(self.sql())
 

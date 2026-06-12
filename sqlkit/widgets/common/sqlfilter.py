@@ -82,6 +82,7 @@ from datetime import *
 from gi.repository import GObject
 from gi.repository import GLib
 import sqlalchemy
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql import select, Join, or_
 from babel import dates
 
@@ -713,6 +714,25 @@ class FilterPanel(object):
             print(("DBG: ", c.left, c.operator, c.right))
 
 
+def join_relationship_path(query, path, alias=None):
+    """
+    Join ``query`` along ``path``, a list of relationship names starting at
+    the query's entity. SQLAlchemy 2.x no longer accepts strings (nor the
+    ``(target, onclause)`` tuple form) in ``Query.join()``, so each name is
+    resolved to the corresponding instrumented attribute. ``alias``, if
+    given, is the Alias the filter columns refer to and becomes the target
+    of the last step (via ``of_type``).
+    """
+    entity = query.column_descriptions[0]['entity']
+    for i, name in enumerate(path):
+        attr = getattr(entity, name)
+        entity = attr.property.mapper.class_
+        if alias is not None and i == len(path) - 1:
+            attr = attr.of_type(aliased(entity, alias=alias))
+        query = query.join(attr)
+    return query
+
+
 class FilterTool(object):
 
     """
@@ -863,16 +883,16 @@ class FilterTool(object):
         query = query.reset_joinpoint()
 
         if self.master.relationship_path:
-            # query = query.join(*self.master.relationship_path)
             if len(self.master.relationship_path) == 1:
-                query = query.join((self.table, self.master.relationship_path[0]))
+                query = join_relationship_path(query, self.master.relationship_path,
+                                               alias=self.table)
             else:
                 ## NOTE: if relationship_path is longer that 1, the table is
                 ## not aliased, i.e.: if you place 2 search conditions to
                 ## the same table (e.g. searching on staff and manager of a
                 ## project- and both manager and staff are m2m relation to
                 ## User) will most surely lead to no result
-                query = query.join(*self.master.relationship_path)
+                query = join_relationship_path(query, self.master.relationship_path)
 
         if op_value in ('IS NULL', 'IS NOT NULL', 'EMPTY OR NULL',
                         'IS TRUE', 'IS FALSE', 'IS NOT TRUE', 'IS NOT FALSE'):
@@ -1046,7 +1066,8 @@ class FilterFKeyTool(FilterTool):
         query = query.reset_joinpoint()
 
         if self.master.relationship_path:
-            query = query.join(*self.master.relationship_path)
+            query = join_relationship_path(query, self.master.relationship_path,
+                                           alias=self.table)
 
         return query.filter(self.col.in_(ids))
 

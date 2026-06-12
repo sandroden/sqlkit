@@ -1250,7 +1250,8 @@ class M2mCompletion(FkeyCompletion):
         self.query = self.master.session.query(*self.columns).autoflush(False)
 
         if self.master.is_fkey(self.field_name):
-            self.query = self.query.join((self.table_lookup, self.sql_join)).reset_joinpoint()
+            # SA 2.x: no more (target, onclause) tuple form in Query.join()
+            self.query = self.query.join(self.table_lookup, self.sql_join).reset_joinpoint()
 
     def match_selected_cb(self, wdg, model, iter, field_name):
         """

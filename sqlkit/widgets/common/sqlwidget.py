@@ -1560,7 +1560,8 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
 
         if self.order_by:
             if self._order_by_join_args:
-                query = query.reset_joinpoint().join(self._order_by_join_args)
+                # SA 2.x wants (target, onclause) unpacked, not as a tuple
+                query = query.reset_joinpoint().join(*self._order_by_join_args)
             query = query.order_by(*self.order_by)
 
         ## filters
