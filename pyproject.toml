@@ -1,21 +1,21 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "sqlkit"
 version = "1.0.0"
 description = "GUI to edit databases. Many backends supported (Postgres, Sqlite, MySQL, ...). Based on Python, GTK3, SQLAlchemy."
-readme = "README"
+readme = { file = "README", content-type = "text/x-rst" }
 requires-python = ">=3.10"
-license = { text = "AGPL-3.0-or-later" }
+license = "AGPL-3.0-or-later"
+license-files = ["COPYING"]
 authors = [{ name = "Alessandro Dentella", email = "sandro@e-den.it" }]
-urls = { Homepage = "http://sqlkit.argolinux.org/" }
+keywords = ["gtk", "gtk3", "database", "gui", "sqlalchemy", "postgres", "sqlite", "mysql"]
 classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Education",
     "Intended Audience :: End Users/Desktop",
-    "License :: OSI Approved :: GNU Affero General Public License v3",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -36,6 +36,10 @@ dependencies = [
 # via `uv venv --system-site-packages`. Building it from PyPI requires
 # libgirepository-2.0-dev which Ubuntu 24.04 ships but doesn't install by default.
 
+[project.urls]
+Homepage = "https://sqlkit.argolinux.org/"
+Documentation = "https://sqlkit.argolinux.org/"
+
 [project.optional-dependencies]
 # Enable appy-based printing (default printing engine). Install with
 # `pip install sqlkit[printing]` or `uv sync --extra printing`.
@@ -49,7 +53,18 @@ where = ["."]
 include = ["sqlkit*"]
 
 [tool.setuptools.package-data]
-sqlkit = ["**/*.glade", "**/*.png", "**/*.xpm", "**/*.svg", "**/*.ui"]
+sqlkit = [
+    "**/*.glade",
+    "**/*.png",
+    "**/*.xpm",
+    "**/*.svg",
+    "**/*.ui",
+    "**/*.xml",
+    "locale/*/LC_MESSAGES/*.mo",
+]
+
+[tool.setuptools.exclude-package-data]
+"*" = ["*.po", "*.pot"]
 
 [tool.babel.extract_messages]
 output_file = "sqlkit/locale/sqlkit.pot"
@@ -64,4 +79,4 @@ domain = "sqlkit"
 directory = "sqlkit/locale/"
 
 [dependency-groups]
-dev = ["sphinx", "pytest"]
+dev = ["sphinx", "pytest", "pydata-sphinx-theme"]

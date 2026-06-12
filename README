@@ -21,7 +21,24 @@ There's a googlegroup dedicated to this package:
 
   http://groups.google.it/group/sqlkit
 
-sandro
-*:-)
+sandro :-)
+
+
+Requirements
+------------
+
+sqlkit requires **PyGObject** and **GTK 3**, which are provided as system
+packages on Ubuntu/Debian::
+
+    sudo apt install python3-gi gir1.2-gtk-3.0 gir1.2-gtksource-3.0
+
+When installing with ``uv``, create the virtual environment with
+``--system-site-packages`` so PyGObject is visible::
+
+    uv venv --system-site-packages
+    uv sync
+
+PyPI dependencies (SQLAlchemy, Babel, python-dateutil) are installed
+automatically.
 
 
