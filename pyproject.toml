@@ -44,6 +44,10 @@ Documentation = "https://sqlkit.argolinux.org/"
 # Enable appy-based printing (default printing engine). Install with
 # `pip install sqlkit[printing]` or `uv sync --extra printing`.
 printing = ["appy"]
+# PostgreSQL driver (psycopg 3): `pip install sqlkit[postgres]`.
+# Plain postgresql:// URLs are routed to it automatically when
+# psycopg2 is not installed (see sqlkit.db.proxy.normalize_url).
+postgres = ["psycopg[binary]>=3"]
 
 [project.gui-scripts]
 sqledit = "sqlkit.scripts.sqledit:main"

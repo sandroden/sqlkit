@@ -65,6 +65,7 @@ from sqlalchemy.engine import url
 
 import sqlkit
 from sqlkit import fields, DbProxy, _
+from sqlkit.db.proxy import normalize_url
 from sqlkit.misc import conf, optionparse
 
 RESPONSE_DEMO = 1
@@ -292,7 +293,7 @@ def open_db(exc=False):
                         base = VARS.get('Base')
                         if base is not None:
                             bind = getattr(base.metadata, 'bind', None) \
-                                or sa.create_engine(opts.url)
+                                or sa.create_engine(normalize_url(opts.url))
                             base.metadata.create_all(bind)
                 except Exception as e:
                     print(e)

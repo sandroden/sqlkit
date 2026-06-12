@@ -24,6 +24,30 @@ from sqlkit.db import minspect, utils
 from sqlkit.db.sacompat import map_imperatively as mapper, SA_MAJOR
 from sqlkit.exc import MissingPrimaryKey
 
+
+def normalize_url(url):
+    """
+    Normalize a database URL string for SQLAlchemy 1.4/2.x:
+
+    * the pre-1.4 ``postgres://`` alias becomes ``postgresql://``
+    * a bare ``postgresql://`` URL implies the psycopg2 driver: when only
+      psycopg (3.x) is installed, switch to the ``postgresql+psycopg``
+      dialect so both drivers work out of the box
+    """
+    if url.startswith('postgres://'):
+        url = 'postgresql://' + url[len('postgres://'):]
+    if url.startswith('postgresql://'):
+        try:
+            import psycopg2  # noqa: F401
+        except ImportError:
+            try:
+                import psycopg  # noqa: F401
+                url = 'postgresql+psycopg://' + url[len('postgresql://'):]
+            except ImportError:
+                pass
+    return url
+
+
 class DbProxy(object):
 
     """
@@ -65,7 +89,7 @@ class DbProxy(object):
             # SA 1.4's bind property coerced URL strings via create_engine;
             # as a plain attribute on 2.x we must do it ourselves
             if isinstance(target, str):
-                target = create_engine(target)
+                target = create_engine(normalize_url(target))
             self.metadata.bind = target
         elif not hasattr(self.metadata, 'bind'):
             self.metadata.bind = None
