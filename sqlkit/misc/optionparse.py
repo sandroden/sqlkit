@@ -44,7 +44,10 @@ def nonzero(self):  # will become the nonzero method of optparse.Values
             return True
     return False
 
-optparse.Values.__nonzero__ = nonzero  # dynamically fix optparse.Values
+# dynamically fix optparse.Values: on py3 the truthiness hook is __bool__
+# (__nonzero__ was the py2 name and is ignored, which silently broke every
+# ``if not opts:`` check, e.g. sqledit's no-args connection dialog)
+optparse.Values.__bool__ = nonzero
 
 class ParsingError(Exception):
     pass

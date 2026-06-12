@@ -287,9 +287,13 @@ def open_db(exc=False):
                     exec(compile(f.read(), 'models.py', 'exec'), VARS)
                 try:
                     if opts.create_tables:
-                        if not VARS.get(Base).metadata.bind:
-                            models.Base.metadata.bind = opts.url
-                        models.Base.metadata.create_all()
+                        # was VARS.get(Base) -- a NameError silenced by this
+                        # except, so -T never created anything on py3
+                        base = VARS.get('Base')
+                        if base is not None:
+                            bind = getattr(base.metadata, 'bind', None) \
+                                or sa.create_engine(opts.url)
+                            base.metadata.create_all(bind)
                 except Exception as e:
                     print(e)
                     pass

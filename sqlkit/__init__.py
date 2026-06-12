@@ -9,7 +9,13 @@ gi.require_version('Pango', '1.0')
 
 from sqlkit.misc import utils
 
-__version__ = '1.0.0'
+# single-sourced from the installed package metadata (pyproject version);
+# the literal fallback only matters for unusual setups (e.g. pyinstaller)
+try:
+    from importlib.metadata import version as _dist_version
+    __version__ = _dist_version('sqlkit')
+except Exception:
+    __version__ = '1.1.0'
 
 
 cwd = os.path.abspath(os.path.dirname(__file__))
