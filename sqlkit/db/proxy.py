@@ -16,7 +16,7 @@
 import re
 from collections import Counter
 
-from sqlalchemy import Table, MetaData, sql, event
+from sqlalchemy import Table, MetaData, sql, event, create_engine
 from sqlalchemy.orm import sessionmaker
 
 from sqlkit import _
@@ -61,7 +61,12 @@ class DbProxy(object):
         # attribute altogether, so we always set it explicitly (None when no
         # engine/bind is supplied) to keep the rest of the code unchanged.
         if engine or bind:
-            self.metadata.bind = engine or bind
+            target = engine or bind
+            # SA 1.4's bind property coerced URL strings via create_engine;
+            # as a plain attribute on 2.x we must do it ourselves
+            if isinstance(target, str):
+                target = create_engine(target)
+            self.metadata.bind = target
         elif not hasattr(self.metadata, 'bind'):
             self.metadata.bind = None
 
