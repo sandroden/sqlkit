@@ -202,7 +202,10 @@ class TableBrowser(object):
                 reflected_table = meta.tables.get(table_name, None)
 
                 if reflected_table is None:
-                    reflected_table = sa.Table(table_name, meta, autoload=True)
+                    # autoload_with replaces the removed implicit autoload=True;
+                    # meta.bind is the informal engine-carrier attribute.
+                    reflected_table = sa.Table(table_name, meta,
+                                               autoload_with=meta.bind)
 
                 count = sess.query(reflected_table).count()
                 self.model.set(row.iter,
@@ -344,7 +347,8 @@ class TableBrowser(object):
                 self.tv.expand_row(self.model.get_path(iter), True)
             return False
 
-        tbl = sa.Table(table_name, self.dbproxy.metadata, autoload=True)
+        tbl = sa.Table(table_name, self.dbproxy.metadata,
+                       autoload_with=self.dbproxy.metadata.bind)
         index_dict = {}
         self.tables[table_name] = tbl
         pks = []

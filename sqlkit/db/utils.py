@@ -98,7 +98,6 @@ import re
 
 from sqlalchemy import Table, orm, select, inspect
 from sqlalchemy.exc import OperationalError, ProgrammingError, InterfaceError
-from pkg_resources import parse_version
 import sqlalchemy
 
 from .defaults import register_hook, get_hook, register_layout, get_layout, register_class, \
@@ -114,15 +113,15 @@ def _autoload_table(table_name, metadata, engine=None):
     :param engine: SQLAlchemy engine (optional, will use metadata.bind if not provided)
     :return: SQLAlchemy Table object
     """
+    # `metadata.bind` here is the informal engine-carrier attribute (not the
+    # removed SA feature). autoload_with works on both SA 1.4 and 2.x;
+    # keep_existing preserves the old autoload=True behaviour of reusing a
+    # table already present in the metadata instead of re-reflecting it.
     if engine is None:
         engine = metadata.bind
 
-    if parse_version(sqlalchemy.__version__) >= parse_version('1.4.0'):
-        # SQLAlchemy 1.4+ uses autoload_with parameter
-        return Table(table_name, metadata, autoload_with=engine)
-    else:
-        # SQLAlchemy < 1.4 uses autoload=True
-        return Table(table_name, metadata, autoload=True)
+    return Table(table_name, metadata, autoload_with=engine,
+                 keep_existing=True)
 
 ########   descriptor
 from sqlkit.misc.utils import Container, DictLike, ObjLike
@@ -563,7 +562,7 @@ def get_fields(table, metadata=None, name=True):
             if not metadata:
                 raise MissingMetadata("A metadata must be provided as autoload is needed")
             try:
-                table = Table(table, metadata, autoload=True)
+                table = _autoload_table(table, metadata)
             except Exception as e:
                 raise MissingMetadata("Missing table: %s" % table) from e
         if name:
@@ -576,7 +575,7 @@ if __name__ == '__main__':
     from sqlkit.db import proxy
 
     db = proxy.DbProxy(engine="sqlite://///misc/src/hg/py/sqlkit4/doc/db/movies.sqlite")
-    movie = Table('movie', metadata=db.metadata, autoload=True)
+    movie = Table('movie', db.metadata, autoload_with=db.metadata.bind)
 
     #t = TableDescr('movie', '%(dirctor_id)s - (%(nation)s)', metadata=db.metadata)
 

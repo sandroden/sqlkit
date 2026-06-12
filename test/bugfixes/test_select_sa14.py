@@ -32,7 +32,11 @@ def _engine_with_sqlkit_tables():
           Column('id', Integer, primary_key=True),
           Column('title', String(100)))
     md.create_all(engine)
-    with engine.connect() as conn:
+    # engine.begin() commits the transaction on block exit on both SA 1.4
+    # and 2.0. A plain engine.connect() block would have the inserts rolled
+    # back on close under SA 2.0's commit-as-you-go model (and Connection has
+    # no .commit() in SA 1.4 legacy mode), so begin() is the portable form.
+    with engine.begin() as conn:
         conn.execute(md.tables['_sqlkit_table'].insert().values(
             name='movie', search_field='title', format='%(title)s'))
         conn.execute(md.tables['_sqlkit_field'].insert().values(

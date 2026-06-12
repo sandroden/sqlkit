@@ -52,6 +52,11 @@ class DbProxy(object):
         else:
             self.metadata = MetaData()
         if engine or bind:
+            # `metadata.bind` is kept purely as an informal instance attribute
+            # used to carry the engine around sqlkit. It is *not* the removed
+            # SA feature (implicit execution / implicit autoload): we never
+            # call metadata.bind.execute(...) nor Table(..., autoload=True).
+            # Assigning/reading a plain attribute keeps working on SA 2.x.
             self.metadata.bind = engine or bind
 
         if not Session:
@@ -88,7 +93,8 @@ class DbProxy(object):
         if name in self.metadata.tables:
             return self.metadata.tables[name]
         else:
-            return Table(name, self.metadata, autoload=True)
+            return Table(name, self.metadata,
+                         autoload_with=self.metadata.bind)
 
     def get_mapper(self, mapper_obj, tables):
         """If no mapper is provided it will be built from the table(s)
@@ -188,14 +194,20 @@ class DbProxy(object):
         ##
         if isinstance(t1, str):
             T1_ret = True
-            T1 = Table(t1, self.metadata, autoload=True)
+            # keep_existing keeps the historical autoload=True semantics:
+            # if the table is already known to the metadata, reuse it
+            # instead of re-reflecting/colliding. autoload_with replaces
+            # the removed implicit-autoload (autoload=True).
+            T1 = Table(t1, self.metadata, autoload_with=self.metadata.bind,
+                       keep_existing=True)
         else:
             T1_ret = False
             T1 = t1
 
         if isinstance(t2, str):
             T2_ret = True
-            T2 = Table(t2, self.metadata, autoload=True)
+            T2 = Table(t2, self.metadata, autoload_with=self.metadata.bind,
+                       keep_existing=True)
         else:
             T2_ret = False
             T2 = t2

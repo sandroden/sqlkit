@@ -59,7 +59,7 @@ you can edit these tables directly from sqledit with the option --configure::
 """
 import re
 
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy import Table, Column, String, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 

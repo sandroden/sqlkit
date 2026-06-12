@@ -1,6 +1,6 @@
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy import Table, Column, Integer, String, Date, MetaData, ForeignKey, create_engine, engine
-from sqlalchemy.orm import relation, scoped_session, sessionmaker
+from sqlalchemy.orm import relationship, scoped_session, sessionmaker
 
 
 Base = declarative_base()
@@ -14,7 +14,7 @@ class User(Base):
 
     id = Column('id', Integer, primary_key=True)
     first_name = Column('first_name', String(50))
-    addresses = relation("Address", backref="user")
+    addresses = relationship("Address", backref="user")
 
 class Address(Base):
     __tablename__ = 'address'
@@ -31,13 +31,13 @@ class Provider(Base):
     id = Column('id', Integer, primary_key=True)
     provider = Column('provider', String(50))
     country_id = Column('country_id', Integer, ForeignKey('country.id'))
-    addresses = relation("Address", backref="provider")
+    addresses = relationship("Address", backref="provider")
 
 class Country(Base):
     __tablename__ = 'country'
 
     id = Column('id', Integer, primary_key=True)
     country = Column('country', String(50))
-    addresses = relation("Provider", backref="country")
+    addresses = relationship("Provider", backref="country")
 
 

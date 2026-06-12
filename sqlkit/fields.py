@@ -1744,7 +1744,11 @@ class ForeignKeyField(Field):
 
             sql = select(*fields).where(self.column_lookup == field_value)
             try:
-                all = self.table.metadata.bind.execute(sql).fetchall()
+                # Engine.execute / metadata.bind.execute was removed in SA 2.0;
+                # `metadata.bind` here is just the informal engine-carrier
+                # attribute. Use an explicit connection (works on 1.4 and 2.x).
+                with self.table.metadata.bind.connect() as conn:
+                    all = conn.execute(sql).fetchall()
             except (sqlalchemy.exc.DBAPIError) as e:
                 if hasattr(self, 'master'):
                     self.master.sb(e)

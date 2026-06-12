@@ -109,7 +109,7 @@ class MyHook(object):
 """
 
 TEMPLATE_MODELS = """\
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy import Table, Column, ForeignKey
 from sqlalchemy.types import *
 from sqlalchemy import orm, sql
