@@ -1018,7 +1018,7 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
             self.run_hook('on_record_saved')
             self.sb(message, seconds=3)
 
-        except (sqlalchemy.exc.DBAPIError, sqlalchemy.exc.FlushError) as e:
+        except (sqlalchemy.exc.DBAPIError, orm.exc.FlushError) as e:
             if not self.commit_error_handler(e):
                 self.session.rollback()
                 raise exc.HandledRollback(str(e))
@@ -1049,7 +1049,7 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
                          (str(e.orig), len(self.session.dirty), len(self.session.new)))
             self.sb(e.orig)
 
-        elif isinstance(e, sqlalchemy.exc.FlushError):
+        elif isinstance(e, orm.exc.FlushError):
             # TIP: message in the status bar when a commit error is handled
             msg = _("Error while writing to the database: \n"
                     "are you 'saving as new' an already known record?\n" +

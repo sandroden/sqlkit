@@ -37,7 +37,9 @@ def simple_dbproxy():
     Base = declarative_base()
 
     class Simple(Base):
-        __tablename__ = "simple"
+        # Prefix the table name so a shared backend (PG) does not collide with
+        # other suites / leftovers across runs.
+        __tablename__ = "sk_smoke_simple"
         id = Column(Integer, primary_key=True)
         name = Column(String(60))
         qty = Column(Integer)
@@ -45,10 +47,21 @@ def simple_dbproxy():
         born = Column(Date)
         active = Column(Boolean)
 
-    engine = create_engine("sqlite://")
+    # Default sqlite in-memory; bind to SQLKIT_TEST_DB_URL when set.
+    url = os.environ.get("SQLKIT_TEST_DB_URL") or "sqlite://"
+    from conftest import drop_schema
+
+    engine = create_engine(url)
+    Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     db = proxy.DbProxy(engine=engine, metadata=Base.metadata)
-    return Simple, db
+    yield Simple, db
+    # The widgets open DbProxy sessions that, on SA2 / PostgreSQL, leave a
+    # connection "idle in transaction" holding a lock on the table; that would
+    # block the teardown DROP forever.  Dispose the proxy's engine first, then
+    # drop via the shared helper (which terminates leftover backends on PG).
+    engine.dispose()
+    drop_schema(Base.metadata)
 
 
 def test_sqlmask_instantiates(simple_dbproxy):

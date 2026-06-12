@@ -52,6 +52,8 @@ def _heal_tables_registry():
         return
     if not isinstance(getattr(utils, "tables", None), utils.Tables):
         utils.tables = utils.Tables()
+import os
+
 from sqlalchemy import (
     Boolean,
     Column,
@@ -67,6 +69,63 @@ from sqlalchemy import (
     create_engine,
 )
 from sqlalchemy.orm import sessionmaker
+
+
+# --------------------------------------------------------------------------- #
+# Backend selection
+#
+# By default the suite runs on a private sqlite in-memory engine, so behaviour
+# is unchanged when SQLKIT_TEST_DB_URL is *not* set.
+#
+# When SQLKIT_TEST_DB_URL is set (e.g. a PostgreSQL URL) the engine/models
+# fixtures bind to that URL instead.  The target database is *shared* across
+# runs, so every fixture that creates tables drops them first and again in
+# teardown (drop_all / create_all).  The three test tables (registi, films,
+# all_types) live in their own metadata, so drop_all only touches them.
+# --------------------------------------------------------------------------- #
+def _backend_url():
+    return os.environ.get("SQLKIT_TEST_DB_URL") or "sqlite://"
+
+
+def _make_engine():
+    url = _backend_url()
+    # sqlite in-memory must keep a single connection for the schema to persist;
+    # the default behaviour is fine here because each fixture builds its own
+    # engine and creates the schema on it.
+    return create_engine(url)
+
+
+def drop_schema(metadata):
+    """Drop ``metadata``'s tables on the configured backend.
+
+    sqlite (default): a plain drop_all on a throwaway engine.
+
+    Shared backend (PG via SQLKIT_TEST_DB_URL): the GTK widgets keep DbProxy
+    sessions alive for the whole test; on SA2 a session that issued a SELECT
+    leaves its connection "idle in transaction", holding a lock that would make
+    DROP block forever.  Those connections are checked *out* of their engine's
+    pool, so ``engine.dispose()`` cannot close them.  Since the test database
+    is dedicated to the suite, we terminate every other backend on it before
+    issuing the DROP.  Safe: it never touches other databases of the cluster.
+    """
+    url = _backend_url()
+    eng = create_engine(url)
+    if url != "sqlite://":
+        from sqlalchemy import text
+
+        # ``engine.begin()`` works identically on SA 1.4 and 2.x (commits on
+        # exit); a bare ``connect()`` + ``conn.commit()`` would fail on 1.4
+        # where Connection has no commit-as-you-go ``commit()``.
+        with eng.begin() as conn:
+            conn.execute(
+                text(
+                    "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
+                    "WHERE datname = current_database() "
+                    "AND pid <> pg_backend_pid()"
+                )
+            )
+    metadata.drop_all(eng)
+    eng.dispose()
 
 
 # --------------------------------------------------------------------------- #
@@ -132,8 +191,13 @@ def metadata():
 
 @pytest.fixture
 def engine(metadata):
-    """A sqlite in-memory engine with the schema created and some rows."""
-    eng = create_engine("sqlite://")
+    """An engine with the schema created and some rows.
+
+    Defaults to sqlite in-memory; binds to ``SQLKIT_TEST_DB_URL`` when set.
+    On a shared backend (PG) the test tables are dropped before and after.
+    """
+    eng = _make_engine()
+    metadata.drop_all(eng)
     metadata.create_all(eng)
     registi = metadata.tables["registi"]
     films = metadata.tables["films"]
@@ -164,7 +228,10 @@ def engine(metadata):
                 },
             ],
         )
-    return eng
+    yield eng
+    # Shared backends (PG): clean up so the next run starts fresh.
+    eng.dispose()
+    drop_schema(metadata)
 
 
 @pytest.fixture
@@ -232,6 +299,9 @@ def models(engine):
         bool_null = Column(Boolean)
         text = Column(Text)
 
+    # The ``engine`` fixture already created registi/films/all_types (and will
+    # drop them in its own teardown).  create_all is checkfirst by default, so
+    # this is a no-op on a shared backend and a real create on sqlite.
     Base.metadata.create_all(engine)
 
     from sqlalchemy.orm import sessionmaker
