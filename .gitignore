@@ -1,0 +1,13 @@
+*.pyc
+__pycache__/
+.venv/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+build/
+dist/
+sqlkit.egg-info/
+doc/.build/
+doc/_build/
+demo/sql/model/db.sqlite
+demo/sql/images/.thumbnail
