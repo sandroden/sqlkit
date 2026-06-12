@@ -1059,9 +1059,9 @@ class FilterFKeyTool(FilterTool):
         fdescr = get_description(self.ftable, attr='description')
 
         if op_value == "ILIKE":
-            ids = select([self.fcol], self.ftable.columns[fdescr].ilike(value))
+            ids = select(self.fcol).where(self.ftable.columns[fdescr].ilike(value))
         else:
-            ids = select([self.fcol], self.ftable.columns[fdescr].op(op_value)(value))
+            ids = select(self.fcol).where(self.ftable.columns[fdescr].op(op_value)(value))
 
         query = query.reset_joinpoint()
 
