@@ -73,7 +73,7 @@ from sqlalchemy.sql.expression import ColumnElement, ClauseList
 from sqlalchemy.sql import and_, or_, not_
 from sqlalchemy import Table
 from sqlalchemy.orm import ColumnProperty, RelationshipProperty, class_mapper
-from sqlalchemy.types import Date, DateTime
+from sqlalchemy.types import Date, DateTime, Boolean
 
 from sqlkit.misc.datetools import string2dates
 from sqlkit.db import utils
@@ -151,6 +151,12 @@ class DjangoParser(object):
 
         self.joins += [join_path]
 
+        ## SA 2.x + psycopg3: a Boolean column compared to a *string* value (legacy
+        ## 't'/'f' style filters) is sent as ``$1::VARCHAR`` and PostgreSQL refuses
+        ## ``boolean = varchar``. With ``col.op('=')`` the column type does not drive
+        ## the bind parameter type, so coerce string booleans to real bools here.
+        value = self._coerce_boolean(col, value)
+
         if op_str == 'icontains':
             eng_name = self.table.metadata.bind.name
             if eng_name.startswith('postgres'):
@@ -189,6 +195,29 @@ class DjangoParser(object):
         if isinstance(col.type, (Date, DateTime)):
             return True
         return False
+
+    TRUE_STRINGS = ('t', 'true', 'y', 'yes', '1', 'on')
+    FALSE_STRINGS = ('f', 'false', 'n', 'no', '0', 'off')
+
+    def _coerce_boolean(self, col, value):
+        """
+        Coerce legacy string booleans ('t'/'f', 'true'/'false', ...) to real bools
+        when ``col`` is a Boolean column. Leaves anything else untouched.
+        """
+        try:
+            is_bool = isinstance(col.type, Boolean)
+        except AttributeError:
+            return value
+
+        if not is_bool or not isinstance(value, str):
+            return value
+
+        low = value.strip().lower()
+        if low in self.TRUE_STRINGS:
+            return True
+        if low in self.FALSE_STRINGS:
+            return False
+        return value
 
     def sql(self):
         if self.OR:
