@@ -123,6 +123,7 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
                  constraint=None,
                  dbproxy=None,
                  order_by=None,
+                 flip_buttons=False,
                  limit=200,
                  field_list=None,
                  session=None,
@@ -202,6 +203,14 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
               ``user_id__username`` (note the double_underscore). If you also have
               a relation ``user`` that points to the same table you can use 
               ``user__username`` with the same effect.
+
+        :param flip_buttons=False:
+           if True the *back*/*forward* navigation arrows are swapped: the
+           *back* arrow moves to higher indexes in ``self.records`` and the
+           *forward* arrow to lower ones. Handy when ``order_by`` is descending
+           (e.g. ``'day desc'``, that keeps the most recent records within
+           ``limit``) but you still want the *forward* arrow to move towards the
+           top of the list (e.g. more recent days). Only affects masks.
 
         :param limit=200:
            limit attribute to be used selecting
@@ -346,6 +355,7 @@ class SqlWidget(GObject.GObject, metaclass=None if not dbg.debug else dbg.LogThe
         self.naked = naked
         self.sql = sql
         self.single = single
+        self.flip_buttons = flip_buttons
         self.limit = limit
         self.relationship_mode = relationship_mode
         self.relationship_path = self._get_relationship_path(relationship_path)

@@ -174,9 +174,15 @@ class SqlMask(sqlwidget.SqlWidget, metaclass=None if not dbg.debug else dbg.LogT
         if display_idx is None:
             display_idx = self.current_idx or 0
 
-        self.ui_manager.get_action(
-            '/Main/Go/Forward').set_sensitive(display_idx+1 < len(self.records))
-        self.ui_manager.get_action('/Main/Go/Back').set_sensitive(display_idx > 0)
+        can_increase = display_idx + 1 < len(self.records)  # move to higher index
+        can_decrease = display_idx > 0                      # move to lower index
+        if self.flip_buttons:
+            forward_ok, back_ok = can_decrease, can_increase
+        else:
+            forward_ok, back_ok = can_increase, can_decrease
+
+        self.ui_manager.get_action('/Main/Go/Forward').set_sensitive(forward_ok)
+        self.ui_manager.get_action('/Main/Go/Back').set_sensitive(back_ok)
 
     def setup_field_validation(self, field_list=None):
         """
@@ -781,14 +787,14 @@ class SqlMask(sqlwidget.SqlWidget, metaclass=None if not dbg.debug else dbg.LogT
         display the next record in the mapper"""
 
         self.grab_focus(widget)
-        return self.record_display(incr=1)
+        return self.record_display(incr=-1 if self.flip_buttons else 1)
 
     def record_back_cb(self, widget):
         """
         display the previous record in the mapper"""
 
         self.grab_focus(widget)
-        return self.record_display(incr=-1)
+        return self.record_display(incr=1 if self.flip_buttons else -1)
 
 ####### Misc
     def get_widget(self, field_name):

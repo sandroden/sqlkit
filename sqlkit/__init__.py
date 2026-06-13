@@ -15,7 +15,7 @@ try:
     from importlib.metadata import version as _dist_version
     __version__ = _dist_version('sqlkit')
 except Exception:
-    __version__ = '1.1.0'
+    __version__ = '1.1.1'
 
 
 cwd = os.path.abspath(os.path.dirname(__file__))
