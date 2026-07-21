@@ -875,7 +875,7 @@ class SqlTable(sqlwidget.SqlWidget):
                     self.modelproxy.modelstore.remove(self.modelproxy.modelstore.get_iter(path))
                     self.commit_inhibited = False
                     self.session.expunge(obj)
-                    self.records.remove(obj)
+                    self._discard_new_from_records(obj)
                     self._new_record = False
                 del obj
                 self.last_new_obj = None
@@ -917,6 +917,39 @@ class SqlTable(sqlwidget.SqlWidget):
             if self.relationship_leader:
                 self.session.expire(self.relationship_leader.current)
                 self.relationship_leader.record_display(check=False, delay_message=2)
+
+    def _discard_new_from_records(self, obj):
+        """Togli dai record un obj nuovo appena expunged e mai persistito.
+
+        In una tabella related (o2m/m2m) ``self.records`` E' la *stessa* lista
+        di ``leader.current.<rel>`` (assegnata in mask.record_display:407).  Un
+        save precedente andato a buon fine fa ``session.expire`` del leader
+        (vedi record_save piu' sotto), che *invalida* quella collection: il
+        riferimento che ancora teniamo e' stale.  Chiamare ``.remove()`` su di
+        esso fa scattare l'evento backref di SQLAlchemy che legge
+        ``leader.__dict__['<rel>']`` -> KeyError, oltre al SAWarning
+        "This collection has been invalidated".
+
+        Rifetchiamo quindi la collection *viva* dal leader (il getattr
+        rilazy-loada e ripopola l'attributo) e rimuoviamo da quella; dopo
+        l'expunge l'obj non c'e' piu', quindi di norma e' un no-op che
+        ripristina l'invariante records<->leader.  Su tabella standalone
+        (nessun leader) ``self.records`` e' una lista Python normale, quindi
+        la ``.remove()`` diretta non fa scattare alcun backref: comportamento
+        storico invariato.
+        """
+        if (self.relationship_leader is not None
+                and self.relationship_leader.current is not None
+                and self.relationship_path):
+            leader_obj = self.relationship_leader.current
+            coll = getattr(leader_obj, self.relationship_path[-1], None)
+            if coll is not None:
+                if obj in coll:
+                    coll.remove(obj)
+                self.records = coll
+                return
+        if obj in self.records:
+            self.records.remove(obj)
 
     def record_new(self, widget=None, view_name='main', start=True, obj=None, parent=None, *args):
         """Add a new record
