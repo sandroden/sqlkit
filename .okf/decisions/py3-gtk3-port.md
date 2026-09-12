@@ -3,7 +3,18 @@ type: Decision
 title: Python 3 / GTK 3 port
 description: sqlkit was ported from its Python 2 / PyGTK 2 origin to Python 3 and GTK 3 (PyGObject).
 tags: [porting, gtk3, python3, decision]
-timestamp: 2026-07-21T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-07-21T00:00:00Z
+sources:
+  - resource: changelog
+    title: 'entries "1.0.0 - GTK3 / Python 3 port" and "1.1.0"'
+  - resource: sqlkit/__init__.py
+  - resource: README
+  - resource: "/decisions/sqlalchemy-2-support.md"
+    title: "SQLAlchemy 2.x support"
+  - resource: "/decisions/gtk4-evaluation.md"
+    title: "GTK 4 evaluation"
 ---
 
 # Context
@@ -30,9 +41,3 @@ sqlkit originated as a Python 2 / PyGTK 2 library (last legacy release
 
 The 1.0.0 changelog entry lists the port fixes (join modes in DbProxy,
 InspectMapper with relationships, csv export, calendar popup, completion).
-
-# Citations
-
-[1] `changelog` — entries "1.0.0 - GTK3 / Python 3 port" and "1.1.0".
-[2] `sqlkit/__init__.py`, `README`.
-[3] Related: [SQLAlchemy 2.x support](/decisions/sqlalchemy-2-support.md), [GTK 4 evaluation](/decisions/gtk4-evaluation.md).

@@ -4,7 +4,14 @@ title: Printing
 description: Generate ODT/ODS documents from templates via appy, filling context on the context-ready signal.
 resource: doc/printing/contents.rst
 tags: [printing, odt, reporting, optional]
-timestamp: 2026-07-21T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-07-21T00:00:00Z
+sources:
+  - resource: "../../doc/printing/contents.rst"
+    title: "doc/printing/contents.rst"
+  - resource: "demo/sql/ex_75_printing.py–ex_79_printing-related-fk.py"
+    title: "Demos"
 ---
 
 # Overview
@@ -37,8 +44,3 @@ def prepare_context(self, printtool, context, template_name, sqlwidget):
 `demo/sql/ex_75_printing.py`, `ex_76_printing_translate.py`,
 `ex_77_printing-related.py`, `ex_78_printing-fk.py`,
 `ex_79_printing-related-fk.py`.
-
-# Citations
-
-[1] [doc/printing/contents.rst](../../doc/printing/contents.rst)
-[2] Demos `demo/sql/ex_75_printing.py`–`ex_79_printing-related-fk.py`.

@@ -4,7 +4,14 @@ title: Custom fields & computed columns
 description: Subclass Field to add computed columns, and override the GUI field type per column.
 resource: sqlkit/fields.py
 tags: [fields, columns, customization]
-timestamp: 2026-07-21T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-07-21T00:00:00Z
+sources:
+  - resource: sqlkit/fields.py
+  - resource: sqlkit/widgets/table/columns.py
+  - resource: "demo/sql/ex_30_mapper_count.py–ex_35_custom__obj__.py"
+    title: "Demos"
 ---
 
 # Overview
@@ -42,8 +49,3 @@ constructor argument (`sqlkit/widgets/common/sqlwidget.py`):
 def on_pre_layout(self, widget):
     widget.gui_field_mapping = {'costo': CostoField}
 ```
-
-# Citations
-
-[1] `sqlkit/fields.py`, `sqlkit/widgets/table/columns.py`.
-[2] Demos `demo/sql/ex_30_mapper_count.py`–`ex_35_custom__obj__.py`.

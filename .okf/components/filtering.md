@@ -4,7 +4,14 @@ title: Filtering
 description: Interactive filter panel and Django-like programmatic filters with relative dates and joins.
 resource: sqlkit/widgets/common/sqlfilter.py
 tags: [filter, query, search]
-timestamp: 2026-07-21T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-07-21T00:00:00Z
+sources:
+  - resource: sqlkit/widgets/common/sqlfilter.py
+  - resource: sqlkit/db/django_syntax.py
+  - resource: "../../doc/sqlkit/filters.rst"
+    title: "doc/sqlkit/filters.rst"
 ---
 
 # Overview
@@ -45,8 +52,3 @@ m.set_records(custom_rows)       # inject
 The filter panel translates operators per backend: `icontains` maps to
 `regexp` on PostgreSQL/MySQL (see `changelog` and recent git history). Boolean
 columns coerce string booleans in Django-style filters.
-
-# Citations
-
-[1] `sqlkit/widgets/common/sqlfilter.py`, `sqlkit/db/django_syntax.py`.
-[2] [doc/sqlkit/filters.rst](../../doc/sqlkit/filters.rst)

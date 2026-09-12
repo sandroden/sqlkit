@@ -3,7 +3,17 @@ type: Playbook
 title: Dev setup
 description: Create the uv venv with system PyGObject and install dependencies.
 tags: [setup, uv, pygobject, gtk3]
-timestamp: 2026-07-21T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-07-21T00:00:00Z
+sources:
+  - resource: README
+  - resource: pyproject.toml
+  - resource: CLAUDE.md
+  - resource: "/components/dbproxy.md"
+    title: "DbProxy"
+  - resource: "/decisions/py3-gtk3-port.md"
+    title: "Python 3 / GTK 3 port"
 ---
 
 # Why this is special
@@ -39,8 +49,3 @@ uv run python -c "import sqlkit; print(sqlkit.__version__)"
 * The `dev` dependency group (`sphinx`, `pytest`, `pydata-sphinx-theme`) is
   installed by `uv sync` by default (PEP 735).
 * See [running demos](/playbooks/running-demos.md) for the GUI display setup.
-
-# Citations
-
-[1] `README`, `pyproject.toml`, `CLAUDE.md`.
-[2] Related: [DbProxy](/components/dbproxy.md), [Python 3 / GTK 3 port](/decisions/py3-gtk3-port.md).

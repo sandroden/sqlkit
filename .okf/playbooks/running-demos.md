@@ -3,7 +3,17 @@ type: Playbook
 title: Running demos & tests
 description: The demos are the primary test surface; how to run them headless and run the pytest suites.
 tags: [demo, test, pytest, gtk3]
-timestamp: 2026-07-21T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-07-21T00:00:00Z
+sources:
+  - resource: pytest.ini
+  - resource: README
+  - resource: CLAUDE.md
+  - resource: changelog
+    title: '"new pytest suite (177 tests, sqlite in-memory by default)"'
+  - resource: "/playbooks/dev-setup.md"
+    title: "dev setup"
 ---
 
 # Demos as the primary test surface
@@ -38,9 +48,3 @@ uv run python test/regress_porting_traps/run_all.py     # porting-trap regressio
 ```
 
 `appy` is optional: without it the printing regressions skip rather than fail.
-
-# Citations
-
-[1] `pytest.ini`, `README`, `CLAUDE.md`.
-[2] `changelog` — "new pytest suite (177 tests, sqlite in-memory by default)".
-[3] Related: [dev setup](/playbooks/dev-setup.md).

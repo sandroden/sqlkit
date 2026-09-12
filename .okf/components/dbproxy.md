@@ -4,7 +4,14 @@ title: DbProxy
 description: Wrapper over the SQLAlchemy engine/metadata/Session, passed to every sqlkit widget.
 resource: sqlkit/db/proxy.py
 tags: [core, database, sqlalchemy]
-timestamp: 2026-07-21T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-07-21T00:00:00Z
+sources:
+  - resource: sqlkit/db/proxy.py
+    title: "DbProxy, normalize_url"
+  - resource: "/playbooks/dev-setup.md"
+    title: "Dev setup playbook"
 ---
 
 # Overview
@@ -39,8 +46,3 @@ installed. Install the driver with the `postgres` extra:
 ```
 uv sync --extra postgres      # or: pip install sqlkit[postgres]
 ```
-
-# Citations
-
-[1] `sqlkit/db/proxy.py` — `DbProxy`, `normalize_url`.
-[2] [Dev setup playbook](/playbooks/dev-setup.md)

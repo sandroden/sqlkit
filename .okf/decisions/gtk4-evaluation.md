@@ -3,7 +3,13 @@ type: Decision
 title: GTK 4 evaluation
 description: A future GTK 4 migration was evaluated but not started; the key risk is in-cell editing.
 tags: [gtk4, migration, evaluation, decision]
-timestamp: 2026-07-21T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-07-21T00:00:00Z
+sources:
+  - resource: "Internal GTK 4 migration evaluation (deep-research, 2026)"
+  - resource: "/decisions/py3-gtk3-port.md"
+    title: "Python 3 / GTK 3 port"
 ---
 
 # Status
@@ -24,8 +30,3 @@ drop-in native replacement. The suggested reference direction is a
 
 Stay on GTK 3 for now. Revisit only if GTK 3 / PyGObject support becomes a
 blocker; treat in-cell editing as the make-or-break spike before committing.
-
-# Citations
-
-[1] Internal GTK 4 migration evaluation (deep-research, 2026).
-[2] Related: [Python 3 / GTK 3 port](/decisions/py3-gtk3-port.md).

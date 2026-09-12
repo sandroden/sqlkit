@@ -4,7 +4,15 @@ title: Layout DSL
 description: A concise mini-language that describes how fields and sub-widgets are arranged in a mask.
 resource: sqlkit/layout
 tags: [core, layout, mask]
-timestamp: 2026-07-21T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-07-21T00:00:00Z
+sources:
+  - resource: sqlkit/layout/
+  - resource: sqlkit/widgets/common/layoutgenerator.py
+  - resource: sqlkit/db/defaults.py
+  - resource: "../../doc/layout/layout.rst"
+    title: "doc/layout/layout.rst"
 ---
 
 # Overview
@@ -44,8 +52,3 @@ defaults.register_layout('movie', LAYOUT)     # sqlkit/db/defaults.py:232
 
 See `demo/sql/ex_66_hooks_on_init.py` for `register_layout` + `register_hook`
 used together.
-
-# Citations
-
-[1] `sqlkit/layout/`, `sqlkit/widgets/common/layoutgenerator.py`, `sqlkit/db/defaults.py`.
-[2] [doc/layout/layout.rst](../../doc/layout/layout.rst)
