@@ -43,19 +43,23 @@ sources:
    `sqlkit/widgets/table/cell_renderers.py`). Also `Pango.PIXELS` does not
    exist via introspection (C macro): use `Pango.SCALE`.
 
+6. **GTK tests must not reach the user's desktop.** `xvfb-run` alone is not
+   enough when `WAYLAND_DISPLAY` is set: GTK picks Wayland and opens windows
+   on the real session. Use `env -u WAYLAND_DISPLAY GDK_BACKEND=x11 xvfb-run -a`.
+
 # SQLAlchemy
 
-6. **Classical `mapper()` is gone in SA 2.x.** Use
+7. **Classical `mapper()` is gone in SA 2.x.** Use
    `sqlkit.db.sacompat.map_imperatively(...)` (works on 1.4 and 2.x). See
    [SQLAlchemy 2.x support](/decisions/sqlalchemy-2-support.md).
 
 # Programming model
 
-7. **No side-effects in validation.** Do not send email / touch the outside
+8. **No side-effects in validation.** Do not send email / touch the outside
    world in `on_field_validation` or `on_pre_save` — the flush can fail and
    leave a phantom effect. Record the intent and act in `on_after_commit`. See
    [hooks](/components/hooks.md).
 
-8. **i18n label vs DB column name collision.** The translation layer can rewrite
+9. **i18n label vs DB column name collision.** The translation layer can rewrite
    a field name that collides with an i18n label; use a display alias different
    from the real DB column when it happens.
