@@ -31,6 +31,7 @@ from gi.repository import GObject
 from sqlkit import debug as dbg, _
 from sqlkit.misc import utils
 from sqlkit.widgets.common import sqlwidget
+from sqlkit.widgets.table.totals_footer import TotalsFooter
 
 class TotalObj(object):
 
@@ -54,6 +55,7 @@ class TotalObj(object):
         """
         for name in fields:
             setattr(self, name, None)
+        self._sub = sub
         if sub:
             self._color = self._sub_color
         else:
@@ -108,6 +110,21 @@ class Totals(GObject.GObject):
     The values are the subtotals. It's filled by :meth:`sum` that can be customized.
     """
 
+    hide_total = False
+    """
+    If True the grand total is not shown (only subtotals). Set by :meth:`add_total`
+    """
+
+    footer = True
+    """
+    If True the grand totals are also shown in a fixed strip under the table
+    (:class:`sqlkit.widgets.table.totals_footer.TotalsFooter`), visible
+    without scrolling to the last row. Set to False before adding totals to
+    disable it.
+    """
+
+    footer_class = TotalsFooter
+
     def __init__(self, table, treeview=None):
         """
         :param table:  the tabe for which a total must be generated
@@ -122,6 +139,7 @@ class Totals(GObject.GObject):
         self.break_func = None
         self.prev = None
         self.treeview = treeview or table.treeview
+        self._footer = None
         self.table.modelproxy.connect('model-sorted', lambda proxy, model: self.compute())
         self.table.modelproxy.connect('model-pre-sort', self.delete_total_rows)
 #        self.table.connect('context-changed', self.update)
@@ -153,6 +171,23 @@ class Totals(GObject.GObject):
 
     def del_total(self, field_name):
         del self.totals[field_name]
+        self.refresh_footer()
+
+    def refresh_footer(self):
+        """
+        Update the fixed footer with the grand totals, creating it the first
+        time a total is shown. Only the main treeview of a table gets a footer
+        (not e.g. the filter panel output) and only if :attr:`footer` is True.
+        """
+        if self._footer is None:
+            if not (self.footer and self.totals):
+                return
+            if self.treeview is not getattr(self.table, 'treeview', None):
+                return
+            if not self.footer_class.can_attach(self.treeview):
+                return
+            self._footer = self.footer_class(self)
+        self._footer.refresh()
 
     def add_break(self, field_name, func=None):
         """
@@ -318,9 +353,12 @@ class Totals(GObject.GObject):
         Go, add subtotals and total
         """
         if not list(self.totals.keys()):
+            self.refresh_footer()
             return
         self.initialize()
         if not self.table.records:
+            # totals are now 0: the footer must not keep the previous values
+            self.refresh_footer()
             return
         self.delete_total_rows()
         self.table.modelproxy.modelstore.foreach(self.foreach_ins_func)
@@ -328,6 +366,7 @@ class Totals(GObject.GObject):
         row = self.insert_total(row=None, after=True)
         if self.break_func:
             self.insert_subtotal(row.iter, after=True if self.hide_total else False)
+        self.refresh_footer()
         self.emit('computed', utils.ObjLike(self.totals))
 
     def delete_total_rows(self, *args):

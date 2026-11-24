@@ -1,3 +1,11 @@
+sqlkit - unreleased
+
+	* totals: grand totals are also shown in a fixed strip under the
+	  table (``TotalsFooter``), visible without scrolling to the last
+	  row; columns with a total are widened so the total is not
+	  clipped. The strip is transparent while the grand total row
+	  is visible. ``Totals.footer = False`` disables it.
+
 sqlkit - 1.1.0 - SQLAlchemy 2.x support - Jun 2026
 
 	* SQLAlchemy: dual support for 1.4 and 2.x (pin widened to

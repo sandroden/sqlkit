@@ -15,8 +15,34 @@ is very stupid but... you get the feeling!::
 
 
 .. image:: ../img/totals.png
-    
-  
+
+
+Fixed footer
+============
+
+With many rows the grand total, being the last row of the table, is out of
+sight. For this reason grand totals are also shown in a fixed strip right
+under the table, always visible, each one under its own column. The strip
+follows the width, visibility and order of the columns and the horizontal
+scroll of the table. Columns with a total are widened, if needed, so that the
+total is not clipped.
+
+When the grand total row of the table is entirely in sight (few rows, e.g.
+the inline table of a record, or a table scrolled to the bottom) the strip
+becomes transparent, so the total is not shown twice. Its space stays
+reserved: the table does not change height while scrolling.
+
+The strip is hidden when no total is defined or when ``hide_total`` is used.
+To disable it set ``footer`` to False before adding totals::
+
+    t.totals.footer = False
+    t.totals.add_total('year')
+
+The strip is implemented by
+:class:`sqlkit.widgets.table.totals_footer.TotalsFooter` and can be replaced
+setting ``footer_class`` on the Totals instance.
+
+
 Personalization and colors
 ==========================
 
@@ -53,5 +79,10 @@ API
 ---
 
 .. automodule:: sqlkit.widgets.table.totals
+
+.. automodule:: sqlkit.widgets.table.totals_footer
+
+.. autoclass:: sqlkit.widgets.table.totals_footer.TotalsFooter
+   :members: refresh, fit_widths, rebuild
 
    

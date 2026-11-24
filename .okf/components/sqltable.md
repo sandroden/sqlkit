@@ -4,7 +4,7 @@ title: SqlTable
 description: Multi-record editable grid — a view over a query with navigation, filtering and inline editing.
 resource: sqlkit/widgets/table/table.py
 tags: [core, widget, table]
-timestamp: 2026-07-21T00:00:00Z
+timestamp: 2026-11-24T00:00:00Z
 ---
 
 # Overview
@@ -48,6 +48,23 @@ t.reload()          # run the query and populate the view
 directly (`t.mode = 'b'`) or via `t.set_mode('biud')`
 (`sqlkit/widgets/common/sqlwidget.py:890`). See `demo/sql/ex_08_table_noup.py`
 and `demo/sql/ex_11_opts_mode.py`.
+
+# Totals
+
+`t.totals` (`sqlkit/widgets/table/totals.py`) sums numeric columns
+(`add_total`) with optional subtotals on break fields (`add_break`,
+`add_date_break`); also available from the column menu. Totals are extra
+`TotalObj` rows inserted in the model; the `computed` signal carries the
+grand totals. Since 2026-11 the grand totals are also shown in a fixed strip
+under the table (`TotalsFooter`, `sqlkit/widgets/table/totals_footer.py`),
+visible without scrolling: it mirrors width, visibility and order of the main
+columns and follows the horizontal scroll; columns with a total get a
+`min-width` large enough not to clip it. While the grand total row is fully
+visible (short tables, inlines, scrolled to the bottom) the strip is made
+transparent (opacity, not hidden, to avoid a layout jump). `Totals.footer =
+False` disables it;
+`hide_total=True` hides it. Only the main treeview gets a footer (not the
+filter panel output). Demo: `demo/sql/ex_03_table_totals.py`.
 
 # Related concepts
 
