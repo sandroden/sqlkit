@@ -6,6 +6,14 @@ sqlkit - unreleased
 	  clipped. The strip is transparent while the grand total row
 	  is visible. ``Totals.footer = False`` disables it.
 
+	* fix(table): initial column widths work again under GTK3. The
+	  width (db length / ``col_width`` / per-type minimum) was computed
+	  in the GTK2 ``do_get_size``, never called by GTK3: every column
+	  was as wide as its header and dates showed as ``14/1…``. Now
+	  enforced in ``do_get_preferred_width``; dates, datetimes and
+	  times are measured on samples formatted with the field format,
+	  numbers on digits.
+
 sqlkit - 1.1.0 - SQLAlchemy 2.x support - Jun 2026
 
 	* SQLAlchemy: dual support for 1.4 and 2.x (pin widened to

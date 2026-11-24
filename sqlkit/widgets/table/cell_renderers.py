@@ -315,41 +315,74 @@ class CellRendererDatetime(CellRendererDate):
 MAX_CHARS = 30
 
 class CellRendererVarchar(Gtk.CellRendererText):
-    fixed_width = True
 
-    def __init__(self, lenght):
+    """
+    A text renderer whose width is decided in advance, not by the content.
+
+    The width is either ``lenght`` average characters (capped at MAX_CHARS)
+    or, if ``samples`` is given, the width of the widest sample text, e.g. a
+    few dates formatted with the format of the column: exact for any format
+    and locale.
+
+    :param lenght: width in characters
+    :param samples: a callable returning the list of sample strings
+    :param samples_key: a callable returning a hashable value that changes
+           when the samples change (e.g. the format of the field): samples
+           are measured again only when it changes
+
+    Setting ``fixed_width`` to False falls back to the content width
+    (used by :func:`sqlkit.widgets.table.utils.zoom_to_fit`).
+
+    GTK3 note: the width is enforced in ``do_get_preferred_width``; the GTK2
+    ``do_get_size`` is never called by GTK3 size negotiation. A GtkTreeView
+    sizes columns on the *minimum* width of their cells, which for an
+    ellipsized text is just a few characters: the minimum is what we raise.
+    """
+
+    def __init__(self, lenght, samples=None, samples_key=None):
         GObject.GObject.__init__(self)
         self.lenght = lenght
+        self.samples = samples
+        self.samples_key = samples_key
         self.fixed_width = True
+        self._width_cache = {}
         dbg.write("new varchar, lenght", lenght)
 
-    def do_get_size(self, widget, cell_area):
-        # We start from the standard dimension...
-        ellipsize = self.get_property('ellipsize')
-        self.set_property('ellipsize', False)
-        size_tuple = Gtk.CellRendererText.do_get_size(self, widget, cell_area)
-        self.set_property('ellipsize', ellipsize)
-
+    def do_get_preferred_width(self, widget):
+        minimum, natural = Gtk.CellRendererText.do_get_preferred_width(self, widget)
         if not self.fixed_width:
-            # We just return the standard text size.
-            return size_tuple
+            return minimum, natural
+        width = self.get_fixed_width(widget) + self.get_property('xpad') * 2
+        return max(minimum, width), max(natural, width)
 
-        size = list(size_tuple)
+    def get_fixed_width(self, widget):
+        """
+        The width in pixels of the text area, cached per font and samples_key
+        """
         context = widget.get_pango_context()
         description = context.get_font_description()
+        key = (description.to_string() if description else None,
+               self.samples_key() if self.samples_key else None)
+        if key not in self._width_cache:
+            self._width_cache[key] = self._measure(widget, context, description)
+        return self._width_cache[key]
+
+    def _measure(self, widget, context, description):
+        samples = self.samples() if self.samples else None
+        if samples:
+            layout = widget.create_pango_layout('')
+            widths = []
+            for text in samples:
+                layout.set_text(text, -1)
+                widths.append(layout.get_pixel_size()[0])
+            return max(widths)
+
         metrics = context.get_metrics(description)
         effective_lenght = min(self.lenght, MAX_CHARS) or MAX_CHARS
+        # Pango uses its own unit (1/Pango.SCALE px); the C macro PANGO_PIXELS
+        # is not available via introspection: round up to whole pixels
         pango_width = metrics.get_approximate_char_width() * effective_lenght
-
-        # Pango uses its own internal measure unit. "Pango.PIXELS" converts it.
-        width = Pango.PIXELS(pango_width)
-
-        # ... then modify the width. FIXME: consider xpad.
-        xpad = self.get_property('xpad')
-        size[2] = width + xpad * 2
-
-#        dbg.write("lenght", self.lenght)
-        return tuple(size)
+        return -(-pango_width // Pango.SCALE)
 
 
 GObject.type_register(CellRendererVarchar)

@@ -32,6 +32,7 @@ from gi.repository import GObject
 from gi.repository import Pango
 from gi.repository import GdkPixbuf
 
+from datetime import date, datetime, time
 from decimal import Decimal
 
 from . import cell_renderers
@@ -433,7 +434,8 @@ class VarcharColumn(GenericColumn, metaclass=dbg.LogTheMethods):
         ## look for a possibly defined width
         ## choose cell renderer
         if width:
-            cell = cell_renderers.CellRendererVarchar(width)
+            cell = cell_renderers.CellRendererVarchar(
+                width, samples=self.width_samples, samples_key=self.width_samples_key)
             cell.fixed_width = True
         else:
             cell = Gtk.CellRendererText()
@@ -444,6 +446,24 @@ class VarcharColumn(GenericColumn, metaclass=dbg.LogTheMethods):
 
         self.set_alignment(cell)
         return cell
+
+    def has_col_width(self):
+        "True if the programmer set the width of this column via ``col_width``"
+        return bool(self.master.col_width and self.field_name in self.master.col_width)
+
+    def width_samples(self):
+        """
+        Sample texts: the column is as wide as the widest of them.
+        Return None to size the column on :meth:`get_width` average chars.
+        Called again only when :meth:`width_samples_key` changes.
+        """
+        if isinstance(self.field, fields.TimeField) and not self.has_col_width():
+            return [self.field.format_value(time(hour, 58, 58)) for hour in (8, 12, 23)]
+        return None
+
+    def width_samples_key(self):
+        "a value that changes when the samples must be measured again"
+        return (getattr(self.field, 'format', None), getattr(self.field, 'locale', None))
 
     def set_alignment(self, cell):
         """
@@ -560,6 +580,12 @@ class NumericColumn(VarcharColumn):
 
         return width
 
+    def width_samples(self):
+        """
+        Digits are wider than the average char: measure get_width() digits
+        """
+        return ['8' * self.get_width()]
+
     def set_alignment(self, cell):
 
         cell.set_property('xalign', 1.0)
@@ -635,6 +661,23 @@ class DateColumn(VarcharColumn):
 
     MIN_DEFAULT_WIDTH = 10
 
+    def sample_values(self):
+        """
+        Dates covering every month and every weekday: names of months and
+        days (e.g. format ``dd MMM yy eee``) have different widths
+        """
+        return ([date(2026, month, 28) for month in range(1, 13)] +
+                [date(2026, 12, day) for day in range(21, 28)])
+
+    def width_samples(self):
+        """
+        The formatted sample values: the column fits any date in the format
+        of the field (unless a ``col_width`` was set)
+        """
+        if self.has_col_width():
+            return None
+        return [self.field.format_value(value) for value in self.sample_values()]
+
     def editable_connects(self, editable):
 
         pass
@@ -643,6 +686,10 @@ class DateColumn(VarcharColumn):
 class DateTimeColumn(DateColumn):
 
     MIN_DEFAULT_WIDTH = 16
+
+    def sample_values(self):
+        return [datetime(d.year, d.month, d.day, 23, 58, 58)
+                for d in DateColumn.sample_values(self)]
 
     def editable_connects(self, editable):
 

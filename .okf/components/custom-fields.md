@@ -6,10 +6,11 @@ resource: sqlkit/fields.py
 tags: [fields, columns, customization]
 generated:
   by: process:okf-migrate
-  at: 2026-07-21T00:00:00Z
+  at: 2026-11-24T00:00:00Z
 sources:
   - resource: sqlkit/fields.py
   - resource: sqlkit/widgets/table/columns.py
+  - resource: sqlkit/widgets/table/cell_renderers.py
   - resource: "demo/sql/ex_30_mapper_count.py–ex_35_custom__obj__.py"
     title: "Demos"
 ---
@@ -38,6 +39,19 @@ t.views['main'].add_column(field=ObjField('label', {...}), position=0)
 `std_cleanup` is a decorator on `Field` (`sqlkit/fields.py:766`) that wraps a
 plain `clean_value`. Demos: `demo/sql/ex_31_add_field.py`,
 `demo/sql/ex_32_count_movies.py`, `demo/sql/ex_35_custom__obj__.py`.
+
+# Column width
+
+The initial width of a text-like column (`VarcharColumn` and subclasses in
+`sqlkit/widgets/table/columns.py`) is decided in advance by
+`CellRendererVarchar` (`sqlkit/widgets/table/cell_renderers.py`), not by the
+content: `col_width=` (in average chars), else the DB length, clamped to the
+column's `MIN_DEFAULT_WIDTH`/`MAX_DEFAULT_WIDTH`. Dates, datetimes and times
+are measured instead on formatted samples (`width_samples()`, every month and
+weekday in the field's format), numbers on `get_width()` digits. A custom
+column can override `width_samples()` / `width_samples_key()`. See pitfall 5
+in [known pitfalls](/playbooks/known-pitfalls.md) for why this lives in
+`do_get_preferred_width`.
 
 # GUI field mapping
 
