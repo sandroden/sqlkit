@@ -1,4 +1,4 @@
-sqlkit - unreleased
+sqlkit - 1.2.0 - totals footer, column widths, psycopg 3 - Nov 2026
 
 	* totals: grand totals are also shown in a fixed strip under the
 	  table (``TotalsFooter``), visible without scrolling to the last
@@ -13,6 +13,35 @@ sqlkit - unreleased
 	  enforced in ``do_get_preferred_width``; dates, datetimes and
 	  times are measured on samples formatted with the field format,
 	  numbers on digits.
+
+	* db: psycopg 3 support. ``normalize_url()`` maps ``postgres://``
+	  to ``postgresql://`` and routes bare ``postgresql://`` URLs to
+	  ``postgresql+psycopg`` when only psycopg 3 is installed. New
+	  optional extra: ``pip install sqlkit[postgres]``.
+
+	* mask: new ``flip_buttons`` option, back/forward arrows navigate
+	  the records in reverse order (handy with a descending
+	  ``order_by``).
+
+	* fix(SQLAlchemy 2.x): ``Query.join()`` forms removed in 2.0
+	  (filters across relationships, fkey completion, django-syntax
+	  constraints, order_by on related fields); legacy
+	  ``select([cols], where)`` in the fkey filter.
+
+	* fix(db): string booleans (``active='t'``) coerced for Boolean
+	  columns in django-syntax filters (psycopg 3 does not cast
+	  VARCHAR to boolean).
+
+	* fix(filter panel): ``icontains`` translated to the backend
+	  regexp operator on PostgreSQL/MySQL instead of crashing.
+
+	* fix(table): KeyError discarding an unchanged new row of a
+	  related table whose leader collection had been invalidated.
+
+	* fix(sqledit): the connection dialog opens again when sqledit is
+	  started without arguments.
+
+	* docs: OKF knowledge bundle (``.okf/``, OKF v0.2).
 
 sqlkit - 1.1.0 - SQLAlchemy 2.x support - Jun 2026
 

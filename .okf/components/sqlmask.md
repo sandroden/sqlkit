@@ -6,7 +6,7 @@ resource: sqlkit/widgets/mask/mask.py
 tags: [core, widget, mask]
 generated:
   by: process:okf-migrate
-  at: 2026-07-21T00:00:00Z
+  at: 2026-11-24T00:00:00Z
 sources:
   - resource: sqlkit/widgets/mask/mask.py
   - resource: sqlkit/widgets/common/sqlwidget.py
@@ -53,7 +53,7 @@ m.reload()
 * `single=True` — pop up an editor for a single record.
 * `hooks=` — a [Hook](/components/hooks.md) instance.
 * `flip_buttons=True` — reverse the direction of the navigation arrows
-  (added in 1.1.1, see `changelog`).
+  (added in 1.2.0, see `changelog`).
 
 # Runtime handles
 

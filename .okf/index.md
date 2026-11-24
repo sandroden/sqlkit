@@ -12,7 +12,7 @@ completion, validation and relationship editing — with very little code.
 
 This bundle captures the architecture, the extension points, the porting
 decisions and the operational playbooks for **this repository** (version
-1.1.1). Source of truth for every concept is a file that lives here:
+1.2.0). Source of truth for every concept is a file that lives here:
 `sqlkit/…`, `demo/sql/ex_*.py`, `doc/**/*.rst`, `changelog`.
 
 # Components
