@@ -29,6 +29,17 @@ Regression suite del porting (deve restare verde):
 Atteso: 41 passed con `appy` installato; 39 passed + 2 skipped senza
 (`appy` è optional, vedi sotto).
 
+Test, demo e screenshot che creano widget GTK vanno eseguiti in un display
+virtuale isolato, mai sul desktop dell'utente:
+
+    env -u WAYLAND_DISPLAY GDK_BACKEND=x11 xvfb-run -a uv run pytest -q
+    env -u WAYLAND_DISPLAY GDK_BACKEND=x11 xvfb-run -a uv run python test/regress_porting_traps/run_all.py
+
+`xvfb-run` da solo non basta: con `WAYLAND_DISPLAY` impostato GTK sceglie il
+backend Wayland e apre le finestre sulla sessione reale, ignorando Xvfb (e la
+cattura di Xvfb esce nera). Vale anche per le applicazioni che usano sqlkit
+(es. pysia) e va ripetuto nei prompt dei subagenti.
+
 Note operative
 --------------
 
