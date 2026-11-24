@@ -3,7 +3,18 @@ type: Playbook
 title: Known pitfalls
 description: Traps specific to the Py3/GTK3 port and to sqlkit's programming model.
 tags: [pitfalls, gtk3, sqlalchemy, gotchas]
-timestamp: 2026-07-21T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-07-21T00:00:00Z
+sources:
+  - resource: sqlkit/__init__.py
+  - resource: sqlkit/db/sacompat.py
+  - resource: "/components/hooks.md"
+    title: "hooks"
+  - resource: "/decisions/sqlalchemy-2-support.md"
+    title: "SQLAlchemy 2.x support"
+  - resource: "/playbooks/dev-setup.md"
+    title: "dev setup"
 ---
 
 # GTK / PyGObject
@@ -38,8 +49,3 @@ timestamp: 2026-07-21T00:00:00Z
 7. **i18n label vs DB column name collision.** The translation layer can rewrite
    a field name that collides with an i18n label; use a display alias different
    from the real DB column when it happens.
-
-# Citations
-
-[1] `sqlkit/__init__.py`, `sqlkit/db/sacompat.py`.
-[2] Related: [hooks](/components/hooks.md), [SQLAlchemy 2.x support](/decisions/sqlalchemy-2-support.md), [dev setup](/playbooks/dev-setup.md).

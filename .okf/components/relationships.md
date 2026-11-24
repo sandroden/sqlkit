@@ -4,7 +4,14 @@ title: Relationships
 description: Editing one-to-many, many-to-many and many-to-one relations inline in a mask.
 resource: doc/sqlkit/relationship.rst
 tags: [relations, mask, editing]
-timestamp: 2026-07-21T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-07-21T00:00:00Z
+sources:
+  - resource: "../../doc/sqlkit/relationship.rst"
+    title: "doc/sqlkit/relationship.rst"
+  - resource: "demo/sql/ex_20*–ex_27*"
+    title: "Demos"
 ---
 
 # Overview
@@ -49,8 +56,3 @@ Demos: `demo/sql/ex_22_relations_filter_join.py`, `demo/sql/ex_23_relations_filt
 
 Foreign-key columns of an embedded table get [completion](/components/completion.md);
 `demo/sql/ex_40d_completion_m2m_fkey.py` and `ex_40e_...` cover m2m FK completion.
-
-# Citations
-
-[1] [doc/sqlkit/relationship.rst](../../doc/sqlkit/relationship.rst)
-[2] Demos `demo/sql/ex_20*`–`ex_27*`.

@@ -3,7 +3,15 @@ type: Decision
 title: SQLAlchemy 2.x support
 description: sqlkit 1.1.0 widened to dual SQLAlchemy 1.4 + 2.x support behind a compatibility shim.
 tags: [sqlalchemy, migration, decision]
-timestamp: 2026-07-21T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-07-21T00:00:00Z
+sources:
+  - resource: changelog
+    title: '"1.1.0 - SQLAlchemy 2.x support - Jun 2026"'
+  - resource: sqlkit/db/sacompat.py
+  - resource: sqlkit/db/proxy.py
+  - resource: pyproject.toml
 ---
 
 # Context
@@ -35,8 +43,3 @@ psycopg 3 is supported as the `postgres` extra; `normalize_url()` routes plain
 Achieved in the 1.1.x line (current repo version **1.1.1**). This supersedes
 older notes that described SA2 support as "not started / use
 `registry.map_imperatively` yourself" — the shim now does it.
-
-# Citations
-
-[1] `changelog` — "1.1.0 - SQLAlchemy 2.x support - Jun 2026".
-[2] `sqlkit/db/sacompat.py`, `sqlkit/db/proxy.py`, `pyproject.toml`.

@@ -4,7 +4,20 @@ title: SqlTable
 description: Multi-record editable grid — a view over a query with navigation, filtering and inline editing.
 resource: sqlkit/widgets/table/table.py
 tags: [core, widget, table]
-timestamp: 2026-11-24T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-11-24T00:00:00Z
+sources:
+  - resource: sqlkit/widgets/table/table.py
+  - resource: sqlkit/widgets/common/sqlwidget.py
+  - resource: sqlkit/widgets/table/totals.py
+  - resource: sqlkit/widgets/table/totals_footer.py
+  - resource: "../../doc/sqlkit/totals.rst"
+    title: "doc/sqlkit/totals.rst"
+  - resource: "../../doc/sqlkit/table.rst"
+    title: "doc/sqlkit/table.rst"
+  - resource: "../../doc/sqlkit/browsing.rst"
+    title: "doc/sqlkit/browsing.rst"
 ---
 
 # Overview
@@ -72,8 +85,3 @@ Programmatic filters via [add_filter](/components/filtering.md); computed
 columns and views via [custom fields](/components/custom-fields.md); GTK
 [signals](/components/hooks.md) like `record-selected` for master/detail
 composition (`demo/sql/ex_55_signals.py`).
-
-# Citations
-
-[1] `sqlkit/widgets/table/table.py`, `sqlkit/widgets/common/sqlwidget.py`.
-[2] [doc/sqlkit/table.rst](../../doc/sqlkit/table.rst), [doc/sqlkit/browsing.rst](../../doc/sqlkit/browsing.rst)

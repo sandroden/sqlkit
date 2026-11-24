@@ -4,7 +4,14 @@ title: sqledit
 description: The standalone, no-code GUI — point it at a database URL and start editing.
 resource: sqlkit/scripts/sqledit.py
 tags: [cli, gui, standalone]
-timestamp: 2026-07-21T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-07-21T00:00:00Z
+sources:
+  - resource: sqlkit/scripts/sqledit.py
+  - resource: pyproject.toml
+  - resource: "../../doc/misc/sqledit.rst"
+    title: "doc/misc/sqledit.rst"
 ---
 
 # Overview
@@ -24,8 +31,3 @@ sqledit postgresql://user:pwd@host/db
 ```
 
 `demo/sql/ex_99_sqledit.py` drives it programmatically.
-
-# Citations
-
-[1] `sqlkit/scripts/sqledit.py`, `pyproject.toml`.
-[2] [doc/misc/sqledit.rst](../../doc/misc/sqledit.rst)

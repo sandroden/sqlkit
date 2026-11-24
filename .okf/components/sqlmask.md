@@ -4,7 +4,17 @@ title: SqlMask
 description: Single-record form megawidget driven by a layout string; can embed related tables.
 resource: sqlkit/widgets/mask/mask.py
 tags: [core, widget, mask]
-timestamp: 2026-07-21T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-07-21T00:00:00Z
+sources:
+  - resource: sqlkit/widgets/mask/mask.py
+  - resource: sqlkit/widgets/common/sqlwidget.py
+  - resource: "../../doc/sqlkit/mask.rst"
+    title: "doc/sqlkit/mask.rst"
+  - resource: demo/sql/ex_02b_mask_movie.py
+  - resource: demo/sql/ex_50_fancy_layout.py
+  - resource: demo/sql/ex_70_uimanager_custom.py
 ---
 
 # Overview
@@ -56,9 +66,3 @@ m.related.<rel>           # an embedded relationship view
 m.completions.<fk>        # a completion controller
 m.defaults.fk(...)        # a foreign-key default
 ```
-
-# Citations
-
-[1] `sqlkit/widgets/mask/mask.py`, `sqlkit/widgets/common/sqlwidget.py`.
-[2] [doc/sqlkit/mask.rst](../../doc/sqlkit/mask.rst)
-[3] Demos: `demo/sql/ex_02b_mask_movie.py`, `demo/sql/ex_50_fancy_layout.py`, `demo/sql/ex_70_uimanager_custom.py`.

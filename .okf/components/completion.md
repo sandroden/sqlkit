@@ -4,7 +4,15 @@ title: Completion
 description: Autocompletion on plain and foreign-key fields, with runtime filtering and cascades.
 resource: sqlkit/widgets/common/completion.py
 tags: [completion, foreign-key, ux]
-timestamp: 2026-07-21T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-07-21T00:00:00Z
+sources:
+  - resource: sqlkit/widgets/common/completion.py
+  - resource: "../../doc/sqlkit/completion.rst"
+    title: "doc/sqlkit/completion.rst"
+  - resource: "demo/sql/ex_40*–ex_43*"
+    title: "Demos"
 ---
 
 # Overview
@@ -47,9 +55,3 @@ Demo: `demo/sql/ex_62_hooks_completion.py`.
 
 Autostart completion after N chars: `demo/sql/ex_41_completion_autostart.py`
 (and `ex_41b`, `ex_41c`). Group-by output: `demo/sql/ex_43_completion_group_by.py`.
-
-# Citations
-
-[1] `sqlkit/widgets/common/completion.py`.
-[2] [doc/sqlkit/completion.rst](../../doc/sqlkit/completion.rst)
-[3] Demos `demo/sql/ex_40*`–`ex_43*`.

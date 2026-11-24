@@ -4,7 +4,15 @@ title: Hooks
 description: Naming-convention callbacks invoked by the framework on mask/table events — the main way to customize behaviour.
 resource: sqlkit/db/defaults.py
 tags: [core, extension, validation]
-timestamp: 2026-07-21T00:00:00Z
+generated:
+  by: process:okf-migrate
+  at: 2026-07-21T00:00:00Z
+sources:
+  - resource: sqlkit/db/defaults.py
+  - resource: sqlkit/db/__init__.py
+    title: "re-exports"
+  - resource: "../../doc/sqlkit/validation.rst"
+    title: "doc/sqlkit/validation.rst"
 ---
 
 # Overview
@@ -52,8 +60,3 @@ intent in the hook, execute it only in `on_after_commit`. See
 For master/detail composition of two independent widgets, connect to GTK
 signals instead of embedding: `record-selected`, `record-saved`, `after-flush`
 (`demo/sql/ex_55_signals.py`, `demo/sql/ex_56_signals-after-flush.py`).
-
-# Citations
-
-[1] `sqlkit/db/defaults.py`, `sqlkit/db/__init__.py` (re-exports).
-[2] [doc/sqlkit/validation.rst](../../doc/sqlkit/validation.rst)
