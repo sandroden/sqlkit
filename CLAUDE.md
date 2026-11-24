@@ -2,7 +2,8 @@ SQLKIT — porting Py3/Gtk3
 =========================
 
 Questo repo (`sqlkit-gtk3/`) è il target del porting Py3/Gtk3 di sqlkit.
-Lo sviluppo avviene in Mercurial con i topic (`hg topic <name>`); commit
+Lo sviluppo avviene in git (remote `origin` su GitHub, branch principale
+`main`), con un branch per argomento (`feat/...`, `fix/...`); commit
 piccoli e tematici, mai accumulati.
 
 Comandi canonici (uv)
@@ -43,7 +44,8 @@ cattura di Xvfb esce nera). Vale anche per le applicazioni che usano sqlkit
 Note operative
 --------------
 
-* Mercurial, non git: usare solo `hg` per VCS.
+* VCS: git (non Mercurial). Prima di committare controllare su quale branch
+  si è (`git branch --show-current`).
 * `pyproject.toml` è la fonte di verità per metadata, dipendenze e
   configurazione Babel (`[tool.babel.*]`).
 * Dipendenze di sviluppo dichiarate in `[dependency-groups] dev`
